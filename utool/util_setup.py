@@ -1,6 +1,7 @@
 # Utools for setup.py files
 from __future__ import absolute_import, division, print_function
 import sys
+import textwrap
 from os.path import exists, join, dirname, split, splitext
 import os
 from . import util_cplat
@@ -142,6 +143,13 @@ def __infer_setup_kwargs(module, kwargs):
 
     # Parse version
     if 'version' not in kwargs and module is not None:
+        version_errmsg = textwrap.dedent(
+            '''
+            You must include a __version__ variable
+            in %s\'s __init__.py file.
+            Try something like:
+                __version__ = '1.0.0.dev1' ''')
+        assert hasattr(module, '__version__'), (version_errmsg % str(module))
         kwargs['version'] = module.__version__
     # Parse license
     if 'license' not in kwargs:
