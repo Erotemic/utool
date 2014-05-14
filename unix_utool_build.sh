@@ -1,2 +1,3 @@
 #!/bin/bash
-sudo python setup.py install
+sudo python setup.py develop
+#sudo python setup.py install
