@@ -480,3 +480,7 @@ def list_images(img_dpath, ignore_list=[], recursive=True, fullpath=False):
     gname_list = [gname_ for gname_ in iter(gname_list_)
                   if gname_ not in ignore_set and matches_image(gname_)]
     return gname_list
+
+
+def assert_exists(path):
+    assert exists(path), 'path=%r does not exist!' % path
