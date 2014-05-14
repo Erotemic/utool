@@ -1,0 +1,57 @@
+# idk why this exists. probably jon's vimrc
+'
+
+*.py[cod]
+
+# C extensions
+*.so
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+lib
+lib64
+__pycache__
+
+# Installer logs
+pip-log.txt
+
+# Print Logs
+logs
+
+# Unit test / coverage reports
+.coverage
+.tox
+nosetests.xml
+
+# Translations
+*.mo
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
+.DS_Store
+*.dump.txt
+*.sqlite3
+
+# profiler
+*.lprof
+*.prof
+
+# Test data
+vtool/tests/testdata*
+test_data*.shelf
+ibeis/model/detect/rf
+tmp.py
+
+*.flann
+*.npz
