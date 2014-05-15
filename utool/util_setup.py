@@ -68,7 +68,8 @@ def clean(setup_dir, clutter_patterns, clutter_dirs, cython_files):
                                   verbose=VERBOSE)
 
     for dir_ in clutter_dirs:
-        util_path.remove_files_in_dir(dir_)
+        util_path.delete(dir_)
+        #util_path.remove_files_in_dir(dir_)
 
     for fpath in cython_files:
         fname, ext = splitext(fpath)
@@ -92,7 +93,7 @@ def presetup(setup_fpath, kwargs):
     project_name     = kwargs.pop('project_name', '')
     project_dirs     = kwargs.pop('project_dirs', None)
     chmod_patterns   = kwargs.pop('chmod_patterns', SETUP_PATTERNS.chmod)
-    clutter_dirs     = kwargs.pop('clutter_dirs', ['build', 'dist'])
+    clutter_dirs     = kwargs.pop('clutter_dirs', None)
     clutter_patterns = kwargs.pop('clutter_patterns', SETUP_PATTERNS.clutter)
     cython_files     = kwargs.pop('cython_files', [])
     build_command    = kwargs.pop('build_command', NOOP)
@@ -101,6 +102,9 @@ def presetup(setup_fpath, kwargs):
     build_dir = join(setup_dir, 'build')
     os.chdir(setup_dir)  # change into setup directory
     assert_in_setup_repo(setup_fpath, project_name)
+
+    if clutter_dirs is None:
+        clutter_dirs = ['build', 'dist', project_name + '.egg-info']
 
     if project_dirs is None:
         project_dirs = util_path.ls_moduledirs(setup_dir)
