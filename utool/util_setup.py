@@ -31,11 +31,12 @@ def build_pyo(project_dirs):
 
 def setup_chmod(setup_fpath, setup_dir, chmod_patterns):
     """ Gives files matching pattern the same chmod flags as setup.py """
-    st = os.stat(setup_fpath)
+    #st_mode = os.stat(setup_fpath).st_mode
+    st_mode = 33277
     for pattern in chmod_patterns:
-        for fpath in util_path.glob(pattern, recursive=True):
+        for fpath in util_path.glob(setup_dir, pattern, recursive=True):
             print('[setup] chmod fpath=%r' % fpath)
-            os.chmod(fpath, st.st_mode)
+            os.chmod(fpath, st_mode)
 
 
 def assert_in_setup_repo(setup_fpath, project_name=''):

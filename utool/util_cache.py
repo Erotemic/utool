@@ -118,9 +118,7 @@ def get_global_cache_dir(appname='utool', ensure=False):
             '~/.config', '~/AppData/Roaming', or '~/Library/Application Support'
     """
     # TODO: Make a decoupled way to set the application name
-    os_resource_dpath = util_cplat.get_resource_dir()
-    project_cache_dname = '%s_cache' % appname
-    global_cache_dir = normpath(join(os_resource_dpath, project_cache_dname))
+    global_cache_dir = util_cplat.get_project_resource_dir(appname, 'global_cache')
     if ensure:
         util_path.ensuredir(global_cache_dir)
     return global_cache_dir

@@ -9,6 +9,7 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[arg]')
 
 QUIET = '--quiet' in sys.argv
 VERBOSE = '--verbose' in sys.argv
+STRICT = '--nostrict' not in sys.argv
 
 
 def get_arg(arg, type_=None, default=None, **kwargs):

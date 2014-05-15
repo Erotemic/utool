@@ -18,6 +18,7 @@ from .util_dbg import printex
 
 QUIET   = util_arg.QUIET
 VERBOSE = util_arg.VERBOSE
+STRICT  = util_arg.STRICT
 
 __POOL__ = None
 __TIME__ = '--time' in sys.argv
@@ -51,7 +52,7 @@ def init_pool(num_procs=None, maxtasksperchild=None):
         print('[parallel] num_procs=1, Will process in serial')
         __POOL__ = 1
         return
-    if '--strict' in sys.argv:
+    if STRICT:
         #assert __POOL__ is None, 'pool is a singleton. can only initialize once'
         assert multiprocessing.current_process().name, 'can only initialize from main process'
     if __POOL__ is not None:
