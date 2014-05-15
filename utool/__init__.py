@@ -39,6 +39,7 @@ if __DYNAMIC__:
         ('util_cache',     ['global_cache_read', 'global_cache_write']),
         #('util_classes',   ['AutoReloader']),
         ('util_cplat',     ['cmd', 'view_directory',]),
+        ('util_class',     None),
         ('util_csv',       None),
         ('util_dbg',       ['execstr_dict', 'save_testdata', 'load_testdata',
                             'get_caller_name', 'import_testdata', 'embed',
@@ -68,6 +69,7 @@ if __DYNAMIC__:
         ('util_regex',     ['regex_search']),
         ('util_time',      ['tic', 'toc', 'Timer']),
         ('util_type',      None),
+        ('util_tests',     None),
         ('DynamicStruct',  ['DynStruct']),
         ('Preferences',    ['Pref']),
         ]

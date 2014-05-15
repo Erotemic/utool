@@ -119,7 +119,7 @@ def inject_print_functions(module_name=None, module_prefix='[???]', DEBUG=False,
 
 
 def inject_reload_function(module_name=None, module_prefix='[???]', module=None):
-    'Injects dynamic module reloading'
+    """ Injects dynamic module reloading """
     module = _get_module(module_name, module)
     if module_name is None:
         module_name = str(module.__name__)
