@@ -255,3 +255,11 @@ def str_between(str_, startstr, endstr):
     startpos = str_.find(startstr) + len(startstr)
     endpos = str_.find(endstr) - 1
     return str_[startpos:endpos]
+
+
+def padded_str_range(start, end):
+    """ Builds a list of (end - start) strings padded with zeros """
+    nDigits = np.ceil(np.log10(end))
+    fmt = '%0' + str(nDigits) + 'd'
+    str_range = (fmt % num for num in xrange(start, end))
+    return list(str_range)
