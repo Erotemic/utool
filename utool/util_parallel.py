@@ -166,9 +166,9 @@ def generate(func, args_list, ordered=False, force_serial=__FORCE_SERIAL__):
     if __TIME__:
         tt = tic(func.func_name)
     if isinstance(__POOL__, int) or force_serial:
-        return _generate_serial(func, args_list, ordered=ordered)
+        return _generate_serial(func, args_list)
     else:
-        return _generate_parallel(func, args_list)
+        return _generate_parallel(func, args_list, ordered=ordered)
     if __TIME__:
         toc(tt)
 

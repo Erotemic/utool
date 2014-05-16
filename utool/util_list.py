@@ -1,6 +1,7 @@
-'''
+"""
 This file has helpers for both lists and numpy arrays
-'''
+TODO: Move numpy arrays helpers elsewhere
+"""
 from __future__ import absolute_import, division, print_function
 import numpy as np
 from itertools import izip
@@ -22,7 +23,7 @@ def alloc_nones(num_alloc):
 
 
 def ensure_list_size(list_, size_):
-    'extend list to max_cx'
+    """ extend list length to size_ """
     lendiff = (size_) - len(list_)
     if lendiff > 0:
         extension = [None for _ in xrange(lendiff)]
@@ -223,6 +224,9 @@ def get_dirty_items(item_list, flag_list):
 
 
 def filter_items(item_list, flag_list):
+    """
+    Returns items in item list where the corresponding item in flag list is true
+    """
     assert len(item_list) == len(flag_list)
     filtered_items = list(ifilter_items(item_list, flag_list))
     return filtered_items
