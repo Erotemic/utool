@@ -75,7 +75,7 @@ def is_float(var):
 
 
 def is_str(var):
-    return isinstance(var, str)
+    return isinstance(var, (str, unicode))
     #return is_type(var, VALID_STRING_TYPES)
 
 

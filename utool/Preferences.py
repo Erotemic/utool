@@ -114,7 +114,7 @@ class PrefChoice(DynStruct):
         if isinstance(new_val, int):
             self.sel = new_val
         # Try to select by value
-        elif isinstance(new_val, str):
+        elif isinstance(new_val, (str, unicode)):
             self.sel = self.choices.index(new_val)
         else:
             raise('Exception: Unknown newval=%r' % new_val)
@@ -488,7 +488,7 @@ class Pref(PrefNode):
                 new_val = int(qvar.toInt()[0])
             elif isinstance(self._intern.value, float):
                 new_val = float(qvar.toFloat()[0])
-            elif isinstance(self._intern.value, str):
+            elif isinstance(self._intern.value, (str, unicode)):
                 new_val = str(qvar.toString())
             elif isinstance(self._intern.value, PrefChoice):
                 new_val = qvar.toString()
@@ -501,7 +501,7 @@ class Pref(PrefNode):
                     raise ValueError('[Pref.qtleaf] Unknown internal type = %r'
                                      % type(self._intern.value))
             # Check for a set of None
-            if isinstance(new_val, str):
+            if isinstance(new_val, (str, unicode)):
                 if new_val.upper() == 'NONE':
                     new_val = None
                 elif new_val.upper() == 'TRUE':

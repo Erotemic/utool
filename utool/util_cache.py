@@ -1,45 +1,18 @@
 from __future__ import absolute_import, division, print_function
 import shelve
-import cPickle
 import atexit
 from os.path import join, normpath
 from . import util_inject
 from . import util_hash
 from . import util_path
+from . import util_io
 from . import util_str
 from . import util_cplat
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[cache]')
 
 
-__PRINT_IO__ = True
-__PRINT_WRITES__ = False or __PRINT_IO__
-__PRINT_READS__  = False or __PRINT_IO__
 __SHELF__ = None  # GLOBAL CACHE
-
-
-def read_from(fpath, verbose=__PRINT_READS__, strict=True):
-    if verbose:
-        print('[cache] * Reading text file: %r ' % util_path.tail(fpath))
-    try:
-        if not util_path.checkpath(fpath, verbose=verbose):
-            raise IOError('[cache] * FILE DOES NOT EXIST!')
-        with open(fpath, 'r') as file_:
-            text = file_.read()
-        return text
-    except IOError as ex:
-        if verbose or strict:
-            print('!!!!!!!')
-            print('IOError: %s' % (ex,))
-            print('[cache] * Error reading fpath=%r' % util_path.tail(fpath))
-        if strict:
-            raise
-
-
-def write_to(fpath, to_write):
-    if __PRINT_WRITES__:
-        print('[cache] * Writing to text file: %r ' % util_path.tail(fpath))
-    with open(fpath, 'w') as file_:
-        file_.write(to_write)
+__APPNAME__ = 'utool'  # the global application name
 
 
 def text_dict_write(fpath, key, val):
@@ -47,14 +20,14 @@ def text_dict_write(fpath, key, val):
     Very naive, but readable way of storing a dictionary on disk
     """
     try:
-        dict_text = read_from(fpath)
+        dict_text = util_io.read_from(fpath)
     except IOError:
         dict_text = '{}'
     dict_ = eval(dict_text)
     dict_[key] = val
     dict_text2 = util_str.dict_str(dict_, strvals=False)
     print(dict_text2)
-    write_to(fpath, dict_text2)
+    util_io.write_to(fpath, dict_text2)
 
 
 def _args2_fpath(dpath, fname, uid, ext, write_hashtbl=False):
@@ -81,44 +54,21 @@ def _args2_fpath(dpath, fname, uid, ext, write_hashtbl=False):
 
 def save_cache(dpath, fname, uid, data):
     fpath = _args2_fpath(dpath, fname, uid, '.cPkl', write_hashtbl=True)
-    save_cPkl(fpath, data)
+    util_io.save_cPkl(fpath, data)
 
 
 def load_cache(dpath, fname, uid):
     fpath = _args2_fpath(dpath, fname, uid, '.cPkl')
-    return load_cPkl(fpath)
-
-
-#------------------------------
-# TODO: Split into utool.util_io
-
-def save_cPkl(fpath, data):
-    # TODO: Split into utool.util_io
-    if __PRINT_WRITES__:
-        print('[cache] * save_cPkl(%r, data)' % (util_path.tail(fpath),))
-    with open(fpath, 'wb') as file_:
-        cPickle.dump(data, file_, cPickle.HIGHEST_PROTOCOL)
-
-
-def load_cPkl(fpath):
-    # TODO: Split into utool.util_io
-    if __PRINT_READS__:
-        print('[cache] * load_cPkl(%r, data)' % (util_path.tail(fpath),))
-    with open(fpath, 'rb') as file_:
-        data = cPickle.load(file_)
-    return data
+    return util_io.load_cPkl(fpath)
 
 
 # --- Global Cache ---
 
-def get_global_cache_dir(appname='utool', ensure=False):
-    """
-        Returns a cache directory for an application in a directory oked by the
-        operating system: IE:
-            '~/.config', '~/AppData/Roaming', or '~/Library/Application Support'
-    """
-    # TODO: Make a decoupled way to set the application name
-    global_cache_dir = util_cplat.get_project_resource_dir(appname, 'global_cache')
+def get_global_cache_dir(appname=None, ensure=False):
+    """ Returns (usually) writable directory for an application cache """
+    if appname is None:
+        appname = __APPNAME__
+    global_cache_dir = util_cplat.get_app_resource_dir(appname, 'global_cache')
     if ensure:
         util_path.ensuredir(global_cache_dir)
     return global_cache_dir
@@ -183,7 +133,3 @@ def delete_global_cache(appname=None):
 
 
 atexit.register(close_global_shelf)  # ensure proper cleanup when exiting python
-
-if __name__ == '__main__':
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32

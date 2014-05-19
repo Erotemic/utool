@@ -62,7 +62,7 @@ def argv_flag(name, default, **kwargs):
 
 
 def switch_sanataize(switch):
-    if isinstance(switch, str):
+    if isinstance(switch, (str, unicode)):
         dest = switch.strip('-').replace('-', '_')
     else:
         if isinstance(switch, tuple):

@@ -20,3 +20,10 @@ def inject_func_as_method(self, func, method_name=None):
     if old_method:
         del old_method
     setattr(self, method_name, method)
+
+
+def __classmember(self, func):
+    if isinstance(func, types.MethodType):
+        return func
+    else:
+        return inject_func_as_method(self, func)

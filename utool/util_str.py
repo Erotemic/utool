@@ -176,6 +176,10 @@ def dict_itemstr_list(dict_, strvals=False):
     return list(itemstr_iter)
 
 
+def list_str(list_):
+    return '[%s\n]' % indentjoin(list_)
+
+
 def dict_str(dict_, strvals=False):
     itemstr_list = dict_itemstr_list(dict_, strvals)
     return '{%s\n}' % indentjoin(itemstr_list)

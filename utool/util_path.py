@@ -75,7 +75,7 @@ def remove_dirs(dpath, dryrun=False, **kwargs):
 
 def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False, verbose=True,
                         dryrun=False, ignore_errors=False, **kwargs):
-    if isinstance(fname_pattern_list, str):
+    if isinstance(fname_pattern_list, (str, unicode)):
         fname_pattern_list = [fname_pattern_list]
     if not __QUIET__:
         print('[path] Removing files:')

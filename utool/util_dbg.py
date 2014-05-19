@@ -27,6 +27,8 @@ except Exception as ex:
     embedded = False
 '''
 
+SUPER_STRICT = '--super-strict' in sys.argv
+
 
 def execstr_embed():
     return IPYTHON_EMBED_STR
@@ -518,28 +520,42 @@ def get_func_name(func):
                                        'type(func)=%r') % (func, type(func)))
 
 
-def printex(ex, msg='[!?] Caught exception',
-            prefix=None, key_list=[], locals_=None):
+def printex(ex, msg='[!?] Caught exception', prefix=None,
+            key_list=[], locals_=None, iswarning=False):
     """ Prints an exception with relevant info """
+    # Get error prefix and local info
     if prefix is None:
         prefix = get_caller_prefix(aserror=True)
     if locals_ is None:
         locals_ = get_caller_locals()
-    exstr = formatex(ex, msg, prefix, key_list, locals_)
+    # build exception message
+    exstr = formatex(ex, msg, prefix, key_list, locals_, iswarning)
     print(exstr)
+    # If you dont know where an error is coming from be super-strict
+    if SUPER_STRICT:
+        raise ex
 
 
 def formatex(ex, msg='[!?] Caught exception',
-             prefix=None, key_list=[], locals_=None):
+             prefix=None, key_list=[], locals_=None, iswarning=False):
     """ Formats an exception with relevant info """
-    ex_str = []
-    append_exstr = ex_str.append
+    # Get error prefix and local info
     if prefix is None:
         prefix = get_caller_prefix(aserror=True)
     if locals_ is None:
         locals_ = get_caller_locals()
-    append_exstr('<!!! EXCEPTION !!!>')
-    append_exstr(prefix + ' ' + msg + '%s: %s' % (type(ex), ex))
+    # build exception message
+    exstrs = []  # list of exception strings
+    ex_tag = 'WARNING' if iswarning else 'EXCEPTION'
+    exstrs.append('<!!! %s !!!>' % ex_tag)
+    exstrs.append(prefix + ' ' + msg + '%s: %s' % (type(ex), ex))
+    parse_locals_keylist(locals_, key_list, exstrs, prefix)
+    exstrs.append('</!!! %s !!!>' % ex_tag)
+    return '\n'.join(exstrs)
+
+
+def parse_locals_keylist(locals_, key_list, strlist_, prefix):
+    """ For each key in keylist, puts its value in locals into a stringlist """
     for key in key_list:
         if isinstance(key, tuple):
             func = key[0]
@@ -547,14 +563,12 @@ def formatex(ex, msg='[!?] Caught exception',
             assert key in locals_
             val = locals_[key]
             funcvalstr = str(func(val))
-            append_exstr('%s %s(%s) = %s' % (prefix, get_func_name(func), key, funcvalstr))
+            strlist_.append('%s %s(%s) = %s' % (prefix, get_func_name(func), key, funcvalstr))
         elif key in locals_:
             valstr = truncate_str(repr(locals_[key]), maxlen=200)
-            append_exstr('%s %s = %s' % (prefix, key, valstr))
+            strlist_.append('%s %s = %s' % (prefix, key, valstr))
         else:
-            append_exstr('%s !!! %s not populated!' % (prefix, key))
-    append_exstr('</!!! EXCEPTION !!!>')
-    return '\n'.join(ex_str)
+            strlist_.append('%s !!! %s not populated!' % (prefix, key))
 
 
 def get_reprs(*args, **kwargs):

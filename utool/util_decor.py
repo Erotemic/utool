@@ -100,12 +100,12 @@ def indent_func(input_):
     """
     Takes either no arguments or an alias label
     """
-    if isinstance(input_, str):
+    if isinstance(input_, (str, unicode)):
         lbl = input_
         return indent_decor(lbl)
     elif isinstance(input_, (bool, tuple)):
         return identity_decor
-    if not isinstance(input_, str):
+    if not isinstance(input_, (str, unicode)):
         func = input_
         # No arguments were passed
         @wraps(func)

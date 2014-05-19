@@ -11,7 +11,7 @@ from . import util_cplat
 from . import util_path
 from . import util_num
 from . import util_dev
-from . import util_cache
+from . import util_io
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[latex]')
 
@@ -53,7 +53,7 @@ def render(input_text, fnum=1):
     try:
         util_path.ensuredir(text_dir, verbose=verbose)
         os.chdir(text_dir)
-        util_cache.write_to(text_fpath, text)
+        util_io.write_to(text_fpath, text)
         util_cplat.cmd('pdflatex', text_fpath, verbose=verbose)
         assert util_path.checkpath(pdf_fpath, verbose=verbose), 'latex failed'
         util_cplat.cmd('convert', '-density', '300', pdf_fpath, '-quality', '90', jpg_fpath, verbose=verbose)

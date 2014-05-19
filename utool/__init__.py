@@ -44,7 +44,7 @@ if __DYNAMIC__:
         ('util_dbg',       ['execstr_dict', 'save_testdata', 'load_testdata',
                             'get_caller_name', 'import_testdata', 'embed',
                             'quitflag', 'inIPython', 'printvar2', 'all_rrr']),
-        ('util_dev',       ['printable_mystats', 'mystats', 'myprint',
+        ('util_dev',       ['common_stats', 'mystats', 'myprint',
                             'get_object_size']),
         ('util_decor',     ['ignores_exc_tb', 'indent_decor', 'indent_func',
                             'lru_cache', 'accepts_numpy',
@@ -54,6 +54,7 @@ if __DYNAMIC__:
         ('util_dict',      None),
         ('util_hash',      ['hashstr_arr', 'hashstr',]),
         ('util_inject',    ['inject', 'inject_all', 'inject_print_functions']),
+        ('util_io',        None),
         ('util_iter',      ['iflatten', 'ichunks', 'interleave',]),
         ('util_list',      ['alloc_lists', 'list_index', 'npfind', 'index_of',
                             'flatten']),
@@ -62,6 +63,7 @@ if __DYNAMIC__:
                             'list_images', 'copy']),
         ('util_print',     ['horiz_print', 'printshape', 'Indenter']),
         ('util_progress',  ['progress_func']),
+        ('util_parallel',  None),
         ('util_resources', ['print_resource_usage']),
         ('util_str',       ['byte_str2', 'horiz_string', 'theta_str']),
         ('util_sysreq',    None),
@@ -229,7 +231,7 @@ else:
                            get_object_base, get_object_size, get_object_size_str,
                            info, listinfo, memory_profile, myprint, mystats, npinfo,
                            numpy_list_num_bits, print_object_size, printableVal,
-                           printable_mystats, runprofile, splitext, stats_str,)
+                           common_stats, runprofile, splitext, stats_str,)
     from .util_decor import (DISABLE_WRAPPERS, IGNORE_EXC_TB, TRACE, UNIQUE_NUMPY,
                              accepts_numpy, accepts_scalar_input,
                              accepts_scalar_input_vector_output, common_wrapper,
@@ -302,6 +304,10 @@ else:
     from .util_type import (VALID_FLOAT_TYPES, VALID_INT_TYPES, assert_int, is_bool,
                             is_dict, is_type,)
     from .DynamicStruct import (AbstractPrintable, DynStruct,)
+    #
+    #
+    # What the hell is this still doing here?
+    # Consolidate and fix.
     from .Preferences import (EditPrefWidget, Pref, PrefChoice, PrefInternal,
                               PrefNode, PrefTree, QAbstractItemModel, QModelIndex,
                               QObject, QPreferenceModel, QString, QVariant, QWidget,

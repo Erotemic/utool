@@ -4,7 +4,7 @@ import warnings
 import numpy as np
 from os.path import splitext, exists
 from .util_inject import inject
-from .Printable import printableVal, printable_mystats, mystats  # NOQA
+from .Printable import printableVal, common_stats, mystats  # NOQA
 print, print_, printDBG, rrr, profile = inject(__name__, '[dev]')
 
 
@@ -26,8 +26,8 @@ def DEPRICATED(func):
 # --- Info Strings ---
 
 def stats_str(*args, **kwargs):
-    # wrapper for printable_mystats
-    return printable_mystats(*args, **kwargs)
+    # wrapper for common_stats
+    return common_stats(*args, **kwargs)
 
 
 def myprint(input_=None, prefix='', indent='', lbl=''):
@@ -41,7 +41,7 @@ def myprint(input_=None, prefix='', indent='', lbl=''):
         for item in iter(input_):
             myprint(item, indent=indent + '  ')
         print(indent + ']')
-    elif isinstance(input_, str):
+    elif isinstance(input_, (str, unicode)):
         print(input_)
     elif isinstance(input_, dict):
         print(printableVal(input_))

@@ -7,7 +7,7 @@ import os
 from . import util_cplat
 from . import util_path
 from . import util_dev
-from . import util_cache
+from . import util_io
 from . import util_str
 from .util_arg import VERBOSE
 
@@ -164,9 +164,9 @@ def __infer_setup_kwargs(module, kwargs):
             pass
     # Parse readme
     if 'long_description' not in kwargs:
-        kwargs['long_description'] = util_cache.read_from('README.md',
-                                                            verbose=False,
-                                                            strict=False)
+        kwargs['long_description'] = util_io.read_from('README.md',
+                                                       verbose=False,
+                                                       strict=False)
     if 'name' not in kwargs:
         kwargs['name'] = project_name
 

@@ -71,7 +71,7 @@ def get_resource_dir():
         return normpath(expanduser('~/Library/Application Support'))
 
 
-def get_project_resource_dir(*args):
+def get_app_resource_dir(*args):
     """ Returns a writable directory for an application
     Input: appname - the name of the application
            *args, - any other subdirectories may be specified
@@ -98,7 +98,7 @@ def cmd(*args, **kwargs):
     sudo = kwargs.get('sudo', False)
     if len(args) == 1 and isinstance(args[0], list):
         args = args[0]
-    if isinstance(args, str):
+    if isinstance(args, (str, unicode)):
         if os.name == 'posix':
             args = shlex.split(args)
         else:

@@ -25,7 +25,7 @@ def ifilter_Nones(iter_):
 
 
 def isiterable(obj):
-    return np.iterable(obj) and not isinstance(obj, str)
+    return np.iterable(obj) and not isinstance(obj, (str, unicode))
 
 
 def iflatten(list_):

@@ -136,11 +136,11 @@ def printableVal(val, type_bit=True, justlength=False):
         if info.dtypestr.startswith('bool'):
             _valstr = '{ shape:' + info.shapestr + ' bittotal: ' + info.bittotal + '}'  # + '\n  |_____'
         elif info.dtypestr.startswith('float'):
-            _valstr = printable_mystats(val)
+            _valstr = common_stats(val)
         else:
             _valstr = '{ shape:' + info.shapestr + ' mM:' + info.minmaxstr + ' }'  # + '\n  |_____'
     # String
-    elif isinstance(val, str):
+    elif isinstance(val, (str, unicode)):
         _valstr = '\'%s\'' % val
     # List
     elif isinstance(val, list):
@@ -165,7 +165,7 @@ def printableVal(val, type_bit=True, justlength=False):
     return _valstr
 
 
-def printable_mystats(_list, newlines=False):
+def common_stats(_list, newlines=False):
     stat_dict = mystats(_list)
     stat_strs = ['%r: %s' % (key, val) for key, val in stat_dict.iteritems()]
     if newlines:
