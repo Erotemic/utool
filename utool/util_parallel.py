@@ -149,11 +149,12 @@ def _generate_serial(func, args_list):
     end_prog()
 
 
-def ensure_pool():
+def ensure_pool(warn=True):
     try:
         assert __POOL__ is not None, 'must init_pool() first'
     except AssertionError as ex:
-        print('(WARNING) AssertionError: ' + str(ex))
+        if warn:
+            print('(WARNING) AssertionError: ' + str(ex))
         init_pool()
 
 
