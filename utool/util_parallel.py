@@ -131,7 +131,7 @@ def _generate_parallel(func, args_list, ordered=False, chunksize=1):
         printex(ex, 'Parallel Generation Failed!', '[utool]')
         print('__SERIAL_FALLBACK__ = %r' % __SERIAL_FALLBACK__)
         if __SERIAL_FALLBACK__:
-            for result in _generate_serial(func, args_list, mark_prog):
+            for result in _generate_serial(func, args_list):
                 yield result
         else:
             raise
