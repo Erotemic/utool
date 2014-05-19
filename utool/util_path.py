@@ -166,9 +166,9 @@ def checkpath(path_, verbose=__VERBOSE__):
         return exists(path_)
 
 
-def ensurepath(path_, **kwargs):
-    if not checkpath(path_, **kwargs):
-        if not __QUIET__:
+def ensurepath(path_, verbose=not __QUIET__):
+    if not checkpath(path_):
+        if verbose:
             print('[path] mkdir(%r)' % path_)
         os.makedirs(path_)
     return True
