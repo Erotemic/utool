@@ -107,3 +107,7 @@ def is_dict(var):
 
 def is_list(var):
     return isinstance(var, list)
+
+
+def type_str(type_):
+    return str(type_).replace('<type \'', '').replace('\'>', '')
