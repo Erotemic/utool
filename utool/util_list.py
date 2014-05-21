@@ -311,3 +311,16 @@ def deterministic_shuffle(list_):
     np.random.seed(len(list_))
     np.random.shuffle(list_)
     np.random.seed(randS)
+
+
+def sortedby(list_, sortable, reverse=False):
+    """ Returns a list sorted by the values of another list
+    >>> import utool
+    >>> list_    = [1, 2, 3, 4, 5]
+    >>> sortable = [2, 5, 3, 1, 5]
+    >>> utool.sortedby(list_, sortable, reverse=True)
+    [5, 2, 3, 1, 4]
+    """
+    assert len(list_) == len(sortable), 'must be same len'
+    sorted_list = [item for (key, item) in sorted(list(izip(sortable, list_)), reverse=reverse)]
+    return sorted_list

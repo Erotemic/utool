@@ -25,14 +25,32 @@ VALID_FLOAT_TYPES = (types.FloatType,
                      np.dtype('float32'),
                      np.dtype('float16'),)
 
+VALID_BOOL_TYPES = (types.BooleanType, np.bool_)
+
 
 def try_cast(var, type_, default=None):
     if type_ is None:
         return var
     try:
-        return type_(var)
+        return smart_cast(var, type_)
     except Exception:
         return default
+
+
+def smart_cast(var, type_):
+    if type_ in VALID_BOOL_TYPES and is_str(var):
+        return bool_from_str(var)
+    return type_(var)
+
+
+def bool_from_str(str_):
+    lower = str_.lower()
+    if lower == 'true':
+        return True
+    elif lower == 'false':
+        return False
+    else:
+        raise TypeError('string does not represent boolean')
 
 
 def assert_int(var, lbl='var'):
@@ -80,15 +98,12 @@ def is_str(var):
 
 
 def is_bool(var):
-    return isinstance(var, bool) or isinstance(var, np.bool_)
-    #return is_type(var, VALID_BOOLEAN_TYPES)
+    return isinstance(var, VALID_BOOL_TYPES)
 
 
 def is_dict(var):
     return isinstance(var, dict)
-    #return is_type(var, VALID_BOOLEAN_TYPES)
 
 
 def is_list(var):
     return isinstance(var, list)
-    #return is_type(var, VALID_LIST_TYPES)

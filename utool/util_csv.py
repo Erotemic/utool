@@ -10,7 +10,7 @@ def numpy_to_csv(arr, col_labels=None, header='', col_type=None):
     return make_csv_table(col_labels, col_list, header, col_type)
 
 
-def make_csv_table(column_labels=None, column_list=[], header='',
+def make_csv_table(column_list=[], column_labels=None, header='',
                    column_type=None):
     """
     Creates a csv table with aligned columns
