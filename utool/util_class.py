@@ -1,7 +1,12 @@
 from __future__ import absolute_import, division, print_function
 import types
+from collections import defaultdict
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[class]', DEBUG=False)
+
+
+# Registers which classes have which attributes
+__CLASSTYPE_ATTRIBUTES__ = defaultdict(list)
 
 
 def inject_func_as_method(self, func, method_name=None):
@@ -22,8 +27,29 @@ def inject_func_as_method(self, func, method_name=None):
     setattr(self, method_name, method)
 
 
-def __classmember(self, func):
+def __instancemember(self, func):
     if isinstance(func, types.MethodType):
         return func
     else:
         return inject_func_as_method(self, func)
+
+
+class ReloadableMetaclass(type):
+    def __new__(meta, name, bases, attrs):
+        #print('meta = %r' (str(meta),))
+        #print('name = %r' (str(name),))
+        #print('bases = %r' (str(bases),))
+        #print('attrs = %r' (str(attrs),))
+        return super(ReloadableMetaclass, meta).__new__(meta, name, bases, attrs)
+
+    def __init__(self, name, bases, attrs):
+        super(ReloadableMetaclass, self).__init__(name, bases, attrs)
+        # classregistry.register(self, self.interfaces)
+        print('Would register class %r now.' % (self,))
+
+
+def classmember(classtype):
+    def __wrapper(func):
+        __CLASSTYPE_ATTRIBUTES__[classtype].append(func)
+        return func
+    return __wrapper

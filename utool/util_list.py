@@ -137,7 +137,8 @@ def flattenize(list_):
 
 
 def safe_slice(list_, *args):
-    """ Slices list and truncates if out of bounds """
+    """ safe_slice(list_, [start], stop, [end], [step])
+        Slices list and truncates if out of bounds """
     if len(args) == 3:
         start = args[0]
         stop  = args[1]

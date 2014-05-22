@@ -21,6 +21,10 @@ DARWIN = sys.platform.startswith('darwin')
 LIB_EXT_LIST = ['.so', '.dll', '.dylib']
 
 
+def get_dynamic_lib_globstrs():
+    return ['*' + libext for libext in LIB_EXT_LIST]
+
+
 def get_computer_name():
     return COMPUTER_NAME
 
