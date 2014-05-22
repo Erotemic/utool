@@ -81,8 +81,14 @@ if __DYNAMIC__:
                     if fromlist is not None and len(fromlist) > 0]
 
     # Module Imports
+    # level: -1 is a the Python2 import strategy
+    # level:  0 is a the Python3 absolute import
+    level = 0
     for name in IMPORTS:
-        tmp = __import__(name, globals(), locals(), fromlist=[], level=-1)
+        if level == -1:
+            tmp = __import__(name, globals(), locals(), fromlist=[], level=level)
+        elif level == 0:
+            tmp = __import__(__name__, globals(), locals(), fromlist=[name], level=level)
 
 
     # Injection and Reload String Defs
