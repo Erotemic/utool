@@ -47,7 +47,7 @@ if __DYNAMIC__:
         ('util_dev',       ['common_stats', 'mystats', 'myprint',
                             'get_object_size']),
         ('util_decor',     ['ignores_exc_tb', 'indent_decor', 'indent_func',
-                            'lru_cache', 'accepts_numpy',
+                            'accepts_numpy',
                             'accepts_scalar_input_vector_output',
                             'accepts_scalar_input']),
         ('util_distances', ['nearest_point',]),
@@ -241,9 +241,9 @@ else:
     from .util_decor import (DISABLE_WRAPPERS, IGNORE_EXC_TB, TRACE, UNIQUE_NUMPY,
                              accepts_numpy, accepts_scalar_input,
                              accepts_scalar_input_vector_output, common_wrapper,
-                             composed, identity_decor, ignores_exc_tb, imap,
-                             indent_decor, indent_func, isiterable, islice,
-                             lru_cache, memorize, printVERBOSE, wraps,)
+                             composed, identity_decor, ignores_exc_tb,
+                             indent_decor, indent_func, isiterable,
+                             memorize, wraps,)
     from .util_distances import (L1, L2, L2_sqrd, compute_distances, emd,
                                  hist_isect, izip, nearest_point,)
     from .util_dict import (all_dict_combinations, all_dict_combinations_labels,

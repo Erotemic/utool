@@ -9,6 +9,7 @@ from . import util_path
 from . import util_dev
 from . import util_io
 from . import util_str
+from .util_dbg import printex
 from .util_arg import VERBOSE
 
 
@@ -55,7 +56,6 @@ def assert_in_setup_repo(setup_fpath, project_name=''):
         assert exists(setup_dir)
         assert exists(join(setup_dir, 'setup.py'))
     except AssertionError as ex:
-        from .util_dbg import printex
         printex(ex, 'ERROR!: setup.py must be run from repository root')
         raise
 
@@ -121,7 +121,6 @@ def presetup(setup_fpath, kwargs):
             try:
                 build_command()
             except Exception as ex:
-                from .util_dbg import printex
                 printex(ex, 'Error calling buildcommand from cwd=%r\n' % os.getcwd())
                 raise
         # Build optimized files
