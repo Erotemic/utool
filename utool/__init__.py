@@ -70,6 +70,7 @@ if __DYNAMIC__:
         ('util_setup',     'presetup'),
         ('util_regex',     ['regex_search']),
         ('util_time',      ['tic', 'toc', 'Timer']),
+        ('util_git',       []),
         ('util_type',      None),
         ('util_tests',     None),
         ('DynamicStruct',  ['DynStruct']),
