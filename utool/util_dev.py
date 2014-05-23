@@ -236,30 +236,3 @@ def compile_cython(fpath):
     if ret == 0:
         out, err, ret = util_cplat.shell('gcc ' + gcc_flags + ' -o ' + fname_so + ' ' + fname_c)
     return ret
-
-
-def grab_downloaded_testdata(zipped_testdata_url, ensure=True):
-    """
-    Input zipped_testdata_url - this must look like:
-    spam://spam.eggs/spam/spam/spam/<testdata_foldername>.zip
-    eg:
-    https://dl.dropboxusercontent.com/s/of2s82ed4xf86m6/testdata.zip
-    """
-    from . import util_path
-    from . import util_cplat
-    from os.path import realpath, join, split
-    zip_fname = split(zipped_testdata_url)[1]
-    testdata_name = splitext(zip_fname)[0]
-    download_dir = realpath(join(util_cplat.get_resource_dir(), 'utool_downloads'))
-    testdata_dir = join(download_dir, testdata_name)
-    if ensure:
-        util_path.ensurepath(download_dir)
-        if not exists(testdata_dir):
-            # Download and unzip testdata
-            zip_fpath = realpath(join(download_dir, zip_fname))
-            print('[utool] Downloading testdata %s' % zip_fpath)
-            util_path.download_url(zipped_testdata_url, zip_fpath)
-            util_path.unzip_file(zip_fpath)
-            util_path.delete(zip_fpath)  # Cleanup
-    util_path.assert_exists(testdata_dir)
-    return testdata_dir

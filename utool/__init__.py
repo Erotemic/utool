@@ -52,6 +52,8 @@ if __DYNAMIC__:
                             'accepts_scalar_input']),
         ('util_distances', ['nearest_point',]),
         ('util_dict',      None),
+        ('util_grabdata',  None),
+        ('util_git',       None),
         ('util_hash',      ['hashstr_arr', 'hashstr',]),
         ('util_inject',    ['inject', 'inject_all', 'inject_print_functions']),
         ('util_io',        None),
@@ -70,7 +72,6 @@ if __DYNAMIC__:
         ('util_setup',     'presetup'),
         ('util_regex',     ['regex_search']),
         ('util_time',      ['tic', 'toc', 'Timer']),
-        ('util_git',       []),
         ('util_type',      None),
         ('util_tests',     None),
         ('DynamicStruct',  ['DynStruct']),
@@ -276,15 +277,14 @@ else:
                            order_of_magnitude_ceil, sigfig_str,)
     from .util_path import (BadZipfile, IMG_EXTENSIONS, assertpath, checkpath, copy,
                             copy_all, copy_list, copy_task, delete, dirname,
-                            dirsplit, download_url, ensuredir, ensurepath, ext,
+                            dirsplit, ensuredir, ensurepath, ext,
                             file_bytes, file_megabytes, fnames_to_fpaths,
                             fpaths_to_fnames, get_module_dir, glob, isdir, isfile,
                             islink, ismount, list_images, longest_existing_path,
                             matches_image, move_list, num_images_in_dir,
                             path_ndir_split, progress_func, realpath, relpath,
                             remove_dirs, remove_file, remove_files_in_dir, split,
-                            symlink, tail, truepath, unixpath, unzip_file,
-                            win_shortcut,)
+                            symlink, tail, truepath, unixpath, win_shortcut,)
     from .util_print import (Indenter, NO_INDENT, NpPrintOpts, filesize_str,
                              horiz_print, printNOTQUIET, printWARN, print_filesize,
                              printshape,)

@@ -7,12 +7,9 @@ import sys
 import shutil
 import fnmatch
 import warnings
-import zipfile
-import urllib
-import time
 from .util_dbg import get_caller_name
-from .util_inject import inject
 from .util_progress import progress_func
+from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[path]')
 
 
@@ -387,42 +384,6 @@ def fpaths_to_fnames(fpath_list):
 def fnames_to_fpaths(fname_list, path):
     fpath_list = [join(path, fname) for fname in fname_list]
     return fpath_list
-
-
-BadZipfile = zipfile.BadZipfile
-
-
-def unzip_file(zip_fpath):
-    zip_file = zipfile.ZipFile(zip_fpath)
-    zip_dir  = dirname(zip_fpath)
-    zipped_namelist = zip_file.namelist()
-    for member in zipped_namelist:
-        (dname, fname) = split(member)
-        dpath = join(zip_dir, dname)
-        ensurepath(dpath)
-        if not __QUIET__:
-            print('[utool] Unzip ' + fname + ' in ' + dpath)
-        zip_file.extract(member, path=zip_dir)
-
-
-def download_url(url, filename):
-    # From http://blog.moleculea.com/2012/10/04/urlretrieve-progres-indicator/
-    start_time_ptr = [0]
-    def reporthook(count, block_size, total_size):
-        if count == 0:
-            start_time_ptr[0] = time.time()
-            return
-        duration = time.time() - start_time_ptr[0]
-        if duration == 0:
-            duration = 1E-9
-        progress_size = int(count * block_size)
-        speed = int(progress_size / (1024 * duration))
-        percent = int(count * block_size * 100 / total_size)
-        sys.stdout.write('\r...%d%%, %d MB, %d KB/s, %d seconds passed' %
-                         (percent, progress_size / (1024 * 1024), speed, duration))
-        sys.stdout.flush()
-    print('[utool] Downloading url=%r to filename=%r' % (url, filename))
-    urllib.urlretrieve(url, filename=filename, reporthook=reporthook)
 
 
 def get_module_dir(module, *args):
