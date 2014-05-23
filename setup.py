@@ -5,6 +5,7 @@ from setuptools import setup
 
 INSTALL_REQUIRES = [
     'numpy >= 1.8.0',
+    'psutil',
 ]
 
 if __name__ == '__main__':
