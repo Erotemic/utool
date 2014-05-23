@@ -270,8 +270,7 @@ else:
                             intersect_ordered, list_getat, list_index, list_replace,
                             listfind, npfind, random_indexes, safe_listget,
                             safe_slice, scalarflatten, spaced_indexes, spaced_items,
-                            tiled_range, tuplize, unique_keep_order,
-                            unique_keep_order2,)
+                            tiled_range, tuplize, unique_keep_order2,)
     from .util_num import (commas, fewest_digits_float_str, float_to_decimal,
                            format_, int_comma_str, num2_sigfig, num_fmt,
                            order_of_magnitude_ceil, sigfig_str,)
