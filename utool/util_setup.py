@@ -40,7 +40,7 @@ def setup_chmod(setup_fpath, setup_dir, chmod_patterns):
             os.chmod(fpath, st_mode)
 
 
-def assert_in_setup_repo(setup_fpath, project_name=''):
+def assert_in_setup_repo(setup_fpath, name=''):
     """ pass in __file__ from setup.py """
     setup_dir, setup_fname = split(setup_fpath)
     cwd = os.getcwd()
@@ -51,7 +51,8 @@ def assert_in_setup_repo(setup_fpath, project_name=''):
     #print('setup_fname = %r' % (setup_fname))
     try:
         assert setup_fname == 'setup.py'
-        #assert project_name == '' or repo_dname == project_name, ('project_name=%r' % project_name)
+        #assert name == '' or repo_dname == name,
+        ('name=%r' % name)
         assert cwd == setup_dir
         assert exists(setup_dir)
         assert exists(join(setup_dir, 'setup.py'))
@@ -90,7 +91,7 @@ def NOOP():
 def presetup(setup_fpath, kwargs):
     if VERBOSE:
         print('[setup] presetup()')
-    project_name     = kwargs.pop('project_name', '')
+    name     = kwargs.pop('name', '')
     project_dirs     = kwargs.pop('project_dirs', None)
     chmod_patterns   = kwargs.pop('chmod_patterns', SETUP_PATTERNS.chmod)
     clutter_dirs     = kwargs.pop('clutter_dirs', None)
@@ -101,10 +102,10 @@ def presetup(setup_fpath, kwargs):
     setup_dir = dirname(setup_fpath)
     build_dir = join(setup_dir, 'build')
     os.chdir(setup_dir)  # change into setup directory
-    assert_in_setup_repo(setup_fpath, project_name)
+    assert_in_setup_repo(setup_fpath, name)
 
     if clutter_dirs is None:
-        clutter_dirs = ['build', 'dist', project_name + '.egg-info']
+        clutter_dirs = ['build', 'dist', name + '.egg-info']
 
     if project_dirs is None:
         project_dirs = util_path.ls_moduledirs(setup_dir)
@@ -138,19 +139,19 @@ def presetup(setup_fpath, kwargs):
 def __infer_setup_kwargs(module, kwargs):
     """ Implicitly build kwargs based on standard info """
     # Get project name from the module
-    if 'project_name'  not in kwargs:
-        kwargs['project_name'] = module.__name__
-    project_name = kwargs['project_name']
+    if 'name'  not in kwargs:
+        kwargs['name'] = module.__name__
+    name = kwargs['name']
     # Our projects depend on utool
-    #if kwargs['project_name'] != 'utool':
+    #if kwargs['name'] != 'utool':
     #    install_requires = kwargs.get('install_requires', [])
     #    if 'utool' not in install_requires:
     #        install_requires.append('utool')
     #    kwargs['install_requires'] = install_requires
 
     packages = kwargs.get('packages', [])
-    if project_name not in packages:
-        packages.append(project_name)
+    if name not in packages:
+        packages.append(name)
         kwargs['packages'] = packages
 
     # Parse version
@@ -179,7 +180,7 @@ def __infer_setup_kwargs(module, kwargs):
                                                        verbose=False,
                                                        strict=False)
     if 'name' not in kwargs:
-        kwargs['name'] = project_name
+        kwargs['name'] = name
 
 
 def setuptools_setup(setup_fpath=None, module=None, **kwargs):
