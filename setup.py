@@ -3,6 +3,11 @@ from __future__ import absolute_import, division, print_function
 from utool.util_setup import setuptools_setup
 import utool
 
+
+INSTALL_REQUIRES = [
+    'numpy >= 1.8.0',
+]
+
 if __name__ == '__main__':
     setuptools_setup(
         setup_fpath=__file__,
