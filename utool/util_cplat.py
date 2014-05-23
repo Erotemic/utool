@@ -93,13 +93,15 @@ def shell(*args, **kwargs):
     return cmd(*args, **kwargs)
 
 
-def cmd(*args, **kwargs):
-    """ A really roundabout way to issue a system call """
-    sys.stdout.flush()
+def __parse_cmd_kwargs(kwargs):
     verbose = kwargs.get('verbose', True)
     detatch = kwargs.get('detatch', False)
-    shell = kwargs.get('shell', False)
-    sudo = kwargs.get('sudo', False)
+    shell   = kwargs.get('shell', False)
+    sudo    = kwargs.get('sudo', False)
+    return verbose, detatch, shell, sudo
+
+
+def __parse_cmd_args(args, sudo):
     if len(args) == 1 and isinstance(args[0], list):
         args = args[0]
     if isinstance(args, (str, unicode)):
@@ -109,31 +111,60 @@ def cmd(*args, **kwargs):
             args = [args]
     if sudo is True and not WIN32:
         args = ['sudo'] + args
-    print('[cplat] Running: %r' % (args,))
-    PIPE = subprocess.PIPE
-    proc = subprocess.Popen(args, stdout=PIPE, stderr=PIPE, shell=shell)
+    return args
+
+
+def run_realtime_process(exe, shell=False):
+    proc = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=shell)
+    while(True):
+        retcode = proc.poll()  # returns None while subprocess is running
+        line = proc.stdout.readline()
+        yield line
+        if retcode is not None:
+            raise StopIteration('process finished')
+
+
+def cmd(*args, **kwargs):
+    """ A really roundabout way to issue a system call """
+    sys.stdout.flush()
+    # Parse the keyword arguments
+    verbose, detatch, shell, sudo = __parse_cmd_kwargs(kwargs)
+    args = __parse_cmd_args(args, sudo)
+    # Print what you are about to do
+    print('[cplat] RUNNING: %r' % (args,))
+    # Open a subprocess with a pipe
+    proc = subprocess.Popen(args,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT,
+                            shell=shell)
     if detatch:
+        print('[cplat] PROCESS DETATCHING')
         return None, None, 1
     if verbose and not detatch:
-        logged_list = []
-        append = logged_list.append
-        write = sys.stdout.write
-        flush = sys.stdout.flush
-        while True:
-            line = proc.stdout.readline()
-            if not line:
-                break
-            write(line)
-            flush()
-            append(line)
-        out = '\n'.join(logged_list)
+        print('[cplat] RUNNING WITH VERBOSE OUTPUT')
+        logged_out = []
+        def run_process():
+            while True:
+                # returns None while subprocess is running
+                retcode = proc.poll()
+                line = proc.stdout.readline()
+                yield line
+                if retcode is not None:
+                    raise StopIteration('process finished')
+        for line in run_process():
+            sys.stdout.write(line)
+            sys.stdout.flush()
+            logged_out.append(line)
+        out = '\n'.join(logged_out)
         (out_, err) = proc.communicate()
         print(err)
     else:
         # Surpress output
+        print('[cplat] RUNNING WITH SUPRESSED OUTPUT')
         (out, err) = proc.communicate()
     # Make sure process if finished
     ret = proc.wait()
+    print('[cplat] PROCESS FINISHED')
     return out, err, ret
 
 

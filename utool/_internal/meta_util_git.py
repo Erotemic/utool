@@ -74,7 +74,7 @@ def ensure_ssh_url(repo_url):
 
 
 def repo_list(repo_urls, checkout_dir):
-    repo_dirs = get_repo_dirs(repo_urls, checkout_dir)
+    repo_dirs = get_repo_dirs(repo_urls, unixpath(checkout_dir))
     repo_dirs = map(unixpath, repo_dirs)
     return repo_urls, repo_dirs
 

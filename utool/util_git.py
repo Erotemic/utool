@@ -13,13 +13,21 @@ repo_list = mu.repo_list
 
 try:
     import __REPOS__
-    PROJECT_REPOS = __REPOS__.PROJECT_REPOS
+    PROJECT_REPO_DIRS = __REPOS__.PROJECT_REPO_DIRS
+    PROJECT_REPO_URLS = __REPOS__.PROJECT_REPO_URLS
 except ImportError:
-    PROJECT_REPOS = []
+    PROJECT_REPO_DIRS = []
+    PROJECT_REPO_URLS = []
+
+
+def set_project_repos(repo_urls, repo_dirs):
+    global PROJECT_REPO_DIRS
+    global PROJECT_REPO_URLS
+    PROJECT_REPO_URLS = repo_urls
+    PROJECT_REPO_DIRS = repo_dirs
 
 
 def gitcmd(repo, command):
-    print('')
     print("************")
     print(repo)
     os.chdir(repo)
@@ -29,15 +37,44 @@ def gitcmd(repo, command):
     print("************")
 
 
+def std_build_command(repo):
+    """ Uses my standard for build script names """
+    print("************")
+    repo_name = split(repo)[1]
+    WIN32 = sys.platform.startswith('win32')
+    buildtype = 'mingw' if WIN32 else './unix'
+    buildext = '.bat' if WIN32 else '.sh'
+    scriptname = buildtype + '_' + repo_name + '_build' + buildext
+    print(repo)
+    os.chdir(repo)
+    os.system(scriptname)
+    print("************")
+
+
 def gg_command(command):
-    """ Runs a command on all of your PROJECT_REPOS """
-    for repo in PROJECT_REPOS:
-        print("GG: " + repo)
+    """ Runs a command on all of your PROJECT_REPO_DIRS """
+    if command == 'ensure':
+        ensure_repos(PROJECT_REPO_URLS, PROJECT_REPO_DIRS)
+        return
+    for repo in PROJECT_REPO_DIRS:
         if exists(repo):
             gitcmd(repo, command)
 
 
 def checkout_repos(repo_urls, repo_dirs=None, checkout_dir=None):
+    """ Checkout every repo in repo_urls into checkout_dir """
+    # Check out any repo you dont have
+    if checkout_dir is not None:
+        repo_dirs = mu.get_repo_dirs(checkout_dir)
+    assert repo_dirs is not None, 'specify checkout dir or repo_dirs'
+    for repodir, repourl in izip(repo_dirs, repo_urls):
+        print('[git] checkexist: ' + repodir)
+        if not exists(repodir):
+            mu.cd(dirname(repodir))
+            mu.cmd('git clone ' + repourl)
+
+
+def ensure_repos(repo_urls, repo_dirs=None, checkout_dir=None):
     """ Checkout every repo in repo_urls into checkout_dir """
     # Check out any repo you dont have
     if checkout_dir is not None:

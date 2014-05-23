@@ -6,6 +6,7 @@ import sys
 import shelve
 import textwrap
 import types
+from os.path import splitext, split
 from . import util_inject
 from .util_arg import get_flag
 from .util_inject import inject
@@ -348,6 +349,9 @@ def get_caller_name(N=0):
     """ returns the name of the function that called you """
     parent_frame = get_parent_frame(N=N + 1)
     caller_name = parent_frame.f_code.co_name
+    if caller_name == '<module>':
+        co_filename = parent_frame.f_code.co_filename
+        caller_name = splitext(split(co_filename)[1])[0]
     return caller_name
 
 

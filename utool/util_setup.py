@@ -115,7 +115,8 @@ def presetup(setup_fpath, kwargs):
         if arg in ['clean']:
             clean(setup_dir, clutter_patterns, clutter_dirs, cython_files)
             #sys.exit(0)
-        if arg in ['build'] or not exists(build_dir):
+        if arg in ['build'] or (not exists(build_dir) and
+                                'clean' not in sys.argv):
             if VERBOSE:
                 print('[setup] Executing build command')
             try:
@@ -153,14 +154,18 @@ def __infer_setup_kwargs(module, kwargs):
         kwargs['packages'] = packages
 
     # Parse version
-    if 'version' not in kwargs and module is not None:
-        version_errmsg = textwrap.dedent(
-            '''
-            You must include a __version__ variable
-            in %s\'s __init__.py file.
-            Try something like:
+    if 'version' not in kwargs:
+        if module is None:
+            version_errmsg = 'You must include a version (preferably one that matches the __version__ variable in your modules init file'
+            raise AssertionError(version_errmsg)
+        else:
+            version_errmsg = textwrap.dedent(
+                '''
+                You must include a __version__ variable
+                in %s\'s __init__.py file.
+                Try something like:
                 __version__ = '1.0.0.dev1' ''')
-        assert hasattr(module, '__version__'), (version_errmsg % str(module))
+            assert hasattr(module, '__version__'), (version_errmsg % str(module))
         kwargs['version'] = module.__version__
     # Parse license
     if 'license' not in kwargs:
