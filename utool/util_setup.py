@@ -139,10 +139,10 @@ def presetup(setup_fpath, kwargs):
 def __infer_setup_kwargs(module, kwargs):
     """ Implicitly build kwargs based on standard info """
     # Get project name from the module
-    if 'name' not in kwargs:
-        kwargs['name'] = module.__name__
-    else:
-        raise AssertionError('must specify module name!')
+    #if 'name' not in kwargs:
+    #    kwargs['name'] = module.__name__
+    #else:
+    #    raise AssertionError('must specify module name!')
     name = kwargs['name']
     # Our projects depend on utool
     #if kwargs['name'] != 'utool':
@@ -157,19 +157,19 @@ def __infer_setup_kwargs(module, kwargs):
         kwargs['packages'] = packages
 
     # Parse version
-    if 'version' not in kwargs:
-        if module is None:
-            version_errmsg = 'You must include a version (preferably one that matches the __version__ variable in your modules init file'
-            raise AssertionError(version_errmsg)
-        else:
-            version_errmsg = textwrap.dedent(
-                '''
-                You must include a __version__ variable
-                in %s\'s __init__.py file.
-                Try something like:
-                __version__ = '1.0.0.dev1' ''')
-            assert hasattr(module, '__version__'), (version_errmsg % str(module))
-        kwargs['version'] = module.__version__
+    #if 'version' not in kwargs:
+    #    if module is None:
+    #        version_errmsg = 'You must include a version (preferably one that matches the __version__ variable in your modules init file'
+    #        raise AssertionError(version_errmsg)
+    #    else:
+    #        version_errmsg = textwrap.dedent(
+    #            '''
+    #            You must include a __version__ variable
+    #            in %s\'s __init__.py file.
+    #            Try something like:
+    #            __version__ = '1.0.0.dev1' ''')
+    #        assert hasattr(module, '__version__'), (version_errmsg % str(module))
+    #    kwargs['version'] = module.__version__
     # Parse license
     if 'license' not in kwargs:
         try:
@@ -228,6 +228,8 @@ def setuptools_setup(setup_fpath=None, module=None, **kwargs):
     from setuptools import setup
     from .util_inject import inject_colored_exceptions
     inject_colored_exceptions()  # Fluffly, but nice
+    if VERBOSE:
+        print(util_str.dict_str(kwargs))
     __infer_setup_kwargs(module, kwargs)
     presetup(setup_fpath, kwargs)
     if VERBOSE:
