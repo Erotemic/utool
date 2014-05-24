@@ -91,7 +91,7 @@ def NOOP():
 def presetup(setup_fpath, kwargs):
     if VERBOSE:
         print('[setup] presetup()')
-    name     = kwargs.pop('name', '')
+    name     = kwargs.get('name', '')
     project_dirs     = kwargs.pop('project_dirs', None)
     chmod_patterns   = kwargs.pop('chmod_patterns', SETUP_PATTERNS.chmod)
     clutter_dirs     = kwargs.pop('clutter_dirs', None)
@@ -141,6 +141,8 @@ def __infer_setup_kwargs(module, kwargs):
     # Get project name from the module
     if 'name'  not in kwargs:
         kwargs['name'] = module.__name__
+    else:
+        raise AssertionError('must specify module name!')
     name = kwargs['name']
     # Our projects depend on utool
     #if kwargs['name'] != 'utool':
@@ -179,8 +181,6 @@ def __infer_setup_kwargs(module, kwargs):
         kwargs['long_description'] = util_io.read_from('README.md',
                                                        verbose=False,
                                                        strict=False)
-    if 'name' not in kwargs:
-        kwargs['name'] = name
 
 
 def setuptools_setup(setup_fpath=None, module=None, **kwargs):
