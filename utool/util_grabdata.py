@@ -66,8 +66,8 @@ def grab_zipped_url(zipped_testdata_url, ensure=True, appname='utool'):
             # Download and unzip testdata
             zip_fpath = realpath(join(download_dir, zip_fname))
             print('[utool] Downloading testdata %s' % zip_fpath)
-            util_path.download_url(zipped_testdata_url, zip_fpath)
-            util_path.unzip_file(zip_fpath)
+            download_url(zipped_testdata_url, zip_fpath)
+            unzip_file(zip_fpath)
             util_path.delete(zip_fpath)  # Cleanup
     util_path.assert_exists(data_dir)
     return data_dir
