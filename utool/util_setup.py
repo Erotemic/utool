@@ -91,7 +91,7 @@ def NOOP():
 def presetup(setup_fpath, kwargs):
     if VERBOSE:
         print('[setup] presetup()')
-    name     = kwargs.get('name', '')
+    name = kwargs.get('name', '')
     project_dirs     = kwargs.pop('project_dirs', None)
     chmod_patterns   = kwargs.pop('chmod_patterns', SETUP_PATTERNS.chmod)
     clutter_dirs     = kwargs.pop('clutter_dirs', None)
@@ -139,7 +139,7 @@ def presetup(setup_fpath, kwargs):
 def __infer_setup_kwargs(module, kwargs):
     """ Implicitly build kwargs based on standard info """
     # Get project name from the module
-    if 'name'  not in kwargs:
+    if 'name' not in kwargs:
         kwargs['name'] = module.__name__
     else:
         raise AssertionError('must specify module name!')
