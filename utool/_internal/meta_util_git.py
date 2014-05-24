@@ -37,15 +37,14 @@ def get_repo_dname(repo_url):
 
 
 def set_userid(userid=None,
-               owned_computers={},
                permitted_repos=[]):
-    # Check to see if you are on one of Jons Computers
+    # Check to see if you are the user
     global IS_USER
     global USER_ID
     global PERMITTED_REPOS
     PERMITTED_REPOS = permitted_repos
     USER_ID = userid
-    IS_USER = get_computer_name() in owned_computers
+    IS_USER = True
 
 
 def truepath(path):
@@ -73,9 +72,12 @@ def ensure_ssh_url(repo_url):
     return fix_repo_url(repo_url, in_type='https', out_type='ssh')
 
 
-def repo_list(repo_urls, checkout_dir):
+def repo_list(repo_urls, checkout_dir, forcessh=False):
     repo_dirs = get_repo_dirs(repo_urls, unixpath(checkout_dir))
     repo_dirs = map(unixpath, repo_dirs)
+    if IS_USER or forcessh:
+        repo_urls = [ensure_ssh_url(url) if can_push(url) else url
+                     for url in repo_urls]
     return repo_urls, repo_dirs
 
 
@@ -85,8 +87,8 @@ def can_push(repo_url):
     return  owned_repo or has_permit
 
 
-def url_list(repo_urls):
-    if IS_USER:
+def url_list(repo_urls, forcessh=False):
+    if IS_USER or forcessh:
         repo_urls = [ensure_ssh_url(url) if can_push(url) else url
                      for url in repo_urls]
     return map(unixpath, repo_urls)
