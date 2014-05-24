@@ -10,7 +10,8 @@ from . import util_dev
 from . import util_io
 from . import util_str
 from .util_dbg import printex
-from .util_arg import VERBOSE
+
+VERBOSE = '--verbose' in sys.argv
 
 
 class SETUP_PATTERNS():
