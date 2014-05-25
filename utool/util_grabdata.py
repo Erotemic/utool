@@ -2,29 +2,51 @@ from __future__ import absolute_import, division, print_function
 from os.path import dirname, split, join, splitext, exists, realpath
 import sys
 import zipfile
+import tarfile
 import urllib
 import time
 from . import util_path
 from . import util_cplat
 from .util_inject import inject
-print, print_, printDBG, rrr, profile = inject(__name__, '[path]')
+print, print_, printDBG, rrr, profile = inject(__name__, '[grabdata]')
 
 
 __QUIET__ = '--quiet' in sys.argv
 BadZipfile = zipfile.BadZipfile
 
 
+def unarchive_file(archive_fpath):
+    print('Unarchive: %r' % archive_fpath)
+    if tarfile.is_tarfile(archive_fpath):
+        return untar_file(archive_fpath)
+    elif zipfile.is_zipfile(archive_fpath):
+        return unzip_file(archive_fpath)
+    else:
+        raise AssertionError('unknown archive format')
+
+
+def untar_file(targz_fpath):
+    tar_file = tarfile.open(targz_fpath, 'r:gz')
+    output_dir = dirname(targz_fpath)
+    archive_namelist = [mem.path for mem in tar_file.getmembers()]
+    _extract_archive(tar_file, archive_namelist, output_dir)
+
+
 def unzip_file(zip_fpath):
     zip_file = zipfile.ZipFile(zip_fpath)
-    zip_dir  = dirname(zip_fpath)
+    output_dir  = dirname(zip_fpath)
     zipped_namelist = zip_file.namelist()
-    for member in zipped_namelist:
+    _extract_archive(zip_file, zipped_namelist, output_dir)
+
+
+def _extract_archive(archive_file, archive_namelist, output_dir):
+    for member in archive_namelist:
         (dname, fname) = split(member)
-        dpath = join(zip_dir, dname)
+        dpath = join(output_dir, dname)
         util_path.ensurepath(dpath)
         if not __QUIET__:
-            print('[utool] Unzip ' + fname + ' in ' + dpath)
-        zip_file.extract(member, path=zip_dir)
+            print('[utool] Unarchive ' + fname + ' in ' + dpath)
+        archive_file.extract(member, path=output_dir)
 
 
 def download_url(url, filename):
@@ -47,6 +69,40 @@ def download_url(url, filename):
     urllib.urlretrieve(url, filename=filename, reporthook=reporthook)
 
 
+def fix_dropbox_link(dropbox_url):
+    """ Dropbox links should be en-mass downloaed from dl.dropbox """
+    return dropbox_url.replace('www.dropbox', 'dl.dropbox')
+
+
+def split_archive_ext(path):
+    special_exts = ['.tar.gz', '.tar.bz2']
+    for ext in special_exts:
+        if path.endswith(ext):
+            name, ext = path[:-len(ext)], path[-len(ext):]
+            break
+    else:
+        name, ext = splitext(path)
+    return name, ext
+
+
+def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None):
+    file_url = fix_dropbox_link(file_url)
+    fname = split(file_url)[1]
+    # Download zipfile to
+    if download_dir is None:
+        download_dir = util_cplat.get_app_resource_dir(appname)
+    # Zipfile should unzip to:
+    fpath = join(download_dir, fname)
+    if ensure:
+        util_path.ensurepath(download_dir)
+        if not exists(fpath):
+            # Download testdata
+            print('[utool] Downloading file %s' % fpath)
+            download_url(file_url, fpath)
+    util_path.assert_exists(fpath)
+    return fpath
+
+
 def grab_zipped_url(zipped_testdata_url, ensure=True, appname='utool'):
     """
     Input zipped_testdata_url - this must look like:
@@ -54,8 +110,9 @@ def grab_zipped_url(zipped_testdata_url, ensure=True, appname='utool'):
     eg:
     https://dl.dropboxusercontent.com/s/of2s82ed4xf86m6/testdata.zip
     """
+    zipped_testdata_url = fix_dropbox_link(zipped_testdata_url)
     zip_fname = split(zipped_testdata_url)[1]
-    data_name = splitext(zip_fname)[0]
+    data_name = split_archive_ext(zip_fname)[0]
     # Download zipfile to
     download_dir = util_cplat.get_app_resource_dir(appname)
     # Zipfile should unzip to:
@@ -65,9 +122,9 @@ def grab_zipped_url(zipped_testdata_url, ensure=True, appname='utool'):
         if not exists(data_dir):
             # Download and unzip testdata
             zip_fpath = realpath(join(download_dir, zip_fname))
-            print('[utool] Downloading testdata %s' % zip_fpath)
+            print('[utool] Downloading archive %s' % zip_fpath)
             download_url(zipped_testdata_url, zip_fpath)
-            unzip_file(zip_fpath)
+            unarchive_file(zip_fpath)
             util_path.delete(zip_fpath)  # Cleanup
     util_path.assert_exists(data_dir)
     return data_dir

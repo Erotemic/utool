@@ -137,6 +137,28 @@ def presetup(setup_fpath, kwargs):
             setup_chmod(setup_fpath, setup_dir, chmod_patterns)
 
 
+def __parse_package_for_version(name):
+    from .util_regex import named_field, regex_parse
+    init_fpath = join(name, '__init__.py')
+    val_regex = named_field('version', '[0-9a-zA-Z.]+')
+    if not exists(init_fpath):
+        return None
+    def parse_version(line):
+        # Helper
+        line = line.replace(' ', '').replace('\t', '')
+        match_dict = regex_parse('__version__ *= *[\'"]' + val_regex, line)
+        if match_dict is not None:
+            return match_dict['version']
+    # Find the version  in the text of the source
+    with open(init_fpath, 'r') as file_:
+        for line in file_.readlines():
+            if line.startswith('__version__'):
+                version = parse_version(line)
+                if version is not None:
+                    return version
+    return None
+
+
 def __infer_setup_kwargs(module, kwargs):
     """ Implicitly build kwargs based on standard info """
     # Get project name from the module
@@ -157,20 +179,23 @@ def __infer_setup_kwargs(module, kwargs):
         packages.append(name)
         kwargs['packages'] = packages
 
+    if 'version' not in kwargs:
+        version = __parse_package_for_version(name)
+        version_errmsg = textwrap.dedent(
+            '''
+            You must include a __version__ variable
+            in %s\'s __init__.py file.
+            Try something like:
+            __version__ = '1.0.0.dev1' ''')
+        assert version is not None, (version_errmsg % name)
+        kwargs['version'] = version
+
     # Parse version
     #if 'version' not in kwargs:
     #    if module is None:
     #        version_errmsg = 'You must include a version (preferably one that matches the __version__ variable in your modules init file'
     #        raise AssertionError(version_errmsg)
     #    else:
-    #        version_errmsg = textwrap.dedent(
-    #            '''
-    #            You must include a __version__ variable
-    #            in %s\'s __init__.py file.
-    #            Try something like:
-    #            __version__ = '1.0.0.dev1' ''')
-    #        assert hasattr(module, '__version__'), (version_errmsg % str(module))
-    #    kwargs['version'] = module.__version__
     # Parse license
     if 'license' not in kwargs:
         try:

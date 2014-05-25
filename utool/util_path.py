@@ -399,7 +399,7 @@ def tail(fpath):
 
 def ls(path):
     """ like unix ls - lists all files and dirs in path"""
-    return os.listdir(path)
+    return os.listdir(truepath(path))
 
 
 def ls_dirs(path):
@@ -419,13 +419,13 @@ def is_module_dir(path):
 
 def list_images(img_dpath, ignore_list=[], recursive=True, fullpath=False):
     """ TODO: rename to ls_images """
-    if not __QUIET__:
-        print(ignore_list)
+    #if not __QUIET__:
+    #    print(ignore_list)
     ignore_set = set(ignore_list)
     gname_list_ = []
     assertpath(img_dpath)
     # Get all the files in a directory recursively
-    for root, dlist, flist in os.walk(img_dpath):
+    for root, dlist, flist in os.walk(truepath(img_dpath)):
         rel_dpath = relpath(root, img_dpath)
         if any([dname in ignore_set for dname in dirsplit(rel_dpath)]):
             continue

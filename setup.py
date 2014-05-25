@@ -12,7 +12,7 @@ if __name__ == '__main__':
     setup(
         name='utool',
         version='1.0.0.dev1',
-        description='Useful utility tools for you!',
+        description='Univerally useful utility tools for you!',
         url='https://github.com/Erotemic/utool',
         packages=['utool'],
         author='Jon Crall',

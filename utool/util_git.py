@@ -10,6 +10,7 @@ from . import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[git]')
 
 repo_list = mu.repo_list
+set_userid = mu.set_userid
 
 try:
     import __REPOS__
@@ -40,11 +41,10 @@ def gitcmd(repo, command):
 def std_build_command(repo):
     """ Uses my standard for build script names """
     print("************")
-    repo_name = split(repo)[1]
     WIN32 = sys.platform.startswith('win32')
     buildtype = 'mingw' if WIN32 else './unix'
-    buildext = '.bat' if WIN32 else '.sh'
-    scriptname = buildtype + '_' + repo_name + '_build' + buildext
+    ext = '.bat' if WIN32 else '.sh'
+    scriptname = buildtype + '_build' + ext
     print(repo)
     os.chdir(repo)
     os.system(scriptname)
