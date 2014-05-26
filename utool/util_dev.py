@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import sys
 import warnings
 import numpy as np
-from os.path import splitext, exists
+from os.path import splitext, exists, join
 from .util_inject import inject
 from .Printable import printableVal, common_stats, mystats  # NOQA
 print, print_, printDBG, rrr, profile = inject(__name__, '[dev]')
@@ -236,3 +236,17 @@ def compile_cython(fpath):
     if ret == 0:
         out, err, ret = util_cplat.shell('gcc ' + gcc_flags + ' -o ' + fname_so + ' ' + fname_c)
     return ret
+
+
+def find_exe(name, path_hints=[], required=True):
+    from . import util_cplat
+    if util_cplat.WIN32 and not name.endswith('.exe'):
+        name += '.exe'
+
+    for path in path_hints:
+        exe_fpath = join(path, name)
+        if exists(exe_fpath):
+            return exe_fpath
+
+    if required:
+        raise AssertionError('cannot find ' + name)
