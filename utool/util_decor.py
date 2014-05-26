@@ -14,49 +14,22 @@ IGNORE_EXC_TB = '--noignore-exctb' not in sys.argv or hasattr(__builtin__, 'prof
 TRACE = '--trace' in sys.argv
 
 
-def composed(*decs):
-    """ combines multiple decorators """
-    def deco(f):
-        for dec in reversed(decs):
-            f = dec(f)
-        return f
-    return deco
+#def composed(*decs):
+#    """ combines multiple decorators """
+#    def deco(f):
+#        for dec in reversed(decs):
+#            f = dec(f)
+#        return f
+#    return deco
 
-
-"""
-Common wrappers
-    @utool.indent_func
-    @utool.ignores_exc_tb
-    @wraps(func)
-"""
 
 DISABLE_WRAPPERS = '--disable-wrappers' in sys.argv
-
-
-def common_wrapper(func):
-    """ Wraps decorator wrappers with a set of common decorators """
-    if DISABLE_WRAPPERS:
-        def outer_wrapper(func_):
-            def inner_wrapper(*args, **kwargs):
-                return func_(*args, **kwargs)
-            return inner_wrapper
-        return outer_wrapper
-    else:
-        def outer_wrapper(func_):
-            @indent_func
-            @ignores_exc_tb
-            @wraps(func)
-            def inner_wrapper(*args, **kwargs):
-                return func_(*args, **kwargs)
-            return inner_wrapper
-        return outer_wrapper
 
 
 def ignores_exc_tb(func):
     """ decorator that removes other decorators from traceback """
     if IGNORE_EXC_TB:
         @wraps(func)
-        #@profile
         def wrapper_ignore_exctb(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
@@ -83,7 +56,7 @@ def identity_decor(func):
 
 def indent_decor(lbl):
     def indent_decor_outer_wrapper(func):
-        @ignores_exc_tb
+        #@ignores_exc_tb
         @wraps(func)
         def indent_decor_inner_wrapper(*args, **kwargs):
             with Indenter(lbl):
@@ -108,7 +81,7 @@ def indent_func(input_):
         # No arguments were passed
         @wraps(func)
         @indent_decor('[' + func.func_name + ']')
-        @ignores_exc_tb
+        #@ignores_exc_tb
         def wrapper_indent_func(*args, **kwargs):
             return func(*args, **kwargs)
         return wrapper_indent_func
@@ -122,19 +95,32 @@ def accepts_scalar_input(func):
     to the user expected format on return.
     """
     @wraps(func)
-    @ignores_exc_tb
-    #@profile
+    #@ignores_exc_tb
+    @profile
     def wrapper_scalar_input(self, input_, *args, **kwargs):
-        is_scalar = not isiterable(input_)
-        if is_scalar:
-            iter_input = (input_,)
+        if isiterable(input_):
+            # If input is already iterable do default behavior
+            return func(self, input_, *args, **kwargs)
         else:
-            iter_input = input_
-        result = func(self, iter_input, *args, **kwargs)
-        if is_scalar:
-            result = result[0]
-        return result
+            # If input is scalar, wrap input, execute, and unpack result
+            return func(self, (input_,), *args, **kwargs)[0]
     return wrapper_scalar_input
+
+
+#def accepts_scalar_input_vector_output(func):
+#    @wraps(func)
+#    def wrapper_vec_output(self, input_, *args, **kwargs):
+#        is_scalar = not isiterable(input_)
+#        if is_scalar:
+#            iter_input = (input_,)
+#        else:
+#            iter_input = input_
+#        result = func(self, iter_input, *args, **kwargs)
+#        if is_scalar:
+#            if len(result) != 0:
+#                result = result[0]
+#        return result
+#    return wrapper_vec_output
 
 
 def accepts_scalar_input_vector_output(func):
@@ -144,20 +130,21 @@ def accepts_scalar_input_vector_output(func):
     as long as the function treats everything like a vector. Input and output is
     sanatized to the user expected format on return.
     """
-    @ignores_exc_tb
+    #@ignores_exc_tb
     @wraps(func)
-    #@profile
+    @profile
     def wrapper_vec_output(self, input_, *args, **kwargs):
-        is_scalar = not isiterable(input_)
-        if is_scalar:
-            iter_input = (input_,)
+        if isiterable(input_):
+            # If input is already iterable do default behavior
+            return func(self, input_, *args, **kwargs)
         else:
-            iter_input = input_
-        result = func(self, iter_input, *args, **kwargs)
-        if is_scalar:
+            # If input is scalar, wrap input, execute, and unpack result
+            result = func(self, (input_,), *args, **kwargs)
+            # The length of the output has the potential to be 0 on a scalar input
             if len(result) != 0:
-                result = result[0]
-        return result
+                return result[0]
+            else:
+                return result
     return wrapper_vec_output
 
 
@@ -167,7 +154,6 @@ UNIQUE_NUMPY = True
 def accepts_numpy(func):
     """ Allows the first input to be a numpy objet and get result in numpy form """
     @wraps(func)
-    #@profile
     def numpy_wrapper(self, input_, *args, **kwargs):
         if isinstance(input_, np.ndarray):
             if UNIQUE_NUMPY:
@@ -208,7 +194,7 @@ def memorize(func):
 
 def interested(func):
     @indent_func
-    @ignores_exc_tb
+    #@ignores_exc_tb
     @wraps(func)
     def interested_wrapper(*args, **kwargs):
         sys.stdout.write('#\n')

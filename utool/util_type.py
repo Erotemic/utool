@@ -111,3 +111,7 @@ def is_list(var):
 
 def type_str(type_):
     return str(type_).replace('<type \'', '').replace('\'>', '')
+
+
+def is_func_or_method(var):
+    return isinstance(var, (types.MethodType, types.FunctionType))
