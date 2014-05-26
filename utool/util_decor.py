@@ -96,7 +96,6 @@ def accepts_scalar_input(func):
     """
     @wraps(func)
     #@ignores_exc_tb
-    @profile
     def wrapper_scalar_input(self, input_, *args, **kwargs):
         if isiterable(input_):
             # If input is already iterable do default behavior
@@ -132,7 +131,6 @@ def accepts_scalar_input_vector_output(func):
     """
     #@ignores_exc_tb
     @wraps(func)
-    @profile
     def wrapper_vec_output(self, input_, *args, **kwargs):
         if isiterable(input_):
             # If input is already iterable do default behavior
