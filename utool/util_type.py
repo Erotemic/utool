@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 import sys
 # Science
 import numpy as np
+import functools
 import types
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[type]')
@@ -115,3 +116,12 @@ def type_str(type_):
 
 def is_func_or_method(var):
     return isinstance(var, (types.MethodType, types.FunctionType))
+
+
+def is_func_or_method_or_partial(var):
+    return isinstance(var, (types.MethodType, types.FunctionType,
+                            functools.partial))
+
+
+def is_funclike(var):
+    return hasattr(var, '__call__')

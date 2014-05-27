@@ -19,6 +19,11 @@ def theta_str(theta, taustr=('tau' if '--myway' in sys.argv else '2pi')):
     return ('%.2f * ' % coeff) + taustr
 
 
+def bbox_str(bbox, pad=4):
+    fmtstr = ', '.join(['%' + str(pad) + 'd'] * 4)
+    return '(' + fmtstr % bbox + ')'
+
+
 def tupstr(tuple_):
     """ maps each item in tuple to a string and doesnt include parens """
     return ', '.join(map(str, tuple_))
@@ -267,3 +272,15 @@ def padded_str_range(start, end):
     fmt = '%0' + str(nDigits) + 'd'
     str_range = (fmt % num for num in xrange(start, end))
     return list(str_range)
+
+
+def get_func_name(func):
+    """ Works on must functionlike objects including str, which has no func_name """
+    try:
+        return func.func_name
+    except AttributeError:
+        if isinstance(func, type):
+            return repr(str).replace('<type \'', '').replace('\'>', '')
+        else:
+            raise NotImplementedError(('cannot get func_name of func=%r'
+                                       'type(func)=%r') % (func, type(func)))

@@ -224,7 +224,7 @@ else:
                            execstr_embed, execstr_func, execstr_parent_locals,
                            execstr_src, explore_module, explore_stack, formatex,
                            get_caller_locals, get_caller_name, get_caller_prefix,
-                           get_func_name, get_parent_frame, get_parent_globals,
+                           get_parent_frame, get_parent_globals,
                            get_parent_locals, get_reprs, get_stack_frame, get_type,
                            haveIPython, horiz_string, import_testdata, inIPython,
                            indent, ipython_execstr, ipython_execstr2, is_listlike,

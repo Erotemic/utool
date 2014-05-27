@@ -4,9 +4,10 @@ TODO: Move numpy arrays helpers elsewhere
 """
 from __future__ import absolute_import, division, print_function
 import numpy as np
-from itertools import izip
+from itertools import izip, imap
 from .util_iter import iflatten, isiterable, ifilter_Nones, ifilter_items
 from .util_inject import inject
+from .util_str import get_func_name
 print, print_, printDBG, rrr, profile = inject(__name__, '[list]')
 
 
@@ -133,7 +134,9 @@ def flattenize(list_):
     list_ = [[1, 2, 3], [2, 3, [4, 2, 1]], [3, 2], [[1, 2], [3, 4]]]
     """
     #return imap(iflatten, list_)
-    return map(flatten, map(tuplize, list_))
+    tuplized_iter   = imap(tuplize, list_)
+    flatenized_list = list(imap(flatten, tuplized_iter))
+    return flatenized_list
 
 
 def safe_slice(list_, *args):
@@ -325,3 +328,27 @@ def sortedby(list_, sortable, reverse=False):
     assert len(list_) == len(sortable), 'must be same len'
     sorted_list = [item for (key, item) in sorted(list(izip(sortable, list_)), reverse=reverse)]
     return sorted_list
+
+
+def scalar_input_map(func, input_):
+    """
+    If input_ is iterable this function behaves like map
+    otherwise applies func to input
+    """
+    if isiterable(input_):
+        return list(imap(func, input_))
+    else:
+        return func(input_)
+
+
+def scalar_input_map_func(func, si_func):
+    """ a bit messy """
+    from functools import wraps
+    @wraps(si_func)
+    def wrapper(input_):
+        if not isiterable(input_):
+            return func(si_func(input_))
+        else:
+            return list(imap(func, si_func(input_)))
+    wrapper.func_name = get_func_name(func) + '_mapper_' + si_func.func_name
+    return wrapper

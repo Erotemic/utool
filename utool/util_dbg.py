@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import fnmatch
 import inspect
+import traceback
 import numpy as np
 import sys
 import shelve
@@ -512,20 +513,8 @@ def debug_exception(func):
     return ex_wrapper
 
 
-def get_func_name(func):
-    """ Works on must functionlike objects including str, which has no func_name """
-    try:
-        return func.func_name
-    except AttributeError:
-        if isinstance(func, type):
-            return repr(str).replace('<type \'', '').replace('\'>', '')
-        else:
-            raise NotImplementedError(('cannot get func_name of func=%r'
-                                       'type(func)=%r') % (func, type(func)))
-
-
-def printex(ex, msg='[!?] Caught exception', prefix=None,
-            key_list=[], locals_=None, iswarning=False):
+def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
+            locals_=None, iswarning=False, tb=False, separate=False):
     """ Prints an exception with relevant info """
     # Get error prefix and local info
     if prefix is None:
@@ -533,15 +522,19 @@ def printex(ex, msg='[!?] Caught exception', prefix=None,
     if locals_ is None:
         locals_ = get_caller_locals()
     # build exception message
-    exstr = formatex(ex, msg, prefix, key_list, locals_, iswarning)
+    exstr = formatex(ex, msg, prefix, key_list, locals_, iswarning, tb=tb)
+    if separate:
+        print('\n\n\n')
     print(exstr)
+    if separate:
+        print('\n\n\n')
     # If you dont know where an error is coming from be super-strict
     if SUPER_STRICT:
         raise ex
 
 
 def formatex(ex, msg='[!?] Caught exception',
-             prefix=None, key_list=[], locals_=None, iswarning=False):
+             prefix=None, key_list=[], locals_=None, iswarning=False, tb=False):
     """ Formats an exception with relevant info """
     # Get error prefix and local info
     if prefix is None:
@@ -552,7 +545,9 @@ def formatex(ex, msg='[!?] Caught exception',
     exstrs = []  # list of exception strings
     ex_tag = 'WARNING' if iswarning else 'EXCEPTION'
     exstrs.append('<!!! %s !!!>' % ex_tag)
-    exstrs.append(prefix + ' ' + msg + '%s: %s' % (type(ex), ex))
+    if tb:
+        exstrs.append(traceback.format_exc())
+    exstrs.append(prefix + ' ' + msg + '\n%s: %s' % (type(ex), ex))
     parse_locals_keylist(locals_, key_list, exstrs, prefix)
     exstrs.append('</!!! %s !!!>' % ex_tag)
     return '\n'.join(exstrs)
@@ -560,6 +555,7 @@ def formatex(ex, msg='[!?] Caught exception',
 
 def parse_locals_keylist(locals_, key_list, strlist_, prefix):
     """ For each key in keylist, puts its value in locals into a stringlist """
+    from .util_str import get_func_name
     for key in key_list:
         if isinstance(key, tuple):
             func = key[0]
