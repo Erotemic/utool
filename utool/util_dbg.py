@@ -348,6 +348,14 @@ def get_caller_prefix(N=0, aserror=False):
 
 def get_caller_name(N=0):
     """ returns the name of the function that called you """
+    if isinstance(N, (list, tuple)):
+        name_list = []
+        for N_ in N:
+            try:
+                name_list.append(get_caller_name(N_))
+            except AssertionError:
+                name_list.append('X')
+        return '[' + ']['.join(name_list) + ']'
     parent_frame = get_parent_frame(N=N + 1)
     caller_name = parent_frame.f_code.co_name
     if caller_name == '<module>':

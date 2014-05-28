@@ -102,7 +102,9 @@ def accepts_scalar_input(func):
             return func(self, input_, *args, **kwargs)
         else:
             # If input is scalar, wrap input, execute, and unpack result
-            return func(self, (input_,), *args, **kwargs)[0]
+            ret = func(self, (input_,), *args, **kwargs)
+            if ret is not None:
+                return ret[0]
     return wrapper_scalar_input
 
 
