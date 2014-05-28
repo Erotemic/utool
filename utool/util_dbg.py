@@ -358,6 +358,8 @@ def get_caller_name(N=0):
         return '[' + ']['.join(name_list) + ']'
     parent_frame = get_parent_frame(N=N + 1)
     caller_name = parent_frame.f_code.co_name
+    if 'func' in  parent_frame.f_locals:
+        caller_name += '(' + parent_frame.f_locals['func'].func_name + ')'
     if caller_name == '<module>':
         co_filename = parent_frame.f_code.co_filename
         caller_name = splitext(split(co_filename)[1])[0]
