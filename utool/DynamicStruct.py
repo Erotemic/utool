@@ -10,13 +10,13 @@ class DynStruct(AbstractPrintable):
         if isinstance(copy_dict, dict):
             self.add_dict(copy_dict)
 
-    def dynget(self, *prop_list):
-        return tuple([self.__dict__[prop_name] for prop_name in prop_list])
+    #def dynget(self, *prop_list):
+    #    return tuple([self.__dict__[prop_name] for prop_name in prop_list])
 
-    def dynset(self, *propval_list):
-        offset = len(propval_list) / 2
-        for i in range(offset):
-            self.__dict__[propval_list[i]] = propval_list[i + offset]
+    #def dynset(self, *propval_list):
+    #    offset = len(propval_list) / 2
+    #    for i in range(offset):
+    #        self.__dict__[propval_list[i]] = propval_list[i + offset]
 
     def __setitem__(self, key, value):
         if isinstance(key, tuple):
