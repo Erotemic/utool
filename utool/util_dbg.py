@@ -599,12 +599,12 @@ def get_reprs(*args, **kwargs):
     return reprs
 
 
-def printvar2(varstr, attr=''):
+def printvar2(varstr, attr='', typepad=0):
     locals_ = get_parent_locals()
-    printvar(locals_, varstr, attr)
+    printvar(locals_, varstr, attr, typepad=typepad)
 
 
-def printvar(locals_, varname, attr='.shape'):
+def printvar(locals_, varname, attr='.shape', typepad=0):
     npprintopts = np.get_printoptions()
     np.set_printoptions(threshold=5)
     dotpos = varname.find('.')
@@ -617,7 +617,8 @@ def printvar(locals_, varname, attr='.shape'):
         var_ = locals_[varname_]  # NOQA
         var = eval('var_' + dotname_)
     # Print in format
-    typestr = get_type(var)
+    typestr = str(get_type(var)).ljust(typepad)
+
     if isinstance(var, np.ndarray):
         varstr = eval('str(var' + attr + ')')
         print('[var] %s %s = %s' % (typestr, varname + attr, varstr))

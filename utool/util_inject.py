@@ -1,11 +1,17 @@
 from __future__ import absolute_import, division, print_function
 import __builtin__
 import sys
+from . import util_logging
 
 
-__DEBUG_ALL__ = '--debug-all' in sys.argv
+__AGGROFLUSH__ = '--aggroflush' in sys.argv
+__LOGGING__    = '--logging'    in sys.argv
+__DEBUG_ALL__  = '--debug-all'  in sys.argv
 __DEBUG_PROF__ = '--debug-prof' in sys.argv or '--debug-profile' in sys.argv
 
+
+if __LOGGING__:
+    util_logging.start_logging()
 
 # Read all flags with --debug in them
 ARGV_DEBUG_FLAGS = []
@@ -16,12 +22,11 @@ for argv in sys.argv:
 
 #print('ARGV_DEBUG_FLAGS: %r' % (ARGV_DEBUG_FLAGS,))
 
-
-__STDOUT__ = sys.stdout
-__PRINT_FUNC__     = __builtin__.print
-__PRINT_DBG_FUNC__ = __builtin__.print
-__WRITE_FUNC__ = __STDOUT__.write
-__FLUSH_FUNC__ = __STDOUT__.flush
+#__STDOUT__ = sys.stdout
+#__PRINT_FUNC__     = __builtin__.print
+#__PRINT_DBG_FUNC__ = __builtin__.print
+#__WRITE_FUNC__ = __STDOUT__.write
+#__FLUSH_FUNC__ = __STDOUT__.flush
 __RELOAD_OK__  = '--noreloadable' not in sys.argv
 
 
@@ -76,8 +81,8 @@ def inject_colored_exceptions():
         from pygments.lexers import get_lexer_by_name
         from pygments.formatters import TerminalFormatter
         tbtext = ''.join(traceback.format_exception(type, value, tb))
-        lexer = get_lexer_by_name("pytb", stripall=True)
-        formatter = TerminalFormatter(bg="dark")
+        lexer = get_lexer_by_name('pytb', stripall=True)
+        formatter = TerminalFormatter(bg='dark')
         sys.stderr.write(highlight(tbtext, lexer, formatter))
     if not sys.platform.startswith('win32'):
         sys.excepthook = myexcepthook
@@ -87,10 +92,15 @@ def inject_print_functions(module_name=None, module_prefix='[???]', DEBUG=False,
     module = _get_module(module_name, module)
 
     def print(msg):
-        __PRINT_FUNC__(msg)
+        util_logging.__UTOOL_PRINT__(msg)
 
-    def print_(msg):
-        __WRITE_FUNC__(msg)
+    if __AGGROFLUSH__:
+        def print_(msg):
+            util_logging.__UTOOL_WRITE__(msg)
+            util_logging.__UTOOL_FLUSH__()
+    else:
+        def print_(msg):
+            util_logging.__UTOOL_WRITE__(msg)
 
     # turn on module debugging with command line flags
     dotpos = module.__name__.rfind('.')
@@ -107,9 +117,9 @@ def inject_print_functions(module_name=None, module_prefix='[???]', DEBUG=False,
         if curflag in module_prefix:
             DEBUG_FLAG = True
     if __DEBUG_ALL__ or DEBUG or DEBUG_FLAG:
-        print('DEBUGGING: %r == %r' % (module_name, module_prefix))
+        print('INJECT_PRINT: %r == %r' % (module_name, module_prefix))
         def printDBG(msg):
-            __PRINT_DBG_FUNC__(module_prefix + ' DEBUG ' + msg)
+            util_logging.__UTOOL_PRINTDBG__(module_prefix + ' DEBUG ' + msg)
     else:
         def printDBG(msg):
             pass
@@ -156,12 +166,12 @@ def inject_profile_function(module_name=None, module_prefix='[???]', module=None
 
 
 def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
-    '''
+    """
     Usage:
         from __future__ import absolute_import, division, print_function
         from util.util_inject import inject
         print, print_, printDBG, rrr, profile = inject(__name__, '[mod]')
-    '''
+    """
     module = _get_module(module_name, module)
     rrr         = inject_reload_function(None, module_prefix, module)
     profile_    = inject_profile_function(None, module_prefix, module)
@@ -171,10 +181,10 @@ def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
 
 
 def inject_all(DEBUG=False):
-    '''
+    """
     Injects the print, print_, printDBG, rrr, and profile functions into all
     loaded modules
-    '''
+    """
     raise NotImplemented('!!!')
     for key, module in sys.modules.items():
         if module is None or not hasattr(module, '__name__'):

@@ -9,8 +9,8 @@ import fnmatch
 import warnings
 from .util_dbg import get_caller_name
 from .util_progress import progress_func
-from .util_inject import inject
-print, print_, printDBG, rrr, profile = inject(__name__, '[path]')
+from . import util_inject
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[path]')
 
 
 __VERBOSE__ = '--verbose' in sys.argv
@@ -399,7 +399,7 @@ def tail(fpath):
 
 def ls(path):
     """ like unix ls - lists all files and dirs in path"""
-    return os.listdir(truepath(path))
+    return sorted(os.listdir(truepath(path)))
 
 
 def ls_dirs(path):

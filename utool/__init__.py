@@ -58,6 +58,7 @@ if __DYNAMIC__:
         ('util_inject',    ['inject', 'inject_all', 'inject_print_functions']),
         ('util_io',        None),
         ('util_iter',      ['iflatten', 'ichunks', 'interleave',]),
+        ('util_logging',   None),
         ('util_list',      ['alloc_lists', 'list_index', 'npfind', 'index_of',
                             'flatten']),
         ('util_num',       None),
@@ -379,7 +380,6 @@ else:
 
 
 
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[utool]')
 
 # Aliases
 getflag = util_arg.get_flag

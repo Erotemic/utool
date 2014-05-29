@@ -147,3 +147,8 @@ def flatten_membership_mapping(uid_list, members_list):
             flat_members[count] = member
             count += 1
     return flat_uids, flat_members
+
+
+def get_phi():
+    phi = (1.0 + np.sqrt(5)) / 2.0
+    return phi
