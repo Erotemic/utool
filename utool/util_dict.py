@@ -50,3 +50,10 @@ def build_conflict_dict(key_list, val_list):
     for key, val in izip(key_list, val_list):
         key_to_vals[key].append(val)
     return key_to_vals
+
+
+def dict_update_newkeys(dict_, dict2):
+    """ Like dict.update, but does not overwrite items """
+    for key, val in dict2.iteritems():
+        if key not in dict_:
+            dict_[key] = val

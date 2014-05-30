@@ -7,9 +7,11 @@ import warnings
 import numpy as np
 # Util
 from .DynamicStruct import DynStruct
-from .util_inject import inject
+from .util_dbg import printex
 from .util_type import is_str, is_dict, try_cast
-print, print_, printDBG, rrr, profile = inject(__name__, '[pref]')
+from . import util_inject
+from . import util_type
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[pref]')
 
 # ---
 # GLOBALS
@@ -316,15 +318,13 @@ class Pref(PrefNode):
                 #printDBG('load: %r' % self._intern.fpath)
                 pref_dict = cPickle.load(f)
             except EOFError as ex1:
-                msg = (('[pref] EOFError WARN: fpath=%r did not load correctly.' +
-                       'ex1=%r') % (self._intern.fpath, ex1))
-                #printDBG(msg)
+                printex(ex1, 'did not load pref fpath=%r correctly' %
+                        self._intern.fpath, iswarning=True)
                 warnings.warn(msg)
                 return msg
             except ImportError as ex2:
-                msg = (('[pref] ImportError WARN: fpath=%r did not load correctly.' +
-                       'ex2=%r') % (self._intern.fpath, ex2))
-                #printDBG(msg)
+                printex(ex2, 'did not load pref fpath=%r correctly' %
+                        self._intern.fpath, iswarning=True)
                 warnings.warn(msg)
                 return msg
 
@@ -386,7 +386,11 @@ class Pref(PrefNode):
 
     # Method for QTWidget
     def createQWidget(self):
-        from ._internal.PreferenceWidget import EditPrefWidget
+        try:
+            from ._internal.PreferenceWidget import EditPrefWidget
+        except ImportError as ex:
+            printex(ex, 'Cannot create preference widget. Is PyQt4 Installed')
+            raise
         editpref_widget = EditPrefWidget(self)
         editpref_widget.show()
         return editpref_widget
@@ -429,61 +433,64 @@ class Pref(PrefNode):
         return self._intern.value != PrefNode
 
     def qt_set_leaf_data(self, qvar):
-        """ Sets backend data using QVariants """
-        print('[pref] qt_set_leaf_data: qvar=%r' % qvar)
-        print('[pref] qt_set_leaf_data: qvar=%s' % str(qvar))
-        print('[pref] qt_set_leaf_data: qvar=%s' % str(qvar.toString()))
+        return _qt_set_leaf_data(self, qvar)
 
-        print('[pref] qt_set_leaf_data: _intern.name=%r' % self._intern.name)
-        print('[pref] qt_set_leaf_data: _intern.type_=%r' % self._intern.get_type())
-        print('[pref] qt_set_leaf_data: _intern.value=%r' % self._intern.value)
 
-        if self._tree.parent is None:
-            raise Exception('[Pref.qtleaf] Cannot set root preference')
-        if self.qt_is_editable():
-            new_val = '[Pref.qtleaf] BadThingsHappenedInPref'
-            if self._intern.value == PrefNode:
-                raise Exception('[Pref.qtleaf] Qt can only change leafs')
-            elif self._intern.value is None:
-                # None could be a number of types
-                def cast_order(var, order=[bool, int, float, str]):
-                    for type_ in order:
-                        try:
-                            ret = type_(var)
-                            return ret
-                        except Exception:
-                            continue
-                new_val = cast_order(str(qvar.toString()))
-            if isinstance(self._intern.value, bool):
-                new_val = bool(qvar.toBool())
-            elif isinstance(self._intern.value, int):
-                new_val = int(qvar.toInt()[0])
-            elif isinstance(self._intern.value, float):
-                new_val = float(qvar.toFloat()[0])
-            elif isinstance(self._intern.value, (str, unicode)):
+def _qt_set_leaf_data(self, qvar):
+    """ Sets backend data using QVariants """
+    print('[pref] qt_set_leaf_data: qvar.toString()=%s' % str(qvar.toString()))
+    print('[pref] qt_set_leaf_data: _intern.name=%r' % self._intern.name)
+    print('[pref] qt_set_leaf_data: _intern.type_=%r' % self._intern.get_type())
+    print('[pref] qt_set_leaf_data: type(_intern.value)=%r' % type(self._intern.value))
+    print('[pref] qt_set_leaf_data: _intern.value=%r' % self._intern.value)
+    if self._tree.parent is None:
+        raise Exception('[Pref.qtleaf] Cannot set root preference')
+    if self.qt_is_editable():
+        new_val = '[Pref.qtleaf] BadThingsHappenedInPref'
+        if self._intern.value == PrefNode:
+            raise Exception('[Pref.qtleaf] Qt can only change leafs')
+        elif self._intern.value is None:
+            # None could be a number of types
+            def cast_order(var, order=[bool, int, float, str]):
+                for type_ in order:
+                    try:
+                        ret = type_(var)
+                        return ret
+                    except Exception:
+                        continue
+            new_val = cast_order(str(qvar.toString()))
+        self._intern.get_type()
+        if isinstance(self._intern.value, bool):
+            new_val = bool(qvar.toBool())
+        elif isinstance(self._intern.value, int):
+            new_val = int(qvar.toInt()[0])
+        # elif isinstance(self._intern.value, float):
+        elif self._intern.get_type() in util_type.VALID_FLOAT_TYPES:
+            new_val = float(qvar.toDouble()[0])
+        elif isinstance(self._intern.value, (str, unicode)):
+            new_val = str(qvar.toString())
+        elif isinstance(self._intern.value, PrefChoice):
+            new_val = qvar.toString()
+            if new_val == 'None':
+                new_val = None
+        else:
+            try:
                 new_val = str(qvar.toString())
-            elif isinstance(self._intern.value, PrefChoice):
-                new_val = qvar.toString()
-                if new_val == 'None':
-                    new_val = None
-            else:
-                try:
-                    new_val = str(qvar.toString())
-                except Exception:
-                    raise ValueError('[Pref.qtleaf] Unknown internal type = %r'
-                                     % type(self._intern.value))
-            # Check for a set of None
-            if isinstance(new_val, (str, unicode)):
-                if new_val.upper() == 'NONE':
-                    new_val = None
-                elif new_val.upper() == 'TRUE':
-                    new_val = True
-                elif new_val.upper() == 'FALSE':
-                    new_val = False
-            # save to disk after modifying data
-            print('[pref] qt_set_leaf_data: new_val=%r' % new_val)
-            print('[pref] qt_set_leaf_data: type(new_val)=%r' % type(new_val))
-            # TODO Add ability to set a callback function when certain
-            # preferences are changed.
-            return self._tree.parent.pref_update(self._intern.name, new_val)
-        return 'PrefNotEditable'
+            except Exception:
+                raise ValueError('[Pref.qtleaf] Unknown internal type = %r'
+                                    % type(self._intern.value))
+        # Check for a set of None
+        if isinstance(new_val, (str, unicode)):
+            if new_val.upper() == 'NONE':
+                new_val = None
+            elif new_val.upper() == 'TRUE':
+                new_val = True
+            elif new_val.upper() == 'FALSE':
+                new_val = False
+        # save to disk after modifying data
+        print('[pref] qt_set_leaf_data: new_val=%r' % new_val)
+        print('[pref] qt_set_leaf_data: type(new_val)=%r' % type(new_val))
+        # TODO Add ability to set a callback function when certain
+        # preferences are changed.
+        return self._tree.parent.pref_update(self._intern.name, new_val)
+    return 'PrefNotEditable'

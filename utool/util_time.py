@@ -81,10 +81,10 @@ class Timer(object):
 
 def exiftime_to_unixtime(datetime_str):
     try:
-        time_format = '%Y:%m:%d %H:%M:%S'
+        timefmt = '%Y:%m:%d %H:%M:%S'
         if len(datetime_str) > 19:
             datetime_str = datetime_str[0:20]
-        dt = datetime.datetime.strptime(datetime_str, time_format)
+        dt = datetime.datetime.strptime(datetime_str, timefmt)
         return time.mktime(dt.timetuple())
     except TypeError:
         #if datetime_str is None:
@@ -103,8 +103,13 @@ def exiftime_to_unixtime(datetime_str):
         print('[util_time] type(datetime_str) = %r' % type(datetime_str))
         print('[util_time] datetime_str = %r' % datetime_str)
         print('[util_time] datetime_str = %s' % datetime_str)
-
         raise
+
+
+def unixtime_to_datetime(unixtime, timefmt='%Y/%m/%d %H:%M:%S'):
+    if unixtime == -1:
+        return 'NA'
+    return datetime.datetime.fromtimestamp(unixtime).strftime(timefmt)
 
 
 def get_unix_timedelta(unixtime_diff):
