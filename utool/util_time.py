@@ -39,8 +39,11 @@ def get_timestamp(format_='filename', use_second=False):
 
 
 class Timer(object):
-    ''' Timer with-statment context object
-    e.g with Timer() as t: some_function()'''
+    """
+    Timer with-statment context object
+    e.g with Timer() as t: some_function()
+    A ++quality utool
+    """
     def __init__(self, msg='', verbose=True, newline=True):
         self.msg = msg
         self.verbose = verbose

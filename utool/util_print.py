@@ -125,3 +125,9 @@ def printWARN(msg):
 
 def print_filesize(fpath):
     print(filesize_str(fpath))
+
+
+def printif(func, condition=VERBOSE and not QUIET):
+    """ execute printfunc only if condition=QUIET"""
+    if condition:
+        print(func())
