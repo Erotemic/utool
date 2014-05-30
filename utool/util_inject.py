@@ -8,6 +8,7 @@ __AGGROFLUSH__ = '--aggroflush' in sys.argv
 __LOGGING__    = '--logging'    in sys.argv
 __DEBUG_ALL__  = '--debug-all'  in sys.argv
 __DEBUG_PROF__ = '--debug-prof' in sys.argv or '--debug-profile' in sys.argv
+__QUIET__ = '--quiet' in sys.argv
 
 
 if __LOGGING__:
@@ -139,7 +140,8 @@ def inject_reload_function(module_name=None, module_prefix='[???]', module=None)
             raise Exception('Reloading has been forced off')
         try:
             import imp
-            __builtin__.print('RELOAD: ' + str(module_prefix) + ' __name__=' + module_name)
+            if not __QUIET__:
+                __builtin__.print('RELOAD: ' + str(module_prefix) + ' __name__=' + module_name)
             imp.reload(module)
         except Exception as ex:
             print(ex)

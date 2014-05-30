@@ -1,8 +1,8 @@
 from __future__ import absolute_import, division, print_function
 import cPickle
 from . import util_path
-from . import util_inject
 from . import util_dbg
+from . import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[io]')
 
 
@@ -12,6 +12,10 @@ __PRINT_READS__  = False or __PRINT_IO__
 
 
 def write_to(fpath, to_write, verbose=__PRINT_WRITES__):
+    """
+    writes_to(fpath, to_write)
+    writes to_write to fpath
+    """
     if __PRINT_WRITES__:
         print('[io] * Writing to text file: %r ' % util_path.tail(fpath))
     with open(fpath, 'w') as file_:

@@ -3,9 +3,9 @@ import sys
 import warnings
 import numpy as np
 from os.path import splitext, exists, join
-from .util_inject import inject
 from .Printable import printableVal, common_stats, mystats  # NOQA
-print, print_, printDBG, rrr, profile = inject(__name__, '[dev]')
+from . import util_inject
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[dev]')
 
 
 def DEPRICATED(func):
@@ -193,6 +193,39 @@ def get_object_size(obj):
             return totalsize
         return totalsize
     return _get_object_size(obj)
+
+
+def print_object_size_tree(obj):
+    """ Needs work """
+    seen = set([])
+    def _get_object_size_tree(obj, indent='', lbl='obj'):
+        if (obj is None or isinstance(obj, (str, int, bool, float))):
+            return [sys.getsizeof(obj)]
+        object_id = id(obj)
+        if object_id in seen:
+            return []
+        seen.add(object_id)
+        size_list = [(lbl, sys.getsizeof(obj))]
+        print(indent + '%s = %s ' % (lbl, str(sys.getsizeof(obj))))
+        if isinstance(obj, np.ndarray):
+            size_list.append(obj.nbytes)
+            print(indent + '%s = %s ' % ('arr', obj.nbytes))
+        elif (isinstance(obj, (tuple, list, set, frozenset))):
+            for item in obj:
+                size_list += _get_object_size_tree(item, indent + '   ', 'item')
+        elif isinstance(obj, dict):
+            try:
+                for key, val in obj.iteritems():
+                    size_list += _get_object_size_tree(key, indent + '   ', key)
+                    size_list += _get_object_size_tree(val, indent + '   ', key)
+            except RuntimeError:
+                print(key)
+                raise
+        elif isinstance(obj, object) and hasattr(obj, '__dict__'):
+            size_list += _get_object_size_tree(obj.__dict__, indent + '   ', 'dict')
+            return size_list
+        return size_list
+    _get_object_size_tree(obj, '', 'obj')
 
 
 def get_object_size_str(obj, lbl=''):

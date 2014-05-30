@@ -263,9 +263,11 @@ def copy_all(src_dir, dest_dir, glob_str_list, recursive=False):
 
 
 def copy_list(src_list, dst_list, lbl='Copying: ', ):
+    """ Copies all data and stat info """
     # Feb - 6 - 2014 Copy function
+    num_tasks = len(src_list)
     task_iter = izip(src_list, dst_list)
-    mark_progress, end_progress = progress_func(len(src_list), lbl=lbl)
+    mark_progress, end_progress = progress_func(num_tasks, lbl=lbl)
     def docopy(src, dst, count):
         try:
             shutil.copy2(src, dst)
