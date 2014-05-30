@@ -33,7 +33,7 @@ def choose(n, k):
 
 
 def cartesian(arrays, out=None):
-    '''
+    """
     Generate a cartesian product of input arrays.
 
     Parameters
@@ -53,7 +53,7 @@ def cartesian(arrays, out=None):
     array([[1, 4, 6], [1, 4, 7], [1, 5, 6], [1, 5, 7],
            [2, 4, 6], [2, 4, 7], [2, 5, 6], [2, 5, 7],
            [3, 4, 6], [3, 4, 7], [3, 5, 6], [3, 5, 7]])
-    '''
+    """
     arrays = [np.asarray(x) for x in arrays]
     dtype = arrays[0].dtype
 

@@ -37,9 +37,9 @@ def prog_func(*args, **kwargs):
 def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
                   flush_after=4, spacing=0, line_len=80,
                   progress_type='fmtstr', mark_start=False, repl=False):
-    '''Returns a function that marks progress taking the iteration count as a
+    """Returns a function that marks progress taking the iteration count as a
     parameter. Prints if max_val > mark_at. Prints dots if max_val not
-    specified or simple=True'''
+    specified or simple=True"""
     write_fn = sys.stdout.write
     #write_fn = print_
     #print('STARTING PROGRESS: VERBOSE=%r QUIET=%r' % (VERBOSE, QUIET))

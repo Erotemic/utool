@@ -56,7 +56,7 @@ class DynStruct(AbstractPrintable):
             self[key] = val
 
     def to_dict(self):
-        '''Converts dynstruct to a dictionary.  '''
+        """Converts dynstruct to a dictionary.  """
         dyn_dict = {}
         for (key, val) in self.__dict__.iteritems():
             if key not in self._printable_exclude:
@@ -81,12 +81,12 @@ class DynStruct(AbstractPrintable):
         return copy_
 
     def execstr(self, local_name):
-        '''returns a string which when evaluated will
+        """returns a string which when evaluated will
            add the stored variables to the current namespace
 
            localname is the name of the variable in the current scope
            * use locals().update(dyn.to_dict()) instead
-        '''
+        """
         execstr = ''
         for (key, val) in self.__dict__.iteritems():
             if key not in self._printable_exclude:

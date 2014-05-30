@@ -191,11 +191,11 @@ def dict_str(dict_, strvals=False):
 
 
 def horiz_string(*args):
-    '''
+    """
     prints a list of objects ensuring that the next item in the list
     is all the way to the right of any previous items.
     str_list = ['A = ', str(np.array(((1,2),(3,4)))), ' * ', str(np.array(((1,2),(3,4))))]
-    '''
+    """
     if len(args) == 1 and not isinstance(args[0], str):
         str_list = args[0]
     else:

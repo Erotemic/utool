@@ -1,15 +1,15 @@
+""" NEEDS CLEANUP SO IT EITHER DOES THE IMPORTS OR GENERATES THE FILE """
 from __future__ import absolute_import, division, print_function
-#import __builtin__
 import sys
 import multiprocessing
 import textwrap
 #import types
 
 
-def make_reload_subs_string(IMPORTS):
+def make_reload_subs_string(IMPORTS, module_name):
     header = '''
     def reload_subs():
-        """Reloads ''' + __name__ + ''' and submodules """
+        """Reloads ''' + module_name + ''' and submodules """
         rrr()'''
     body_fmt = '''
         getattr(%s, 'rrr', lambda: None)()'''
@@ -22,31 +22,33 @@ def make_reload_subs_string(IMPORTS):
     return reload_subs_func_str
 
 
-def __excecute_import(module, module_name, IMPORT_TUPLES):
+def __excecute_import(module, module_name, IMPORT_TUPLES, dry=False):
     """ Module Imports """
     # level: -1 is a the Python2 import strategy
     # level:  0 is a the Python3 absolute import
     IMPORTS      = [name for name, fromlist in IMPORT_TUPLES]
     level = 0
-    for name in IMPORTS:
-        if level == -1:
-            tmp = __import__(name, globals(), locals(), fromlist=[], level=level)
-        elif level == 0:
-            tmp = __import__(module_name, globals(), locals(), fromlist=[name], level=level)
+    if not dry:
+        for name in IMPORTS:
+            if level == -1:
+                tmp = __import__(name, globals(), locals(), fromlist=[], level=level)
+            elif level == 0:
+                tmp = __import__(module_name, globals(), locals(), fromlist=[name], level=level)
     return IMPORTS
 
 
-def __execute_fromimport(module, IMPORT_TUPLES):
+def __execute_fromimport(module, IMPORT_TUPLES, dry=False):
     FROM_IMPORTS = [(name, fromlist) for name, fromlist in IMPORT_TUPLES
                     if fromlist is not None and len(fromlist) > 0]
-    for name, fromlist in FROM_IMPORTS:
-        tmp = __import__(name, globals(), locals(), fromlist=fromlist, level=-1)
-        for member in fromlist:
-            setattr(module, member, getattr(tmp, member))
+    if not dry:
+        for name, fromlist in FROM_IMPORTS:
+            tmp = __import__(name, globals(), locals(), fromlist=fromlist, level=-1)
+            for member in fromlist:
+                setattr(module, member, getattr(tmp, member))
     return FROM_IMPORTS
 
 
-def __execute_fromimport_star(module, module_name, IMPORT_TUPLES):
+def __execute_fromimport_star(module, module_name, IMPORT_TUPLES, dry=False):
     """ Effectively import * statements """
     FROM_IMPORTS = []
     # Explicitly ignore these special functions
@@ -90,7 +92,7 @@ def __execute_fromimport_star(module, module_name, IMPORT_TUPLES):
     return FROM_IMPORTS
 
 
-def dynamic_import(module_name, IMPORT_TUPLES, developing=True):
+def dynamic_import(module_name, IMPORT_TUPLES, developing=True, dump=False, dry=False):
     """
     Dynamically import listed util libraries and their members.
     Create reload_subs function.
@@ -99,22 +101,25 @@ def dynamic_import(module_name, IMPORT_TUPLES, developing=True):
     it is better than import * and this will generate the good file text that
     can be used when the module is "frozen"
     """
-    #__builtin__.print('[DYNAMIC IMPORT] Running Dynamic Imports')
+    #print('[DYNAMIC IMPORT] Running Dynamic Imports: %r ' % module_name)
     __PRINT_IMPORTS__ = (('--dump-%s-init' % module_name) in sys.argv or
-                         ('--print-%s-init' % module_name) in sys.argv)
-    module = sys.modules[module_name]
+                         ('--print-%s-init' % module_name) in sys.argv) or dump
+    if not dry:
+        module = sys.modules[module_name]
+    else:
+        module = sys
 
-    IMPORTS = __excecute_import(module, module_name, IMPORT_TUPLES)
+    IMPORTS = __excecute_import(module, module_name, IMPORT_TUPLES, dry=dry)
 
     if developing:
         # If developing do explicit import stars
-        FROM_IMPORTS = __execute_fromimport_star(module, module_name, IMPORT_TUPLES)
+        FROM_IMPORTS = __execute_fromimport_star(module, module_name, IMPORT_TUPLES, dry=dry)
     else:
-        FROM_IMPORTS = __execute_fromimport(module, IMPORT_TUPLES)
+        FROM_IMPORTS = __execute_fromimport(module, IMPORT_TUPLES, dry=dry)
 
     # Injection and Reload String Defs
     utool_inject_str = 'print, print_, printDBG, rrr, profile = util_inject.inject(__name__, \'[%s]\')' % module_name
-    reload_subs_func_str = make_reload_subs_string(IMPORTS)
+    reload_subs_func_str = make_reload_subs_string(IMPORTS, module_name)
     import_execstr = utool_inject_str + reload_subs_func_str
 
     current_process = multiprocessing.current_process().name
@@ -132,8 +137,16 @@ def dynamic_import(module_name, IMPORT_TUPLES, developing=True):
             packstr = pack_into(rawstr, textwidth=80, newline_prefix=newline_prefix)
             return packstr
         from_str   = '\n'.join([_fromimport_str(name, fromlist) for (name, fromlist) in FROM_IMPORTS])
-        print(util_str.indent(import_str))
-        print(util_str.indent(from_str))
-        print(util_str.indent(import_execstr))
-        print('')
+
+        initfile_str = '\n'.join([
+            '# flake8: noqa',
+            'from __future__ import absolute_import, division, print_function',
+            import_str,
+            from_str,
+            import_execstr,
+        ])
+        if dry:
+            print(initfile_str)
+        else:
+            print(util_str.indent(initfile_str))
     return import_execstr
