@@ -1,7 +1,8 @@
 from __future__ import absolute_import, division, print_function
-from os.path import (join, realpath, relpath, normpath, split, isdir, isfile, exists,
-                     islink, ismount, expanduser, dirname)
-from itertools import izip
+from os.path import (join, basename, realpath, relpath, normpath, split,
+                     isdir, isfile, exists, islink, ismount, expanduser,
+                     dirname, splitext)
+from itertools import izip, ifilterfalse, ifilter, imap
 import os
 import sys
 import shutil
@@ -340,16 +341,18 @@ def file_megabytes(fpath):
     return os.stat(fpath).st_size / (2.0 ** 20)
 
 
-def glob(dirname, pattern, recursive=False):
-    matching_fnames = []
+def glob(dirname, pattern, recursive=False, with_files=True, with_dirs=True):
     for root, dirs, files in os.walk(dirname):
-        for fname in files:
-            if not fnmatch.fnmatch(fname, pattern):
-                continue
-            matching_fnames.append(join(root, fname))
+        if with_files:
+            for fname in fnmatch.filter(files, pattern):
+                fpath = join(root, fname)
+                yield fpath
+        if with_dirs:
+            for dname in fnmatch.filter(dirs, pattern):
+                dpath = join(root, dname)
+                yield dpath
         if not recursive:
             break
-    return matching_fnames
 
 
 # --- Images ----
@@ -399,20 +402,42 @@ def tail(fpath):
     return split(fpath)[1]
 
 
-def ls(path):
+def ls(path, pattern='*'):
     """ like unix ls - lists all files and dirs in path"""
-    return sorted(os.listdir(truepath(path)))
+    path_iter = glob(path, pattern, recursive=False)
+    return sorted(list(path_iter))
 
 
-def ls_dirs(path):
-    dir_list = filter(isdir, ls(path))
-    return dir_list
+def ls_dirs(path, pattern='*'):
+    dir_iter = list(glob(path, pattern, recursive=False))
+    return sorted(list(dir_iter))
 
 
-def ls_moduledirs(path):
+def ls_modulefiles(path, private=True, full=True, noext=False):
+    module_file_list = ls(path, '*.py')
+    module_file_iter = iter(module_file_list)
+    if not private:
+        module_file_iter = ifilterfalse(is_private_module, module_file_iter)
+    if not full:
+        module_file_iter = imap(basename, module_file_iter)
+    if noext:
+        module_file_iter = (splitext(path)[0] for path in module_file_iter)
+    return list(module_file_iter)
+
+
+def ls_moduledirs(path, private=True, full=True):
     """ lists all dirs which are python modules in path """
-    module_dir_list = filter(is_module_dir, ls_dirs(path))
-    return module_dir_list
+    dir_list = ls_dirs(path)
+    module_dir_iter = ifilter(is_module_dir, dir_list)
+    if not private:
+        module_dir_iter = ifilterfalse(is_private_module, module_dir_iter)
+    if not full:
+        module_dir_iter = imap(basename, module_dir_iter)
+    return list(module_dir_iter)
+
+
+def is_private_module(path):
+    return basename(path).startswith('__')
 
 
 def is_module_dir(path):

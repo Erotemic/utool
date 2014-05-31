@@ -20,5 +20,6 @@ if __name__ == '__main__':
         keywords='',
         install_requires=INSTALL_REQUIRES,
         package_data={},
+        scripts=['utool/util_scripts/makeinit.py'],
         classifiers=[],
     )

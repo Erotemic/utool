@@ -10,7 +10,7 @@ from __future__ import absolute_import, division, print_function
 import sys
 import textwrap
 
-#__version__ = '(.878 + .478i)'
+#__fun_version__ = '(.878 + .478i)'
 __version__ = '1.0.0.dev1'
 
 __DYNAMIC__ = not '--nodyn' in sys.argv
@@ -147,8 +147,9 @@ else:
                            find_exe, garbage_collect, get_object_base,
                            get_object_size, get_object_size_str, info, listinfo,
                            memory_profile, myprint, mystats, npinfo,
-                           numpy_list_num_bits, print_object_size, printableVal,
-                           runprofile, stats_str,)
+                           numpy_list_num_bits, print_object_size,
+                           print_object_size_tree, printableVal, runprofile,
+                           stats_str,)
     from .util_decor import (DISABLE_WRAPPERS, IGNORE_EXC_TB, TRACE, UNIQUE_NUMPY,
                              accepts_numpy, accepts_scalar_input,
                              accepts_scalar_input_vector_output, identity_decor,
@@ -200,12 +201,13 @@ else:
                             copy, copy_all, copy_list, copy_task, delete, dirsplit,
                             ensuredir, ensurepath, ext, file_bytes, file_megabytes,
                             fnames_to_fpaths, fpaths_to_fnames, get_module_dir,
-                            is_module_dir, isfile, islink, ismount, list_images,
+                            glob, ifilter, ifilterfalse, is_module_dir,
+                            is_private_module, isfile, islink, ismount, list_images,
                             longest_existing_path, ls, ls_dirs, ls_moduledirs,
-                            matches_image, move_list, num_images_in_dir,
-                            path_ndir_split, progress_func, relpath, remove_dirs,
-                            remove_file, remove_files_in_dir, symlink, tail,
-                            truepath, unixpath, win_shortcut,)
+                            ls_modulefiles, matches_image, move_list,
+                            num_images_in_dir, path_ndir_split, progress_func,
+                            relpath, remove_dirs, remove_file, remove_files_in_dir,
+                            symlink, tail, truepath, unixpath, win_shortcut,)
     from .util_print import (Indenter, NO_INDENT, NpPrintOpts, filesize_str,
                              horiz_print, printNOTQUIET, printVERBOSE, printWARN,
                              print_filesize, printif, printshape,)
@@ -215,10 +217,8 @@ else:
                                 get_default_numprocs, init_pool, init_worker,
                                 process, tic, toc,)
     from .util_resources import (available_memory, byte_str2, current_memory_usage,
-                                 get_resource_limits, memstats, num_cpus,
-                                 peak_memory, print_resource_usage,
-                                 time_in_systemmode, time_in_usermode, time_str2,
-                                 total_memory, used_memory,)
+                                 memstats, num_cpus, print_resource_usage,
+                                 time_str2, total_memory, used_memory,)
     from .util_str import (GLOBAL_TYPE_ALIASES, bbox_str, byte_str, byte_str2,
                            dict_aliased_repr, dict_itemstr_list, dict_str,
                            extend_global_aliases, file_megabytes_str,
@@ -244,9 +244,11 @@ else:
     from .util_tests import (HAPPY_FACE, SAD_FACE, printTEST, run_test,)
     from .DynamicStruct import (AbstractPrintable, DynStruct,)
     from .Preferences import (Pref, PrefChoice, PrefInternal, PrefNode, PrefTree,)
-    print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[utool]')
+    print, print_, printDBG, rrr, profile = util_inject.inject(
+        __name__, 'utool')
+
     def reload_subs():
-        """Reloads utool._internal.util_importer and submodules """
+        """ Reloads utool and submodules """
         rrr()
         getattr(util_alg, 'rrr', lambda: None)()
         getattr(util_arg, 'rrr', lambda: None)()

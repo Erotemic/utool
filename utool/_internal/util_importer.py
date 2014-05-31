@@ -5,50 +5,33 @@ import multiprocessing
 import textwrap
 #import types
 
+#----------
+# EXECUTORS
+#----------
 
-def make_reload_subs_string(IMPORTS, module_name):
-    header = '''
-    def reload_subs():
-        """Reloads ''' + module_name + ''' and submodules """
-        rrr()'''
-    body_fmt = '''
-        getattr(%s, 'rrr', lambda: None)()'''
-    body = ''.join([body_fmt % (name) for name in IMPORTS])
-    footer = '''
-        rrr()
-    rrrr = reload_subs
-    '''
-    reload_subs_func_str = textwrap.dedent(header + body + footer)
-    return reload_subs_func_str
-
-
-def __excecute_import(module, module_name, IMPORT_TUPLES, dry=False):
+def __excecute_imports(module, module_name, IMPORTS):
     """ Module Imports """
     # level: -1 is a the Python2 import strategy
     # level:  0 is a the Python3 absolute import
-    IMPORTS      = [name for name, fromlist in IMPORT_TUPLES]
     level = 0
-    if not dry:
-        for name in IMPORTS:
-            if level == -1:
-                tmp = __import__(name, globals(), locals(), fromlist=[], level=level)
-            elif level == 0:
-                tmp = __import__(module_name, globals(), locals(), fromlist=[name], level=level)
-    return IMPORTS
+    for name in IMPORTS:
+        if level == -1:
+            tmp = __import__(name, globals(), locals(), fromlist=[], level=level)
+        elif level == 0:
+            tmp = __import__(module_name, globals(), locals(), fromlist=[name], level=level)
 
 
-def __execute_fromimport(module, IMPORT_TUPLES, dry=False):
-    FROM_IMPORTS = [(name, fromlist) for name, fromlist in IMPORT_TUPLES
-                    if fromlist is not None and len(fromlist) > 0]
-    if not dry:
-        for name, fromlist in FROM_IMPORTS:
-            tmp = __import__(name, globals(), locals(), fromlist=fromlist, level=-1)
-            for member in fromlist:
-                setattr(module, member, getattr(tmp, member))
+def __execute_fromimport(module, module_name, IMPORT_TUPLES):
+    """ Module From Imports """
+    FROM_IMPORTS = __get_from_imports(IMPORT_TUPLES)
+    for name, fromlist in FROM_IMPORTS:
+        tmp = __import__(module_name + '.' + name, globals(), locals(), fromlist=fromlist, level=0)
+        for member in fromlist:
+            setattr(module, member, getattr(tmp, member))
     return FROM_IMPORTS
 
 
-def __execute_fromimport_star(module, module_name, IMPORT_TUPLES, dry=False):
+def __execute_fromimport_star(module, module_name, IMPORT_TUPLES):
     """ Effectively import * statements """
     FROM_IMPORTS = []
     # Explicitly ignore these special functions
@@ -91,8 +74,108 @@ def __execute_fromimport_star(module, module_name, IMPORT_TUPLES, dry=False):
         FROM_IMPORTS.append((name, valid_fromlist_))
     return FROM_IMPORTS
 
+#----------
+# PARSERS
+#----------
 
-def dynamic_import(module_name, IMPORT_TUPLES, developing=True, dump=False, dry=False):
+def __get_imports(IMPORT_TUPLES):
+    """ Returns import names
+    IMPORT_TUPLES are specified as
+    (name, fromlist, ispackage)
+    """
+    IMPORTS = [tup[0] for tup in IMPORT_TUPLES]
+    return IMPORTS
+
+
+def __get_from_imports(IMPORT_TUPLES):
+    """ Returns import names and fromlist
+    IMPORT_TUPLES are specified as
+    (name, fromlist, ispackage)
+    """
+    FROM_IMPORTS = [(tup[0], tup[1]) for tup in IMPORT_TUPLES
+                    if tup[1] is not None and len(tup[1]) > 0]
+    return FROM_IMPORTS
+
+#----------
+# STRING MAKERS
+#----------
+
+def _initstr(module_name, IMPORTS, FROM_IMPORTS, inject_execstr):
+    """ Calls the other string makers """
+    header         = _make_module_header()
+    import_str     = _make_imports_str(IMPORTS)
+    fromimport_str = _make_fromimport_str(FROM_IMPORTS)
+    initstr = '\n'.join([str_ for str_ in [
+        header,
+        import_str,
+        fromimport_str,
+        inject_execstr,
+    ] if len(str_) > 0])
+    return initstr
+
+def _make_module_header():
+    return '\n'.join([
+        '# flake8: noqa',
+        'from __future__ import absolute_import, division, print_function'])
+
+def _make_imports_str(IMPORTS):
+    return '\n'.join(['from . import %s' % (name,) for name in IMPORTS])
+
+def _make_fromimport_str(FROM_IMPORTS):
+    from utool import util_str
+    def _pack_fromimport(tup):
+        name, fromlist = tup[0], tup[1]
+        from_module_str = 'from .%s import (' % name
+        newline_prefix = (' ' * len(from_module_str))
+        rawstr = from_module_str + ', '.join(fromlist) + ',)'
+        packstr = util_str.pack_into(rawstr, textwidth=80,
+                                     newline_prefix=newline_prefix)
+        return packstr
+    from_str = '\n'.join(map(_pack_fromimport, FROM_IMPORTS))
+    return from_str
+
+def _inject_execstr(module_name, IMPORT_TUPLES):
+    # Injection and Reload String Defs
+    if module_name == 'utool':
+        injecter = 'util_inject'
+        injecter_import = ''
+    else:
+        injecter_import = 'import utool'
+        injecter = 'utool'
+    injectstr_fmt = textwrap.dedent('''
+    {injecter_import}
+    print, print_, printDBG, rrr, profile = {injecter}.inject(
+        __name__, '[{module_name}]')
+
+    def reload_subs():
+        """ Reloads {module_name} and submodules """
+        rrr()
+        {body}
+        rrr()
+    rrrr = reload_subs''')
+    rrrdir_fmt = '    getattr(%s, \'reload_subs\', lambda: None)()'
+    rrrfile_fmt = '    getattr(%s, \'rrr\', lambda: None)()'
+
+    def _reload_command(tup):
+        if len(tup) > 2 and tup[2] is True:
+            return rrrdir_fmt % tup[0]
+        else:
+            return rrrfile_fmt % tup[0]
+    body = '\n'.join(map(_reload_command, IMPORT_TUPLES)).strip()
+    format_dict = {
+        'module_name': module_name,
+        'body': body,
+        'injecter': injecter,
+        'injecter_import': injecter_import,
+    }
+    inject_execstr = injectstr_fmt.format(**format_dict).strip()
+    return inject_execstr
+
+#----------
+# PUBLIC FUNCTIONS
+#----------
+
+def dynamic_import(module_name, IMPORT_TUPLES, developing=True, dump=False):
     """
     Dynamically import listed util libraries and their members.
     Create reload_subs function.
@@ -102,51 +185,46 @@ def dynamic_import(module_name, IMPORT_TUPLES, developing=True, dump=False, dry=
     can be used when the module is "frozen"
     """
     #print('[DYNAMIC IMPORT] Running Dynamic Imports: %r ' % module_name)
-    __PRINT_IMPORTS__ = (('--dump-%s-init' % module_name) in sys.argv or
-                         ('--print-%s-init' % module_name) in sys.argv) or dump
-    if not dry:
-        module = sys.modules[module_name]
-    else:
-        module = sys
+    module = sys.modules[module_name]
 
-    IMPORTS = __excecute_import(module, module_name, IMPORT_TUPLES, dry=dry)
-
+    IMPORTS = __get_imports(IMPORT_TUPLES)
+    __excecute_imports(module, module_name, IMPORTS)
+    # If developing do explicit import stars
     if developing:
-        # If developing do explicit import stars
-        FROM_IMPORTS = __execute_fromimport_star(module, module_name, IMPORT_TUPLES, dry=dry)
+        FROM_IMPORTS = __execute_fromimport_star(module, module_name, IMPORT_TUPLES)
     else:
-        FROM_IMPORTS = __execute_fromimport(module, IMPORT_TUPLES, dry=dry)
+        FROM_IMPORTS = __execute_fromimport(module, module_name, IMPORT_TUPLES)
 
-    # Injection and Reload String Defs
-    utool_inject_str = 'print, print_, printDBG, rrr, profile = util_inject.inject(__name__, \'[%s]\')' % module_name
-    reload_subs_func_str = make_reload_subs_string(IMPORTS, module_name)
-    import_execstr = utool_inject_str + reload_subs_func_str
+    inject_execstr = _inject_execstr(module_name, IMPORT_TUPLES)
 
-    current_process = multiprocessing.current_process().name
-    is_main_proc = current_process == 'MainProcess'
     # If requested: print what the __init__ module should look like
-    if __PRINT_IMPORTS__ and is_main_proc:
-        from utool import util_str
-        print('')
-        pack_into = util_str.pack_into
-        import_str = '\n'.join(['from . import %s' % (name,) for name in IMPORTS])
-        def _fromimport_str(name, fromlist):
-            from_module_str = 'from .%s import (' % name
-            newline_prefix = (' ' * len(from_module_str))
-            rawstr = from_module_str + ', '.join(fromlist) + ',)'
-            packstr = pack_into(rawstr, textwidth=80, newline_prefix=newline_prefix)
-            return packstr
-        from_str   = '\n'.join([_fromimport_str(name, fromlist) for (name, fromlist) in FROM_IMPORTS])
+    dump_requested = (('--dump-%s-init' % module_name) in sys.argv or
+                      ('--print-%s-init' % module_name) in sys.argv) or dump
+    if dump_requested:
+        is_main_proc = multiprocessing.current_process().name == 'MainProcess'
+        if is_main_proc:
+            from utool import util_str
+            initstr = _initstr(module_name, IMPORTS, FROM_IMPORTS, inject_execstr)
+            print(util_str.indent(initstr))
+    return inject_execstr
 
-        initfile_str = '\n'.join([
-            '# flake8: noqa',
-            'from __future__ import absolute_import, division, print_function',
-            import_str,
-            from_str,
-            import_execstr,
-        ])
-        if dry:
-            print(initfile_str)
-        else:
-            print(util_str.indent(initfile_str))
-    return import_execstr
+
+def make_initstr(module_name, IMPORT_TUPLES):
+    """
+    Just creates the string representation. Does no importing.
+    """
+    IMPORTS      = __get_imports(IMPORT_TUPLES)
+    FROM_IMPORTS = __get_from_imports(IMPORT_TUPLES)
+    inject_execstr = _inject_execstr(module_name, IMPORT_TUPLES)
+    return _initstr(module_name, IMPORTS, FROM_IMPORTS, inject_execstr)
+
+
+def make_import_tuples(module_path):
+    """ Infer the IMPORT_TUPLES from a module_path """
+    from utool import util_path
+    kwargs = dict(private=False, full=False)
+    module_list = util_path.ls_modulefiles(module_path, noext=True, **kwargs)
+    package_list = util_path.ls_moduledirs(module_path, **kwargs)
+    IMPORT_TUPLES = ([(modname, None, False) for modname in module_list] +
+                     [(modname, None, True)  for modname in package_list])
+    return IMPORT_TUPLES
