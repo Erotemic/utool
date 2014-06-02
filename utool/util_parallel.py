@@ -115,7 +115,7 @@ def _process_parallel(func, args_list, args_dict={}):
     return result_list
 
 
-def _generate_parallel(func, args_list, ordered=False, chunksize=1):
+def _generate_parallel(func, args_list, ordered=True, chunksize=1):
     print('[parallel] executing %d %s tasks using %d processes' %
             (len(args_list), func.func_name, __POOL__._processes))
     mark_prog, end_prog = progress_func(max_val=len(args_list), lbl=func.func_name + ': ')
@@ -158,7 +158,7 @@ def ensure_pool(warn=True):
         init_pool()
 
 
-def generate(func, args_list, ordered=False, force_serial=__FORCE_SERIAL__):
+def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__):
     """ Returns a generator which asynchronously returns results """
     if len(args_list) == 0:
         print('[parallel] submitted 0 tasks')
