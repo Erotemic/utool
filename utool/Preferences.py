@@ -309,25 +309,26 @@ class Pref(PrefNode):
     def load(self):
         #printDBG('[pref.load()]')
         """ Read pref dict stored on disk. Overwriting current values. """
-        if not os.path.exists(self._intern.fpath):
-            msg = '[pref] fpath=%r does not exist' % (self._intern.fpath)
-            #printDBG(msg)
-            return msg
-        with open(self._intern.fpath, 'r') as f:
-            try:
+        #if not os.path.exists(self._intern.fpath):
+        #    msg = '[pref] fpath=%r does not exist' % (self._intern.fpath)
+        #    #printDBG(msg)
+        #    return msg
+        try:
+            with open(self._intern.fpath, 'r') as f:
                 #printDBG('load: %r' % self._intern.fpath)
                 pref_dict = cPickle.load(f)
-            except EOFError as ex1:
-                printex(ex1, 'did not load pref fpath=%r correctly' %
-                        self._intern.fpath, iswarning=True)
-                warnings.warn(msg)
-                return msg
-            except ImportError as ex2:
-                printex(ex2, 'did not load pref fpath=%r correctly' %
-                        self._intern.fpath, iswarning=True)
-                warnings.warn(msg)
-                return msg
-
+        except EOFError as ex1:
+            printex(ex1, 'did not load pref fpath=%r correctly' %
+                    self._intern.fpath, iswarning=True)
+            #warnings.warn(msg)
+            raise
+            #return msg
+        except ImportError as ex2:
+            printex(ex2, 'did not load pref fpath=%r correctly' %
+                    self._intern.fpath, iswarning=True)
+            #warnings.warn(msg)
+            raise
+            #return msg
         if not is_dict(pref_dict):
             raise Exception('Preference file is corrupted')
         self.add_dict(pref_dict)

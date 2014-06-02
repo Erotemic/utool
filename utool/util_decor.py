@@ -136,15 +136,15 @@ def accepts_scalar_input_vector_output(func):
     def wrapper_vec_output(self, input_, *args, **kwargs):
         if isiterable(input_):
             # If input is already iterable do default behavior
-            return func(self, input_, *args, **kwargs)
+            result = func(self, input_, *args, **kwargs)
+            return result
         else:
             # If input is scalar, wrap input, execute, and unpack result
             result = func(self, (input_,), *args, **kwargs)
             # The length of the output has the potential to be 0 on a scalar input
             if len(result) != 0:
-                return result[0]
-            else:
-                return result
+                result = result[0]
+            return result
     return wrapper_vec_output
 
 
