@@ -283,3 +283,18 @@ def find_exe(name, path_hints=[], required=True):
 
     if required:
         raise AssertionError('cannot find ' + name)
+
+
+def _on_ctrl_c(signal, frame):
+    print('Caught ctrl+c')
+    sys.exit(0)
+
+
+def init_catch_ctrl_c():
+    import signal
+    signal.signal(signal.SIGINT, _on_ctrl_c)
+
+
+def reset_catch_ctrl_c():
+    import signal
+    signal.signal(signal.SIGINT, signal.SIG_DFL)  # reset ctrl+c behavior
