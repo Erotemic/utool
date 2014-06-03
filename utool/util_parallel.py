@@ -120,9 +120,9 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1):
             (len(args_list), func.func_name, __POOL__._processes))
     mark_prog, end_prog = progress_func(max_val=len(args_list), lbl=func.func_name + ': ')
     if ordered:
-        generator = __POOL__.imap_unordered(func, args_list, chunksize)
-    else:
         generator = __POOL__.imap(func, args_list, chunksize)
+    else:
+        generator = __POOL__.imap_unordered(func, args_list, chunksize)
     try:
         for count, result in enumerate(generator):
             mark_prog(count)

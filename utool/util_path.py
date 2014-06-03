@@ -436,6 +436,10 @@ def ls_moduledirs(path, private=True, full=True):
     return list(module_dir_iter)
 
 
+def basename_noext(path):
+    return splitext(basename(path))[0]
+
+
 def is_private_module(path):
     return basename(path).startswith('__')
 
@@ -444,10 +448,15 @@ def is_module_dir(path):
     return exists(join(path, '__init__.py'))
 
 
-def list_images(img_dpath, ignore_list=[], recursive=True, fullpath=False):
-    """ TODO: rename to ls_images """
+def list_images(img_dpath, ignore_list=[], recursive=True, fullpath=False,
+                full=None):
+    """ TODO: rename to ls_images
+        TODO: Change all instances of fullpath to full
+    """
     #if not __QUIET__:
     #    print(ignore_list)
+    if full is not None:
+        fullpath = fullpath or full
     ignore_set = set(ignore_list)
     gname_list_ = []
     assertpath(img_dpath)

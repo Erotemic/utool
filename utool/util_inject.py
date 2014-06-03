@@ -74,7 +74,6 @@ def _get_module(module_name=None, module=None):
 
 
 def inject_colored_exceptions():
-    import sys
     def myexcepthook(type, value, tb):
         #https://stackoverflow.com/questions/14775916/coloring-exceptions-from-python-on-a-terminal
         import traceback
@@ -84,7 +83,9 @@ def inject_colored_exceptions():
         tbtext = ''.join(traceback.format_exception(type, value, tb))
         lexer = get_lexer_by_name('pytb', stripall=True)
         formatter = TerminalFormatter(bg='dark')
-        sys.stderr.write(highlight(tbtext, lexer, formatter))
+        formatted_text = highlight(tbtext, lexer, formatter)
+        sys.stderr.write(formatted_text)
+    # Ignore colored exceptions on win32
     if not sys.platform.startswith('win32'):
         sys.excepthook = myexcepthook
 

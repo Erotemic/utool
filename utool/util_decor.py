@@ -115,6 +115,31 @@ def accepts_scalar_input(func):
     return wrapper_scalar_input
 
 
+def accepts_scalar_input2(argx_list=[1]):
+    """
+    accepts_scalar_input is a decorator which expects to be used on class methods.
+    It lets the user pass either a vector or a scalar to a function, as long as
+    the function treats everything like a vector. Input and output is sanatized
+    to the user expected format on return.
+    """
+    def accept_scalar_closure(func):
+        @ignores_exc_tb
+        @wraps(func)
+        def wrapper_scalar_input2(self, *args, **kwargs):
+            if all([isiterable(args[ix]) for ix in argx_list]):
+                # If input is already iterable do default behavior
+                return func(self, *args, **kwargs)
+            else:
+                # If input is scalar, wrap input, execute, and unpack result
+                args_wrapped = [(arg,) if ix in argx_list else arg
+                                for arg in args]
+                ret = func(self, *args_wrapped, **kwargs)
+                if ret is not None:
+                    return ret[0]
+        return wrapper_scalar_input2
+    return accept_scalar_closure
+
+
 #def accepts_scalar_input_vector_output(func):
 #    @wraps(func)
 #    def wrapper_vec_output(self, input_, *args, **kwargs):
