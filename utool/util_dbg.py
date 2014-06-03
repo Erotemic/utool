@@ -527,13 +527,13 @@ def debug_exception(func):
 
 
 def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
-            locals_=None, iswarning=False, tb=False, separate=False):
+            locals_=None, iswarning=False, tb=False, separate=False, N=0):
     """ Prints an exception with relevant info """
     # Get error prefix and local info
     if prefix is None:
-        prefix = get_caller_prefix(aserror=True)
+        prefix = get_caller_prefix(aserror=True, N=N)
     if locals_ is None:
-        locals_ = get_caller_locals()
+        locals_ = get_caller_locals(N=N)
     # build exception message
     exstr = formatex(ex, msg, prefix, key_list, locals_, iswarning, tb=tb)
     if separate:
@@ -547,13 +547,13 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
 
 
 def formatex(ex, msg='[!?] Caught exception',
-             prefix=None, key_list=[], locals_=None, iswarning=False, tb=False):
+             prefix=None, key_list=[], locals_=None, iswarning=False, tb=False, N=0):
     """ Formats an exception with relevant info """
     # Get error prefix and local info
     if prefix is None:
-        prefix = get_caller_prefix(aserror=True)
+        prefix = get_caller_prefix(aserror=True, N=N)
     if locals_ is None:
-        locals_ = get_caller_locals()
+        locals_ = get_caller_locals(N=N)
     # build exception message
     exstrs = []  # list of exception strings
     ex_tag = 'WARNING' if iswarning else 'EXCEPTION'

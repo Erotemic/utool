@@ -31,8 +31,7 @@ if __DYNAMIC__:
                             'quitflag', 'inIPython', 'printvar2', 'all_rrr']),
         ('util_dev',       ['common_stats', 'mystats', 'myprint',
                             'get_object_size']),
-        ('util_decor',     ['ignores_exc_tb', 'indent_decor', 'indent_func',
-                            'accepts_numpy',
+        ('util_decor',     ['ignores_exc_tb', 'indent_func', 'accepts_numpy',
                             'accepts_scalar_input_vector_output',
                             'accepts_scalar_input']),
         ('util_distances', ['nearest_point',]),
@@ -152,8 +151,8 @@ else:
                            stats_str,)
     from .util_decor import (DISABLE_WRAPPERS, IGNORE_EXC_TB, TRACE, UNIQUE_NUMPY,
                              accepts_numpy, accepts_scalar_input,
-                             accepts_scalar_input_vector_output, identity_decor,
-                             ignores_exc_tb, indent_decor, indent_func, interested,
+                             accepts_scalar_input_vector_output,
+                             ignores_exc_tb, indent_func, interested,
                              isiterable, memorize, wraps,)
     from .util_distances import (L1, L2, L2_sqrd, compute_distances, emd,
                                  hist_isect, nearest_point,)

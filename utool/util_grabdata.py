@@ -131,4 +131,4 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool', download_dir=None)
             unarchive_file(zip_fpath)
             util_path.delete(zip_fpath)  # Cleanup
     util_path.assert_exists(data_dir)
-    return data_dir
+    return util_path.unixpath(data_dir)

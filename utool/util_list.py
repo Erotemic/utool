@@ -208,10 +208,13 @@ def inbounds(arr, low, high):
     return flag
 
 
-def assert_all_not_None(list_, list_name='some_list'):
+def assert_all_not_None(list_, list_name='some_list', key_list=[]):
     if any([item is None for count, item in enumerate(list_)]):
         msg = ((list_name + '[%d] = %r') % (count, item))
-        raise AssertionError(msg)
+        ex = AssertionError(msg)
+        from .util_dbg import printex
+        printex(ex, msg, key_list=key_list, N=1)
+        raise ex
 
 
 def get_dirty_items(item_list, flag_list):
