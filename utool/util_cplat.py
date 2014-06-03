@@ -62,7 +62,10 @@ def view_directory(dname=None):
     open_prog = {'win32': 'explorer.exe',
                  'linux2': 'nautilus',
                  'darwin': 'open'}[sys.platform]
-    os.system(open_prog + ' ' + normpath(dname))
+    dname = normpath(dname)
+    if dname.find(' ') != -1 and not dname.startswith(('"', '\'')):
+        dname = '"%s"' % dname
+    os.system(open_prog + ' ' + dname)
 
 
 def get_resource_dir():
