@@ -67,6 +67,9 @@ def view_directory(dname=None):
         dname = '"%s"' % dname
     os.system(open_prog + ' ' + dname)
 
+# Alias
+vd = view_directory
+
 
 def get_resource_dir():
     """ Returns a directory which should be writable for any application """
