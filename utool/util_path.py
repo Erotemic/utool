@@ -24,6 +24,12 @@ __UPPER_EXTS = [ext.upper() for ext in __IMG_EXTS]
 IMG_EXTENSIONS =  set(__LOWER_EXTS + __UPPER_EXTS)
 
 
+def newcd(path):
+    cwd = os.getcwd()
+    os.chdir(path)
+    return cwd
+
+
 def unixpath(path):
     """ Corrects fundamental problems with windows paths.~ """
     return truepath(path).replace('\\', '/')
