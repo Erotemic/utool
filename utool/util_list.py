@@ -112,14 +112,14 @@ def invertable_flatten(unflat_list):
         trick_[0] += 1
         return num
     # Build an unflat list of flat indexes
-    reverse_list = [tuple((nextnum() for _ in tup)) for tup in unflat_list]
+    reverse_list = [tuple([nextnum() for _ in tup]) for tup in unflat_list]
     flat_list = flatten(unflat_list)
     return flat_list, reverse_list
 
 
 def unflatten(flat_list, reverse_list):
     """ Rebuilds unflat list from invertable_flatten """
-    unflat_list2 = [tuple((flat_list[index] for index in tup)) for tup in reverse_list]
+    unflat_list2 = [tuple([flat_list[index] for index in tup]) for tup in reverse_list]
     return unflat_list2
 
 
