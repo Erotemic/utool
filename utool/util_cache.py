@@ -97,7 +97,10 @@ def get_global_shelf(appname=None):
     return __SHELF__
 
 
+@atexit.register
 def close_global_shelf(appname=None):
+    # FIXME: If the program closes with ctrl+c this isnt called and
+    # the global cache is not written
     global __SHELF__
     if __SHELF__ is not None:
         __SHELF__.close()
@@ -130,6 +133,3 @@ def delete_global_cache(appname=None):
     close_global_shelf(appname)
     shelf_fpath = get_global_shelf_fpath(appname)
     util_path.remove_file(shelf_fpath, verbose=True, dryrun=False)
-
-
-atexit.register(close_global_shelf)  # ensure proper cleanup when exiting python

@@ -65,6 +65,7 @@ def init_pool(num_procs=None, maxtasksperchild=None):
     #    print('%s = %r' % (key, val))
 
 
+@atexit.register
 def close_pool():
     global __POOL__
     if __POOL__ is not None:
@@ -186,5 +187,3 @@ def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__):
               (len(args_list), func.func_name, __POOL__._processes))
         result_list = _process_parallel(func, args_list, args_dict)
     return result_list
-
-atexit.register(close_pool)

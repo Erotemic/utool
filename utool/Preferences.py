@@ -1,8 +1,8 @@
 from __future__ import absolute_import, division, print_function
 # Python
 import cPickle
-import os.path
-import warnings
+#import os.path
+#import warnings
 # Science
 import numpy as np
 # Util
@@ -388,7 +388,7 @@ class Pref(PrefNode):
     # Method for QTWidget
     def createQWidget(self):
         try:
-            from ._internal.PreferenceWidget import EditPrefWidget
+            from utool._internal.PreferenceWidget import EditPrefWidget
         except ImportError as ex:
             printex(ex, 'Cannot create preference widget. Is PyQt4 Installed')
             raise

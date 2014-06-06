@@ -231,3 +231,7 @@ class EditPrefWidget(QWidget):
         #printDBG('Built: ' + repr(self.pref_model))
         self.ui.prefTreeView.setModel(self.pref_model)
         self.ui.prefTreeView.header().resizeSection(0, 250)
+
+    def refresh_layout(self):
+        self.pref_model.layoutAboutToBeChanged.emit()
+        self.pref_model.layoutChanged.emit()
