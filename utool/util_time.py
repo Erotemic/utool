@@ -83,7 +83,7 @@ def exiftime_to_unixtime(datetime_str):
     try:
         timefmt = '%Y:%m:%d %H:%M:%S'
         if len(datetime_str) > 19:
-            datetime_str = datetime_str[0:20]
+            datetime_str = datetime_str[0:20].strip(";")
         dt = datetime.datetime.strptime(datetime_str, timefmt)
         return time.mktime(dt.timetuple())
     except TypeError:
