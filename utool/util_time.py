@@ -79,9 +79,13 @@ class Timer(object):
         return self.ellapsed
 
 
-def exiftime_to_unixtime(datetime_str):
+def exiftime_to_unixtime(datetime_str, timestamp_format=1):
     try:
-        timefmt = '%Y:%m:%d %H:%M:%S'
+        # Normal format, or non-standard year first data
+        if timestamp_format == 2:
+            timefmt = '%m/%d/%Y %H:%M:%S'
+        else:
+            timefmt = '%Y:%m:%d %H:%M:%S'
         if len(datetime_str) > 19:
             datetime_str = datetime_str[0:20].strip(";")
         dt = datetime.datetime.strptime(datetime_str, timefmt)
