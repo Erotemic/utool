@@ -222,3 +222,9 @@ def unique_row_indexes(arr):
 def get_phi():
     phi = (1.0 + np.sqrt(5)) / 2.0
     return phi
+
+
+def iceil(real):
+    """ Integer ceiling. (because numpy doesn't have it! """
+    integer = int(np.ceil(real))
+    return integer

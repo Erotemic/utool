@@ -43,36 +43,38 @@ def ignores_exc_tb(func):
         return func
     else:
         @wraps(func)
-        def wrapper_ignore_exctb(*args, **kwargs):
+        def wrp_no_exectb(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
             except Exception:
                 # Code to remove this decorator from traceback
-                exc_type, exc_value, exc_traceback = sys.exc_info()
+                exc_type, exc_value, exc_traceback0 = sys.exc_info()
+                exc_traceback1 = exc_traceback0.tb_next
+                exc_traceback2 = exc_traceback1.tb_next
                 # Remove two levels to remove this one as well
                 # https://github.com/jcrocholl/pep8/issues/34  # NOQA
                 # http://legacy.python.org/dev/peps/pep-3109/
                 # PYTHON 2.7 DEPRICATED:
-                raise exc_type, exc_value, exc_traceback.tb_next.tb_next
+                raise exc_type, exc_value, exc_traceback2
                 # PYTHON 3.3 NEW METHODS
                 #ex = exc_type(exc_value)
                 #ex.__traceback__ = exc_traceback.tb_next.tb_next
                 #raise ex
-        return wrapper_ignore_exctb
+        return wrp_no_exectb
 
 
 def _indent_decor(lbl):
-    def indent_wrapper(func):
+    def closure_indent(func):
         printDBG('Indenting lbl=%r, func=%r' % (lbl, func))
         @ignores_exc_tb
         @wraps(func)
-        def indented_func(*args, **kwargs):
+        def wrp_indent(*args, **kwargs):
             with Indenter(lbl):
                 if TRACE:
                     print('    ...trace')
                 return func(*args, **kwargs)
-        return indented_func
-    return indent_wrapper
+        return wrp_indent
+    return closure_indent
 
 
 def indent_func(input_):
@@ -103,7 +105,7 @@ def accepts_scalar_input(func):
     """
     @ignores_exc_tb
     @wraps(func)
-    def wrapper_scalar_input(self, input_, *args, **kwargs):
+    def wrp_si(self, input_, *args, **kwargs):
         if isiterable(input_):
             # If input is already iterable do default behavior
             return func(self, input_, *args, **kwargs)
@@ -112,20 +114,35 @@ def accepts_scalar_input(func):
             ret = func(self, (input_,), *args, **kwargs)
             if ret is not None:
                 return ret[0]
-    return wrapper_scalar_input
+    return wrp_si
 
 
-def accepts_scalar_input2(argx_list=[1]):
+def __assert_param_consistency(args, argx_list):
+    if len(argx_list) == 0:
+        return True
+    argx_flags = [isiterable(args[argx]) for argx in argx_list]
+    try:
+        assert all([argx_flags[0] == flag for flag in argx_flags]), (
+            'invalid mixing of iterable and scalar inputs')
+    except AssertionError:
+        print('!!! ASSERTION ERROR !!!')
+        for argx in argx_list:
+            print('args[%d] = %r' % (argx, args[argx]))
+        raise
+
+
+def accepts_scalar_input2(argx_list=range(0, 1)):
     """
     accepts_scalar_input is a decorator which expects to be used on class methods.
     It lets the user pass either a vector or a scalar to a function, as long as
     the function treats everything like a vector. Input and output is sanatized
     to the user expected format on return.
     """
-    def accept_scalar_closure(func):
+    def closure_si2(func):
         @ignores_exc_tb
         @wraps(func)
-        def wrapper_scalar_input2(self, *args, **kwargs):
+        def wrp_si2(self, *args, **kwargs):
+            __assert_param_consistency(args, argx_list)
             if all([isiterable(args[ix]) for ix in argx_list]):
                 # If input is already iterable do default behavior
                 return func(self, *args, **kwargs)
@@ -136,13 +153,13 @@ def accepts_scalar_input2(argx_list=[1]):
                 ret = func(self, *args_wrapped, **kwargs)
                 if ret is not None:
                     return ret[0]
-        return wrapper_scalar_input2
-    return accept_scalar_closure
+        return wrp_si2
+    return closure_si2
 
 
 #def accepts_scalar_input_vector_output(func):
 #    @wraps(func)
-#    def wrapper_vec_output(self, input_, *args, **kwargs):
+#    def wrp_sivo(self, input_, *args, **kwargs):
 #        is_scalar = not isiterable(input_)
 #        if is_scalar:
 #            iter_input = (input_,)
@@ -153,7 +170,7 @@ def accepts_scalar_input2(argx_list=[1]):
 #            if len(result) != 0:
 #                result = result[0]
 #        return result
-#    return wrapper_vec_output
+#    return wrp_sivo
 
 
 def accepts_scalar_input_vector_output(func):
@@ -165,7 +182,7 @@ def accepts_scalar_input_vector_output(func):
     """
     @ignores_exc_tb
     @wraps(func)
-    def wrapper_vec_output(self, input_, *args, **kwargs):
+    def wrp_sivo(self, input_, *args, **kwargs):
         if isiterable(input_):
             # If input is already iterable do default behavior
             return func(self, input_, *args, **kwargs)
@@ -177,14 +194,14 @@ def accepts_scalar_input_vector_output(func):
                 return result[0]
             else:
                 return result
-    return wrapper_vec_output
+    return wrp_sivo
 
 
 def accepts_numpy(func):
     """ Allows the first input to be a numpy objet and get result in numpy form """
     #@ignores_exc_tb
     @wraps(func)
-    def numpy_wrapper(self, input_, *args, **kwargs):
+    def wrp_accepts_numpy(self, input_, *args, **kwargs):
         if isinstance(input_, np.ndarray):
             if UNIQUE_NUMPY:
                 # Remove redundant input (because we are passing it to SQL)
@@ -203,7 +220,7 @@ def accepts_numpy(func):
         else:
             output_ = func(self, input_)
         return output_
-    return numpy_wrapper
+    return wrp_accepts_numpy
 
 
 def memorize(func):
@@ -226,10 +243,10 @@ def interested(func):
     @indent_func
     #@ignores_exc_tb
     @wraps(func)
-    def interested_wrapper(*args, **kwargs):
+    def wrp_interested(*args, **kwargs):
         sys.stdout.write('#\n')
         sys.stdout.write('#\n')
         sys.stdout.write('<!INTERESTED>: ' + func.func_name + '\n')
         print('INTERESTING... ' + (' ' * 30) + ' <----')
         return func(*args, **kwargs)
-    return interested_wrapper
+    return wrp_interested

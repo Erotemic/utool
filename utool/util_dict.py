@@ -52,6 +52,12 @@ def build_conflict_dict(key_list, val_list):
     return key_to_vals
 
 
+def updateif_haskey(dict1, dict2):
+    for key, val in dict2.iteritems():
+        if key in dict1:
+            dict1[key] = val
+
+
 def dict_update_newkeys(dict_, dict2):
     """ Like dict.update, but does not overwrite items """
     for key, val in dict2.iteritems():
