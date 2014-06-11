@@ -196,7 +196,8 @@ def import_testdata():
     return import_testdata.func_code.co_code
 
 
-def embed(parent_locals=None, parent_globals=None, exec_lines=None):
+def embed(parent_locals=None, parent_globals=None, exec_lines=None,
+          remove_pyqt_hook=True):
     if parent_locals is None:
         parent_locals = get_parent_locals()
     if parent_globals is None:
@@ -207,10 +208,10 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None):
     print('[util] embedding')
     import IPython
     try:
-        pass
-        # make qt not loop forever (I had qflag loop forever with this off)
-        from PyQt4.QtCore import pyqtRemoveInputHook
-        pyqtRemoveInputHook()
+        if remove_pyqt_hook:
+            # make qt not loop forever (I had qflag loop forever with this off)
+            from PyQt4.QtCore import pyqtRemoveInputHook
+            pyqtRemoveInputHook()
     except ImportError as ex:
         print(ex)
     config_dict = {}

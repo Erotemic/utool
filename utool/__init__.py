@@ -20,6 +20,7 @@ if __DYNAMIC__:
     # Dynamically import listed util libraries and their members.
     UTOOLS_LIST = [
         ('util_alg',       ['cartesian', 'almost_eq',]),
+        ('util_aliases',   ['ddict' ,'odict']),
         ('util_arg',       ['get_arg', 'get_flag', 'argv_flag_dec', 'QUIET',
                             'VERBOSE']),
         ('util_cache',     ['global_cache_read', 'global_cache_write']),

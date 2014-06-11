@@ -18,6 +18,7 @@ __IN_MAIN_PROCESS__ = multiprocessing.current_process().name == 'MainProcess'
 
 __UTOOL_ROOT_LOGGER__ = None
 
+PRINT_ALL_CALLERS = '--print-all-callers' in sys.argv
 # Remeber original python values
 __PYTHON_STDOUT__ = sys.stdout
 __PYTHON_PRINT__  = __builtin__.print
@@ -100,9 +101,22 @@ def start_logging(log_fpath=None, mode='a'):
         __UTOOL_ROOT_LOGGER__.propagate = False
         __UTOOL_ROOT_LOGGER__.setLevel(logging.DEBUG)
         # Overwrite utool functions with the logging functions
-        __UTOOL_WRITE__    = lambda msg: __UTOOL_ROOT_LOGGER__.info(msg)
-        __UTOOL_PRINT__    = lambda msg: __UTOOL_ROOT_LOGGER__.info(msg)
-        __UTOOL_PRINTDBG__ = lambda msg: __UTOOL_ROOT_LOGGER__.debug(msg)
+        def utool_write(msg):
+            return  __UTOOL_ROOT_LOGGER__.info(msg)
+        if PRINT_ALL_CALLERS:
+            def utool_print(msg):
+                import utool
+                __UTOOL_ROOT_LOGGER__.info('\n\n----------')
+                __UTOOL_ROOT_LOGGER__.info(utool.get_caller_name(range(0, 20)))
+                return  __UTOOL_ROOT_LOGGER__.info(msg)
+        else:
+            def utool_print(msg):
+                return  __UTOOL_ROOT_LOGGER__.info(msg)
+        def utool_printdbg(msg):
+            return  __UTOOL_ROOT_LOGGER__.debug(msg)
+        __UTOOL_WRITE__    = utool_write
+        __UTOOL_PRINT__    = utool_print
+        __UTOOL_PRINTDBG__ = utool_printdbg
         # Test out our shiney new logger
         __UTOOL_PRINT__('<__LOG_START__>')
         __UTOOL_PRINT__(msg)
