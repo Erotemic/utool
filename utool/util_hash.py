@@ -130,6 +130,10 @@ def augment_uuid(uuid_, *hashables):
     return augmented_uuid_
 
 
+def random_uuid():
+    return uuid.uuid4()
+
+
 def __test_augment__():
     uuid_ = uuid.uuid1()
 
