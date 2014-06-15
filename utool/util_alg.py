@@ -224,7 +224,11 @@ def get_phi():
     return phi
 
 
-def iceil(real):
+def iceil(num):
     """ Integer ceiling. (because numpy doesn't have it! """
-    integer = int(np.ceil(real))
-    return integer
+    return int(np.ceil(num))
+
+
+def iround(num):
+    """ Integer round. (because numpy doesn't have it! """
+    return int(round(num))

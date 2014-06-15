@@ -101,19 +101,19 @@ def start_logging(log_fpath=None, mode='a'):
         __UTOOL_ROOT_LOGGER__.propagate = False
         __UTOOL_ROOT_LOGGER__.setLevel(logging.DEBUG)
         # Overwrite utool functions with the logging functions
-        def utool_write(msg):
-            return  __UTOOL_ROOT_LOGGER__.info(msg)
+        def utool_write(*args):
+            return  __UTOOL_ROOT_LOGGER__.info(', '.join(map(str, args)))
         if PRINT_ALL_CALLERS:
-            def utool_print(msg):
+            def utool_print(*args):
                 import utool
                 __UTOOL_ROOT_LOGGER__.info('\n\n----------')
                 __UTOOL_ROOT_LOGGER__.info(utool.get_caller_name(range(0, 20)))
-                return  __UTOOL_ROOT_LOGGER__.info(msg)
+                return  __UTOOL_ROOT_LOGGER__.info(', '.join(map(str, args)))
         else:
-            def utool_print(msg):
-                return  __UTOOL_ROOT_LOGGER__.info(msg)
-        def utool_printdbg(msg):
-            return  __UTOOL_ROOT_LOGGER__.debug(msg)
+            def utool_print(*args):
+                return  __UTOOL_ROOT_LOGGER__.info(', '.join(map(str, args)))
+        def utool_printdbg(*args):
+            return  __UTOOL_ROOT_LOGGER__.debug(', '.join(map(str, args)))
         __UTOOL_WRITE__    = utool_write
         __UTOOL_PRINT__    = utool_print
         __UTOOL_PRINTDBG__ = utool_printdbg
