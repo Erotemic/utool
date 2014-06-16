@@ -30,7 +30,7 @@ def text_dict_write(fpath, key, val):
     util_io.write_to(fpath, dict_text2)
 
 
-def _args2_fpath(dpath, fname, uid, ext, write_hashtbl=False):
+def _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl=False):
     """
     Ensures that the filename is not too long (looking at you windows)
     Windows MAX_PATH=260 characters
@@ -41,24 +41,24 @@ def _args2_fpath(dpath, fname, uid, ext, write_hashtbl=False):
     """
     if len(ext) > 0 and ext[0] != '.':
         raise Exception('Fatal Error: Please be explicit and use a dot in ext')
-    fname_uid = fname + uid
-    if len(fname_uid) > 128:
-        hashed_uid = util_hash.hashstr(uid, 8)
+    fname_cfgstr = fname + cfgstr
+    if len(fname_cfgstr) > 128:
+        hashed_cfgstr = util_hash.hashstr(cfgstr, 8)
         if write_hashtbl:
-            text_dict_write(join(dpath, 'hashtbl.txt'), hashed_uid, uid)
-        fname_uid = fname + '_' + hashed_uid
-    fpath = join(dpath, fname_uid + ext)
+            text_dict_write(join(dpath, 'hashtbl.txt'), hashed_cfgstr, cfgstr)
+        fname_cfgstr = fname + '_' + hashed_cfgstr
+    fpath = join(dpath, fname_cfgstr + ext)
     fpath = normpath(fpath)
     return fpath
 
 
-def save_cache(dpath, fname, uid, data):
-    fpath = _args2_fpath(dpath, fname, uid, '.cPkl', write_hashtbl=True)
+def save_cache(dpath, fname, cfgstr, data):
+    fpath = _args2_fpath(dpath, fname, cfgstr, '.cPkl', write_hashtbl=True)
     util_io.save_cPkl(fpath, data)
 
 
-def load_cache(dpath, fname, uid):
-    fpath = _args2_fpath(dpath, fname, uid, '.cPkl')
+def load_cache(dpath, fname, cfgstr):
+    fpath = _args2_fpath(dpath, fname, cfgstr, '.cPkl')
     return util_io.load_cPkl(fpath)
 
 
@@ -87,6 +87,7 @@ def get_global_shelf(appname=None):
     if __SHELF__ is None:
         try:
             shelf_fpath = get_global_shelf_fpath(appname, ensure=True)
+            print (shelf_fpath)
             __SHELF__ = shelve.open(shelf_fpath)
         except Exception as ex:
             from . import util_dbg
