@@ -34,8 +34,9 @@ class Indenter(object):
         # Chain functions together rather than overwriting stdout
         if NO_INDENT:
             return
-        def indent_msg(msg):
-            return self.lbl + str(msg).replace('\n', '\n' + self.lbl)
+        def indent_msg(*args):
+            mgs = ', '.join(map(str, args))
+            return self.lbl + mgs.replace('\n', '\n' + self.lbl)
 
         def push_module_functions(dict_, func_name):
             for mod in self.modules:
@@ -51,8 +52,8 @@ class Indenter(object):
         push_module_functions(self.old_print_dict, 'print')
         for mod in self.old_print_dict.keys():
             @functools.wraps(self.old_print_dict[mod])
-            def indent_print(msg):
-                self.old_print_dict[mod](indent_msg(msg))
+            def indent_print(*args):
+                self.old_print_dict[mod](indent_msg(', '.join(map(str, args))))
             setattr(mod, 'print', indent_print)
 
         #push_module_functions(self.old_printDBG_dict, 'printDBG')

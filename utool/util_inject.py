@@ -93,16 +93,16 @@ def inject_colored_exceptions():
 def inject_print_functions(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
     module = _get_module(module_name, module)
 
-    def print(msg):
-        util_logging.__UTOOL_PRINT__(msg)
+    def print(*args):
+        util_logging.__UTOOL_PRINT__(*args)
 
     if __AGGROFLUSH__:
-        def print_(msg):
-            util_logging.__UTOOL_WRITE__(msg)
+        def print_(*args):
+            util_logging.__UTOOL_WRITE__(*args)
             util_logging.__UTOOL_FLUSH__()
     else:
-        def print_(msg):
-            util_logging.__UTOOL_WRITE__(msg)
+        def print_(*args):
+            util_logging.__UTOOL_WRITE__(*args)
 
     # turn on module debugging with command line flags
     dotpos = module.__name__.rfind('.')
@@ -120,10 +120,11 @@ def inject_print_functions(module_name=None, module_prefix='[???]', DEBUG=False,
             DEBUG_FLAG = True
     if __DEBUG_ALL__ or DEBUG or DEBUG_FLAG:
         print('INJECT_PRINT: %r == %r' % (module_name, module_prefix))
-        def printDBG(msg):
+        def printDBG(*args):
+            msg = ', '.join(map(str, args))
             util_logging.__UTOOL_PRINTDBG__(module_prefix + ' DEBUG ' + msg)
     else:
-        def printDBG(msg):
+        def printDBG(*args):
             pass
 
     _inject_funcs(module, print, print_, printDBG)
