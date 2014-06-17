@@ -190,7 +190,7 @@ def spaced_items(list_, n, **kwargs):
 
 
 def is_listlike(obj):
-    return isinstance(obj, list) or isinstance(obj, tuple) or isinstance(obj, np.ndarray)
+    return isinstance(obj, (list, tuple, np.ndarray))
 
 
 def list_eq(list_):
