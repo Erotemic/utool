@@ -24,6 +24,12 @@ def bbox_str(bbox, pad=4):
     return '(' + fmtstr % bbox + ')'
 
 
+def verts_str(verts, pad=1):
+    #print('[util_str] %r' % verts)
+    fmtstr = ', '.join(['%' + str(pad) + 'd' + ', %' + str(pad) + 'd'] * 1)
+    return ', '.join(['(' + fmtstr % vert + ')' for vert in verts])
+
+
 def tupstr(tuple_):
     """ maps each item in tuple to a string and doesnt include parens """
     return ', '.join(map(str, tuple_))

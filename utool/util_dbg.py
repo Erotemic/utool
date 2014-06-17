@@ -11,10 +11,10 @@ from os.path import splitext, split
 from . import util_inject
 from .util_arg import get_flag
 from .util_inject import inject
-from .util_list import is_listlike, list_eq
+from .util_list import list_eq
 from .util_print import Indenter
 from .util_str import pack_into, truncate_str, horiz_string, indent
-from .util_type import get_type
+from .util_type import is_listlike, get_type
 print, print_, printDBG, rrr, profile = inject(__name__, '[dbg]')
 
 # --- Exec Strings ---
