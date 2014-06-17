@@ -29,6 +29,24 @@ VALID_FLOAT_TYPES = (types.FloatType,
 VALID_BOOL_TYPES = (types.BooleanType, np.bool_)
 
 
+def is_valid_floattype(type_):
+    """ Returns if a type_ is a valid float type_ (not variable) """
+    return type_ in VALID_FLOAT_TYPES
+    #try:
+    #    #flags = [type_ == float_type for float_type in VALID_FLOAT_TYPES]
+    #    #return any(flags)
+    #    tried = []
+    #    for float_type in VALID_FLOAT_TYPES:
+    #        tried.append(float_type)
+    #        if type_ == float_type:
+    #            return True
+    #    return False
+    #except Exception:
+    #    print('tried=%r' % (tried,))
+    #    print('type_=%r' % (type_,))
+    #    print('float_type=%r' % (float_type,))
+
+
 def try_cast(var, type_, default=None):
     if type_ is None:
         return var
