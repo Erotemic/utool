@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 # TODO: ADD COPYRIGHT TAG
 #from utool import util_resources
 import psutil
