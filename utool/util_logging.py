@@ -32,17 +32,23 @@ __UTOOL_PRINTDBG__  = __PYTHON_PRINT__
 __UTOOL_WRITE__     = __PYTHON_WRITE__
 __UTOOL_FLUSH__     = __PYTHON_FLUSH__
 
+logdir_cacheid = 'log_dpath'
 
-def get_logging_dir():
-    log_dir = 'logs'
+
+def get_logging_dir(appname=None):
+    from ._internal.meta_util_cache import global_cache_read
+    log_dir = global_cache_read(logdir_cacheid, appname=appname, default='logs')
     return realpath(log_dir)
 
 
-def get_log_fpath(num='next'):
-    log_dir = get_logging_dir()
+def get_log_fpath(num='next', appname=None):
+    log_dir = get_logging_dir(appname=appname)
     if not exists(log_dir):
         os.makedirs(log_dir)
-    log_fname = 'utool_logs_%04d.out'
+    if appname is not None:
+        log_fname = appname + '_logs_%04d.out'
+    else:
+        log_fname = 'utool_logs_%04d.out'
     if isinstance(num, str):
         if num == 'next':
             count = 0
@@ -74,7 +80,7 @@ def add_logging_handler(handler, format_='file'):
     __UTOOL_ROOT_LOGGER__.addHandler(handler)
 
 
-def start_logging(log_fpath=None, mode='a'):
+def start_logging(log_fpath=None, mode='a', appname=None):
     """
     Overwrites utool print functions to use a logger
     """
@@ -85,7 +91,7 @@ def start_logging(log_fpath=None, mode='a'):
     if __UTOOL_ROOT_LOGGER__ is None and __IN_MAIN_PROCESS__:
         #logging.config.dictConfig(LOGGING)
         if log_fpath is None:
-            log_fpath = get_log_fpath(num='next')
+            log_fpath = get_log_fpath(num='next', appname=appname)
         # Print what is about to happen
         msg = ('logging to log_fpath=%r' % log_fpath)
         __UTOOL_PRINT__(msg)

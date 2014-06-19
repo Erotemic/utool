@@ -111,8 +111,8 @@ else:
                            argv_flag, argv_flag_dec, argv_flag_dec_true, get_arg,
                            get_flag, inject, make_argparse2, switch_sanataize,
                            try_cast,)
-    from .util_cache import (close_global_shelf, delete_global_cache,
-                             get_global_cache_dir, get_global_shelf,
+    from .util_cache import (delete_global_cache,
+                             get_global_cache_dir,
                              get_global_shelf_fpath, global_cache_dump,
                              global_cache_read, global_cache_write, join,
                              load_cache, normpath, save_cache, text_dict_write,)
