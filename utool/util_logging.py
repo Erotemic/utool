@@ -63,6 +63,9 @@ def get_log_fpath(num='next', appname=None):
 
 def add_logging_handler(handler, format_='file'):
     global __UTOOL_ROOT_LOGGER__
+    if __UTOOL_ROOT_LOGGER__ is None:
+        __builtin__.print('[WARNING] logger not started, cannot add handler')
+        return
     # create formatter and add it to the handlers
     #logformat = '%Y-%m-%d %H:%M:%S'
     #logformat = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
