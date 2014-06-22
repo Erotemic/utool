@@ -214,8 +214,7 @@ def assert_all_not_None(list_, list_name='some_list', key_list=[]):
 
 
 def get_dirty_items(item_list, flag_list):
-    """ Returns each item in item_list where the corresponding item in flag list
-    is not None """
+    """ Returns each item in item_list where not flag in flag_list """
     assert len(item_list) == len(flag_list)
     dirty_items = [item for (item, flag) in
                    izip(item_list, flag_list)

@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import shelve
 #import atexit
+import sys
 from os.path import join, normpath
 from . import util_inject
 from . import util_hash
@@ -16,6 +17,7 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[cache]')
 
 # TODO: Remove globalness
 
+VERBOSE = '--verbose' in sys.argv
 __SHELF__ = None  # GLOBAL CACHE
 __APPNAME__ = default_appname  # the global application name
 
@@ -31,7 +33,8 @@ def text_dict_write(fpath, key, val):
     dict_ = eval(dict_text)
     dict_[key] = val
     dict_text2 = util_str.dict_str(dict_, strvals=False)
-    print(dict_text2)
+    if VERBOSE:
+        print('[cache] ' + str(dict_text2))
     util_io.write_to(fpath, dict_text2)
 
 
@@ -121,7 +124,8 @@ class GlobalShelfContext(object):
         #self.shelf = get_global_shelf(self.appname)
         try:
             shelf_fpath = get_global_shelf_fpath(self.appname, ensure=True)
-            print(shelf_fpath)
+            if VERBOSE:
+                print('[cache] open: ' + shelf_fpath)
             self.shelf = shelve.open(shelf_fpath)
         except Exception as ex:
             from . import util_dbg

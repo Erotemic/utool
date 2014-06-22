@@ -12,6 +12,7 @@ from . import util_path
 from . import util_num
 from . import util_dev
 from . import util_io
+from .util_dbg import printex
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[latex]')
 
@@ -102,11 +103,18 @@ def latex_multirow(data, nrow=2):
 
 def latex_mystats(lbl, data, mode=0):
     stats_ = util_dev.mystats(data)
-    max_ = stats_['max']
-    min_ = stats_['min']
-    mean = stats_['mean']
-    std  = stats_['std']
-    shape = stats_['shape']
+    if stats_.get('empty_list', False):
+        return '% NA: latex_mystats, data=[]'
+    try:
+        max_ = stats_['max']
+        min_ = stats_['min']
+        mean = stats_['mean']
+        std  = stats_['std']
+        shape = stats_['shape']
+    except KeyError as ex:
+        stat_keys = stats_.keys()  # NOQA
+        printex(ex, key_list=['stat_keys', 'stats_', 'data'])
+        raise
 
     #int_fmt = lambda num: util.num_fmt(int(num))
     float_fmt = lambda num: util_num.num_fmt(float(num))
