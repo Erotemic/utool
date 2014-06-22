@@ -87,8 +87,11 @@ def _indent_decor(lbl):
         def wrp_indent(*args, **kwargs):
             with Indenter(lbl):
                 if TRACE:
-                    print('    ...trace')
-                return func(*args, **kwargs)
+                    print('    ...trace[in]')
+                ret = func(*args, **kwargs)
+                if TRACE:
+                    print('    ...trace[out]')
+                return ret
         return wrp_indent
     return closure_indent
 
