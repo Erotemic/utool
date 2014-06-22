@@ -191,7 +191,7 @@ else:
                             invertable_flatten, list_getat, list_index,
                             list_replace, listfind, npfind, random_indexes,
                             safe_listget, safe_slice, scalar_input_map,
-                            scalar_input_map_func, sortedby, spaced_indexes,
+                            sortedby, spaced_indexes,
                             spaced_items, tiled_range, tuplize, unflatten,
                             unique_keep_order2, unique_ordered, unique_unordered,)
     from .util_num import (commas, fewest_digits_float_str, float_to_decimal,
