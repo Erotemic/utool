@@ -37,6 +37,7 @@ if __DYNAMIC__:
                             'accepts_scalar_input']),
         ('util_distances', ['nearest_point',]),
         ('util_dict',      None),
+        ('util_func',      None),
         ('util_grabdata',  None),
         ('util_git',       None),
         ('util_hash',      ['hashstr_arr', 'hashstr',]),
