@@ -8,7 +8,7 @@ import sys
 import shutil
 import fnmatch
 import warnings
-from .util_dbg import get_caller_name
+from .util_dbg import get_caller_name, printex
 from .util_progress import progress_func
 from . import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[path]')
@@ -127,6 +127,15 @@ def delete(path, dryrun=False, recursive=True, verbose=True, ignore_errors=True,
         flag = remove_file(path, **rmargs)
     return flag
 
+
+def remove_file_list(fpath_list):
+    print('[path] Removing %d files' % len(fpath_list))
+    for fpath in fpath_list:
+        try:
+            os.remove(fpath)  # Force refresh
+        except OSError as ex:
+            printex(ex, 'Could not remove fpath = %r' % (fpath,), iswarning=True)
+            pass
 
 def longest_existing_path(_path):
     while True:
