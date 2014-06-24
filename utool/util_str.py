@@ -20,12 +20,15 @@ def theta_str(theta, taustr=('tau' if '--myway' in sys.argv else '2pi')):
 
 
 def bbox_str(bbox, pad=4):
+    if bbox is None:
+        return 'None'
     fmtstr = ', '.join(['%' + str(pad) + 'd'] * 4)
     return '(' + fmtstr % bbox + ')'
 
 
 def verts_str(verts, pad=1):
-    #print('[util_str] %r' % verts)
+    if verts is None:
+        return 'None'
     fmtstr = ', '.join(['%' + str(pad) + 'd' + ', %' + str(pad) + 'd'] * 1)
     return ', '.join(['(' + fmtstr % vert + ')' for vert in verts])
 

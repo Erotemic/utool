@@ -8,14 +8,14 @@ import sys
 import shutil
 import fnmatch
 import warnings
-from .util_dbg import get_caller_name
+from .util_dbg import get_caller_name, printex
 from .util_progress import progress_func
 from . import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[path]')
 
 
-__VERBOSE__ = '--verbose' in sys.argv
-__QUIET__ = '--quiet' in sys.argv
+VERBOSE = '--verbose' in sys.argv
+QUIET = '--quiet' in sys.argv
 
 
 __IMG_EXTS = ['.jpg', '.jpeg', '.png', '.tif', '.tiff', '.ppm']
@@ -56,7 +56,7 @@ def remove_file(fpath, verbose=True, dryrun=False, ignore_errors=True, **kwargs)
     else:
         try:
             os.remove(fpath)
-            if verbose and not __QUIET__:
+            if verbose and not QUIET:
                 print('[path] Removed %r' % fpath)
         except OSError:
             print('[path] Misrem %r' % fpath)
@@ -67,12 +67,14 @@ def remove_file(fpath, verbose=True, dryrun=False, ignore_errors=True, **kwargs)
     return True
 
 
-def remove_dirs(dpath, dryrun=False, **kwargs):
+def remove_dirs(dpath, dryrun=False, ignore_errors=True, **kwargs):
     print('[path] Removing directory: %r' % dpath)
     try:
         shutil.rmtree(dpath)
     except OSError as e:
         warnings.warn('OSError: %s,\n Could not delete %s' % (str(e), dpath))
+        if not ignore_errors:
+            raise
         return False
     return True
 
@@ -81,7 +83,7 @@ def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False, verbose=
                         dryrun=False, ignore_errors=False, **kwargs):
     if isinstance(fname_pattern_list, (str, unicode)):
         fname_pattern_list = [fname_pattern_list]
-    if not __QUIET__:
+    if not QUIET:
         print('[path] Removing files:')
         print('  * in dpath = %r ' % dpath)
         print('  * matching patterns = %r' % fname_pattern_list)
@@ -93,14 +95,15 @@ def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False, verbose=
     })
     if not exists(dpath):
         msg = ('!!! dir = %r does not exist!' % dpath)
-        if not __QUIET__:
+        if not QUIET:
             print(msg)
         warnings.warn(msg, category=UserWarning)
     for root, dname_list, fname_list in os.walk(dpath):
         for fname_pattern in fname_pattern_list:
             for fname in fnmatch.filter(fname_list, fname_pattern):
                 num_matched += 1
-                num_removed += remove_file(join(root, fname), **kwargs)
+                num_removed += remove_file(join(root, fname),
+                                           ignore_errors=ignore_errors, **kwargs)
         if not recursive:
             break
     print('[path] ... Removed %d/%d files' % (num_removed, num_matched))
@@ -114,7 +117,7 @@ def delete(path, dryrun=False, recursive=True, verbose=True, ignore_errors=True,
                   ignore_errors=ignore_errors, **kwargs)
     if not exists(path):
         msg = ('..does not exist!')
-        if not __QUIET__:
+        if not QUIET:
             print(msg)
         return False
     if isdir(path):
@@ -124,6 +127,15 @@ def delete(path, dryrun=False, recursive=True, verbose=True, ignore_errors=True,
         flag = remove_file(path, **rmargs)
     return flag
 
+
+def remove_file_list(fpath_list):
+    print('[path] Removing %d files' % len(fpath_list))
+    for fpath in fpath_list:
+        try:
+            os.remove(fpath)  # Force refresh
+        except OSError as ex:
+            printex(ex, 'Could not remove fpath = %r' % (fpath,), iswarning=True)
+            pass
 
 def longest_existing_path(_path):
     while True:
@@ -139,7 +151,7 @@ def longest_existing_path(_path):
     return _path
 
 
-def checkpath(path_, verbose=__VERBOSE__):
+def checkpath(path_, verbose=VERBOSE):
     """ returns true if path_ exists on the filesystem """
     path_ = normpath(path_)
     if verbose:
@@ -160,7 +172,7 @@ def checkpath(path_, verbose=__VERBOSE__):
             print_('...(%s) exists\n' % (path_type,))
         else:
             print_('... does not exist\n')
-            if __VERBOSE__:
+            if verbose:
                 print_('[path] \n  ! Does not exist\n')
                 _longest_path = longest_existing_path(path_)
                 print_('[path] ... The longest existing path is: %r\n' % _longest_path)
@@ -170,7 +182,7 @@ def checkpath(path_, verbose=__VERBOSE__):
         return exists(path_)
 
 
-def ensurepath(path_, verbose=not __QUIET__):
+def ensurepath(path_, verbose=VERBOSE):
     if not checkpath(path_):
         if verbose:
             print('[path] mkdir(%r)' % path_)
@@ -459,7 +471,7 @@ def list_images(img_dpath, ignore_list=[], recursive=True, fullpath=False,
     """ TODO: rename to ls_images
         TODO: Change all instances of fullpath to full
     """
-    #if not __QUIET__:
+    #if not QUIET:
     #    print(ignore_list)
     if full is not None:
         fullpath = fullpath or full

@@ -220,8 +220,19 @@ def unique_row_indexes(arr):
 
 
 def get_phi():
-    phi = (1.0 + np.sqrt(5)) / 2.0
-    return phi
+    """ Golden Ratio: phi = 1 / sqrt(5) / 2.0 = 1.61803398875"""
+    #phi = (1.0 + np.sqrt(5)) / 2.0 = 1.61803398875
+    # return phi
+    return 1.61803398875
+
+
+def get_phi_ratio1():
+    return 1.0 / get_phi()
+
+
+PHI = get_phi()
+PHI_A = (1 / PHI)
+PHI_B = 1 - PHI_A
 
 
 def iceil(num):

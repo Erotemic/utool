@@ -41,18 +41,18 @@ def run_test(func, *args, **kwargs):
     Input:
         Anything that needs to be passed to <func>
     """
-    with util_print.Indenter('[' + func.func_name.lower().replace('test_', '') + ']'):
+    with util_print.Indenter('[' + func.func_name.upper() + ']'):
         try:
-            printTEST('[TEST] %s BEGIN' % (func.func_name,))
+            printTEST('[TEST.BEGIN] %s ' % (func.func_name,))
             test_locals = func(*args, **kwargs)
-            printTEST('[TEST] %s FINISH -- SUCCESS' % (func.func_name,))
+            printTEST('[TEST.FINISH] %s -- SUCCESS' % (func.func_name,))
             print(HAPPY_FACE)
             return test_locals
         except Exception as ex:
             # Get locals in the wrapped function
             util_dbg.printex(ex)
             exc_type, exc_value, tb = sys.exc_info()
-            printTEST('[TEST] %s FINISH -- FAILED: %s %s' % (func.func_name, type(ex), ex))
+            printTEST('[TEST.FINISH] %s -- FAILED: %s %s' % (func.func_name, type(ex), ex))
             print(SAD_FACE)
             if util_arg.STRICT:
                 # Remove this function from stack strace

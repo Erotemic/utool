@@ -7,16 +7,16 @@ import sys
 import platform
 import subprocess
 import shlex
-from os.path import exists, normpath, join
-from os.path import expanduser
+from os.path import exists, normpath
 from .util_inject import inject
+from ._internal import meta_util_cplat
 print, print_, printDBG, rrr, profile = inject(__name__, '[cplat]')
 
 COMPUTER_NAME = platform.node()
 
-WIN32  = sys.platform.startswith('win32')
-LINUX  = sys.platform.startswith('linux')
-DARWIN = sys.platform.startswith('darwin')
+WIN32  = meta_util_cplat.WIN32
+LINUX  = meta_util_cplat.LINUX
+DARWIN = meta_util_cplat.DARWIN
 
 LIB_EXT_LIST = ['.so', '.dll', '.dylib']
 
@@ -71,24 +71,9 @@ def view_directory(dname=None):
 vd = view_directory
 
 
-def get_resource_dir():
-    """ Returns a directory which should be writable for any application """
-    if WIN32:
-        return normpath(expanduser('~/AppData/Roaming'))
-    if LINUX:
-        return normpath(expanduser('~/.config'))
-    if DARWIN:
-        return normpath(expanduser('~/Library/Application Support'))
+get_resource_dir = meta_util_cplat.get_resource_dir
 
-
-def get_app_resource_dir(*args):
-    """ Returns a writable directory for an application
-    Input: appname - the name of the application
-           *args, - any other subdirectories may be specified
-    """
-    if len(args) == 0:
-        raise AssertionError('Missing appname. The first argument the application name')
-    return join(get_resource_dir(), *args)
+get_app_resource_dir = meta_util_cplat.get_app_resource_dir
 
 
 def shell(*args, **kwargs):

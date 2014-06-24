@@ -37,6 +37,7 @@ if __DYNAMIC__:
                             'accepts_scalar_input']),
         ('util_distances', ['nearest_point',]),
         ('util_dict',      None),
+        ('util_func',      None),
         ('util_grabdata',  None),
         ('util_git',       None),
         ('util_hash',      ['hashstr_arr', 'hashstr',]),
@@ -111,8 +112,8 @@ else:
                            argv_flag, argv_flag_dec, argv_flag_dec_true, get_arg,
                            get_flag, inject, make_argparse2, switch_sanataize,
                            try_cast,)
-    from .util_cache import (close_global_shelf, delete_global_cache,
-                             get_global_cache_dir, get_global_shelf,
+    from .util_cache import (delete_global_cache,
+                             get_global_cache_dir,
                              get_global_shelf_fpath, global_cache_dump,
                              global_cache_read, global_cache_write, join,
                              load_cache, normpath, save_cache, text_dict_write,)
@@ -191,7 +192,7 @@ else:
                             invertable_flatten, list_getat, list_index,
                             list_replace, listfind, npfind, random_indexes,
                             safe_listget, safe_slice, scalar_input_map,
-                            scalar_input_map_func, sortedby, spaced_indexes,
+                            sortedby, spaced_indexes,
                             spaced_items, tiled_range, tuplize, unflatten,
                             unique_keep_order2, unique_ordered, unique_unordered,)
     from .util_num import (commas, fewest_digits_float_str, float_to_decimal,

@@ -166,11 +166,11 @@ def spaced_indexes(len_, n, trunc=False):
     """
     if n is None:
         return np.arange(len_)
-    if n == 0:
-        return np.empty(0)
     all_indexes = np.arange(len_)
     if trunc:
         n = min(len_, n)
+    if n == 0:
+        return np.empty(0)
     stride = len_ // n
     try:
         indexes = all_indexes[0:-1:stride]
@@ -214,8 +214,7 @@ def assert_all_not_None(list_, list_name='some_list', key_list=[]):
 
 
 def get_dirty_items(item_list, flag_list):
-    """ Returns each item in item_list where the corresponding item in flag list
-    is not None """
+    """ Returns each item in item_list where not flag in flag_list """
     assert len(item_list) == len(flag_list)
     dirty_items = [item for (item, flag) in
                    izip(item_list, flag_list)
@@ -291,6 +290,17 @@ def intersect2d(A, B):
     #return arr[np.sort(idx)]
 
 
+def flag_unique_items(list_):
+    seen = set()
+    def unseen(item):
+        if item in seen:
+            return False
+        seen.add(item)
+        return True
+    flag_list = [unseen(item) for item in list_]
+    return flag_list
+
+
 def unique_keep_order2(list_):
     """ pure python version """
     seen = set()
@@ -340,7 +350,7 @@ def scalar_input_map(func, input_):
         return func(input_)
 
 
-def scalar_input_map_func(func, si_func):
+def partial_imap_1to1(func, si_func):
     """ a bit messy """
     from functools import wraps
     @wraps(si_func)

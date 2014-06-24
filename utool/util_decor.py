@@ -4,6 +4,7 @@ import sys
 from functools import wraps
 from .util_iter import isiterable
 from .util_print import Indenter
+from .util_dbg import printex
 import numpy as np
 from .util_inject import inject
 (print, print_, printDBG, rrr, profile) = inject(__name__, '[decor]')
@@ -49,8 +50,11 @@ def ignores_exc_tb(func):
             except Exception:
                 # Code to remove this decorator from traceback
                 exc_type, exc_value, exc_traceback0 = sys.exc_info()
-                exc_traceback1 = exc_traceback0.tb_next
-                exc_traceback2 = exc_traceback1.tb_next
+                try:
+                    exc_traceback1 = exc_traceback0.tb_next
+                    exc_traceback2 = exc_traceback1.tb_next
+                except Exception:
+                    raise exc_type, exc_value, exc_traceback0
                 # Remove two levels to remove this one as well
                 # https://github.com/jcrocholl/pep8/issues/34  # NOQA
                 # http://legacy.python.org/dev/peps/pep-3109/
@@ -63,6 +67,18 @@ def ignores_exc_tb(func):
         return wrp_no_exectb
 
 
+def on_exception_report_input(func):
+    @wraps(func)
+    def wrp_exception_report_input(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as ex:
+            msg = ('ERROR: func_name=%r,\n * args=%r,\n * kwargs=%r' % (func.func_name, args, kwargs))
+            printex(ex, msg)
+            raise
+    return wrp_exception_report_input
+
+
 def _indent_decor(lbl):
     def closure_indent(func):
         printDBG('Indenting lbl=%r, func=%r' % (lbl, func))
@@ -71,8 +87,11 @@ def _indent_decor(lbl):
         def wrp_indent(*args, **kwargs):
             with Indenter(lbl):
                 if TRACE:
-                    print('    ...trace')
-                return func(*args, **kwargs)
+                    print('    ...trace[in]')
+                ret = func(*args, **kwargs)
+                if TRACE:
+                    print('    ...trace[out]')
+                return ret
         return wrp_indent
     return closure_indent
 
@@ -94,6 +113,8 @@ def indent_func(input_):
         func = input_
         lbl = '[' + func.func_name + ']'
         return _indent_decor(lbl)(func)
+
+#----------
 
 
 def accepts_scalar_input(func):
@@ -157,22 +178,6 @@ def accepts_scalar_input2(argx_list=range(0, 1)):
     return closure_si2
 
 
-#def accepts_scalar_input_vector_output(func):
-#    @wraps(func)
-#    def wrp_sivo(self, input_, *args, **kwargs):
-#        is_scalar = not isiterable(input_)
-#        if is_scalar:
-#            iter_input = (input_,)
-#        else:
-#            iter_input = input_
-#        result = func(self, iter_input, *args, **kwargs)
-#        if is_scalar:
-#            if len(result) != 0:
-#                result = result[0]
-#        return result
-#    return wrp_sivo
-
-
 def accepts_scalar_input_vector_output(func):
     """
     accepts_scalar_input is a decorator which expects to be used on class
@@ -196,13 +201,39 @@ def accepts_scalar_input_vector_output(func):
                 return result
     return wrp_sivo
 
+# TODO: Rename to listget_1to1 1toM etc...
+getter_1to1 = accepts_scalar_input
+getter_1toM = accepts_scalar_input_vector_output
+#----------
+
+
+#def accepts_scalar_input_vector_output(func):
+#    @wraps(func)
+#    def wrp_sivo(self, input_, *args, **kwargs):
+#        is_scalar = not isiterable(input_)
+#        if is_scalar:
+#            iter_input = (input_,)
+#        else:
+#            iter_input = input_
+#        result = func(self, iter_input, *args, **kwargs)
+#        if is_scalar:
+#            if len(result) != 0:
+#                result = result[0]
+#        return result
+#    return wrp_sivo
+
 
 def accepts_numpy(func):
-    """ Allows the first input to be a numpy objet and get result in numpy form """
+    """ Allows the first input to be a numpy array and get result in numpy form """
     #@ignores_exc_tb
     @wraps(func)
     def wrp_accepts_numpy(self, input_, *args, **kwargs):
-        if isinstance(input_, np.ndarray):
+        if not isinstance(input_, np.ndarray):
+            # If the input is not numpy, just call the function
+            return func(self, input_, *args, **kwargs)
+        else:
+            # If the input is a numpy array, and return the output with the same
+            # shape as the input
             if UNIQUE_NUMPY:
                 # Remove redundant input (because we are passing it to SQL)
                 input_list, inverse_unique = np.unique(input_, return_inverse=True)
@@ -214,12 +245,9 @@ def accepts_numpy(func):
                 # Reconstruct redundant queries (the user will never know!)
                 output_arr = np.array(output_list)[inverse_unique]
                 output_shape = tuple(list(input_.shape) + list(output_arr.shape[1:]))
-                output_ = np.array(output_arr).reshape(output_shape)
+                return np.array(output_arr).reshape(output_shape)
             else:
-                output_ = np.array(output_list).reshape(input_.shape)
-        else:
-            output_ = func(self, input_)
-        return output_
+                return np.array(output_list).reshape(input_.shape)
     return wrp_accepts_numpy
 
 

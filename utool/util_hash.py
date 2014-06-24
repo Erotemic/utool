@@ -114,6 +114,10 @@ def hash_to_uuid(bytes_):
     return uuid_
 
 
+def deterministic_uuid(hashable):
+    return hash_to_uuid(hashable)
+
+
 def image_uuid(pil_img):
     """ image global unique id """
     # Get the bytes of the image

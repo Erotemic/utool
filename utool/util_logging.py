@@ -19,6 +19,8 @@ __IN_MAIN_PROCESS__ = multiprocessing.current_process().name == 'MainProcess'
 __UTOOL_ROOT_LOGGER__ = None
 
 PRINT_ALL_CALLERS = '--print-all-callers' in sys.argv
+VERBOSE = '--verbose' in sys.argv
+
 # Remeber original python values
 __PYTHON_STDOUT__ = sys.stdout
 __PYTHON_PRINT__  = __builtin__.print
@@ -31,18 +33,25 @@ __UTOOL_PRINT__     = __PYTHON_PRINT__
 __UTOOL_PRINTDBG__  = __PYTHON_PRINT__
 __UTOOL_WRITE__     = __PYTHON_WRITE__
 __UTOOL_FLUSH__     = __PYTHON_FLUSH__
+__UTOOL_WRITE_BUFFER__ = []
+
+logdir_cacheid = 'log_dpath'
 
 
-def get_logging_dir():
-    log_dir = 'logs'
+def get_logging_dir(appname=None):
+    from ._internal.meta_util_cache import global_cache_read
+    log_dir = global_cache_read(logdir_cacheid, appname=appname, default='logs')
     return realpath(log_dir)
 
 
-def get_log_fpath(num='next'):
-    log_dir = get_logging_dir()
+def get_log_fpath(num='next', appname=None):
+    log_dir = get_logging_dir(appname=appname)
     if not exists(log_dir):
         os.makedirs(log_dir)
-    log_fname = 'utool_logs_%04d.out'
+    if appname is not None:
+        log_fname = appname + '_logs_%04d.out'
+    else:
+        log_fname = 'utool_logs_%04d.out'
     if isinstance(num, str):
         if num == 'next':
             count = 0
@@ -57,6 +66,9 @@ def get_log_fpath(num='next'):
 
 def add_logging_handler(handler, format_='file'):
     global __UTOOL_ROOT_LOGGER__
+    if __UTOOL_ROOT_LOGGER__ is None:
+        __builtin__.print('[WARNING] logger not started, cannot add handler')
+        return
     # create formatter and add it to the handlers
     #logformat = '%Y-%m-%d %H:%M:%S'
     #logformat = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -74,7 +86,7 @@ def add_logging_handler(handler, format_='file'):
     __UTOOL_ROOT_LOGGER__.addHandler(handler)
 
 
-def start_logging(log_fpath=None, mode='a'):
+def start_logging(log_fpath=None, mode='a', appname=None):
     """
     Overwrites utool print functions to use a logger
     """
@@ -82,13 +94,15 @@ def start_logging(log_fpath=None, mode='a'):
     global __UTOOL_PRINT__
     global __UTOOL_PRINTDBG__
     global __UTOOL_WRITE__
+    global __UTOOL_FLUSH__
     if __UTOOL_ROOT_LOGGER__ is None and __IN_MAIN_PROCESS__:
         #logging.config.dictConfig(LOGGING)
         if log_fpath is None:
-            log_fpath = get_log_fpath(num='next')
+            log_fpath = get_log_fpath(num='next', appname=appname)
         # Print what is about to happen
-        msg = ('logging to log_fpath=%r' % log_fpath)
-        __UTOOL_PRINT__(msg)
+        if VERBOSE:
+            startmsg = ('logging to log_fpath=%r' % log_fpath)
+            __UTOOL_PRINT__(startmsg)
         # Create root logger
         __UTOOL_ROOT_LOGGER__ = logging.getLogger('root')
         __UTOOL_ROOT_LOGGER__.setLevel('DEBUG')
@@ -101,8 +115,23 @@ def start_logging(log_fpath=None, mode='a'):
         __UTOOL_ROOT_LOGGER__.propagate = False
         __UTOOL_ROOT_LOGGER__.setLevel(logging.DEBUG)
         # Overwrite utool functions with the logging functions
+
+        def utool_flush(*args):
+            global __UTOOL_WRITE_BUFFER__
+            msg = ''.join(__UTOOL_WRITE_BUFFER__)
+            __UTOOL_WRITE_BUFFER__ = []
+            return __UTOOL_ROOT_LOGGER__.info(msg)
+            #__PYTHON_FLUSH__()
+
         def utool_write(*args):
-            return  __UTOOL_ROOT_LOGGER__.info(', '.join(map(str, args)))
+            global __UTOOL_WRITE_BUFFER__
+            msg = ', '.join(map(str, args))
+            __UTOOL_WRITE_BUFFER__.append(msg)
+            if msg.endswith('\n'):
+                # Flush on newline
+                __UTOOL_WRITE_BUFFER__[-1] = __UTOOL_WRITE_BUFFER__[-1][:-1]
+                utool_flush()
+
         if PRINT_ALL_CALLERS:
             def utool_print(*args):
                 import utool
@@ -114,12 +143,15 @@ def start_logging(log_fpath=None, mode='a'):
                 return  __UTOOL_ROOT_LOGGER__.info(', '.join(map(str, args)))
         def utool_printdbg(*args):
             return  __UTOOL_ROOT_LOGGER__.debug(', '.join(map(str, args)))
+        # overwrite the utool printers
         __UTOOL_WRITE__    = utool_write
+        __UTOOL_FLUSH__    = utool_flush
         __UTOOL_PRINT__    = utool_print
         __UTOOL_PRINTDBG__ = utool_printdbg
         # Test out our shiney new logger
-        __UTOOL_PRINT__('<__LOG_START__>')
-        __UTOOL_PRINT__(msg)
+        if VERBOSE:
+            __UTOOL_PRINT__('<__LOG_START__>')
+            __UTOOL_PRINT__(startmsg)
 
 
 def stop_logging():
@@ -130,8 +162,10 @@ def stop_logging():
     global __UTOOL_PRINT__
     global __UTOOL_PRINTDBG__
     global __UTOOL_WRITE__
+    global __UTOOL_FLUSH__
     if __UTOOL_ROOT_LOGGER__ is not None:
-        __UTOOL_PRINT__('<__LOG_STOP__>')
+        if VERBOSE:
+            __UTOOL_PRINT__('<__LOG_STOP__>')
         # Remove handlers
         for h in __UTOOL_ROOT_LOGGER__.handlers:
             __UTOOL_ROOT_LOGGER__.removeHandler(h)
@@ -140,3 +174,4 @@ def stop_logging():
         __UTOOL_PRINT__    = __PYTHON_PRINT__
         __UTOOL_PRINTDBG__ = __PYTHON_PRINT__
         __UTOOL_WRITE__    = __PYTHON_WRITE__
+        __UTOOL_FLUSH__    = __PYTHON_FLUSH__
