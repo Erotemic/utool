@@ -102,6 +102,22 @@ def flatten(list_):
     return list(iflatten(list_))
 
 
+def assert_unflat_level(unflat_list, level=1, basetype=None):
+    num_checked = 0
+    for item in unflat_list:
+        if level == 1:
+            for x in item:
+                num_checked += 1 
+                assert not isinstance(x, (tuple, list)), \
+                    'list is at an unexpected unflat level, x=%r' % (x,)
+                if basetype is not None:
+                    assert isinstance(x, basetype), \
+                        'x=%r, type(x)=%r is not basetype=%r' % (x, type(x), basetype)
+        else:
+            assert_unflat_level(item, level-1)
+    #print('checked %r' % num_checked)
+    #assert num_checked > 0, 'num_checked=%r' % num_checked
+
 def invertable_flatten(unflat_list):
     """
     Flattens list but remember how to reconstruct the unflat list
