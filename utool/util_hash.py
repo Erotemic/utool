@@ -121,6 +121,7 @@ def deterministic_uuid(hashable):
 def get_file_hash(fpath, blocksize=65536, hasher=None):
     """
     http://stackoverflow.com/questions/3431825/generating-a-md5-checksum-of-a-file
+    http://stackoverflow.com/questions/5001893/when-should-i-use-sha-1-and-when-should-i-use-sha-2
     """
     if hasher is None:
         hasher = hashlib.sha1()
