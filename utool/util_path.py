@@ -128,13 +128,14 @@ def delete(path, dryrun=False, recursive=True, verbose=True, ignore_errors=True,
     return flag
 
 
-def remove_file_list(fpath_list):
+def remove_file_list(fpath_list, verbose=VERBOSE):
     print('[path] Removing %d files' % len(fpath_list))
     for fpath in fpath_list:
         try:
             os.remove(fpath)  # Force refresh
         except OSError as ex:
-            printex(ex, 'Could not remove fpath = %r' % (fpath,), iswarning=True)
+            if verbose:
+                printex(ex, 'Could not remove fpath = %r' % (fpath,), iswarning=True)
             pass
 
 
