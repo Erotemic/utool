@@ -118,8 +118,40 @@ def deterministic_uuid(hashable):
     return hash_to_uuid(hashable)
 
 
+def get_file_hash(fpath, blocksize=65536, hasher=None):
+    """
+    http://stackoverflow.com/questions/3431825/generating-a-md5-checksum-of-a-file
+    """
+    if hasher is None:
+        hasher = hashlib.sha1()
+    with open(fpath, 'rb') as file_:
+        buf = file_.read(blocksize)
+        while len(buf) > 0:
+            hasher.update(buf)
+            buf = file_.read(blocksize)
+        return hasher.digest()
+
+
+def get_file_uuid(fpath, hasher=None):
+    """ Creates a uuid from the hash of a file """
+    if hasher is None:
+        hasher = hashlib.sha1()  # 20 bytes of output
+        #hasher = hashlib.sha256()  # 32 bytes of output
+    from .util_dbg import embed
+    embed()
+    # sha1 produces a 20 byte hash
+    hashbytes_20 = get_file_hash(fpath, hasher=hasher)
+    # sha1 produces 20 bytes, but UUID requires 16 bytes
+    hashbytes_16 = hashbytes_20[0:16]
+    uuid_ = uuid.UUID(bytes=hashbytes_16)
+    return uuid_
+
+
 def image_uuid(pil_img):
-    """ image global unique id """
+    """ UNSAFE: DEPRICATE: JPEG IS NOT GAURENTEED TO PRODUCE CONSITENT VALUES ON
+    MULTIPLE MACHINES image global unique id
+    http://stackoverflow.com/questions/23565889/jpeg-images-have-different-pixel-values-across-multiple-devices
+    """
     # Get the bytes of the image
     img_bytes_ = pil_img.tobytes()
     uuid_ = hash_to_uuid(img_bytes_)
