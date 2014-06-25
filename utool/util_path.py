@@ -495,6 +495,7 @@ def list_images(img_dpath, ignore_list=[], recursive=True, fullpath=False,
     # Filter out non images or ignorables
     gname_list = [gname_ for gname_ in iter(gname_list_)
                   if gname_ not in ignore_set and matches_image(gname_)]
+    gname_list = sorted(gname_list)
     return gname_list
 
 
