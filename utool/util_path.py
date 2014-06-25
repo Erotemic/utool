@@ -468,7 +468,7 @@ def is_module_dir(path):
 
 
 def list_images(img_dpath, ignore_list=[], recursive=True, fullpath=False,
-                full=None):
+                full=None, sort=True):
     """ TODO: rename to ls_images
         TODO: Change all instances of fullpath to full
     """
@@ -495,7 +495,8 @@ def list_images(img_dpath, ignore_list=[], recursive=True, fullpath=False,
     # Filter out non images or ignorables
     gname_list = [gname_ for gname_ in iter(gname_list_)
                   if gname_ not in ignore_set and matches_image(gname_)]
-    gname_list = sorted(gname_list)
+    if sort:
+        gname_list = sorted(gname_list)
     return gname_list
 
 
