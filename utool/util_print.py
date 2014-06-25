@@ -16,6 +16,13 @@ def horiz_print(*args):
     print(toprint)
 
 
+#def set_indenting_enabled(flag):
+#    global NO_INDENT
+#    prev_flag = NO_INDENT
+#    NO_INDENT = not flag
+#    return prev_flag
+
+
 class Indenter(object):
     # THIS IS MUCH BETTER
     @profile

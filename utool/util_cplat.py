@@ -18,7 +18,33 @@ WIN32  = meta_util_cplat.WIN32
 LINUX  = meta_util_cplat.LINUX
 DARWIN = meta_util_cplat.DARWIN
 
-LIB_EXT_LIST = ['.so', '.dll', '.dylib']
+LIB_EXT_LIST = ['.so', '.dll', '.dylib', '.pyd']
+
+
+def ls_libs(dpath):
+    from . import util_list
+    from . import util_path
+    lib_patterns = get_dynamic_lib_globstrs()
+    libpaths_list = [util_path.ls(dpath, pat) for pat in lib_patterns]
+    libpath_list = util_list.flatten(libpaths_list)
+    return libpath_list
+
+
+def get_dynlib_dependencies(lib_path):
+    if LINUX:
+        depend_out, depend_err, ret = cmd('ldd', lib_path, verbose=False)
+    elif DARWIN:
+        depend_out, depend_err, ret = cmd('otool', '-L', lib_path, verbose=False)
+    elif WIN32:
+        depend_out, depend_err, ret = cmd('objdump', '-p', lib_path, verbose=False)
+        #fnmatch.filter(depend_out.split('\n'), '*DLL*')
+        relevant_lines = [line for line in depend_out.splitlines() if 'DLL Name:' in line]
+        depend_out = '\n'.join(relevant_lines)
+    assert ret == 0, 'bad dependency check'
+    return depend_out
+        # objdump -p C:\Python27\Lib\site-packages\PIL\_imaging.pyd | grep dll
+        # dumpbin /dependents C:\Python27\Lib\site-packages\PIL\_imaging.pyd
+        # depends /c /a:1 /f:1 C:\Python27\Lib\site-packages\PIL\_imaging.pyd
 
 
 def get_dynamic_lib_globstrs():
@@ -151,7 +177,7 @@ def cmd(*args, **kwargs):
         print(err)
     else:
         # Surpress output
-        print('[cplat] RUNNING WITH SUPRESSED OUTPUT')
+        #print('[cplat] RUNNING WITH SUPRESSED OUTPUT')
         (out, err) = proc.communicate()
     # Make sure process if finished
     ret = proc.wait()

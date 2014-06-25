@@ -137,6 +137,7 @@ def remove_file_list(fpath_list):
             printex(ex, 'Could not remove fpath = %r' % (fpath,), iswarning=True)
             pass
 
+
 def longest_existing_path(_path):
     while True:
         _path_new = os.path.dirname(_path)
