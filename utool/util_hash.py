@@ -137,8 +137,6 @@ def get_file_uuid(fpath, hasher=None):
     if hasher is None:
         hasher = hashlib.sha1()  # 20 bytes of output
         #hasher = hashlib.sha256()  # 32 bytes of output
-    from .util_dbg import embed
-    embed()
     # sha1 produces a 20 byte hash
     hashbytes_20 = get_file_hash(fpath, hasher=hasher)
     # sha1 produces 20 bytes, but UUID requires 16 bytes
