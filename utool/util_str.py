@@ -55,8 +55,8 @@ def indent(string, indent='    '):
     return indent + string.replace('\n', '\n' + indent)
 
 
-def indentjoin(strlist, indent='\n    '):
-    return indent + indent.join(map(str, strlist))
+def indentjoin(strlist, indent='\n    ', suffix=''):
+    return indent + indent.join([str(str_) + suffix for str_ in strlist])
 
 
 def truncate_str(str_, maxlen=110):
@@ -191,7 +191,7 @@ def dict_itemstr_list(dict_, strvals=False):
 
 
 def list_str(list_):
-    return '[%s\n]' % indentjoin(list_)
+    return '[%s\n]' % indentjoin(list_, suffix=',')
 
 
 def dict_str(dict_, strvals=False):
