@@ -24,17 +24,21 @@ def toc(tt, return_msg=False, write_msg=True):
 
 def get_timestamp(format_='filename', use_second=False):
     now = datetime.datetime.now()
-    if use_second:
-        time_tup = (now.year, now.month, now.day, now.hour, now.minute, now.second)
-        time_formats = {
-            'filename': 'ymd_hms-%04d-%02d-%02d_%02d-%02d-%02d',
-            'comment': '# (yyyy-mm-dd hh:mm:ss) %04d-%02d-%02d %02d:%02d:%02d'}
+    if format_ == 'tag':
+        time_tup = (now.year - 2000, now.month, now.day)
+        stamp = '%02d%02d%02d' % time_tup
     else:
-        time_tup = (now.year, now.month, now.day, now.hour, now.minute)
-        time_formats = {
-            'filename': 'ymd_hm-%04d-%02d-%02d_%02d-%02d',
-            'comment': '# (yyyy-mm-dd hh:mm) %04d-%02d-%02d %02d:%02d'}
-    stamp = time_formats[format_] % time_tup
+        if use_second:
+            time_tup = (now.year, now.month, now.day, now.hour, now.minute, now.second)
+            time_formats = {
+                'filename': 'ymd_hms-%04d-%02d-%02d_%02d-%02d-%02d',
+                'comment': '# (yyyy-mm-dd hh:mm:ss) %04d-%02d-%02d %02d:%02d:%02d'}
+        else:
+            time_tup = (now.year, now.month, now.day, now.hour, now.minute)
+            time_formats = {
+                'filename': 'ymd_hm-%04d-%02d-%02d_%02d-%02d',
+                'comment': '# (yyyy-mm-dd hh:mm) %04d-%02d-%02d %02d:%02d'}
+        stamp = time_formats[format_] % time_tup
     return stamp
 
 
@@ -119,3 +123,15 @@ def unixtime_to_datetime(unixtime, timefmt='%Y/%m/%d %H:%M:%S'):
 def get_unix_timedelta(unixtime_diff):
     timedelta = datetime.timedelta(seconds=abs(unixtime_diff))
     return timedelta
+
+
+def get_month():
+    return datetime.datetime.now().month
+
+
+def get_day():
+    return datetime.datetime.now().day
+
+
+def get_year():    
+    return datetime.datetime.now().year
