@@ -456,6 +456,18 @@ def ls_moduledirs(path, private=True, full=True):
     return list(module_dir_iter)
 
 
+def get_basename_noext_list(path_list):
+    return [basename_noext(path) for path in path_list]
+
+
+def get_ext_list(path_list):
+    return [splitext(path)[1] for path in path_list]
+
+
+def get_basepath_list(path_list):
+    return [split(path)[0] for path in path_list]
+
+
 def basename_noext(path):
     return splitext(basename(path))[0]
 
@@ -468,7 +480,7 @@ def is_module_dir(path):
     return exists(join(path, '__init__.py'))
 
 
-def list_images(img_dpath, ignore_list=[], recursive=True, fullpath=False,
+def list_images(img_dpath, ignore_list=[], recursive=False, fullpath=False,
                 full=None, sort=True):
     """ TODO: rename to ls_images
         TODO: Change all instances of fullpath to full
