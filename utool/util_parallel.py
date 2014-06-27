@@ -164,12 +164,20 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__):
     if len(args_list) == 0:
         print('[parallel] submitted 0 tasks')
         return []
-    ensure_pool()
+    if VERBOSE:
+        print('[parallel.generate] ordered=%r' % ordered)
+        print('[parallel.generate] force_serial=%r' % force_serial)
+    if not force_serial:
+        ensure_pool()
     if __TIME__:
         tt = tic(func.func_name)
-    if isinstance(__POOL__, int) or force_serial:
+    if force_serial or isinstance(__POOL__, int):
+        if VERBOSE:
+            print('[parallel.generate] generate_serial')
         return _generate_serial(func, args_list)
     else:
+        if VERBOSE:
+            print('[parallel.generate] generate_parallel')
         return _generate_parallel(func, args_list, ordered=ordered)
     if __TIME__:
         toc(tt)
