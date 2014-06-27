@@ -472,6 +472,18 @@ def basename_noext(path):
     return splitext(basename(path))[0]
 
 
+def append_suffixlist_to_namelist(name_list, suffix_list):
+    """ adds a suffix to the path before the extension
+    if name_list is a path_list the basepath is stripped away """
+    assert len(name_list) == len(suffix_list)
+    #basepath_list  = utool.get_basepath_list(name_list)
+    gnamenoext_list = get_basename_noext_list(name_list)
+    ext_list        = get_ext_list(name_list)
+    new_name_list   = [name + suffix + ext for name, suffix, ext in
+                        izip(gnamenoext_list, suffix_list, ext_list)]
+    return new_name_list
+
+
 def is_private_module(path):
     return basename(path).startswith('__')
 
