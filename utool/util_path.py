@@ -196,8 +196,8 @@ def ensuredir(path_, **kwargs):
     return ensurepath(path_, **kwargs)
 
 
-def assertpath(path_):
-    if not checkpath(path_):
+def assertpath(path_, **kwargs):
+    if not checkpath(path_, **kwargs):
         raise AssertionError('Asserted path does not exist: ' + path_)
 
 
