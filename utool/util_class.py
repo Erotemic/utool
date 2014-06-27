@@ -36,7 +36,7 @@ def inject_func_as_method(self, func, method_name=None):
     setattr(self, method_name, method)
 
 
-def inject_instance(self, classtype):
+def inject_instance(classtype, self):
     """
     Injects an instance (self) of type (classtype)
     with all functions registered to (classtype)
