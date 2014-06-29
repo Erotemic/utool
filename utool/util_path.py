@@ -129,14 +129,17 @@ def delete(path, dryrun=False, recursive=True, verbose=True, ignore_errors=True,
 
 
 def remove_file_list(fpath_list, verbose=VERBOSE):
-    print('[path] Removing %d files' % len(fpath_list))
+    print('[util_path] Removing %d files' % len(fpath_list))
+    nRemoved = 0
     for fpath in fpath_list:
         try:
             os.remove(fpath)  # Force refresh
+            nRemoved += 1
         except OSError as ex:
             if verbose:
                 printex(ex, 'Could not remove fpath = %r' % (fpath,), iswarning=True)
             pass
+    print('[util_path] Removed %d / %d files' % (nRemoved, len(fpath_list)))
 
 
 def longest_existing_path(_path):
