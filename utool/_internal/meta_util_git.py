@@ -1,8 +1,9 @@
 from __future__ import absolute_import, division, print_function
-from os.path import expanduser, normpath, realpath, join
 import os
 from itertools import izip
 import platform
+from os.path import join
+from .meta_util_path import truepath, unixpath
 
 
 USER_ID = None
@@ -45,14 +46,6 @@ def set_userid(userid=None,
     PERMITTED_REPOS = permitted_repos
     USER_ID = userid
     IS_USER = True
-
-
-def truepath(path):
-    return normpath(realpath(expanduser(path)))
-
-
-def unixpath(path):
-    return truepath(path).replace('\\', '/')
 
 
 def cd(dir_):

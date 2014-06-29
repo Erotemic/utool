@@ -10,6 +10,7 @@ import shlex
 from os.path import exists, normpath
 from .util_inject import inject
 from ._internal import meta_util_cplat
+from ._internal.meta_util_path import unixpath
 print, print_, printDBG, rrr, profile = inject(__name__, '[cplat]')
 
 COMPUTER_NAME = platform.node()
@@ -19,6 +20,10 @@ LINUX  = meta_util_cplat.LINUX
 DARWIN = meta_util_cplat.DARWIN
 
 LIB_EXT_LIST = ['.so', '.dll', '.dylib', '.pyd']
+
+
+def python_executable():
+    return unixpath(sys.executable)
 
 
 def ls_libs(dpath):
@@ -141,6 +146,16 @@ def run_realtime_process(exe, shell=False):
             raise StopIteration('process finished')
 
 
+def _run_process(proc):
+    while True:
+        # returns None while subprocess is running
+        retcode = proc.poll()
+        line = proc.stdout.readline()
+        yield line
+        if retcode is not None:
+            raise StopIteration('process finished')
+
+
 def cmd(*args, **kwargs):
     """ A really roundabout way to issue a system call """
     sys.stdout.flush()
@@ -160,21 +175,15 @@ def cmd(*args, **kwargs):
     if verbose and not detatch:
         print('[cplat] RUNNING WITH VERBOSE OUTPUT')
         logged_out = []
-        def run_process():
-            while True:
-                # returns None while subprocess is running
-                retcode = proc.poll()
-                line = proc.stdout.readline()
-                yield line
-                if retcode is not None:
-                    raise StopIteration('process finished')
-        for line in run_process():
+        for line in _run_process(proc):
             sys.stdout.write(line)
             sys.stdout.flush()
             logged_out.append(line)
         out = '\n'.join(logged_out)
         (out_, err) = proc.communicate()
-        print(err)
+        #print('[cplat] out: %s' % (out,))
+        print('[cplat] stdout: %s' % (out_,))
+        print('[cplat] stderr: %s' % (err,))
     else:
         # Surpress output
         #print('[cplat] RUNNING WITH SUPRESSED OUTPUT')

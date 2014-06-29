@@ -27,8 +27,13 @@ def read_license(license_file):
 
 
 def build_pyo(project_dirs):
+    pyexe = util_cplat.python_executable()
     for dir_ in project_dirs:
-        util_cplat.shell('python -O -m compileall ' + dir_ + '/*.py')
+        #command_args = [pyexe, '-O', '-m', 'compileall', dir_ + '\*.py']
+        command_args = [pyexe, '-O', '-m', 'compileall', dir_]
+        #command = ' '.join(command_args)
+        #os.system(command)
+        util_cplat.shell(command_args)
 
 
 def setup_chmod(setup_fpath, setup_dir, chmod_patterns):
