@@ -84,12 +84,12 @@ def xywh_to_tlbr(bbox, img_wh):
     if img_w == 0 or img_h == 0:
         img_w = 1
         img_h = 1
-        msg = '[cc2.1] Your csv tables have an invalid ROI.'
+        msg = '[cc2.1] Your csv tables have an invalid ANNOTATION.'
         print(msg)
         #warnings.warn(msg)
         #ht = 1
         #wt = 1
-    # Ensure ROI is within bounds
+    # Ensure ANNOTATION is within bounds
     (x, y, w, h) = bbox
     x1 = max(x, 0)
     y1 = max(y, 0)
@@ -164,15 +164,15 @@ def unique_row_indexes(arr):
     unique_rowx.sort()
     return unique_rowx
 
-#        (qrids, rids, scores, ranks) = self.cand_match_list
+#        (qaids, aids, scores, ranks) = self.cand_match_list
 #        # reorder candidates
-#        rid_list1 = map(int, qrids)
-#        rid_list2 = map(int, rids)
+#        aid_list1 = map(int, qaids)
+#        aid_list2 = map(int, aids)
 #        from itertools import izip, groupby
 #        def groupkey(tup):
-#            rid1, rid2 = tup[-2:-1]
-#            return (min(rid1, rid2), max(rid1, rid2))
-#        zipped = sorted(list(izip(range(len(rid_list1)), rid_list1, rid_list2)), key=lambda tup: tup[1])
+#            aid1, aid2 = tup[-2:-1]
+#            return (min(aid1, aid2), max(aid1, aid2))
+#        zipped = sorted(list(izip(range(len(aid_list1)), aid_list1, aid_list2)), key=lambda tup: tup[1])
 #        # key is ordered pair, list is directed pairs and order
 #        grouped = [(key, list(subiter)) for key, subiter in groupby(zipped, groupkey)]
 #        group_order = sorted([sorted(sublist) for key, sublist in grouped])
@@ -180,8 +180,8 @@ def unique_row_indexes(arr):
 
 #        old_graph = defaultdict(list)
 #        for edge, dedge_list in grouped:
-#            rid1, rid2 = edge
-#            old_graph[rid1].append((rid1, rid2))
+#            aid1, aid2 = edge
+#            old_graph[aid1].append((aid1, aid2))
 #        old_graph = {key: list(set(value)) for key, value in old_graph.iteritems()}
 
 #        old_graph = dict(list(old_graph.iteritems()))
