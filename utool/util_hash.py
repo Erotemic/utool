@@ -29,13 +29,13 @@ BIGBASE = len(ALPHABET)
 
 def hashstr_arr(arr, lbl='arr', **kwargs):
     if isinstance(arr, list):
-        arr = tuple(arr)
+        arr = tuple(arr)  # force arrays into a tuple
     if isinstance(arr, tuple):
         arr_shape = '(' + str(len(arr)) + ')'
     else:
         arr_shape = str(arr.shape).replace(' ', '')
     arr_hash = hashstr(arr, **kwargs)
-    arr_uid = ''.join((lbl, '(', arr_shape, arr_hash, ')'))
+    arr_uid = ''.join([lbl, '(', arr_shape, arr_hash, ')'])
     return arr_uid
 
 
