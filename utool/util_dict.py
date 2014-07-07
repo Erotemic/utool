@@ -17,7 +17,7 @@ def all_dict_combinations(varied_dict):
     return dict_list
 
 
-def all_dict_combinations_labels(varied_dict):
+def all_dict_combinations_lbls(varied_dict):
     """ returns what parameters are varied"""
     multitups_list = [[(key, val) for val in val_list] for key, val_list in varied_dict.iteritems() if len(val_list) > 1]
     comb_lbls = map(str, list(iprod(*multitups_list)))

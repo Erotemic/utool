@@ -158,7 +158,7 @@ else:
                              isiterable, memorize, wraps,)
     from .util_distances import (L1, L2, L2_sqrd, compute_distances, emd,
                                  hist_isect, nearest_point,)
-    from .util_dict import (all_dict_combinations, all_dict_combinations_labels,
+    from .util_dict import (all_dict_combinations, all_dict_combinations_lbls,
                             build_conflict_dict, dict_union, dict_union2,
                             dict_update_newkeys, iprod, items_sorted_by_value,
                             keys_sorted_by_value,)

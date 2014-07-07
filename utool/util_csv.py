@@ -5,12 +5,12 @@ from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[csv]')
 
 
-def numpy_to_csv(arr, col_labels=None, header='', col_type=None):
+def numpy_to_csv(arr, col_lbls=None, header='', col_type=None):
     col_list = arr.T.tolist()
-    return make_csv_table(col_labels, col_list, header, col_type)
+    return make_csv_table(col_lbls, col_list, header, col_type)
 
 
-def make_csv_table(column_list=[], column_labels=None, header='',
+def make_csv_table(column_list=[], column_lbls=None, header='',
                    column_type=None):
     """
     Creates a csv table with aligned columns
@@ -24,7 +24,7 @@ def make_csv_table(column_list=[], column_labels=None, header='',
         #print('[csv.make_csv_table()] No data. (header=%r)' % (header,))
         return header
     if any([num_data != clen for clen in column_len]):
-        print('[csv] column_labels = %r ' % (column_labels,))
+        print('[csv] column_lbls = %r ' % (column_lbls,))
         print('[csv] column_len = %r ' % (column_len,))
         print('[csv] inconsistent column lengths')
         return header
@@ -39,8 +39,8 @@ def make_csv_table(column_list=[], column_labels=None, header='',
     column_maxlen = []
     column_str_list = []
 
-    if column_labels is None:
-        column_labels = [''] * len(column_list)
+    if column_lbls is None:
+        column_lbls = [''] * len(column_list)
 
     def _toint(c):
         try:
@@ -56,7 +56,7 @@ def make_csv_table(column_list=[], column_labels=None, header='',
             raise
         return ('%d') % int(c)
 
-    for col, lbl, coltype in iter(zip(column_list, column_labels, column_type)):
+    for col, lbl, coltype in iter(zip(column_list, column_lbls, column_type)):
         if coltype is list or is_list(coltype):
             #col_str = [str(c).replace(',', '<comma>').replace('.', '<dot>') for c in iter(col)]
             col_str = [str(c).replace(',', ' ').replace('.', '<dot>') for c in iter(col)]
@@ -76,7 +76,7 @@ def make_csv_table(column_list=[], column_labels=None, header='',
 
     _fmtfn = lambda maxlen: ''.join(['%', str(maxlen + 2), 's'])
     fmtstr = ','.join([_fmtfn(maxlen) for maxlen in column_maxlen])
-    csv_rows.append('# ' + fmtstr % tuple(column_labels))
+    csv_rows.append('# ' + fmtstr % tuple(column_lbls))
     for row in zip(*column_str_list):
         csv_rows.append('  ' + fmtstr % row)
 
