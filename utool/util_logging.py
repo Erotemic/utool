@@ -40,7 +40,8 @@ logdir_cacheid = 'log_dpath'
 
 def get_logging_dir(appname=None):
     from ._internal.meta_util_cache import global_cache_read
-    log_dir = global_cache_read(logdir_cacheid, appname=appname, default='logs')
+    from ._internal.meta_util_cplat import get_resource_dir
+    log_dir = global_cache_read(logdir_cacheid, appname=appname, default=join(get_resource_dir(), 'utool', 'logs'))
     return realpath(log_dir)
 
 
