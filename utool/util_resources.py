@@ -72,7 +72,20 @@ try:
         #14	ru_nvcsw	voluntary context switches
         #15	ru_nivcsw	involuntary context switches
 except ImportError:
-    pass
+    def time_in_usermode():
+        raise NotImplementedError('unavailable in win32')
+
+    def time_in_systemmode():
+        raise NotImplementedError('unavailable in win32')
+
+    def peak_memory():
+        """Returns the resident set size (the portion of
+        a process's memory that is held in RAM.)
+        """
+        raise NotImplementedError('unavailable in win32')
+
+    def get_resource_limits():
+        raise NotImplementedError('unavailable in win32')
 
 
 def time_str2(seconds):
