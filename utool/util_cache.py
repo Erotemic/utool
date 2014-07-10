@@ -134,8 +134,11 @@ class GlobalShelfContext(object):
             raise
         return self.shelf
 
-    def __exit__(self, *args):
+    def __exit__(self, type_, value, trace):
         self.shelf.close()
+        if trace is not None:
+            print('[util_cache] Error in context manager!: ' + str(value))
+            return False  # return a falsey value on error
         #close_global_shelf(self.appname)
 
 

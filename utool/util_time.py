@@ -78,9 +78,12 @@ class Timer(object):
         self.tic()
         return self
 
-    def __exit__(self, type, value, trace):
+    def __exit__(self, type_, value, trace):
         self.ellapsed = self.toc()
-        return self.ellapsed
+        if trace is not None:
+            print('[util_time] Error in context manager!: ' + str(value))
+            return False  # return a falsey value on error
+        #return self.ellapsed
 
 
 def exiftime_to_unixtime(datetime_str, timestamp_format=1):
@@ -133,5 +136,5 @@ def get_day():
     return datetime.datetime.now().day
 
 
-def get_year():    
+def get_year():
     return datetime.datetime.now().year

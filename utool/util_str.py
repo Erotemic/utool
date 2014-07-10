@@ -259,8 +259,11 @@ class NpPrintOpts(object):
         self.new_opts = kwargs
     def __enter__(self):
         np.set_printoptions(**self.new_opts)
-    def __exit__(self, type, value, trace):
+    def __exit__(self, type_, value, trace):
         np.set_printoptions(**self.orig_opts)
+        if trace is not None:
+            print('[util_str] Error in context manager!: ' + str(value))
+            return False  # return a falsey value on error
 
 
 def full_numpy_repr(arr):

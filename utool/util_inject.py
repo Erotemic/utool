@@ -153,20 +153,89 @@ def inject_reload_function(module_name=None, module_prefix='[???]', module=None)
     return rrr
 
 
+def DUMMYPROF_FUNC(func):
+    return func
+
+try:
+    KERNPROF_FUNC = getattr(__builtin__, 'profile')
+    PROFILING = True
+except AttributeError:
+    PROFILING = False
+    KERNPROF_FUNC = DUMMYPROF_FUNC
+
+#def inject_profile_function(module_name=None, module_prefix='[???]', module=None):
+#    module = _get_module(module_name, module)
+#    try:
+#        kernprof_func = getattr(__builtin__, 'profile')
+#        #def profile(func):
+#        #    #print('decorate: %r' % func.func_name)
+#        #    # hack to filter profiled functions
+#        #    if func.func_name.startswith('get_affine'):
+#        #        return kernprof_func(func)
+#        #    return func
+#        profile = kernprof_func
+#        #filtered_profile.func_name = 'profile'
+#        if __DEBUG_PROF__:
+#            print('[util_inject] PROFILE ON: %r' % module)
+#    except AttributeError:
+#        # Create dummy kernprof_func
+#        def profile(func):
+#            #print('decorate: %r' % func.func_name)
+#            return func
+#        if __DEBUG_PROF__:
+#            print('[util_inject] PROFILE OFF: %r' % module)
+#    _inject_funcs(module, profile)
+#    return profile
+
+PROF_FUNC_PAT_LIST = None
+PROF_MOD_PAT_LIST = None  # ['spatial']
+
+
+def _matches_list(name, pat_list):
+    return any([name.find(pat) != -1 for pat in pat_list])
+
+
+def _profile_func_flag(func_name):
+    if PROF_FUNC_PAT_LIST is None:
+        return True
+    return _matches_list(func_name, PROF_FUNC_PAT_LIST)
+
+
+def _profile_module_flag(module_name):
+    if PROF_MOD_PAT_LIST is None:
+        return True
+    return _matches_list(module_name, PROF_MOD_PAT_LIST)
+
+
 def inject_profile_function(module_name=None, module_prefix='[???]', module=None):
+    # FIXME: not injecting right
     module = _get_module(module_name, module)
-    try:
-        profile = getattr(__builtin__, 'profile')
-        if __DEBUG_PROF__:
-            print('[util_inject] PROFILE ON: %r' % module)
-        return profile
-    except AttributeError:
-        def profile(func):
-            return func
-        if __DEBUG_PROF__:
-            print('[util_inject] PROFILE OFF: %r' % module)
-    _inject_funcs(module, profile)
-    return profile
+    if not _profile_module_flag(str(module)):
+        return DUMMYPROF_FUNC
+    #if module_name is None:
+    #    return DUMMYPROF_FUNC
+    #profile_module_flag = PROF_MODULE_PAT is None or module_name.startswith(PROF_MODULE_PAT)
+    #if not profile_module_flag:
+    #    return DUMMYPROF_FUNC
+
+    def profile_withfuncname_filter(func):
+        # Test to see if this function is specified
+        if _profile_func_flag(func.func_name):
+            return KERNPROF_FUNC(func)
+        return func
+    #profile = KERNPROF_FUNC
+    #try:
+    #    profile = getattr(__builtin__, 'profile')
+    #    if __DEBUG_PROF__:
+    #        print('[util_inject] PROFILE ON: %r' % module)
+    #    return profile
+    #except AttributeError:
+    #    def profile(func):
+    #        return func
+    #    if __DEBUG_PROF__:
+    #        print('[util_inject] PROFILE OFF: %r' % module)
+    #_inject_funcs(module, profile)
+    return profile_withfuncname_filter
 
 
 def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
