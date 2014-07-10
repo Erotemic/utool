@@ -27,6 +27,11 @@ __NUM_PROCS__ = util_arg.get_arg('--num-procs', int, default=None)
 __FORCE_SERIAL__ = util_arg.get_flag('--utool-force-serial')
 
 
+def set_num_procs(num_procs):
+    global __NUM_PROCS__
+    __NUM_PROCS__ = num_procs
+
+
 def get_default_numprocs():
     if __NUM_PROCS__ is not None:
         return __NUM_PROCS__
