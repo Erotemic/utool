@@ -131,7 +131,7 @@ else:
                              get_flops, get_resource_dir, getroot, ls_libs,
                              python_executable, run_realtime_process, shell,
                              startfile, unixpath, vd, view_directory,)
-    from .util_class import (classmember, inject_func_as_method, inject_instance,)
+    from .util_class import (classmember, inject_func_as_method, inject_instance, makeForwardingMetaclass)
     from .util_csv import (is_float, is_int, is_list, is_str, make_csv_table,
                            numpy_to_csv,)
     from .util_dbg import (IPYTHON_EMBED_STR, SUPER_STRICT, all_rrr,

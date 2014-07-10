@@ -64,3 +64,34 @@ def inject_instance(classtype, self):
 #        super(ReloadableMetaclass, self).__init__(name, bases, attrs)
 #        # classregistry.register(self, self.interfaces)
 #        print('Would register class %r now.' % (self,))
+
+def makeForwardingMetaclass(forwarding_dest_getter, whitelist, base_class=object):
+    """ makes a metaclass that overrides __getattr__ and __setattr__ to forward
+        some specific attribute references to a specified instance variable """
+    class ForwardingMetaclass(base_class.__class__):
+        def __init__(metaself, name, bases, dct):
+            # print('ForwardingMetaclass.__init__(): {forwarding_dest_getter: %r; whitelist: %r}' % (forwarding_dest_getter, whitelist))
+            super(ForwardingMetaclass, metaself).__init__(name, bases, dict)
+            old_getattr = metaself.__getattribute__
+            def new_getattr(self, item):
+                if item in whitelist:
+                    #dest = old_getattr(self, forwarding_dest_name)
+                    dest = forwarding_dest_getter(self)
+                    try:
+                        val = dest.__class__.__getattribute__(dest, item)
+                    except AttributeError:
+                        val = getattr(dest, item)
+                else:
+                    val = old_getattr(self, item)
+                return val
+            metaself.__getattribute__ = new_getattr
+            old_setattr = metaself.__setattr__
+            def new_setattr(self, name, val):
+                if name in whitelist:
+                    #dest = old_getattr(self, forwarding_dest_name)
+                    dest = forwarding_dest_getter(self)
+                    dest.__class__.__setattr__(dest, name, val)
+                else:
+                    old_setattr(self, name, val)
+            metaself.__setattr__ = new_setattr
+    return ForwardingMetaclass
