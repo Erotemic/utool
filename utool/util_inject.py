@@ -8,8 +8,8 @@ __AGGROFLUSH__ = '--aggroflush' in sys.argv
 __LOGGING__    = '--logging'    in sys.argv
 __DEBUG_ALL__  = '--debug-all'  in sys.argv
 __DEBUG_PROF__ = '--debug-prof' in sys.argv or '--debug-profile' in sys.argv
-__QUIET__ = '--quiet' in sys.argv
-__SILENT__ = '--silent' in sys.argv
+QUIET = '--quiet' in sys.argv
+SILENT = '--silent' in sys.argv
 
 
 if __LOGGING__:
@@ -93,7 +93,7 @@ def inject_colored_exceptions():
 
 def inject_print_functions(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
     module = _get_module(module_name, module)
-    if __SILENT__:
+    if SILENT:
         def print(*args):
             pass
         def printDBG(*args):
@@ -149,7 +149,7 @@ def inject_reload_function(module_name=None, module_prefix='[???]', module=None)
             raise Exception('Reloading has been forced off')
         try:
             import imp
-            if not __QUIET__:
+            if not QUIET:
                 __builtin__.print('RELOAD: ' + str(module_prefix) + ' __name__=' + module_name)
             imp.reload(module)
         except Exception as ex:

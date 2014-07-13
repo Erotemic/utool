@@ -11,7 +11,7 @@ from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[grabdata]')
 
 
-__QUIET__ = '--quiet' in sys.argv
+QUIET = '--quiet' in sys.argv
 BadZipfile = zipfile.BadZipfile
 
 
@@ -47,7 +47,7 @@ def _extract_archive(archive_file, archive_namelist, output_dir):
         (dname, fname) = split(member)
         dpath = join(output_dir, dname)
         util_path.ensurepath(dpath)
-        if not __QUIET__:
+        if not QUIET:
             print('[utool] Unarchive ' + fname + ' in ' + dpath)
         archive_file.extract(member, path=output_dir)
 
