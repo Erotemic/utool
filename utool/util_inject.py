@@ -9,6 +9,7 @@ __LOGGING__    = '--logging'    in sys.argv
 __DEBUG_ALL__  = '--debug-all'  in sys.argv
 __DEBUG_PROF__ = '--debug-prof' in sys.argv or '--debug-profile' in sys.argv
 __QUIET__ = '--quiet' in sys.argv
+__SILENT__ = '--silent' in sys.argv
 
 
 if __LOGGING__:
@@ -92,41 +93,47 @@ def inject_colored_exceptions():
 
 def inject_print_functions(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
     module = _get_module(module_name, module)
-
-    def print(*args):
-        util_logging.__UTOOL_PRINT__(*args)
-
-    if __AGGROFLUSH__:
-        def print_(*args):
-            util_logging.__UTOOL_WRITE__(*args)
-            util_logging.__UTOOL_FLUSH__()
-    else:
-        def print_(*args):
-            util_logging.__UTOOL_WRITE__(*args)
-
-    # turn on module debugging with command line flags
-    dotpos = module.__name__.rfind('.')
-    if dotpos == -1:
-        module_name = module.__name__
-    else:
-        module_name = module.__name__[dotpos + 1:]
-    def _replchars(str_):
-        return str_.replace('_', '-').replace(']', '').replace('[', '')
-    flag1 = '--debug-%s' % _replchars(module_name)
-    flag2 = '--debug-%s' % _replchars(module_prefix)
-    DEBUG_FLAG = any([flag in sys.argv for flag in [flag1, flag2]])
-    for curflag in ARGV_DEBUG_FLAGS:
-        if curflag in module_prefix:
-            DEBUG_FLAG = True
-    if __DEBUG_ALL__ or DEBUG or DEBUG_FLAG:
-        print('INJECT_PRINT: %r == %r' % (module_name, module_prefix))
-        def printDBG(*args):
-            msg = ', '.join(map(str, args))
-            util_logging.__UTOOL_PRINTDBG__(module_prefix + ' DEBUG ' + msg)
-    else:
+    if __SILENT__:
+        def print(*args):
+            pass
         def printDBG(*args):
             pass
+        def print_(*args):
+            pass
+    else:
+        def print(*args):
+            util_logging.__UTOOL_PRINT__(*args)
 
+        if __AGGROFLUSH__:
+            def print_(*args):
+                util_logging.__UTOOL_WRITE__(*args)
+                util_logging.__UTOOL_FLUSH__()
+        else:
+            def print_(*args):
+                util_logging.__UTOOL_WRITE__(*args)
+
+        # turn on module debugging with command line flags
+        dotpos = module.__name__.rfind('.')
+        if dotpos == -1:
+            module_name = module.__name__
+        else:
+            module_name = module.__name__[dotpos + 1:]
+        def _replchars(str_):
+            return str_.replace('_', '-').replace(']', '').replace('[', '')
+        flag1 = '--debug-%s' % _replchars(module_name)
+        flag2 = '--debug-%s' % _replchars(module_prefix)
+        DEBUG_FLAG = any([flag in sys.argv for flag in [flag1, flag2]])
+        for curflag in ARGV_DEBUG_FLAGS:
+            if curflag in module_prefix:
+                DEBUG_FLAG = True
+        if __DEBUG_ALL__ or DEBUG or DEBUG_FLAG:
+            print('INJECT_PRINT: %r == %r' % (module_name, module_prefix))
+            def printDBG(*args):
+                msg = ', '.join(map(str, args))
+                util_logging.__UTOOL_PRINTDBG__(module_prefix + ' DEBUG ' + msg)
+        else:
+            def printDBG(*args):
+                pass
     _inject_funcs(module, print, print_, printDBG)
     return print, print_, printDBG
 
@@ -189,6 +196,7 @@ except AttributeError:
 
 PROF_FUNC_PAT_LIST = None
 PROF_MOD_PAT_LIST = None  # ['spatial']
+PROF_MOD_PAT_LIST = ['spatial', 'linalg', 'keypoint']
 
 
 def _matches_list(name, pat_list):

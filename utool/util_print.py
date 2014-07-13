@@ -8,7 +8,8 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[print]')
 
 QUIET = '--quiet' in sys.argv
 VERBOSE = '--verbose' in sys.argv
-NO_INDENT = '--noindent' in sys.argv or '--no-indent' in sys.argv
+SILENT = '--silent' in sys.argv
+NO_INDENT = '--noindent' in sys.argv or '--no-indent' in sys.argv or SILENT
 
 
 def horiz_print(*args):
