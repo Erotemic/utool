@@ -46,6 +46,7 @@ if __DYNAMIC__:
     #    ('util_inject',    ['inject', 'inject_all', 'inject_print_functions']),
     #    ('util_io',        None),
     #    ('util_iter',      ['iflatten', 'ichunks', 'interleave',]),
+    #    ('util_inspect',   None),
     #    ('util_logging',   None),
     #    ('util_list',      ['alloc_lists', 'list_index', 'npfind', 'index_of',
     #                        'flatten']),
@@ -87,6 +88,7 @@ else:
     from . import util_git
     from . import util_hash
     from . import util_inject
+    from . import util_inspect
     from . import util_io
     from . import util_iter
     from . import util_logging
@@ -191,6 +193,7 @@ else:
                               inject_all, inject_colored_exceptions,
                               inject_print_functions, inject_profile_function,
                               inject_reload_function,)
+    from .util_inspect import *  # NOQA
     from .util_io import (load_cPkl, read_from, save_cPkl, write_to,)
     from .util_iter import (chain, cycle, ensure_iterable, ichunks, ifilter_Nones,
                             ifilter_items, iflatten, iflatten_scalars, interleave,)
@@ -289,6 +292,7 @@ else:
         getattr(util_git, 'rrr', lambda: None)()
         getattr(util_hash, 'rrr', lambda: None)()
         getattr(util_inject, 'rrr', lambda: None)()
+        getattr(util_inspect, 'rrr', lambda: None)()
         getattr(util_io, 'rrr', lambda: None)()
         getattr(util_iter, 'rrr', lambda: None)()
         getattr(util_logging, 'rrr', lambda: None)()
