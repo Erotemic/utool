@@ -7,6 +7,8 @@ import types
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[type]')
 
+NOASSERT = '--no-assert' in sys.argv or '--noassert' in sys.argv
+
 
 # Very odd that I have to put in dtypes in two different ways.
 VALID_INT_TYPES = (types.IntType,
@@ -73,6 +75,8 @@ def bool_from_str(str_):
 
 
 def assert_int(var, lbl='var'):
+    if NOASSERT:
+        return
     try:
         assert is_int(var), 'type(%s)=%r is not int' % (lbl, get_type(var))
     except AssertionError:

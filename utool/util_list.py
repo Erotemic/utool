@@ -4,11 +4,14 @@ TODO: Move numpy arrays helpers elsewhere
 """
 from __future__ import absolute_import, division, print_function
 import numpy as np
+import sys
 from itertools import izip, imap
 from .util_iter import iflatten, isiterable, ifilter_Nones, ifilter_items
 from .util_inject import inject
 from .util_str import get_func_name
 print, print_, printDBG, rrr, profile = inject(__name__, '[list]')
+
+NOASSERT = '--no-assert' in sys.argv or '--noassert' in sys.argv
 
 
 # --- List Allocations ---
@@ -103,20 +106,23 @@ def flatten(list_):
 
 
 def assert_unflat_level(unflat_list, level=1, basetype=None):
+    if NOASSERT:
+        return
     num_checked = 0
     for item in unflat_list:
         if level == 1:
             for x in item:
-                num_checked += 1 
+                num_checked += 1
                 assert not isinstance(x, (tuple, list)), \
                     'list is at an unexpected unflat level, x=%r' % (x,)
                 if basetype is not None:
                     assert isinstance(x, basetype), \
                         'x=%r, type(x)=%r is not basetype=%r' % (x, type(x), basetype)
         else:
-            assert_unflat_level(item, level-1)
+            assert_unflat_level(item, level - 1)
     #print('checked %r' % num_checked)
     #assert num_checked > 0, 'num_checked=%r' % num_checked
+
 
 def invertable_flatten(unflat_list):
     """
@@ -221,6 +227,8 @@ def inbounds(arr, low, high):
 
 
 def assert_all_not_None(list_, list_name='some_list', key_list=[]):
+    if NOASSERT:
+        return
     if any([item is None for count, item in enumerate(list_)]):
         msg = ((list_name + '[%d] = %r') % (count, item))
         ex = AssertionError(msg)

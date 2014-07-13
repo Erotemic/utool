@@ -16,6 +16,7 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[path]')
 
 VERBOSE = '--verbose' in sys.argv
 QUIET = '--quiet' in sys.argv
+NOASSERT = '--no-assert' in sys.argv or '--noassert' in sys.argv
 
 
 __IMG_EXTS = ['.jpg', '.jpeg', '.png', '.tif', '.tiff', '.ppm']
@@ -200,6 +201,8 @@ def ensuredir(path_, **kwargs):
 
 
 def assertpath(path_, **kwargs):
+    if NOASSERT:
+        return
     if not checkpath(path_, **kwargs):
         raise AssertionError('Asserted path does not exist: ' + path_)
 
@@ -529,4 +532,6 @@ def list_images(img_dpath, ignore_list=[], recursive=False, fullpath=False,
 
 
 def assert_exists(path):
+    if NOASSERT:
+        return
     assert exists(path), 'path=%r does not exist!' % path

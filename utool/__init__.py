@@ -118,7 +118,7 @@ else:
                            xywh_to_tlbr,)
     from .util_aliases import (OrderedDict, ddict, odict,)
     from .util_arg import (ArgumentParser2, Indenter, QUIET, STRICT, VERBOSE,
-                           VERYVERBOSE, argv_flag, argv_flag_dec,
+                           NOASSERT, VERYVERBOSE, argv_flag, argv_flag_dec,
                            argv_flag_dec_true, get_arg, get_flag, inject,
                            make_argparse2, switch_sanataize, try_cast,)
     from .util_cache import (GlobalShelfContext, default_appname,
