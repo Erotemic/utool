@@ -5,6 +5,7 @@ import sys
 from . import util_print
 from . import util_dbg
 from . import util_arg
+from . import util_time
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[tests]')
 
@@ -41,13 +42,15 @@ def run_test(func, *args, **kwargs):
     Input:
         Anything that needs to be passed to <func>
     """
-    with util_print.Indenter('[' + func.func_name.upper() + ']'):
+    upper_func_name = func.func_name.upper()
+    with util_print.Indenter('[' + upper_func_name + ']'):
         try:
-            printTEST('[TEST.BEGIN] %s ' % (func.func_name,))
-            test_locals = func(*args, **kwargs)
-            printTEST('[TEST.FINISH] %s -- SUCCESS' % (func.func_name,))
-            print(HAPPY_FACE)
-            return test_locals
+            with util_time.Timer(upper_func_name):
+                printTEST('[TEST.BEGIN] %s ' % (func.func_name,))
+                test_locals = func(*args, **kwargs)
+                printTEST('[TEST.FINISH] %s -- SUCCESS' % (func.func_name,))
+                print(HAPPY_FACE)
+                return test_locals
         except Exception as ex:
             # Get locals in the wrapped function
             util_dbg.printex(ex)
