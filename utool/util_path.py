@@ -15,6 +15,7 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[path]')
 
 
 VERBOSE = '--verbose' in sys.argv
+VERYVERBOSE = '--veryverbose' in sys.argv
 QUIET = '--quiet' in sys.argv
 USE_ASSERT = not ('--no-assert' in sys.argv)
 
@@ -129,7 +130,7 @@ def delete(path, dryrun=False, recursive=True, verbose=True, ignore_errors=True,
     return flag
 
 
-def remove_file_list(fpath_list, verbose=VERBOSE):
+def remove_file_list(fpath_list, verbose=VERYVERBOSE):
     print('[util_path] Removing %d files' % len(fpath_list))
     nRemoved = 0
     for fpath in fpath_list:
@@ -157,7 +158,7 @@ def longest_existing_path(_path):
     return _path
 
 
-def checkpath(path_, verbose=VERBOSE):
+def checkpath(path_, verbose=VERYVERBOSE):
     """ returns true if path_ exists on the filesystem """
     path_ = normpath(path_)
     if verbose:
@@ -188,7 +189,7 @@ def checkpath(path_, verbose=VERBOSE):
         return exists(path_)
 
 
-def ensurepath(path_, verbose=VERBOSE):
+def ensurepath(path_, verbose=VERYVERBOSE):
     if not checkpath(path_):
         if verbose:
             print('[path] mkdir(%r)' % path_)

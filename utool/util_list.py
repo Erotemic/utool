@@ -48,6 +48,9 @@ def random_indexes(max_index, subset_size):
 
 # --- List Searching --- #
 
+def get_list_column(list_, colx):
+    return [row[colx] for row in list_]
+
 
 def list_getat(list_, index_list):
     return [list_[index] for index in index_list]

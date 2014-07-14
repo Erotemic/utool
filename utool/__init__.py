@@ -200,6 +200,7 @@ else:
     from .util_logging import (PRINT_ALL_CALLERS, add_logging_handler,
                                get_log_fpath, get_logging_dir, logdir_cacheid,
                                start_logging, stop_logging,)
+    from .util_list import *
     from .util_list import (alloc_lists, alloc_nones, assert_all_not_None,
                             assert_unflat_level, deterministic_shuffle,
                             ensure_list_size, filter_Nones, filter_items,
