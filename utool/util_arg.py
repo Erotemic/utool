@@ -11,7 +11,7 @@ QUIET = '--quiet' in sys.argv
 VERBOSE = '--verbose' in sys.argv
 VERYVERBOSE = '--very-verbose' in sys.argv or '-veryverbose' in sys.argv
 STRICT = '--nostrict' not in sys.argv
-NOASSERT = '--no-assert' in sys.argv or '--noassert' in sys.argv
+USE_ASSERT = not ('--no-assert' in sys.argv)
 
 
 def get_arg(arg, type_=None, default=None, **kwargs):

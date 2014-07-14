@@ -11,7 +11,7 @@ from .util_inject import inject
 from .util_str import get_func_name
 print, print_, printDBG, rrr, profile = inject(__name__, '[list]')
 
-NOASSERT = '--no-assert' in sys.argv or '--noassert' in sys.argv
+USE_ASSERT = not ('--no-assert' in sys.argv)
 
 
 # --- List Allocations ---
@@ -106,7 +106,7 @@ def flatten(list_):
 
 
 def assert_unflat_level(unflat_list, level=1, basetype=None):
-    if NOASSERT:
+    if USE_ASSERT:
         return
     num_checked = 0
     for item in unflat_list:
@@ -227,7 +227,7 @@ def inbounds(arr, low, high):
 
 
 def assert_all_not_None(list_, list_name='some_list', key_list=[]):
-    if NOASSERT:
+    if USE_ASSERT:
         return
     if any([item is None for count, item in enumerate(list_)]):
         msg = ((list_name + '[%d] = %r') % (count, item))

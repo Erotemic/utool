@@ -18,7 +18,7 @@ FULL_TRACEBACK = '--noignore-exctb' in sys.argv or \
 TRACE = '--trace' in sys.argv
 UNIQUE_NUMPY = True
 NOINDENT_DECOR = False
-NOASSERT = '--no-assert' in sys.argv or '--noassert' in sys.argv
+USE_ASSERT = not ('--no-assert' in sys.argv)
 
 
 #def composed(*decs):
@@ -140,7 +140,7 @@ def accepts_scalar_input(func):
 
 
 def __assert_param_consistency(args, argx_list):
-    if NOASSERT:
+    if USE_ASSERT:
         return
     if len(argx_list) == 0:
         return True
