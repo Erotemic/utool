@@ -536,3 +536,87 @@ def assert_exists(path):
     if USE_ASSERT:
         return
     assert exists(path), 'path=%r does not exist!' % path
+
+
+def _regex_grepfile(fpath, regexpr, verbose=True):
+    import re
+    found_lines = []
+    found_lxs = []
+    with open(fpath, 'r') as file:
+        lines = file.readlines()
+        # Search each line for the desired regexpr
+        for lx, line in enumerate(lines):
+            match_object = re.search(regexpr, line)
+            if match_object is not None:
+                found_lines.append(line)
+                found_lxs.append(lx)
+    return found_lines, found_lxs
+
+
+def _matching_fnames(dpath_list, include_patterns, exclude_dirs=None, recursive=True):
+    if isinstance(dpath_list, (str)):
+        dpath_list = [dpath_list]
+    for dpath in dpath_list:
+        for root, dname_list, fname_list in os.walk(dpath):
+            # Look at all subdirs
+            subdirs = relpath(root, dpath).split('/')
+            greater_exclude_dirs = ['lib.linux-x86_64-2.7']
+            if any([dir_ in greater_exclude_dirs for dir_ in subdirs]):
+                continue
+            # Look at one subdir
+            if split(root)[1] in exclude_dirs:
+                continue
+            for name in fname_list:
+                # For the filesnames which match the patterns
+                if any([fnmatch.fnmatch(name, pat) for pat in include_patterns]):
+                    yield join(root, name)
+                    #fname_list.append((root, name))
+            if not recursive:
+                break
+    #return fname_list
+
+
+def extend_regex(regexpr):
+    regex_map = {
+        r'\<': r'\b(?=\w)',
+        r'\>': r'\b(?!\w)',
+        ('UNSAFE', r'\x08'): r'\b',
+    }
+    for key, repl in regex_map.iteritems():
+        if isinstance(key, tuple):
+            search = key[1]
+        else:
+            search = key
+        if regexpr.find(search) != -1:
+            if isinstance(key, tuple):
+                print('WARNING! Unsafe regex with: %r' % (key,))
+            regexpr = regexpr.replace(search, repl)
+    return regexpr
+
+
+def grep(tofind_list, recursive=True, dpath_list=None):
+    include_patterns = ['*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c',
+                        '*.h', '*.vim']  # , '*.txt']
+    exclude_dirs = []
+    # ensure list input
+    if isinstance(include_patterns, str):
+        include_patterns = [include_patterns]
+    if dpath_list is None:
+        dpath_list = [os.getcwd()]
+    #recursive_stat_str = ['flat', 'recursive'][recursive]
+    #print('Greping (%s) %r for %r' % (recursive_stat_str, dpath_list, tofind_list))
+    found_filestr_list = []
+    found_lines_list = []
+    found_lxs_list = []
+    # Walk through each directory recursively
+    for fpath in _matching_fnames(dpath_list, include_patterns, exclude_dirs,
+                                  recursive=recursive):
+        if len(tofind_list) > 1:
+            print('WARNING IN ROB NAV 133')
+        regexpr = extend_regex(tofind_list[0])
+        found_lines, found_lxs = _regex_grepfile(fpath, regexpr)
+        if len(found_lines) > 0:
+            found_filestr_list.append(fpath)  # regular matching
+            found_lines_list.append(found_lines)
+            found_lxs_list.append(found_lxs)
+    return found_filestr_list, found_lines_list, found_lxs_list

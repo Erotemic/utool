@@ -216,6 +216,7 @@ else:
     from .util_num import (commas, fewest_digits_float_str, float_to_decimal,
                            format_, int_comma_str, num2_sigfig, num_fmt,
                            order_of_magnitude_ceil, sigfig_str,)
+    from .util_path import *
     from .util_path import (IMG_EXTENSIONS, append_suffixlist_to_namelist,
                             assert_exists, assertpath, basename_noext, checkpath,
                             copy, copy_all, copy_list, copy_task, delete, dirsplit,
