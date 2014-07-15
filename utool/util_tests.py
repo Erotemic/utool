@@ -45,12 +45,16 @@ def run_test(func, *args, **kwargs):
     upper_func_name = func.func_name.upper()
     with util_print.Indenter('[' + upper_func_name + ']'):
         try:
-            with util_time.Timer(upper_func_name):
-                printTEST('[TEST.BEGIN] %s ' % (func.func_name,))
+            printTEST('[TEST.BEGIN] %s ' % (func.func_name,))
+            with util_time.Timer(upper_func_name) as timer:
                 test_locals = func(*args, **kwargs)
-                printTEST('[TEST.FINISH] %s -- SUCCESS' % (func.func_name,))
-                print(HAPPY_FACE)
-                return test_locals
+                # Write timings
+            printTEST('[TEST.FINISH] %s -- SUCCESS' % (func.func_name,))
+            print(HAPPY_FACE)
+            with open('test_times.txt', 'a') as file_:
+                msg = '%.4fs in %s\n' % (timer.ellapsed, upper_func_name)
+                file_.write(msg)
+            return test_locals
         except Exception as ex:
             # Get locals in the wrapped function
             util_dbg.printex(ex)

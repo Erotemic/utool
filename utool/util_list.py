@@ -157,6 +157,32 @@ def tuplize(list_):
 def flattenize(list_):
     """ maps flatten to a tuplized list
     list_ = [[1, 2, 3], [2, 3, [4, 2, 1]], [3, 2], [[1, 2], [3, 4]]]
+    #
+    # test flattenize
+    import utool
+    from itertools import izip
+    val_list1 = [(1, 2), (2, 4), (5, 3)]
+    id_list1  = [(1,),     (2,),   (3,)]
+    out_list1 = utool.flattenize(izip(val_list1, id_list1))
+
+    val_list2 = [1, 4, 5]
+    id_list2  = [(1,),     (2,),   (3,)]
+    out_list2 = utool.flattenize(izip(val_list2, id_list2))
+
+    val_list3 = [1, 4, 5]
+    id_list3  = [1, 2, 3]
+    out_list3 = utool.flattenize(izip(val_list3, id_list3))
+
+    out_list4 = list(izip(val_list3, id_list3))
+    %timeit utool.flattenize(izip(val_list1, id_list1))
+    %timeit utool.flattenize(izip(val_list2, id_list2))
+    %timeit utool.flattenize(izip(val_list3, id_list3))
+    %timeit list(izip(val_list3, id_list3))
+
+    100000 loops, best of 3: 14 us per loop
+    100000 loops, best of 3: 16.5 us per loop
+    100000 loops, best of 3: 18 us per loop
+    1000000 loops, best of 3: 1.18 us per loop
     """
     #return imap(iflatten, list_)
     tuplized_iter   = imap(tuplize, list_)
