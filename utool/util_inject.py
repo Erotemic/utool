@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import __builtin__
 import sys
+from functools import wraps
 from . import util_logging
 
 
@@ -163,12 +164,24 @@ def inject_reload_function(module_name=None, module_prefix='[???]', module=None)
 def DUMMYPROF_FUNC(func):
     return func
 
+def TIMERPROF_FUNC(func):
+    @wraps(func)
+    def prof_wrapper(*args, **kwargs):
+        import utool 
+        with utool.Timer(func.func_name):
+            return func(*args, **kwargs)
+        #return ret
+    return prof_wrapper
+
 try:
+    #KERNPROF_FUNC = TIMERPROF_FUNC
     KERNPROF_FUNC = getattr(__builtin__, 'profile')
     PROFILING = True
 except AttributeError:
     PROFILING = False
     KERNPROF_FUNC = DUMMYPROF_FUNC
+    #KERNPROF_FUNC = TIMERPROF_FUNC
+
 
 #def inject_profile_function(module_name=None, module_prefix='[???]', module=None):
 #    module = _get_module(module_name, module)
@@ -196,7 +209,7 @@ except AttributeError:
 
 PROF_FUNC_PAT_LIST = None
 PROF_MOD_PAT_LIST = None  # ['spatial']
-PROF_MOD_PAT_LIST = ['spatial', 'linalg', 'keypoint']
+#PROF_MOD_PAT_LIST = ['spatial', 'linalg', 'keypoint']
 
 
 def _matches_list(name, pat_list):
