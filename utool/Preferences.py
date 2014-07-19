@@ -126,6 +126,10 @@ class Pref(PrefNode):
     def get_type(self):
         return self._intern.get_type()
 
+    def ensure_attr(self, attr, default):
+        if not hasattr(self, attr):
+            setattr(self, attr, default)
+
     # -------------------
     # Attribute Setters
     def toggle(self, key):
