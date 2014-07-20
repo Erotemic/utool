@@ -13,10 +13,11 @@ import textwrap
 #__fun_version__ = '(.878 + .478i)'
 __version__ = '1.0.0.dev1'
 
-__DYNAMIC__ = not '--nodyn' in sys.argv
-#__DYNAMIC__ = '--dyn' in sys.argv
+#__DYNAMIC__ = not '--nodyn' in sys.argv
+__DYNAMIC__ = '--dyn' in sys.argv
 
 if __DYNAMIC__:
+    """
     pass
     # COMMENTED OUT FOR FROZEN __INIT__
     # Dynamically import listed util libraries and their members.
@@ -70,6 +71,7 @@ if __DYNAMIC__:
     from ._internal import util_importer
     import_execstr = util_importer.dynamic_import(__name__, UTOOLS_LIST)
     exec(import_execstr)
+    """
 else:
     from . import util_alg
     from . import util_aliases
