@@ -620,3 +620,30 @@ def grep(tofind_list, recursive=True, dpath_list=None):
             found_lines_list.append(found_lines)
             found_lxs_list.append(found_lxs)
     return found_filestr_list, found_lines_list, found_lxs_list
+
+
+def fixwin32_shortname(path1):
+    import ctypes
+    try:
+        #import win32file
+        path1 = unicode(path1)
+        buflen = 260  # max size
+        buf = ctypes.create_unicode_buffer(buflen)
+        ctypes.windll.kernel32.GetLongPathNameW(path1, buf, buflen)
+        #win32file.GetLongPathName(path1, )
+        path2 = buf.value
+    except Exception as ex:
+        print(ex)
+        printex(ex, 'cannot fix win32 shortcut')
+        path2 = path1
+        raise
+    return path2
+
+
+def platform_path(path):
+    path1 = truepath(path)
+    if sys.platform == 'win32':
+        path2 = fixwin32_shortname(path1)
+    else:
+        path2 = path1
+    return path2

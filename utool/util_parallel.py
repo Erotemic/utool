@@ -35,10 +35,11 @@ def set_num_procs(num_procs):
 def get_default_numprocs():
     if __NUM_PROCS__ is not None:
         return __NUM_PROCS__
-    if WIN32:
-        num_procs = 3  # default windows to 3 processes for now
-    else:
-        num_procs = max(multiprocessing.cpu_count() - 2, 1)
+    #if WIN32:
+    #    num_procs = 3  # default windows to 3 processes for now
+    #else:
+    #    num_procs = max(multiprocessing.cpu_count() - 2, 1)
+    num_procs = max(multiprocessing.cpu_count() - 1, 1)
     return num_procs
 
 
@@ -166,17 +167,19 @@ def ensure_pool(warn=True):
 
 def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__):
     """ Returns a generator which asynchronously returns results """
-    if len(args_list) == 0:
+    num_tasks = len(args_list)
+    if num_tasks == 0:
         print('[parallel] submitted 0 tasks')
         return []
     if VERBOSE:
         print('[parallel.generate] ordered=%r' % ordered)
         print('[parallel.generate] force_serial=%r' % force_serial)
-    if not force_serial:
+    force_serial_ = num_tasks == 1 or force_serial
+    if not force_serial_:
         ensure_pool()
     if __TIME__:
         tt = tic(func.func_name)
-    if force_serial or isinstance(__POOL__, int):
+    if force_serial_ or isinstance(__POOL__, int):
         if VERBOSE:
             print('[parallel.generate] generate_serial')
         return _generate_serial(func, args_list)

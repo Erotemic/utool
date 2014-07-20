@@ -234,7 +234,7 @@ else:
                             num_images_in_dir, path_ndir_split, progress_func,
                             relpath, remove_dirs, remove_file, remove_file_list,
                             remove_files_in_dir, symlink, tail, truepath,
-                            win_shortcut,)
+                            win_shortcut, fixwin32_shortname, platform_path)
     from .util_print import (Indenter, NO_INDENT, NpPrintOpts, filesize_str,
                                 horiz_print, printNOTQUIET, printVERBOSE, printWARN,
                                 print_filesize, printif, printshape,)
