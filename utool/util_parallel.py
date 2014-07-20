@@ -12,7 +12,7 @@ import signal
 from .util_progress import progress_func
 from .util_time import tic, toc
 from . import util_arg
-from .util_cplat import WIN32
+#from .util_cplat import WIN32
 from .util_dbg import printex
 
 
