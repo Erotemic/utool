@@ -42,6 +42,11 @@ def truepath(path):
     return normpath(realpath(expanduser(path)))
 
 
+def truepath_relative(path):
+    """ Normalizes and returns absolute path with so specs """
+    return normpath(relpath(path, truepath(os.getcwd())))
+
+
 def path_ndir_split(path, n):
     path, ndirs = split(path)
     for i in xrange(n - 1):
@@ -641,7 +646,7 @@ def fixwin32_shortname(path1):
 
 
 def platform_path(path):
-    path1 = truepath(path)
+    path1 = truepath_relative(path)
     if sys.platform == 'win32':
         path2 = fixwin32_shortname(path1)
     else:
