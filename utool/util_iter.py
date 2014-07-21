@@ -38,10 +38,10 @@ def iflatten_scalars(list_):
     [item for item in list_]
 
 
-def ichunks(list_, size):
-    'Yield successive n-sized chunks from list_.'
-    for ix in xrange(0, len(list_), size):
-        yield list_[ix: ix + size]
+def ichunks(list_, chunksize):
+    """ Yield successive n-sized chunks from list_."""
+    for ix in xrange(0, len(list_), chunksize):
+        yield list_[ix: ix + chunksize]
 
 
 def interleave(args):
