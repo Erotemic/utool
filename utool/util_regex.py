@@ -20,7 +20,8 @@ def regex_search(regex, text):
     if text is None:
         return None
     match = re.search(regex, text, **RE_KWARGS)
-    return get_match_text(match)
+    match_text = get_match_text(match)
+    return match_text
 
 
 def regex_split(regex, text):

@@ -123,9 +123,13 @@ def _process_parallel(func, args_list, args_dict={}):
 
 
 def _generate_parallel(func, args_list, ordered=True, chunksize=1):
+    nTasks = len(args_list)
     print('[parallel] executing %d %s tasks using %d processes' %
-            (len(args_list), func.func_name, __POOL__._processes))
+            (nTasks, func.func_name, __POOL__._processes))
+    if chunksize is None:
+        chunksize = func.func_name, __POOL__._processes
     mark_prog, end_prog = progress_func(max_val=len(args_list), lbl=func.func_name + ': ')
+    assert isinstance(__POOL__, multiprocessing.Pool)
     if ordered:
         generator = __POOL__.imap(func, args_list, chunksize)
     else:

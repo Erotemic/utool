@@ -10,6 +10,7 @@ import fnmatch
 import warnings
 from .util_dbg import get_caller_name, printex
 from .util_progress import progress_func
+from ._internal import meta_util_path
 from . import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[path]')
 
@@ -32,14 +33,18 @@ def newcd(path):
     return cwd
 
 
-def unixpath(path):
-    """ Corrects fundamental problems with windows paths.~ """
-    return truepath(path).replace('\\', '/')
+unixpath = meta_util_path.unixpath
+truepath = meta_util_path.truepath
 
 
-def truepath(path):
-    """ Normalizes and returns absolute path with so specs """
-    return normpath(realpath(expanduser(path)))
+#def unixpath(path):
+#    """ Corrects fundamental problems with windows paths.~ """
+#    return truepath(path).replace('\\', '/')
+
+
+#def truepath(path):
+#    """ Normalizes and returns absolute path with so specs """
+#    return normpath(realpath(expanduser(path)))
 
 
 def truepath_relative(path):
@@ -195,15 +200,16 @@ def checkpath(path_, verbose=VERYVERBOSE):
 
 
 def ensurepath(path_, verbose=VERYVERBOSE):
+    # DEPRICATE
+    return ensuredir(path_, verbose=verbose)
+
+
+def ensuredir(path_, verbose=VERYVERBOSE):
     if not checkpath(path_):
         if verbose:
             print('[path] mkdir(%r)' % path_)
         os.makedirs(path_)
     return True
-
-
-def ensuredir(path_, **kwargs):
-    return ensurepath(path_, **kwargs)
 
 
 def assertpath(path_, **kwargs):

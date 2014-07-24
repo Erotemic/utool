@@ -7,10 +7,10 @@ import sys
 import platform
 import subprocess
 import shlex
-from os.path import exists, normpath
+from os.path import exists, normpath, basename
 from .util_inject import inject
 from ._internal import meta_util_cplat
-from ._internal.meta_util_path import unixpath
+from ._internal.meta_util_path import unixpath, truepath
 print, print_, printDBG, rrr, profile = inject(__name__, '[cplat]')
 
 COMPUTER_NAME = platform.node()
@@ -58,6 +58,10 @@ def get_dynamic_lib_globstrs():
 
 def get_computer_name():
     return COMPUTER_NAME
+
+
+def get_user_name():
+    return basename(truepath('~'))
 
 
 def getroot():

@@ -134,7 +134,7 @@ else:
                                 get_dynamic_lib_globstrs, get_dynlib_dependencies,
                                 get_flops, get_resource_dir, getroot, ls_libs,
                                 python_executable, run_realtime_process, shell,
-                                startfile, unixpath, vd, view_directory,)
+                                startfile, unixpath, vd, view_directory, get_user_name)
     from .util_class import (classmember, inject_func_as_method, inject_instance,
                                 makeForwardingMetaclass,)
     from .util_csv import (is_float, is_int, is_list, is_str, make_csv_table,
