@@ -129,7 +129,8 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1):
     if chunksize is None:
         chunksize = func.func_name, __POOL__._processes
     mark_prog, end_prog = progress_func(max_val=len(args_list), lbl=func.func_name + ': ')
-    assert isinstance(__POOL__, multiprocessing.Pool)
+    #assert isinstance(__POOL__, multiprocessing.Pool),\
+    #        '%r __POOL__ = %r' % (type(__POOL__), __POOL__,)
     if ordered:
         generator = __POOL__.imap(func, args_list, chunksize)
     else:
