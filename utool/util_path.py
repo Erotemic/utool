@@ -1,7 +1,10 @@
+"""
+This module becomes nav
+"""
+
 from __future__ import absolute_import, division, print_function
-from os.path import (join, basename, realpath, relpath, normpath, split,
-                     isdir, isfile, exists, islink, ismount, expanduser,
-                     dirname, splitext)
+from os.path import (join, basename, relpath, normpath, split, isdir, isfile,
+                     exists, islink, ismount, dirname, splitext)
 from itertools import izip, ifilterfalse, ifilter, imap
 import os
 import sys
@@ -15,10 +18,10 @@ from . import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[path]')
 
 
-VERBOSE = '--verbose' in sys.argv
+VERBOSE     = '--verbose' in sys.argv
 VERYVERBOSE = '--veryverbose' in sys.argv
-QUIET = '--quiet' in sys.argv
-USE_ASSERT = not ('--no-assert' in sys.argv)
+QUIET       = '--quiet' in sys.argv
+USE_ASSERT  = not ('--no-assert' in sys.argv)
 
 
 __IMG_EXTS = ['.jpg', '.jpeg', '.png', '.tif', '.tiff', '.ppm']
@@ -37,26 +40,41 @@ unixpath = meta_util_path.unixpath
 truepath = meta_util_path.truepath
 
 
-#def unixpath(path):
-#    """ Corrects fundamental problems with windows paths.~ """
-#    return truepath(path).replace('\\', '/')
-
-
-#def truepath(path):
-#    """ Normalizes and returns absolute path with so specs """
-#    return normpath(realpath(expanduser(path)))
-
-
 def truepath_relative(path):
     """ Normalizes and returns absolute path with so specs """
     return normpath(relpath(path, truepath(os.getcwd())))
 
 
-def path_ndir_split(path, n):
-    path, ndirs = split(path)
-    for i in xrange(n - 1):
-        path, name = split(path)
-        ndirs = name + os.path.sep + ndirs
+def path_ndir_split(path_, n, force_unix=True):
+    """
+    Shows only a little bit of the path. Up to the n bottom-level directories
+    Unit Tests:
+        >>> path_list = ['/usr/bin/local/foo/bar',
+                         '/',
+                         '/usr/bin',
+                         'C:/',
+                         r'C:\Program Files (x86)/foobar/bin',]
+        result = []
+        for path_ in path_list:
+            result.append('----')
+            result.append('Input: %r' % path_)
+            for n in [0, 1, 2, 3, 4, 5, 6]:
+                result.append('n=%r: %r' % (n, path_ndir_split(path_, n)))
+        print('\n'.join(result))
+    """
+    sep = '/' if force_unix else os.sep
+    if n == 0:
+        return ''
+    ndirs_list = []
+    head = path_
+    for _ in xrange(n):
+        head, tail = split(head)
+        if tail == '':
+            root = head if len(ndirs_list) == 0 else head.strip('\\/')
+            ndirs_list.append(root)
+            break
+        ndirs_list.append(tail)
+    ndirs = sep.join(ndirs_list[::-1])
     return ndirs
 
 
@@ -168,11 +186,12 @@ def longest_existing_path(_path):
     return _path
 
 
-def checkpath(path_, verbose=VERYVERBOSE):
+def checkpath(path_, verbose=VERYVERBOSE, n=2, info=VERYVERBOSE):
     """ returns true if path_ exists on the filesystem """
     path_ = normpath(path_)
     if verbose:
-        pretty_path = path_ndir_split(path_, 2)
+        #print_('[utool] checkpath(%r)' % (path_))
+        pretty_path = path_ndir_split(path_, n)
         caller_name = get_caller_name()
         print_('[%s] checkpath(%r)' % (caller_name, pretty_path))
         if exists(path_):
@@ -189,7 +208,7 @@ def checkpath(path_, verbose=VERYVERBOSE):
             print_('...(%s) exists\n' % (path_type,))
         else:
             print_('... does not exist\n')
-            if verbose:
+            if info:
                 print_('[path] \n  ! Does not exist\n')
                 _longest_path = longest_existing_path(path_)
                 print_('[path] ... The longest existing path is: %r\n' % _longest_path)
@@ -380,6 +399,14 @@ def file_megabytes(fpath):
 
 
 def glob(dirname, pattern, recursive=False, with_files=True, with_dirs=True):
+    """ Globs directory for pattern """
+    gen = iglob(dirname, pattern, recursive=recursive,
+                with_files=with_files, with_dirs=with_dirs)
+    return list(gen)
+
+
+def iglob(dirname, pattern, recursive=False, with_files=True, with_dirs=True):
+    """ Globs directory for pattern """
     for root, dirs, files in os.walk(dirname):
         if with_files:
             for fname in fnmatch.filter(files, pattern):

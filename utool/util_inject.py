@@ -167,7 +167,7 @@ def DUMMYPROF_FUNC(func):
 def TIMERPROF_FUNC(func):
     @wraps(func)
     def prof_wrapper(*args, **kwargs):
-        import utool 
+        import utool
         with utool.Timer(func.func_name):
             return func(*args, **kwargs)
         #return ret
@@ -209,7 +209,8 @@ except AttributeError:
 
 PROF_FUNC_PAT_LIST = None
 PROF_MOD_PAT_LIST = None  # ['spatial']
-#PROF_MOD_PAT_LIST = ['spatial', 'linalg', 'keypoint']
+# TODO: Add this to command line
+PROF_MOD_PAT_LIST = ['spatial', 'linalg', 'keypoint']
 
 
 def _matches_list(name, pat_list):

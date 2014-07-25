@@ -23,7 +23,6 @@ if __name__ == '__main__':
         scripts=['utool/util_scripts/makeinit.py',
                  'utool/util_scripts/profiler.sh',
                  'utool/util_scripts/profiler.py',
-                ],
-
+                 ],
         classifiers=[],
     )

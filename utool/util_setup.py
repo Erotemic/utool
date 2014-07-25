@@ -15,7 +15,8 @@ VERBOSE = '--verbose' in sys.argv
 
 
 class SETUP_PATTERNS():
-    clutter = ['*.pyc', '*.pyo']
+    clutter = ['*.pyc', '*.pyo', '*_cython.o', '*_cython.c', '*_cython.pyd',
+               '*_cython.so', '*_cython.dylib']
     chmod   = ['test_*.py']
 
 
@@ -90,6 +91,33 @@ def build_cython(cython_files):
         util_dev.compile_cython(fpath)
 
 
+def find_ext_modules(disable_warnings=True):
+    from setuptools import Extension
+    import utool
+    from os.path import relpath
+    import numpy as np
+    cwd = os.getcwd()
+    pyx_list = utool.glob(cwd, '*_cython.pyx', recursive=True)
+
+    if disable_warnings:
+        extra_compile_args = ['-Wno-format', '-Wno-unused-function']
+    else:
+        extra_compile_args = []
+
+    ext_modules = []
+    for pyx_abspath in pyx_list:
+        pyx_relpath = relpath(pyx_abspath, cwd)
+        pyx_modname, _ = splitext(pyx_relpath.replace('\\', '.').replace('/', '.'))
+        print('[find_ext] Found Module:')
+        print('   * pyx_modname = %r' % (pyx_modname,))
+        print('   * pyx_relpath = %r' % (pyx_relpath,))
+        extmod = Extension(pyx_modname, [pyx_relpath],
+                           include_dirs=[np.get_include()],
+                           extra_compile_args=extra_compile_args)
+        ext_modules.append(extmod)
+    return ext_modules
+
+
 def NOOP():
     pass
 
@@ -140,6 +168,9 @@ def presetup(setup_fpath, kwargs):
         # Chmod files
         if arg in ['chmod']:
             setup_chmod(setup_fpath, setup_dir, chmod_patterns)
+
+
+presetup_commands = presetup  # TODO:
 
 
 def __parse_package_for_version(name):
@@ -256,7 +287,6 @@ def setuptools_setup(setup_fpath=None, module=None, **kwargs):
     license            short string     ('license for the package')
 
     """
-    from setuptools import setup
     from .util_inject import inject_colored_exceptions
     inject_colored_exceptions()  # Fluffly, but nice
     if VERBOSE:
@@ -265,4 +295,4 @@ def setuptools_setup(setup_fpath=None, module=None, **kwargs):
     presetup(setup_fpath, kwargs)
     if VERBOSE:
         print(util_str.dict_str(kwargs))
-    setup(**kwargs)
+    return kwargs

@@ -21,6 +21,27 @@ DARWIN = meta_util_cplat.DARWIN
 
 LIB_EXT_LIST = ['.so', '.dll', '.dylib', '.pyd']
 
+LIB_DICT = {
+    'win32': '.dll',
+    'linux2': '.so',
+    'darwin': '.dylib',
+}
+
+
+PYLIB_DICT = {
+    'win32': '.pyd',
+    'linux2': '.so',
+    'darwin': '.dylib',
+}
+
+
+def get_lib_ext():
+    return LIB_DICT[sys.platform]
+
+
+def get_pylib_ext():
+    return PYLIB_DICT[sys.platform]
+
 
 def python_executable():
     return unixpath(sys.executable)
@@ -87,6 +108,26 @@ def startfile(fpath):
             raise Exception(out + ' -- ' + err)
     else:
         os.startfile(fpath)
+    pass
+
+
+def editfile(fpath):
+    print('[cplat] startfile(%r)' % fpath)
+    if not exists(fpath):
+        raise Exception('Cannot start nonexistant file: %r' % fpath)
+    if LINUX:
+        out, err, ret = cmd(['gvim', fpath], detatch=True)
+        if not ret:
+            raise Exception(out + ' -- ' + err)
+    elif DARWIN:
+        out, err, ret = cmd(['gvim', fpath], detatch=True)
+        if not ret:
+            raise Exception(out + ' -- ' + err)
+    else:
+        out, err, ret = cmd(['gvim', fpath], detatch=True)
+        if not ret:
+            raise Exception(out + ' -- ' + err)
+        #os.startfile(fpath)
     pass
 
 

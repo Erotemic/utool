@@ -13,11 +13,12 @@ import textwrap
 #__fun_version__ = '(.878 + .478i)'
 __version__ = '1.0.0.dev1'
 
-#__DYNAMIC__ = not '--nodyn' in sys.argv
-__DYNAMIC__ = '--dyn' in sys.argv
+__DYNAMIC__ = not '--nodyn' in sys.argv
+#__DYNAMIC__ = '--dyn' in sys.argv
 
 if __DYNAMIC__:
-    """
+    # TODO: import all utool external prereqs. Then the imports will not import
+    # anything that has already in a toplevel namespace
     pass
     # COMMENTED OUT FOR FROZEN __INIT__
     # Dynamically import listed util libraries and their members.
@@ -71,7 +72,6 @@ if __DYNAMIC__:
     from ._internal import util_importer
     import_execstr = util_importer.dynamic_import(__name__, UTOOLS_LIST)
     exec(import_execstr)
-    """
 else:
     from . import util_alg
     from . import util_aliases
@@ -132,9 +132,11 @@ else:
     from .util_cplat import (COMPUTER_NAME, DARWIN, LIB_EXT_LIST, LINUX, WIN32, cmd,
                                 exists, get_app_resource_dir, get_computer_name,
                                 get_dynamic_lib_globstrs, get_dynlib_dependencies,
-                                get_flops, get_resource_dir, getroot, ls_libs,
-                                python_executable, run_realtime_process, shell,
-                                startfile, unixpath, vd, view_directory, get_user_name)
+                             get_flops, get_resource_dir, getroot,
+                             get_lib_ext, ls_libs,
+                             python_executable, run_realtime_process, shell,
+                             startfile,  get_pylib_ext,
+                             editfile, unixpath, vd, view_directory, get_user_name)
     from .util_class import (classmember, inject_func_as_method, inject_instance,
                                 makeForwardingMetaclass,)
     from .util_csv import (is_float, is_int, is_list, is_str, make_csv_table,
@@ -223,7 +225,7 @@ else:
     from .util_path import (IMG_EXTENSIONS, append_suffixlist_to_namelist,
                             assert_exists, assertpath, basename_noext, checkpath,
                             copy, copy_all, copy_list, copy_task, delete, dirsplit,
-                            ensuredir, ensurepath, expanduser, ext, extend_regex,
+                            ensuredir, ensurepath, ext, extend_regex,
                             file_bytes, file_megabytes, fnames_to_fpaths,
                             fpaths_to_fnames, get_basename_noext_list,
                             get_basepath_list, get_ext_list, get_module_dir, glob,

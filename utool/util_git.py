@@ -39,13 +39,19 @@ def gitcmd(repo, command):
 
 
 def std_build_command(repo):
-    """ Uses my standard for build script names """
+    """ Uses my standard for build script names
+    aka:
+        mingw_build.bat
+        unix_build.sh
+    """
     print("************")
-    WIN32 = sys.platform.startswith('win32')
-    buildtype = 'mingw' if WIN32 else './unix'
-    ext = '.bat' if WIN32 else '.sh'
-    scriptname = buildtype + '_build' + ext
     print(repo)
+    WIN32 = sys.platform.startswith('win32')
+    if WIN32:
+        scriptname = './mingw_build.sh'
+    else:
+        scriptname = './unix_build.sh'
+    # Execute build
     os.chdir(repo)
     os.system(scriptname)
     print("************")
