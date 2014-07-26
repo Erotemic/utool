@@ -210,7 +210,18 @@ except AttributeError:
 PROF_FUNC_PAT_LIST = None
 PROF_MOD_PAT_LIST = None  # ['spatial']
 # TODO: Add this to command line
-PROF_MOD_PAT_LIST = ['spatial', 'linalg', 'keypoint']
+
+from ._internal.meta_util_arg import get_arg
+#PROF_MOD_PAT_LIST = ['spatial', 'linalg', 'keypoint']
+PROF_MOD_PAT_LIST = get_arg('--prof-mod', type_=str, default=None)
+if PROF_MOD_PAT_LIST is not None:
+    PROF_MOD_PAT_LIST = PROF_MOD_PAT_LIST.split(';')
+    #print('PROF_MOD_PAT_LIST: %r' % (PROF_MOD_PAT_LIST,))
+    #sys.exit(1)
+#else:
+#    print('PROF_MOD_PAT_LIST: %r' % (PROF_MOD_PAT_LIST,))
+#    sys.exit(1)
+del get_arg
 
 
 def _matches_list(name, pat_list):

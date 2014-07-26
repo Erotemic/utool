@@ -32,6 +32,12 @@ def set_num_procs(num_procs):
     __NUM_PROCS__ = num_procs
 
 
+def in_main_process():
+    """ Returns if you are executing in a multiprocessing subprocess
+    Usefull to disable init print messages on windows """
+    return multiprocessing.current_process().name == 'MainProcess'
+
+
 def get_default_numprocs():
     if __NUM_PROCS__ is not None:
         return __NUM_PROCS__
@@ -122,13 +128,17 @@ def _process_parallel(func, args_list, args_dict={}):
     return result_list
 
 
-def _generate_parallel(func, args_list, ordered=True, chunksize=1):
+def _generate_parallel(func, args_list, ordered=True, chunksize=1,
+                       prog=True, verbose=True):
+    prog = prog and verbose
     nTasks = len(args_list)
-    print('[parallel] executing %d %s tasks using %d processes' %
-            (nTasks, func.func_name, __POOL__._processes))
     if chunksize is None:
-        chunksize = func.func_name, __POOL__._processes
-    mark_prog, end_prog = progress_func(max_val=len(args_list), lbl=func.func_name + ': ')
+        chunksize = max(1, nTasks // (__POOL__._processes ** 2))
+    if verbose:
+        print('[parallel] executing %d %s tasks using %d processes with chunksize=%r' %
+                (nTasks, func.func_name, __POOL__._processes, chunksize))
+    if prog:
+        mark_prog, end_prog = progress_func(max_val=len(args_list), lbl=func.func_name + ': ')
     #assert isinstance(__POOL__, multiprocessing.Pool),\
     #        '%r __POOL__ = %r' % (type(__POOL__), __POOL__,)
     if ordered:
@@ -137,31 +147,38 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1):
         generator = __POOL__.imap_unordered(func, args_list, chunksize)
     try:
         for count, result in enumerate(generator):
-            mark_prog(count)
+            if prog:
+                mark_prog(count)
             yield result
     except Exception as ex:
         printex(ex, 'Parallel Generation Failed!', '[utool]')
         print('__SERIAL_FALLBACK__ = %r' % __SERIAL_FALLBACK__)
         if __SERIAL_FALLBACK__:
-            for result in _generate_serial(func, args_list):
+            for result in _generate_serial(func, args_list, prog=prog, verbose=verbose):
                 yield result
         else:
             raise
-    end_prog()
+    if prog:
+        end_prog()
 
 
-def _generate_serial(func, args_list):
-    print('[parallel] executing %d %s tasks in serial' %
-            (len(args_list), func.func_name))
-    mark_prog, end_prog = progress_func(max_val=len(args_list), lbl=func.func_name + ': ')
+def _generate_serial(func, args_list, prog=True, verbose=True):
+    if verbose:
+        print('[parallel] executing %d %s tasks in serial' %
+                (len(args_list), func.func_name))
+    prog = prog and verbose
+    if prog:
+        mark_prog, end_prog = progress_func(max_val=len(args_list), lbl=func.func_name + ': ')
     for count, args in enumerate(args_list):
-        mark_prog(count)
+        if prog:
+            mark_prog(count)
         result = func(args)
         yield result
-    end_prog()
+    if prog:
+        end_prog()
 
 
-def ensure_pool(warn=True):
+def ensure_pool(warn=False):
     try:
         assert __POOL__ is not None, 'must init_pool() first'
     except AssertionError as ex:
@@ -170,13 +187,15 @@ def ensure_pool(warn=True):
         init_pool()
 
 
-def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__):
+def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
+             chunksize=1, prog=True, verbose=True):
     """ Returns a generator which asynchronously returns results """
     num_tasks = len(args_list)
     if num_tasks == 0:
-        print('[parallel] submitted 0 tasks')
+        if verbose:
+            print('[parallel] submitted 0 tasks')
         return []
-    if VERBOSE:
+    if VERBOSE and verbose:
         print('[parallel.generate] ordered=%r' % ordered)
         print('[parallel.generate] force_serial=%r' % force_serial)
     force_serial_ = num_tasks == 1 or force_serial
@@ -185,13 +204,15 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__):
     if __TIME__:
         tt = tic(func.func_name)
     if force_serial_ or isinstance(__POOL__, int):
-        if VERBOSE:
+        if VERBOSE and verbose:
             print('[parallel.generate] generate_serial')
-        return _generate_serial(func, args_list)
+        return _generate_serial(func, args_list, prog=prog)
     else:
-        if VERBOSE:
+        if VERBOSE and verbose:
             print('[parallel.generate] generate_parallel')
-        return _generate_parallel(func, args_list, ordered=ordered)
+        return _generate_parallel(func, args_list, ordered=ordered,
+                                  chunksize=chunksize, prog=prog,
+                                  verbose=verbose)
     if __TIME__:
         toc(tt)
 

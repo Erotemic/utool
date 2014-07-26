@@ -14,6 +14,7 @@ STRICT = '--nostrict' not in sys.argv
 USE_ASSERT = not ('--no-assert' in sys.argv)
 
 
+#from ._internal.meta_util_arg import get_arg
 def get_arg(arg, type_=None, default=None, **kwargs):
     arg_after = default
     if type_ is bool:
