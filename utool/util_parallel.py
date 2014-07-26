@@ -165,7 +165,7 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
             raise
     if prog:
         end_prog()
-    close_pool()
+    #close_pool()
 
 
 def _generate_serial(func, args_list, prog=True, verbose=True):
