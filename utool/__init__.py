@@ -54,7 +54,7 @@ if __DYNAMIC__:
                             'flatten']),
         ('util_num',       None),
         ('util_path',      ['checkpath', 'ensuredir', 'assertpath', 'truepath',
-                            'list_images', 'copy']),
+                            'list_images', 'copy', 'glob', 'grep']),
         ('util_print',     ['horiz_print', 'printshape', 'Indenter']),
         ('util_progress',  ['progress_func']),
         ('util_parallel',  None),
