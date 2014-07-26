@@ -78,13 +78,18 @@ def init_pool(num_procs=None, maxtasksperchild=None):
 
 
 @atexit.register
-def close_pool():
+def close_pool(terminate=False):
     global __POOL__
     if __POOL__ is not None:
         if not QUIET:
-            print('[parallel] closing pool')
+            if terminate:
+                print('[parallel] terminating pool')
+            else:
+                print('[parallel] closing pool')
         if not isinstance(__POOL__, int):
             # Must join after close to avoid runtime errors
+            if terminate:
+                __POOL__.terminate()
             __POOL__.close()
             __POOL__.join()
         __POOL__ = None
@@ -160,6 +165,7 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
             raise
     if prog:
         end_prog()
+    close_pool()
 
 
 def _generate_serial(func, args_list, prog=True, verbose=True):
