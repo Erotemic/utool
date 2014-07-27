@@ -54,7 +54,7 @@ class Timer(object):
         self.newline = newline
         self.tstart = -1
         self.ellapsed = -1
-        self.tic()
+        #self.tic()
 
     def tic(self):
         if self.verbose:
