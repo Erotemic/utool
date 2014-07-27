@@ -100,9 +100,9 @@ def __get_from_imports(IMPORT_TUPLES):
 # STRING MAKERS
 #----------
 
-def _initstr(module_name, IMPORTS, FROM_IMPORTS, inject_execstr):
+def _initstr(module_name, IMPORTS, FROM_IMPORTS, inject_execstr, withheader=True):
     """ Calls the other string makers """
-    header         = _make_module_header()
+    header         = _make_module_header() if withheader else ''
     import_str     = _make_imports_str(IMPORTS)
     fromimport_str = _make_fromimport_str(FROM_IMPORTS)
     initstr = '\n'.join([str_ for str_ in [
@@ -200,12 +200,45 @@ def dynamic_import(module_name, IMPORT_TUPLES, developing=True, dump=False):
     # If requested: print what the __init__ module should look like
     dump_requested = (('--dump-%s-init' % module_name) in sys.argv or
                       ('--print-%s-init' % module_name) in sys.argv) or dump
+    overwrite_requested = ('--update-%s-init' % module_name) in sys.argv
+
     if dump_requested:
         is_main_proc = multiprocessing.current_process().name == 'MainProcess'
         if is_main_proc:
             from utool import util_str
             initstr = _initstr(module_name, IMPORTS, FROM_IMPORTS, inject_execstr)
             print(util_str.indent(initstr))
+    # Overwrite the __init__.py file with new explicit imports
+    if overwrite_requested:
+        is_main_proc = multiprocessing.current_process().name == 'MainProcess'
+        if is_main_proc:
+            from utool import util_str
+            from os.path import join, exists
+            initstr = _initstr(module_name, IMPORTS, FROM_IMPORTS, inject_execstr, withheader=False)
+            new_else = util_str.indent(initstr)
+            #print(new_else)
+            # Get path to init file so we can overwrite it
+            init_fpath = join(module.__path__[0], '__init__.py')
+            print("attempting to update: %r" % init_fpath)
+            assert exists(init_fpath)
+            new_lines = []
+            broken = False
+            with open(init_fpath, 'r') as file_:
+                lines = file_.readlines()
+                for line in lines:
+                    new_lines.append(line)
+                    if line.strip().startswith('# <AUTOGEN_INIT>'):
+                        new_lines.append('\n' + new_else + '\n    # </AUTOGEN_INIT>')
+                        broken = True
+                        break
+            if broken:
+                print("writing updated file: %r" % init_fpath)
+                new_text = ''.join(new_lines)
+                with open(init_fpath, 'w') as file_:
+                    file_.write(new_text)
+            else:
+                print("no write hook for file: %r" % init_fpath)
+
     return inject_execstr
 
 

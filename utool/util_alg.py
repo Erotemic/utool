@@ -114,6 +114,16 @@ def build_reverse_mapping(uid_list, cluster_list):
     return cluster2_uids
 
 
+def group_items(item_list, groupid_list):
+    # Sort by groupid for cache efficiency
+    sorted_pairs = sorted(zip(groupid_list, item_list))
+    # Initialize dict of lists
+    groupid2_items = defaultdict(list)
+    for groupid, item in sorted_pairs:
+        groupid2_items[groupid].append(item)
+    return groupid2_items
+
+
 def unpack_items_sorted(dict_, sortfn, reverse=True):
     """ Unpacks and sorts the dictionary by sortfn """
     items = dict_.items()

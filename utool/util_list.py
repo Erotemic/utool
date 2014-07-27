@@ -5,8 +5,8 @@ TODO: Move numpy arrays helpers elsewhere
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import sys
-from itertools import izip, imap
-from .util_iter import iflatten, isiterable, ifilter_Nones, ifilter_items
+from itertools import izip, imap, izip_longest
+from .util_iter import iflatten, isiterable, ifilter_Nones, ifilter_items, ifilterfalse_items
 from .util_inject import inject
 from .util_str import get_func_name
 print, print_, printDBG, rrr, profile = inject(__name__, '[list]')
@@ -287,6 +287,15 @@ def filter_items(item_list, flag_list):
     return filtered_items
 
 
+def filterfalse_items(item_list, flag_list):
+    """
+    Returns items in item list where the corresponding item in flag list is true
+    """
+    assert len(item_list) == len(flag_list)
+    filtered_items = list(ifilterfalse_items(item_list, flag_list))
+    return filtered_items
+
+
 def filter_Nones(list_):
     """ Removes any nones from the list """
     return list(ifilter_Nones(list_))
@@ -414,3 +423,51 @@ def partial_imap_1to1(func, si_func):
             return list(imap(func, si_func(input_)))
     wrapper.func_name = get_func_name(func) + '_mapper_' + si_func.func_name
     return wrapper
+
+
+def sample_zip(items_list, num_samples, allow_overflow=False, per_bin=1):
+    """ Given a list of lists, samples one item for each list and bins them into
+    num_samples bins. If all sublists are of equal size this is equivilent to a
+    zip, but otherewise consecutive bins will have monotonically less
+    elemements
+
+    # Doctest doesn't work with assertionerror
+    #util_list.sample_zip(items_list, 2)
+    #...
+    #AssertionError: Overflow occured
+
+    >>> from utool import util_list
+    >>> items_list = [[1, 2, 3, 4, 0], [5, 6, 7], [], [8, 9], [10]]
+    >>> util_list.sample_zip(items_list, 5)
+    ...
+    [[1, 5, 8, 10], [2, 6, 9], [3, 7], [4], [0]]
+    >>> util_list.sample_zip(items_list, 2, allow_overflow=True)
+    ...
+    ([[1, 5, 8, 10], [2, 6, 9]], [3, 7, 4])
+    >>> util_list.sample_zip(items_list, 4, allow_overflow=True, per_bin=2)
+    ...
+    ([[1, 5, 8, 10, 2, 6, 9], [3, 7, 4], [], []], [0])
+    """
+    # Prealloc a list of lists
+    samples_list = [[] for _ in xrange(num_samples)]
+    # Sample the ix-th value from every list
+    samples_iter = izip_longest(*items_list)
+    sx = 0
+    for ix, samples_ in izip(xrange(num_samples), samples_iter):
+        samples = filter_Nones(samples_)
+        samples_list[sx].extend(samples)
+        # Put per_bin from each sublist into a sample
+        if (ix + 1) % per_bin == 0:
+            sx += 1
+    # Check for overflow
+    if allow_overflow:
+        overflow_samples = flatten([filter_Nones(samples_) for samples_ in samples_iter])
+        return samples_list, overflow_samples
+    else:
+        try:
+            samples_iter.next()
+        except StopIteration:
+            pass
+        else:
+            raise AssertionError('Overflow occured')
+        return samples_list

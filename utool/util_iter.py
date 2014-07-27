@@ -13,10 +13,13 @@ def ensure_iterable(obj):
 
 
 def ifilter_items(item_iter, flag_iter):
-    filtered_items = (item for (item, flag) in
-                      izip(item_iter, flag_iter)
-                      if flag)
-    return filtered_items
+    true_items = (item for (item, flag) in izip(item_iter, flag_iter) if flag)
+    return true_items
+
+
+def ifilterfalse_items(item_iter, flag_iter):
+    false_items = (item for (item, flag) in izip(item_iter, flag_iter) if not flag)
+    return false_items
 
 
 def ifilter_Nones(iter_):
