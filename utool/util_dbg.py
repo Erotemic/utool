@@ -117,6 +117,7 @@ def execstr_attr_list(obj_name, attr_list=None):
 
 
 def execstr_dict(dict_, local_name, exclude_list=None):
+    """ returns execable python code that declares variables using keys and values """
     #if local_name is None:
         #local_name = dict_
         #exec(execstr_parent_locals())
@@ -528,7 +529,7 @@ def debug_exception(func):
 
 
 def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
-            locals_=None, iswarning=False, tb=False, separate=False, N=0, 
+            locals_=None, iswarning=False, tb=False, separate=False, N=0,
             use_stdout=False):
     """ Prints an exception with relevant info """
     # Get error prefix and local info
@@ -549,7 +550,7 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
         print_func('\n\n\n')
     print_func(exstr)
     if separate:
-       print_func('\n\n\n')
+        print_func('\n\n\n')
     # If you dont know where an error is coming from be super-strict
     if SUPER_STRICT:
         raise ex
@@ -644,6 +645,13 @@ def printvar(locals_, varname, attr='.shape', typepad=0):
     else:
         print('[var] %s %s = %r' % (typestr, varname, var))
     np.set_printoptions(**npprintopts)
+
+
+def my_numpy_printops(linewidth=200, threshold=500, precision=8, edgeitems=5):
+    np.set_printoptions(linewidth=linewidth,
+                        precision=precision,
+                        edgeitems=edgeitems,
+                        threshold=threshold)
 
 
 def dict_dbgstr(dict_name, locals_=None):

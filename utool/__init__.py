@@ -159,8 +159,8 @@ else:
                            import_testdata, inIPython, indent, ipython_execstr, 
                            ipython_execstr2, is_listlike, keys_dbgstr, len_dbgstr, 
                            list_dbgstr, list_eq, load_testdata, module_functions, 
-                           pack_into, parse_locals_keylist, print_frame, 
-                           print_varlen, printex, printvar, printvar2, 
+                           my_numpy_printops, pack_into, parse_locals_keylist, 
+                           print_frame, print_varlen, printex, printvar, printvar2, 
                            public_attributes, qflag, quit, quitflag, save_testdata, 
                            search_stack_for_localvar, search_stack_for_var, split, 
                            splitext, truncate_str,) 
