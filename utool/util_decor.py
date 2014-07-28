@@ -5,6 +5,7 @@ from functools import wraps
 from .util_iter import isiterable
 from .util_print import Indenter
 from .util_dbg import printex
+from . import util_time
 import numpy as np
 from .util_inject import inject
 (print, print_, printDBG, rrr, profile) = inject(__name__, '[decor]')
@@ -281,3 +282,11 @@ def interested(func):
         print('INTERESTING... ' + (' ' * 30) + ' <----')
         return func(*args, **kwargs)
     return wrp_interested
+
+
+def time_func(func):
+    @wraps(func)
+    def wrp_time(*args, **kwargs):
+        with util_time.Timer(func.func_name):
+            return func(*args, **kwargs)
+    return wrp_time
