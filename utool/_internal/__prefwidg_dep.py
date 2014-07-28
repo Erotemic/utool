@@ -1,3 +1,4 @@
+r'''
 from __future__ import absolute_import, division, print_function
 import sys
 import traceback
@@ -235,3 +236,4 @@ class EditPrefWidget(QWidget):
     def refresh_layout(self):
         self.pref_model.layoutAboutToBeChanged.emit()
         self.pref_model.layoutChanged.emit()
+'''

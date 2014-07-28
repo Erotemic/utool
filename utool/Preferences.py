@@ -391,14 +391,16 @@ class Pref(PrefNode):
 
     # Method for QTWidget
     def createQWidget(self):
+        # moving gui code away from utool
         try:
-            from utool._internal.PreferenceWidget import EditPrefWidget
+            #from utool._internal.PreferenceWidget import EditPrefWidget
+            from guitool.PreferenceWidget import EditPrefWidget
+            editpref_widget = EditPrefWidget(self)
+            editpref_widget.show()
+            return editpref_widget
         except ImportError as ex:
-            printex(ex, 'Cannot create preference widget. Is PyQt4 Installed')
+            printex(ex, 'Cannot create preference widget. Is guitool/PyQt4/PyQt5 Installed')
             raise
-        editpref_widget = EditPrefWidget(self)
-        editpref_widget.show()
-        return editpref_widget
 
     def qt_get_parent(self):
         return self._tree.parent

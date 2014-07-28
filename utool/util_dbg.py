@@ -92,16 +92,6 @@ def ipython_execstr():
                 raise
     ''')
 
-#if 'PyQt4' in sys.modules:
-    #from PyQt4 import QtCore
-    #from IPython.lib.inputhook import enable_qt4
-    #from IPython.lib.guisupport import start_event_loop_qt4
-    #qapp = QtCore.QCoreApplication.instance()
-    ##qapp.exec_()
-    #print('[utool.dbg] Starting ipython qt4 hook')
-    #enable_qt4()
-    #start_event_loop_qt4(qapp)
-
 
 def execstr_parent_locals():
     parent_locals = get_parent_locals()
@@ -119,9 +109,9 @@ def execstr_attr_list(obj_name, attr_list=None):
 def execstr_dict(dict_, local_name, exclude_list=None):
     """ returns execable python code that declares variables using keys and values """
     #if local_name is None:
-        #local_name = dict_
-        #exec(execstr_parent_locals())
-        #exec('dict_ = local_name')
+    #    local_name = dict_
+    #    exec(execstr_parent_locals())
+    #    exec('dict_ = local_name')
     if exclude_list is None:
         execstr = '\n'.join((key + ' = ' + local_name + '[' + repr(key) + ']'
                             for (key, val) in dict_.iteritems()))
@@ -210,9 +200,13 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
     import IPython
     try:
         if remove_pyqt_hook:
+            try:
+                import guitool
+                guitool.remove_pyqt_input_hook()
+            except ImportError as ex:
+                print(ex)
+                pass
             # make qt not loop forever (I had qflag loop forever with this off)
-            from PyQt4.QtCore import pyqtRemoveInputHook
-            pyqtRemoveInputHook()
     except ImportError as ex:
         print(ex)
     config_dict = {}
