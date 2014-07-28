@@ -127,8 +127,8 @@ else:
     from .util_aliases import (OrderedDict, ddict, odict,) 
     from .util_arg import (ArgumentParser2, Indenter, QUIET, STRICT, USE_ASSERT, 
                            VERBOSE, VERYVERBOSE, argv_flag, argv_flag_dec, 
-                           argv_flag_dec_true, get_arg, get_flag, inject, 
-                           make_argparse2, switch_sanataize, try_cast,) 
+                           argv_flag_dec_true, get_arg, get_flag, get_fpath_args, 
+                           inject, make_argparse2, switch_sanataize, try_cast,) 
     from .util_cache import (GlobalShelfContext, default_appname, 
                              delete_global_cache, get_global_cache_dir, 
                              get_global_shelf_fpath, global_cache_dname, 

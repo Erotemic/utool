@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import sys
 # Python
+import os
 import argparse
 from .util_type import try_cast
 from .util_inject import inject
@@ -140,6 +141,19 @@ def make_argparse2(description, *args, **kwargs):
 # Decorators which control program flow based on sys.argv
 # the decorated function does not execute without its corresponding
 # flag
+
+def get_fpath_args(arglist_=None, pat='*'):
+    import utool
+    if arglist_ is None:
+        arglist_ = sys.argv[1:]
+    input_path_list = []
+    for input_path in arglist_:
+        input_path = utool.truepath(input_path)
+        if os.path.isdir(input_path):
+            input_path_list.extend(utool.glob(input_path, pat, recursive=False, with_dirs=False))
+        else:
+            input_path_list.extend(input_path)
+    return input_path_list
 
 
 def argv_flag_dec(func):
