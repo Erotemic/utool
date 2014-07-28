@@ -47,6 +47,11 @@ def remove_chars(instr, illegals_chars):
     return outstr
 
 
+def get_indentation(line_):
+    """ returns the number of preceding spaces """
+    return len(line_) - len(line_.lstrip())
+
+
 def unindent(string):
     return textwrap.dedent(string)
 

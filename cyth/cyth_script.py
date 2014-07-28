@@ -85,7 +85,7 @@ class CythVisitor(BASE_CLASS):
         cdef_mode = False
         current_indent = 0
         for line_ in cyth_def.splitlines():
-            indent_level = len(line_) - len(line_.lstrip())
+            indent_level = utool.get_indentation(line_)
             # Check indentation
             if indent_level > current_indent:
                 current_indent = indent_level

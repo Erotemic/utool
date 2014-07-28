@@ -178,7 +178,7 @@ else:
                              accepts_scalar_input_vector_output, getter_1to1, 
                              getter_1toM, ignores_exc_tb, indent_func, interested, 
                              isiterable, memorize, on_exception_report_input, 
-                             wraps,) 
+                             time_func, wraps,) 
     from .util_distances import (L1, L2, L2_sqrd, compute_distances, emd, 
                                  hist_isect, nearest_point,) 
     from .util_dict import (all_dict_combinations, all_dict_combinations_lbls, 
@@ -262,10 +262,10 @@ else:
     from .util_str import (GLOBAL_TYPE_ALIASES, bbox_str, byte_str, byte_str2, 
                            dict_aliased_repr, dict_itemstr_list, dict_str, 
                            extend_global_aliases, file_megabytes_str, 
-                           full_numpy_repr, func_str, get_unix_timedelta, 
-                           get_unix_timedelta_str, horiz_string, indent_list, 
-                           indentjoin, joins, list_aliased_repr, list_str, 
-                           listinfo_str, newlined_list, padded_str_range, 
+                           full_numpy_repr, func_str, get_indentation, 
+                           get_unix_timedelta, get_unix_timedelta_str, horiz_string, 
+                           indent_list, indentjoin, joins, list_aliased_repr, 
+                           list_str, listinfo_str, newlined_list, padded_str_range, 
                            remove_chars, str2, str_between, theta_str, tupstr, 
                            unindent, var_aliased_repr, verts_str,) 
     from .util_sysreq import (DEBUG, ensure_in_pythonpath, locate_path,) 
