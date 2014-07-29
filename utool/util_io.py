@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-import cPickle
+from six.moves import cPickle
 from . import util_path
 from . import util_dbg
 from . import util_inject

@@ -4,6 +4,7 @@ from setuptools import setup
 
 
 INSTALL_REQUIRES = [
+    'six',
     'numpy >= 1.8.0',
     'psutil',
 ]

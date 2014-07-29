@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function
+import six
 import fnmatch
 import inspect
 import traceback
@@ -114,12 +115,12 @@ def execstr_dict(dict_, local_name, exclude_list=None):
     #    exec('dict_ = local_name')
     if exclude_list is None:
         execstr = '\n'.join((key + ' = ' + local_name + '[' + repr(key) + ']'
-                            for (key, val) in dict_.iteritems()))
+                            for (key, val) in six.iteritems(dict_)))
     else:
         if not isinstance(exclude_list, list):
             exclude_list = [exclude_list]
         exec_list = []
-        for (key, val) in dict_.iteritems():
+        for (key, val) in six.iteritems(dict_):
             if not any((fnmatch.fnmatch(key, pat) for pat in iter(exclude_list))):
                 exec_list.append(key + ' = ' + local_name + '[' + repr(key) + ']')
         execstr = '\n'.join(exec_list)

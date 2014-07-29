@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
+from six.moves import zip
 from .util_inject import inject
-from itertools import izip
 print, print_, printDBG, rrr, profile = inject(__name__, '[dist]')
 
 
@@ -100,7 +100,7 @@ def emd(hist1, hist2):
         emd_dist = emd_(a32, b32)
         return emd_dist
     else:
-        ab_list   = [(add_weight(a), add_weight(b)) for a, b in izip(hist1, hist2)]
+        ab_list   = [(add_weight(a), add_weight(b)) for a, b in zip(hist1, hist2)]
         ab32_list = [(convertCV32(a), convertCV32(b)) for a, b in ab_list]
         emd_dists = [emd_(a32, b32) for a32, b32, in ab32_list]
         return emd_dists

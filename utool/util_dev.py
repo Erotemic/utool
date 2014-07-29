@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import sys
+import six
 import os
 import warnings
 import numpy as np
@@ -182,7 +183,7 @@ def get_object_size(obj):
                 totalsize += _get_object_size(item)
         elif isinstance(obj, dict):
             try:
-                for key, val in obj.iteritems():
+                for key, val in six.iteritems(obj):
                     totalsize += _get_object_size(key)
                     totalsize += _get_object_size(val)
             except RuntimeError:
@@ -215,7 +216,7 @@ def print_object_size_tree(obj):
                 size_list += _get_object_size_tree(item, indent + '   ', 'item')
         elif isinstance(obj, dict):
             try:
-                for key, val in obj.iteritems():
+                for key, val in six.iteritems(obj):
                     size_list += _get_object_size_tree(key, indent + '   ', key)
                     size_list += _get_object_size_tree(val, indent + '   ', key)
             except RuntimeError:

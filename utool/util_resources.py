@@ -27,7 +27,7 @@ try:
         return maxrss
 
     def get_resource_limits():
-        #rlimit_keys = [key for key in resource.__dict__.iterkeys() if key.startswith('RLIMIT_')]
+        #rlimit_keys = [key for key in six.iterkeys(resource.__dict__) if key.startswith('RLIMIT_')]
         #print('\n'.join(['(\'%s\', resource.%s),' % (key.replace('RLIMIT_', ''), key) for key in rlimit_keys]))
         rlim_keytups = [
             ('MEMLOCK', resource.RLIMIT_MEMLOCK),

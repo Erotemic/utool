@@ -73,8 +73,6 @@ def init_pool(num_procs=None, maxtasksperchild=None):
     # Create the pool of processes
     __POOL__ = multiprocessing.Pool(processes=num_procs, initializer=init_worker,
                                     maxtasksperchild=maxtasksperchild)
-    #for key, val in __POOL__.__dict__.iteritems():
-    #    print('%s = %r' % (key, val))
 
 
 @atexit.register

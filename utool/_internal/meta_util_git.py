@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import os
-from itertools import izip
+from six.moves import zip
 import platform
 from os.path import join
 from .meta_util_path import truepath, unixpath
@@ -56,7 +56,7 @@ def cd(dir_):
 
 def fix_repo_url(repo_url, in_type='https', out_type='ssh', format_dict=format_dict):
     """ Changes the repo_url format """
-    for old, new in izip(format_dict[in_type], format_dict[out_type]):
+    for old, new in zip(format_dict[in_type], format_dict[out_type]):
         repo_url = repo_url.replace(old, new)
     return repo_url
 

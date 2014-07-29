@@ -53,6 +53,6 @@ print('---------------------')
 print('Cyth Visit Complex 2')
 visitor2 = CythVisitor()
 visitor2.visit(parse_tree)
-print(visitor2.get_result())
+#print(visitor2.get_result())
 
 #print(astor.to_source(parse_tree))

@@ -81,6 +81,8 @@ class CythVisitor(BASE_CLASS):
 
     def parse_cythdef(self, cyth_def):
         """ Hacky string manipulation parsing """
+        #ast.literal_eval(utool.unindent(cyth_def))
+
         typedict = {}
         cdef_mode = False
         current_indent = 0
@@ -155,6 +157,7 @@ class CythVisitor(BASE_CLASS):
             else:
                 self.newline(extra=1)
                 self.write(cyth_def)
+
     #    processed_argslist = self.process_args(node.args.args, node.args.vararg, node.args.kwarg, node.args.defaults)
     #    output = "%sdef %s(%s):\n" % (self.prefix(), node.name, ', '.join(processed_argslist))
     #    self.indent()

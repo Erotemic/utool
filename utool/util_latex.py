@@ -16,14 +16,12 @@ from .util_dbg import printex
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[latex]')
 
-"""
 #def ensure_latex_environ():
-    #paths = os.environ['PATH'].split(os.pathsep)
-    #mpl.rc('font',**{'family':'serif'})
-    #mpl.rc('text', usetex=True)
-    #mpl.rc('text.latex',unicode=True)
-    #mpl.rc('text.latex',preamble='\usepackage[utf8]{inputenc}')
-"""
+#    paths = os.environ['PATH'].split(os.pathsep)
+#    mpl.rc('font',**{'family':'serif'})
+#    mpl.rc('text', usetex=True)
+#    mpl.rc('text.latex',unicode=True)
+#    mpl.rc('text.latex',preamble='\usepackage[utf8]{inputenc}')
 
 
 def make_full_document(text):

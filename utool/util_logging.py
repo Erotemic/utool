@@ -6,7 +6,7 @@ Unrelated, but important reminder: Don't Panic
 This is a special module which will not get injected into (should it be internal?)
 """
 from __future__ import absolute_import, division, print_function
-import __builtin__
+from six.moves import builtins
 from os.path import exists, join, realpath
 import logging
 import logging.config
@@ -23,7 +23,7 @@ VERBOSE = '--verbose' in sys.argv
 
 # Remeber original python values
 __PYTHON_STDOUT__ = sys.stdout
-__PYTHON_PRINT__  = __builtin__.print
+__PYTHON_PRINT__  = builtins.print
 __PYTHON_WRITE__  = __PYTHON_STDOUT__.write
 __PYTHON_FLUSH__  = __PYTHON_STDOUT__.flush
 
@@ -68,7 +68,7 @@ def get_log_fpath(num='next', appname=None):
 def add_logging_handler(handler, format_='file'):
     global __UTOOL_ROOT_LOGGER__
     if __UTOOL_ROOT_LOGGER__ is None:
-        __builtin__.print('[WARNING] logger not started, cannot add handler')
+        builtins.print('[WARNING] logger not started, cannot add handler')
         return
     # create formatter and add it to the handlers
     #logformat = '%Y-%m-%d %H:%M:%S'

@@ -1,8 +1,10 @@
 from __future__ import absolute_import, division, print_function
-import __builtin__
+from six.moves import builtins
+#import builtins
 import sys
 from functools import wraps
 from . import util_logging
+from ._internal.meta_util_six import get_funcname
 
 
 __AGGROFLUSH__ = '--aggroflush' in sys.argv
@@ -26,8 +28,8 @@ for argv in sys.argv:
 #print('ARGV_DEBUG_FLAGS: %r' % (ARGV_DEBUG_FLAGS,))
 
 #__STDOUT__ = sys.stdout
-#__PRINT_FUNC__     = __builtin__.print
-#__PRINT_DBG_FUNC__ = __builtin__.print
+#__PRINT_FUNC__     = builtins.print
+#__PRINT_DBG_FUNC__ = builtins.print
 #__WRITE_FUNC__ = __STDOUT__.write
 #__FLUSH_FUNC__ = __STDOUT__.flush
 __RELOAD_OK__  = '--noreloadable' not in sys.argv
@@ -46,8 +48,8 @@ def _inject_funcs(module, *func_list):
                 module.__name__ not in __INJECT_BLACKLIST__ and
                 not module.__name__.startswith('six') and
                 not module.__name__.startswith('sys')):
-            #print('setting: %s.%s = %r' % (module.__name__, func.func_name, func))
-            setattr(module, func.func_name, func)
+            #print('setting: %s.%s = %r' % (module.__name__, get_funcname(func), func))
+            setattr(module, get_funcname(func), func)
 
 
 def _add_injected_module(module):
@@ -151,7 +153,7 @@ def inject_reload_function(module_name=None, module_prefix='[???]', module=None)
         try:
             import imp
             if not QUIET:
-                __builtin__.print('RELOAD: ' + str(module_prefix) + ' __name__=' + module_name)
+                builtins.print('RELOAD: ' + str(module_prefix) + ' __name__=' + module_name)
             imp.reload(module)
         except Exception as ex:
             print(ex)
@@ -168,14 +170,14 @@ def TIMERPROF_FUNC(func):
     @wraps(func)
     def prof_wrapper(*args, **kwargs):
         import utool
-        with utool.Timer(func.func_name):
+        with utool.Timer(get_funcname(func)):
             return func(*args, **kwargs)
         #return ret
     return prof_wrapper
 
 try:
     #KERNPROF_FUNC = TIMERPROF_FUNC
-    KERNPROF_FUNC = getattr(__builtin__, 'profile')
+    KERNPROF_FUNC = getattr(builtins, 'profile')
     PROFILING = True
 except AttributeError:
     PROFILING = False
@@ -186,21 +188,20 @@ except AttributeError:
 #def inject_profile_function(module_name=None, module_prefix='[???]', module=None):
 #    module = _get_module(module_name, module)
 #    try:
-#        kernprof_func = getattr(__builtin__, 'profile')
+#        kernprof_func = getattr(builtins, 'profile')
 #        #def profile(func):
-#        #    #print('decorate: %r' % func.func_name)
+#        #    #print('decorate: %r' % get_funcname(func))
 #        #    # hack to filter profiled functions
-#        #    if func.func_name.startswith('get_affine'):
+#        #    if get_funcname(func)).startswith('get_affine'):
 #        #        return kernprof_func(func)
 #        #    return func
 #        profile = kernprof_func
-#        #filtered_profile.func_name = 'profile'
 #        if __DEBUG_PROF__:
 #            print('[util_inject] PROFILE ON: %r' % module)
 #    except AttributeError:
 #        # Create dummy kernprof_func
 #        def profile(func):
-#            #print('decorate: %r' % func.func_name)
+#            #print('decorate: %r' % get_funcname(func)))
 #            return func
 #        if __DEBUG_PROF__:
 #            print('[util_inject] PROFILE OFF: %r' % module)
@@ -253,12 +254,12 @@ def inject_profile_function(module_name=None, module_prefix='[???]', module=None
 
     def profile_withfuncname_filter(func):
         # Test to see if this function is specified
-        if _profile_func_flag(func.func_name):
+        if _profile_func_flag(get_funcname(func)):
             return KERNPROF_FUNC(func)
         return func
     #profile = KERNPROF_FUNC
     #try:
-    #    profile = getattr(__builtin__, 'profile')
+    #    profile = getattr(builtins, 'profile')
     #    if __DEBUG_PROF__:
     #        print('[util_inject] PROFILE ON: %r' % module)
     #    return profile

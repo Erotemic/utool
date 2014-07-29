@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import copy
+import six
 from .Printable import AbstractPrintable
 
 
@@ -41,7 +42,7 @@ class DynStruct(AbstractPrintable):
 
     def update(self, **kwargs):
         self_keys = set(self.__dict__.keys())
-        for key, val in kwargs.iteritems():
+        for key, val in six.iteritems(kwargs):
             if key in self_keys:
                 if isinstance(val, list):
                     val = val[0]
@@ -52,19 +53,19 @@ class DynStruct(AbstractPrintable):
         if not isinstance(dyn_dict, dict):
             raise Exception('DynStruct.add_dict expects a dictionary.' +
                             'Recieved: ' + str(type(dyn_dict)))
-        for (key, val) in dyn_dict.iteritems():
+        for (key, val) in six.iteritems(dyn_dict):
             self[key] = val
 
     def to_dict(self):
         """Converts dynstruct to a dictionary.  """
         dyn_dict = {}
-        for (key, val) in self.__dict__.iteritems():
+        for (key, val) in six.iteritems(self.__dict__):
             if key not in self._printable_exclude:
                 dyn_dict[key] = val
         return dyn_dict
 
     def flat_dict(self, dyn_dict={}, only_public=True):
-        for (key, val) in self.__dict__.iteritems():
+        for (key, val) in six.iteritems(self.__dict__):
             if key in self._printable_exclude:
                 continue
             elif only_public and key.find('_') == 0:
@@ -88,7 +89,7 @@ class DynStruct(AbstractPrintable):
            * use locals().update(dyn.to_dict()) instead
         """
         execstr = ''
-        for (key, val) in self.__dict__.iteritems():
+        for (key, val) in six.iteritems(self.__dict__):
             if key not in self._printable_exclude:
                 execstr += key + ' = ' + local_name + '.' + key + '\n'
         return execstr

@@ -3,9 +3,10 @@ This module becomes nav
 """
 
 from __future__ import absolute_import, division, print_function
+from six.moves import zip, filter, filterfalse, map
+import six
 from os.path import (join, basename, relpath, normpath, split, isdir, isfile,
                      exists, islink, ismount, dirname, splitext)
-from itertools import izip, ifilterfalse, ifilter, imap
 import os
 import sys
 import shutil
@@ -327,7 +328,7 @@ def copy_list(src_list, dst_list, lbl='Copying: ', ):
     """ Copies all data and stat info """
     # Feb - 6 - 2014 Copy function
     num_tasks = len(src_list)
-    task_iter = izip(src_list, dst_list)
+    task_iter = zip(src_list, dst_list)
     mark_progress, end_progress = progress_func(num_tasks, lbl=lbl)
     def docopy(src, dst, count):
         try:
@@ -352,7 +353,7 @@ def move_list(src_list, dst_list, lbl='Moving'):
             return False
         mark_progress(count)
         return True
-    task_iter = izip(src_list, dst_list)
+    task_iter = zip(src_list, dst_list)
     mark_progress, end_progress = progress_func(len(src_list), lbl=lbl)
     success_list = [domove(src, dst, count) for count, (src, dst) in enumerate(task_iter)]
     end_progress()
@@ -485,9 +486,9 @@ def ls_modulefiles(path, private=True, full=True, noext=False):
     module_file_list = ls(path, '*.py')
     module_file_iter = iter(module_file_list)
     if not private:
-        module_file_iter = ifilterfalse(is_private_module, module_file_iter)
+        module_file_iter = filterfalse(is_private_module, module_file_iter)
     if not full:
-        module_file_iter = imap(basename, module_file_iter)
+        module_file_iter = map(basename, module_file_iter)
     if noext:
         module_file_iter = (splitext(path)[0] for path in module_file_iter)
     return list(module_file_iter)
@@ -496,11 +497,11 @@ def ls_modulefiles(path, private=True, full=True, noext=False):
 def ls_moduledirs(path, private=True, full=True):
     """ lists all dirs which are python modules in path """
     dir_list = ls_dirs(path)
-    module_dir_iter = ifilter(is_module_dir, dir_list)
+    module_dir_iter = filter(is_module_dir, dir_list)
     if not private:
-        module_dir_iter = ifilterfalse(is_private_module, module_dir_iter)
+        module_dir_iter = filterfalse(is_private_module, module_dir_iter)
     if not full:
-        module_dir_iter = imap(basename, module_dir_iter)
+        module_dir_iter = map(basename, module_dir_iter)
     return list(module_dir_iter)
 
 
@@ -528,7 +529,7 @@ def append_suffixlist_to_namelist(name_list, suffix_list):
     gnamenoext_list = get_basename_noext_list(name_list)
     ext_list        = get_ext_list(name_list)
     new_name_list   = [name + suffix + ext for name, suffix, ext in
-                        izip(gnamenoext_list, suffix_list, ext_list)]
+                        zip(gnamenoext_list, suffix_list, ext_list)]
     return new_name_list
 
 
@@ -624,7 +625,7 @@ def extend_regex(regexpr):
         r'\>': r'\b(?!\w)',
         ('UNSAFE', r'\x08'): r'\b',
     }
-    for key, repl in regex_map.iteritems():
+    for key, repl in six.iteritems(regex_map):
         if isinstance(key, tuple):
             search = key[1]
         else:

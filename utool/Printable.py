@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function
+import six
 from collections import OrderedDict
 import re
 import numpy as np
@@ -51,7 +52,7 @@ class AbstractPrintable(__BASE_CLASS__):
         body = ''
         attri_list = []
         exclude_key_list = list(self._printable_exclude) + list(print_exclude_aug)
-        for (key, val) in self.__dict__.iteritems():
+        for (key, val) in six.iteritems(self.__dict__):
             try:
                 if key in exclude_key_list:
                     continue
@@ -167,7 +168,7 @@ def printableVal(val, type_bit=True, justlength=False):
 
 def common_stats(_list, newlines=False):
     stat_dict = mystats(_list)
-    stat_strs = ['%r: %s' % (key, val) for key, val in stat_dict.iteritems()]
+    stat_strs = ['%r: %s' % (key, val) for key, val in six.iteritems(stat_dict)]
     if newlines:
         indent = '    '
         head = '{\n' + indent

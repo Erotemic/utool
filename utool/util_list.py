@@ -5,7 +5,7 @@ TODO: Move numpy arrays helpers elsewhere
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import sys
-from itertools import izip, imap, izip_longest
+from six.moves import zip, map, zip_longest
 from .util_iter import iflatten, isiterable, ifilter_Nones, ifilter_items, ifilterfalse_items
 from .util_inject import inject
 from .util_str import get_func_name
@@ -164,24 +164,24 @@ def flattenize(list_):
     #
     # test flattenize
     import utool
-    from itertools import izip
+    from itertools import zip
     val_list1 = [(1, 2), (2, 4), (5, 3)]
     id_list1  = [(1,),     (2,),   (3,)]
-    out_list1 = utool.flattenize(izip(val_list1, id_list1))
+    out_list1 = utool.flattenize(zip(val_list1, id_list1))
 
     val_list2 = [1, 4, 5]
     id_list2  = [(1,),     (2,),   (3,)]
-    out_list2 = utool.flattenize(izip(val_list2, id_list2))
+    out_list2 = utool.flattenize(zip(val_list2, id_list2))
 
     val_list3 = [1, 4, 5]
     id_list3  = [1, 2, 3]
-    out_list3 = utool.flattenize(izip(val_list3, id_list3))
+    out_list3 = utool.flattenize(zip(val_list3, id_list3))
 
-    out_list4 = list(izip(val_list3, id_list3))
-    %timeit utool.flattenize(izip(val_list1, id_list1))
-    %timeit utool.flattenize(izip(val_list2, id_list2))
-    %timeit utool.flattenize(izip(val_list3, id_list3))
-    %timeit list(izip(val_list3, id_list3))
+    out_list4 = list(zip(val_list3, id_list3))
+    %timeit utool.flattenize(zip(val_list1, id_list1))
+    %timeit utool.flattenize(zip(val_list2, id_list2))
+    %timeit utool.flattenize(zip(val_list3, id_list3))
+    %timeit list(zip(val_list3, id_list3))
 
     100000 loops, best of 3: 14 us per loop
     100000 loops, best of 3: 16.5 us per loop
@@ -189,9 +189,9 @@ def flattenize(list_):
     1000000 loops, best of 3: 1.18 us per loop
     </CYTHE> """
 
-    #return imap(iflatten, list_)
-    tuplized_iter   = imap(tuplize, list_)
-    flatenized_list = list(imap(flatten, tuplized_iter))
+    #return map(iflatten, list_)
+    tuplized_iter   = map(tuplize, list_)
+    flatenized_list = list(map(flatten, tuplized_iter))
     return flatenized_list
 
 
@@ -278,7 +278,7 @@ def get_dirty_items(item_list, flag_list):
     </CYTHE> """
     assert len(item_list) == len(flag_list)
     dirty_items = [item for (item, flag) in
-                   izip(item_list, flag_list)
+                   zip(item_list, flag_list)
                    if not flag]
     #print('num_dirty_items = %r' % len(dirty_items))
     #print('item_list = %r' % (item_list,))
@@ -407,7 +407,7 @@ def sortedby(list_, sortable, reverse=False):
     [5, 2, 3, 1, 4]
     """
     assert len(list_) == len(sortable), 'must be same len'
-    sorted_list = [item for (key, item) in sorted(list(izip(sortable, list_)), reverse=reverse)]
+    sorted_list = [item for (key, item) in sorted(list(zip(sortable, list_)), reverse=reverse)]
     return sorted_list
 
 
@@ -418,7 +418,7 @@ def scalar_input_map(func, input_):
     </CYTHE>
     """
     if isiterable(input_):
-        return list(imap(func, input_))
+        return list(map(func, input_))
     else:
         return func(input_)
 
@@ -431,7 +431,7 @@ def partial_imap_1to1(func, si_func):
         if not isiterable(input_):
             return func(si_func(input_))
         else:
-            return list(imap(func, si_func(input_)))
+            return list(map(func, si_func(input_)))
     wrapper.func_name = get_func_name(func) + '_mapper_' + si_func.func_name
     return wrapper
 
@@ -463,9 +463,9 @@ def sample_zip(items_list, num_samples, allow_overflow=False, per_bin=1):
     # Prealloc a list of lists
     samples_list = [[] for _ in xrange(num_samples)]
     # Sample the ix-th value from every list
-    samples_iter = izip_longest(*items_list)
+    samples_iter = zip_longest(*items_list)
     sx = 0
-    for ix, samples_ in izip(xrange(num_samples), samples_iter):
+    for ix, samples_ in zip(xrange(num_samples), samples_iter):
         samples = filter_Nones(samples_)
         samples_list[sx].extend(samples)
         # Put per_bin from each sublist into a sample

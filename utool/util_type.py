@@ -5,14 +5,15 @@ import numpy as np
 import functools
 import types
 from .util_inject import inject
+from ._internal.meta_util_six import IntType, LongType, FloatType, BooleanType
 print, print_, printDBG, rrr, profile = inject(__name__, '[type]')
 
 USE_ASSERT = not ('--no-assert' in sys.argv)
 
 
 # Very odd that I have to put in dtypes in two different ways.
-VALID_INT_TYPES = (types.IntType,
-                   types.LongType,
+VALID_INT_TYPES = (IntType,
+                   LongType,
                    np.typeDict['int64'],
                    np.typeDict['int32'],
                    np.typeDict['uint8'],
@@ -20,7 +21,7 @@ VALID_INT_TYPES = (types.IntType,
                    np.dtype('uint8'),
                    np.dtype('int64'),)
 
-VALID_FLOAT_TYPES = (types.FloatType,
+VALID_FLOAT_TYPES = (FloatType,
                      np.typeDict['float64'],
                      np.typeDict['float32'],
                      np.typeDict['float16'],
@@ -28,7 +29,7 @@ VALID_FLOAT_TYPES = (types.FloatType,
                      np.dtype('float32'),
                      np.dtype('float16'),)
 
-VALID_BOOL_TYPES = (types.BooleanType, np.bool_)
+VALID_BOOL_TYPES = (BooleanType, np.bool_)
 
 
 def is_valid_floattype(type_):

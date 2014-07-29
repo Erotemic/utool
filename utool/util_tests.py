@@ -1,6 +1,7 @@
 """ Helpers for tests """
 from __future__ import absolute_import, division, print_function
-import __builtin__
+from six.moves import builtins
+#import __builtin__
 import sys
 from . import util_print
 from . import util_dbg
@@ -64,8 +65,12 @@ def run_test(func, *args, **kwargs):
             if util_arg.STRICT:
                 # Remove this function from stack strace
                 exc_type, exc_value, exc_traceback = sys.exc_info()
+                exc_traceback = exc_traceback.tb_next
+                # Python 2*3=6
+                import six
+                six.reraise(exc_type, exc_value, exc_traceback)
                 # PYTHON 2.7 DEPRICATED:
-                raise exc_type, exc_value, exc_traceback.tb_next
+                #raise exc_type, exc_value, exc_traceback.tb_next
                 # PYTHON 3.3 NEW METHODS
                 #ex = exc_type(exc_value)
                 #ex.__traceback__ = exc_traceback.tb_next
@@ -73,7 +78,7 @@ def run_test(func, *args, **kwargs):
 
 
 def printTEST(msg, wait=False):
-    __builtin__.print('\n=============================')
-    __builtin__.print('**' + msg)
+    builtins.print('\n=============================')
+    builtins.print('**' + msg)
     #if INTERACTIVE and wait:
     # raw_input('press enter to continue')

@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
+import six
 import functools
 import sys
 from .util_str import horiz_string, filesize_str
@@ -76,13 +77,13 @@ class Indenter(object):
         if NO_INDENT:
             return
         def pop_module_functions(dict_, func_name):
-            for mod in dict_.iterkeys():
+            for mod in six.iterkeys(dict_):
                 setattr(mod, func_name, dict_[mod])
         pop_module_functions(self.old_print_dict, 'print')
         #pop_module_functions(self.old_printDBG_dict, 'printDBG')
-        #for mod in self.old_print_dict.iterkeys():
+        #for mod in six.iterkeys(self.old_print_dict):
         #    setattr(mod, 'print', self.old_print_dict[mod])
-        #for mod in self.old_printDBG_dict.iterkeys():
+        #for mod in six.iterkeys(self.old_printDBG_dict):
         #    setattr(mod, 'printDBG', self.old_printDBG_dict[mod])
 
     def __enter__(self):
@@ -110,12 +111,11 @@ class NpPrintOpts(object):
         self.new_opts = kwargs
     def __enter__(self):
         np.set_printoptions(**self.new_opts)
-    def __exit__(self, type_, value, trace):
+    def __exit__(self, exc_type, exc_value, exc_traceback):
         np.set_printoptions(**self.orig_opts)
-        if trace is not None:
-            print('[util_print] ERROR IN TRACEBACK: ' + str(value))
-            # PYTHON 2.7 DEPRICATED:
-            raise type_, value, trace
+        if exc_traceback is not None:
+            print('[util_print] ERROR IN TRACEBACK: ' + str(exc_value))
+            return False
 
 
 def printVERBOSE(msg, verbarg):

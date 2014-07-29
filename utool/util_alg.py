@@ -6,7 +6,9 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 from collections import defaultdict
-from itertools import izip
+#import six
+from six.moves import zip
+#from itertools import izip
 from . import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
 
@@ -115,7 +117,7 @@ def build_reverse_mapping(uid_list, cluster_list):
     uid_list = uid_list[sortx]
     # Initialize dict of lists
     cluster2_uids = defaultdict(list)
-    for uid, cluster in izip(uid_list, cluster_list):
+    for uid, cluster in zip(uid_list, cluster_list):
         cluster2_uids[cluster].append(uid)
     return cluster2_uids
 
@@ -123,7 +125,7 @@ def build_reverse_mapping(uid_list, cluster_list):
 def group_items(item_list, groupid_list):
     """ </CYTHE> """
     # Sort by groupid for cache efficiency
-    sorted_pairs = sorted(zip(groupid_list, item_list))
+    sorted_pairs = sorted(list(zip(groupid_list, item_list)))
     # Initialize dict of lists
     groupid2_items = defaultdict(list)
     for groupid, item in sorted_pairs:
@@ -136,7 +138,7 @@ def unpack_items_sorted(dict_, sortfn, reverse=True):
     </CYTHE> """
     items = dict_.items()
     sorted_items = sorted(items, key=sortfn, reverse=reverse)
-    sorted_keys, sorted_vals = list(izip(*sorted_items))
+    sorted_keys, sorted_vals = list(zip(*sorted_items))
     return sorted_keys, sorted_vals
 
 
@@ -162,7 +164,7 @@ def flatten_membership_mapping(uid_list, members_list):
     flat_uids = [None for _ in xrange(num_members)]
     flat_members = [None for _ in xrange(num_members)]
     count = 0
-    for uid, members in izip(uid_list, members_list):
+    for uid, members in zip(uid_list, members_list):
         for member in members:
             flat_uids[count]    = uid
             flat_members[count] = member
@@ -190,11 +192,11 @@ def unique_row_indexes(arr):
 #        # reorder candidates
 #        aid_list1 = map(int, qaids)
 #        aid_list2 = map(int, aids)
-#        from itertools import izip, groupby
+#        from itertools import zip, groupby
 #        def groupkey(tup):
 #            aid1, aid2 = tup[-2:-1]
 #            return (min(aid1, aid2), max(aid1, aid2))
-#        zipped = sorted(list(izip(range(len(aid_list1)), aid_list1, aid_list2)), key=lambda tup: tup[1])
+#        zipped = sorted(list(zip(range(len(aid_list1)), aid_list1, aid_list2)), key=lambda tup: tup[1])
 #        # key is ordered pair, list is directed pairs and order
 #        grouped = [(key, list(subiter)) for key, subiter in groupby(zipped, groupkey)]
 #        group_order = sorted([sorted(sublist) for key, sublist in grouped])
@@ -204,9 +206,9 @@ def unique_row_indexes(arr):
 #        for edge, dedge_list in grouped:
 #            aid1, aid2 = edge
 #            old_graph[aid1].append((aid1, aid2))
-#        old_graph = {key: list(set(value)) for key, value in old_graph.iteritems()}
+#        old_graph = {key: list(set(value)) for key, value in six.iteritems(old_graph)}
 
-#        old_graph = dict(list(old_graph.iteritems()))
+#        old_graph = dict(list(six.iteritems(old_graph)))
 
 #        def connected_components(neighbors):
 #            """ from

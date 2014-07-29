@@ -1,6 +1,8 @@
 from __future__ import absolute_import, division, print_function
 # Python
-import cPickle
+import six
+from six.moves import cPickle
+#import cPickle
 #import os.path
 #import warnings
 # Science
@@ -156,7 +158,7 @@ class Pref(PrefNode):
             # Do not break pointers when overwriting a Preference
             if issubclass(attr._intern.value, PrefNode):
                 # Main Branch Logic
-                for (key, val) in attr.iteritems():
+                for (key, val) in six.iteritems(attr):
                     child.__setattr__(key, val)
             else:
                 self.__overwrite_child_attr(name, attr.value())
@@ -275,7 +277,7 @@ class Pref(PrefNode):
             #raise AttributeError(msg)
 
     def iteritems(self):
-        for (key, val) in self.__dict__.iteritems():
+        for (key, val) in six.iteritems(self.__dict__):
             if key in self._printable_exclude:
                 continue
             yield (key, val)
@@ -287,7 +289,7 @@ class Pref(PrefNode):
         Children Pref can be optionally separated """
         pref_dict = {}
         struct_dict = {}
-        for (key, val) in self.iteritems():
+        for (key, val) in six.iteritems(self):
             if split_structs_bit and isinstance(val, Pref):
                 struct_dict[key] = val
                 continue
@@ -382,7 +384,7 @@ class Pref(PrefNode):
     def update(self, **kwargs):
         #print('Updating Preference: kwargs = %r' % (kwargs))
         self_keys = set(self.__dict__.keys())
-        for key, val in kwargs.iteritems():
+        for key, val in six.iteritems(kwargs):
             if key in self_keys:
                 #print('update: key=%r, %r' % (key, val))
                 #if type(val) == types.ListType:

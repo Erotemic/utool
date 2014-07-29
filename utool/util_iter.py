@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
-from itertools import chain, cycle, izip
+from six.moves import zip
+from itertools import chain, cycle
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[iter]')
 
@@ -15,13 +16,13 @@ def ensure_iterable(obj):
 
 def ifilter_items(item_iter, flag_iter):
     """ <CYTH> """
-    true_items = (item for (item, flag) in izip(item_iter, flag_iter) if flag)
+    true_items = (item for (item, flag) in zip(item_iter, flag_iter) if flag)
     return true_items
 
 
 def ifilterfalse_items(item_iter, flag_iter):
     """ <CYTH> """
-    false_items = (item for (item, flag) in izip(item_iter, flag_iter) if not flag)
+    false_items = (item for (item, flag) in zip(item_iter, flag_iter) if not flag)
     return false_items
 
 

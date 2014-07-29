@@ -1,7 +1,9 @@
 from __future__ import absolute_import, division, print_function
 import sys
+import six
 import textwrap
-from itertools import imap
+from six.moves import map
+#from itertools import imap
 from os.path import split
 import numpy as np
 from .util_inject import inject
@@ -35,7 +37,7 @@ def verts_str(verts, pad=1):
 
 def tupstr(tuple_):
     """ maps each item in tuple to a string and doesnt include parens """
-    return ', '.join(map(str, tuple_))
+    return ', '.join(list(map(str, tuple_)))
 
 # --- Strings ----
 
@@ -110,7 +112,7 @@ def joins(string, list_, with_head=True, with_tail=False, tostrip='\n'):
 
 
 def indent_list(indent, list_):
-    return imap(lambda item: indent + str(item), list_)
+    return map(lambda item: indent + str(item), list_)
 
 
 def filesize_str(fpath):
@@ -174,7 +176,7 @@ def list_aliased_repr(args, type_aliases=[]):
 
 def dict_aliased_repr(dict_, type_aliases=[]):
     return ['%s : %s' % (key, var_aliased_repr(val, type_aliases))
-            for (key, val) in dict_.iteritems()]
+            for (key, val) in six.iteritems(dict_)]
 
 # </Alias repr funcs>
 
@@ -189,9 +191,9 @@ def func_str(func, args=[], kwargs={}, type_aliases=[]):
 
 def dict_itemstr_list(dict_, strvals=False):
     if strvals:
-        itemstr_iter = ('%s : %s,' % (key, val) for (key, val) in dict_.iteritems())
+        itemstr_iter = ('%s : %s,' % (key, val) for (key, val) in six.iteritems(dict_))
     else:
-        itemstr_iter = ('%r : %r,' % (key, val) for (key, val) in dict_.iteritems())
+        itemstr_iter = ('%r : %r,' % (key, val) for (key, val) in six.iteritems(dict_))
     return list(itemstr_iter)
 
 
