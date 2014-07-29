@@ -13,9 +13,8 @@ from .util_inject import inject
 
 # do not ignore traceback when profiling
 PROFILING = hasattr(builtins, 'profile')
-FULL_TRACEBACK = '--noignore-exctb' in sys.argv or \
-                 PROFILING or \
-                 '--fulltb' in sys.argv
+FULL_TRACEBACK = (True or '--noignore-exctb' in sys.argv or PROFILING or
+                  '--fulltb' in sys.argv)
 TRACE = '--trace' in sys.argv
 UNIQUE_NUMPY = True
 NOINDENT_DECOR = False
