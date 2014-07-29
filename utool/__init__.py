@@ -27,6 +27,7 @@ if __DYNAMIC__:
     python -c "import utool" --update-utool-init
     """
     UTOOLS_LIST = [
+        ('_internal',      None),
         ('util_alg',       ['cartesian', 'almost_eq',]),
         ('util_aliases',   ['ddict' ,'odict']),
         ('util_arg',       ['get_arg', 'get_flag', 'argv_flag_dec', 'QUIET',
@@ -79,6 +80,7 @@ if __DYNAMIC__:
 else:
     # <AUTOGEN_INIT>
 
+    from . import _internal
     from . import util_alg
     from . import util_aliases
     from . import util_arg
@@ -119,8 +121,8 @@ else:
     from .util_alg import (PHI, PHI_A, PHI_B, almost_eq, build_reverse_mapping,
                            cartesian, choose, defaultdict, find_std_inliers,
                            flatten_membership_mapping, get_phi, get_phi_ratio1,
-                           group_items, iceil, iround, norm_zero_one,
-                           normalize, unique_row_indexes, unpack_items_sorted,
+                           group_items, iceil, iround, norm_zero_one, normalize,
+                           unique_row_indexes, unpack_items_sorted,
                            unpack_items_sorted_by_lenvalue,
                            unpack_items_sorted_by_value, void_rowview_numpy,
                            xywh_to_tlbr,)
@@ -133,16 +135,16 @@ else:
                              delete_global_cache, get_global_cache_dir,
                              get_global_shelf_fpath, global_cache_dname,
                              global_cache_dump, global_cache_fname,
-                             global_cache_read, global_cache_write, join,
-                             load_cache, normpath, save_cache, text_dict_write,)
+                             global_cache_read, global_cache_write, load_cache,
+                             save_cache, text_dict_write,)
     from .util_cplat import (COMPUTER_NAME, DARWIN, LIB_DICT, LIB_EXT_LIST, LINUX,
-                             PYLIB_DICT, WIN32, basename, cmd, editfile, exists,
-                             get_app_resource_dir, get_computer_name,
-                             get_dynamic_lib_globstrs, get_dynlib_dependencies,
-                             get_flops, get_lib_ext, get_pylib_ext,
-                             get_resource_dir, get_user_name, getroot, ls_libs,
-                             python_executable, run_realtime_process, shell,
-                             startfile, truepath, unixpath, vd, view_directory,)
+                             PYLIB_DICT, WIN32, cmd, editfile, get_app_resource_dir,
+                             get_computer_name, get_dynamic_lib_globstrs,
+                             get_dynlib_dependencies, get_flops, get_lib_ext,
+                             get_pylib_ext, get_resource_dir, get_user_name,
+                             getroot, ls_libs, python_executable,
+                             run_realtime_process, shell, startfile, truepath,
+                             unixpath, vd, view_directory,)
     from .util_class import (classmember, inject_func_as_method, inject_instance,
                              makeForwardingMetaclass,)
     from .util_csv import (is_float, is_int, is_list, is_str, make_csv_table,
@@ -163,15 +165,15 @@ else:
                            print_frame, print_varlen, printex, printvar, printvar2,
                            public_attributes, qflag, quit, quitflag, save_testdata,
                            search_stack_for_localvar, search_stack_for_var, split,
-                           splitext, truncate_str,)
+                           truncate_str,)
     from .util_dev import (DEPRICATED, common_stats, compile_cython,
                            disable_garbage_collection, enable_garbage_collection,
                            find_exe, garbage_collect, get_object_base,
                            get_object_size, get_object_size_str, info,
                            init_catch_ctrl_c, listinfo, memory_profile, myprint,
                            mystats, npinfo, numpy_list_num_bits, print_object_size,
-                           print_object_size_tree, printableVal, relpath,
-                           reset_catch_ctrl_c, runprofile, stats_str,)
+                           print_object_size_tree, printableVal, reset_catch_ctrl_c,
+                           runprofile, stats_str,)
     from .util_decor import (FULL_TRACEBACK, NOINDENT_DECOR, PROFILING, TRACE,
                              UNIQUE_NUMPY, accepts_numpy, accepts_scalar_input,
                              accepts_scalar_input2,
@@ -186,10 +188,9 @@ else:
                             dict_update_newkeys, iprod, items_sorted_by_value,
                             keys_sorted_by_value, updateif_haskey,)
     from .util_func import (general_get, general_set, uinput_1to1,)
-    from .util_grabdata import (BadZipfile, commonprefix, dirname, download_url,
-                                fix_dropbox_link, grab_file_url, grab_zipped_url,
-                                realpath, split_archive_ext, unarchive_file,
-                                untar_file, unzip_file,)
+    from .util_grabdata import (BadZipfile, download_url, fix_dropbox_link,
+                                grab_file_url, grab_zipped_url, split_archive_ext,
+                                unarchive_file, untar_file, unzip_file,)
     from .util_git import (PROJECT_REPO_DIRS, PROJECT_REPO_URLS, checkout_repos,
                            ensure_repos, get_repo_dirs, get_repo_dname, gg_command,
                            gitcmd, is_gitrepo, isdir, pull_repos, repo_list,
@@ -202,10 +203,10 @@ else:
                             hashstr_sha1, image_uuid, random_uuid,)
     from .util_inject import (ARGV_DEBUG_FLAGS, DUMMYPROF_FUNC, KERNPROF_FUNC,
                               PROF_FUNC_PAT_LIST, PROF_MOD_PAT_LIST, SILENT,
-                              TIMERPROF_FUNC, argv, get_injected_modules, inject,
-                              inject_all, inject_colored_exceptions,
-                              inject_print_functions, inject_profile_function,
-                              inject_reload_function,)
+                              TIMERPROF_FUNC, argv, get_funcname,
+                              get_injected_modules, inject, inject_all,
+                              inject_colored_exceptions, inject_print_functions,
+                              inject_profile_function, inject_reload_function,)
     from .util_io import (load_cPkl, read_from, save_cPkl, try_decode, write_to,)
     from .util_iter import (chain, cycle, ensure_iterable, ichunks, ifilter_Nones,
                             ifilter_items, ifilterfalse_items, iflatten,
@@ -221,29 +222,27 @@ else:
                             flattenize, get_dirty_items, get_func_name,
                             get_list_column, inbounds, index_of, intersect2d,
                             intersect2d_numpy, intersect_ordered,
-                            invertable_flatten, list_getat,
-                            list_index, list_replace, listfind, npfind,
-                            partial_imap_1to1, random_indexes, safe_listget,
-                            safe_slice, sample_zip, scalar_input_map, sortedby,
-                            spaced_indexes, spaced_items, tiled_range, tuplize,
-                            unflatten, unique_keep_order2, unique_ordered,
-                            unique_unordered,)
+                            invertable_flatten, list_getat, list_index,
+                            list_replace, listfind, npfind, partial_imap_1to1,
+                            random_indexes, safe_listget, safe_slice, sample_zip,
+                            scalar_input_map, sortedby, spaced_indexes,
+                            spaced_items, tiled_range, tuplize, unflatten,
+                            unique_keep_order2, unique_ordered, unique_unordered,)
     from .util_num import (commas, fewest_digits_float_str, float_to_decimal,
                            format_, int_comma_str, num2_sigfig, num_fmt,
                            order_of_magnitude_ceil, sigfig_str,)
     from .util_path import (IMG_EXTENSIONS, append_suffixlist_to_namelist,
                             assert_exists, assertpath, basename_noext, checkpath,
                             copy, copy_all, copy_list, copy_task, delete, dirsplit,
-                            ensuredir, ensurepath, ext, extend_regex, file_bytes,
+                            ensuredir, ensurepath, extend_regex, file_bytes,
                             file_megabytes, fixwin32_shortname, fnames_to_fpaths,
                             fpaths_to_fnames, get_basename_noext_list,
                             get_basepath_list, get_ext_list, get_module_dir, glob,
-                            grep, ifilter, ifilterfalse, iglob, is_module_dir,
-                            is_private_module, isfile, islink, ismount, list_images,
-                            longest_existing_path, ls, ls_dirs, ls_moduledirs,
-                            ls_modulefiles, matches_image, move_list, newcd,
-                            num_images_in_dir, path_ndir_split, platform_path,
-                            progress_func, remove_dirs, remove_file,
+                            grep, iglob, is_module_dir, is_private_module, isfile,
+                            islink, ismount, list_images, longest_existing_path, ls,
+                            ls_dirs, ls_moduledirs, ls_modulefiles, matches_image,
+                            move_list, newcd, num_images_in_dir, path_ndir_split,
+                            platform_path, progress_func, remove_dirs, remove_file,
                             remove_file_list, remove_files_in_dir, symlink, tail,
                             truepath, truepath_relative, win_shortcut,)
     from .util_print import (Indenter, NO_INDENT, NpPrintOpts, filesize_str,
@@ -279,7 +278,8 @@ else:
     from .util_time import (Timer, exiftime_to_unixtime, get_day, get_month,
                             get_timestamp, get_year, tic, toc,
                             unixtime_to_datetime,)
-    from .util_type import (VALID_BOOL_TYPES, VALID_FLOAT_TYPES, VALID_INT_TYPES,
+    from .util_type import (BooleanType, FloatType, IntType, LongType,
+                            VALID_BOOL_TYPES, VALID_FLOAT_TYPES, VALID_INT_TYPES,
                             assert_int, bool_from_str, is_bool, is_dict,
                             is_func_or_method, is_func_or_method_or_partial,
                             is_funclike, is_tuple, is_type, is_valid_floattype,
@@ -293,6 +293,7 @@ else:
     def reload_subs():
         """ Reloads utool and submodules """
         rrr()
+        getattr(_internal, 'rrr', lambda: None)()
         getattr(util_alg, 'rrr', lambda: None)()
         getattr(util_aliases, 'rrr', lambda: None)()
         getattr(util_arg, 'rrr', lambda: None)()

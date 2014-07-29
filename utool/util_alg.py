@@ -8,7 +8,6 @@ import numpy as np
 from collections import defaultdict
 #import six
 from six.moves import zip
-#from itertools import izip
 from . import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
 

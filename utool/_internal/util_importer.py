@@ -34,9 +34,14 @@ def __execute_fromimport(module, module_name, IMPORT_TUPLES):
 def __execute_fromimport_star(module, module_name, IMPORT_TUPLES):
     """ Effectively import * statements """
     FROM_IMPORTS = []
-    # Explicitly ignore these special functions
+    # Explicitly ignore these special functions (usually stdlib functions)
     ignoreset = set(['print', 'print_', 'printDBG', 'rrr', 'profile',
-                     'print_function', 'absoulte_import', 'division'])
+                     'print_function', 'absoulte_import', 'division', 'zip',
+                     'map', 'list', 'zip_longest', 'filter', 'filterfalse',
+                     'dirname', 'realpath', 'join', 'exists', 'normpath',
+                     'splitext', 'expanduser', 'relpath', 'isabs',
+                     'commonprefix', 'basename' ])
+                     #'isdir', 'isfile', '
     for name, fromlist in IMPORT_TUPLES:
         #absname = module_name + '.' + name
         other_module = sys.modules[module_name + '.' + name]
