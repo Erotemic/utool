@@ -15,6 +15,10 @@ __version__ = '1.0.0.dev1'
 
 __DYNAMIC__ = not '--nodyn' in sys.argv
 #__DYNAMIC__ = '--dyn' in sys.argv
+"""
+python -c "import utool" --dump-utool-init
+python -c "import utool" --update-utool-init
+"""
 
 if __DYNAMIC__:
     # TODO: import all utool external prereqs. Then the imports will not import
@@ -22,10 +26,6 @@ if __DYNAMIC__:
     pass
     # COMMENTED OUT FOR FROZEN __INIT__
     # Dynamically import listed util libraries and their members.
-    """
-    python -c "import utool" --dump-utool-init
-    python -c "import utool" --update-utool-init
-    """
     UTOOLS_LIST = [
         ('_internal',      None),
         ('util_alg',       ['cartesian', 'almost_eq',]),
@@ -140,9 +140,9 @@ else:
     from .util_cplat import (COMPUTER_NAME, DARWIN, LIB_DICT, LIB_EXT_LIST, LINUX,
                              PYLIB_DICT, WIN32, cmd, editfile, get_app_resource_dir,
                              get_computer_name, get_dynamic_lib_globstrs,
-                             get_dynlib_dependencies, get_flops, get_lib_ext,
-                             get_pylib_ext, get_resource_dir, get_user_name,
-                             getroot, ls_libs, python_executable,
+                             get_dynlib_dependencies, get_flops, get_free_diskbytes,
+                             get_lib_ext, get_pylib_ext, get_resource_dir,
+                             get_user_name, getroot, ls_libs, python_executable,
                              run_realtime_process, shell, startfile, truepath,
                              unixpath, vd, view_directory,)
     from .util_class import (classmember, inject_func_as_method, inject_instance,
@@ -234,7 +234,7 @@ else:
     from .util_path import (IMG_EXTENSIONS, append_suffixlist_to_namelist,
                             assert_exists, assertpath, basename_noext, checkpath,
                             copy, copy_all, copy_list, copy_task, delete, dirsplit,
-                            ensuredir, ensurepath, extend_regex, file_bytes,
+                            ensuredir, ensurepath, ext, extend_regex, file_bytes,
                             file_megabytes, fixwin32_shortname, fnames_to_fpaths,
                             fpaths_to_fnames, get_basename_noext_list,
                             get_basepath_list, get_ext_list, get_module_dir, glob,

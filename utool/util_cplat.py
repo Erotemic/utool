@@ -35,6 +35,25 @@ PYLIB_DICT = {
 }
 
 
+def get_free_diskbytes(dir_):
+    """
+    Return folder/drive free space (in bytes)
+    http://stackoverflow.com/questions/51658/cross-platform-space-remaining-on-volume-using-python
+    """
+    if WIN32:
+        import ctypes
+        free_bytes = ctypes.c_ulonglong(0)
+        outvar = ctypes.pointer(free_bytes)
+        dir_ptr = ctypes.c_wchar_p(dir_)
+        ctypes.windll.kernel32.GetDiskFreeSpaceExW(dir_ptr, None, None, outvar)
+        bytes_ = free_bytes.value
+        return bytes_
+    else:
+        st = os.statvfs(dir_)
+        bytes_ = st.f_bavail * st.f_frsize
+        return bytes_
+
+
 def get_lib_ext():
     return LIB_DICT[sys.platform]
 

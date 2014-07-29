@@ -303,3 +303,8 @@ def get_func_name(func):
         else:
             raise NotImplementedError(('cannot get func_name of func=%r'
                                        'type(func)=%r') % (func, type(func)))
+
+
+def get_freespace_str(dir_='.'):
+    from . import util_cplat
+    return byte_str2(util_cplat.get_free_diskbytes(dir_))
