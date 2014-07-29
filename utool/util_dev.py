@@ -441,8 +441,3 @@ def init_catch_ctrl_c():
 def reset_catch_ctrl_c():
     import signal
     signal.signal(signal.SIGINT, signal.SIG_DFL)  # reset ctrl+c behavior
-
-
-
-
-

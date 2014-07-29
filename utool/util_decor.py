@@ -50,22 +50,25 @@ def ignores_exc_tb(func):
             try:
                 return func(*args, **kwargs)
             except Exception:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
                 # Code to remove this decorator from traceback
-                exc_type, exc_value, exc_traceback0 = sys.exc_info()
+                # Remove two levels to remove exception as well
                 try:
-                    exc_traceback1 = exc_traceback0.tb_next
-                    exc_traceback2 = exc_traceback1.tb_next
+                    exc_traceback = exc_traceback.tb_next
+                    exc_traceback = exc_traceback.tb_next
                 except Exception:
-                    raise exc_type, exc_value, exc_traceback0
-                # Remove two levels to remove this one as well
-                # https://github.com/jcrocholl/pep8/issues/34  # NOQA
-                # http://legacy.python.org/dev/peps/pep-3109/
-                # PYTHON 2.7 DEPRICATED:
-                raise exc_type, exc_value, exc_traceback2
-                # PYTHON 3.3 NEW METHODS
-                #ex = exc_type(exc_value)
-                #ex.__traceback__ = exc_traceback.tb_next.tb_next
-                #raise ex
+                    pass
+                try:
+                    # PYTHON 3.3 NEW METHODS
+                    ex = exc_type(exc_value)
+                    ex.__traceback__ = exc_traceback
+                except Exception:
+                    # https://github.com/jcrocholl/pep8/issues/34  # NOQA
+                    # http://legacy.python.org/dev/peps/pep-3109/
+                    # PYTHON 2.7 DEPRICATED:
+                    raise exc_type, exc_value, exc_traceback
+                else:
+                    raise ex
         return wrp_no_exectb
 
 
@@ -83,7 +86,7 @@ def on_exception_report_input(func):
 
 def _indent_decor(lbl):
     def closure_indent(func):
-        printDBG('Indenting lbl=%r, func=%r' % (lbl, func))
+        #printDBG('Indenting lbl=%r, func=%r' % (lbl, func))
         @ignores_exc_tb
         @wraps(func)
         def wrp_indent(*args, **kwargs):

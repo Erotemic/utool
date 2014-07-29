@@ -10,7 +10,8 @@ def all_dict_combinations(varied_dict):
     """
     Input: a dict with lists of possible parameter settings
     Output: a list of dicts correpsonding to all combinations of params settings
-    """
+    <CYTH> """
+
     tups_list = [[(key, val) for val in val_list]
                  for (key, val_list) in varied_dict.iteritems()]
     dict_list = [{key: val for (key, val) in tups} for tups in iprod(*tups_list)]

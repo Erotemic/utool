@@ -11,6 +11,7 @@ VALID_PROGRESS_TYPES = ['none', 'dots', 'fmtstr', 'simple']
 
 
 def simple_progres_func(verbosity, msg, progchar='.'):
+    """ </CYTH> """
     def mark_progress0(*args):
         pass
 
@@ -30,6 +31,7 @@ def simple_progres_func(verbosity, msg, progchar='.'):
 
 
 def prog_func(*args, **kwargs):
+    """ </CYTH> """
     return progress_func(*args, **kwargs)
 
 
@@ -39,7 +41,9 @@ def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
                   progress_type='fmtstr', mark_start=False, repl=False):
     """Returns a function that marks progress taking the iteration count as a
     parameter. Prints if max_val > mark_at. Prints dots if max_val not
-    specified or simple=True"""
+    specified or simple=True
+    </CYTH>
+    """
     write_fn = sys.stdout.write
     #write_fn = print_
     #print('STARTING PROGRESS: VERBOSE=%r QUIET=%r' % (VERBOSE, QUIET))
@@ -115,7 +119,9 @@ def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
 
 
 def progress_str(max_val, lbl='Progress: ', repl=False):
-    r'makes format string that prints progress: %Xd/MAX_VAL with backspaces'
+    """ makes format string that prints progress: %Xd/MAX_VAL with backspaces
+    </CYTH>
+    """
     max_str = str(max_val)
     dnumstr = str(len(max_str))
     cur_str = '%' + dnumstr + 'd'

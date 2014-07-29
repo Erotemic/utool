@@ -28,6 +28,7 @@ BIGBASE = len(ALPHABET)
 
 
 def hashstr_arr(arr, lbl='arr', **kwargs):
+    """ <CYTH> """
     if isinstance(arr, list):
         arr = tuple(arr)  # force arrays into a tuple
     if isinstance(arr, tuple):
@@ -40,6 +41,7 @@ def hashstr_arr(arr, lbl='arr', **kwargs):
 
 
 def hashstr(data, hashlen=HASH_LEN):
+    """ <CYTH> """
     if isinstance(data, tuple):
         data = repr(data)
     # Get a 128 character hex string
@@ -72,6 +74,7 @@ valid_filename_ascii_chars()
 
 
 def convert_hexstr_to_bigbase(hexstr):
+    """ <CYTH> """
     x = int(hexstr, 16)  # first convert to base 16
     if x == 0:
         return '0'
@@ -89,12 +92,14 @@ def convert_hexstr_to_bigbase(hexstr):
 
 
 def hashstr_md5(data):
+    """ <CYTH> """
     hashstr = hashlib.md5(data).hexdigest()
     #bin(int(my_hexdata, scale))
     return hashstr
 
 
 def hashstr_sha1(data, base10=False):
+    """ <CYTH> """
     hashstr = hashlib.sha1(data).hexdigest()
     if base10:
         hashstr = int("0x" + hashstr, 0)
@@ -103,6 +108,7 @@ def hashstr_sha1(data, base10=False):
 
 
 def hash_to_uuid(bytes_):
+    """ <CYTH> """
     # Hash the bytes
     bytes_sha1 = hashlib.sha1(bytes_)
     # Digest them into a hash
@@ -115,6 +121,7 @@ def hash_to_uuid(bytes_):
 
 
 def deterministic_uuid(hashable):
+    """ <CYTH> """
     return hash_to_uuid(hashable)
 
 
@@ -134,7 +141,9 @@ def get_file_hash(fpath, blocksize=65536, hasher=None):
 
 
 def get_file_uuid(fpath, hasher=None):
-    """ Creates a uuid from the hash of a file """
+    """ Creates a uuid from the hash of a file
+    <CYTH>
+    """
     if hasher is None:
         hasher = hashlib.sha1()  # 20 bytes of output
         #hasher = hashlib.sha256()  # 32 bytes of output
@@ -158,6 +167,7 @@ def image_uuid(pil_img):
 
 
 def augment_uuid(uuid_, *hashables):
+    """ <CYTH> """
     uuidhex_bytes   = uuid_.get_bytes()
     hashable_str    = ''.join(map(repr, hashables))
     augmented_str   = uuidhex_bytes + hashable_str
@@ -166,6 +176,7 @@ def augment_uuid(uuid_, *hashables):
 
 
 def random_uuid():
+    """ <CYTH> """
     return uuid.uuid4()
 
 

@@ -16,7 +16,10 @@ def normalize(array, dim=0):
 
 
 def norm_zero_one(array, dim=0):
-    'normalizes a numpy array from 0 to 1'
+    """
+    normalizes a numpy array from 0 to 1
+    </CYTH> """
+
     array_max  = array.max(dim)
     array_min  = array.min(dim)
     array_exnt = np.subtract(array_max, array_min)
@@ -24,6 +27,7 @@ def norm_zero_one(array, dim=0):
 
 
 def find_std_inliers(data, m=2):
+    """ </CYTHE> """
     return abs(data - np.mean(data)) < m * np.std(data)
 
 
@@ -49,6 +53,7 @@ def cartesian(arrays, out=None):
         formed of input arrays.
     Examples
     --------
+    </CYTHE>
     >>> cartesian(([1, 2, 3], [4, 5], [6, 7]))
     array([[1, 4, 6], [1, 4, 7], [1, 5, 6], [1, 5, 7],
            [2, 4, 6], [2, 4, 7], [2, 5, 6], [2, 5, 7],
@@ -70,7 +75,8 @@ def cartesian(arrays, out=None):
 
 
 def almost_eq(a, b, thresh=1E-11, ret_error=False):
-    """ checks if floating point number are equal to a threshold """
+    """ checks if floating point number are equal to a threshold
+    </CYTHE> """
     error = np.abs(a - b)
     passed = error < thresh
     if ret_error:
@@ -102,7 +108,7 @@ def build_reverse_mapping(uid_list, cluster_list):
     """
     Given a list of ids (uid_list) and a corresponding cluster index list
     (cluster_list), this builds a mapping from cluster index to uids
-    """
+    </CYTHE> """
     # Sort by clusterid for cache efficiency
     sortx = cluster_list.argsort()
     cluster_list = cluster_list[sortx]
@@ -115,6 +121,7 @@ def build_reverse_mapping(uid_list, cluster_list):
 
 
 def group_items(item_list, groupid_list):
+    """ </CYTHE> """
     # Sort by groupid for cache efficiency
     sorted_pairs = sorted(zip(groupid_list, item_list))
     # Initialize dict of lists
@@ -125,7 +132,8 @@ def group_items(item_list, groupid_list):
 
 
 def unpack_items_sorted(dict_, sortfn, reverse=True):
-    """ Unpacks and sorts the dictionary by sortfn """
+    """ Unpacks and sorts the dictionary by sortfn
+    </CYTHE> """
     items = dict_.items()
     sorted_items = sorted(items, key=sortfn, reverse=reverse)
     sorted_keys, sorted_vals = list(izip(*sorted_items))
@@ -133,20 +141,23 @@ def unpack_items_sorted(dict_, sortfn, reverse=True):
 
 
 def unpack_items_sorted_by_lenvalue(dict_, reverse=True):
-    """ Unpacks and sorts the dictionary by key """
+    """ Unpacks and sorts the dictionary by key
+    </CYTHE> """
     def sort_lenvalue(item):
         return len(item[1])
     return unpack_items_sorted(dict_, sort_lenvalue)
 
 
 def unpack_items_sorted_by_value(dict_, reverse=True):
-    """ Unpacks and sorts the dictionary by key """
+    """ Unpacks and sorts the dictionary by key
+    </CYTHE> """
     def sort_value(item):
         return item[1]
     return unpack_items_sorted(dict_, sort_value)
 
 
 def flatten_membership_mapping(uid_list, members_list):
+    """ </CYTHE> """
     num_members = sum(map(len, members_list))
     flat_uids = [None for _ in xrange(num_members)]
     flat_members = [None for _ in xrange(num_members)]
@@ -160,14 +171,15 @@ def flatten_membership_mapping(uid_list, members_list):
 
 
 def void_rowview_numpy(arr):
-    """ returns view of nparray where each row is a single item """
+    """ returns view of nparray where each row is a single item
+    </CYTHE> """
     void_dtype = np.dtype((np.void, arr.dtype.itemsize * arr.shape[1]))
     arr_void_view = np.ascontiguousarray(arr).view(void_dtype)
     return arr_void_view
 
 
 def unique_row_indexes(arr):
-    """ np.unique on rows """
+    """ np.unique on rows </CYTHE> """
     arr_void_view = void_rowview_numpy(arr)
     _, unique_rowx = np.unique(arr_void_view, return_index=True)
     # cast back to original dtype
@@ -230,7 +242,8 @@ def unique_row_indexes(arr):
 
 
 def get_phi():
-    """ Golden Ratio: phi = 1 / sqrt(5) / 2.0 = 1.61803398875"""
+    """ Golden Ratio: phi = 1 / sqrt(5) / 2.0 = 1.61803398875
+    </CYTHE> """
     #phi = (1.0 + np.sqrt(5)) / 2.0 = 1.61803398875
     # return phi
     return 1.61803398875

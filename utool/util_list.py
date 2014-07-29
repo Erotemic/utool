@@ -105,6 +105,7 @@ def list_replace(instr, search_list=[], repl_list=None):
 
 
 def flatten(list_):
+    """ <CYTHE> """
     return list(iflatten(list_))
 
 
@@ -131,7 +132,8 @@ def invertable_flatten(unflat_list):
     """
     Flattens list but remember how to reconstruct the unflat list
     Returns flat list and the unflat list with indexes into the flat list
-    """
+    </CYTHE> """
+
     def nextnum(trick_=[0]):
         num = trick_[0]
         trick_[0] += 1
@@ -143,13 +145,15 @@ def invertable_flatten(unflat_list):
 
 
 def unflatten(flat_list, reverse_list):
-    """ Rebuilds unflat list from invertable_flatten """
+    """ Rebuilds unflat list from invertable_flatten
+    </CYTHE> """
     unflat_list2 = [tuple([flat_list[index] for index in tup]) for tup in reverse_list]
     return unflat_list2
 
 
 def tuplize(list_):
-    """ Converts each scalar item in a list to a dimension-1 tuple """
+    """ Converts each scalar item in a list to a dimension-1 tuple
+    </CYTHE> """
     tup_list = [item if isiterable(item) else (item,) for item in list_]
     return tup_list
 
@@ -183,7 +187,8 @@ def flattenize(list_):
     100000 loops, best of 3: 16.5 us per loop
     100000 loops, best of 3: 18 us per loop
     1000000 loops, best of 3: 1.18 us per loop
-    """
+    </CYTHE> """
+
     #return imap(iflatten, list_)
     tuplized_iter   = imap(tuplize, list_)
     flatenized_list = list(imap(flatten, tuplized_iter))
@@ -192,7 +197,8 @@ def flattenize(list_):
 
 def safe_slice(list_, *args):
     """ safe_slice(list_, [start], stop, [end], [step])
-        Slices list and truncates if out of bounds """
+        Slices list and truncates if out of bounds
+    </CYTHE> """
     if len(args) == 3:
         start = args[0]
         stop  = args[1]
@@ -214,7 +220,8 @@ def safe_slice(list_, *args):
 def spaced_indexes(len_, n, trunc=False):
     """ Returns n evenly spaced indexes.
         Returns as many as possible if trunc is true
-    """
+    </CYTHE> """
+
     if n is None:
         return np.arange(len_)
     all_indexes = np.arange(len_)
@@ -267,7 +274,8 @@ def assert_all_not_None(list_, list_name='some_list', key_list=[]):
 
 
 def get_dirty_items(item_list, flag_list):
-    """ Returns each item in item_list where not flag in flag_list """
+    """ Returns each item in item_list where not flag in flag_list
+    </CYTHE> """
     assert len(item_list) == len(flag_list)
     dirty_items = [item for (item, flag) in
                    izip(item_list, flag_list)
@@ -281,7 +289,8 @@ def get_dirty_items(item_list, flag_list):
 def filter_items(item_list, flag_list):
     """
     Returns items in item list where the corresponding item in flag list is true
-    """
+    </CYTHE> """
+
     assert len(item_list) == len(flag_list)
     filtered_items = list(ifilter_items(item_list, flag_list))
     return filtered_items
@@ -290,14 +299,14 @@ def filter_items(item_list, flag_list):
 def filterfalse_items(item_list, flag_list):
     """
     Returns items in item list where the corresponding item in flag list is true
-    """
+    </CYTHE> """
     assert len(item_list) == len(flag_list)
     filtered_items = list(ifilterfalse_items(item_list, flag_list))
     return filtered_items
 
 
 def filter_Nones(list_):
-    """ Removes any nones from the list """
+    """ Removes any nones from the list </CYTHE> """
     return list(ifilter_Nones(list_))
 
 
@@ -307,7 +316,7 @@ def filter_Nones(list_):
 def intersect_ordered(list1, list2):
     """
     returns list1 elements that are also in list2 preserves order of list1
-    """
+    </CYTHE> """
     set2 = set(list2)
     new_list = [item for item in iter(list1) if item in set2]
     #new_list =[]
@@ -390,6 +399,7 @@ def deterministic_shuffle(list_):
 
 def sortedby(list_, sortable, reverse=False):
     """ Returns a list sorted by the values of another list
+    </CYTHE>
     >>> import utool
     >>> list_    = [1, 2, 3, 4, 5]
     >>> sortable = [2, 5, 3, 1, 5]
@@ -405,6 +415,7 @@ def scalar_input_map(func, input_):
     """
     If input_ is iterable this function behaves like map
     otherwise applies func to input
+    </CYTHE>
     """
     if isiterable(input_):
         return list(imap(func, input_))
@@ -435,6 +446,7 @@ def sample_zip(items_list, num_samples, allow_overflow=False, per_bin=1):
     #util_list.sample_zip(items_list, 2)
     #...
     #AssertionError: Overflow occured
+    </CYTHE>
 
     >>> from utool import util_list
     >>> items_list = [[1, 2, 3, 4, 0], [5, 6, 7], [], [8, 9], [10]]

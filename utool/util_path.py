@@ -41,7 +41,7 @@ truepath = meta_util_path.truepath
 
 
 def truepath_relative(path):
-    """ Normalizes and returns absolute path with so specs """
+    """ Normalizes and returns absolute path with so specs </CYTHE> """
     return normpath(relpath(path, truepath(os.getcwd())))
 
 
@@ -173,6 +173,7 @@ def remove_file_list(fpath_list, verbose=VERYVERBOSE):
 
 
 def longest_existing_path(_path):
+    """ </CYTHE> """
     while True:
         _path_new = os.path.dirname(_path)
         if exists(_path_new):
@@ -187,7 +188,8 @@ def longest_existing_path(_path):
 
 
 def checkpath(path_, verbose=VERYVERBOSE, n=2, info=VERYVERBOSE):
-    """ returns true if path_ exists on the filesystem """
+    """ returns true if path_ exists on the filesystem
+    </CYTH> """
     path_ = normpath(path_)
     if verbose:
         #print_('[utool] checkpath(%r)' % (path_))
@@ -224,6 +226,7 @@ def ensurepath(path_, verbose=VERYVERBOSE):
 
 
 def ensuredir(path_, verbose=VERYVERBOSE):
+    """ </CYTHE> """
     if not checkpath(path_):
         if verbose:
             print('[path] mkdir(%r)' % path_)
@@ -244,7 +247,7 @@ def copy_task(cp_list, test=False, nooverwrite=False, print_tasks=True):
     Input list of tuples:
         format = [(src_1, dst_1), ..., (src_N, dst_N)]
     Copies all files src_i to dst_i
-    """
+    </CYTH> """
     num_overwrite = 0
     _cp_tasks = []  # Build this list with the actual tasks
     if nooverwrite:
@@ -556,17 +559,18 @@ def list_images(img_dpath, ignore_list=[], recursive=False, fullpath=False,
             continue
         for fname in iter(flist):
             gname = join(rel_dpath, fname).replace('\\', '/').replace('./', '')
-            if fullpath:
-                gname_list_.append(join(img_dpath, gname))
-            else:
-                gname_list_.append(gname)
+            if matches_image(gname):
+                if fullpath:
+                    gname_list_.append(join(img_dpath, gname))
+                else:
+                    gname_list_.append(gname)
         if not recursive:
             break
     # Filter out non images or ignorables
-    gname_list = [gname_ for gname_ in iter(gname_list_)
-                  if gname_ not in ignore_set and matches_image(gname_)]
+    #gname_list = [gname_ for gname_ in iter(gname_list_)
+    #              if gname_ not in ignore_set and matches_image(gname_)]
     if sort:
-        gname_list = sorted(gname_list)
+        gname_list = sorted(gname_list_)
     return gname_list
 
 
