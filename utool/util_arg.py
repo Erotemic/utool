@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import sys
+import six
 # Python
 import os
 #import six
@@ -7,6 +8,7 @@ import argparse
 from .util_type import try_cast
 from .util_inject import inject
 from .util_print import Indenter
+from utool._internal.meta_util_six import get_funcname, set_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[arg]')
 
 QUIET = '--quiet' in sys.argv
@@ -67,7 +69,7 @@ def argv_flag(name, default, **kwargs):
 
 
 def switch_sanataize(switch):
-    if isinstance(switch, (str, unicode)):
+    if isinstance(switch, six.string_types):
         dest = switch.strip('-').replace('-', '_')
     else:
         if isinstance(switch, tuple):
@@ -166,7 +168,7 @@ def argv_flag_dec_true(func):
 
 
 def __argv_flag_dec(func, default=False, quiet=False):
-    flag = func.func_name
+    flag = get_funcname(func)
     if flag.find('no') == 0:
         flag = flag[2:]
     flag = '--' + flag.replace('_', '-')
@@ -182,5 +184,5 @@ def __argv_flag_dec(func, default=False, quiet=False):
         else:
             if not quiet:
                 print('\n~~~ %s ~~~\n' % flag)
-    GaurdWrapper.func_name = func.func_name
+    set_funcname(GaurdWrapper, get_funcname(func))
     return GaurdWrapper

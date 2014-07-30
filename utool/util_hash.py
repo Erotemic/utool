@@ -58,12 +58,12 @@ def valid_filename_ascii_chars():
     # Find invalid chars
     ntfs_inval = '< > : " / \ | ? *'.split(' ')
     other_inval = [' ', '\'', '.']
-    #case_inval = map(chr, xrange(97, 123))
-    case_inval = map(chr, xrange(65, 91))
+    #case_inval = map(chr, range(97, 123))
+    case_inval = map(chr, range(65, 91))
     invalid_chars = set(ntfs_inval + other_inval + case_inval)
     # Find valid chars
     valid_chars = []
-    for index in xrange(32, 127):
+    for index in range(32, 127):
         char = chr(index)
         if not char in invalid_chars:
             print index, chr(index)
@@ -168,7 +168,8 @@ def image_uuid(pil_img):
 
 def augment_uuid(uuid_, *hashables):
     """ <CYTH> """
-    uuidhex_bytes   = uuid_.get_bytes()
+    #uuidhex_bytes   = uuid_.get_bytes()
+    uuidhex_bytes   = uuid_.bytes
     hashable_str    = ''.join(map(repr, hashables))
     augmented_str   = uuidhex_bytes + hashable_str
     augmented_uuid_ = hash_to_uuid(augmented_str)
@@ -183,7 +184,8 @@ def random_uuid():
 def __test_augment__():
     uuid_ = uuid.uuid1()
 
-    uuidhex_bytes = uuid_.get_bytes()
+    #uuidhex_bytes = uuid_.get_bytes()
+    uuidhex_bytes = uuid_.bytes
     hashable_str1 = '[0, 0, 100, 100]'
     hashable_str2 = ''
     augmented_str1 = uuidhex_bytes + hashable_str1

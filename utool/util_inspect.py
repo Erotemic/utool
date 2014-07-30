@@ -16,7 +16,7 @@ def list_class_funcnames(fname, blank_pats=['    #']):
         if line.startswith('    def '):
             def_x    = line.find('def')
             rparen_x = line.find('(')
-            func_name = line[(def_x + 3):rparen_x]
-            #print(func_name)
-            funcname_list.append(func_name)
+            funcname = line[(def_x + 3):rparen_x]
+            #print(funcname)
+            funcname_list.append(funcname)
     return funcname_list

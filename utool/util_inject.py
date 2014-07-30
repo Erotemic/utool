@@ -166,6 +166,7 @@ def inject_reload_function(module_name=None, module_prefix='[???]', module=None)
 def DUMMYPROF_FUNC(func):
     return func
 
+
 def TIMERPROF_FUNC(func):
     @wraps(func)
     def prof_wrapper(*args, **kwargs):
@@ -229,10 +230,10 @@ def _matches_list(name, pat_list):
     return any([name.find(pat) != -1 for pat in pat_list])
 
 
-def _profile_func_flag(func_name):
+def _profile_func_flag(funcname):
     if PROF_FUNC_PAT_LIST is None:
         return True
-    return _matches_list(func_name, PROF_FUNC_PAT_LIST)
+    return _matches_list(funcname, PROF_FUNC_PAT_LIST)
 
 
 def _profile_module_flag(module_name):

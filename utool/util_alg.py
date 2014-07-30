@@ -7,7 +7,7 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 from collections import defaultdict
 #import six
-from six.moves import zip
+from six.moves import zip, range
 from . import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
 
@@ -70,7 +70,7 @@ def cartesian(arrays, out=None):
     out[:, 0] = np.repeat(arrays[0], m)
     if arrays[1:]:
         cartesian(arrays[1:], out=out[0:m, 1:])
-        for j in xrange(1, arrays[0].size):
+        for j in range(1, arrays[0].size):
             out[j * m:(j + 1) * m, 1:] = out[0:m, 1:]
     return out
 
@@ -160,8 +160,8 @@ def unpack_items_sorted_by_value(dict_, reverse=True):
 def flatten_membership_mapping(uid_list, members_list):
     """ </CYTHE> """
     num_members = sum(map(len, members_list))
-    flat_uids = [None for _ in xrange(num_members)]
-    flat_members = [None for _ in xrange(num_members)]
+    flat_uids = [None for _ in range(num_members)]
+    flat_members = [None for _ in range(num_members)]
     count = 0
     for uid, members in zip(uid_list, members_list):
         for member in members:
@@ -186,60 +186,6 @@ def unique_row_indexes(arr):
     # cast back to original dtype
     unique_rowx.sort()
     return unique_rowx
-
-#        (qaids, aids, scores, ranks) = self.cand_match_list
-#        # reorder candidates
-#        aid_list1 = map(int, qaids)
-#        aid_list2 = map(int, aids)
-#        from itertools import zip, groupby
-#        def groupkey(tup):
-#            aid1, aid2 = tup[-2:-1]
-#            return (min(aid1, aid2), max(aid1, aid2))
-#        zipped = sorted(list(zip(range(len(aid_list1)), aid_list1, aid_list2)), key=lambda tup: tup[1])
-#        # key is ordered pair, list is directed pairs and order
-#        grouped = [(key, list(subiter)) for key, subiter in groupby(zipped, groupkey)]
-#        group_order = sorted([sorted(sublist) for key, sublist in grouped])
-#        new_order = [tup[0] for tup in utool.flatten(group_order)]
-
-#        old_graph = defaultdict(list)
-#        for edge, dedge_list in grouped:
-#            aid1, aid2 = edge
-#            old_graph[aid1].append((aid1, aid2))
-#        old_graph = {key: list(set(value)) for key, value in six.iteritems(old_graph)}
-
-#        old_graph = dict(list(six.iteritems(old_graph)))
-
-#        def connected_components(neighbors):
-#            """ from
-#            http://stackoverflow.com/questions/10301000/python-connected-components
-#            """
-#            seen = set()
-#            cc_list = []
-#            for node in neighbors:
-#                if node not in seen:
-#                    node_set = set([node])
-#                    c = []
-#                    while node_set:
-#                        node = node_set.pop()
-#                        seen.add(node)
-#                        try:
-#                            node_set |= neighbors[node] - seen
-#                        except KeyError:
-#                            pass
-#                        c.append(node)
-#                    cc_list.append(c)
-#                    #yield c
-
-#        new_graph = {node: set(endpt for edge in edges for endpt in edge)
-#                     for node, edges in old_graph.items()}\
-#        neighbors = new_graph
-
-#        components = []
-#        for component in connected_components(new_graph):
-#            c = set(component)
-#            components.append([edge for edges in old_graph.values()
-#                                    for edge in edges
-#                                    if c.intersection(edge)])
 
 
 def get_phi():

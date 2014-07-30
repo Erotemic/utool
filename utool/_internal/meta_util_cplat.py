@@ -1,6 +1,11 @@
 from __future__ import absolute_import, division, print_function
 import sys
+import six
 from os.path import normpath, expanduser, join
+
+OS_TYPE = sys.platform
+if six.PY2 and OS_TYPE == 'linux2':
+    OS_TYPE = 'linux'  # python2 fix
 
 WIN32  = sys.platform.startswith('win32')
 LINUX  = sys.platform.startswith('linux')

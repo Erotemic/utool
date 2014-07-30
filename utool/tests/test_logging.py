@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 from __future__ import absolute_import, division, print_function
-import __builtin__
+from six.moves import builtins
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[test_logging]')
 
@@ -68,21 +68,21 @@ def test():
     try:
         assert target1 == output1, 'target1 failed'
         assert target2 == output2, 'target2 failed'
-        __builtin__.print('TEST PASSED')
+        builtins.print('TEST PASSED')
     except AssertionError:
-        __builtin__.print('\n<!!! TEST FAILED !!!>')
+        builtins.print('\n<!!! TEST FAILED !!!>')
 
-        __builtin__.print('\ntarget1:')
-        __builtin__.print(target1)
-        __builtin__.print('\noutput1:')
-        __builtin__.print(output1)
+        builtins.print('\ntarget1:')
+        builtins.print(target1)
+        builtins.print('\noutput1:')
+        builtins.print(output1)
 
-        __builtin__.print('\ntarget2:')
-        __builtin__.print(target2)
-        __builtin__.print('\noutput2:')
-        __builtin__.print(output2)
+        builtins.print('\ntarget2:')
+        builtins.print(target2)
+        builtins.print('\noutput2:')
+        builtins.print(output2)
 
-        __builtin__.print('</!!! TEST FAILED !!!>\n')
+        builtins.print('</!!! TEST FAILED !!!>\n')
         raise
 
 

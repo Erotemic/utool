@@ -3,7 +3,7 @@ This module becomes nav
 """
 
 from __future__ import absolute_import, division, print_function
-from six.moves import zip, filter, filterfalse, map
+from six.moves import zip, filter, filterfalse, map, range
 import six
 from os.path import (join, basename, relpath, normpath, split, isdir, isfile,
                      exists, islink, ismount, dirname, splitext)
@@ -68,7 +68,7 @@ def path_ndir_split(path_, n, force_unix=True):
         return ''
     ndirs_list = []
     head = path_
-    for _ in xrange(n):
+    for _ in range(n):
         head, tail = split(head)
         if tail == '':
             root = head if len(ndirs_list) == 0 else head.strip('\\/')
@@ -112,7 +112,7 @@ def remove_dirs(dpath, dryrun=False, ignore_errors=True, **kwargs):
 
 def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False, verbose=True,
                         dryrun=False, ignore_errors=False, **kwargs):
-    if isinstance(fname_pattern_list, (str, unicode)):
+    if isinstance(fname_pattern_list, six.string_types):
         fname_pattern_list = [fname_pattern_list]
     if not QUIET:
         print('[path] Removing files:')
@@ -141,16 +141,17 @@ def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False, verbose=
     return True
 
 
-def delete(path, dryrun=False, recursive=True, verbose=True, ignore_errors=True, **kwargs):
+def delete(path, dryrun=False, recursive=True, verbose=True, print_exists=True, ignore_errors=True, **kwargs):
     # Deletes regardless of what the path is
+    #if verbose:
     print('[path] Deleting path=%r' % path)
-    rmargs = dict(dryrun=dryrun, recursive=recursive, verbose=verbose,
-                  ignore_errors=ignore_errors, **kwargs)
     if not exists(path):
-        msg = ('..does not exist!')
-        if not QUIET:
+        if print_exists and not QUIET:
+            msg = ('..does not exist!')
             print(msg)
         return False
+    rmargs = dict(dryrun=dryrun, recursive=recursive, verbose=verbose,
+                  ignore_errors=ignore_errors, **kwargs)
     if isdir(path):
         flag = remove_files_in_dir(path, **rmargs)
         flag = flag and remove_dirs(path, **rmargs)

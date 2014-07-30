@@ -5,10 +5,11 @@ TODO: Move numpy arrays helpers elsewhere
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import sys
-from six.moves import zip, map, zip_longest
+from six.moves import zip, map, zip_longest, range
 from .util_iter import iflatten, isiterable, ifilter_Nones, ifilter_items, ifilterfalse_items
 from .util_inject import inject
 from .util_str import get_func_name
+from ._internal.meta_util_six import get_funcname, set_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[list]')
 
 USE_ASSERT = not ('--no-assert' in sys.argv)
@@ -18,24 +19,24 @@ USE_ASSERT = not ('--no-assert' in sys.argv)
 
 def alloc_lists(num_alloc):
     """ allocates space for a list of lists """
-    return [[] for _ in xrange(num_alloc)]
+    return [[] for _ in range(num_alloc)]
 
 
 def alloc_nones(num_alloc):
     """ allocates space for a list of Nones """
-    return [None for _ in xrange(num_alloc)]
+    return [None for _ in range(num_alloc)]
 
 
 def ensure_list_size(list_, size_):
     """ extend list length to size_ """
     lendiff = (size_) - len(list_)
     if lendiff > 0:
-        extension = [None for _ in xrange(lendiff)]
+        extension = [None for _ in range(lendiff)]
         list_.extend(extension)
 
 
-def tiled_range(range, cols):
-    return np.tile(np.arange(range), (cols, 1)).T
+def tiled_range(range_, cols):
+    return np.tile(np.arange(range_), (cols, 1)).T
     #np.tile(np.arange(num_qf).reshape(num_qf, 1), (1, k_vsmany))
 
 
@@ -432,7 +433,7 @@ def partial_imap_1to1(func, si_func):
             return func(si_func(input_))
         else:
             return list(map(func, si_func(input_)))
-    wrapper.func_name = get_func_name(func) + '_mapper_' + si_func.func_name
+    set_funcname(wrapper, get_func_name(func) + '_mapper_' + get_funcname(si_func))
     return wrapper
 
 
@@ -461,11 +462,11 @@ def sample_zip(items_list, num_samples, allow_overflow=False, per_bin=1):
     ([[1, 5, 8, 10, 2, 6, 9], [3, 7, 4], [], []], [0])
     """
     # Prealloc a list of lists
-    samples_list = [[] for _ in xrange(num_samples)]
+    samples_list = [[] for _ in range(num_samples)]
     # Sample the ix-th value from every list
     samples_iter = zip_longest(*items_list)
     sx = 0
-    for ix, samples_ in zip(xrange(num_samples), samples_iter):
+    for ix, samples_ in zip(range(num_samples), samples_iter):
         samples = filter_Nones(samples_)
         samples_list[sx].extend(samples)
         # Put per_bin from each sublist into a sample

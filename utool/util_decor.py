@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import builtins
+import six
 import sys
 from functools import wraps
 from .util_iter import isiterable
@@ -8,6 +9,7 @@ from .util_dbg import printex
 from . import util_time
 import numpy as np
 from .util_inject import inject
+from utool._internal.meta_util_six import get_funcname
 (print, print_, printDBG, rrr, profile) = inject(__name__, '[decor]')
 
 
@@ -78,7 +80,7 @@ def on_exception_report_input(func):
         try:
             return func(*args, **kwargs)
         except Exception as ex:
-            msg = ('ERROR: func_name=%r,\n * args=%r,\n * kwargs=%r' % (func.func_name, args, kwargs))
+            msg = ('ERROR: funcname=%r,\n * args=%r,\n * kwargs=%r' % (get_funcname(func), args, kwargs))
             printex(ex, msg)
             raise
     return wrp_exception_report_input
@@ -105,7 +107,7 @@ def indent_func(input_):
     """
     Takes either no arguments or an alias label
     """
-    if isinstance(input_, (str, unicode)):
+    if isinstance(input_, six.string_types):
         # A label was specified
         lbl = input_
         return _indent_decor(lbl)
@@ -116,7 +118,8 @@ def indent_func(input_):
     else:
         # Use the function name as the label
         func = input_
-        lbl = '[' + func.func_name + ']'
+        from ._internal.meta_util_six import get_funcname
+        lbl = '[' + get_funcname(func) + ']'
         return _indent_decor(lbl)(func)
 
 #----------
@@ -281,7 +284,7 @@ def interested(func):
     def wrp_interested(*args, **kwargs):
         sys.stdout.write('#\n')
         sys.stdout.write('#\n')
-        sys.stdout.write('<!INTERESTED>: ' + func.func_name + '\n')
+        sys.stdout.write('<!INTERESTED>: ' + get_funcname(func) + '\n')
         print('INTERESTING... ' + (' ' * 30) + ' <----')
         return func(*args, **kwargs)
     return wrp_interested
@@ -290,6 +293,6 @@ def interested(func):
 def time_func(func):
     @wraps(func)
     def wrp_time(*args, **kwargs):
-        with util_time.Timer(func.func_name):
+        with util_time.Timer(get_funcname(func)):
             return func(*args, **kwargs)
     return wrp_time

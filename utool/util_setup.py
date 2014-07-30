@@ -70,13 +70,17 @@ def assert_in_setup_repo(setup_fpath, name=''):
 
 def clean(setup_dir, clutter_patterns, clutter_dirs, cython_files):
     print('[setup] clean()')
+
+    clutter_patterns_ = [pat for pat in clutter_patterns if not pat.endswith('/')]
+    clutter_dirs_ = [pat[:-1] for pat in clutter_patterns if pat.endswith('/')] + clutter_dirs
+
     util_path.remove_files_in_dir(setup_dir,
-                                  clutter_patterns,
+                                  clutter_patterns_,
                                   recursive=True,
                                   verbose=VERBOSE)
 
-    for dir_ in clutter_dirs:
-        util_path.delete(dir_)
+    for dir_ in clutter_dirs_:
+        util_path.delete(dir_, verbose=VERBOSE, print_exists=False)
         #util_path.remove_files_in_dir(dir_)
 
     for fpath in cython_files:

@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
-from six.moves import zip
+import six
+from six.moves import zip, range
 from itertools import chain, cycle
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[iter]')
@@ -34,7 +35,7 @@ def ifilter_Nones(iter_):
 
 def isiterable(obj):
     """ <CYTH> """
-    return np.iterable(obj) and not isinstance(obj, (str, unicode))
+    return np.iterable(obj) and not isinstance(obj, six.string_types)
 
 
 def iflatten(list_):
@@ -51,7 +52,7 @@ def iflatten_scalars(list_):
 def ichunks(list_, chunksize):
     """ Yield successive n-sized chunks from list_.
     <CYTH> """
-    for ix in xrange(0, len(list_), chunksize):
+    for ix in range(0, len(list_), chunksize):
         yield list_[ix: ix + chunksize]
 
 

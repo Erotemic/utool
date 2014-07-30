@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import six
+from six.moves import range
 import fnmatch
 import inspect
 import traceback
@@ -8,6 +9,7 @@ import sys
 import shelve
 import textwrap
 import types
+import functools
 from os.path import splitext, split
 from . import util_inject
 from .util_arg import get_flag
@@ -16,6 +18,7 @@ from .util_list import list_eq
 from .util_print import Indenter
 from .util_str import pack_into, truncate_str, horiz_string, indent
 from .util_type import is_listlike, get_type
+from utool._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[dbg]')
 
 # --- Exec Strings ---
@@ -128,7 +131,7 @@ def execstr_dict(dict_, local_name, exclude_list=None):
 
 
 def execstr_func(func):
-    print(' ! Getting executable source for: ' + func.func_name)
+    print(' ! Getting executable source for: ' + get_funcname(func))
     _src = inspect.getsource(func)
     execstr = textwrap.dedent(_src[_src.find(':') + 1:])
     # Remove return statments
@@ -308,7 +311,7 @@ def search_stack_for_var(varname):
 def get_stack_frame(N=0):
     frame_level0 = inspect.currentframe()
     frame_cur = frame_level0
-    for _ix in xrange(N + 1):
+    for _ix in range(N + 1):
         frame_next = frame_cur.f_back
         if frame_next is None:
             raise AssertionError('Frame level %r is root' % _ix)
@@ -357,7 +360,7 @@ def get_caller_name(N=0):
     caller_name = parent_frame.f_code.co_name
     #try:
     #    if 'func' in  parent_frame.f_locals:
-    #        caller_name += '(' + parent_frame.f_locals['func'].func_name + ')'
+    #        caller_name += '(' + get_funcname(parent_frame.f_locals['func']) + ')'
     #except Exception:
     #    pass
     if caller_name == '<module>':
@@ -512,14 +515,14 @@ def debug_vstack(stacktup):
 
 
 def debug_exception(func):
+    @functools.wraps(func)
     def ex_wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
         except Exception as ex:
-            print('[tools] ERROR: %s(%r, %r)' % (func.func_name, args, kwargs))
+            print('[tools] ERROR: %s(%r, %r)' % (get_funcname(func), args, kwargs))
             print('[tools] ERROR: %r' % ex)
             raise
-    ex_wrapper.func_name = func.func_name
     return ex_wrapper
 
 

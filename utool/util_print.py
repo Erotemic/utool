@@ -47,10 +47,10 @@ class Indenter(object):
             mgs = ', '.join(map(str, args))
             return self.lbl + mgs.replace('\n', '\n' + self.lbl)
 
-        def push_module_functions(dict_, func_name):
+        def push_module_functions(dict_, funcname):
             for mod in self.modules:
                 try:
-                    dict_[mod] = getattr(mod, func_name)
+                    dict_[mod] = getattr(mod, funcname)
                 except KeyError as ex:
                     print('[utool] KeyError: ' + str(ex))
                     print('[utool] WARNING: module=%r was loaded between indent sessions' % mod)
@@ -76,9 +76,9 @@ class Indenter(object):
     def stop(self):
         if NO_INDENT:
             return
-        def pop_module_functions(dict_, func_name):
+        def pop_module_functions(dict_, funcname):
             for mod in six.iterkeys(dict_):
-                setattr(mod, func_name, dict_[mod])
+                setattr(mod, funcname, dict_[mod])
         pop_module_functions(self.old_print_dict, 'print')
         #pop_module_functions(self.old_printDBG_dict, 'printDBG')
         #for mod in six.iterkeys(self.old_print_dict):

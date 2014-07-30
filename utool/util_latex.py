@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 # Python
+from six.moves import range, map
 import os
 import re
 import textwrap
@@ -158,7 +159,7 @@ def ensure_colvec(arr):
 
 
 def padvec(shape=(1, 1)):
-    pad = np.array([[' ' for c in xrange(shape[1])] for r in xrange(shape[0])])
+    pad = np.array([[' ' for c in range(shape[1])] for r in range(shape[0])])
     return pad
 
 
@@ -228,8 +229,8 @@ def make_score_tabular(row_lbls, col_lbls, scores, title=None,
     AUTOFIX_LATEX = True
     FORCE_INT = True
     DO_PERCENT = True
-    for r in xrange(len(body)):
-        for c in xrange(len(body[0])):
+    for r in range(len(body)):
+        for c in range(len(body[0])):
             # In data land
             if r > 0 and c > 0:
                 # Force integer
@@ -243,14 +244,14 @@ def make_score_tabular(row_lbls, col_lbls, scores, title=None,
     if bold_best:
         best_col_scores = scores.max(0) if bigger_is_better else scores.min(0)
         rows_to_bold = [np.where(scores[:, colx] == best_col_scores[colx])[0]
-                        for colx in xrange(len(scores.T))]
+                        for colx in range(len(scores.T))]
         for colx, rowx_list in enumerate(rows_to_bold):
             for rowx in rowx_list:
                 body[rowx + 1][colx + 1] = '\\txtbf{' + body[rowx + 1][colx + 1] + '}'
 
     # More fixing after the bold is in place
-    for r in xrange(len(body)):
-        for c in xrange(len(body[0])):
+    for r in range(len(body)):
+        for c in range(len(body[0])):
             # In data land
             if r > 0 and c > 0:
                 if out_of is not None:
@@ -265,8 +266,8 @@ def make_score_tabular(row_lbls, col_lbls, scores, title=None,
     if ALIGN_BODY:
         new_body_cols = []
         for col in body.T:
-            colstrs = map(str, col.tolist())
-            collens = map(len, colstrs)
+            colstrs = list(map(str, col.tolist()))
+            collens = list(map(len, colstrs))
             maxlen = max(collens)
             newcols = [str_ + (' ' * (maxlen - len(str_))) for str_ in colstrs]
             new_body_cols += [newcols]
