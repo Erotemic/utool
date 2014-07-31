@@ -3,6 +3,7 @@ cross platform utilities
 """
 from __future__ import absolute_import, division, print_function
 import os
+import six
 import sys
 import platform
 import subprocess
@@ -15,6 +16,7 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[cplat]')
 
 COMPUTER_NAME = platform.node()
 
+OS_TYPE = meta_util_cplat.OS_TYPE
 WIN32  = meta_util_cplat.WIN32
 LINUX  = meta_util_cplat.LINUX
 DARWIN = meta_util_cplat.DARWIN
@@ -23,14 +25,14 @@ LIB_EXT_LIST = ['.so', '.dll', '.dylib', '.pyd']
 
 LIB_DICT = {
     'win32': '.dll',
-    'linux2': '.so',
+    'linux': '.so',
     'darwin': '.dylib',
 }
 
 
 PYLIB_DICT = {
     'win32': '.pyd',
-    'linux2': '.so',
+    'linux': '.so',
     'darwin': '.dylib',
 }
 
@@ -55,11 +57,11 @@ def get_free_diskbytes(dir_):
 
 
 def get_lib_ext():
-    return LIB_DICT[sys.platform]
+    return LIB_DICT[OS_TYPE]
 
 
 def get_pylib_ext():
-    return PYLIB_DICT[sys.platform]
+    return PYLIB_DICT[OS_TYPE]
 
 
 def python_executable():
@@ -87,9 +89,9 @@ def get_dynlib_dependencies(lib_path):
         depend_out = '\n'.join(relevant_lines)
     assert ret == 0, 'bad dependency check'
     return depend_out
-        # objdump -p C:\Python27\Lib\site-packages\PIL\_imaging.pyd | grep dll
-        # dumpbin /dependents C:\Python27\Lib\site-packages\PIL\_imaging.pyd
-        # depends /c /a:1 /f:1 C:\Python27\Lib\site-packages\PIL\_imaging.pyd
+    # objdump -p C:\Python27\Lib\site-packages\PIL\_imaging.pyd | grep dll
+    # dumpbin /dependents C:\Python27\Lib\site-packages\PIL\_imaging.pyd
+    # depends /c /a:1 /f:1 C:\Python27\Lib\site-packages\PIL\_imaging.pyd
 
 
 def get_dynamic_lib_globstrs():
@@ -106,10 +108,10 @@ def get_user_name():
 
 def getroot():
     root = {
-        'WIN32': 'C:\\',
-        'LINUX': '/',
-        'DARWIN': '/',
-    }[sys.platform]
+        'win32': 'C:\\',
+        'linux': '/',
+        'darwin': '/',
+    }[OS_TYPE]
     return root
 
 
@@ -155,8 +157,8 @@ def view_directory(dname=None):
     print('[cplat] view_directory(%r) ' % dname)
     dname = os.getcwd() if dname is None else dname
     open_prog = {'win32': 'explorer.exe',
-                 'linux2': 'nautilus',
-                 'darwin': 'open'}[sys.platform]
+                 'linux': 'nautilus',
+                 'darwin': 'open'}[OS_TYPE]
     dname = normpath(dname)
     if dname.find(' ') != -1 and not dname.startswith(('"', '\'')):
         dname = '"%s"' % dname
@@ -190,7 +192,7 @@ def __parse_cmd_kwargs(kwargs):
 def __parse_cmd_args(args, sudo):
     if len(args) == 1 and isinstance(args[0], list):
         args = args[0]
-    if isinstance(args, (str, unicode)):
+    if isinstance(args, six.string_types):
         if os.name == 'posix':
             args = shlex.split(args)
         else:
@@ -240,7 +242,10 @@ def cmd(*args, **kwargs):
         print('[cplat] RUNNING WITH VERBOSE OUTPUT')
         logged_out = []
         for line in _run_process(proc):
-            sys.stdout.write(line)
+            if six.PY2:
+                sys.stdout.write(line)
+            elif six.PY3:
+                sys.stdout.write(line.decode('utf-8'))
             sys.stdout.flush()
             logged_out.append(line)
         out = '\n'.join(logged_out)

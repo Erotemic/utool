@@ -12,9 +12,15 @@ def global_cache_read(key, appname=None, **kwargs):
     global_cache_dir = get_app_resource_dir(appname, global_cache_dname)
     ensuredir(global_cache_dir)
     shelf_fpath = join(global_cache_dir, global_cache_fname)
-    shelf = shelve.open(shelf_fpath)
-    if 'default' in kwargs:
-        return shelf.get(key, kwargs['default'])
-    else:
-        return shelf[key]
-    shelf.close()
+    try:
+        shelf = shelve.open(shelf_fpath)
+        if 'default' in kwargs:
+            return shelf.get(key, kwargs['default'])
+        else:
+            return shelf[key]
+        shelf.close()
+    except Exception as ex:
+        print(ex)
+        print('Error reading: shelf_fpath=%r' % shelf_fpath)
+        return kwargs['default']
+        #raise

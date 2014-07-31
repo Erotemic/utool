@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import sys
+import six
 import time
 import datetime
 from .util_inject import inject
@@ -94,15 +95,17 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=1):
         else:
             timefmt = '%Y:%m:%d %H:%M:%S'
         if len(datetime_str) > 19:
-            datetime_str = datetime_str[0:20].strip(";")
-        dt = datetime.datetime.strptime(datetime_str, timefmt)
+            datetime_str_ = datetime_str[:19].strip(';').strip()
+        else:
+            datetime_str_ = datetime_str
+        dt = datetime.datetime.strptime(datetime_str_, timefmt)
         return time.mktime(dt.timetuple())
     except TypeError:
         #if datetime_str is None:
             #return -1
         return -1
     except ValueError as ex:
-        if isinstance(datetime_str, (str, unicode)):
+        if isinstance(datetime_str, six.string_types):
             if datetime_str.find('No EXIF Data') == 0:
                 return -1
             if datetime_str.find('Invalid') == 0:
@@ -111,9 +114,12 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=1):
                 return -1
         print('!!!!!!!!!!!!!!!!!!')
         print('[util_time] Caught Error: ' + repr(ex))
-        print('[util_time] type(datetime_str) = %r' % type(datetime_str))
-        print('[util_time] datetime_str = %r' % datetime_str)
-        print('[util_time] datetime_str = %s' % datetime_str)
+        print('[util_time] type(datetime_str)  = %r' % type(datetime_str))
+        print('[util_time] repr(datetime_str_) = %r' % datetime_str_)
+        print('[util_time] repr(datetime_str)  = %r' % datetime_str)
+        print('[util_time]     (datetime_str)  = %s' % datetime_str)
+        print('[util_time]  len(datetime_str)  = %d' % len(datetime_str))
+        print('[util_time]  len(datetime_str_)  = %d' % len(datetime_str_))
         raise
 
 

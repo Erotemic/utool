@@ -9,6 +9,7 @@ import multiprocessing
 import atexit
 import sys
 import signal
+from ._internal.meta_util_six import get_funcname
 from .util_progress import progress_func
 from .util_time import tic, toc
 from . import util_arg
@@ -98,7 +99,7 @@ def _process_serial(func, args_list, args_dict={}):
     num_tasks = len(args_list)
     result_list = []
     mark_prog, end_prog = progress_func(max_val=num_tasks,
-                                        lbl=func.func_name + ': ')
+                                        lbl=get_funcname(func) + ': ')
     mark_prog(0)
     # Execute each task sequentially
     for count, args in enumerate(args_list):
@@ -115,7 +116,7 @@ def _process_parallel(func, args_list, args_dict={}):
     num_tasks = len(args_list)
     num_tasks_returned_ptr = [0]
     mark_prog, end_prog = progress_func(max_val=num_tasks,
-                                        lbl=func.func_name + ': ')
+                                        lbl=get_funcname(func) + ': ')
     def _callback(result):
         mark_prog(num_tasks_returned_ptr[0])
         sys.stdout.flush()
@@ -142,9 +143,9 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
         chunksize = max(1, nTasks // (__POOL__._processes ** 2))
     if verbose:
         print('[parallel] executing %d %s tasks using %d processes with chunksize=%r' %
-                (nTasks, func.func_name, __POOL__._processes, chunksize))
+                (nTasks, get_funcname(func), __POOL__._processes, chunksize))
     if prog:
-        mark_prog, end_prog = progress_func(max_val=len(args_list), lbl=func.func_name + ': ')
+        mark_prog, end_prog = progress_func(max_val=len(args_list), lbl=get_funcname(func) + ': ')
     #assert isinstance(__POOL__, multiprocessing.Pool),\
     #        '%r __POOL__ = %r' % (type(__POOL__), __POOL__,)
     if ordered:
@@ -173,10 +174,10 @@ def _generate_serial(func, args_list, prog=True, verbose=True):
     """ </CYTHE> """
     if verbose:
         print('[parallel] executing %d %s tasks in serial' %
-                (len(args_list), func.func_name))
+                (len(args_list), get_funcname(func)))
     prog = prog and verbose
     if prog:
-        mark_prog, end_prog = progress_func(max_val=len(args_list), lbl=func.func_name + ': ')
+        mark_prog, end_prog = progress_func(max_val=len(args_list), lbl=get_funcname(func) + ': ')
     for count, args in enumerate(args_list):
         if prog:
             mark_prog(count)
@@ -211,7 +212,7 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
     if not force_serial_:
         ensure_pool()
     if __TIME__:
-        tt = tic(func.func_name)
+        tt = tic(get_funcname(func))
     if force_serial_ or isinstance(__POOL__, int):
         if VERBOSE and verbose:
             print('[parallel.generate] generate_serial')
@@ -233,10 +234,10 @@ def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__):
     if __POOL__ == 1 or force_serial:
         if not QUIET:
             print('[parallel] executing %d %s tasks in serial' %
-                  (len(args_list), func.func_name))
+                  (len(args_list), get_funcname(func)))
         result_list = _process_serial(func, args_list, args_dict)
     else:
         print('[parallel] executing %d %s tasks using %d processes' %
-              (len(args_list), func.func_name, __POOL__._processes))
+              (len(args_list), get_funcname(func), __POOL__._processes))
         result_list = _process_parallel(func, args_list, args_dict)
     return result_list

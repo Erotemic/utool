@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 import types
 from collections import defaultdict
 from .util_inject import inject
+from ._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[class]', DEBUG=False)
 
 
@@ -24,10 +25,10 @@ def inject_func_as_method(self, func, method_name=None):
     Input:
         self - class instance
         func - some function whos first arugment is a class instance
-        method_name - default=func.func_name, if specified renames the method
+        method_name - default=func.__name__, if specified renames the method
     """
     if method_name is None:
-        method_name = func.func_name
+        method_name = get_funcname(func)
     printDBG('Injecting method_name=%r' % method_name)
     method = types.MethodType(func, self)
     old_method = getattr(self, method_name, None)
@@ -70,7 +71,8 @@ def makeForwardingMetaclass(forwarding_dest_getter, whitelist, base_class=object
         some specific attribute references to a specified instance variable """
     class ForwardingMetaclass(base_class.__class__):
         def __init__(metaself, name, bases, dct):
-            # print('ForwardingMetaclass.__init__(): {forwarding_dest_getter: %r; whitelist: %r}' % (forwarding_dest_getter, whitelist))
+            # print('ForwardingMetaclass.__init__():
+            #  {forwarding_dest_getter: %r; whitelist: %r}' % (forwarding_dest_getter, whitelist))
             super(ForwardingMetaclass, metaself).__init__(name, bases, dict)
             old_getattr = metaself.__getattribute__
             def new_getattr(self, item):

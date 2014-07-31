@@ -43,7 +43,7 @@ def myprint(input_=None, prefix='', indent='', lbl=''):
         for item in iter(input_):
             myprint(item, indent=indent + '  ')
         print(indent + ']')
-    elif isinstance(input_, (str, unicode)):
+    elif isinstance(input_, six.string_types):
         print(input_)
     elif isinstance(input_, dict):
         print(printableVal(input_))

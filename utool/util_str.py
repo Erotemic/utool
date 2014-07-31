@@ -2,12 +2,12 @@ from __future__ import absolute_import, division, print_function
 import sys
 import six
 import textwrap
-from six.moves import map
-#from itertools import imap
+from six.moves import map, range
 from os.path import split
 import numpy as np
 from .util_inject import inject
 from .util_time import get_unix_timedelta
+from ._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[str]')
 
 
@@ -185,24 +185,27 @@ def func_str(func, args=[], kwargs={}, type_aliases=[]):
     """ string representation of function definition """
     repr_list = list_aliased_repr(args, type_aliases) + dict_aliased_repr(kwargs)
     argskwargs_str = newlined_list(repr_list, ', ', textwidth=80)
-    func_str = '%s(%s)' % (func.func_name, argskwargs_str)
+    func_str = '%s(%s)' % (get_funcname(func), argskwargs_str)
     return func_str
 
 
-def dict_itemstr_list(dict_, strvals=False):
+def dict_itemstr_list(dict_, strvals=False, sorted_=False):
+    iteritems = six.iteritems
+    fmtstr = '%r : %r'
     if strvals:
-        itemstr_iter = ('%s : %s,' % (key, val) for (key, val) in six.iteritems(dict_))
-    else:
-        itemstr_iter = ('%r : %r,' % (key, val) for (key, val) in six.iteritems(dict_))
-    return list(itemstr_iter)
+        fmtstr = '%s : %s'
+    if sorted_:
+        iteritems = lambda iter_: iter(sorted(iter_))
+    itemstr_list = [fmtstr % (key, val) for (key, val) in iteritems(dict_)]
+    return itemstr_list
 
 
 def list_str(list_):
     return '[%s\n]' % indentjoin(list_, suffix=',')
 
 
-def dict_str(dict_, strvals=False):
-    itemstr_list = dict_itemstr_list(dict_, strvals)
+def dict_str(dict_, strvals=False, sorted_=False):
+    itemstr_list = dict_itemstr_list(dict_, strvals, sorted_)
     return '{%s\n}' % indentjoin(itemstr_list)
 
 
@@ -218,7 +221,7 @@ def horiz_string(*args):
         str_list = args
     all_lines = []
     hpos = 0
-    for sx in xrange(len(str_list)):
+    for sx in range(len(str_list)):
         str_ = str(str_list[sx])
         lines = str_.split('\n')
         line_diff = len(lines) - len(all_lines)
@@ -230,7 +233,7 @@ def horiz_string(*args):
             all_lines[lx] += line
             hpos = max(hpos, len(all_lines[lx]))
         # Horizontal padding
-        for lx in xrange(len(all_lines)):
+        for lx in range(len(all_lines)):
             hpos_diff = hpos - len(all_lines[lx])
             if hpos_diff > 0:
                 all_lines[lx] += ' ' * hpos_diff
@@ -289,20 +292,29 @@ def padded_str_range(start, end):
     """ Builds a list of (end - start) strings padded with zeros """
     nDigits = np.ceil(np.log10(end))
     fmt = '%0' + str(nDigits) + 'd'
-    str_range = (fmt % num for num in xrange(start, end))
+    str_range = (fmt % num for num in range(start, end))
     return list(str_range)
 
 
-def get_func_name(func):
+def get_callable_name(func):
     """ Works on must functionlike objects including str, which has no func_name """
     try:
-        return func.func_name
+        return get_funcname(func)
     except AttributeError:
         if isinstance(func, type):
             return repr(str).replace('<type \'', '').replace('\'>', '')
         else:
-            raise NotImplementedError(('cannot get func_name of func=%r'
-                                       'type(func)=%r') % (func, type(func)))
+            builtin_function_name_dict = {
+                len:    'len',
+                zip:    'zip',
+                range:  'range',
+                map:    'map',
+            }
+            if func in builtin_function_name_dict:
+                return builtin_function_name_dict[func]
+            else:
+                raise NotImplementedError(('cannot get func_name of func=%r'
+                                           'type(func)=%r') % (func, type(func)))
 
 
 def get_freespace_str(dir_='.'):

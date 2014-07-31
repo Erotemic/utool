@@ -3,7 +3,7 @@ This module becomes nav
 """
 
 from __future__ import absolute_import, division, print_function
-from six.moves import zip, filter, filterfalse, map
+from six.moves import zip, filter, filterfalse, map, range
 import six
 from os.path import (join, basename, relpath, normpath, split, isdir, isfile,
                      exists, islink, ismount, dirname, splitext)
@@ -68,7 +68,7 @@ def path_ndir_split(path_, n, force_unix=True):
         return ''
     ndirs_list = []
     head = path_
-    for _ in xrange(n):
+    for _ in range(n):
         head, tail = split(head)
         if tail == '':
             root = head if len(ndirs_list) == 0 else head.strip('\\/')
@@ -112,7 +112,7 @@ def remove_dirs(dpath, dryrun=False, ignore_errors=True, **kwargs):
 
 def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False, verbose=True,
                         dryrun=False, ignore_errors=False, **kwargs):
-    if isinstance(fname_pattern_list, (str, unicode)):
+    if isinstance(fname_pattern_list, six.string_types):
         fname_pattern_list = [fname_pattern_list]
     if not QUIET:
         print('[path] Removing files:')
@@ -141,16 +141,17 @@ def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False, verbose=
     return True
 
 
-def delete(path, dryrun=False, recursive=True, verbose=True, ignore_errors=True, **kwargs):
+def delete(path, dryrun=False, recursive=True, verbose=True, print_exists=True, ignore_errors=True, **kwargs):
     # Deletes regardless of what the path is
+    #if verbose:
     print('[path] Deleting path=%r' % path)
-    rmargs = dict(dryrun=dryrun, recursive=recursive, verbose=verbose,
-                  ignore_errors=ignore_errors, **kwargs)
     if not exists(path):
-        msg = ('..does not exist!')
-        if not QUIET:
+        if print_exists and not QUIET:
+            msg = ('..does not exist!')
             print(msg)
         return False
+    rmargs = dict(dryrun=dryrun, recursive=recursive, verbose=verbose,
+                  ignore_errors=ignore_errors, **kwargs)
     if isdir(path):
         flag = remove_files_in_dir(path, **rmargs)
         flag = flag and remove_dirs(path, **rmargs)
@@ -402,26 +403,42 @@ def file_megabytes(fpath):
     return os.stat(fpath).st_size / (2.0 ** 20)
 
 
-def glob(dirname, pattern, recursive=False, with_files=True, with_dirs=True):
+def glob(dirname, pattern, recursive=False, with_files=True, with_dirs=True,
+         **kwargs):
     """ Globs directory for pattern """
     gen = iglob(dirname, pattern, recursive=recursive,
-                with_files=with_files, with_dirs=with_dirs)
-    return list(gen)
+                with_files=with_files, with_dirs=with_dirs,
+                **kwargs)
+    path_list = list(gen)
+    return path_list
 
 
-def iglob(dirname, pattern, recursive=False, with_files=True, with_dirs=True):
-    """ Globs directory for pattern """
-    for root, dirs, files in os.walk(dirname):
+def iglob(dirname, pattern, recursive=False, with_files=True, with_dirs=True, **kwargs):
+    """ Globs directory for pattern
+    </CYTHE:DISABLE>
+    """
+    if kwargs.get('verbose', False):  # log what i'm going to do
+        print('[util_path] glob(dirname=%r)' % truepath(dirname,))
+    nFiles = 0
+    nDirs  = 0
+    for root, dirs, files in os.walk(truepath(dirname)):
+        # yeild data
+        # print it only if you want
         if with_files:
             for fname in fnmatch.filter(files, pattern):
                 fpath = join(root, fname)
+                nFiles += 1
                 yield fpath
         if with_dirs:
             for dname in fnmatch.filter(dirs, pattern):
                 dpath = join(root, dname)
+                nDirs += 1
                 yield dpath
         if not recursive:
             break
+    if kwargs.get('verbose', False):  # log what i've done
+        nTotal = nDirs + nFiles
+        print('[util_path] Found: %d' % (nTotal))
 
 
 # --- Images ----

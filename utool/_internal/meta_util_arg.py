@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import types
+import six
 import sys
 
 
@@ -15,7 +16,7 @@ def get_arg(arg, type_=None, default=None, **kwargs):
             else:
                 try:
                     arg_after_ = sys.argv[argx + 1]
-                    if type_ in [types.BooleanType] and isinstance(arg_after_, (str, unicode)):
+                    if type_ in [types.BooleanType] and isinstance(arg_after_, six.string_types):
                         if arg_after_.lower() == 'true':
                             arg_after_ = True
                         elif arg_after_.lower() == 'false':

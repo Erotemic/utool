@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
-import six
+#import six
+from six.moves import range
 import fnmatch
 import inspect
 import traceback
@@ -8,6 +9,7 @@ import sys
 import shelve
 import textwrap
 import types
+import functools
 from os.path import splitext, split
 from . import util_inject
 from .util_arg import get_flag
@@ -16,6 +18,7 @@ from .util_list import list_eq
 from .util_print import Indenter
 from .util_str import pack_into, truncate_str, horiz_string, indent
 from .util_type import is_listlike, get_type
+from utool._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[dbg]')
 
 # --- Exec Strings ---
@@ -113,22 +116,29 @@ def execstr_dict(dict_, local_name, exclude_list=None):
     #    local_name = dict_
     #    exec(execstr_parent_locals())
     #    exec('dict_ = local_name')
-    if exclude_list is None:
-        execstr = '\n'.join((key + ' = ' + local_name + '[' + repr(key) + ']'
-                            for (key, val) in six.iteritems(dict_)))
-    else:
-        if not isinstance(exclude_list, list):
-            exclude_list = [exclude_list]
-        exec_list = []
-        for (key, val) in six.iteritems(dict_):
-            if not any((fnmatch.fnmatch(key, pat) for pat in iter(exclude_list))):
-                exec_list.append(key + ' = ' + local_name + '[' + repr(key) + ']')
-        execstr = '\n'.join(exec_list)
-    return execstr
+    try:
+        if exclude_list is None:
+            execstr = '\n'.join((key + ' = ' + local_name + '[' + repr(key) + ']'
+                                for (key, val) in dict_.items()))
+        else:
+            if not isinstance(exclude_list, list):
+                exclude_list = [exclude_list]
+            exec_list = []
+            for (key, val) in dict_.items():
+                if not any((fnmatch.fnmatch(key, pat) for pat in iter(exclude_list))):
+                    exec_list.append(key + ' = ' + local_name + '[' + repr(key) + ']')
+            execstr = '\n'.join(exec_list)
+        print(execstr)
+        return execstr
+    except Exception as ex:
+        import utool
+        locals_ = locals()
+        print(utool.printex(ex, key_list=['locals_']))
+        raise
 
 
 def execstr_func(func):
-    print(' ! Getting executable source for: ' + func.func_name)
+    print(' ! Getting executable source for: ' + get_funcname(func))
     _src = inspect.getsource(func)
     execstr = textwrap.dedent(_src[_src.find(':') + 1:])
     # Remove return statments
@@ -308,7 +318,7 @@ def search_stack_for_var(varname):
 def get_stack_frame(N=0):
     frame_level0 = inspect.currentframe()
     frame_cur = frame_level0
-    for _ix in xrange(N + 1):
+    for _ix in range(N + 1):
         frame_next = frame_cur.f_back
         if frame_next is None:
             raise AssertionError('Frame level %r is root' % _ix)
@@ -357,7 +367,7 @@ def get_caller_name(N=0):
     caller_name = parent_frame.f_code.co_name
     #try:
     #    if 'func' in  parent_frame.f_locals:
-    #        caller_name += '(' + parent_frame.f_locals['func'].func_name + ')'
+    #        caller_name += '(' + get_funcname(parent_frame.f_locals['func']) + ')'
     #except Exception:
     #    pass
     if caller_name == '<module>':
@@ -512,14 +522,14 @@ def debug_vstack(stacktup):
 
 
 def debug_exception(func):
+    @functools.wraps(func)
     def ex_wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
         except Exception as ex:
-            print('[tools] ERROR: %s(%r, %r)' % (func.func_name, args, kwargs))
+            print('[tools] ERROR: %s(%r, %r)' % (get_funcname(func), args, kwargs))
             print('[tools] ERROR: %r' % ex)
             raise
-    ex_wrapper.func_name = func.func_name
     return ex_wrapper
 
 
@@ -573,15 +583,14 @@ def formatex(ex, msg='[!?] Caught exception',
 
 def parse_locals_keylist(locals_, key_list, strlist_, prefix):
     """ For each key in keylist, puts its value in locals into a stringlist """
-    from .util_str import get_func_name
+    from .util_str import get_callable_name
     for key in key_list:
         if isinstance(key, tuple):
-            func = key[0]
-            key = key[1]
-            assert key in locals_
-            val = locals_[key]
+            func, key_ = key
+            assert key_ in locals_, 'key=%r not in locals' % (key_,)
+            val = locals_[key_]
             funcvalstr = str(func(val))
-            strlist_.append('%s %s(%s) = %s' % (prefix, get_func_name(func), key, funcvalstr))
+            strlist_.append('%s %s(%s) = %s' % (prefix, get_callable_name(func), key_, funcvalstr))
         elif key in locals_:
             valstr = truncate_str(repr(locals_[key]), maxlen=200)
             strlist_.append('%s %s = %s' % (prefix, key, valstr))
