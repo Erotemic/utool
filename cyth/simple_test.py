@@ -33,6 +33,7 @@ print('Cyth Visit Simple')
 
 visitor = CythVisitor()
 visitor.visit(pt)
+print('---------------------')
 print(visitor.get_result())
 
 
@@ -54,6 +55,7 @@ print('---------------------')
 print('Cyth Visit Complex 2')
 visitor2 = CythVisitor()
 visitor2.visit(parse_tree)
-#print(visitor2.get_result())
+print('---------------------')
+print(visitor2.get_result())
 
 #print(astor.to_source(parse_tree))

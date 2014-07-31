@@ -29,6 +29,10 @@ BASE_CLASS = astor.codegen.SourceGenerator
 # https://github.com/berkerpeksag/astor/blob/master/astor/codegen.py
 
 
+def is_docstring(node):
+    return isinstance(node, ast.Expr) and isinstance(node.value, ast.Str)
+
+
 class CythVisitor(BASE_CLASS):
     indent_level = 0
     emit = sys.stdout.write
@@ -112,6 +116,17 @@ class CythVisitor(BASE_CLASS):
                 typedict[varstr] = type_
         return typedict
 
+    def visit_Module(self, node):
+        for subnode in node.body:
+            if is_docstring(subnode):
+                print('Encountered global docstring: %s' % repr(subnode.value.s))
+                self.visit(subnode) # temporary, should parse these for cyth markup next
+            elif isinstance(subnode, ast.FunctionDef):
+                self.visit(subnode)
+            else:
+                print('Skipping a global %r' % subnode.__class__)
+        #return BASE_CLASS.visit_Module(self, node)
+
     def visit_FunctionDef(self, node):
         #super(CythVisitor, self).visit_FunctionDef(node)
         has_cython = False
@@ -121,7 +136,7 @@ class CythVisitor(BASE_CLASS):
         typedict = {}
         cyth_def = ''
         for stmt in node.body:
-            if isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Str):
+            if is_docstring(stmt):
                 #print('found comment_str')
                 comment_str = stmt.value.s.strip()
                 if comment_str.startswith('<CYTH'):
