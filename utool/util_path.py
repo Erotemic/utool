@@ -403,26 +403,42 @@ def file_megabytes(fpath):
     return os.stat(fpath).st_size / (2.0 ** 20)
 
 
-def glob(dirname, pattern, recursive=False, with_files=True, with_dirs=True):
+def glob(dirname, pattern, recursive=False, with_files=True, with_dirs=True,
+         **kwargs):
     """ Globs directory for pattern """
     gen = iglob(dirname, pattern, recursive=recursive,
-                with_files=with_files, with_dirs=with_dirs)
-    return list(gen)
+                with_files=with_files, with_dirs=with_dirs,
+                **kwargs)
+    path_list = list(gen)
+    return path_list
 
 
-def iglob(dirname, pattern, recursive=False, with_files=True, with_dirs=True):
-    """ Globs directory for pattern """
-    for root, dirs, files in os.walk(dirname):
+def iglob(dirname, pattern, recursive=False, with_files=True, with_dirs=True, **kwargs):
+    """ Globs directory for pattern
+    </CYTHE:DISABLE>
+    """
+    if kwargs.get('verbose', False):  # log what i'm going to do
+        print('[util_path] glob(dirname=%r)' % truepath(dirname,))
+    nFiles = 0
+    nDirs  = 0
+    for root, dirs, files in os.walk(truepath(dirname)):
+        # yeild data
+        # print it only if you want
         if with_files:
             for fname in fnmatch.filter(files, pattern):
                 fpath = join(root, fname)
+                nFiles += 1
                 yield fpath
         if with_dirs:
             for dname in fnmatch.filter(dirs, pattern):
                 dpath = join(root, dname)
+                nDirs += 1
                 yield dpath
         if not recursive:
             break
+    if kwargs.get('verbose', False):  # log what i've done
+        nTotal = nDirs + nFiles
+        print('[util_path] Found: %d' % (nTotal))
 
 
 # --- Images ----

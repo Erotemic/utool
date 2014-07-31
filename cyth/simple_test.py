@@ -32,7 +32,8 @@ print('---------------------')
 print('Cyth Visit Simple')
 
 visitor = CythVisitor()
-print(visitor.visit(pt))
+visitor.visit(pt)
+print(visitor.get_result())
 
 
 # More complicated test

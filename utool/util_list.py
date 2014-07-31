@@ -8,7 +8,7 @@ import sys
 from six.moves import zip, map, zip_longest, range
 from .util_iter import iflatten, isiterable, ifilter_Nones, ifilter_items, ifilterfalse_items
 from .util_inject import inject
-from .util_str import get_func_name
+from .util_str import get_callable_name
 from ._internal.meta_util_six import get_funcname, set_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[list]')
 
@@ -433,7 +433,7 @@ def partial_imap_1to1(func, si_func):
             return func(si_func(input_))
         else:
             return list(map(func, si_func(input_)))
-    set_funcname(wrapper, get_func_name(func) + '_mapper_' + get_funcname(si_func))
+    set_funcname(wrapper, get_callable_name(func) + '_mapper_' + get_funcname(si_func))
     return wrapper
 
 
