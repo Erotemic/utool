@@ -63,6 +63,8 @@ def path_ndir_split(path_, n, force_unix=True):
                 result.append('n=%r: %r' % (n, path_ndir_split(path_, n)))
         print('\n'.join(result))
     """
+    if n is None:
+        return path_
     sep = '/' if force_unix else os.sep
     if n == 0:
         return ''
@@ -189,8 +191,9 @@ def longest_existing_path(_path):
     return _path
 
 
-def checkpath(path_, verbose=VERYVERBOSE, n=2, info=VERYVERBOSE):
+def checkpath(path_, verbose=VERYVERBOSE, n=None, info=VERYVERBOSE):
     """ returns true if path_ exists on the filesystem
+    show only the top n directories
     </CYTH> """
     path_ = normpath(path_)
     if verbose:
