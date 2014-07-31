@@ -172,6 +172,14 @@ def presetup(setup_fpath, kwargs):
         # Chmod files
         if arg in ['chmod']:
             setup_chmod(setup_fpath, setup_dir, chmod_patterns)
+    try:
+        # SUPER HACK
+        # aliases bext to build_ext --inplace
+        sys.argv.remove('bext')
+        sys.argv.append('build_ext')
+        sys.argv.append('--inplace')
+    except ValueError:
+        pass
 
 
 presetup_commands = presetup  # TODO:
