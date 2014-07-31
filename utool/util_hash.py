@@ -184,7 +184,7 @@ def hashable_to_uuid(hashable_):
     """
     # Hash the bytes
     try:
-        print('hashable_=%r' % (hashable_,))
+        #print('hashable_=%r' % (hashable_,))
         if six.PY3:
             # If hashable_ is text (python3)
             if isinstance(hashable_, bytes):
