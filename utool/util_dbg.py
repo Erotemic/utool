@@ -528,7 +528,7 @@ def debug_exception(func):
 
 def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
             locals_=None, iswarning=False, tb=False, separate=False, N=0,
-            use_stdout=False):
+            use_stdout=False, reraise=False):
     """ Prints an exception with relevant info """
     # Get error prefix and local info
     if prefix is None:
@@ -537,6 +537,7 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
         locals_ = get_caller_locals(N=N)
     # build exception message
     exstr = formatex(ex, msg, prefix, key_list, locals_, iswarning, tb=tb)
+    # get requested print function
     if use_stdout:
         def print_func(*args):
             msg = ', '.join(map(str, args))
@@ -546,11 +547,14 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
         print_func = print
     if separate:
         print_func('\n\n\n')
+    # print the execption
     print_func(exstr)
     if separate:
         print_func('\n\n\n')
     # If you dont know where an error is coming from be super-strict
-    if SUPER_STRICT:
+    if SUPER_STRICT or (reraise and not iswarning):
+        sys.stdout.flush()
+        sys.stderr.flush()
         raise ex
 
 
