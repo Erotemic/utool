@@ -7,6 +7,7 @@ cyth_script.py "~/code/vtool/vtool"
 
 """
 from __future__ import absolute_import, division, print_function
+from six.moves import zip, map, range
 import utool
 import sys
 from os.path import splitext, isfile
@@ -143,6 +144,7 @@ class CythVisitor(BASE_CLASS):
             else:
                 new_body.append(stmt)
         if has_cython:
+            cyth_def_body = utool.unindent(cyth_def).split('\n')
             if not replace:
                 #self.decorators(node, 2)
                 self.newline(extra=1)
@@ -152,7 +154,10 @@ class CythVisitor(BASE_CLASS):
                 if getattr(node, 'returns', None) is not None:
                     self.write(' ->', node.returns)
                 self.write(':')
-                self.write(cyth_def)
+                self.indentation += 1
+                for s in cyth_def_body:
+                    self.write('\n', s)
+                self.indentation -= 1
                 self.body(new_body)
             else:
                 self.newline(extra=1)
