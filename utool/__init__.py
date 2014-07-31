@@ -219,7 +219,7 @@ else:
                             assert_unflat_level, deterministic_shuffle,
                             ensure_list_size, filter_Nones, filter_items,
                             filterfalse_items, flag_unique_items, flatten,
-                            flattenize, get_dirty_items, get_func_name,
+                            flattenize, get_dirty_items, get_callable_name,
                             get_list_column, inbounds, index_of, intersect2d,
                             intersect2d_numpy, intersect_ordered,
                             invertable_flatten, list_getat, list_index,

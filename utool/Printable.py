@@ -91,6 +91,7 @@ class AbstractPrintable(__BASE_CLASS__):
 
 
 def npArrInfo(arr):
+    # Move to util_dev
     from .DynamicStruct import DynStruct
     info = DynStruct()
     info.shapestr  = '[' + ' x '.join([str(x) for x in arr.shape]) + ']'
@@ -111,6 +112,7 @@ def npArrInfo(arr):
 
 # - --------------
 def printableType(val, name=None, parent=None):
+    # Move to util_dev
     if hasattr(parent, 'customPrintableType'):
         # Hack for non - trivial preference types
         _typestr = parent.customPrintableType(name)
@@ -131,6 +133,7 @@ def printableType(val, name=None, parent=None):
 
 
 def printableVal(val, type_bit=True, justlength=False):
+    # Move to util_dev
     # NUMPY ARRAY
     if type(val) is np.ndarray:
         info = npArrInfo(val)
@@ -167,6 +170,7 @@ def printableVal(val, type_bit=True, justlength=False):
 
 
 def common_stats(_list, newlines=False):
+    # Move to util_dev
     stat_dict = mystats(_list)
     stat_strs = ['%r: %s' % (key, val) for key, val in six.iteritems(stat_dict)]
     if newlines:
@@ -183,9 +187,16 @@ def common_stats(_list, newlines=False):
 
 
 def mystats(_list):
+    # Move to util_dev
+    if isinstance(_list, np.ndarray):
+        nparr = _list
+    elif isinstance(_list, list):
+        nparr = np.array(_list)
+    else:
+        _list = list(_list)
+        nparr = np.array(_list)
     if len(_list) == 0:
         return {'empty_list': True}
-    nparr = np.array(_list)
     min_val = nparr.min()
     max_val = nparr.max()
     nMin = np.sum(nparr == min_val)  # number of entries with min val

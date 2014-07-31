@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-import six
+#import six
 from six.moves import range
 import fnmatch
 import inspect
@@ -116,18 +116,25 @@ def execstr_dict(dict_, local_name, exclude_list=None):
     #    local_name = dict_
     #    exec(execstr_parent_locals())
     #    exec('dict_ = local_name')
-    if exclude_list is None:
-        execstr = '\n'.join((key + ' = ' + local_name + '[' + repr(key) + ']'
-                            for (key, val) in six.iteritems(dict_)))
-    else:
-        if not isinstance(exclude_list, list):
-            exclude_list = [exclude_list]
-        exec_list = []
-        for (key, val) in six.iteritems(dict_):
-            if not any((fnmatch.fnmatch(key, pat) for pat in iter(exclude_list))):
-                exec_list.append(key + ' = ' + local_name + '[' + repr(key) + ']')
-        execstr = '\n'.join(exec_list)
-    return execstr
+    try:
+        if exclude_list is None:
+            execstr = '\n'.join((key + ' = ' + local_name + '[' + repr(key) + ']'
+                                for (key, val) in dict_.items()))
+        else:
+            if not isinstance(exclude_list, list):
+                exclude_list = [exclude_list]
+            exec_list = []
+            for (key, val) in dict_.items():
+                if not any((fnmatch.fnmatch(key, pat) for pat in iter(exclude_list))):
+                    exec_list.append(key + ' = ' + local_name + '[' + repr(key) + ']')
+            execstr = '\n'.join(exec_list)
+        print(execstr)
+        return execstr
+    except Exception as ex:
+        import utool
+        locals_ = locals()
+        print(utool.printex(ex, key_list=['locals_']))
+        raise
 
 
 def execstr_func(func):
@@ -576,15 +583,14 @@ def formatex(ex, msg='[!?] Caught exception',
 
 def parse_locals_keylist(locals_, key_list, strlist_, prefix):
     """ For each key in keylist, puts its value in locals into a stringlist """
-    from .util_str import get_func_name
+    from .util_str import get_callable_name
     for key in key_list:
         if isinstance(key, tuple):
-            func = key[0]
-            key = key[1]
-            assert key in locals_
-            val = locals_[key]
+            func, key_ = key
+            assert key_ in locals_, 'key=%r not in locals' % (key_,)
+            val = locals_[key_]
             funcvalstr = str(func(val))
-            strlist_.append('%s %s(%s) = %s' % (prefix, get_func_name(func), key, funcvalstr))
+            strlist_.append('%s %s(%s) = %s' % (prefix, get_callable_name(func), key_, funcvalstr))
         elif key in locals_:
             valstr = truncate_str(repr(locals_[key]), maxlen=200)
             strlist_.append('%s %s = %s' % (prefix, key, valstr))
