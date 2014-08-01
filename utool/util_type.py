@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import sys
+import six
 # Science
 import numpy as np
 import functools
@@ -117,7 +118,7 @@ def is_float(var):
 
 
 def is_str(var):
-    return isinstance(var, (str, unicode))
+    return isinstance(var, six.string_types)
     #return is_type(var, VALID_STRING_TYPES)
 
 
@@ -132,11 +133,14 @@ def is_dict(var):
 def is_list(var):
     return isinstance(var, list)
 
+
 def is_listlike(var):
     return isinstance(var, (list, tuple, np.ndarray))
 
+
 def is_tuple(var):
     return isinstance(var, tuple)
+
 
 def type_str(type_):
     return str(type_).replace('<type \'', '').replace('\'>', '')

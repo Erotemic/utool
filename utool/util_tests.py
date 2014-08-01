@@ -46,6 +46,7 @@ def run_test(func, *args, **kwargs):
     upper_funcname = get_funcname(func).upper()
     with util_print.Indenter('[' + upper_funcname + ']'):
         try:
+            printTEST('[TEST.BEGIN] %s ' % (sys.executable))
             printTEST('[TEST.BEGIN] %s ' % (get_funcname(func),))
             with util_time.Timer(upper_funcname) as timer:
                 test_locals = func(*args, **kwargs)

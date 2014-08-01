@@ -264,7 +264,23 @@ class Pref(PrefNode):
         #print(self._internal.name)
         #print(self._tree)
         try:
-            return super(PrefNode, self).__getitem__[name]
+            if six.PY2:
+                return super(PrefNode, self).__getitem__[name]
+            else:
+                try:
+                    base_self1 = super(PrefNode, self)
+                    #base_self2 = super(DynStruct, self)
+                    #base_self3 = super()
+                    #import utool
+                    #utool.embed()
+                    return base_self1[name]
+                except Exception as ex:
+                    print(ex)
+                    print('base_self1 = %r' % (base_self1,))
+                    #print('base_self2 = %r' % (base_self2,))
+                    #print('base_self3 = %r' % (base_self3,))
+                    print('name = %r' % (name,))
+                    raise
         except Exception:
             raise
             #msg = '\n' + '\n'.join([
@@ -277,6 +293,20 @@ class Pref(PrefNode):
             #raise AttributeError(msg)
 
     def iteritems(self):
+        """
+        Wow this class is messed up. I had to overwrite items when
+        moving to python3, just because I haden't called it yet
+        """
+        for (key, val) in six.iteritems(self.__dict__):
+            if key in self._printable_exclude:
+                continue
+            yield (key, val)
+
+    def items(self):
+        """
+        Wow this class is messed up. I had to overwrite items when
+        moving to python3, just because I haden't called it yet
+        """
         for (key, val) in six.iteritems(self.__dict__):
             if key in self._printable_exclude:
                 continue

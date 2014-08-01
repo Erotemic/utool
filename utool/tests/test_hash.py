@@ -7,7 +7,7 @@ bytes.decode: data -> text
 import utool
 import six
 from os.path import join
-import uuid
+#import uuid
 
 
 lorium_text = '''
