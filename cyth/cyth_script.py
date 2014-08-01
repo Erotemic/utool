@@ -131,32 +131,25 @@ class CythVisitor(BASE_CLASS):
         comment_str = docstr.strip()
         has_markup = comment_str.find('<CYTH') != -1
         # type returned_action = [`defines of string * (string, string) Hashtbl.t | `replace of string] option
-        defines = False
-        replace = False
-        typedict = {}
-        cyth_def = ''
+        tags_to_actions = [
+            ('<CYTH>', lambda cyth_def: ('defines', cyth_def, self.parse_cythdef(cyth_def))),
+            ('<CYTH:REPLACE>', lambda cyth_def: ('replace', utool.unindent(cyth_def))),
+        ]
+        end_tag = '</CYTH>'
+        regex_flags = re.DOTALL | re.MULTILINE
+        regex_to_actions = [(re.compile(tag + '(.*?)' + end_tag, regex_flags), act)
+                            for tag, act in tags_to_actions]
         if has_markup:
-            def_tag = '<CYTH>'
-            end_tag = '</CYTH>'
-            repl_tag = '<CYTH:REPLACE>'
-            regex_flags = re.DOTALL | re.MULTILINE
-            def_regex = re.compile(def_tag + '(.*)' + end_tag, regex_flags)
-            repl_regex = re.compile(repl_tag + '(.*)' + end_tag, regex_flags)
-            match = def_regex.search(comment_str)
-            if match:
-                cyth_def = match.group(1)
-                defines = True
-            match = repl_regex.search(comment_str)
-            if match:
-                cyth_def = match.group(1)
-                replace = True
-            #print('cyth_def: %r' % cyth_def)
-            if replace or toplevel:
-                cyth_def = utool.unindent(cyth_def)
-                return ('replace', cyth_def)
-            if defines:
-                typedict = self.parse_cythdef(cyth_def)
-                return ('defines', cyth_def, typedict)
+            if toplevel:
+                comment_str = re.sub('<CYTH>', '<CYTH:REPLACE>', comment_str)
+            for (regex, action) in regex_to_actions:
+                match = regex.search(comment_str)
+                if match:
+                    cyth_def = match.group(1)
+                    return action(cyth_def)
+            utool.printex(NotImplementedError('no known cyth tag in docstring'),
+                           iswarning=True,
+                           key_list=['comment_str'])
         return None
 
     def visit_Module(self, node):
