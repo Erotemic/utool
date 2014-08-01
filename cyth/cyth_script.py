@@ -57,6 +57,7 @@ class CythVisitor(BASE_CLASS):
         return processed_argslist
 
     def signature(self, node, typedict={}):
+        types_minus_sigtypes = typedict.copy()
         want_comma = []
 
         def write_comma():
@@ -70,6 +71,7 @@ class CythVisitor(BASE_CLASS):
             for arg, default in zip(args, padding + defaults):
                 if arg.id in typedict:
                     arg_ = typedict[arg.id] + ' ' + arg.id
+                    types_minus_sigtypes.pop(arg.id)
                 else:
                     arg_ = arg
                 self.write(write_comma, arg_)
@@ -84,6 +86,7 @@ class CythVisitor(BASE_CLASS):
             if node.vararg is None:
                 self.write(write_comma, '*')
             loop_args(kwonlyargs, node.kw_defaults)
+        return types_minus_sigtypes
 
     def parse_cythdef(self, cyth_def):
         """ Hacky string manipulation parsing """
@@ -117,6 +120,13 @@ class CythVisitor(BASE_CLASS):
                 typedict[varstr] = type_
         return typedict
 
+    def typedict_to_cythdef(self, typedict):
+        res = ['cdef:']
+        for (id_, type_) in typedict.iteritems():
+            #print("%s, %s" % (repr(id_), repr(type_)))
+            res.append(self.indent_with + type_ + ' ' + id_)
+        return res
+
     def parse_cyth_markup(self, docstr, toplevel=False):
         comment_str = docstr.strip()
         has_markup = comment_str.find('<CYTH') != -1
@@ -126,41 +136,33 @@ class CythVisitor(BASE_CLASS):
         typedict = {}
         cyth_def = ''
         if has_markup:
-            #print('func: %s has cyth tags' % (node.name,))
             def_tag = '<CYTH>'
             end_tag = '</CYTH>'
             repl_tag = '<CYTH:REPLACE>'
             regex_flags = re.DOTALL | re.MULTILINE
             def_regex = re.compile(def_tag + '(.*)' + end_tag, regex_flags)
             repl_regex = re.compile(repl_tag + '(.*)' + end_tag, regex_flags)
-#            if comment_str.find(def_tag) != -1:
-#                start_tag = def_tag
             match = def_regex.search(comment_str)
             if match:
                 cyth_def = match.group(1)
                 defines = True
-#            elif comment_str.find(repl_tag) != -1:
-#                start_tag = repl_tag
             match = repl_regex.search(comment_str)
             if match:
                 cyth_def = match.group(1)
                 replace = True
-            #cyth_def = comment_str.replace(start_tag, '').replace(end_tag, '')
-            print('cyth def: %r' % cyth_def)
+            #print('cyth_def: %r' % cyth_def)
             if replace or toplevel:
                 cyth_def = utool.unindent(cyth_def)
                 return ('replace', cyth_def)
             if defines:
                 typedict = self.parse_cythdef(cyth_def)
                 return ('defines', cyth_def, typedict)
-        #return has_markup, defines, replace, typedict, cyth_def
         return None
 
     def visit_Module(self, node):
         for subnode in node.body:
             if is_docstring(subnode):
                 print('Encountered global docstring: %s' % repr(subnode.value.s))
-                #self.visit(subnode) # temporary, should parse these for cyth markup next
                 action = self.parse_cyth_markup(subnode.value.s, toplevel=True)
                 if action:
                     if action[0] == 'replace':
@@ -188,11 +190,11 @@ class CythVisitor(BASE_CLASS):
             if cyth_action[0] == 'defines':
                 cyth_def = cyth_action[1]
                 typedict = cyth_action[2]
-                cyth_def_body = utool.unindent(cyth_def).split('\n')
                 #self.decorators(node, 2)
                 self.newline(extra=1)
                 self.statement(node, 'def %s(' % node.name)
-                self.signature(node.args, typedict=typedict)
+                types_minus_sigtypes = self.signature(node.args, typedict=typedict)
+                cyth_def_body = self.typedict_to_cythdef(types_minus_sigtypes)
                 self.write(')')
                 if getattr(node, 'returns', None) is not None:
                     self.write(' ->', node.returns)
