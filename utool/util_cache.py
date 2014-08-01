@@ -3,6 +3,7 @@ import shelve
 #import atexit
 import sys
 from os.path import join, normpath
+from .util_arg import SUPER_STRICT
 from . import util_inject
 from . import util_hash
 from . import util_path
@@ -30,7 +31,14 @@ def text_dict_write(fpath, key, val):
         dict_text = util_io.read_from(fpath)
     except IOError:
         dict_text = '{}'
-    dict_ = eval(dict_text)
+    try:
+        dict_ = eval(dict_text)
+    except SyntaxError:
+        print('Bad Syntax:')
+        print(dict_text)
+        dict_ = {}
+        if SUPER_STRICT:
+            raise
     dict_[key] = val
     dict_text2 = util_str.dict_str(dict_, strvals=False)
     if VERBOSE:

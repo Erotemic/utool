@@ -26,7 +26,7 @@ def read_from(fpath, verbose=__PRINT_READS__, strict=True):
     if verbose:
         print('[io] * Reading text file: %r ' % util_path.tail(fpath))
     try:
-        if not util_path.checkpath(fpath, verbose=verbose):
+        if not util_path.checkpath(fpath, verbose=verbose, n=3):
             raise IOError('[io] * FILE DOES NOT EXIST!')
         with open(fpath, 'r') as file_:
             text = file_.read()

@@ -191,9 +191,9 @@ def func_str(func, args=[], kwargs={}, type_aliases=[]):
 
 def dict_itemstr_list(dict_, strvals=False, sorted_=False):
     iteritems = six.iteritems
-    fmtstr = '%r : %r'
+    fmtstr = '%r: %r,'
     if strvals:
-        fmtstr = '%s : %s'
+        fmtstr = '%s: %s,'
     if sorted_:
         iteritems = lambda iter_: iter(sorted(iter_))
     itemstr_list = [fmtstr % (key, val) for (key, val) in iteritems(dict_)]
@@ -205,6 +205,8 @@ def list_str(list_):
 
 
 def dict_str(dict_, strvals=False, sorted_=False):
+    """ returns a human-readable and execable string representation of a
+    dictionary """
     itemstr_list = dict_itemstr_list(dict_, strvals, sorted_)
     return '{%s\n}' % indentjoin(itemstr_list)
 
@@ -213,7 +215,19 @@ def horiz_string(*args):
     """
     prints a list of objects ensuring that the next item in the list
     is all the way to the right of any previous items.
-    str_list = ['A = ', str(np.array(((1,2),(3,4)))), ' * ', str(np.array(((1,2),(3,4))))]
+    >>> # Pretty printing of matrices demo / test
+    >>> import utool
+    >>> import numpy as np
+    >>> # Wouldn't it be nice if we could print this operation easilly?
+    >>> B = np.array(((1, 2), (3, 4)))
+    >>> C = np.array(((5, 6), (7, 8)))
+    >>> A = B.dot(C)
+    >>> # Eg 1:
+    >>> str_list = ['A = ', str(B), ' * ', str(C)]
+    >>> horizstr = (utool.horiz_string(*str_list))
+    >>> print(horizstr)
+    >>> # Eg 2:
+    >>> print(utool.hz_str('A = ', A, ' = ', B, ' * ', C))
     """
     if len(args) == 1 and not isinstance(args[0], str):
         str_list = args[0]
@@ -239,6 +253,9 @@ def horiz_string(*args):
                 all_lines[lx] += ' ' * hpos_diff
     ret = '\n'.join(all_lines)
     return ret
+
+# Alias
+hz_str = horiz_string
 
 
 def listinfo_str(list_):

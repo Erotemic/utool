@@ -8,11 +8,13 @@ import numpy as np
 import sys
 import shelve
 import textwrap
+import keyword
+import re
 import types
 import functools
 from os.path import splitext, split
 from . import util_inject
-from .util_arg import get_flag
+from .util_arg import get_flag, SUPER_STRICT
 from .util_inject import inject
 from .util_list import list_eq
 from .util_print import Indenter
@@ -32,8 +34,6 @@ except Exception as ex:
     warnings.warn(repr(ex)+'\n!!!!!!!!')
     embedded = False
 '''
-
-SUPER_STRICT = '--super-strict' in sys.argv
 
 
 def execstr_embed():
@@ -110,6 +110,20 @@ def execstr_attr_list(obj_name, attr_list=None):
     return execstr_list
 
 
+varname_regex = re.compile('[_A-Za-z][_a-zA-Z0-9]*$')
+
+
+def is_valid_varname(varname):
+    """ Checks syntax and validity of a variable name """
+    if not isinstance(varname, str):
+        return False
+    match_obj = re.match(varname_regex, varname)
+    valid_syntax = match_obj is not None
+    valid_name = not keyword.iskeyword(varname)
+    isvalid = valid_syntax and valid_name
+    return isvalid
+
+
 def execstr_dict(dict_, local_name, exclude_list=None):
     """ returns execable python code that declares variables using keys and values """
     #if local_name is None:
@@ -129,6 +143,8 @@ def execstr_dict(dict_, local_name, exclude_list=None):
         assert isinstance(dict_, dict), 'incorrect type type(dict_)=%r, dict_=%r' % (type(dict), dict_)
         for (key, val) in dict_.items():
             assert isinstance(key, str), 'keys must be strings'
+            if not is_valid_varname(key):
+                continue
             if not any((fnmatch.fnmatch(key, pat) for pat in exclude_list)):
                 expr = '%s = %s[%r]' % (key, local_name, key)
                 expr_list.append(expr)

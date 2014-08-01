@@ -37,7 +37,7 @@ def __execute_fromimport_star(module, module_name, IMPORT_TUPLES):
     # Explicitly ignore these special functions (usually stdlib functions)
     ignoreset = set(['print', 'print_', 'printDBG', 'rrr', 'profile',
                      'print_function', 'absoulte_import', 'division', 'zip',
-                     'map', 'list', 'zip_longest', 'filter', 'filterfalse',
+                     'map', 'range', 'list', 'zip_longest', 'filter', 'filterfalse',
                      'dirname', 'realpath', 'join', 'exists', 'normpath',
                      'splitext', 'expanduser', 'relpath', 'isabs',
                      'commonprefix', 'basename' ])
@@ -132,7 +132,10 @@ def _make_fromimport_str(FROM_IMPORTS):
         name, fromlist = tup[0], tup[1]
         from_module_str = 'from .%s import (' % name
         newline_prefix = (' ' * len(from_module_str))
-        rawstr = from_module_str + ', '.join(fromlist) + ',)'
+        if len(fromlist) > 0:
+            rawstr = from_module_str + ', '.join(fromlist) + ',)'
+        else:
+            rawstr = ''
         packstr = util_str.pack_into(rawstr, textwidth=80,
                                      newline_prefix=newline_prefix)
         return packstr

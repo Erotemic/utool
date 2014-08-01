@@ -16,6 +16,7 @@ VERBOSE = '--verbose' in sys.argv
 VERYVERBOSE = '--very-verbose' in sys.argv or '-veryverbose' in sys.argv
 STRICT = '--nostrict' not in sys.argv
 USE_ASSERT = not ('--no-assert' in sys.argv)
+SUPER_STRICT = '--super-strict' in sys.argv
 
 
 #from ._internal.meta_util_arg import get_arg
