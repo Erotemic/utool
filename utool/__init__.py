@@ -58,6 +58,7 @@ if __DYNAMIC__:
         ('util_list',      ['alloc_lists', 'list_index', 'npfind', 'index_of',
                             'flatten']),
         ('util_num',       None),
+        ('util_numpy',       None),
         ('util_path',      ['checkpath', 'ensuredir', 'assertpath', 'truepath',
                             'list_images', 'copy', 'glob', 'grep']),
         ('util_print',     ['horiz_print', 'printshape', 'Indenter']),
@@ -104,6 +105,7 @@ else:
     from . import util_logging
     from . import util_list
     from . import util_num
+    from . import util_numpy
     from . import util_path
     from . import util_print
     from . import util_progress
@@ -219,21 +221,20 @@ else:
                                get_log_fpath, get_logging_dir, logdir_cacheid, 
                                start_logging, stop_logging,) 
     from .util_list import (alloc_lists, alloc_nones, assert_all_not_None, 
-                            assert_unflat_level, deterministic_shuffle, 
-                            ensure_list_size, filter_Nones, filter_items, 
-                            filterfalse_items, flag_unique_items, flatten, 
-                            flattenize, get_callable_name, get_dirty_items, 
-                            get_list_column, inbounds, index_of, intersect2d, 
-                            intersect2d_numpy, intersect_ordered, 
-                            invertable_flatten, list_getat, list_index, 
-                            list_replace, listfind, npfind, partial_imap_1to1, 
-                            random_indexes, safe_listget, safe_slice, sample_zip, 
-                            scalar_input_map, sortedby, spaced_indexes, 
-                            spaced_items, tiled_range, tuplize, unflatten, 
-                            unique_keep_order2, unique_ordered, unique_unordered,) 
+                            assert_unflat_level, ensure_list_size, filter_Nones, 
+                            filter_items, filterfalse_items, flag_unique_items, 
+                            flatten, flattenize, get_callable_name, get_dirty_items, 
+                            get_list_column, intersect_ordered, invertable_flatten, 
+                            list_getat, list_replace, listfind, partial_imap_1to1, 
+                            safe_listget, safe_slice, sample_zip, scalar_input_map, 
+                            sortedby, tuplize, unflatten, unique_keep_order2, 
+                            unique_ordered, unique_unordered,) 
     from .util_num import (commas, fewest_digits_float_str, float_to_decimal, 
                            format_, int_comma_str, num2_sigfig, num_fmt, 
                            order_of_magnitude_ceil, sigfig_str,) 
+    from .util_numpy import (deterministic_shuffle, inbounds, index_of, intersect2d, 
+                             intersect2d_numpy, list_index, npfind, random_indexes, 
+                             spaced_indexes, spaced_items, tiled_range,) 
     from .util_path import (IMG_EXTENSIONS, append_suffixlist_to_namelist, 
                             assert_exists, assertpath, basename_noext, checkpath, 
                             copy, copy_all, copy_list, copy_task, delete, dirsplit, 
@@ -321,6 +322,7 @@ else:
         getattr(util_logging, 'rrr', lambda: None)()
         getattr(util_list, 'rrr', lambda: None)()
         getattr(util_num, 'rrr', lambda: None)()
+        getattr(util_numpy, 'rrr', lambda: None)()
         getattr(util_path, 'rrr', lambda: None)()
         getattr(util_print, 'rrr', lambda: None)()
         getattr(util_progress, 'rrr', lambda: None)()

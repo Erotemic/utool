@@ -1,9 +1,4 @@
-"""
-This file has helpers for both lists and numpy arrays
-TODO: Move numpy arrays helpers elsewhere
-"""
 from __future__ import absolute_import, division, print_function
-import numpy as np
 import sys
 from six.moves import zip, map, zip_longest, range
 from .util_iter import iflatten, isiterable, ifilter_Nones, ifilter_items, ifilterfalse_items
@@ -35,18 +30,6 @@ def ensure_list_size(list_, size_):
         list_.extend(extension)
 
 
-def tiled_range(range_, cols):
-    return np.tile(np.arange(range_), (cols, 1)).T
-    #np.tile(np.arange(num_qf).reshape(num_qf, 1), (1, k_vsmany))
-
-
-def random_indexes(max_index, subset_size):
-    subst_ = np.arange(0, max_index)
-    np.random.shuffle(subst_)
-    subst = subst_[0:min(subset_size, max_index)]
-    return subst
-
-
 # --- List Searching --- #
 
 def get_list_column(list_, colx):
@@ -66,34 +49,11 @@ def safe_listget(list_, index, default='?'):
     return ret
 
 
-def list_index(search_list, to_find_list):
-    """ Keep this function
-    Searches search_list for each element in to_find_list"""
-    try:
-        toret = [np.where(search_list == item)[0][0] for item in to_find_list]
-    except IndexError as ex1:
-        print('ERROR: ' + str(ex1))
-        print('item = %r' % (item,))
-        raise
-    return toret
-
-
 def listfind(list_, tofind):
     try:
         return list_.index(tofind)
     except ValueError:
         return None
-
-
-def npfind(arr):
-    found = np.where(arr)[0]
-    pos = -1 if len(found) == 0 else found[0]
-    return pos
-
-
-def index_of(item, array):
-    'index of [item] in [array]'
-    return np.where(array == item)[0][0]
 
 
 # --- List Modification --- #
@@ -218,33 +178,6 @@ def safe_slice(list_, *args):
     return list_[slice(start, stop, step)]
 
 
-def spaced_indexes(len_, n, trunc=False):
-    """ Returns n evenly spaced indexes.
-        Returns as many as possible if trunc is true
-    </CYTHE> """
-
-    if n is None:
-        return np.arange(len_)
-    all_indexes = np.arange(len_)
-    if trunc:
-        n = min(len_, n)
-    if n == 0:
-        return np.empty(0)
-    stride = len_ // n
-    try:
-        indexes = all_indexes[0:-1:stride]
-    except ValueError:
-        raise ValueError('cannot slice list of len_=%r into n=%r parts' % (len_, n))
-    return indexes
-
-
-def spaced_items(list_, n, **kwargs):
-    """ Returns n evenly spaced items """
-    indexes = spaced_indexes(len(list_), n, **kwargs)
-    items = list_[indexes]
-    return items
-
-
 # --- List Queries --- #
 
 
@@ -254,13 +187,6 @@ def list_eq(list_):
         return True
     item0 = list_[0]
     return all([item == item0 for item in list_])
-
-
-def inbounds(arr, low, high):
-    flag_low = arr >= low
-    flag_high = arr < high if high is not None else flag_low
-    flag = np.logical_and(flag_low, flag_high)
-    return flag
 
 
 def assert_all_not_None(list_, list_name='some_list', key_list=[]):
@@ -327,41 +253,6 @@ def intersect_ordered(list1, list2):
     return new_list
 
 
-def intersect2d_numpy(A, B):
-    #http://stackoverflow.com/questions/8317022/
-    #get-intersecting-rows-across-two-2d-numpy-arrays/8317155#8317155
-    # TODO: MOVE to numpy libs
-    nrows, ncols = A.shape
-    # HACK to get consistent dtypes
-    assert A.dtype is B.dtype, 'A and B must have the same dtypes'
-    dtype = np.dtype([('f%d' % i, A.dtype) for i in range(ncols)])
-    try:
-        C = np.intersect1d(A.view(dtype), B.view(dtype))
-    except ValueError:
-        C = np.intersect1d(A.copy().view(dtype), B.copy().view(dtype))
-    # This last bit is optional if you're okay with "C" being a structured array...
-    C = C.view(A.dtype).reshape(-1, ncols)
-    return C
-
-
-def intersect2d(A, B):
-    # TODO: MOVE to numpy libs
-    Cset  =  set(tuple(x) for x in A).intersection(set(tuple(x) for x in B))
-    Ax = np.array([x for x, item in enumerate(A) if tuple(item) in Cset], dtype=np.int)
-    Bx = np.array([x for x, item in enumerate(B) if tuple(item) in Cset], dtype=np.int)
-    C = np.array(tuple(Cset))
-    return C, Ax, Bx
-
-
-#def unique_keep_order(arr):
-    #""" pandas.unique preseves order and seems to be faster due to index overhead """
-    # TODO: MOVE to numpy libs
-    #import pandas as pd
-    #return pd.unique(arr)
-    #_, idx = np.unique(arr, return_index=True)
-    #return arr[np.sort(idx)]
-
-
 def flag_unique_items(list_):
     seen = set()
     def unseen(item):
@@ -389,13 +280,6 @@ unique_ordered = unique_keep_order2
 
 def unique_unordered(list_):
     return tuple(set(list_))
-
-
-def deterministic_shuffle(list_):
-    randS = int(np.random.rand() * np.uint(0 - 2) / 2)
-    np.random.seed(len(list_))
-    np.random.shuffle(list_)
-    np.random.seed(randS)
 
 
 def sortedby(list_, sortable, reverse=False):
