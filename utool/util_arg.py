@@ -156,7 +156,7 @@ def get_fpath_args(arglist_=None, pat='*'):
         if os.path.isdir(input_path):
             input_path_list.extend(utool.glob(input_path, pat, recursive=False, with_dirs=False))
         else:
-            input_path_list.extend(input_path)
+            input_path_list.append(input_path)
     return input_path_list
 
 
