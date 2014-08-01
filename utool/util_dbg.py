@@ -117,18 +117,23 @@ def execstr_dict(dict_, local_name, exclude_list=None):
     #    exec(execstr_parent_locals())
     #    exec('dict_ = local_name')
     try:
+        #if exclude_list is None:
+        #    execstr = '\n'.join((key + ' = ' + local_name + '[' + repr(key) + ']'
+        #                        for (key, val) in dict_.items()))
+        #else:
         if exclude_list is None:
-            execstr = '\n'.join((key + ' = ' + local_name + '[' + repr(key) + ']'
-                                for (key, val) in dict_.items()))
-        else:
-            if not isinstance(exclude_list, list):
-                exclude_list = [exclude_list]
-            exec_list = []
-            for (key, val) in dict_.items():
-                if not any((fnmatch.fnmatch(key, pat) for pat in iter(exclude_list))):
-                    exec_list.append(key + ' = ' + local_name + '[' + repr(key) + ']')
-            execstr = '\n'.join(exec_list)
-        print(execstr)
+            exclude_list = []
+        assert isinstance(exclude_list, list)
+        exclude_list.append(local_name)
+        expr_list = []
+        assert isinstance(dict_, dict), 'incorrect type type(dict_)=%r, dict_=%r' % (type(dict), dict_)
+        for (key, val) in dict_.items():
+            assert isinstance(key, str), 'keys must be strings'
+            if not any((fnmatch.fnmatch(key, pat) for pat in exclude_list)):
+                expr = '%s = %s[%r]' % (key, local_name, key)
+                expr_list.append(expr)
+        execstr = '\n'.join(expr_list)
+        #print(execstr)
         return execstr
     except Exception as ex:
         import utool
