@@ -47,7 +47,8 @@ def hashstr(data, hashlen=HASH_LEN):
     if isinstance(data, tuple):
         data = repr(data)
     if six.PY3:
-        data = data.encode('utf-8')
+        if isinstance(data, str):
+            data = data.encode('utf-8')
     # Get a 128 character hex string
     hashstr = hashlib.sha512(data).hexdigest()
     #if six.PY3:
