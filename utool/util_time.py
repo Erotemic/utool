@@ -105,21 +105,21 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=1):
             #return -1
         return -1
     except ValueError as ex:
-        if isinstance(datetime_str, six.string_types):
-            if datetime_str.find('No EXIF Data') == 0:
+        if isinstance(datetime_str_, six.string_types):
+            if datetime_str_.find('No EXIF Data') == 0:
                 return -1
-            if datetime_str.find('Invalid') == 0:
+            if datetime_str_.find('Invalid') == 0:
                 return -1
-            if datetime_str == '0000:00:00 00:00:00':
+            if datetime_str_ == '0000:00:00 00:00:00':
                 return -1
         print('!!!!!!!!!!!!!!!!!!')
         print('[util_time] Caught Error: ' + repr(ex))
         print('[util_time] type(datetime_str)  = %r' % type(datetime_str))
-        print('[util_time] repr(datetime_str_) = %r' % datetime_str_)
         print('[util_time] repr(datetime_str)  = %r' % datetime_str)
         print('[util_time]     (datetime_str)  = %s' % datetime_str)
         print('[util_time]  len(datetime_str)  = %d' % len(datetime_str))
-        print('[util_time]  len(datetime_str_)  = %d' % len(datetime_str_))
+        print('[util_time] repr(datetime_str_) = %r' % datetime_str_)
+        print('[util_time]  len(datetime_str_) = %d' % len(datetime_str_))
         raise
 
 
