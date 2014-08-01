@@ -101,11 +101,28 @@ def intersect2d(A, B):
     #return arr[np.sort(idx)]
 
 
-def deterministic_shuffle(list_):
-    randS = int(np.random.rand() * np.uint(0 - 2) / 2)
-    np.random.seed(len(list_))
+def deterministic_shuffle(list_, seed=1):
+    rand_seed = int(np.random.rand() * np.uint(0 - 2) / 2)
+    seed_ = len(list_) + seed
+    np.random.seed(seed_)
     np.random.shuffle(list_)
-    np.random.seed(randS)
+    np.random.seed(rand_seed)  # reseed
+
+
+def listlike_copy(list_):
+    if isinstance(list_, list):
+        list2_ = list_[:]
+    else:
+        list2_ = np.copy(list_)
+    return list2_
+
+
+def deterministic_sample(list_, nSample, seed=1):
+    """ Grabs data randomly, but in a repeatable way """
+    list2_ = listlike_copy(list_)
+    deterministic_shuffle(list2_, seed)
+    sample_list = list2_[:nSample]
+    return sample_list
 
 
 def spaced_items(list_, n, **kwargs):
