@@ -151,7 +151,11 @@ def flattenize(list_):
     </CYTHE> """
 
     #return map(iflatten, list_)
-    tuplized_iter   = map(tuplize, list_)
+    #if not isiterable(list_):
+    #    list2_ = (list_,)
+    #else:
+    #    list2_ = list_
+    tuplized_iter   = list(map(tuplize, list_))
     flatenized_list = list(map(flatten, tuplized_iter))
     return flatenized_list
 

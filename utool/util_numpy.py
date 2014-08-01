@@ -117,10 +117,14 @@ def listlike_copy(list_):
     return list2_
 
 
-def deterministic_sample(list_, nSample, seed=1):
+def deterministic_sample(list_, nSample, seed=1, strict=False):
     """ Grabs data randomly, but in a repeatable way """
     list2_ = listlike_copy(list_)
     deterministic_shuffle(list2_, seed)
+    if nSample is None and strict is False:
+        return list2_
+    if not strict:
+        nSample = min(nSample, len(list2_))
     sample_list = list2_[:nSample]
     return sample_list
 

@@ -3,6 +3,7 @@ import sys
 import six
 # Python
 import os
+import re
 #import six
 import argparse
 from .util_type import try_cast
@@ -81,19 +82,31 @@ def switch_sanataize(switch):
     return dest, switch
 
 
+def fuzzy_int(str_):
+    """
+    lets some special strings be interpreted as ints
+    """
+    try:
+        ret = int(str_)
+        return ret
+    except Exception:
+        if re.match(r'\d*:\d*:?\d*', str_):
+            return tuple(range(*map(int, str_.split(':'))))
+        raise
+
+
 class ArgumentParser2(object):
     'Wrapper around argparse.ArgumentParser with convinence functions'
     def __init__(self, parser):
         self.parser = parser
-        self._add_arg = parser.add_argument
 
     def add_arg(self, switch, *args, **kwargs):
         #print('[argparse2] add_arg(%r) ' % (switch,))
         if isinstance(switch, tuple):
             args = tuple(list(switch) + list(args))
-            return self._add_arg(*args, **kwargs)
+            return self.parser.add_argument(*args, **kwargs)
         else:
-            return self._add_arg(switch, *args, **kwargs)
+            return self.parser.add_argument(switch, *args, **kwargs)
 
     def add_meta(self, switch, type, default=None, help='', **kwargs):
         #print('[argparse2] add_meta()')
@@ -107,10 +120,10 @@ class ArgumentParser2(object):
         self.add_arg(switch, dest=dest, action=action, default=default, **kwargs)
 
     def add_int(self, switch, *args, **kwargs):
-        self.add_meta(switch, int,  *args, **kwargs)
+        self.add_meta(switch, fuzzy_int,  *args, **kwargs)
 
     def add_intlist(self, switch, *args, **kwargs):
-        self.add_meta(switch, int,  *args, nargs='*', **kwargs)
+        self.add_meta(switch, fuzzy_int,  *args, nargs='*', **kwargs)
 
     add_ints = add_intlist
 
@@ -129,13 +142,13 @@ class ArgumentParser2(object):
         return ArgumentParser2(self.parser.add_argument_group(*args, **kwargs))
 
 
-def make_argparse2(description, *args, **kwargs):
+def make_argparse2(prog='Program', description='', *args, **kwargs):
     formatter_classes = [
         argparse.RawDescriptionHelpFormatter,
         argparse.RawTextHelpFormatter,
         argparse.ArgumentDefaultsHelpFormatter]
     return ArgumentParser2(
-        argparse.ArgumentParser(prog='Program',
+        argparse.ArgumentParser(prog=prog,
                                 description=description,
                                 prefix_chars='+-',
                                 formatter_class=formatter_classes[2], *args,

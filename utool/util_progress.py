@@ -38,7 +38,8 @@ def prog_func(*args, **kwargs):
 # TODO: Return start_prog, make_prog, end_prog
 def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
                   flush_after=4, spacing=0, line_len=80,
-                  progress_type='fmtstr', mark_start=False, repl=False):
+                  progress_type='fmtstr', mark_start=False, repl=False,
+                  approx=False, override_quiet=False):
     """Returns a function that marks progress taking the iteration count as a
     parameter. Prints if max_val > mark_at. Prints dots if max_val not
     specified or simple=True
@@ -49,7 +50,7 @@ def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
     #print('STARTING PROGRESS: VERBOSE=%r QUIET=%r' % (VERBOSE, QUIET))
 
     # Tell the user we are about to make progress
-    if QUIET or (progress_type in ['simple', 'fmtstr'] and max_val < mark_after):
+    if (QUIET and not override_quiet) or (progress_type in ['simple', 'fmtstr'] and max_val < mark_after):
         return lambda count: None, lambda: None
     # none: nothing
     if progress_type == 'none':
@@ -93,7 +94,7 @@ def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
             mark_progress = mark_progress_dot
     # fmtstr: formated string progress
     if progress_type == 'fmtstr':
-        fmt_str = progress_str(max_val, lbl=lbl, repl=repl)
+        fmt_str = progress_str(max_val, lbl=lbl, repl=repl, approx=approx)
 
         def mark_progress_fmtstr(count):
             count_ = count + 1
@@ -118,11 +119,14 @@ def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
     raise Exception('unkown progress type = %r' % progress_type)
 
 
-def progress_str(max_val, lbl='Progress: ', repl=False):
+def progress_str(max_val, lbl='Progress: ', repl=False, approx=False):
     """ makes format string that prints progress: %Xd/MAX_VAL with backspaces
     </CYTH>
     """
     max_str = str(max_val)
+    if approx:
+        # denote approximate maximum
+        max_str = '~' + max_str
     dnumstr = str(len(max_str))
     cur_str = '%' + dnumstr + 'd'
     if repl:
