@@ -14,6 +14,7 @@ from os.path import splitext, isfile
 import ast
 #import codegen  # NOQA
 import astor
+import re
 
 #class CythTransformer(ast.NodeTransformer):
 #    #
@@ -116,11 +117,56 @@ class CythVisitor(BASE_CLASS):
                 typedict[varstr] = type_
         return typedict
 
+    def parse_cyth_markup(self, docstr, toplevel=False):
+        comment_str = docstr.strip()
+        has_markup = comment_str.find('<CYTH') != -1
+        # type returned_action = [`defines of string * (string, string) Hashtbl.t | `replace of string] option
+        defines = False
+        replace = False
+        typedict = {}
+        cyth_def = ''
+        if has_markup:
+            #print('func: %s has cyth tags' % (node.name,))
+            def_tag = '<CYTH>'
+            end_tag = '</CYTH>'
+            repl_tag = '<CYTH:REPLACE>'
+            regex_flags = re.DOTALL | re.MULTILINE
+            def_regex = re.compile(def_tag + '(.*)' + end_tag, regex_flags)
+            repl_regex = re.compile(repl_tag + '(.*)' + end_tag, regex_flags)
+#            if comment_str.find(def_tag) != -1:
+#                start_tag = def_tag
+            match = def_regex.search(comment_str)
+            if match:
+                cyth_def = match.group(1)
+                defines = True
+#            elif comment_str.find(repl_tag) != -1:
+#                start_tag = repl_tag
+            match = repl_regex.search(comment_str)
+            if match:
+                cyth_def = match.group(1)
+                replace = True
+            #cyth_def = comment_str.replace(start_tag, '').replace(end_tag, '')
+            print('cyth def: %r' % cyth_def)
+            if replace or toplevel:
+                cyth_def = utool.unindent(cyth_def)
+                return ('replace', cyth_def)
+            if defines:
+                typedict = self.parse_cythdef(cyth_def)
+                return ('defines', cyth_def, typedict)
+        #return has_markup, defines, replace, typedict, cyth_def
+        return None
+
     def visit_Module(self, node):
         for subnode in node.body:
             if is_docstring(subnode):
                 print('Encountered global docstring: %s' % repr(subnode.value.s))
-                self.visit(subnode) # temporary, should parse these for cyth markup next
+                #self.visit(subnode) # temporary, should parse these for cyth markup next
+                action = self.parse_cyth_markup(subnode.value.s, toplevel=True)
+                if action:
+                    if action[0] == 'replace':
+                        cyth_def = action[1]
+                        self.newline(extra=1)
+                        self.write(cyth_def)
             elif isinstance(subnode, ast.FunctionDef):
                 self.visit(subnode)
             else:
@@ -129,38 +175,20 @@ class CythVisitor(BASE_CLASS):
 
     def visit_FunctionDef(self, node):
         #super(CythVisitor, self).visit_FunctionDef(node)
-        has_cython = False
-        replace = False
-        defines = False
         new_body = []
-        typedict = {}
-        cyth_def = ''
+        cyth_action = None
         for stmt in node.body:
             if is_docstring(stmt):
                 #print('found comment_str')
-                comment_str = stmt.value.s.strip()
-                if comment_str.startswith('<CYTH'):
-                    print('func: %s has cyth tags' % (node.name,))
-                    def_tag = '<CYTH>'
-                    end_tag = '</CYTH>'
-                    repl_tag = '<CYTH:REPLACE>'
-                    if comment_str.startswith(def_tag):
-                        start_tag = def_tag
-                        defines = True
-                    elif comment_str.startswith(repl_tag):
-                        start_tag = repl_tag
-                        replace = True
-                    cyth_def = comment_str.replace(start_tag, '').replace(end_tag, '')
-                    if replace:
-                        cyth_def = utool.unindent(cyth_def)
-                    if defines:
-                        typedict = self.parse_cythdef(cyth_def)
-                    has_cython = True
+                docstr = stmt.value.s
+                cyth_action = self.parse_cyth_markup(docstr)
             else:
                 new_body.append(stmt)
-        if has_cython:
-            cyth_def_body = utool.unindent(cyth_def).split('\n')
-            if not replace:
+        if cyth_action:
+            if cyth_action[0] == 'defines':
+                cyth_def = cyth_action[1]
+                typedict = cyth_action[2]
+                cyth_def_body = utool.unindent(cyth_def).split('\n')
                 #self.decorators(node, 2)
                 self.newline(extra=1)
                 self.statement(node, 'def %s(' % node.name)
@@ -174,7 +202,8 @@ class CythVisitor(BASE_CLASS):
                     self.write('\n', s)
                 self.indentation -= 1
                 self.body(new_body)
-            else:
+            elif cyth_action[0] == 'replace':
+                cyth_def = cyth_action[1]
                 self.newline(extra=1)
                 self.write(cyth_def)
 
