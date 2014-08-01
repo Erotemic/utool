@@ -292,3 +292,12 @@ def get_flops():
         speeds[0] = speeds[0] / count
 
     stdout.write("%6.1f MFlops (%d from %.1f to %.1f)\n" % (speeds[0], count, speeds[1], speeds[2]))
+
+
+def set_process_title(title):
+    try:
+        import setproctitle
+        setproctitle.setproctitle(title)
+    except ImportError as ex:
+        import utool
+        utool.printex(ex, iswarning=True)
