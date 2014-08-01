@@ -101,7 +101,8 @@ def find_ext_modules(disable_warnings=True):
     from os.path import relpath
     import numpy as np
     cwd = os.getcwd()
-    pyx_list = utool.glob(cwd, '*_cython.pyx', recursive=True)
+    #pyx_list = utool.glob(cwd, '*_cython.pyx', recursive=True)
+    pyx_list = utool.glob(cwd, '*.pyx', recursive=True)
 
     if disable_warnings:
         extra_compile_args = ['-Wno-format', '-Wno-unused-function']
