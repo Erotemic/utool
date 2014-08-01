@@ -13,6 +13,7 @@ from utool._internal.meta_util_six import get_funcname, set_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[arg]')
 
 QUIET = '--quiet' in sys.argv
+NOT_QUIET = not QUIET
 VERBOSE = '--verbose' in sys.argv
 VERYVERBOSE = '--very-verbose' in sys.argv or '-veryverbose' in sys.argv
 STRICT = '--nostrict' not in sys.argv
