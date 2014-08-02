@@ -1,13 +1,50 @@
 from __future__ import absolute_import, division, print_function
 import sys
 from .util_inject import inject
-from .util_arg import get_flag
+from .util_arg import QUIET
+#get_flag,
+#, VERBOSE
 print, print_, printDBG, rrr, profile = inject(__name__, '[progress]')
 
 
-QUIET = get_flag('--quiet')
-VERBOSE = get_flag('--verbose')
+#QUIET = get_flag('--quiet')
+#VERBOSE = get_flag('--verbose')
 VALID_PROGRESS_TYPES = ['none', 'dots', 'fmtstr', 'simple']
+AGGROFLUSH = '--aggroflush' in sys.argv
+
+
+def log_progress(lbl='Progress: ', max_val=0, flush_after=4, mark_after=-1,
+                 line_len=80, start=True, repl=False, approx=False,
+                 override_quiet=False, *args):
+    """
+    </CYTH>
+    """
+    global AGGROFLUSH
+    write_fn = sys.stdout.write
+    flush_fn = sys.stdout.flush
+    fmt_str = progress_str(max_val, lbl=lbl, repl=repl, approx=approx)
+
+    # FIXME idk why argparse2.ARGS_ is none here.
+    if AGGROFLUSH:
+        def mark_progress(count, flush_fn=flush_fn):
+            count_ = count + 1
+            write_fn(fmt_str % (count_))
+            flush_fn()
+    else:
+        def mark_progress(count, fmt_str=fmt_str, flush_after=flush_after,
+                          write_fn=write_fn, flush_fn=flush_fn):
+            count_ = count + 1
+            write_fn(fmt_str % count_)
+            if (count_) % flush_after == 0:
+                flush_fn()
+
+    def end_progress():
+        write_fn('\n')
+        sys.stdout.flush()
+    #mark_progress(0)
+    if start:
+        mark_progress(-1)
+    return mark_progress, end_progress
 
 
 def simple_progres_func(verbosity, msg, progchar='.'):
