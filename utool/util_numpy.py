@@ -136,7 +136,22 @@ def spaced_items(list_, n, **kwargs):
     return items
 
 
-def sample_domain(min_, max_, num):
-    samples_ = map(int, np.round(np.linspace(min_, max_, num)))
+def sample_domain(min_, max_, nSamp, mode='linear'):
+    """
+    >>> import utool
+    >>> min_ = 10
+    >>> max_ = 1000
+    >>> nSamp  = 7
+    >>> utool.sample_domain(min_, max_, nSamp)
+    """
+    if mode == 'linear':
+        samples_ = np.rint(np.linspace(min_, max_, nSamp)).astype(np.int64)
+    elif mode == 'log':
+        base = 2
+        logmin = np.log2(min_) / np.log2(base)
+        logmax = np.log2(max_) / np.log2(base)
+        samples_ = np.rint(np.logspace(logmin, logmax, nSamp, base=base)).astype(np.int64)
+    else:
+        raise NotImplementedError(mode)
     sample = [index for index in samples_ if index < max_]
     return sample

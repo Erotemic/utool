@@ -13,8 +13,8 @@ VALID_PROGRESS_TYPES = ['none', 'dots', 'fmtstr', 'simple']
 AGGROFLUSH = '--aggroflush' in sys.argv
 
 
-def log_progress(lbl='Progress: ', nTotal=0, flush_freq=4, log_after=-1,
-                 line_len=80, start=True, repl=False, approx=False, *args):
+def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
+                 start=True, repl=False, approx=False):
     """
     Returns two functions (mark_progress, end_progress) which will handle
     logging progress in a for loop.
@@ -30,7 +30,7 @@ def log_progress(lbl='Progress: ', nTotal=0, flush_freq=4, log_after=-1,
     >>> nTotal = 1000
     >>> iter_ = (num for num in range(0, nTotal * 2, 2))
     >>> # Create progress functions
-    ... mark_, end_ = utool.log_progress('prog ', nTotal, flush_freq=17)
+    ... mark_, end_ = utool.log_progress('prog ', nTotal, flushfreq=17)
     \b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\bprog    0/1000
     >>> for count, item in enumerate(iter_):  #doctest: +ELLIPSIS
     ...     # Call with enumerate to keep track of a count variable
@@ -43,7 +43,7 @@ def log_progress(lbl='Progress: ', nTotal=0, flush_freq=4, log_after=-1,
     <BLANKLINE>
     """
     global AGGROFLUSH
-    if nTotal < log_after:
+    if nTotal < startafter:
         # Do not mark progress if only executing a small number of tasks
         def mark_progress(*args):
             pass
@@ -62,12 +62,12 @@ def log_progress(lbl='Progress: ', nTotal=0, flush_freq=4, log_after=-1,
                 write_fn(fmt_str % (count_))
                 flush_fn()
         else:
-            # Progress function flushes every <flush_freq> times
-            def mark_progress(count, fmt_str=fmt_str, flush_freq=flush_freq,
+            # Progress function flushes every <flushfreq> times
+            def mark_progress(count, fmt_str=fmt_str, flushfreq=flushfreq,
                               write_fn=write_fn, flush_fn=flush_fn):
                 count_ = count + 1
                 write_fn(fmt_str % count_)
-                if count_ % flush_freq == 0:
+                if count_ % flushfreq == 0:
                     flush_fn()
 
         def end_progress():
