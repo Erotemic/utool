@@ -19,23 +19,28 @@ def log_progress(lbl='Progress: ', nTotal=0, flush_freq=4, log_after=-1,
     Returns two functions (mark_progress, end_progress) which will handle
     logging progress in a for loop.
     </CYTH>
-    >>> # Example / Doctest
+
+    # Example / Doctest
+    # I don't completely understand why some of the >>> and ... had to be where
+    # they are, but doctest gets very angry if its not in this format
     >>> import utool, time
     >>> from six.moves import range
     >>> # Define a dummy task
     >>> spam = 42.0
-    >>> iter_ = (num for num in range(0, 2000, 2))
     >>> nTotal = 1000
+    >>> iter_ = (num for num in range(0, nTotal * 2, 2))
     >>> # Create progress functions
-    >>> mark_, end_ = utool.log_progress('prog ', nTotal, flush_freq=17)
-    >>> # Call with enumerate to keep track of a count variable
-    ... for count, item in enumerate(iter_):
-    ...     mark_(count)
+    ... mark_, end_ = utool.log_progress('prog ', nTotal, flush_freq=17)
+    \b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\bprog    0/1000
+    >>> for count, item in enumerate(iter_):  #doctest: +ELLIPSIS
+    ...     # Call with enumerate to keep track of a count variable
     ...     time.sleep(.001)
     ...     spam += item + count
+    ...     mark_(count)
+    \b...prog 1000/1000
     >>> # Mark completion
     >>> end_()
-    prog 1000/1000
+    <BLANKLINE>
     """
     global AGGROFLUSH
     if nTotal < log_after:

@@ -134,3 +134,9 @@ def spaced_items(list_, n, **kwargs):
     indexes = spaced_indexes(len(list_), n, **kwargs)
     items = list_[indexes]
     return items
+
+
+def sample_domain(min_, max_, num):
+    samples_ = map(int, np.round(np.linspace(min_, max_, num)))
+    sample = [index for index in samples_ if index < max_]
+    return sample
