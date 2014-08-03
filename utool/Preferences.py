@@ -431,7 +431,7 @@ class Pref(PrefNode):
             editpref_widget.show()
             return editpref_widget
         except ImportError as ex:
-            printex(ex, 'Cannot create preference widget. Is guitool/PyQt4/PyQt5 Installed')
+            printex(ex, 'Cannot create preference widget. Is guitool and PyQt 4/5 Installed')
             raise
 
     def qt_get_parent(self):

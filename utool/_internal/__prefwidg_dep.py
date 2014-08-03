@@ -4,8 +4,8 @@ import sys
 import traceback
 from utool.Preferences import Pref
 # Qt
-from PyQt4 import QtCore, QtGui
-from PyQt4.Qt import (QAbstractItemModel, QModelIndex, QVariant, QWidget,
+from guitool.__PyQt__ import QtCore, QtGui
+from guitool.__PyQt__.Qt import (QAbstractItemModel, QModelIndex, QVariant, QWidget,
                       QString, Qt, QObject, pyqtSlot)
 
 
