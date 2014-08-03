@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import six
 from six.moves import zip, range
-from itertools import chain, cycle
+from itertools import chain, cycle, islice
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[iter]')
 
@@ -62,3 +62,23 @@ def interleave(args):
     cycle_iter = cycle(arg_iters)
     for iter_ in cycle_iter:
         yield iter_.next()
+
+
+def interleave2(*iterables):
+    from itertools import chain
+    chain.from_iterable(zip(*iterables))
+
+
+def roundrobin(*iterables):
+    "roundrobin('ABC', 'D', 'EF') --> A D E B F C"
+    # http://stackoverflow.com/questions/11125212/interleaving-lists-in-python
+    # Recipe credited to George Sakkis
+    pending = len(iterables)
+    nexts = cycle(iter(it).next for it in iterables)
+    while pending:
+        try:
+            for next in nexts:
+                yield next()
+        except StopIteration:
+            pending -= 1
+            nexts = cycle(islice(nexts, pending))

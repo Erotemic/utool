@@ -216,7 +216,8 @@ else:
     from .util_io import (load_cPkl, read_from, save_cPkl, try_decode, write_to,) 
     from .util_iter import (chain, cycle, ensure_iterable, ichunks, ifilter_Nones, 
                             ifilter_items, ifilterfalse_items, iflatten, 
-                            iflatten_scalars, interleave,) 
+                            iflatten_scalars, interleave, interleave2, islice, 
+                            roundrobin,) 
     from .util_inspect import (list_class_funcnames,) 
     from .util_logging import (PRINT_ALL_CALLERS, add_logging_handler, 
                                get_log_fpath, get_logging_dir, logdir_cacheid, 
