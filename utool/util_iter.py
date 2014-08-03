@@ -65,7 +65,7 @@ def interleave(args):
 
 
 def interleave2(*iterables):
-    chain.from_iterable(zip(*iterables))
+    return chain.from_iterable(zip(*iterables))
 
 
 def roundrobin(*iterables):
