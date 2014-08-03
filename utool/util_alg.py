@@ -159,7 +159,7 @@ def unpack_items_sorted_by_value(dict_, reverse=True):
 
 def flatten_membership_mapping(uid_list, members_list):
     """ </CYTHE> """
-    num_members = sum(map(len, members_list))
+    num_members = sum(list(map(len, members_list)))
     flat_uids = [None for _ in range(num_members)]
     flat_members = [None for _ in range(num_members)]
     count = 0
