@@ -318,20 +318,20 @@ def get_callable_name(func):
     try:
         return get_funcname(func)
     except AttributeError:
-        if isinstance(func, type):
-            return repr(str).replace('<type \'', '').replace('\'>', '')
+        builtin_function_name_dict = {
+            len:    'len',
+            zip:    'zip',
+            range:  'range',
+            map:    'map',
+            type:   'type',
+        }
+        if func in builtin_function_name_dict:
+            return builtin_function_name_dict[func]
+        elif isinstance(func, type):
+            return repr(func).replace('<type \'', '').replace('\'>', '')
         else:
-            builtin_function_name_dict = {
-                len:    'len',
-                zip:    'zip',
-                range:  'range',
-                map:    'map',
-            }
-            if func in builtin_function_name_dict:
-                return builtin_function_name_dict[func]
-            else:
-                raise NotImplementedError(('cannot get func_name of func=%r'
-                                           'type(func)=%r') % (func, type(func)))
+            raise NotImplementedError(('cannot get func_name of func=%r'
+                                        'type(func)=%r') % (func, type(func)))
 
 
 def get_freespace_str(dir_='.'):

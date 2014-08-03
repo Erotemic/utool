@@ -595,15 +595,15 @@ def formatex(ex, msg='[!?] Caught exception',
     if locals_ is None:
         locals_ = get_caller_locals(N=N)
     # build exception message
-    exstrs = []  # list of exception strings
+    errstr_list = []  # list of exception strings
     ex_tag = 'WARNING' if iswarning else 'EXCEPTION'
-    exstrs.append('<!!! %s !!!>' % ex_tag)
+    errstr_list.append('<!!! %s !!!>' % ex_tag)
     if tb:
-        exstrs.append(traceback.format_exc())
-    exstrs.append(prefix + ' ' + msg + '\n%s: %s' % (type(ex), ex))
-    parse_locals_keylist(locals_, key_list, exstrs, prefix)
-    exstrs.append('</!!! %s !!!>' % ex_tag)
-    return '\n'.join(exstrs)
+        errstr_list.append(traceback.format_exc())
+    errstr_list.append(prefix + ' ' + msg + '\n%s: %s' % (type(ex), ex))
+    parse_locals_keylist(locals_, key_list, errstr_list, prefix)
+    errstr_list.append('</!!! %s !!!>' % ex_tag)
+    return '\n'.join(errstr_list)
 
 
 def parse_locals_keylist(locals_, key_list, strlist_, prefix):
@@ -611,7 +611,8 @@ def parse_locals_keylist(locals_, key_list, strlist_, prefix):
     from .util_str import get_callable_name
     for key in key_list:
         if isinstance(key, tuple):
-            func, key_ = key
+            tup = key
+            func, key_ = tup
             assert key_ in locals_, 'key=%r not in locals' % (key_,)
             val = locals_[key_]
             funcvalstr = str(func(val))
@@ -619,6 +620,8 @@ def parse_locals_keylist(locals_, key_list, strlist_, prefix):
         elif key in locals_:
             valstr = truncate_str(repr(locals_[key]), maxlen=200)
             strlist_.append('%s %s = %s' % (prefix, key, valstr))
+        elif key is None:
+            strlist_.append('')
         else:
             strlist_.append('%s !!! %s not populated!' % (prefix, key))
 

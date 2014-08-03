@@ -1,8 +1,8 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import six
-from six.moves import zip, range, zip_longest
-from itertools import chain, cycle
+from six.moves import zip, range
+from itertools import chain, cycle, islice
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[iter]')
 
@@ -72,8 +72,31 @@ def interleave2(*iterables):
     return chain.from_iterable(zip(*iterables))
 
 
+def interleave3(*args):
+    """ <CYTH> """
+    cycle_iter = zip(*args)
+    if six.PY2:
+        for iter_ in cycle_iter:
+            yield iter_.next()
+    else:
+        for iter_ in cycle_iter:
+            yield next(iter_)
+
+
 def roundrobin(*iterables):
     "roundrobin('ABC', 'D', 'EF') --> A D E B F C"
     # http://stackoverflow.com/questions/11125212/interleaving-lists-in-python
-    sentinel = object()
-    return (x for x in chain(*zip_longest(fillvalue=sentinel, *iterables)) if x is not sentinel)
+    #sentinel = object()
+    #return (x for x in chain(*zip_longest(fillvalue=sentinel, *iterables)) if x is not sentinel)
+    pending = len(iterables)
+    if six.PY2:
+        nexts = cycle(iter(it).next for it in iterables)
+    else:
+        nexts = cycle(iter(it).__next__ for it in iterables)
+    while pending:
+        try:
+            for next in nexts:
+                yield next()
+        except StopIteration:
+            pending -= 1
+            nexts = cycle(islice(nexts, pending))
