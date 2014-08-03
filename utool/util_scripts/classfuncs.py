@@ -1,5 +1,6 @@
 #!/usr/bin/env python2.7
-""" flake8: noqa
+"""
+flake8: noqa
 set PATH=%HOME%\code\utool\utool\util_scripts;%PATH%
 classfuncs.py %HOME%/code/ibeis/ibeis/control/IBEISControl.py %HOME%/code/ibeis
 """
