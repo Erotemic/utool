@@ -1,10 +1,13 @@
+"""
+FIXME: This class is very old, convoluted, and coupled.
+It really needs to be rewritten efficiently.
+the __setattr__ __getattr__ stuff needs to be redone, and
+DynStruct needs to go away.
+"""
 from __future__ import absolute_import, division, print_function
 # Python
 import six
 from six.moves import cPickle
-#import cPickle
-#import os.path
-#import warnings
 # Science
 import numpy as np
 # Util
@@ -407,7 +410,8 @@ class Pref(PrefNode):
 
     def pref_update(self, key, new_val):
         """ Changes a preference value and saves it to disk """
-        print('Update and save pref from: %s=%r, to: %s=%r' % (key, str(self[key]), key, str(new_val)))
+        print('Update and save pref from: %s=%r, to: %s=%r' %
+              (key, str(self[key]), key, str(new_val)))
         self.__setattr__(key, new_val)
         return self.save()
 
@@ -477,11 +481,12 @@ class Pref(PrefNode):
 
 def _qt_set_leaf_data(self, qvar):
     """ Sets backend data using QVariants """
-    print('[pref] qt_set_leaf_data: qvar.toString()=%s' % str(qvar.toString()))
-    print('[pref] qt_set_leaf_data: _intern.name=%r' % self._intern.name)
-    print('[pref] qt_set_leaf_data: _intern.type_=%r' % self._intern.get_type())
-    print('[pref] qt_set_leaf_data: type(_intern.value)=%r' % type(self._intern.value))
-    print('[pref] qt_set_leaf_data: _intern.value=%r' % self._intern.value)
+    #print('[pref] qt_set_leaf_data: qvar = %r' % qvar)
+    #print('[pref] qt_set_leaf_data: _intern.name=%r' % self._intern.name)
+    #print('[pref] qt_set_leaf_data: _intern.type_=%r' % self._intern.get_type())
+    #print('[pref] qt_set_leaf_data: type(_intern.value)=%r' % type(self._intern.value))
+    #print('[pref] qt_set_leaf_data: _intern.value=%r' % self._intern.value)
+    ##print('[pref] qt_set_leaf_data: qvar.toString()=%s' % str(qvar.toString()))
     if self._tree.parent is None:
         raise Exception('[Pref.qtleaf] Cannot set root preference')
     if self.qt_is_editable():
@@ -497,27 +502,40 @@ def _qt_set_leaf_data(self, qvar):
                         return ret
                     except Exception:
                         continue
-            new_val = cast_order(str(qvar.toString()))
+            new_val = cast_order(str(qvar))
         self._intern.get_type()
         if isinstance(self._intern.value, bool):
-            new_val = bool(qvar.toBool())
+            #new_val = bool(qvar.toBool())
+            new_val = bool(qvar)
         elif isinstance(self._intern.value, int):
-            new_val = int(qvar.toInt()[0])
+            #new_val = int(qvar.toInt()[0])
+            new_val = int(qvar)
         # elif isinstance(self._intern.value, float):
         elif self._intern.get_type() in util_type.VALID_FLOAT_TYPES:
-            new_val = float(qvar.toDouble()[0])
+            #new_val = float(qvar.toDouble()[0])
+            new_val = float(qvar)
         elif isinstance(self._intern.value, six.string_types):
-            new_val = str(qvar.toString())
+            #new_val = str(qvar.toString())
+            new_val = str(qvar)
         elif isinstance(self._intern.value, PrefChoice):
-            new_val = qvar.toString()
-            if new_val == 'None':
+            #new_val = qvar.toString()
+            new_val = str(qvar)
+            if new_val.upper() == 'NONE':
                 new_val = None
         else:
             try:
-                new_val = str(qvar.toString())
+                #new_val = str(qvar.toString())
+                type_ = self._intern.get_type()
+                if type_ is not None:
+                    new_val = type_(str(qvar))
+                else:
+                    new_val = str(qvar)
             except Exception:
-                raise ValueError('[Pref.qtleaf] Unknown internal type = %r'
-                                    % type(self._intern.value))
+                raise NotImplementedError(
+                    ('[Pref.qtleaf] Unknown internal type. '
+                     'type(_intern.value) = %r, '
+                     '_intern.get_type() = %r, ')
+                    % type(self._intern.value), self._intern.get_type())
         # Check for a set of None
         if isinstance(new_val, six.string_types):
             if new_val.upper() == 'NONE':
