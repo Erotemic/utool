@@ -15,7 +15,7 @@ if __name__ == '__main__':
         version='1.0.0.dev1',
         description='Univerally useful utility tools for you!',
         url='https://github.com/Erotemic/utool',
-        packages=['utool', 'utool._internal'],
+        packages=['utool', 'utool._internal', 'utool.tests', 'utool.util_scripts'],
         author='Jon Crall',
         author_email='erotemic@gmail.com',
         keywords='',

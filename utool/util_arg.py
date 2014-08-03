@@ -148,12 +148,12 @@ def make_argparse2(prog='Program', description='', *args, **kwargs):
         argparse.RawDescriptionHelpFormatter,
         argparse.RawTextHelpFormatter,
         argparse.ArgumentDefaultsHelpFormatter]
-    return ArgumentParser2(
-        argparse.ArgumentParser(prog=prog,
-                                description=description,
-                                prefix_chars='+-',
-                                formatter_class=formatter_classes[2], *args,
-                                **kwargs))
+    parser = argparse.ArgumentParser(prog=prog,
+                                     description=description,
+                                     prefix_chars='+-',
+                                     formatter_class=formatter_classes[2], *args,
+                                     **kwargs)
+    return ArgumentParser2(parser)
 
 
 # Decorators which control program flow based on sys.argv
