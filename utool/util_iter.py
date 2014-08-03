@@ -58,10 +58,14 @@ def ichunks(list_, chunksize):
 
 def interleave(args):
     """ <CYTH> """
-    arg_iters = map(iter, args)
+    arg_iters = list(map(iter, args))
     cycle_iter = cycle(arg_iters)
-    for iter_ in cycle_iter:
-        yield iter_.next()
+    if six.PY2:
+        for iter_ in cycle_iter:
+            yield iter_.next()
+    else:
+        for iter_ in cycle_iter:
+            yield next(iter_)
 
 
 def interleave2(*iterables):
