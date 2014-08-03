@@ -130,11 +130,12 @@ else:
                            unpack_items_sorted_by_value, void_rowview_numpy, 
                            xywh_to_tlbr,) 
     from .util_aliases import (OrderedDict, ddict, odict,) 
-    from .util_arg import (ArgumentParser2, Indenter, QUIET, STRICT, SUPER_STRICT, 
-                           USE_ASSERT, VERBOSE, VERYVERBOSE, argv_flag, 
-                           argv_flag_dec, argv_flag_dec_true, get_arg, get_flag, 
-                           get_fpath_args, get_funcname, inject, make_argparse2, 
-                           set_funcname, switch_sanataize, try_cast,) 
+    from .util_arg import (ArgumentParser2, Indenter, NOT_QUIET, QUIET, STRICT, 
+                           SUPER_STRICT, USE_ASSERT, VERBOSE, VERYVERBOSE, 
+                           argv_flag, argv_flag_dec, argv_flag_dec_true, fuzzy_int, 
+                           get_arg, get_flag, get_fpath_args, get_funcname, inject, 
+                           make_argparse2, set_funcname, switch_sanataize, 
+                           try_cast,) 
     from .util_cache import (GlobalShelfContext, default_appname, 
                              delete_global_cache, get_global_cache_dir, 
                              get_global_shelf_fpath, global_cache_dname, 
@@ -148,8 +149,8 @@ else:
                              get_flops, get_free_diskbytes, get_lib_ext, 
                              get_pylib_ext, get_resource_dir, get_user_name, 
                              getroot, ls_libs, python_executable, 
-                             run_realtime_process, shell, startfile, truepath, 
-                             unixpath, vd, view_directory,) 
+                             run_realtime_process, set_process_title, shell, 
+                             startfile, truepath, unixpath, vd, view_directory,) 
     from .util_class import (classmember, inject_func_as_method, inject_instance, 
                              makeForwardingMetaclass,) 
     from .util_csv import (is_float, is_int, is_list, is_str, make_csv_table, 
@@ -232,8 +233,9 @@ else:
     from .util_num import (commas, fewest_digits_float_str, float_to_decimal, 
                            format_, int_comma_str, num2_sigfig, num_fmt, 
                            order_of_magnitude_ceil, sigfig_str,) 
-    from .util_numpy import (deterministic_shuffle, inbounds, index_of, intersect2d, 
-                             intersect2d_numpy, list_index, npfind, random_indexes, 
+    from .util_numpy import (deterministic_sample, deterministic_shuffle, inbounds, 
+                             index_of, intersect2d, intersect2d_numpy, list_index, 
+                             listlike_copy, npfind, random_indexes, sample_domain, 
                              spaced_indexes, spaced_items, tiled_range,) 
     from .util_path import (IMG_EXTENSIONS, append_suffixlist_to_namelist, 
                             assert_exists, assertpath, basename_noext, checkpath, 
@@ -252,8 +254,9 @@ else:
     from .util_print import (Indenter, NO_INDENT, NpPrintOpts, filesize_str, 
                              horiz_print, printNOTQUIET, printVERBOSE, printWARN, 
                              print_filesize, printif, printshape,) 
-    from .util_progress import (VALID_PROGRESS_TYPES, prog_func, progress_func, 
-                                progress_str, simple_progres_func,) 
+    from .util_progress import (AGGROFLUSH, VALID_PROGRESS_TYPES, log_progress, 
+                                prog_func, progress_func, progress_str, 
+                                simple_progres_func,) 
     from .util_parallel import (close_pool, ensure_pool, generate, 
                                 get_default_numprocs, in_main_process, init_pool, 
                                 init_worker, process, set_num_procs, tic, toc,) 
