@@ -235,8 +235,9 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
             try:
                 import guitool
                 guitool.remove_pyqt_input_hook()
-            except ImportError as ex:
-                print(ex)
+            except (ImportError, ValueError) as ex:
+                #print(ex)
+                printex(ex, iswarning=True)
                 pass
             # make qt not loop forever (I had qflag loop forever with this off)
     except ImportError as ex:
