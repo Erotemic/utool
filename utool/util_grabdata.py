@@ -88,7 +88,8 @@ def split_archive_ext(path):
     return name, ext
 
 
-def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None):
+def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
+                  delay=None):
     file_url = fix_dropbox_link(file_url)
     fname = split(file_url)[1]
     # Download zipfile to
@@ -101,6 +102,9 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None):
         if not exists(fpath):
             # Download testdata
             print('[utool] Downloading file %s' % fpath)
+            if delay is not None:
+                print('[utool] delay download by %r seconds' % (delay,))
+                time.sleep(delay)
             download_url(file_url, fpath)
     util_path.assert_exists(fpath)
     return fpath
