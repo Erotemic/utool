@@ -56,6 +56,40 @@ def get_free_diskbytes(dir_):
         return bytes_
 
 
+def get_disk_space(start_path='.'):
+    # http://stackoverflow.com/questions/1392413/calculating-a-directory-size-using-python
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(start_path):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            try:
+                total_size += os.path.getsize(fp)
+            except OSError:
+                pass
+    return total_size
+
+
+def get_dir_diskspaces(dir_):
+    from utool import util_path
+    path_list = util_path.ls(dir_)
+    nBytes_list = [get_disk_space(path) for path in path_list]
+    spacetup_list = sorted(list(zip(nBytes_list, path_list)))
+    return spacetup_list
+
+
+def print_dir_diskspace(dir_):
+    import utool
+    spacetup_list = sorted(get_dir_diskspaces(dir_))
+    nBytes_list = [tup[0] for tup in spacetup_list]
+    path_list   = [tup[1] for tup in spacetup_list]
+    space_list = map(utool.byte_str2, nBytes_list)
+    n = max(map(len, space_list))
+    fmtstr = ('%' + str(n) + 's')
+    space_list2 = [fmtstr % space for space in space_list]
+    tupstr_list = ['%s %s' % (space2, path) for space2, path in zip(space_list2, path_list)]
+    print('\n'.join(tupstr_list))
+
+
 def get_lib_ext():
     return LIB_DICT[OS_TYPE]
 
