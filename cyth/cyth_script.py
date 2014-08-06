@@ -36,6 +36,25 @@ def is_docstring(node):
     return isinstance(node, ast.Expr) and isinstance(node.value, ast.Str)
 
 
+def replace_funcalls(source, funcname, replacement):
+    '''
+        >>> from cyth_script import *
+        >>> replace_funcalls('foo(5)', 'foo', 'bar')
+        'bar(5)'
+        >>> replace_funcalls('foo(5)', 'bar', 'baz')
+        'foo(5)'
+    '''
+    class FunctioncallReplacer(ast.NodeTransformer):
+        def visit_Call(self, node):
+            if isinstance(node.func, ast.Name) and node.func.id == funcname:
+                node.func.id = replacement
+            return node
+    generator = astor.codegen.SourceGenerator(' '*4)
+    generator.visit(FunctioncallReplacer().visit(ast.parse(source)))
+    return ''.join(generator.result)
+    #return ast.dump(tree)
+
+
 class CythVisitor(BASE_CLASS):
     indent_level = 0
     emit = sys.stdout.write
