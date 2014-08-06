@@ -9,12 +9,18 @@ INSTALL_REQUIRES = [
     'psutil',
 ]
 
+# HACK: Please remove someday
+import utool
+ext_modules = utool.find_ext_modules()
+
+
 if __name__ == '__main__':
     setup(
         name='utool',
         version='1.0.0.dev1',
         description='Univerally useful utility tools for you!',
         url='https://github.com/Erotemic/utool',
+        ext_modules=ext_modules,
         packages=[
             'utool',
             'utool._internal',
