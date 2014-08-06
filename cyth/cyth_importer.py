@@ -6,7 +6,7 @@ from . import cyth_helpers
 import utool
 
 
-WITH_CYTH = utool.get_flag('--cyth')
+#WITH_CYTH = utool.get_flag('--cyth')
 WITH_CYTH = not utool.get_flag('--nocyth')
 
 
@@ -15,7 +15,8 @@ def pkg_submodule_split(pyth_modname):
     # Break module name into package and submodule
     if cyth_modname.find('.') > -1:
         components = cyth_modname.split('.')
-        fromlist = [components[-1]]
+        submod = components[-1]
+        fromlist = [submod]
         pkgname = '.'.join(components[:-1])
     else:
         pkgname = cyth_modname
@@ -25,17 +26,26 @@ def pkg_submodule_split(pyth_modname):
 
 def import_cyth(pyth_modname):
     """
-    >>> from cyth import *  # NOQA
+    #>>> from cyth import *  # NOQA
+    >>> from cyth.cyth_importer import *  # NOQA
     >>> pyth_modname = 'vtool.keypoint'
+    >>> import_cyth(pyth_modname)
     """
     try:
         if not WITH_CYTH:
             raise ImportError('NO_CYTH')
         pkgname, fromlist, cyth_modname = pkg_submodule_split(pyth_modname)
         cyth_mod = __import__(cyth_modname, globals(), locals(), fromlist=fromlist, level=0)
-
+        mod_dict = cyth_mod.__dict__
+        cythonized_funcs = {}
+        for key, val in mod_dict.items():
+            valstr = repr(val)
+            # FIXME: might change in python3
+            if valstr.startswith('<built-in function '):
+                cythonized_funcs[key] = val
+        print(utool.dict_str(cythonized_funcs))
+        return cythonized_funcs
         # TODO: Get list of cythonized funcs and return them
-
         #from .keypoint_cython import (get_invVR_mats_sqrd_scale_float64,)  # NOQA
         #get_invVR_mats_sqrd_scale_cython = get_invVR_mats_sqrd_scale_float64
     except ImportError as ex:
