@@ -20,7 +20,7 @@ import astor
 import re
 import doctest
 from copy import deepcopy
-import cyth
+import cyth  # NOQA
 
 #class CythTransformer(ast.NodeTransformer):
 #    #
@@ -40,16 +40,16 @@ def is_docstring(node):
     return isinstance(node, ast.Expr) and isinstance(node.value, ast.Str)
 
 
-'''
+"""
 <CYTH>
 import ast
 import astor
 </CYTH>
-'''
+"""
 
 
 def replace_funcalls(source, funcname, replacement):
-    '''
+    """
     >>> from cyth_script import *
     >>> replace_funcalls('foo(5)', 'foo', 'bar')
     'bar(5)'
@@ -58,10 +58,15 @@ def replace_funcalls(source, funcname, replacement):
 
     <CYTH>
     </CYTH>
-    '''
+    """
+
+    # FIXME: !!!
+    # http://docs.cython.org/src/userguide/wrapping_CPlusPlus.html#nested-class-declarations
+    # C++ allows nested class declaration. Class declarations can also be nested in Cython:
+    # Note that the nested class is declared with a cppclass but without a cdef.
     class FunctioncallReplacer(ast.NodeTransformer):
         def visit_Call(self, node):
-            '''<CYTH></CYTH>'''
+            """CYTH></CYTH>"""
             if isinstance(node.func, ast.Name) and node.func.id == funcname:
                 node.func.id = replacement
             return node
