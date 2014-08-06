@@ -14,6 +14,10 @@ import multiprocessing
 import os
 import sys
 
+
+def __inside_doctest(original_stdout=sys.stdout):
+    return original_stdout != sys.stdout
+
 __IN_MAIN_PROCESS__ = multiprocessing.current_process().name == 'MainProcess'
 
 __UTOOL_ROOT_LOGGER__ = None
@@ -96,7 +100,8 @@ def start_logging(log_fpath=None, mode='a', appname=None):
     global __UTOOL_PRINTDBG__
     global __UTOOL_WRITE__
     global __UTOOL_FLUSH__
-    if __UTOOL_ROOT_LOGGER__ is None and __IN_MAIN_PROCESS__:
+    # FIXME: The test for doctest may not work
+    if __UTOOL_ROOT_LOGGER__ is None and __IN_MAIN_PROCESS__ and not __inside_doctest():
         #logging.config.dictConfig(LOGGING)
         if log_fpath is None:
             log_fpath = get_log_fpath(num='next', appname=appname)

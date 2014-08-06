@@ -1,3 +1,13 @@
+"""
+# Need to invoke this way because of relative imports
+python -c "import utool, doctest; print(doctest.testmod(utool.util_progress))"
+
+python -m doctest -v ~/code/utool/utool/util_progress.py
+python -c "import utool, doctest; doctest.testmod(utool.util_progress, verbose=True)"
+python -c "import utool, doctest; doctest.testmod(utool.util_progress)" -v
+python -c "import utool, doctest; doctest.testmod(utool.util_progress)"
+python -c "import utool, doctest; help(doctest.testmod)"
+"""
 from __future__ import absolute_import, division, print_function
 import sys
 from .util_inject import inject
