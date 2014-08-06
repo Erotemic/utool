@@ -9,6 +9,10 @@ sample_code = """
 #from __future__ import print_function
 def foo(x, y):
         '''
+        >>> foo = 'x'
+        >>> foo
+        x
+
         <CYTH>
         cdef:
             long x

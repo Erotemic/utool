@@ -15,6 +15,7 @@ import ast
 #import codegen  # NOQA
 import astor
 import re
+import doctest
 
 #class CythTransformer(ast.NodeTransformer):
 #    #
@@ -129,6 +130,10 @@ class CythVisitor(BASE_CLASS):
 
     def parse_cyth_markup(self, docstr, toplevel=False):
         comment_str = docstr.strip()
+        doctest_examples = filter(lambda x: isinstance(x, doctest.Example),
+                                    doctest.DocTestParser().parse(docstr))
+        [print("doctest_examples[%d] = (%r, %r)" % (i, x, y)) for (i, (x, y)) in 
+            enumerate(map(lambda x: (x.source, x.want), doctest_examples))]
         has_markup = comment_str.find('<CYTH') != -1
         # type returned_action = [`defines of string * (string, string) Hashtbl.t | `replace of string] option
         tags_to_actions = [
