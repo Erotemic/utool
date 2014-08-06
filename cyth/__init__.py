@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function
 
 from . import cyth_helpers
 from . import cyth_importer
+from .cyth_importer import import_cyth
 
 '''
 Cyth:

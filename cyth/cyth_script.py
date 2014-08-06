@@ -1,5 +1,7 @@
 #!/usr/bin/env python2
 """
+#python -c "import cyth, doctest; print(doctest.testmod(cyth.cyth_script))"
+python -m doctest cyth_script.py
 ut
 python cyth/cyth_script.py ~/code/fpath
 cyth_script.py ~/code/ibeis/ibeis/model/hots
@@ -17,6 +19,8 @@ import ast
 import astor
 import re
 import doctest
+from copy import deepcopy
+import cyth
 
 #class CythTransformer(ast.NodeTransformer):
 #    #
@@ -34,6 +38,77 @@ BASE_CLASS = astor.codegen.SourceGenerator
 
 def is_docstring(node):
     return isinstance(node, ast.Expr) and isinstance(node.value, ast.Str)
+
+
+'''
+<CYTH>
+import ast
+import astor
+</CYTH>
+'''
+
+
+def replace_funcalls(source, funcname, replacement):
+    '''
+    >>> from cyth_script import *
+    >>> replace_funcalls('foo(5)', 'foo', 'bar')
+    'bar(5)'
+    >>> replace_funcalls('foo(5)', 'bar', 'baz')
+    'foo(5)'
+
+    <CYTH>
+    </CYTH>
+    '''
+    class FunctioncallReplacer(ast.NodeTransformer):
+        def visit_Call(self, node):
+            '''<CYTH></CYTH>'''
+            if isinstance(node.func, ast.Name) and node.func.id == funcname:
+                node.func.id = replacement
+            return node
+    generator = astor.codegen.SourceGenerator(' ' * 4)
+    generator.visit(FunctioncallReplacer().visit(ast.parse(source)))
+    return ''.join(generator.result)
+    #return ast.dump(tree)
+
+
+def get_doctest_examples(source):
+    # parse list of docstrings
+    comment_iter = doctest.DocTestParser().parse(source)
+    # remove any non-doctests
+    example_list = [c for c in comment_iter if isinstance(c, doctest.Example)]
+    return example_list
+    #example_list = filter(lambda c: isinstance(c, doctest.Example), comment_iter)
+    #return filter(lambda x: isinstance(x, doctest.Example), doctest.DocTestParser().parse(source))
+
+
+def make_benchmarks(funcname, docstring):
+    r"""
+    >>> from cyth.cyth_script import *
+    >>> funcname = 'replace_funcalls'
+    >>> docstring =  '''
+    ...         >>> from cyth_script import *
+    ...         >>> replace_funcalls('foo(5)', 'foo', 'bar')
+    ...         'bar(5)'
+    ...         >>> replace_funcalls('foo(5)', 'bar', 'baz')
+    ...         'foo(5)'
+    ... '''
+    >>> benchmark_list = list(make_benchmarks(funcname, docstring))
+    >>> output = [((x.source, x.want), y.source, y.want) for x, y in benchmark_list]
+    >>> print(output)
+    [(('from cyth_script import *\n', ''), 'from cyth_script import *', ''), (("replace_funcalls('foo(5)', 'foo', 'bar')\n", "'bar(5)'\n"), "_replace_funcalls_cyth('foo(5)', 'foo', 'bar')", "'bar(5)'\n"), (("replace_funcalls('foo(5)', 'bar', 'baz')\n", "'foo(5)'\n"), "_replace_funcalls_cyth('foo(5)', 'bar', 'baz')", "'foo(5)'\n")]
+    """
+    doctest_examples = get_doctest_examples(docstring)
+    #[print("doctest_examples[%d] = (%r, %r)" % (i, x, y)) for (i, (x, y)) in
+    #    enumerate(map(lambda x: (x.source, x.want), doctest_examples))]
+    tweaked_examples = []
+    # would this be clearer with map?
+    for example in doctest_examples:
+        tweaked_example = deepcopy(example)
+        cyth_funcname = cyth_helpers.get_cyth_name(funcname)
+        tweaked_example.source = replace_funcalls(example.source, funcname, cyth_funcname)
+        tweaked_examples.append(tweaked_example)
+    benchmark_iter = zip(doctest_examples, tweaked_examples)
+    return benchmark_iter
 
 
 class CythVisitor(BASE_CLASS):
@@ -127,6 +202,8 @@ class CythVisitor(BASE_CLASS):
         for (id_, type_) in typedict.iteritems():
             #print("%s, %s" % (repr(id_), repr(type_)))
             res.append(self.indent_with + type_ + ' ' + id_)
+        if len(typedict) == 0:
+            res.append(self.indent_with + 'pass')
         return res
 
     def parse_cyth_markup(self, docstr, toplevel=False):
@@ -171,7 +248,8 @@ class CythVisitor(BASE_CLASS):
             elif isinstance(subnode, ast.FunctionDef):
                 self.visit(subnode)
             else:
-                print('Skipping a global %r' % subnode.__class__)
+                #print('Skipping a global %r' % subnode.__class__)
+                pass
         #return BASE_CLASS.visit_Module(self, node)
 
     def visit_FunctionDef(self, node):
@@ -207,6 +285,10 @@ class CythVisitor(BASE_CLASS):
                 cyth_def = cyth_action[1]
                 self.newline(extra=1)
                 self.write(cyth_def)
+
+    #def visit_ClassDef(self, node):
+    #    print(ast.dump(node))
+    #    return BASE_CLASS.visit_ClassDef(self, node)
 
     #    processed_argslist = self.process_args(node.args.args, node.args.vararg, node.args.kwarg, node.args.defaults)
     #    output = "%sdef %s(%s):\n" % (self.prefix(), node.name, ', '.join(processed_argslist))
@@ -304,6 +386,9 @@ def cythonize_fpath(py_fpath):
     visitor.visit(ast.parse(py_text))
     cython_text = visitor.get_result()
     utool.write_to(cy_fpath, cython_text)
+
+
+#cyth.import_cyth(__name__)
 
 
 if __name__ == '__main__':

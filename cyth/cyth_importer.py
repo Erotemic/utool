@@ -32,12 +32,15 @@ def import_cyth(pyth_modname):
     >>> import_cyth(pyth_modname)
     """
     try:
+        print('[import_cyth] pyth_modname=%r' % (pyth_modname,))
         if not WITH_CYTH:
+            print('[import_cyth] NO_CYTH')
             raise ImportError('NO_CYTH')
         pkgname, fromlist, cyth_modname = pkg_submodule_split(pyth_modname)
         cyth_mod = __import__(cyth_modname, globals(), locals(), fromlist=fromlist, level=0)
         mod_dict = cyth_mod.__dict__
         cythonized_funcs = {}
+        print('[import_cyth] mod_dict=%s' % (utool.dict_str(mod_dict),))
         for key, val in mod_dict.items():
             valstr = repr(val)
             # FIXME: might change in python3
