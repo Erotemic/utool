@@ -17,6 +17,7 @@ import ast
 import astor
 import re
 import doctest
+from copy import deepcopy
 
 #class CythTransformer(ast.NodeTransformer):
 #    #
@@ -38,11 +39,11 @@ def is_docstring(node):
 
 def replace_funcalls(source, funcname, replacement):
     '''
-        >>> from cyth_script import *
-        >>> replace_funcalls('foo(5)', 'foo', 'bar')
-        'bar(5)'
-        >>> replace_funcalls('foo(5)', 'bar', 'baz')
-        'foo(5)'
+    >>> from cyth_script import *
+    >>> replace_funcalls('foo(5)', 'foo', 'bar')
+    'bar(5)'
+    >>> replace_funcalls('foo(5)', 'bar', 'baz')
+    'foo(5)'
     '''
     class FunctioncallReplacer(ast.NodeTransformer):
         def visit_Call(self, node):
@@ -54,6 +55,36 @@ def replace_funcalls(source, funcname, replacement):
     return ''.join(generator.result)
     #return ast.dump(tree)
 
+
+def get_doctest_examples(source):
+    return filter(lambda x: isinstance(x, doctest.Example), doctest.DocTestParser().parse(source))
+
+def make_benchmarks(funcname, docstring):
+    r"""
+    >>> from cyth_script import *
+    >>> x = list(make_benchmarks('replace_funcalls',
+    ...     '''
+    ...         >>> from cyth_script import *
+    ...         >>> replace_funcalls('foo(5)', 'foo', 'bar')
+    ...         'bar(5)'
+    ...         >>> replace_funcalls('foo(5)', 'bar', 'baz')
+    ...         'foo(5)'
+    ...     '''
+    ... ))
+    >>> list(map(lambda (x, y): ((x.source, x.want), y.source, y.want), x))
+    [(('from cyth_script import *\n', ''), 'from cyth_script import *', ''), (("replace_funcalls('foo(5)', 'foo', 'bar')\n", "'bar(5)'\n"), "_replace_funcalls_cyth('foo(5)', 'foo', 'bar')", "'bar(5)'\n"), (("replace_funcalls('foo(5)', 'bar', 'baz')\n", "'foo(5)'\n"), "_replace_funcalls_cyth('foo(5)', 'bar', 'baz')", "'foo(5)'\n")]
+
+    """
+    doctest_examples = get_doctest_examples(docstring)
+    #[print("doctest_examples[%d] = (%r, %r)" % (i, x, y)) for (i, (x, y)) in 
+    #    enumerate(map(lambda x: (x.source, x.want), doctest_examples))]
+    tweaked_examples = []
+    # would this be clearer with map?
+    for example in doctest_examples:
+        tweaked_example = deepcopy(example)
+        tweaked_example.source = replace_funcalls(example.source, funcname, cyth_helpers.get_cyth_name(funcname))
+        tweaked_examples.append(tweaked_example)
+    return zip(doctest_examples, tweaked_examples)
 
 class CythVisitor(BASE_CLASS):
     indent_level = 0
@@ -150,10 +181,6 @@ class CythVisitor(BASE_CLASS):
 
     def parse_cyth_markup(self, docstr, toplevel=False):
         comment_str = docstr.strip()
-        doctest_examples = filter(lambda x: isinstance(x, doctest.Example),
-                                    doctest.DocTestParser().parse(docstr))
-        [print("doctest_examples[%d] = (%r, %r)" % (i, x, y)) for (i, (x, y)) in 
-            enumerate(map(lambda x: (x.source, x.want), doctest_examples))]
         has_markup = comment_str.find('<CYTH') != -1
         # type returned_action = [`defines of string * (string, string) Hashtbl.t | `replace of string] option
         tags_to_actions = [
