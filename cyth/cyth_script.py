@@ -133,7 +133,7 @@ class CythVisitor(BASE_CLASS):
         comment_str = docstr.strip()
         doctest_examples = filter(lambda x: isinstance(x, doctest.Example),
                                     doctest.DocTestParser().parse(docstr))
-        [print("doctest_examples[%d] = (%r, %r)" % (i, x, y)) for (i, (x, y)) in 
+        [print("doctest_examples[%d] = (%r, %r)" % (i, x, y)) for (i, (x, y)) in
             enumerate(map(lambda x: (x.source, x.want), doctest_examples))]
         has_markup = comment_str.find('<CYTH') != -1
         # type returned_action = [`defines of string * (string, string) Hashtbl.t | `replace of string] option
@@ -278,7 +278,7 @@ class CythVisitor(BASE_CLASS):
 #
 #def find_cyth_tags(py_text):
 #    """
-#    Parses between the <CYTHE> </CYTHE> tags. Tags must be the first or last
+#    Parses between the <CYTH> </CYTH> tags. Tags must be the first or last
 #    characters in the string so it doesn't pick up the ones in this docstr.
 #    Also returns line numbers so future parsing is less intensive.
 #    """
