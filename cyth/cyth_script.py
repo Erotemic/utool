@@ -7,10 +7,11 @@ cyth_script.py "~/code/vtool/vtool"
 
 """
 from __future__ import absolute_import, division, print_function
-from six.moves import zip, map, range
+from six.moves import zip, map
 import utool
 import sys
-from os.path import splitext, isfile
+from os.path import isfile
+from cyth import cyth_helpers
 import ast
 #import codegen  # NOQA
 import astor
@@ -292,7 +293,7 @@ class CythVisitor(BASE_CLASS):
 
 def cythonize_fpath(py_fpath):
     print('[cyth] CYTHONIZE: py_fpath=%r' % py_fpath)
-    cy_fpath = splitext(py_fpath)[0] + '_cyth.pyx'
+    cy_fpath = cyth_helpers.get_cyth_path(py_fpath)
     py_text = utool.read_from(py_fpath)
     visitor = CythVisitor()
     visitor.visit(ast.parse(py_text))

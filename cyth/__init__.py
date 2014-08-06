@@ -1,4 +1,8 @@
+# flake8: noqa
 from __future__ import absolute_import, division, print_function
+
+from . import cyth_helpers
+from . import cyth_importer
 
 '''
 Cyth:
@@ -12,9 +16,9 @@ Cyth Technical Description:
 
 Overview - cyth works by parsing a .py file for comments specified in comments:
 """
-<CYTH>
+<--CYTH>
 cyth code
-</CYTH>
+<--/CYTH>
 """
 
 it deterines scope using the indentation. In multiples of 4.
