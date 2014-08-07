@@ -28,6 +28,23 @@ __NUM_PROCS__ = util_arg.get_arg('--num-procs', int, default=None)
 __FORCE_SERIAL__ = util_arg.get_flag('--utool-force-serial')
 
 
+BACKEND = 'multiprocessing'
+
+if BACKEND == 'gevent':
+    raise NotImplementedError('gevent cannot run on multiple cpus')
+    pass
+elif BACKEND == 'zeromq':
+    #http://zguide.zeromq.org/py:mtserver
+    raise NotImplementedError('no zeromq yet')
+    pass
+elif BACKEND == 'multiprocessing':
+    def new_pool(num_procs, init_worker, maxtasksperchild):
+        return multiprocessing.Pool(processes=num_procs,
+                                    initializer=init_worker,
+                                    maxtasksperchild=maxtasksperchild)
+    pass
+
+
 def set_num_procs(num_procs):
     global __NUM_PROCS__
     __NUM_PROCS__ = num_procs
@@ -72,8 +89,8 @@ def init_pool(num_procs=None, maxtasksperchild=None):
         print('close pool before reinitializing')
         return
     # Create the pool of processes
-    __POOL__ = multiprocessing.Pool(processes=num_procs, initializer=init_worker,
-                                    maxtasksperchild=maxtasksperchild)
+    #__POOL__ = multiprocessing.Pool(processes=num_procs, initializer=init_worker, maxtasksperchild=maxtasksperchild)
+    __POOL__ = new_pool(num_procs, init_worker, maxtasksperchild)
 
 
 @atexit.register

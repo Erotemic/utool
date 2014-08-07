@@ -601,7 +601,7 @@ def formatex(ex, msg='[!?] Caught exception',
     errstr_list.append('<!!! %s !!!>' % ex_tag)
     if tb:
         errstr_list.append(traceback.format_exc())
-    errstr_list.append(prefix + ' ' + msg + '\n%s: %s' % (type(ex), ex))
+    errstr_list.append(prefix + ' ' + str(msg) + '\n%r: %s' % (type(ex), str(ex)))
     parse_locals_keylist(locals_, key_list, errstr_list, prefix)
     errstr_list.append('</!!! %s !!!>' % ex_tag)
     return '\n'.join(errstr_list)

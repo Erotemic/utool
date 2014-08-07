@@ -15,8 +15,7 @@ from utool._internal.meta_util_six import get_funcname
 
 # do not ignore traceback when profiling
 PROFILING = hasattr(builtins, 'profile')
-FULL_TRACEBACK = (True or '--noignore-exctb' in sys.argv or PROFILING or
-                  '--fulltb' in sys.argv)
+IGNORE_TRACEBACK = '--smalltb' in sys.argv or '--ignoretb' in sys.argv
 TRACE = '--trace' in sys.argv
 UNIQUE_NUMPY = True
 NOINDENT_DECOR = False
@@ -43,7 +42,7 @@ def ignores_exc_tb(func):
     if IGNORE_EXC_TB is False then this decorator does nothing
     (and it should do nothing in production code!)
     """
-    if FULL_TRACEBACK:
+    if not IGNORE_TRACEBACK:
         return func
     else:
         @wraps(func)
@@ -61,10 +60,9 @@ def ignores_exc_tb(func):
                 except Exception:
                     pass
                 # Python 2*3=6
-                import six
-                six.reraise(exc_type, exc_value, exc_traceback)
+                #six.reraise(exc_type, exc_value, exc_traceback)
                 # PYTHON 2.7 DEPRICATED:
-                #raise exc_type, exc_value, exc_traceback
+                raise exc_type, exc_value, exc_traceback
                 # PYTHON 3.3 NEW METHODS
                 #ex = exc_type(exc_value)
                 #ex.__traceback__ = exc_traceback
@@ -75,6 +73,7 @@ def ignores_exc_tb(func):
 
 
 def on_exception_report_input(func):
+    @ignores_exc_tb
     @wraps(func)
     def wrp_exception_report_input(*args, **kwargs):
         try:

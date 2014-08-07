@@ -149,6 +149,27 @@ def memory_profile(with_gc=False):
     #hp.pb()
 
 
+def make_call_graph(func, *args, **kwargs):
+    """ profile with pycallgraph
+    pycallgraph graphviz -- ./mypythonscript.py
+    http://pycallgraph.slowchop.com/en/master/
+    """
+    from pycallgraph import PyCallGraph
+    from pycallgraph.output import GraphvizOutput
+    with PyCallGraph(output=GraphvizOutput):
+        func(*args, **kwargs)
+
+
+def make_object_graph(obj, fpath='sample_graph.png'):
+    """ memoryprofile with objgraph
+    http://mg.pov.lt/objgraph/
+    """
+    import objgraph
+    objgraph.show_refs([obj], filename='ref_graph.png')
+    objgraph.show_backrefs([obj], filename='backref_graph.png')
+    objgraph.show_most_common_types()
+
+
 def disable_garbage_collection():
     import gc
     gc.disable()
