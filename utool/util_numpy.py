@@ -158,14 +158,15 @@ def sample_domain(min_, max_, nSamp, mode='linear'):
     >>> max_ = 1000
     >>> nSamp  = 7
     >>> utool.sample_domain(min_, max_, nSamp)
+    [10, 151, 293, 434, 576, 717, 859]
     """
     if mode == 'linear':
-        samples_ = np.rint(np.linspace(min_, max_, nSamp)).astype(np.int64)
+        samples_ = np.rint(np.linspace(min_, max_, nSamp + 1)).astype(np.int64)
     elif mode == 'log':
         base = 2
         logmin = np.log2(min_) / np.log2(base)
         logmax = np.log2(max_) / np.log2(base)
-        samples_ = np.rint(np.logspace(logmin, logmax, nSamp, base=base)).astype(np.int64)
+        samples_ = np.rint(np.logspace(logmin, logmax, nSamp + 1, base=base)).astype(np.int64)
     else:
         raise NotImplementedError(mode)
     sample = [index for index in samples_ if index < max_]
