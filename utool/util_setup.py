@@ -123,6 +123,29 @@ def find_ext_modules(disable_warnings=True):
     return ext_modules
 
 
+def find_packages():
+    import utool
+    from os.path import relpath
+    cwd = os.getcwd()
+    init_files = utool.glob(cwd, '__init__.py', recursive=True)
+    package_paths = list(map(dirname, init_files))
+    package_relpaths = [relpath(path, cwd) for path in package_paths]
+
+    packages = []
+    for path in package_relpaths:
+        base = utool.dirsplit(path)[0]
+        if exists(join(base, '__init__.py')):
+            package = path.replace('/', '.').replace('\\', '.')
+            packages.append(package)
+    return packages
+
+
+def get_cmdclass():
+    from Cython.Distutils import build_ext
+    cmdclass = {'build_ext': build_ext}
+    return cmdclass
+
+
 def NOOP():
     pass
 
@@ -186,12 +209,18 @@ def presetup(setup_fpath, kwargs):
 presetup_commands = presetup  # TODO:
 
 
-def __parse_package_for_version(name):
+def parse_package_for_version(name):
     from .util_regex import named_field, regex_parse
     init_fpath = join(name, '__init__.py')
     val_regex = named_field('version', '[0-9a-zA-Z.]+')
+    version_errmsg = textwrap.dedent(
+        '''
+        You must include a __version__ variable
+        in %s\'s __init__.py file.
+        Try something like:
+        __version__ = '1.0.0.dev1' ''')
     if not exists(init_fpath):
-        return None
+        raise AssertionError(version_errmsg)
     def parse_version(line):
         # Helper
         line = line.replace(' ', '').replace('\t', '')
@@ -205,7 +234,7 @@ def __parse_package_for_version(name):
                 version = parse_version(line)
                 if version is not None:
                     return version
-    return None
+    raise AssertionError(version_errmsg)
 
 
 def __infer_setup_kwargs(module, kwargs):
@@ -229,14 +258,7 @@ def __infer_setup_kwargs(module, kwargs):
         kwargs['packages'] = packages
 
     if 'version' not in kwargs:
-        version = __parse_package_for_version(name)
-        version_errmsg = textwrap.dedent(
-            '''
-            You must include a __version__ variable
-            in %s\'s __init__.py file.
-            Try something like:
-            __version__ = '1.0.0.dev1' ''')
-        assert version is not None, (version_errmsg % name)
+        version = parse_package_for_version(name)
         kwargs['version'] = version
 
     # Parse version
@@ -253,9 +275,11 @@ def __infer_setup_kwargs(module, kwargs):
             pass
     # Parse readme
     if 'long_description' not in kwargs:
-        kwargs['long_description'] = util_io.read_from('README.md',
-                                                       verbose=False,
-                                                       strict=False)
+        kwargs['long_description'] = parse_readme()
+
+
+def parse_readme(readmefile='README.md'):
+    return util_io.read_from(readmefile, verbose=False, strict=False)
 
 
 def setuptools_setup(setup_fpath=None, module=None, **kwargs):

@@ -27,6 +27,11 @@ def DEPRICATED(func):
 
 # --- Info Strings ---
 
+def print_mystats(_list):
+    import utool
+    print(utool.dict_str(utool.mystats(_list)))
+
+
 def stats_str(*args, **kwargs):
     # wrapper for common_stats
     return common_stats(*args, **kwargs)
