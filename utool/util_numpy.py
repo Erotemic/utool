@@ -103,10 +103,13 @@ def intersect2d(A, B):
 
 def deterministic_shuffle(list_, seed=1):
     rand_seed = int(np.random.rand() * np.uint(0 - 2) / 2)
+    if not isinstance(list_, (np.ndarray, list)):
+        list_ = list(list_)
     seed_ = len(list_) + seed
     np.random.seed(seed_)
     np.random.shuffle(list_)
     np.random.seed(rand_seed)  # reseed
+    return list_
 
 
 def listlike_copy(list_):
