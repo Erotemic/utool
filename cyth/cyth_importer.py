@@ -52,10 +52,12 @@ def import_cyth(pyth_modname):
         #from .keypoint_cython import (get_invVR_mats_sqrd_scale_float64,)  # NOQA
         #get_invVR_mats_sqrd_scale_cython = get_invVR_mats_sqrd_scale_float64
     except ImportError as ex:
+        raise
         return import_cyth_default(pyth_modname)
 
 
 def import_cyth_default(pyth_modname):
     # default to python
     #get_invVR_mats_sqrd_scale_cython = get_invVR_mats_sqrd_scale
+    return {}
     pass
