@@ -477,13 +477,15 @@ def cythonize_fpath(py_fpath):
 
 #cyth.import_cyth(__name__)
 
+def translate(*paths):
+    for fpath in paths:
+        if isfile(fpath):
+            abspath = utool.unixpath(fpath)
+            cythonize_fpath(abspath)
 
 if __name__ == '__main__':
     print('[cyth] main')
     input_path_list = utool.get_fpath_args(sys.argv[1:], pat='*.py')
     print(input_path_list)
     print('[cyth] nInput=%d' % (len(input_path_list,)))
-    for fpath in input_path_list:
-        if isfile(fpath):
-            abspath = utool.unixpath(fpath)
-            cythonize_fpath(abspath)
+    translate(*input_paths_list)
