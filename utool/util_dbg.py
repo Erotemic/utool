@@ -369,6 +369,13 @@ def get_caller_locals(N=0):
     return locals_
 
 
+def quasiquote(string):
+    return string.format(**get_caller_locals())
+
+
+fmtlocals = quasiquote # non-lispy alias for quasiquote
+
+
 def get_caller_prefix(N=0, aserror=False):
     prefix_fmt = '[!%s]' if aserror else '[%s]'
     prefix = prefix_fmt % (get_caller_name(N=N + 1),)

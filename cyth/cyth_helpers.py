@@ -31,3 +31,17 @@ def get_cyth_path(py_fpath):
     assert ext == '.py', 'not a python file'
     cy_fpath = join(dpath, get_cyth_name(name) + '.pyx')
     return cy_fpath
+
+
+def get_cyth_bench_path(py_fpath):
+    """
+    >>> py_fpath = '/foo/vtool/vtool/keypoint.py'
+    >>> cy_fpath = get_cyth_bench_path(py_fpath)
+    >>> print(cy_fpath)
+    /foo/vtool/vtool/_keypoint_cyth_bench.py
+    """
+    dpath, fname = split(py_fpath)
+    name, ext = splitext(fname)
+    assert ext == '.py', 'not a python file'
+    cy_fpath = join(dpath, get_cyth_name(name) + '_bench.py')
+    return cy_fpath

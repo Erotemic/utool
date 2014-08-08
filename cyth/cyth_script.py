@@ -134,18 +134,43 @@ def make_benchmarks(funcname, docstring):
 #        tweaked_examples.append(tweaked_example)
 #    benchmark_iter = zip(doctest_examples, tweaked_examples)
     test_lines = []
+    cyth_lines = []
     setup_lines = []
+    cyth_funcname = cyth_helpers.get_cyth_name(funcname)
     for example in doctest_examples:
         if is_test(example.source, funcname):
             test_lines.append(example.source)
+            cyth_lines.append(replace_funcalls(example.source, funcname, cyth_funcname))
         else:
             setup_lines.append(example.source)
-    return test_lines, ''.join(setup_lines)
+    return list(zip(test_lines, cyth_lines)), utool.unindent(''.join(setup_lines))
 
 
-def run_benchmarks(funcname, docstring, iterations):
-    test_lines, setup_script = make_benchmarks(funcname, docstring)
-    return list(map(lambda line: timeit.timeit(stmt=line, setup=setup_script, number=iterations), test_lines))
+#def run_benchmarks(funcname, docstring, iterations):
+#    test_tuples, setup_script = make_benchmarks(funcname, docstring)
+#    time_line = lambda line: timeit.timeit(stmt=line, setup=setup_script, number=iterations)
+#    time_pair = lambda (x, y): (time_line(x), time_line(y))
+#    return list(map(time_pair, test_tuples))
+
+
+def emit_benchmark(funcname, docstring):
+    test_tuples, setup_script = make_benchmarks(funcname, docstring)
+    benchmark_name = utool.quasiquote('run_benchmark_{funcname}')
+    #test_tuples, setup_script = make_benchmarks('''{funcname}''', '''{docstring}''')
+    return (benchmark_name, utool.quasiquote("""
+def {benchmark_name}(iterations):
+    test_tuples = {test_tuples}
+    setup_script = '''{setup_script}'''
+    time_line = lambda line: timeit.timeit(stmt=line, setup=setup_script, number=iterations)
+    time_pair = lambda (x, y): (time_line(x), time_line(y))
+    def print_timing_info(tup):
+        print(tup)
+        (x, y) = time_pair(tup)
+        print("Time for %d iterations of the python version: %d" % (iterations, x))
+        print("Time for %d iterations of the cython version: %d" % (iterations, y))
+        return (x, y)
+    return list(map(print_timing_info, test_tuples))
+"""))
 
 
 class CythVisitor(BASE_CLASS):
@@ -154,9 +179,27 @@ class CythVisitor(BASE_CLASS):
 
     def __init__(self, indent_with=' ' * 4, add_line_information=False):
         super(CythVisitor, self).__init__(indent_with, add_line_information)
+        self.benchmark_names = []
+        self.benchmark_codes = []
 
     def get_result(self):
         return ''.join(self.result)
+
+    def get_benchmarks(self):
+        codes = '\n\n'.join(self.benchmark_codes)
+        all_benchmarks = utool.indent('\n'.join([utool.quasiquote('{func}(iterations)') for func in self.benchmark_names]))
+        return utool.quasiquote(utool.unindent("""
+        #!/usr/bin/env python
+        from __future__ import absolute_import, division, print_function
+        import timeit
+        {codes}
+
+        def run_all_benchmarks(iterations):
+        {all_benchmarks}
+
+        if __name__ == '__main__':
+            run_all_benchmarks(1000)
+        """).strip())
 
     def process_args(self, args, vararg, kwarg, defaults=None):
         processed_argslist = map(self.visit, args)
@@ -243,7 +286,7 @@ class CythVisitor(BASE_CLASS):
             res.append(self.indent_with + 'pass')
         return res
 
-    def parse_cyth_markup(self, docstr, toplevel=False):
+    def parse_cyth_markup(self, docstr, toplevel=False, funcname=None):
         comment_str = docstr.strip()
         doctest_examples = filter(lambda x: isinstance(x, doctest.Example),
                                     doctest.DocTestParser().parse(docstr))
@@ -260,6 +303,10 @@ class CythVisitor(BASE_CLASS):
         regex_to_actions = [(re.compile(tag + '(.*?)' + end_tag, regex_flags), act)
                             for tag, act in tags_to_actions]
         if has_markup:
+            if funcname:
+                (benchmark_name, benchmark_code) = emit_benchmark(funcname, docstr)
+                self.benchmark_names.append(benchmark_name)
+                self.benchmark_codes.append(benchmark_code)
             if toplevel:
                 comment_str = re.sub('<CYTH>', '<CYTH:REPLACE>', comment_str)
             for (regex, action) in regex_to_actions:
@@ -297,7 +344,7 @@ class CythVisitor(BASE_CLASS):
             if is_docstring(stmt):
                 #print('found comment_str')
                 docstr = stmt.value.s
-                cyth_action = self.parse_cyth_markup(docstr)
+                cyth_action = self.parse_cyth_markup(docstr, funcname=node.name)
             else:
                 new_body.append(stmt)
         if cyth_action:
@@ -418,11 +465,14 @@ class CythVisitor(BASE_CLASS):
 def cythonize_fpath(py_fpath):
     print('[cyth] CYTHONIZE: py_fpath=%r' % py_fpath)
     cy_fpath = cyth_helpers.get_cyth_path(py_fpath)
+    cy_bpath = cyth_helpers.get_cyth_bench_path(py_fpath)
     py_text = utool.read_from(py_fpath)
     visitor = CythVisitor()
     visitor.visit(ast.parse(py_text))
     cython_text = visitor.get_result()
+    bench_text = visitor.get_benchmarks()
     utool.write_to(cy_fpath, cython_text)
+    utool.write_to(cy_bpath, bench_text)
 
 
 #cyth.import_cyth(__name__)
