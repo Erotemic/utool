@@ -19,9 +19,9 @@ import ast
 import astor
 import re
 import doctest
-from copy import deepcopy
+#from copy import deepcopy
 import cyth  # NOQA
-import timeit
+#import timeit
 
 #class CythTransformer(ast.NodeTransformer):
 #    #
@@ -47,6 +47,12 @@ import ast
 import astor
 </CYTH>
 """
+
+
+def ast_to_sourcecode(node):
+    generator = astor.codegen.SourceGenerator(' ' * 4)
+    generator.visit(node)
+    return ''.join(generator.result)
 
 
 def replace_funcalls(source, funcname, replacement):
@@ -83,28 +89,33 @@ def get_doctest_examples(source):
     # remove any non-doctests
     example_list = [c for c in comment_iter if isinstance(c, doctest.Example)]
     return example_list
-    #example_list = filter(lambda c: isinstance(c, doctest.Example), comment_iter)
-    #return filter(lambda x: isinstance(x, doctest.Example), doctest.DocTestParser().parse(source))
 
-def is_test(src, funcname):
+
+def get_benchline(src, funcname):
+    """ Returns the  from a doctest source """
     pt = ast.parse(src)
     assert isinstance(pt, ast.Module), type(pt)
-#    print('<<<')
-#    try:
-#        print(len(pt.body) == 1)
-#        print(isinstance(pt.body[0], ast.Expr))
-#        print(isinstance(pt.body[0].value, ast.Call))
-#        print(isinstance(pt.body[0].value.func, ast.Name))
-#        print(pt.body[0].value.func.id)
-#    except:
-#        pass
-#    print('>>>')
-    try:
-        # look for the only line of src to contain just a function call, and check the name
-        line = pt.body[0]
-        return line.value.func.id == funcname
-    except AttributeError, IndexError:
-        return False
+    body = pt.body
+    if len(body) != 1:
+        return None
+    stmt = body[0]
+    if not isinstance(stmt, (ast.Expr, ast.Assign)):
+        return None
+    if isinstance(stmt.value, ast.Call) and isinstance(stmt.value.func, ast.Name):
+        if stmt.value.func.id == funcname:
+            benchline = ast_to_sourcecode(stmt.value)
+            return benchline
+    #print('<<<')
+    #try:
+    #    print(len(pt.body) == 1)
+    #    print(isinstance(pt.body[0], ast.Expr))
+    #    print(isinstance(pt.body[0].value, ast.Call))
+    #    print(isinstance(pt.body[0].value.func, ast.Name))
+    #    print(pt.body[0].value.func.id)
+    #except:
+    #    pass
+    #print('>>>')
+
 
 def make_benchmarks(funcname, docstring):
     r"""
@@ -122,28 +133,54 @@ def make_benchmarks(funcname, docstring):
     >>> print(output)
     [(('from cyth_script import *\n', ''), 'from cyth_script import *', ''), (("replace_funcalls('foo(5)', 'foo', 'bar')\n", "'bar(5)'\n"), "_replace_funcalls_cyth('foo(5)', 'foo', 'bar')", "'bar(5)'\n"), (("replace_funcalls('foo(5)', 'bar', 'baz')\n", "'foo(5)'\n"), "_replace_funcalls_cyth('foo(5)', 'bar', 'baz')", "'foo(5)'\n")]
     """
-    doctest_examples = get_doctest_examples(docstring)
     #[print("doctest_examples[%d] = (%r, %r)" % (i, x, y)) for (i, (x, y)) in
     #    enumerate(map(lambda x: (x.source, x.want), doctest_examples))]
-#    tweaked_examples = []
-#    # would this be clearer with map?
-#    for example in doctest_examples:
-#        tweaked_example = deepcopy(example)
-#        cyth_funcname = cyth_helpers.get_cyth_name(funcname)
-#        tweaked_example.source = replace_funcalls(example.source, funcname, cyth_funcname)
-#        tweaked_examples.append(tweaked_example)
-#    benchmark_iter = zip(doctest_examples, tweaked_examples)
+    #tweaked_examples = []
+    ## would this be clearer with map?
+    #for example in doctest_examples:
+    #    tweaked_example = deepcopy(example)
+    #    cyth_funcname = cyth_helpers.get_cyth_name(funcname)
+    #    tweaked_example.source = replace_funcalls(example.source, funcname, cyth_funcname)
+    #    tweaked_examples.append(tweaked_example)
+    #benchmark_iter = zip(doctest_examples, tweaked_examples)
+    doctest_examples = get_doctest_examples(docstring)
     test_lines = []
     cyth_lines = []
     setup_lines = []
     cyth_funcname = cyth_helpers.get_cyth_name(funcname)
     for example in doctest_examples:
-        if is_test(example.source, funcname):
-            test_lines.append(example.source)
-            cyth_lines.append(replace_funcalls(example.source, funcname, cyth_funcname))
+        benchline = get_benchline(example.source, funcname)
+        if benchline is not None:
+            test_lines.append(benchline)
+            cyth_lines.append(replace_funcalls(benchline, funcname, cyth_funcname))
         else:
             setup_lines.append(example.source)
-    return list(zip(test_lines, cyth_lines)), utool.unindent(''.join(setup_lines))
+    test_tuples = list(zip(test_lines, cyth_lines))
+    setup_script = utool.unindent(''.join(setup_lines))
+    modname = 'vtool.keypoint'
+    setup_script = 'from %s import %s\n' % (modname, cyth_funcname,) + setup_script
+    return test_tuples, setup_script
+
+
+def emit_benchmark(funcname, docstring):
+    test_tuples, setup_script = make_benchmarks(funcname, docstring)
+    benchmark_name = utool.quasiquote('run_benchmark_{funcname}')
+    #test_tuples, setup_script = make_benchmarks('''{funcname}''', '''{docstring}''')
+    bench_code = utool.unindent("""
+    def {benchmark_name}(iterations):
+        test_tuples = {test_tuples}
+        setup_script = '''{setup_script}'''
+        time_line = lambda line: timeit.timeit(stmt=line, setup=setup_script, number=iterations)
+        time_pair = lambda (x, y): (time_line(x), time_line(y))
+        def print_timing_info(tup):
+            print(tup)
+            (x, y) = time_pair(tup)
+            print("[bench.python] {funcname} iterations=%r; time=%r" % (iterations, x))
+            print("[bench.cython] {funcname} iterations=%r; time=%r" % (iterations, y))
+            return (x, y)
+        return list(map(print_timing_info, test_tuples))
+    """)
+    return (benchmark_name, utool.quasiquote(bench_code))
 
 
 #def run_benchmarks(funcname, docstring, iterations):
@@ -151,26 +188,6 @@ def make_benchmarks(funcname, docstring):
 #    time_line = lambda line: timeit.timeit(stmt=line, setup=setup_script, number=iterations)
 #    time_pair = lambda (x, y): (time_line(x), time_line(y))
 #    return list(map(time_pair, test_tuples))
-
-
-def emit_benchmark(funcname, docstring):
-    test_tuples, setup_script = make_benchmarks(funcname, docstring)
-    benchmark_name = utool.quasiquote('run_benchmark_{funcname}')
-    #test_tuples, setup_script = make_benchmarks('''{funcname}''', '''{docstring}''')
-    return (benchmark_name, utool.quasiquote("""
-def {benchmark_name}(iterations):
-    test_tuples = {test_tuples}
-    setup_script = '''{setup_script}'''
-    time_line = lambda line: timeit.timeit(stmt=line, setup=setup_script, number=iterations)
-    time_pair = lambda (x, y): (time_line(x), time_line(y))
-    def print_timing_info(tup):
-        print(tup)
-        (x, y) = time_pair(tup)
-        print("Time for %d iterations of the python version: %d" % (iterations, x))
-        print("Time for %d iterations of the cython version: %d" % (iterations, y))
-        return (x, y)
-    return list(map(print_timing_info, test_tuples))
-"""))
 
 
 class CythVisitor(BASE_CLASS):
@@ -186,8 +203,9 @@ class CythVisitor(BASE_CLASS):
         return ''.join(self.result)
 
     def get_benchmarks(self):
-        codes = '\n\n'.join(self.benchmark_codes)
-        all_benchmarks = utool.indent('\n'.join([utool.quasiquote('{func}(iterations)') for func in self.benchmark_names]))
+        codes = '\n\n'.join(self.benchmark_codes)  # NOQA
+        list_ = [utool.quasiquote('{func}(iterations)') for func in self.benchmark_names]
+        all_benchmarks = utool.indent('\n'.join(list_))  # NOQA
         return utool.quasiquote(utool.unindent("""
         #!/usr/bin/env python
         from __future__ import absolute_import, division, print_function
@@ -288,10 +306,10 @@ class CythVisitor(BASE_CLASS):
 
     def parse_cyth_markup(self, docstr, toplevel=False, funcname=None):
         comment_str = docstr.strip()
-        doctest_examples = filter(lambda x: isinstance(x, doctest.Example),
-                                    doctest.DocTestParser().parse(docstr))
-        [print("doctest_examples[%d] = (%r, %r)" % (i, x, y)) for (i, (x, y)) in
-            enumerate(map(lambda x: (x.source, x.want), doctest_examples))]
+        #doctest_examples = filter(lambda x: isinstance(x, doctest.Example),
+        #                            doctest.DocTestParser().parse(docstr))
+        #for (i, (x, y)) in enumerate(map(lambda x: (x.source, x.want), doctest_examples)):
+        #    print("doctest_examples[%d] = (%r, %r)" % (i, x, y))
         has_markup = comment_str.find('<CYTH') != -1
         # type returned_action = [`defines of string * (string, string) Hashtbl.t | `replace of string] option
         tags_to_actions = [
@@ -322,7 +340,7 @@ class CythVisitor(BASE_CLASS):
     def visit_Module(self, node):
         for subnode in node.body:
             if is_docstring(subnode):
-                print('Encountered global docstring: %s' % repr(subnode.value.s))
+                #print('Encountered global docstring: %s' % repr(subnode.value.s))
                 action = self.parse_cyth_markup(subnode.value.s, toplevel=True)
                 if action:
                     if action[0] == 'replace':
@@ -353,7 +371,13 @@ class CythVisitor(BASE_CLASS):
                 typedict = cyth_action[2]
                 #self.decorators(node, 2)
                 self.newline(extra=1)
-                self.statement(node, 'def %s(' % node.name)
+                cyth_funcname = cyth_helpers.get_cyth_name(node.name)
+                func_prefix = utool.unindent('''
+                @cython.boundscheck(False)
+                @cython.wraparound(False)
+                ''').strip()
+
+                self.statement(node, func_prefix + '\ncpdef %s(' % (cyth_funcname,))
                 types_minus_sigtypes = self.signature(node.args, typedict=typedict)
                 cyth_def_body = self.typedict_to_cythdef(types_minus_sigtypes)
                 self.write(')')
@@ -488,4 +512,4 @@ if __name__ == '__main__':
     input_path_list = utool.get_fpath_args(sys.argv[1:], pat='*.py')
     print(input_path_list)
     print('[cyth] nInput=%d' % (len(input_path_list,)))
-    translate(*input_paths_list)
+    translate(*input_path_list)

@@ -208,8 +208,3 @@ def mystats(_list):
                         ('nMin',  np.int32(nMin)),
                         ('nMax',  np.int32(nMax)),
                         ('shape', repr(nparr.shape))])
-
-
-def print_mystats(_list):
-    import utool
-    print(utool.dict_str(utool.mystats(_list)))

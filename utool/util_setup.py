@@ -57,12 +57,12 @@ def assert_in_setup_repo(setup_fpath, name=''):
     #print('setup_dir = %r' % (setup_dir))
     #print('setup_fname = %r' % (setup_fname))
     try:
-        assert setup_fname == 'setup.py'
+        assert setup_fname == 'setup.py', 'name is not setup.py'
         #assert name == '' or repo_dname == name,
         ('name=%r' % name)
-        assert cwd == setup_dir
-        assert exists(setup_dir)
-        assert exists(join(setup_dir, 'setup.py'))
+        assert cwd == setup_dir, 'cwd is not setup_dir'
+        assert exists(setup_dir), 'setup dir does not exist'
+        assert exists(join(setup_dir, 'setup.py')), 'setup.py does not exist'
     except AssertionError as ex:
         printex(ex, 'ERROR!: setup.py must be run from repository root')
         raise
