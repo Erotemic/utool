@@ -21,6 +21,7 @@ import re
 import doctest
 from copy import deepcopy
 import cyth  # NOQA
+import timeit
 
 #class CythTransformer(ast.NodeTransformer):
 #    #
@@ -85,6 +86,25 @@ def get_doctest_examples(source):
     #example_list = filter(lambda c: isinstance(c, doctest.Example), comment_iter)
     #return filter(lambda x: isinstance(x, doctest.Example), doctest.DocTestParser().parse(source))
 
+def is_test(src, funcname):
+    pt = ast.parse(src)
+    assert isinstance(pt, ast.Module), type(pt)
+#    print('<<<')
+#    try:
+#        print(len(pt.body) == 1)
+#        print(isinstance(pt.body[0], ast.Expr))
+#        print(isinstance(pt.body[0].value, ast.Call))
+#        print(isinstance(pt.body[0].value.func, ast.Name))
+#        print(pt.body[0].value.func.id)
+#    except:
+#        pass
+#    print('>>>')
+    try:
+        # look for the only line of src to contain just a function call, and check the name
+        line = pt.body[0]
+        return line.value.func.id == funcname
+    except AttributeError, IndexError:
+        return False
 
 def make_benchmarks(funcname, docstring):
     r"""
@@ -105,15 +125,27 @@ def make_benchmarks(funcname, docstring):
     doctest_examples = get_doctest_examples(docstring)
     #[print("doctest_examples[%d] = (%r, %r)" % (i, x, y)) for (i, (x, y)) in
     #    enumerate(map(lambda x: (x.source, x.want), doctest_examples))]
-    tweaked_examples = []
-    # would this be clearer with map?
+#    tweaked_examples = []
+#    # would this be clearer with map?
+#    for example in doctest_examples:
+#        tweaked_example = deepcopy(example)
+#        cyth_funcname = cyth_helpers.get_cyth_name(funcname)
+#        tweaked_example.source = replace_funcalls(example.source, funcname, cyth_funcname)
+#        tweaked_examples.append(tweaked_example)
+#    benchmark_iter = zip(doctest_examples, tweaked_examples)
+    test_lines = []
+    setup_lines = []
     for example in doctest_examples:
-        tweaked_example = deepcopy(example)
-        cyth_funcname = cyth_helpers.get_cyth_name(funcname)
-        tweaked_example.source = replace_funcalls(example.source, funcname, cyth_funcname)
-        tweaked_examples.append(tweaked_example)
-    benchmark_iter = zip(doctest_examples, tweaked_examples)
-    return benchmark_iter
+        if is_test(example.source, funcname):
+            test_lines.append(example.source)
+        else:
+            setup_lines.append(example.source)
+    return test_lines, ''.join(setup_lines)
+
+
+def run_benchmarks(funcname, docstring, iterations):
+    test_lines, setup_script = make_benchmarks(funcname, docstring)
+    return list(map(lambda line: timeit.timeit(stmt=line, setup=setup_script, number=iterations), test_lines))
 
 
 class CythVisitor(BASE_CLASS):
