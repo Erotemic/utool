@@ -171,8 +171,6 @@ def list_allsame(list_):
     item0 = list_[0]
     return all([item == item0 for item in list_])
 
-list_eq = list_allsame
-
 
 def assert_all_not_None(list_, list_name='some_list', key_list=[]):
     if NO_ASSERTS:

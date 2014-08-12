@@ -16,7 +16,7 @@ from os.path import splitext, split
 from . import util_inject
 from .util_arg import get_flag, SUPER_STRICT
 from .util_inject import inject
-from .util_list import list_eq
+from .util_list import list_allsame
 from .util_print import Indenter
 from .util_str import pack_into, truncate_str, horiz_string, indent
 from .util_type import is_listlike, get_type
@@ -517,14 +517,14 @@ def debug_list(list_):
     if all([is_listlike(item) for item in list_]):
         append(' * list items are all listlike')
         all_lens = [len(item) for item in list_]
-        if list_eq(all_lens):
+        if list_allsame(all_lens):
             dim2 = all_lens[0]
             append(' * uniform lens=%d' % dim2)
         else:
             append(' * nonuniform lens = %r' % np.unique(all_lens).tolist())
     else:
         all_types = [type(item) for item in list_]
-        if list_eq(all_types):
+        if list_allsame(all_types):
             append(' * uniform types=%r' % all_types[0])
         else:
             append(' * nonuniform types: %r' % np.unique(all_types).tolist())
