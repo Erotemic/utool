@@ -42,24 +42,6 @@ class CythVisitor(BASE_CLASS):
     def get_result(self):
         return ''.join(self.result)
 
-    def get_benchmarks(self):
-        # TODO: let each function individually specify number
-        codes = '\n\n'.join(self.benchmark_codes)  # NOQA
-        list_ = [utool.quasiquote('{func}(iterations)') for func in self.benchmark_names]
-        all_benchmarks = utool.indent('\n'.join(list_))  # NOQA
-        return utool.quasiquote(utool.unindent("""
-        #!/usr/bin/env python
-        from __future__ import absolute_import, division, print_function
-        import timeit
-        {codes}
-
-        def run_all_benchmarks(iterations):
-        {all_benchmarks}
-
-        if __name__ == '__main__':
-            run_all_benchmarks(100)
-        """).strip())
-
     def process_args(self, args, vararg, kwarg, defaults=None):
         processed_argslist = map(self.visit, args)
         if vararg:
@@ -268,6 +250,30 @@ class CythVisitor(BASE_CLASS):
         if trailing:
             self.write(',')
 
+    def get_benchmarks(self):
+        # TODO: let each function individually specify number
+        codes = '\n\n\n'.join(self.benchmark_codes)  # NOQA
+        list_ = [utool.quasiquote('{func}(iterations)') for func in self.benchmark_names]
+        all_benchmarks = utool.indent('\n'.join(list_))  # NOQA
+        return utool.quasiquote(utool.unindent(
+            """
+            #!/usr/bin/env python
+            from __future__ import absolute_import, division, print_function
+            import timeit
+            import textwrap
+            import warnings
+            warnings.simplefilter('ignore', SyntaxWarning)
+
+
+            {codes}
+
+
+            def run_all_benchmarks(iterations):
+            {all_benchmarks}
+
+            if __name__ == '__main__':
+                run_all_benchmarks(100)""").strip('\n'))
+
 
 def is_docstring(node):
     return isinstance(node, ast.Expr) and isinstance(node.value, ast.Str)
@@ -400,22 +406,38 @@ def make_benchmarks(funcname, docstring, py_modname):
 
 
 def get_benchmark(funcname, docstring, py_modname):
-    test_tuples, setup_script = make_benchmarks(funcname, docstring, py_modname)
+    test_tuples_, setup_script_ = make_benchmarks(funcname, docstring, py_modname)
+    if len(test_tuples_) == 0:
+        test_tuples = '[]'
+    else:
+        test_tuples = '[\n        ' + '\n    '.join(list(map(str, test_tuples_))) + '\n    ]'  # NOQA
+    setup_script = utool.indent(setup_script_).strip()  # NOQA
     benchmark_name = utool.quasiquote('run_benchmark_{funcname}')
     #test_tuples, setup_script = make_benchmarks('''{funcname}''', '''{docstring}''')
-    bench_code = utool.unindent("""
-    def {benchmark_name}(iterations):
-        test_tuples = {test_tuples}
-        setup_script = '''{setup_script}'''
-        time_line = lambda line: timeit.timeit(stmt=line, setup=setup_script, number=iterations)
-        time_pair = lambda (x, y): (time_line(x), time_line(y))
-        def print_timing_info(tup):
-            print(tup)
-            (x, y) = time_pair(tup)
-            print("[bench.python] {funcname} iterations=%r; time=%r" % (iterations, x))
-            print("[bench.cython] {funcname} iterations=%r; time=%r" % (iterations, y))
-            return (x, y)
-        return list(map(print_timing_info, test_tuples))""")
+    bench_code = utool.unindent(
+        r"""
+        def {benchmark_name}(iterations):
+            test_tuples = {test_tuples}
+            setup_script = textwrap.dedent('''
+            {setup_script}
+            ''')
+            time_line = lambda line: timeit.timeit(stmt=line, setup=setup_script, number=iterations)
+            time_pair = lambda (x, y): (time_line(x), time_line(y))
+            def print_timing_info(tup):
+                print('\n---------------')
+                print('[bench] timing {benchmark_name} for %d iterations' % (iterations))
+                print('[bench] tests:')
+                print('    ' + str(tup))
+                (time1, time2) = time_pair(tup)
+                print("[bench.python] {funcname} time=%f seconds" % (time1))
+                print("[bench.cython] {funcname} time=%f seconds" % (time2))
+                time_delta = time2 - time1
+                if time_delta > 0:
+                    print('[bench.result] cython was faster by %f seconds' % time_delta)
+                else:
+                    print('[bench.result] python was faster by %f seconds' % -time_delta)
+                return (time1, time2)
+            return list(map(print_timing_info, test_tuples))""").strip('\n')
     return (benchmark_name, utool.quasiquote(bench_code))
 
 
