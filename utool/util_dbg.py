@@ -373,7 +373,7 @@ def quasiquote(string):
     return string.format(**get_caller_locals())
 
 
-fmtlocals = quasiquote # non-lispy alias for quasiquote
+fmtlocals = quasiquote  # non-lispy alias for quasiquote
 
 
 def get_caller_prefix(N=0, aserror=False):

@@ -19,17 +19,7 @@ import ast
 import astor
 import re
 import doctest
-#from copy import deepcopy
 import cyth  # NOQA
-#import timeit
-
-#class CythTransformer(ast.NodeTransformer):
-#    #
-
-
-#BASE_CLASS = codegen.SourceGenerator
-#BASE_CLASS = ast.NodeVisitor
-#BASE_CLASS = astor.ExplicitNodeVisitor
 BASE_CLASS = astor.codegen.SourceGenerator
 
 
@@ -37,195 +27,23 @@ BASE_CLASS = astor.codegen.SourceGenerator
 # https://github.com/berkerpeksag/astor/blob/master/astor/codegen.py
 
 
-def is_docstring(node):
-    return isinstance(node, ast.Expr) and isinstance(node.value, ast.Str)
-
-
-"""
-<CYTH>
-import ast
-import astor
-</CYTH>
-"""
-
-
-def ast_to_sourcecode(node):
-    generator = astor.codegen.SourceGenerator(' ' * 4)
-    generator.visit(node)
-    return ''.join(generator.result)
-
-
-def replace_funcalls(source, funcname, replacement):
-    """
-    >>> from cyth_script import *
-    >>> replace_funcalls('foo(5)', 'foo', 'bar')
-    'bar(5)'
-    >>> replace_funcalls('foo(5)', 'bar', 'baz')
-    'foo(5)'
-
-    <CYTH>
-    </CYTH>
-    """
-
-    # FIXME: !!!
-    # http://docs.cython.org/src/userguide/wrapping_CPlusPlus.html#nested-class-declarations
-    # C++ allows nested class declaration. Class declarations can also be nested in Cython:
-    # Note that the nested class is declared with a cppclass but without a cdef.
-    class FunctioncallReplacer(ast.NodeTransformer):
-        def visit_Call(self, node):
-            """CYTH></CYTH>"""
-            if isinstance(node.func, ast.Name) and node.func.id == funcname:
-                node.func.id = replacement
-            return node
-    generator = astor.codegen.SourceGenerator(' ' * 4)
-    generator.visit(FunctioncallReplacer().visit(ast.parse(source)))
-    return ''.join(generator.result)
-    #return ast.dump(tree)
-
-
-def get_doctest_examples(source):
-    # parse list of docstrings
-    comment_iter = doctest.DocTestParser().parse(source)
-    # remove any non-doctests
-    example_list = [c for c in comment_iter if isinstance(c, doctest.Example)]
-    return example_list
-
-
-def get_benchline(src, funcname):
-    """ Returns the  from a doctest source """
-    pt = ast.parse(src)
-    assert isinstance(pt, ast.Module), type(pt)
-    body = pt.body
-    if len(body) != 1:
-        return None
-    stmt = body[0]
-    if not isinstance(stmt, (ast.Expr, ast.Assign)):
-        return None
-    if isinstance(stmt.value, ast.Call) and isinstance(stmt.value.func, ast.Name):
-        if stmt.value.func.id == funcname:
-            benchline = ast_to_sourcecode(stmt.value)
-            return benchline
-    #print('<<<')
-    #try:
-    #    print(len(pt.body) == 1)
-    #    print(isinstance(pt.body[0], ast.Expr))
-    #    print(isinstance(pt.body[0].value, ast.Call))
-    #    print(isinstance(pt.body[0].value.func, ast.Name))
-    #    print(pt.body[0].value.func.id)
-    #except:
-    #    pass
-    #print('>>>')
-
-
-def infer_return_type(funcdef_node, typedict):
-    class ReturnTypeInferrer(ast.NodeVisitor):
-        def __init__(self, node):
-            self.return_type = None
-            self.visited_returns = []
-
-            assert isinstance(node, ast.FunctionDef), type(node)
-            funcdef = node
-            self.visit(funcdef)
-            print('visited_returns: %r' % self.visited_returns)
-            if utool.list_allsame(self.visited_returns) and len(self.visited_returns) > 0:
-                self.return_type = self.visited_returns[0]
-
-        def visit_Return(self, node):
-            if node.value:
-                if isinstance(node.value, ast.Name):
-                    self.visited_returns.append(typedict.get(node.value.id, None))
-                elif isinstance(node.value, ast.Tuple):
-                    self.visited_returns.append("tuple")
-
-    return ReturnTypeInferrer(funcdef_node).return_type
-
-
-def make_benchmarks(funcname, docstring):
-    r"""
-    >>> from cyth.cyth_script import *
-    >>> funcname = 'replace_funcalls'
-    >>> docstring =  '''
-    ...         >>> from cyth_script import *
-    ...         >>> replace_funcalls('foo(5)', 'foo', 'bar')
-    ...         'bar(5)'
-    ...         >>> replace_funcalls('foo(5)', 'bar', 'baz')
-    ...         'foo(5)'
-    ... '''
-    >>> benchmark_list = list(make_benchmarks(funcname, docstring))
-    >>> output = [((x.source, x.want), y.source, y.want) for x, y in benchmark_list]
-    >>> print(output)
-    [(('from cyth_script import *\n', ''), 'from cyth_script import *', ''), (("replace_funcalls('foo(5)', 'foo', 'bar')\n", "'bar(5)'\n"), "_replace_funcalls_cyth('foo(5)', 'foo', 'bar')", "'bar(5)'\n"), (("replace_funcalls('foo(5)', 'bar', 'baz')\n", "'foo(5)'\n"), "_replace_funcalls_cyth('foo(5)', 'bar', 'baz')", "'foo(5)'\n")]
-    """
-    #[print("doctest_examples[%d] = (%r, %r)" % (i, x, y)) for (i, (x, y)) in
-    #    enumerate(map(lambda x: (x.source, x.want), doctest_examples))]
-    #tweaked_examples = []
-    ## would this be clearer with map?
-    #for example in doctest_examples:
-    #    tweaked_example = deepcopy(example)
-    #    cyth_funcname = cyth_helpers.get_cyth_name(funcname)
-    #    tweaked_example.source = replace_funcalls(example.source, funcname, cyth_funcname)
-    #    tweaked_examples.append(tweaked_example)
-    #benchmark_iter = zip(doctest_examples, tweaked_examples)
-    doctest_examples = get_doctest_examples(docstring)
-    test_lines = []
-    cyth_lines = []
-    setup_lines = []
-    cyth_funcname = cyth_helpers.get_cyth_name(funcname)
-    for example in doctest_examples:
-        benchline = get_benchline(example.source, funcname)
-        if benchline is not None:
-            test_lines.append(benchline)
-            cyth_lines.append(replace_funcalls(benchline, funcname, cyth_funcname))
-        else:
-            setup_lines.append(example.source)
-    test_tuples = list(zip(test_lines, cyth_lines))
-    setup_script = utool.unindent(''.join(setup_lines))
-    modname = 'vtool.keypoint'
-    setup_script = 'from %s import %s\n' % (modname, cyth_funcname,) + setup_script
-    return test_tuples, setup_script
-
-
-def emit_benchmark(funcname, docstring):
-    test_tuples, setup_script = make_benchmarks(funcname, docstring)
-    benchmark_name = utool.quasiquote('run_benchmark_{funcname}')
-    #test_tuples, setup_script = make_benchmarks('''{funcname}''', '''{docstring}''')
-    bench_code = utool.unindent("""
-    def {benchmark_name}(iterations):
-        test_tuples = {test_tuples}
-        setup_script = '''{setup_script}'''
-        time_line = lambda line: timeit.timeit(stmt=line, setup=setup_script, number=iterations)
-        time_pair = lambda (x, y): (time_line(x), time_line(y))
-        def print_timing_info(tup):
-            print(tup)
-            (x, y) = time_pair(tup)
-            print("[bench.python] {funcname} iterations=%r; time=%r" % (iterations, x))
-            print("[bench.cython] {funcname} iterations=%r; time=%r" % (iterations, y))
-            return (x, y)
-        return list(map(print_timing_info, test_tuples))
-    """)
-    return (benchmark_name, utool.quasiquote(bench_code))
-
-
-#def run_benchmarks(funcname, docstring, iterations):
-#    test_tuples, setup_script = make_benchmarks(funcname, docstring)
-#    time_line = lambda line: timeit.timeit(stmt=line, setup=setup_script, number=iterations)
-#    time_pair = lambda (x, y): (time_line(x), time_line(y))
-#    return list(map(time_pair, test_tuples))
-
-
 class CythVisitor(BASE_CLASS):
     indent_level = 0
     emit = sys.stdout.write
 
-    def __init__(self, indent_with=' ' * 4, add_line_information=False):
+    def __init__(self, indent_with=' ' * 4, add_line_information=False,
+                 py_modname=None):
         super(CythVisitor, self).__init__(indent_with, add_line_information)
         self.benchmark_names = []
         self.benchmark_codes = []
+        self.py_modname = py_modname
+        self.imported_modules = {}
 
     def get_result(self):
         return ''.join(self.result)
 
     def get_benchmarks(self):
+        # TODO: let each function individually specify number
         codes = '\n\n'.join(self.benchmark_codes)  # NOQA
         list_ = [utool.quasiquote('{func}(iterations)') for func in self.benchmark_names]
         all_benchmarks = utool.indent('\n'.join(list_))  # NOQA
@@ -239,7 +57,7 @@ class CythVisitor(BASE_CLASS):
         {all_benchmarks}
 
         if __name__ == '__main__':
-            run_all_benchmarks(1000)
+            run_all_benchmarks(100)
         """).strip())
 
     def process_args(self, args, vararg, kwarg, defaults=None):
@@ -352,7 +170,7 @@ class CythVisitor(BASE_CLASS):
                             for tag, act in tags_to_actions]
         if has_markup:
             if funcname:
-                (benchmark_name, benchmark_code) = emit_benchmark(funcname, docstr)
+                (benchmark_name, benchmark_code) = get_benchmark(funcname, docstr, self.py_modname)
                 self.benchmark_names.append(benchmark_name)
                 self.benchmark_codes.append(benchmark_code)
             if toplevel:
@@ -379,6 +197,9 @@ class CythVisitor(BASE_CLASS):
                         self.write(cyth_def)
             elif isinstance(subnode, ast.FunctionDef):
                 self.visit(subnode)
+            elif isinstance(subnode, (ast.Import, ast.ImportFrom)):
+                for alias in subnode.names:
+                    self.imported_modules[alias.name] = alias.asname
             else:
                 #print('Skipping a global %r' % subnode.__class__)
                 pass
@@ -403,6 +224,7 @@ class CythVisitor(BASE_CLASS):
                 #self.decorators(node, 2)
                 self.newline(extra=1)
                 cyth_funcname = cyth_helpers.get_cyth_name(node.name)
+                # TODO: should allow for user specification
                 func_prefix = utool.unindent('''
                 @cython.boundscheck(False)
                 @cython.wraparound(False)
@@ -426,104 +248,184 @@ class CythVisitor(BASE_CLASS):
                 self.newline(extra=1)
                 self.write(cyth_def)
 
-    #def visit_ClassDef(self, node):
-    #    print(ast.dump(node))
-    #    return BASE_CLASS.visit_ClassDef(self, node)
+    def visit_ImportFrom(self, node):
+        if node.module:
+            self.statement(node, 'from ', node.level * '.',
+                           node.module, ' import ')
+        else:
+            self.statement(node, 'from ', node.level * '. import ')
+        self.comma_list(node.names)
 
-    #    processed_argslist = self.process_args(node.args.args, node.args.vararg, node.args.kwarg, node.args.defaults)
-    #    output = "%sdef %s(%s):\n" % (self.prefix(), node.name, ', '.join(processed_argslist))
-    #    self.indent()
-    #    #print(codegen.to_source(node.body))
-    #    for n in node.body:
-    #        output += self.prefix() + self.visit(n) + '\n'
-    #    self.dedent()
-    #    return output
+    def visit_Import(self, node):
+        self.statement(node, 'import ')
+        self.comma_list(node.names)
 
-    #def prefix(self):
-    #    return " " * self.indent_level
-
-    #def indent(self):
-    #    self.indent_level += 4
-
-    #def dedent(self):
-    #    self.indent_level -= 4
-
-    #def visit_Module(self, node):
-    #    return ''.join(map(self.visit, node.body))
-
-    #def visit_Str(self, node):
-    #    return repr(node.s)
-
-    #def visit_Num(self, node):
-    #    return str(node.n)
-
-    #def visit_Expr(self, node):
-    #    return self.visit(node.value)
-
-    #def visit_Return(self, node):
-    #    return ('return %s' % (self.visit(node.value)))
-
-    #def visit_BinOp(self, node):
-    #    return ('%s %s %s' % (self.visit(node.left), self.visit(node.op), self.visit(node.right)))
-
-    #def visit_Name(self, node):
-    #    return node.id
-
-    #def visit_Add(self, node):
-    #    return '+'
-
-    #def visit_For(self, node):
-    #    output = 'for %s in %s:\n' % (self.visit(node.target), self.visit(node.iter))
-    #    self.indent()
-    #    for n in node.body:
-    #        output += '%s%s\n' % (self.prefix(), self.visit(n))
-    #    self.dedent()
-    #    return output
-
-    #def visit_Call(self, node):
-    #    output = '%s(%s)' % (self.visit(node.func), ', '.join(self.process_args(node.args, node.starargs, node.kwargs)))
-    #    return output
-
-    #def visit_AugAssign(self, node):
-    #    return '%s %s= %s' % (self.visit(node.target), self.visit(node.op), self.visit(node.value))
-
-    #def visit_Print(self, node):
-    #    pass
-
-    #def generic_visit(self, node):
-    #    raise NotImplementedError("Not implemented for type %r" % (node.__class__))
+    def comma_list(self, items, trailing=False):
+        for idx, item in enumerate(items):
+            if idx:
+                self.write(', ')
+            self.visit(item)
+        if trailing:
+            self.write(',')
 
 
-#def cyth_process(pysource):
-#    ast_root = ast.parse(pysource)
-#
-#
-#def find_cyth_tags(py_text):
-#    """
-#    Parses between the <CYTH> </CYTH> tags. Tags must be the first or last
-#    characters in the string so it doesn't pick up the ones in this docstr.
-#    Also returns line numbers so future parsing is less intensive.
-#    """
-#    tagstr_list = []
-#    lineno_list = []
-#    return tagstr_list, lineno_list
-#
-#
-#def parse_cythe_tags(tagstr_list, lineno_list, py_text):
-#    """
-#    creates new text for a pyx file
-#    """
-#    cython_text_blocks = []
-#    cython_text = ''.join(cython_text_blocks)
-#    return cython_text
+def is_docstring(node):
+    return isinstance(node, ast.Expr) and isinstance(node.value, ast.Str)
+
+
+"""
+<CYTH>
+import ast
+import astor
+</CYTH>
+"""
+
+
+def ast_to_sourcecode(node):
+    generator = astor.codegen.SourceGenerator(' ' * 4)
+    generator.visit(node)
+    return ''.join(generator.result)
+
+
+def replace_funcalls(source, funcname, replacement):
+    """
+    >>> from cyth_script import *
+    >>> replace_funcalls('foo(5)', 'foo', 'bar')
+    'bar(5)'
+    >>> replace_funcalls('foo(5)', 'bar', 'baz')
+    'foo(5)'
+
+    <CYTH>
+    </CYTH>
+    """
+
+    # FIXME: !!!
+    # http://docs.cython.org/src/userguide/wrapping_CPlusPlus.html#nested-class-declarations
+    # C++ allows nested class declaration. Class declarations can also be nested in Cython:
+    # Note that the nested class is declared with a cppclass but without a cdef.
+    class FunctioncallReplacer(ast.NodeTransformer):
+        def visit_Call(self, node):
+            """CYTH></CYTH>"""
+            if isinstance(node.func, ast.Name) and node.func.id == funcname:
+                node.func.id = replacement
+            return node
+    generator = astor.codegen.SourceGenerator(' ' * 4)
+    generator.visit(FunctioncallReplacer().visit(ast.parse(source)))
+    return ''.join(generator.result)
+    #return ast.dump(tree)
+
+
+def get_doctest_examples(source):
+    # parse list of docstrings
+    comment_iter = doctest.DocTestParser().parse(source)
+    # remove any non-doctests
+    example_list = [c for c in comment_iter if isinstance(c, doctest.Example)]
+    return example_list
+
+
+def get_benchline(src, funcname):
+    """ Returns the  from a doctest source """
+    pt = ast.parse(src)
+    assert isinstance(pt, ast.Module), type(pt)
+    body = pt.body
+    if len(body) != 1:
+        return None
+    stmt = body[0]
+    if not isinstance(stmt, (ast.Expr, ast.Assign)):
+        return None
+    if isinstance(stmt.value, ast.Call) and isinstance(stmt.value.func, ast.Name):
+        if stmt.value.func.id == funcname:
+            benchline = ast_to_sourcecode(stmt.value)
+            return benchline
+
+
+def infer_return_type(funcdef_node, typedict):
+    class ReturnTypeInferrer(ast.NodeVisitor):
+        def __init__(self, node):
+            self.return_type = None
+            self.visited_returns = []
+
+            assert isinstance(node, ast.FunctionDef), type(node)
+            funcdef = node
+            self.visit(funcdef)
+            print('visited_returns: %r' % self.visited_returns)
+            if utool.list_allsame(self.visited_returns) and len(self.visited_returns) > 0:
+                self.return_type = self.visited_returns[0]
+
+        def visit_Return(self, node):
+            if node.value:
+                if isinstance(node.value, ast.Name):
+                    self.visited_returns.append(typedict.get(node.value.id, None))
+                elif isinstance(node.value, ast.Tuple):
+                    self.visited_returns.append("tuple")
+
+    return ReturnTypeInferrer(funcdef_node).return_type
+
+
+def make_benchmarks(funcname, docstring, py_modname):
+    r"""
+    >>> from cyth.cyth_script import *
+    >>> funcname = 'replace_funcalls'
+    >>> docstring =  '''
+    ...         >>> from cyth_script import *
+    ...         >>> replace_funcalls('foo(5)', 'foo', 'bar')
+    ...         'bar(5)'
+    ...         >>> replace_funcalls('foo(5)', 'bar', 'baz')
+    ...         'foo(5)'
+    ... '''
+    >>> py_modname = 'cyth.cyth_script'
+    >>> benchmark_list = list(make_benchmarks(funcname, docstring, py_modname))
+    >>> output = [((x.source, x.want), y.source, y.want) for x, y in benchmark_list]
+    >>> print(output)
+    [(('from cyth_script import *\n', ''), 'from cyth_script import *', ''), (("replace_funcalls('foo(5)', 'foo', 'bar')\n", "'bar(5)'\n"), "_replace_funcalls_cyth('foo(5)', 'foo', 'bar')", "'bar(5)'\n"), (("replace_funcalls('foo(5)', 'bar', 'baz')\n", "'foo(5)'\n"), "_replace_funcalls_cyth('foo(5)', 'bar', 'baz')", "'foo(5)'\n")]
+    """
+    doctest_examples = get_doctest_examples(docstring)
+    test_lines = []
+    cyth_lines = []
+    setup_lines = []
+    cyth_funcname = cyth_helpers.get_cyth_name(funcname)
+    for example in doctest_examples:
+        benchline = get_benchline(example.source, funcname)
+        if benchline is not None:
+            test_lines.append(benchline)
+            cyth_lines.append(replace_funcalls(benchline, funcname, cyth_funcname))
+            setup_lines.append(example.source)
+        else:
+            setup_lines.append(example.source)
+    test_tuples = list(zip(test_lines, cyth_lines))
+    setup_script = utool.unindent(''.join(setup_lines))
+    #modname = 'vtool.keypoint'
+    setup_script = 'from %s import %s\n' % (py_modname, cyth_funcname,) + setup_script
+    return test_tuples, setup_script
+
+
+def get_benchmark(funcname, docstring, py_modname):
+    test_tuples, setup_script = make_benchmarks(funcname, docstring, py_modname)
+    benchmark_name = utool.quasiquote('run_benchmark_{funcname}')
+    #test_tuples, setup_script = make_benchmarks('''{funcname}''', '''{docstring}''')
+    bench_code = utool.unindent("""
+    def {benchmark_name}(iterations):
+        test_tuples = {test_tuples}
+        setup_script = '''{setup_script}'''
+        time_line = lambda line: timeit.timeit(stmt=line, setup=setup_script, number=iterations)
+        time_pair = lambda (x, y): (time_line(x), time_line(y))
+        def print_timing_info(tup):
+            print(tup)
+            (x, y) = time_pair(tup)
+            print("[bench.python] {funcname} iterations=%r; time=%r" % (iterations, x))
+            print("[bench.cython] {funcname} iterations=%r; time=%r" % (iterations, y))
+            return (x, y)
+        return list(map(print_timing_info, test_tuples))""")
+    return (benchmark_name, utool.quasiquote(bench_code))
 
 
 def cythonize_fpath(py_fpath):
     print('[cyth] CYTHONIZE: py_fpath=%r' % py_fpath)
     cy_fpath = cyth_helpers.get_cyth_path(py_fpath)
     cy_bpath = cyth_helpers.get_cyth_bench_path(py_fpath)
+    py_modname = cyth_helpers.get_py_module_name(py_fpath)
     py_text = utool.read_from(py_fpath)
-    visitor = CythVisitor()
+    visitor = CythVisitor(py_modname=py_modname)
     visitor.visit(ast.parse(py_text))
     cython_text = visitor.get_result()
     bench_text = visitor.get_benchmarks()

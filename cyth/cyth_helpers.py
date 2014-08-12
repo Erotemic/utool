@@ -2,7 +2,16 @@
 python -c "import doctest, cyth; print(doctest.testmod(cyth.cyth_helpers))"
 """
 from __future__ import absolute_import, division, print_function
-from os.path import splitext, split, join
+from os.path import splitext, split, join, relpath
+import os
+
+
+def get_py_module_name(py_fpath):
+    relfpath = relpath(py_fpath, os.getcwd())
+    name, ext = splitext(relfpath)
+    assert ext == '.py', 'bad input'
+    modname = name.replace('/', '.').replace('\\', '.')
+    return modname
 
 
 def get_cyth_name(py_name):
