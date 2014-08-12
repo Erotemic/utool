@@ -5,6 +5,7 @@ from . import cyth_helpers
 from . import cyth_importer
 from .cyth_importer import import_cyth
 from .cyth_script import translate
+from .cyth_decorators import register
 
 '''
 Cyth:

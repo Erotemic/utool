@@ -94,5 +94,8 @@ def import_cyth(pyth_modname_):
 def import_cyth_default(pyth_modname):
     # default to python
     #get_invVR_mats_sqrd_scale_cython = get_invVR_mats_sqrd_scale
-    return {}
-    pass
+    from .cyth_decorators import get_registered_funcs
+    func_list = get_registered_funcs(pyth_modname)
+    from utool.util_six import get_funcname
+    dummy_cythonized_funcs = {get_funcname(func) + '_cyth' for func in func_list}
+    return dummy_cythonized_funcs
