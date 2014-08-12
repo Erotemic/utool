@@ -343,7 +343,7 @@ class CythVisitor(BASE_CLASS):
             return ('defines', cyth_def, typedict, return_type)
         tags_to_actions = [
             ('<CYTH>', lambda cyth_def: make_defines(cyth_def.group(1))),
-            ('<CYTH return="(.*?)">', lambda cyth_def: make_defines(cyth_def.group(2), cyth_def.group(1))),
+            ('<CYTH returns="(.*?)">', lambda cyth_def: make_defines(cyth_def.group(2), cyth_def.group(1))),
             ('<CYTH:REPLACE>', lambda cyth_def: ('replace', utool.unindent(cyth_def.group(1)))),
         ]
         end_tag = '</CYTH>'

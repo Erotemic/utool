@@ -80,7 +80,9 @@ def import_cyth(pyth_modname_):
             valstr = repr(val)
             # FIXME: might change in python3
             if valstr.startswith('<built-in function '):
+                assert key.startswith("_") and key.endswith("_cyth"), key
                 cythonized_funcs[key] = val
+                cythonized_funcs[key[1:]] = val
         #print(utool.dict_str(cythonized_funcs))
         return cythonized_funcs
         # TODO: Get list of cythonized funcs and return them
