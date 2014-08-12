@@ -117,6 +117,29 @@ def get_benchline(src, funcname):
     #print('>>>')
 
 
+def infer_return_type(funcdef_node, typedict):
+    class ReturnTypeInferrer(ast.NodeVisitor):
+        def __init__(self, node):
+            self.return_type = None
+            self.visited_returns = []
+
+            assert isinstance(node, ast.FunctionDef), type(node)
+            funcdef = node
+            self.visit(funcdef)
+            print('visited_returns: %r' % self.visited_returns)
+            if utool.list_allsame(self.visited_returns) and len(self.visited_returns) > 0:
+                self.return_type = self.visited_returns[0]
+
+        def visit_Return(self, node):
+            if node.value:
+                if isinstance(node.value, ast.Name):
+                    self.visited_returns.append(typedict.get(node.value.id, None))
+                elif isinstance(node.value, ast.Tuple):
+                    self.visited_returns.append("tuple")
+
+    return ReturnTypeInferrer(funcdef_node).return_type
+
+
 def make_benchmarks(funcname, docstring):
     r"""
     >>> from cyth.cyth_script import *
@@ -304,7 +327,8 @@ class CythVisitor(BASE_CLASS):
             res.append(self.indent_with + 'pass')
         return res
 
-    def parse_cyth_markup(self, docstr, toplevel=False, funcname=None):
+    def parse_cyth_markup(self, docstr, toplevel=False, funcdef_node=None):
+        funcname = None if funcdef_node is None else funcdef_node.name
         comment_str = docstr.strip()
         #doctest_examples = filter(lambda x: isinstance(x, doctest.Example),
         #                            doctest.DocTestParser().parse(docstr))
@@ -313,7 +337,10 @@ class CythVisitor(BASE_CLASS):
         has_markup = comment_str.find('<CYTH') != -1
         # type returned_action = [`defines of string * (string, string) Hashtbl.t | `replace of string] option
         def make_defines(cyth_def, return_type=None):
-            return ('defines', cyth_def, self.parse_cythdef(cyth_def), return_type)
+            typedict = self.parse_cythdef(cyth_def)
+            if not return_type:
+                return_type = infer_return_type(funcdef_node, typedict)
+            return ('defines', cyth_def, typedict, return_type)
         tags_to_actions = [
             ('<CYTH>', lambda cyth_def: make_defines(cyth_def.group(1))),
             ('<CYTH return="(.*?)">', lambda cyth_def: make_defines(cyth_def.group(2), cyth_def.group(1))),
@@ -365,7 +392,7 @@ class CythVisitor(BASE_CLASS):
             if is_docstring(stmt):
                 #print('found comment_str')
                 docstr = stmt.value.s
-                cyth_action = self.parse_cyth_markup(docstr, funcname=node.name)
+                cyth_action = self.parse_cyth_markup(docstr, funcdef_node=node)
             else:
                 new_body.append(stmt)
         if cyth_action:
