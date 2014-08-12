@@ -312,9 +312,12 @@ class CythVisitor(BASE_CLASS):
         #    print("doctest_examples[%d] = (%r, %r)" % (i, x, y))
         has_markup = comment_str.find('<CYTH') != -1
         # type returned_action = [`defines of string * (string, string) Hashtbl.t | `replace of string] option
+        def make_defines(cyth_def, return_type=None):
+            return ('defines', cyth_def, self.parse_cythdef(cyth_def), return_type)
         tags_to_actions = [
-            ('<CYTH>', lambda cyth_def: ('defines', cyth_def, self.parse_cythdef(cyth_def))),
-            ('<CYTH:REPLACE>', lambda cyth_def: ('replace', utool.unindent(cyth_def))),
+            ('<CYTH>', lambda cyth_def: make_defines(cyth_def.group(1))),
+            ('<CYTH return="(.*?)">', lambda cyth_def: make_defines(cyth_def.group(2), cyth_def.group(1))),
+            ('<CYTH:REPLACE>', lambda cyth_def: ('replace', utool.unindent(cyth_def.group(1)))),
         ]
         end_tag = '</CYTH>'
         regex_flags = re.DOTALL | re.MULTILINE
@@ -330,8 +333,8 @@ class CythVisitor(BASE_CLASS):
             for (regex, action) in regex_to_actions:
                 match = regex.search(comment_str)
                 if match:
-                    cyth_def = match.group(1)
-                    return action(cyth_def)
+                    #cyth_def = match.group(1)
+                    return action(match)
             utool.printex(NotImplementedError('no known cyth tag in docstring'),
                            iswarning=True,
                            key_list=['comment_str'])
@@ -369,6 +372,7 @@ class CythVisitor(BASE_CLASS):
             if cyth_action[0] == 'defines':
                 cyth_def = cyth_action[1]
                 typedict = cyth_action[2]
+                return_type = cyth_action[3]
                 #self.decorators(node, 2)
                 self.newline(extra=1)
                 cyth_funcname = cyth_helpers.get_cyth_name(node.name)
@@ -377,7 +381,8 @@ class CythVisitor(BASE_CLASS):
                 @cython.wraparound(False)
                 ''').strip()
 
-                self.statement(node, func_prefix + '\ncpdef %s(' % (cyth_funcname,))
+                return_string = (" %s " % return_type) if return_type is not None else " "
+                self.statement(node, func_prefix + '\ncpdef%s%s(' % (return_string, cyth_funcname,))
                 types_minus_sigtypes = self.signature(node.args, typedict=typedict)
                 cyth_def_body = self.typedict_to_cythdef(types_minus_sigtypes)
                 self.write(')')
