@@ -1,13 +1,11 @@
 from __future__ import absolute_import, division, print_function
-import sys
 from six.moves import zip, map, zip_longest, range
 from .util_iter import iflatten, isiterable, ifilter_Nones, ifilter_items, ifilterfalse_items
 from .util_inject import inject
 from .util_str import get_callable_name
+from .util_arg import NO_ASSERTS
 from ._internal.meta_util_six import get_funcname, set_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[list]')
-
-USE_ASSERT = not ('--no-assert' in sys.argv)
 
 
 # --- List Allocations ---
@@ -71,7 +69,7 @@ def flatten(list_):
 
 
 def assert_unflat_level(unflat_list, level=1, basetype=None):
-    if USE_ASSERT:
+    if NO_ASSERTS:
         return
     num_checked = 0
     for item in unflat_list:
@@ -194,7 +192,7 @@ def list_eq(list_):
 
 
 def assert_all_not_None(list_, list_name='some_list', key_list=[]):
-    if USE_ASSERT:
+    if NO_ASSERTS:
         return
     if any([item is None for count, item in enumerate(list_)]):
         msg = ((list_name + '[%d] = %r') % (count, item))

@@ -9,8 +9,6 @@ from .util_inject import inject
 from ._internal.meta_util_six import IntType, LongType, FloatType, BooleanType
 print, print_, printDBG, rrr, profile = inject(__name__, '[type]')
 
-USE_ASSERT = not ('--no-assert' in sys.argv)
-
 
 # Very odd that I have to put in dtypes in two different ways.
 VALID_INT_TYPES = (IntType,
@@ -77,7 +75,8 @@ def bool_from_str(str_):
 
 
 def assert_int(var, lbl='var'):
-    if USE_ASSERT:
+    from .util_arg import NO_ASSERTS
+    if NO_ASSERTS:
         return
     try:
         assert is_int(var), 'type(%s)=%r is not int' % (lbl, get_type(var))

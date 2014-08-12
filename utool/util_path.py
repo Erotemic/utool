@@ -18,13 +18,13 @@ from .util_dbg import get_caller_name, printex
 from .util_progress import progress_func
 from ._internal import meta_util_path
 from . import util_inject
+from .util_arg import NO_ASSERTS
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[path]')
 
 
 VERBOSE     = '--verbose' in sys.argv
 VERYVERBOSE = '--veryverbose' in sys.argv
 QUIET       = '--quiet' in sys.argv
-USE_ASSERT  = not ('--no-assert' in sys.argv)
 
 
 __IMG_EXTS = ['.jpg', '.jpeg', '.png', '.tif', '.tiff', '.ppm']
@@ -243,7 +243,7 @@ def ensuredir(path_, verbose=VERYVERBOSE):
 
 
 def assertpath(path_, **kwargs):
-    if USE_ASSERT:
+    if NO_ASSERTS:
         return
     if not checkpath(path_, **kwargs):
         raise AssertionError('Asserted path does not exist: ' + path_)
@@ -600,7 +600,7 @@ def list_images(img_dpath, ignore_list=[], recursive=False, fullpath=False,
 
 
 def assert_exists(path):
-    if USE_ASSERT:
+    if NO_ASSERTS:
         return
     assert exists(path), 'path=%r does not exist!' % path
 

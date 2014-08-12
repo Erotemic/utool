@@ -3,6 +3,7 @@ from six.moves import builtins
 import six
 import sys
 from functools import wraps
+from .util_arg import NO_ASSERTS
 from .util_iter import isiterable
 from .util_print import Indenter
 from .util_dbg import printex
@@ -19,8 +20,6 @@ IGNORE_TRACEBACK = '--smalltb' in sys.argv or '--ignoretb' in sys.argv
 TRACE = '--trace' in sys.argv
 UNIQUE_NUMPY = True
 NOINDENT_DECOR = False
-USE_ASSERT = not ('--no-assert' in sys.argv)
-
 
 #def composed(*decs):
 #    """ combines multiple decorators """
@@ -146,7 +145,7 @@ def accepts_scalar_input(func):
 
 
 def __assert_param_consistency(args, argx_list):
-    if USE_ASSERT:
+    if NO_ASSERTS:
         return
     if len(argx_list) == 0:
         return True

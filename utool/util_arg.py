@@ -17,7 +17,8 @@ NOT_QUIET = not QUIET
 VERBOSE = '--verbose' in sys.argv
 VERYVERBOSE = '--very-verbose' in sys.argv or '-veryverbose' in sys.argv
 STRICT = '--nostrict' not in sys.argv
-USE_ASSERT = not ('--no-assert' in sys.argv)
+NO_ASSERTS = ('--no-assert' in sys.argv)
+USE_ASSERT = not NO_ASSERTS
 SUPER_STRICT = '--super-strict' in sys.argv
 
 
