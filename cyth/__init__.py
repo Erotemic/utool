@@ -1,6 +1,10 @@
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
 
+import sys
+
+dynamic = not '--nodyn' in sys.argv
+
 from . import cyth_helpers
 from . import cyth_importer
 from .cyth_importer import import_cyth_execstr, import_cyth_dict

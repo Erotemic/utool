@@ -12,6 +12,7 @@ import utool
 
 #WITH_CYTH = utool.get_flag('--cyth')
 WITH_CYTH = not utool.get_flag('--nocyth')
+CYTH_WRITE = utool.get_flag('--cyth-write')
 
 
 def pkg_submodule_split(pyth_modname):
@@ -131,8 +132,10 @@ def import_cyth_execstr(pyth_modname):
                 raise ImportError('no cyth')
         {cyth_block}
         except ImportError:
-        {pyth_block}''').format(WITH_CYTH=WITH_CYTH, **locals())
+        {pyth_block}''').format(WITH_CYTH=WITH_CYTH, **locals()).strip('\n')
     #print(execstr)
+    if CYTH_WRITE:
+        write_explicit(pyth_modname, execstr)
     return execstr
 
 
@@ -145,26 +148,37 @@ def write_explicit(pyth_modname, execstr):
         new_else = util_str.indent(execstr)
         #print(new_else)
         # Get path to init file so we can overwrite it
-        init_fpath = pyth_modname
-        print("attempting to update: %r" % init_fpath)
-        assert exists(init_fpath)
+        pyth_fpath = pyth_modname
+        module = sys.modules[pyth_modname]  # module currently being imported
+        modpath, ext = splitext(module.__file__)
+        assert ext == '.pyc' or ext == '.py'
+        pyth_fpath = modpath + '.py'
+        #import IPython
+        #IPython.embed()
+        print("attempting to update: %r" % pyth_fpath)
+        assert exists(pyth_fpath)
         new_lines = []
+        rest_lines = []
         broken = False
-        with open(init_fpath, 'r') as file_:
+        with open(pyth_fpath, 'r') as file_:
             lines = file_.readlines()
             for line in lines:
+                if broken:
+                    rest_lines.append(line)
+                    continue
                 new_lines.append(line)
-                if line.strip().startswith('# <AUTOGEN_INIT>'):
-                    new_lines.append('\n' + new_else + '\n    # </AUTOGEN_INIT>')
+                sentinal = '    # <AUTOGEN_CYTH>'
+                if line.startswith(sentinal):
+                    new_lines.append(new_else + '\n')
                     broken = True
-                    break
         if broken:
-            print("writing updated file: %r" % init_fpath)
-            new_text = ''.join(new_lines)
-            with open(init_fpath, 'w') as file_:
+            print("writing updated file: %r" % pyth_fpath)
+            new_text = ''.join(new_lines + rest_lines)
+            #print(new_text)
+            with open(pyth_fpath, 'w') as file_:
                 file_.write(new_text)
         else:
-            print("no write hook for file: %r" % init_fpath)
+            print("no write hook for file: %r" % pyth_fpath)
 
 
 def import_cyth_default(pyth_modname):
