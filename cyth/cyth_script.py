@@ -38,9 +38,13 @@ class CythVisitor(BASE_CLASS):
         self.benchmark_codes = []
         self.py_modname = py_modname
         self.imported_modules = {}
+        self.imported_functions = {}
+#        self.all_funcalls = []
+        #self.imports_with_usemaps = {}
+        self.import_lines = ["cimport cython", "import cython"]
 
     def get_result(self):
-        return ''.join(self.result)
+        return '\n'.join(self.import_lines) + '\n' + ''.join(self.result)
 
     def process_args(self, args, vararg, kwarg, defaults=None):
         processed_argslist = map(self.visit, args)
@@ -175,6 +179,11 @@ class CythVisitor(BASE_CLASS):
         return None
 
     def visit_Module(self, node):
+#        cr = CallRecorder()
+#        cr.visit(node)
+#        self.all_funcalls = cr.calls
+        def get_alias_name(al):
+            return al.asname if al.asname is not None else al.name
         for subnode in node.body:
             if is_docstring(subnode):
                 #print('Encountered global docstring: %s' % repr(subnode.value.s))
@@ -186,13 +195,39 @@ class CythVisitor(BASE_CLASS):
                         self.write(cyth_def)
             elif isinstance(subnode, ast.FunctionDef):
                 self.visit(subnode)
-            elif isinstance(subnode, (ast.Import, ast.ImportFrom)):
+            elif isinstance(subnode, ast.Import):
                 for alias in subnode.names:
-                    self.imported_modules[alias.name] = alias.asname
+                    self.imported_modules[get_alias_name(alias)] = [alias, False]
+            elif isinstance(subnode, ast.ImportFrom):
+                for alias in subnode.names:
+                    self.imported_functions[get_alias_name(alias)] = [subnode.module, alias, False]
             else:
                 #print('Skipping a global %r' % subnode.__class__)
                 pass
+        self.import_lines.extend(self.generate_imports(self.imported_modules, self.imported_functions))
         #return BASE_CLASS.visit_Module(self, node)
+
+    def generate_imports(self, modules, functions):
+        imports = []
+        for (alias, used_flag) in modules.itervalues():
+            if used_flag:
+                imports.append(ast_to_sourcecode(ast.Import(names=[alias])))
+        for (modulename, alias, used_flag) in functions.itervalues():
+            if used_flag and not (modulename == '__future__'):
+                imports.append(ast_to_sourcecode(ast.ImportFrom(module=modulename, names=[alias], level=0)))
+        return imports
+
+    def visit_Call(self, node):
+        print(ast.dump(node))
+        if isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
+            print('visit_Call, branch 1')
+            if self.imported_modules.has_key(node.func.value.id):
+                self.imported_modules[node.func.value.id][1] = True
+        if isinstance(node.func, ast.Name):
+            print('visit_Call, branch 2')
+            if self.imported_functions.has_key(node.func.id):
+                self.imported_functions[node.func.id][2] = True
+        return BASE_CLASS.visit_Call(self, node)
 
     def visit_FunctionDef(self, node):
         #super(CythVisitor, self).visit_FunctionDef(node)
@@ -237,17 +272,20 @@ class CythVisitor(BASE_CLASS):
                 self.newline(extra=1)
                 self.write(cyth_def)
 
-    def visit_ImportFrom(self, node):
-        if node.module:
-            self.statement(node, 'from ', node.level * '.',
-                           node.module, ' import ')
-        else:
-            self.statement(node, 'from ', node.level * '. import ')
-        self.comma_list(node.names)
-
-    def visit_Import(self, node):
-        self.statement(node, 'import ')
-        self.comma_list(node.names)
+#    def visit_ImportFrom(self, node):
+#        if node.module:
+#            self.statement(node, 'from ', node.level * '.',
+#                           node.module, ' import ')
+#        else:
+#            self.statement(node, 'from ', node.level * '. import ')
+#        self.comma_list(node.names)
+#
+#    def visit_Import(self, node):
+#        #def get_alias_name(al):
+#        #    return al.asname if al.asname is not None else al.name
+#        self.statement(node, 'import ')
+#        #if all_funcalls.
+#        self.comma_list(node.names)
 
     def comma_list(self, items, trailing=False):
         for idx, item in enumerate(items):
@@ -299,6 +337,12 @@ import ast
 import astor
 </CYTH>
 """
+
+#class CallRecorder(ast.NodeVisitor):
+#    def __init__(self):
+#        calls = []
+#    def visit_Call(self, node):
+#        self.calls.append(node)
 
 
 def ast_to_sourcecode(node):
