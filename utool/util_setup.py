@@ -195,7 +195,7 @@ def presetup(setup_fpath, kwargs):
     #    translate_cyth()
 
     for arg in iter(sys.argv[:]):
-        print(arg)
+        #print(arg)
         # Clean clutter files
         if arg in ['clean']:
             clean(setup_dir, clutter_patterns, clutter_dirs, cython_files)
@@ -219,10 +219,11 @@ def presetup(setup_fpath, kwargs):
         if arg in ['chmod']:
             setup_chmod(setup_fpath, setup_dir, chmod_patterns)
 
-    #try:
-    #    sys.argv.remove('cyth')
-    #except ValueError:
-    #    pass
+    try:
+        sys.argv.remove('cyth')
+        #sys.argv.remove('--cyth-write')
+    except ValueError:
+        pass
 
     try:
         # SUPER HACK

@@ -5,14 +5,10 @@ from __future__ import absolute_import, division, print_function
 from . import cyth_helpers
 from os.path import splitext, basename
 import imp
+import utool
 from utool.util_six import get_funcdoc, get_funcname, get_funcglobals  # NOQA
 import sys
-import utool
-
-
-#WITH_CYTH = utool.get_flag('--cyth')
-WITH_CYTH = not utool.get_flag('--nocyth')
-CYTH_WRITE = utool.get_flag('--cyth-write')
+from . import cyth_args
 
 
 def pkg_submodule_split(pyth_modname):
@@ -71,7 +67,7 @@ def import_cyth_dict(pyth_modname_):
     try:
 
         print('[import_cyth] pyth_modname=%r' % (pyth_modname,))
-        if not WITH_CYTH:
+        if not cyth_args.WITH_CYTH:
             print('[import_cyth] NO_CYTH')
             raise ImportError('NO_CYTH')
         cythonized_funcs = get_cythonized_funcs(pyth_modname)
@@ -128,13 +124,13 @@ def import_cyth_execstr(pyth_modname):
     execstr = utool.unindent(
         '''
         try:
-            if not {WITH_CYTH}:
+            if not cyth.WITH_CYTH:
                 raise ImportError('no cyth')
         {cyth_block}
         except ImportError:
-        {pyth_block}''').format(WITH_CYTH=WITH_CYTH, **locals()).strip('\n')
+        {pyth_block}''').format(**locals()).strip('\n')
     #print(execstr)
-    if CYTH_WRITE:
+    if cyth_args.CYTH_WRITE:
         write_explicit(pyth_modname, execstr)
     return execstr
 
@@ -178,16 +174,23 @@ def write_explicit(pyth_modname, execstr):
             with open(pyth_fpath, 'w') as file_:
                 file_.write(new_text)
         else:
+            default_cyth_block = utool.unindent('''
+            import cyth
+            if cyth.DYNAMIC:
+                exec(cyth.import_cyth_execstr(__name__))
+            else:
+                # <AUTOGEN_CYTH>
+                # </AUTOGEN_CYTH>
+                pass
+            ''')
             print("no write hook for file: %r" % pyth_fpath)
 
 
 def import_cyth_default(pyth_modname):
-    from .cyth_decorators import get_registered_funcs
     #import IPython
     #IPython.embed()
     module = sys.modules[pyth_modname]  # module currently being imported
     func_list = []
-    func_list = get_registered_funcs(pyth_modname)
     for key, val in module.__dict__.items():
         if hasattr(val, 'func_doc'):
             func = val
