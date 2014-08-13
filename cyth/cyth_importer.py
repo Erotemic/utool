@@ -103,32 +103,30 @@ def import_cyth_execstr(pyth_modname):
     pyth_list = []
     for funcname, func in dummy_cythonized_funcs.items():
         pyth_list.append(funcname + ' = ' + get_funcname(func))
+    pyth_list2 = utool.align_lines(sorted(pyth_list), '=')
 
     try:
         cyth_list = []
         pkgname, fromlist, cyth_modname = pkg_submodule_split(pyth_modname)
         cythonized_funcs = get_cythonized_funcs(pyth_modname)
-        maxlen = 0
         for funcname, func in cythonized_funcs.items():
-            maxlen = max(maxlen, len(funcname))
-            cyth_list.append((funcname, cyth_modname + '.' + func.__name__))
-        cyth_list = sorted(cyth_list)
-        cyth_list2 = ['import ' + cyth_modname]
-        for lhs, rhs in cyth_list:
-            cyth_list2.append(lhs.ljust(maxlen) + ' = ' + rhs)
+            cyth_list.append(funcname + ' = ' + cyth_modname + '.' + func.__name__)
+        cyth_list2 = ['import ' + cyth_modname] + utool.align_lines(sorted(cyth_list), '=')
     except ImportError:
         cyth_list2 = ['raise ImportError("no cyth")']
 
-    cyth_block = utool.indentjoin(cyth_list2).strip('\n')
-    pyth_block = utool.indentjoin(pyth_list).strip('\n')
+    cyth_block = utool.indentjoin(cyth_list2).strip()
+    pyth_block = utool.indentjoin(pyth_list2).strip()
     execstr = utool.unindent(
         '''
         try:
             if not cyth.WITH_CYTH:
                 raise ImportError('no cyth')
-        {cyth_block}
+            {cyth_block}
+            CYTHONIZED = True
         except ImportError:
-        {pyth_block}''').format(**locals()).strip('\n')
+            {pyth_block}
+            CYTHONIZED = False''').format(**locals()).strip('\n')
     #print(execstr)
     if cyth_args.CYTH_WRITE:
         write_explicit(pyth_modname, execstr)
@@ -154,22 +152,35 @@ def write_explicit(pyth_modname, execstr):
         print("attempting to update: %r" % pyth_fpath)
         assert exists(pyth_fpath)
         new_lines = []
-        rest_lines = []
         broken = False
+        closed = False
+        start_sentinal = '    # <AUTOGEN_CYTH>'
+        end_sentinal   = '    # </AUTOGEN_CYTH>'
         with open(pyth_fpath, 'r') as file_:
             lines = file_.readlines()
             for line in lines:
-                if broken:
-                    rest_lines.append(line)
-                    continue
-                new_lines.append(line)
-                sentinal = '    # <AUTOGEN_CYTH>'
-                if line.startswith(sentinal):
-                    new_lines.append(new_else + '\n')
-                    broken = True
-        if broken:
+                if not closed and not broken:
+                    # Append lines until you see start_sentinal
+                    new_lines.append(line)
+                    if line.startswith(start_sentinal):
+                        indent = '    '
+                        help_line = '# Regen command: python -c "import %s" --cyth-write\n' % pyth_modname
+                        new_lines.append(indent + help_line)
+                        new_lines.append(new_else + '\n')
+                        broken = True
+                elif not closed and broken:
+                    # Skip lines between sentinals
+                    if line.startswith(end_sentinal):
+                        new_lines.append(end_sentinal + '\n')
+                        closed = True
+                elif closed and broken:
+                    # Append lines after sentinals
+                    new_lines.append(line)
+                else:
+                    raise AssertionError('closed before opening cyth tags')
+        if broken and closed:
             print("writing updated file: %r" % pyth_fpath)
-            new_text = ''.join(new_lines + rest_lines)
+            new_text = ''.join(new_lines)
             #print(new_text)
             with open(pyth_fpath, 'w') as file_:
                 file_.write(new_text)
@@ -183,6 +194,7 @@ def write_explicit(pyth_modname, execstr):
                 # </AUTOGEN_CYTH>
                 pass
             ''')
+            default_cyth_block  # NOQA
             print("no write hook for file: %r" % pyth_fpath)
 
 
