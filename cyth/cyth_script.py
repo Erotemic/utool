@@ -432,10 +432,10 @@ def get_benchmark(funcname, docstring, py_modname):
                 print("[bench.python] {funcname} time=%f seconds" % (time1))
                 print("[bench.cython] {funcname} time=%f seconds" % (time2))
                 time_delta = time2 - time1
-                if time_delta > 0:
-                    print('[bench.result] cython was faster by %f seconds' % time_delta)
+                if time_delta < 0:
+                    print('[bench.result] cython was faster by %f seconds' % -time_delta)
                 else:
-                    print('[bench.result] python was faster by %f seconds' % -time_delta)
+                    print('[bench.result] python was faster by %f seconds' % time_delta)
                 return (time1, time2)
             return list(map(print_timing_info, test_tuples))""").strip('\n')
     return (benchmark_name, utool.quasiquote(bench_code))
