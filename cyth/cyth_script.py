@@ -42,6 +42,8 @@ class CythVisitor(BASE_CLASS):
 #        self.all_funcalls = []
         #self.imports_with_usemaps = {}
         self.import_lines = ["cimport cython", "import cython"]
+        self.cimport_whitelist = ['numpy']
+        self.import_blacklist = ['range', 'map', 'zip']
 
     def get_result(self):
         return '\n'.join(self.import_lines) + '\n' + ''.join(self.result)
@@ -211,9 +213,12 @@ class CythVisitor(BASE_CLASS):
         imports = []
         for (alias, used_flag) in modules.itervalues():
             if used_flag:
-                imports.append(ast_to_sourcecode(ast.Import(names=[alias])))
+                import_line = ast_to_sourcecode(ast.Import(names=[alias]))
+                imports.append(import_line)
+                if alias.name in self.cimport_whitelist:
+                    imports.append('c' + import_line)
         for (modulename, alias, used_flag) in functions.itervalues():
-            if used_flag and not (modulename == '__future__'):
+            if used_flag and not ((modulename == '__future__') or (alias.name in self.import_blacklist)):
                 imports.append(ast_to_sourcecode(ast.ImportFrom(module=modulename, names=[alias], level=0)))
         return imports
 
