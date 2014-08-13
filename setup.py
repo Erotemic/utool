@@ -7,7 +7,7 @@ INSTALL_REQUIRES = [
     'six',
     'numpy >= 1.8.0',
     'psutil',
-    'astor'
+    'astor',
 ]
 
 # HACK: Please remove someday

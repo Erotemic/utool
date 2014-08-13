@@ -162,9 +162,16 @@ class CythVisitor(BASE_CLASS):
                 if match:
                     #cyth_def = match.group(1)
                     return action(match)
+            print(comment_str)
             utool.printex(NotImplementedError('no known cyth tag in docstring'),
                            iswarning=True,
-                           key_list=['comment_str'])
+                           key_list=[
+                               'funcname',
+                               'toplevel',
+                               'regex',
+                               'action',
+                               'match',
+                               'comment_str'])
         return None
 
     def visit_Module(self, node):
@@ -254,22 +261,29 @@ class CythVisitor(BASE_CLASS):
         # TODO: let each function individually specify number
         codes = '\n\n\n'.join(self.benchmark_codes)  # NOQA
         list_ = [utool.quasiquote('{func}(iterations)') for func in self.benchmark_names]
-        all_benchmarks = utool.indent('\n'.join(list_))  # NOQA
+        all_benchmarks = utool.indent('\n'.join(list_), '        ').strip()  # NOQA
+        py_modname = self.py_modname  # NOQA
         return utool.quasiquote(utool.unindent(
-            """
+            r"""
             #!/usr/bin/env python
             from __future__ import absolute_import, division, print_function
             import timeit
             import textwrap
             import warnings
+            import utool
             warnings.simplefilter('ignore', SyntaxWarning)
+            print, print_, printDBG, rrr, profile = utool.inject(__name__, '[{py_modname}.bench]')
 
 
             {codes}
 
 
             def run_all_benchmarks(iterations):
-            {all_benchmarks}
+                print('\n\n')
+                print('=======================================')
+                print('[cyth] Run benchmarks for: {py_modname}')
+                with utool.Indenter(' *  '):
+                    {all_benchmarks}
 
             if __name__ == '__main__':
                 run_all_benchmarks(100)""").strip('\n'))
@@ -354,7 +368,7 @@ def infer_return_type(funcdef_node, typedict):
             assert isinstance(node, ast.FunctionDef), type(node)
             funcdef = node
             self.visit(funcdef)
-            print('visited_returns: %r' % self.visited_returns)
+            #print('visited_returns: %r' % self.visited_returns)
             if utool.list_allsame(self.visited_returns) and len(self.visited_returns) > 0:
                 self.return_type = self.visited_returns[0]
 
@@ -441,27 +455,72 @@ def get_benchmark(funcname, docstring, py_modname):
     return (benchmark_name, utool.quasiquote(bench_code))
 
 
-def cythonize_fpath(py_fpath):
-    print('[cyth] CYTHONIZE: py_fpath=%r' % py_fpath)
+def translate_fpath(py_fpath):
+    """ creates a cython pyx file from a python file with cyth tags """
+    # Get cython pyx and benchmark output path
     cy_fpath = cyth_helpers.get_cyth_path(py_fpath)
     cy_bpath = cyth_helpers.get_cyth_bench_path(py_fpath)
+    # Infer the python module name
     py_modname = cyth_helpers.get_py_module_name(py_fpath)
-    py_text = utool.read_from(py_fpath)
+    # Read the python file
+    py_text = utool.read_from(py_fpath, verbose=False)
+    # dont parse files without tags
+    if py_text.find('<CYTH') == -1:
+        return None
+    print('[cyth.translate_fpath] py_fpath=%r' % py_fpath)
+    # Parse the python file
     visitor = CythVisitor(py_modname=py_modname)
     visitor.visit(ast.parse(py_text))
+    # Get the generated pyx file and benchmark file
     cython_text = visitor.get_result()
     bench_text = visitor.get_benchmarks()
+    # Write pyx and benchmark
     utool.write_to(cy_fpath, cython_text)
-    utool.write_to(cy_bpath, bench_text)
+    utool.write_to(cy_bpath, bench_text, verbose=False)
+    return cy_bpath
 
 
 #cyth.import_cyth(__name__)
 
 def translate(*paths):
+    """ Translates a list of paths """
+    cy_bench_list = []
     for fpath in paths:
         if isfile(fpath):
             abspath = utool.unixpath(fpath)
-            cythonize_fpath(abspath)
+            cy_bench = translate_fpath(abspath)
+            if cy_bench is not None:
+                cy_bench_list.append(cy_bench)
+
+    if len(cy_bench_list) > 0:
+        # write script to run all cyth benchmarks
+        cmd_list = ['python ' + bench for bench in cy_bench_list]
+        runbench_text = '\n'.join(['#!/bin/bash'] + cmd_list)
+        utool.write_to('run_cyth_benchmarks.sh', runbench_text)
+
+
+def translate_all():
+    """ Translates a all python paths in directory """
+    dpaths = utool.ls_moduledirs('.')
+    #print('[cyth] translate_all: %r' % (dpaths,))
+
+    globkw = {
+        'recursive': True,
+        'with_dirs': False,
+        'with_files': True
+    }
+    # Find all unique python files in directory
+    fpaths_iter = [utool.glob(utool.unixpath(dpath), '*.py', **globkw)
+                   for dpath in dpaths]
+    fpath_iter = utool.iflatten(fpaths_iter)
+    abspath_iter = map(utool.unixpath, fpath_iter)
+    fpath_list = list(set(list(abspath_iter)))
+    #print('[cyth] translate_all: %s' % ('\n'.join(fpath_list),))
+    # Try to translate each
+    translate(*fpath_list)
+    #for fpath in fpath_list:
+    #    abspath = utool.unixpath(fpath)
+    #    translate_fpath(abspath)
 
 if __name__ == '__main__':
     print('[cyth] main')

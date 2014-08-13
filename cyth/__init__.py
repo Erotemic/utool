@@ -8,7 +8,7 @@ dynamic = not '--nodyn' in sys.argv
 from . import cyth_helpers
 from . import cyth_importer
 from .cyth_importer import import_cyth_execstr, import_cyth_dict
-from .cyth_script import translate
+from .cyth_script import translate, translate_all
 from .cyth_decorators import register
 
 '''

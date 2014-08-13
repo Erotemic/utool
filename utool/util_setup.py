@@ -158,7 +158,7 @@ def presetup(setup_fpath, kwargs):
     chmod_patterns   = kwargs.pop('chmod_patterns', SETUP_PATTERNS.chmod)
     clutter_dirs     = kwargs.pop('clutter_dirs', None)
     clutter_patterns = kwargs.pop('clutter_patterns', SETUP_PATTERNS.clutter)
-    cython_files     = kwargs.pop('cython_files', [])
+    cython_files     = kwargs.pop('cython_files', [])  # todo remove
     build_command    = kwargs.pop('build_command', NOOP)
     setup_fpath = util_path.truepath(setup_fpath)
     setup_dir = dirname(setup_fpath)
@@ -173,7 +173,8 @@ def presetup(setup_fpath, kwargs):
         project_dirs = util_path.ls_moduledirs(setup_dir)
 
     # Execute pre-setup commands based on argv
-    for arg in iter(sys.argv[1:]):
+    for arg in iter(sys.argv[:]):
+        print(arg)
         # Clean clutter files
         if arg in ['clean']:
             clean(setup_dir, clutter_patterns, clutter_dirs, cython_files)
@@ -191,11 +192,20 @@ def presetup(setup_fpath, kwargs):
         if arg in ['o', 'pyo']:
             build_pyo(project_dirs)
         # Cythonize files
-        if arg in ['cython']:
-            build_cython(cython_files)
+        #if arg in ['cython']:
+        #    build_cython(cython_files)
+        if arg in ['cyth', 'bext', 'build_ext']:
+            import cyth
+            cyth.translate_all()
         # Chmod files
         if arg in ['chmod']:
             setup_chmod(setup_fpath, setup_dir, chmod_patterns)
+
+    #try:
+    #    sys.argv.remove('cyth')
+    #except ValueError:
+    #    pass
+
     try:
         # SUPER HACK
         # aliases bext to build_ext --inplace

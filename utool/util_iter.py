@@ -34,7 +34,7 @@ def ifilter_Nones(iter_):
 
 
 def isiterable(obj):
-    """ <CYTH> """
+    """ <CYTH></CYTH> """
     return np.iterable(obj) and not isinstance(obj, six.string_types)
 
 
