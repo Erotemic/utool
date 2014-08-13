@@ -95,12 +95,27 @@ def build_cython(cython_files):
         util_dev.compile_cython(fpath)
 
 
+def translate_cyth():
+    import cyth
+    cyth.translate_all()
+
+
 def find_ext_modules(disable_warnings=True):
     from setuptools import Extension
     import utool
     from os.path import relpath
     import numpy as np
     cwd = os.getcwd()
+
+    BEXT = 'bext' in sys.argv
+    BUILD_EXT = 'build_ext' in sys.argv
+    BUILD = 'build' in sys.argv
+    CYTH = 'cyth' in sys.argv
+    if not any([BEXT, BUILD, BUILD_EXT, CYTH]):
+        return []
+
+    translate_cyth()  # translate cyth before finding ext modules
+
     #pyx_list = utool.glob(cwd, '*_cython.pyx', recursive=True)
     pyx_list = utool.glob(cwd, '*.pyx', recursive=True)
 
@@ -171,8 +186,14 @@ def presetup(setup_fpath, kwargs):
 
     if project_dirs is None:
         project_dirs = util_path.ls_moduledirs(setup_dir)
+# Execute pre-setup commands based on argv
+    #BEXT = 'bext' in sys.argv
+    #BUILD_EXT = 'build_ext' in sys.argv
+    #CYTH = 'cyth' in sys.argv
 
-    # Execute pre-setup commands based on argv
+    #if CYTH:
+    #    translate_cyth()
+
     for arg in iter(sys.argv[:]):
         print(arg)
         # Clean clutter files
@@ -194,9 +215,6 @@ def presetup(setup_fpath, kwargs):
         # Cythonize files
         #if arg in ['cython']:
         #    build_cython(cython_files)
-        if arg in ['cyth', 'bext', 'build_ext']:
-            import cyth
-            cyth.translate_all()
         # Chmod files
         if arg in ['chmod']:
             setup_chmod(setup_fpath, setup_dir, chmod_patterns)
