@@ -221,11 +221,13 @@ def import_testdata():
 
 def embed(parent_locals=None, parent_globals=None, exec_lines=None,
           remove_pyqt_hook=True):
-    # not sure why N=1 works over N=0 here.
-    if parent_locals is None:
-        parent_locals = get_parent_locals(N=1)
+    # not sure why N=1 works over N=0 here only for globals
     if parent_globals is None:
-        parent_globals = get_parent_globals(N=1)
+        parent_globals = get_parent_globals(N=0)
+        parent_globals1 = get_parent_globals(N=1)
+        exec(execstr_dict(parent_globals1, 'parent_globals1'))
+    if parent_locals is None:
+        parent_locals = get_parent_locals(N=0)
 
     exec(execstr_dict(parent_globals, 'parent_globals'))
     exec(execstr_dict(parent_locals,  'parent_locals'))
@@ -356,6 +358,7 @@ def get_parent_frame(N=0):
 
 
 def get_parent_locals(N=0):
+    """ returns the locals of the function that called you """
     parent_frame = get_parent_frame(N=N + 1)
     return parent_frame.f_locals
 
