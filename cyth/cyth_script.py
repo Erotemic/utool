@@ -10,6 +10,7 @@ cyth_script.py "~/code/vtool/vtool"
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map
+from itertools import chain
 import utool
 import sys
 from os.path import isfile
@@ -44,6 +45,8 @@ class CythVisitor(BASE_CLASS):
         self.import_lines = ["cimport cython", "import cython"]
         self.cimport_whitelist = ['numpy']
         self.import_blacklist = ['range', 'map', 'zip']
+        self.cythonized_funcs = {}
+        self.plain_funcs = {}
 
     def get_result(self):
         return '\n'.join(self.import_lines) + '\n' + ''.join(self.result)
@@ -220,16 +223,36 @@ class CythVisitor(BASE_CLASS):
         for (modulename, alias, used_flag) in functions.itervalues():
             if used_flag and not ((modulename == '__future__') or (alias.name in self.import_blacklist)):
                 imports.append(ast_to_sourcecode(ast.ImportFrom(module=modulename, names=[alias], level=0)))
+        funcs_declared_in_current_module = dict(chain(self.cythonized_funcs.iteritems(), self.plain_funcs.iteritems()))
+        called_funcs = []
+        #@utool.show_return_value
+        def is_called_in(name, node):
+            calls = get_funcalls_in_node(node)
+            def name_of_call(call): # ast.Node -> string option
+                #print('ast dump: %r' % ast.dump(call))
+                if not isinstance(call, ast.Call): return []
+                if not isinstance(call.func, ast.Name): return []
+                return [call.func.id]
+            return name in chain(*map(name_of_call, calls))
+        for callee in funcs_declared_in_current_module.keys():
+            for (caller, caller_node) in self.cythonized_funcs.iteritems():
+                if is_called_in(callee, caller_node):
+                    called_funcs.append(callee)
+        if len(called_funcs) > 0:
+            names = [ast.alias(name, None) for name in called_funcs]
+            fromimport = ast.ImportFrom(module=self.py_modname, names=names, level=0)
+            imports.append(ast_to_sourcecode(fromimport))
+
         return imports
 
     def visit_Call(self, node):
-        print(ast.dump(node))
+        #print(ast.dump(node))
         if isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
-            print('visit_Call, branch 1')
+            #print('visit_Call, branch 1')
             if self.imported_modules.has_key(node.func.value.id):
                 self.imported_modules[node.func.value.id][1] = True
         if isinstance(node.func, ast.Name):
-            print('visit_Call, branch 2')
+            #print('visit_Call, branch 2')
             if self.imported_functions.has_key(node.func.id):
                 self.imported_functions[node.func.id][2] = True
         return BASE_CLASS.visit_Call(self, node)
@@ -246,6 +269,7 @@ class CythVisitor(BASE_CLASS):
             else:
                 new_body.append(stmt)
         if cyth_action:
+            self.cythonized_funcs[node.name] = node
             if cyth_action[0] == 'defines':
                 cyth_def = cyth_action[1]
                 typedict = cyth_action[2]
@@ -276,6 +300,8 @@ class CythVisitor(BASE_CLASS):
                 cyth_def = cyth_action[1]
                 self.newline(extra=1)
                 self.write(cyth_def)
+        else:
+            self.plain_funcs[node.name] = node
 
 #    def visit_ImportFrom(self, node):
 #        if node.module:
@@ -343,11 +369,18 @@ import astor
 </CYTH>
 """
 
-#class CallRecorder(ast.NodeVisitor):
-#    def __init__(self):
-#        calls = []
-#    def visit_Call(self, node):
-#        self.calls.append(node)
+
+class CallRecorder(ast.NodeVisitor):
+    def __init__(self):
+        self.calls = []
+    def visit_Call(self, node):
+        self.calls.append(node)
+
+
+def get_funcalls_in_node(node):
+    cr = CallRecorder()
+    cr.visit(node)
+    return cr.calls
 
 
 def ast_to_sourcecode(node):

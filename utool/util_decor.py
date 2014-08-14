@@ -288,6 +288,14 @@ def interested(func):
     return wrp_interested
 
 
+def show_return_value(func):
+    def wrp_show_return_value(*args, **kwargs):
+        rv = func(*args, **kwargs)
+        print('%s(*%r, **%r) returns %r' % (get_funcname(func), args, kwargs, rv))
+        return rv
+    return wrp_show_return_value
+
+
 def time_func(func):
     @wraps(func)
     def wrp_time(*args, **kwargs):
