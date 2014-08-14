@@ -38,6 +38,7 @@ class CythVisitor(BASE_CLASS):
         self.benchmark_names = []
         self.benchmark_codes = []
         self.py_modname = py_modname
+        #print('in module ', py_modname)
         self.imported_modules = {}
         self.imported_functions = {}
 #        self.all_funcalls = []
@@ -47,6 +48,8 @@ class CythVisitor(BASE_CLASS):
         self.import_blacklist = ['range', 'map', 'zip']
         self.cythonized_funcs = {}
         self.plain_funcs = {}
+        self.fpig = FirstpassInformationGatherer()
+        self.spig = SecondpassInformationGatherer(self.fpig)
 
     def get_result(self):
         return '\n'.join(self.import_lines) + '\n' + ''.join(self.result)
@@ -187,6 +190,8 @@ class CythVisitor(BASE_CLASS):
 #        cr = CallRecorder()
 #        cr.visit(node)
 #        self.all_funcalls = cr.calls
+        self.fpig.visit(node)
+        self.spig.visit(node)
         def get_alias_name(al):
             return al.asname if al.asname is not None else al.name
         for subnode in node.body:
@@ -206,6 +211,10 @@ class CythVisitor(BASE_CLASS):
             elif isinstance(subnode, ast.ImportFrom):
                 for alias in subnode.names:
                     self.imported_functions[get_alias_name(alias)] = [subnode.module, alias, False]
+            elif isinstance(subnode, (ast.Assign, ast.AugAssign)):
+                targets = assignment_targets(subnode)
+                if any((self.spig.globals_used.get(target, False) for target in targets)):
+                    self.visit(subnode)
             else:
                 #print('Skipping a global %r' % subnode.__class__)
                 pass
@@ -368,6 +377,52 @@ import ast
 import astor
 </CYTH>
 """
+
+def assignment_targets(node):
+    assert isinstance(node, (ast.Assign, ast.AugAssign)), type(node)
+    # "Assign" nodes have a list of multiple targets, which is used for 'a = b = c' (a and b are both targets):
+    # 'x, y = y, x' has a tuple as the only element of the targets array, 
+    # (likewise for '[x, y] = [y, x]', but with lists)
+    if isinstance(node, ast.Assign):
+        targets = []
+        for target in node.targets:
+            if isinstance(target, (ast.Tuple, ast.List)):
+                targets.extend(target.elts)
+            else:
+                targets.append(target)
+        return targets
+    elif isinstance(node, ast.AugAssign):
+        return [node.target]
+    else:
+        raise AssertionError('unexpected node type %r' % type(node))
+
+class FirstpassInformationGatherer(ast.NodeVisitor):
+    def __init__(self):
+        self.global_names = []
+    def visit_Module(self, node):
+        for subnode in node.body:
+            if isinstance(subnode, (ast.Assign, ast.AugAssign)):
+                for target in assignment_targets(subnode):
+                    self.global_names.append(target)
+
+
+class SecondpassInformationGatherer(ast.NodeVisitor):
+    def __init__(self, fpig):
+        self.fpig = fpig
+        self.globals_used = {name: False for name in fpig.global_names}
+    def visit_Name(self, node):
+        isname = lambda x: isinstance(x, ast.Name)
+        getid = lambda x: x.id
+        if getid(node) in map(getid, filter(isname, self.fpig.global_names)) and isinstance(node.ctx, ast.Load):
+            self.globals_used[node] = True
+    def visit_Attribute(self, node):
+        if isinstance(node.value, ast.Name):
+            isattribute = lambda x: isinstance(x, ast.Attribute)
+            hasloadctx = lambda x: isinstance(x.value, ast.Name) and isinstance(x.value.ctx, ast.Load)
+            filt = lambda x: isattribute(x) and hasloadctx(x)
+            gettup = lambda x: (x.value.id, x.attr)
+            if gettup(node) in map(gettup, filter(filt, self.fpig.global_names)):
+                self.globals_used[node] = True
 
 
 class CallRecorder(ast.NodeVisitor):
