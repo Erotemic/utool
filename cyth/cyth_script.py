@@ -187,9 +187,9 @@ class CythVisitor(BASE_CLASS):
         return None
 
     def visit_Module(self, node):
-#        cr = CallRecorder()
-#        cr.visit(node)
-#        self.all_funcalls = cr.calls
+        # cr = CallRecorder()
+        # cr.visit(node)
+        # self.all_funcalls = cr.calls
         self.fpig.visit(node)
         self.spig.visit(node)
         def get_alias_name(al):
@@ -237,10 +237,12 @@ class CythVisitor(BASE_CLASS):
         #@utool.show_return_value
         def is_called_in(name, node):
             calls = get_funcalls_in_node(node)
-            def name_of_call(call): # ast.Node -> string option
+            def name_of_call(call):  # ast.Node -> string option
                 #print('ast dump: %r' % ast.dump(call))
-                if not isinstance(call, ast.Call): return []
-                if not isinstance(call.func, ast.Name): return []
+                if not isinstance(call, ast.Call):
+                    return []
+                if not isinstance(call.func, ast.Name):
+                    return []
                 return [call.func.id]
             return name in chain(*map(name_of_call, calls))
         for callee in funcs_declared_in_current_module.keys():
@@ -258,11 +260,11 @@ class CythVisitor(BASE_CLASS):
         #print(ast.dump(node))
         if isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
             #print('visit_Call, branch 1')
-            if self.imported_modules.has_key(node.func.value.id):
+            if node.func.value.id in self.imported_modules:
                 self.imported_modules[node.func.value.id][1] = True
         if isinstance(node.func, ast.Name):
             #print('visit_Call, branch 2')
-            if self.imported_functions.has_key(node.func.id):
+            if node.func.id in self.imported_functions:
                 self.imported_functions[node.func.id][2] = True
         return BASE_CLASS.visit_Call(self, node)
 
@@ -364,7 +366,7 @@ class CythVisitor(BASE_CLASS):
                     {all_benchmarks}
 
             if __name__ == '__main__':
-                run_all_benchmarks(100)""").strip('\n'))
+                run_all_benchmarks(1000)""").strip('\n'))
 
 
 def is_docstring(node):
@@ -378,10 +380,11 @@ import astor
 </CYTH>
 """
 
+
 def assignment_targets(node):
     assert isinstance(node, (ast.Assign, ast.AugAssign)), type(node)
     # "Assign" nodes have a list of multiple targets, which is used for 'a = b = c' (a and b are both targets):
-    # 'x, y = y, x' has a tuple as the only element of the targets array, 
+    # 'x, y = y, x' has a tuple as the only element of the targets array,
     # (likewise for '[x, y] = [y, x]', but with lists)
     if isinstance(node, ast.Assign):
         targets = []
@@ -395,6 +398,7 @@ def assignment_targets(node):
         return [node.target]
     else:
         raise AssertionError('unexpected node type %r' % type(node))
+
 
 class FirstpassInformationGatherer(ast.NodeVisitor):
     def __init__(self):
@@ -634,6 +638,11 @@ def translate(*paths):
         cmd_list = ['python ' + bench for bench in cy_bench_list]
         runbench_text = '\n'.join(['#!/bin/bash'] + cmd_list)
         utool.write_to('run_cyth_benchmarks.sh', runbench_text)
+        #try:
+        import os
+        os.chmod('run_cyth_benchmarks.sh', 33277)
+        #except OSError:
+        #    pass
 
 
 def translate_all():

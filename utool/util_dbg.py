@@ -221,9 +221,9 @@ def import_testdata():
 
 def embed(parent_locals=None, parent_globals=None, exec_lines=None,
           remove_pyqt_hook=True):
-    # not sure why N=1 works over N=0 here only for globals
     if parent_globals is None:
         parent_globals = get_parent_globals(N=0)
+        # not sure why N=1 works over N=0 here only for globals
         parent_globals1 = get_parent_globals(N=1)
         exec(execstr_dict(parent_globals1, 'parent_globals1'))
     if parent_locals is None:

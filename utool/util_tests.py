@@ -55,7 +55,7 @@ def run_test(func, *args, **kwargs):
                 # Write timings
             printTEST('[TEST.FINISH] %s -- SUCCESS' % (get_funcname(func),))
             print(HAPPY_FACE)
-            with open('test_times.txt', 'a') as file_:
+            with open('_test_times.txt', 'a') as file_:
                 msg = '%.4fs in %s\n' % (timer.ellapsed, upper_funcname)
                 file_.write(msg)
             return test_locals
