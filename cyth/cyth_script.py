@@ -477,6 +477,7 @@ def get_benchmark(funcname, docstring, py_modname):
     setup_script = utool.indent(setup_script_).strip()  # NOQA
     benchmark_name = utool.quasiquote('run_benchmark_{funcname}')
     #test_tuples, setup_script = make_benchmarks('''{funcname}''', '''{docstring}''')
+    # http://en.wikipedia.org/wiki/Relative_change_and_difference
     bench_code = utool.unindent(
         r"""
         def {benchmark_name}(iterations):
@@ -487,19 +488,26 @@ def get_benchmark(funcname, docstring, py_modname):
             time_line = lambda line: timeit.timeit(stmt=line, setup=setup_script, number=iterations)
             time_pair = lambda (x, y): (time_line(x), time_line(y))
             def print_timing_info(tup):
+                from math import log
                 print('\n---------------')
                 print('[bench] timing {benchmark_name} for %d iterations' % (iterations))
                 print('[bench] tests:')
                 print('    ' + str(tup))
-                (time1, time2) = time_pair(tup)
-                print("[bench.python] {funcname} time=%f seconds" % (time1))
-                print("[bench.cython] {funcname} time=%f seconds" % (time2))
-                time_delta = time2 - time1
+                (pyth_time, cyth_time) = time_pair(tup)
+                print("[bench.python] {funcname} time=%f seconds" % (pyth_time))
+                print("[bench.cython] {funcname} time=%f seconds" % (cyth_time))
+                time_delta = cyth_time - pyth_time
+                pcnt_change_wrt_cyth = (time_delta / pyth_time) * 100
+                nepers  = log(cyth_time / pyth_time)
                 if time_delta < 0:
+                    print('[bench.result] cython was %.1f%% faster' % (-pcnt_change_wrt_cyth,))
+                    print('[bench.result] cython was %.1f nepers faster' % (-nepers,))
                     print('[bench.result] cython was faster by %f seconds' % -time_delta)
                 else:
+                    print('[bench.result] cython was %.1f%% slower' % (pcnt_change_wrt_cyth,))
+                    print('[bench.result] cython was %.1f nepers slower' % (nepers,))
                     print('[bench.result] python was faster by %f seconds' % time_delta)
-                return (time1, time2)
+                return (pyth_time, cyth_time)
             return list(map(print_timing_info, test_tuples))""").strip('\n')
     return (benchmark_name, utool.quasiquote(bench_code))
 

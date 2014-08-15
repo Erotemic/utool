@@ -3,6 +3,7 @@ python -c "import doctest, cyth; print(doctest.testmod(cyth.cyth_helpers))"
 """
 from __future__ import absolute_import, division, print_function
 from os.path import splitext, split, join, relpath
+import utool
 import os
 
 
@@ -52,5 +53,5 @@ def get_cyth_bench_path(py_fpath):
     dpath, fname = split(py_fpath)
     name, ext = splitext(fname)
     assert ext == '.py', 'not a python file'
-    cy_fpath = join(dpath, get_cyth_name(name) + '_bench.py')
+    cy_fpath = utool.unixpath(join(dpath, get_cyth_name(name) + '_bench.py'))
     return cy_fpath
