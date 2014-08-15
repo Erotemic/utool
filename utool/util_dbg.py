@@ -221,10 +221,14 @@ def import_testdata():
 
 def embed(parent_locals=None, parent_globals=None, exec_lines=None,
           remove_pyqt_hook=True):
-    if parent_locals is None:
-        parent_locals = get_parent_locals()
     if parent_globals is None:
-        parent_globals = get_parent_globals()
+        parent_globals = get_parent_globals(N=0)
+        # not sure why N=1 works over N=0 here only for globals
+        parent_globals1 = get_parent_globals(N=1)
+        exec(execstr_dict(parent_globals1, 'parent_globals1'))
+    if parent_locals is None:
+        parent_locals = get_parent_locals(N=0)
+
     exec(execstr_dict(parent_globals, 'parent_globals'))
     exec(execstr_dict(parent_locals,  'parent_locals'))
     print('')
@@ -354,6 +358,7 @@ def get_parent_frame(N=0):
 
 
 def get_parent_locals(N=0):
+    """ returns the locals of the function that called you """
     parent_frame = get_parent_frame(N=N + 1)
     return parent_frame.f_locals
 
@@ -617,21 +622,45 @@ def formatex(ex, msg='[!?] Caught exception',
 def parse_locals_keylist(locals_, key_list, strlist_, prefix):
     """ For each key in keylist, puts its value in locals into a stringlist """
     from .util_str import get_callable_name
-    for key in key_list:
-        if isinstance(key, tuple):
-            tup = key
-            func, key_ = tup
-            assert key_ in locals_, 'key=%r not in locals' % (key_,)
-            val = locals_[key_]
-            funcvalstr = str(func(val))
-            strlist_.append('%s %s(%s) = %s' % (prefix, get_callable_name(func), key_, funcvalstr))
-        elif key in locals_:
-            valstr = truncate_str(repr(locals_[key]), maxlen=200)
-            strlist_.append('%s %s = %s' % (prefix, key, valstr))
-        elif key is None:
-            strlist_.append('')
+
+    def get_key_value(key):
+        assert isinstance(key, str), 'must have parsed key into a string already'
+        if key not in locals_:
+            dotpos = key.find('.')
+            if dotpos > -1:
+                key_ = key[:dotpos]
+                attrstr_ = key[dotpos:]
+                baseval = locals_[key_]  # NOQA
+                val = eval('baseval' + attrstr_)
+            else:
+                raise AssertionError('%s !!! %s not populated!' % (prefix, key))
         else:
-            strlist_.append('%s !!! %s not populated!' % (prefix, key))
+            val = locals_[key]
+        return val
+
+    for key in key_list:
+        try:
+            if key is None:
+                strlist_.append('')
+            elif isinstance(key, tuple):
+                tup = key
+                func, key_ = tup
+                #assert key_ in locals_, 'key=%r not in locals' % (key_,)
+                #val = locals_[key_]
+                val = get_key_value(key_)
+                funcvalstr = str(func(val))
+                strlist_.append('%s %s(%s) = %s' % (prefix, get_callable_name(func), key_, funcvalstr))
+            #elif key in locals_:
+            #    #val = locals_[key]
+            #    val = get_key_value(key_)
+            #    valstr = truncate_str(repr(val), maxlen=200)
+            #    strlist_.append('%s %s = %s' % (prefix, key, valstr))
+            else:
+                val = get_key_value(key)
+                valstr = truncate_str(repr(val), maxlen=200)
+                strlist_.append('%s %s = %s' % (prefix, key, valstr))
+        except AssertionError as ex:
+            strlist_.append(str(ex))
 
 
 def get_reprs(*args, **kwargs):

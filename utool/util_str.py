@@ -374,3 +374,12 @@ def align_lines(line_list, character='='):
 def get_freespace_str(dir_='.'):
     from . import util_cplat
     return byte_str2(util_cplat.get_free_diskbytes(dir_))
+
+
+#def parse_commas_wrt_groups(str_):
+#    """
+#    str_ = 'cdef np.ndarray[np.float64_t, cast=True] x, y, z'
+#    """
+#    nLParen = 0
+#    nLBracket = 0
+#    pass

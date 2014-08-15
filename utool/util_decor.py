@@ -59,9 +59,9 @@ def ignores_exc_tb(func):
                 except Exception:
                     pass
                 # Python 2*3=6
-                #six.reraise(exc_type, exc_value, exc_traceback)
+                six.reraise(exc_type, exc_value, exc_traceback)
                 # PYTHON 2.7 DEPRICATED:
-                raise exc_type, exc_value, exc_traceback
+                #raise exc_type, exc_value, exc_traceback
                 # PYTHON 3.3 NEW METHODS
                 #ex = exc_type(exc_value)
                 #ex.__traceback__ = exc_traceback
@@ -286,6 +286,17 @@ def interested(func):
         print('INTERESTING... ' + (' ' * 30) + ' <----')
         return func(*args, **kwargs)
     return wrp_interested
+
+
+def show_return_value(func):
+    from .util_str import func_str
+    @wraps(func)
+    def wrp_show_return_value(*args, **kwargs):
+        ret = func(*args, **kwargs)
+        #print('%s(*%r, **%r) returns %r' % (get_funcname(func), args, kwargs, rv))
+        print(func_str(func, args, kwargs)  + ' -> ret=%r' % (ret,))
+        return ret
+    return wrp_show_return_value
 
 
 def time_func(func):
