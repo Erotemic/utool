@@ -22,6 +22,7 @@ import astor
 import re
 import doctest
 import cyth  # NOQA
+from copy import deepcopy
 BASE_CLASS = astor.codegen.SourceGenerator
 
 
@@ -46,6 +47,7 @@ class CythVisitor(BASE_CLASS):
         #self.imports_with_usemaps = {}
         self.import_lines = ["cimport cython", "import cython"]
         self.cimport_whitelist = ['numpy']
+        self.cimport_blacklist = ['numpy.core.umath_tests']
         self.import_from_blacklist = ['range', 'map', 'zip']
         self.cythonized_funcs = {}
         self.plain_funcs = {}
@@ -246,6 +248,15 @@ class CythVisitor(BASE_CLASS):
         self.import_lines.extend(imports)
         #return BASE_CLASS.visit_Module(self, node)
 
+    def visit_ImportFrom(self, node, emitCimport=False):
+        imp = 'cimport' if emitCimport else 'import'
+        if node.module:
+            self.statement(node, 'from ', node.level * '.',
+                           node.module, ' ' + imp + ' ')
+        else:
+            self.statement(node, 'from ', node.level * '. ' + imp + ' ')
+        self.comma_list(node.names)
+
     def generate_imports(self, modules, functions):
         imports = []
         for (alias, used_flag) in six.itervalues(modules):
@@ -256,7 +267,12 @@ class CythVisitor(BASE_CLASS):
                     imports.append('c' + import_line)
         for (modulename, alias, used_flag) in six.itervalues(functions):
             if used_flag and not ((modulename == '__future__') or (alias.name in self.import_from_blacklist)):
-                imports.append(ast_to_sourcecode(ast.ImportFrom(module=modulename, names=[alias], level=0)))
+                impnode = ast.ImportFrom(module=modulename, names=[alias], level=0)
+                imports.append(ast_to_sourcecode(impnode))
+                if any([modulename.startswith(x) for x in self.cimport_whitelist]) and not modulename in self.cimport_blacklist:
+                    temp_cv = CythVisitor()
+                    temp_cv.visit_ImportFrom(impnode, emitCimport=True)
+                    imports.append(temp_cv.get_result())
         funcs_declared_in_current_module = dict(chain(self.cythonized_funcs.iteritems(), self.plain_funcs.iteritems()))
         called_funcs = []
         #@utool.show_return_value
@@ -291,6 +307,10 @@ class CythVisitor(BASE_CLASS):
             #print('visit_Call, branch 2')
             if node.func.id in self.imported_functions:
                 self.imported_functions[node.func.id][2] = True
+            if node.func.id.endswith('_cyth') and not node.func.id.startswith('_'):
+                newnode = deepcopy(node)
+                newnode.func.id = '_' + node.func.id
+                return BASE_CLASS.visit_Call(self, newnode)
         return BASE_CLASS.visit_Call(self, node)
 
     def visit_FunctionDef(self, node):
