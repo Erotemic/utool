@@ -46,14 +46,16 @@ def run_test(func, *args, **kwargs):
     upper_funcname = get_funcname(func).upper()
     with util_print.Indenter('[' + upper_funcname + ']'):
         try:
-            printTEST('[TEST.BEGIN] %s ' % (sys.executable))
-            printTEST('[TEST.BEGIN] %s ' % (get_funcname(func),))
+            import utool
+            if utool.VERBOSE:
+                printTEST('[TEST.BEGIN] %s ' % (sys.executable))
+                printTEST('[TEST.BEGIN] %s ' % (get_funcname(func),))
             with util_time.Timer(upper_funcname) as timer:
                 test_locals = func(*args, **kwargs)
                 # Write timings
             printTEST('[TEST.FINISH] %s -- SUCCESS' % (get_funcname(func),))
             print(HAPPY_FACE)
-            with open('test_times.txt', 'a') as file_:
+            with open('_test_times.txt', 'a') as file_:
                 msg = '%.4fs in %s\n' % (timer.ellapsed, upper_funcname)
                 file_.write(msg)
             return test_locals
@@ -76,6 +78,7 @@ def run_test(func, *args, **kwargs):
                 #ex = exc_type(exc_value)
                 #ex.__traceback__ = exc_traceback.tb_next
                 #raise ex
+            return False
 
 
 def printTEST(msg, wait=False):

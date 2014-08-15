@@ -27,6 +27,11 @@ def DEPRICATED(func):
 
 # --- Info Strings ---
 
+def print_mystats(_list):
+    import utool
+    print(utool.dict_str(utool.mystats(_list)))
+
+
 def stats_str(*args, **kwargs):
     # wrapper for common_stats
     return common_stats(*args, **kwargs)
@@ -147,6 +152,27 @@ def memory_profile(with_gc=False):
     util_resources.memstats()
     # Graphical Browser
     #hp.pb()
+
+
+def make_call_graph(func, *args, **kwargs):
+    """ profile with pycallgraph
+    pycallgraph graphviz -- ./mypythonscript.py
+    http://pycallgraph.slowchop.com/en/master/
+    """
+    from pycallgraph import PyCallGraph
+    from pycallgraph.output import GraphvizOutput
+    with PyCallGraph(output=GraphvizOutput):
+        func(*args, **kwargs)
+
+
+def make_object_graph(obj, fpath='sample_graph.png'):
+    """ memoryprofile with objgraph
+    http://mg.pov.lt/objgraph/
+    """
+    import objgraph
+    objgraph.show_refs([obj], filename='ref_graph.png')
+    objgraph.show_backrefs([obj], filename='backref_graph.png')
+    objgraph.show_most_common_types()
 
 
 def disable_garbage_collection():

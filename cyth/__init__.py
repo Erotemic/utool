@@ -1,8 +1,14 @@
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
 
+import sys
+
+from .cyth_args import WITH_CYTH, CYTH_WRITE, DYNAMIC
 from . import cyth_helpers
 from . import cyth_importer
+from .cyth_importer import import_cyth_execstr
+from .cyth_script import translate, translate_all
+
 
 '''
 Cyth:

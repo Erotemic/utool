@@ -13,18 +13,18 @@ def uinput_1to1(func, input_):
     return output_
 
 
-def general_get(getter, index):
+def general_get(getter, index, **kwargs):
     """ Works with getter funcs or indexable read/write arrays """
     if hasattr(getter, '__getitem__'):
         val = getter[index]
     else:
-        val = getter(index)
+        val = getter(index, **kwargs)
     return val
 
 
-def general_set(setter, index, val):
+def general_set(setter, index, val, **kwargs):
     """ Works with setter funcs or indexable read/write arrays """
     if hasattr(setter, '__setitem__'):
         setter[index] = val
     else:
-        setter(index, val)
+        setter(index, val, **kwargs)

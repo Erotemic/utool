@@ -57,12 +57,12 @@ def assert_in_setup_repo(setup_fpath, name=''):
     #print('setup_dir = %r' % (setup_dir))
     #print('setup_fname = %r' % (setup_fname))
     try:
-        assert setup_fname == 'setup.py'
+        assert setup_fname == 'setup.py', 'name is not setup.py'
         #assert name == '' or repo_dname == name,
         ('name=%r' % name)
-        assert cwd == setup_dir
-        assert exists(setup_dir)
-        assert exists(join(setup_dir, 'setup.py'))
+        assert cwd == setup_dir, 'cwd is not setup_dir'
+        assert exists(setup_dir), 'setup dir does not exist'
+        assert exists(join(setup_dir, 'setup.py')), 'setup.py does not exist'
     except AssertionError as ex:
         printex(ex, 'ERROR!: setup.py must be run from repository root')
         raise
@@ -96,12 +96,27 @@ def build_cython(cython_files):
         util_dev.compile_cython(fpath)
 
 
+def translate_cyth():
+    import cyth
+    cyth.translate_all()
+
+
 def find_ext_modules(disable_warnings=True):
     from setuptools import Extension
     import utool
     from os.path import relpath
     import numpy as np
     cwd = os.getcwd()
+
+    BEXT = 'bext' in sys.argv
+    BUILD_EXT = 'build_ext' in sys.argv
+    BUILD = 'build' in sys.argv
+    CYTH = 'cyth' in sys.argv
+    if not any([BEXT, BUILD, BUILD_EXT, CYTH]):
+        return []
+
+    translate_cyth()  # translate cyth before finding ext modules
+
     #pyx_list = utool.glob(cwd, '*_cython.pyx', recursive=True)
     pyx_list = utool.glob(cwd, '*.pyx', recursive=True)
 
@@ -124,6 +139,29 @@ def find_ext_modules(disable_warnings=True):
     return ext_modules
 
 
+def find_packages():
+    import utool
+    from os.path import relpath
+    cwd = os.getcwd()
+    init_files = utool.glob(cwd, '__init__.py', recursive=True)
+    package_paths = list(map(dirname, init_files))
+    package_relpaths = [relpath(path, cwd) for path in package_paths]
+
+    packages = []
+    for path in package_relpaths:
+        base = utool.dirsplit(path)[0]
+        if exists(join(base, '__init__.py')):
+            package = path.replace('/', '.').replace('\\', '.')
+            packages.append(package)
+    return packages
+
+
+def get_cmdclass():
+    from Cython.Distutils import build_ext
+    cmdclass = {'build_ext': build_ext}
+    return cmdclass
+
+
 def NOOP():
     pass
 
@@ -136,7 +174,7 @@ def presetup(setup_fpath, kwargs):
     chmod_patterns   = kwargs.pop('chmod_patterns', SETUP_PATTERNS.chmod)
     clutter_dirs     = kwargs.pop('clutter_dirs', None)
     clutter_patterns = kwargs.pop('clutter_patterns', SETUP_PATTERNS.clutter)
-    cython_files     = kwargs.pop('cython_files', [])
+    cython_files     = kwargs.pop('cython_files', [])  # todo remove
     build_command    = kwargs.pop('build_command', NOOP)
     setup_fpath = util_path.truepath(setup_fpath)
     setup_dir = dirname(setup_fpath)
@@ -149,9 +187,16 @@ def presetup(setup_fpath, kwargs):
 
     if project_dirs is None:
         project_dirs = util_path.ls_moduledirs(setup_dir)
+# Execute pre-setup commands based on argv
+    #BEXT = 'bext' in sys.argv
+    #BUILD_EXT = 'build_ext' in sys.argv
+    #CYTH = 'cyth' in sys.argv
 
-    # Execute pre-setup commands based on argv
-    for arg in iter(sys.argv[1:]):
+    #if CYTH:
+    #    translate_cyth()
+
+    for arg in iter(sys.argv[:]):
+        #print(arg)
         # Clean clutter files
         if arg in ['clean']:
             clean(setup_dir, clutter_patterns, clutter_dirs, cython_files)
@@ -169,11 +214,18 @@ def presetup(setup_fpath, kwargs):
         if arg in ['o', 'pyo']:
             build_pyo(project_dirs)
         # Cythonize files
-        if arg in ['cython']:
-            build_cython(cython_files)
+        #if arg in ['cython']:
+        #    build_cython(cython_files)
         # Chmod files
         if arg in ['chmod']:
             setup_chmod(setup_fpath, setup_dir, chmod_patterns)
+
+    try:
+        sys.argv.remove('cyth')
+        #sys.argv.remove('--cyth-write')
+    except ValueError:
+        pass
+
     try:
         # SUPER HACK
         # aliases bext to build_ext --inplace
@@ -187,12 +239,18 @@ def presetup(setup_fpath, kwargs):
 presetup_commands = presetup  # TODO:
 
 
-def __parse_package_for_version(name):
+def parse_package_for_version(name):
     from .util_regex import named_field, regex_parse
     init_fpath = join(name, '__init__.py')
     val_regex = named_field('version', '[0-9a-zA-Z.]+')
+    version_errmsg = textwrap.dedent(
+        '''
+        You must include a __version__ variable
+        in %s\'s __init__.py file.
+        Try something like:
+        __version__ = '1.0.0.dev1' ''')
     if not exists(init_fpath):
-        return None
+        raise AssertionError(version_errmsg)
     def parse_version(line):
         # Helper
         line = line.replace(' ', '').replace('\t', '')
@@ -206,7 +264,7 @@ def __parse_package_for_version(name):
                 version = parse_version(line)
                 if version is not None:
                     return version
-    return None
+    raise AssertionError(version_errmsg)
 
 
 def __infer_setup_kwargs(module, kwargs):
@@ -230,14 +288,7 @@ def __infer_setup_kwargs(module, kwargs):
         kwargs['packages'] = packages
 
     if 'version' not in kwargs:
-        version = __parse_package_for_version(name)
-        version_errmsg = textwrap.dedent(
-            '''
-            You must include a __version__ variable
-            in %s\'s __init__.py file.
-            Try something like:
-            __version__ = '1.0.0.dev1' ''')
-        assert version is not None, (version_errmsg % name)
+        version = parse_package_for_version(name)
         kwargs['version'] = version
 
     # Parse version
@@ -254,9 +305,11 @@ def __infer_setup_kwargs(module, kwargs):
             pass
     # Parse readme
     if 'long_description' not in kwargs:
-        kwargs['long_description'] = util_io.read_from('README.md',
-                                                       verbose=False,
-                                                       strict=False)
+        kwargs['long_description'] = parse_readme()
+
+
+def parse_readme(readmefile='README.md'):
+    return util_io.read_from(readmefile, verbose=False, strict=False)
 
 
 def setuptools_setup(setup_fpath=None, module=None, **kwargs):

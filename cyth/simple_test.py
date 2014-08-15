@@ -61,5 +61,8 @@ visitor2 = CythVisitor()
 visitor2.visit(parse_tree)
 print('---------------------')
 print(visitor2.get_result())
+print('---------------------')
+print(visitor2.get_benchmarks())
+print('---------------------')
 
 #print(astor.to_source(parse_tree))

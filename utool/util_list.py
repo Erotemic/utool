@@ -1,13 +1,11 @@
 from __future__ import absolute_import, division, print_function
-import sys
 from six.moves import zip, map, zip_longest, range
 from .util_iter import iflatten, isiterable, ifilter_Nones, ifilter_items, ifilterfalse_items
 from .util_inject import inject
 from .util_str import get_callable_name
+from .util_arg import NO_ASSERTS
 from ._internal.meta_util_six import get_funcname, set_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[list]')
-
-USE_ASSERT = not ('--no-assert' in sys.argv)
 
 
 # --- List Allocations ---
@@ -66,34 +64,15 @@ def list_replace(instr, search_list=[], repl_list=None):
 
 
 def flatten(list_):
-    """ <CYTHE> """
+    """ <CYTH> """
     return list(iflatten(list_))
-
-
-def assert_unflat_level(unflat_list, level=1, basetype=None):
-    if USE_ASSERT:
-        return
-    num_checked = 0
-    for item in unflat_list:
-        if level == 1:
-            for x in item:
-                num_checked += 1
-                assert not isinstance(x, (tuple, list)), \
-                    'list is at an unexpected unflat level, x=%r' % (x,)
-                if basetype is not None:
-                    assert isinstance(x, basetype), \
-                        'x=%r, type(x)=%r is not basetype=%r' % (x, type(x), basetype)
-        else:
-            assert_unflat_level(item, level - 1)
-    #print('checked %r' % num_checked)
-    #assert num_checked > 0, 'num_checked=%r' % num_checked
 
 
 def invertable_flatten(unflat_list):
     """
     Flattens list but remember how to reconstruct the unflat list
     Returns flat list and the unflat list with indexes into the flat list
-    </CYTHE> """
+    </CYTH> """
 
     def nextnum(trick_=[0]):
         num = trick_[0]
@@ -107,14 +86,14 @@ def invertable_flatten(unflat_list):
 
 def unflatten(flat_list, reverse_list):
     """ Rebuilds unflat list from invertable_flatten
-    </CYTHE> """
+    </CYTH> """
     unflat_list2 = [tuple([flat_list[index] for index in tup]) for tup in reverse_list]
     return unflat_list2
 
 
 def tuplize(list_):
     """ Converts each scalar item in a list to a dimension-1 tuple
-    </CYTHE> """
+    </CYTH> """
     tup_list = [item if isiterable(item) else (item,) for item in list_]
     return tup_list
 
@@ -148,7 +127,7 @@ def flattenize(list_):
     100000 loops, best of 3: 16.5 us per loop
     100000 loops, best of 3: 18 us per loop
     1000000 loops, best of 3: 1.18 us per loop
-    </CYTHE> """
+    </CYTH> """
 
     #return map(iflatten, list_)
     #if not isiterable(list_):
@@ -163,7 +142,7 @@ def flattenize(list_):
 def safe_slice(list_, *args):
     """ safe_slice(list_, [start], stop, [end], [step])
         Slices list and truncates if out of bounds
-    </CYTHE> """
+    </CYTH> """
     if len(args) == 3:
         start = args[0]
         stop  = args[1]
@@ -185,8 +164,8 @@ def safe_slice(list_, *args):
 # --- List Queries --- #
 
 
-def list_eq(list_):
-    # checks to see if list is equal everywhere
+def list_allsame(list_):
+    """ checks to see if list is equal everywhere """
     if len(list_) == 0:
         return True
     item0 = list_[0]
@@ -194,19 +173,41 @@ def list_eq(list_):
 
 
 def assert_all_not_None(list_, list_name='some_list', key_list=[]):
-    if USE_ASSERT:
+    if NO_ASSERTS:
         return
-    if any([item is None for count, item in enumerate(list_)]):
-        msg = ((list_name + '[%d] = %r') % (count, item))
-        ex = AssertionError(msg)
+    try:
+        for count, item in enumerate(list_):
+            #if any([item is None for count, item in enumerate(list_)]):
+            assert item is not None, 'a list element is None'
+    except AssertionError as ex:
         from .util_dbg import printex
+        msg = (list_name + '[%d] = %r') % (count, item)
         printex(ex, msg, key_list=key_list, N=1)
         raise ex
 
 
+def assert_unflat_level(unflat_list, level=1, basetype=None):
+    if NO_ASSERTS:
+        return
+    num_checked = 0
+    for item in unflat_list:
+        if level == 1:
+            for x in item:
+                num_checked += 1
+                assert not isinstance(x, (tuple, list)), \
+                    'list is at an unexpected unflat level, x=%r' % (x,)
+                if basetype is not None:
+                    assert isinstance(x, basetype), \
+                        'x=%r, type(x)=%r is not basetype=%r' % (x, type(x), basetype)
+        else:
+            assert_unflat_level(item, level - 1)
+    #print('checked %r' % num_checked)
+    #assert num_checked > 0, 'num_checked=%r' % num_checked
+
+
 def get_dirty_items(item_list, flag_list):
     """ Returns each item in item_list where not flag in flag_list
-    </CYTHE> """
+    </CYTH> """
     assert len(item_list) == len(flag_list)
     dirty_items = [item for (item, flag) in
                    zip(item_list, flag_list)
@@ -220,7 +221,7 @@ def get_dirty_items(item_list, flag_list):
 def filter_items(item_list, flag_list):
     """
     Returns items in item list where the corresponding item in flag list is true
-    </CYTHE> """
+    </CYTH> """
 
     assert len(item_list) == len(flag_list)
     filtered_items = list(ifilter_items(item_list, flag_list))
@@ -230,14 +231,14 @@ def filter_items(item_list, flag_list):
 def filterfalse_items(item_list, flag_list):
     """
     Returns items in item list where the corresponding item in flag list is true
-    </CYTHE> """
+    </CYTH> """
     assert len(item_list) == len(flag_list)
     filtered_items = list(ifilterfalse_items(item_list, flag_list))
     return filtered_items
 
 
 def filter_Nones(list_):
-    """ Removes any nones from the list </CYTHE> """
+    """ Removes any nones from the list </CYTH> """
     return list(ifilter_Nones(list_))
 
 
@@ -247,7 +248,7 @@ def filter_Nones(list_):
 def intersect_ordered(list1, list2):
     """
     returns list1 elements that are also in list2 preserves order of list1
-    </CYTHE> """
+    </CYTH> """
     set2 = set(list2)
     new_list = [item for item in iter(list1) if item in set2]
     #new_list =[]
@@ -288,7 +289,7 @@ def unique_unordered(list_):
 
 def sortedby(list_, sortable, reverse=False):
     """ Returns a list sorted by the values of another list
-    </CYTHE>
+    </CYTH>
     >>> import utool
     >>> list_    = [1, 2, 3, 4, 5]
     >>> sortable = [2, 5, 3, 1, 5]
@@ -304,7 +305,7 @@ def scalar_input_map(func, input_):
     """
     If input_ is iterable this function behaves like map
     otherwise applies func to input
-    </CYTHE>
+    </CYTH>
     """
     if isiterable(input_):
         return list(map(func, input_))
@@ -335,7 +336,7 @@ def sample_zip(items_list, num_samples, allow_overflow=False, per_bin=1):
     #util_list.sample_zip(items_list, 2)
     #...
     #AssertionError: Overflow occured
-    </CYTHE>
+    </CYTH>
 
     >>> from utool import util_list
     >>> items_list = [[1, 2, 3, 4, 0], [5, 6, 7], [], [8, 9], [10]]

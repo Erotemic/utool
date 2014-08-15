@@ -3,6 +3,7 @@ from six.moves import builtins
 import six
 import sys
 from functools import wraps
+from .util_arg import NO_ASSERTS
 from .util_iter import isiterable
 from .util_print import Indenter
 from .util_dbg import printex
@@ -15,13 +16,10 @@ from utool._internal.meta_util_six import get_funcname
 
 # do not ignore traceback when profiling
 PROFILING = hasattr(builtins, 'profile')
-FULL_TRACEBACK = (True or '--noignore-exctb' in sys.argv or PROFILING or
-                  '--fulltb' in sys.argv)
+IGNORE_TRACEBACK = '--smalltb' in sys.argv or '--ignoretb' in sys.argv
 TRACE = '--trace' in sys.argv
 UNIQUE_NUMPY = True
 NOINDENT_DECOR = False
-USE_ASSERT = not ('--no-assert' in sys.argv)
-
 
 #def composed(*decs):
 #    """ combines multiple decorators """
@@ -43,7 +41,7 @@ def ignores_exc_tb(func):
     if IGNORE_EXC_TB is False then this decorator does nothing
     (and it should do nothing in production code!)
     """
-    if FULL_TRACEBACK:
+    if not IGNORE_TRACEBACK:
         return func
     else:
         @wraps(func)
@@ -61,7 +59,6 @@ def ignores_exc_tb(func):
                 except Exception:
                     pass
                 # Python 2*3=6
-                import six
                 six.reraise(exc_type, exc_value, exc_traceback)
                 # PYTHON 2.7 DEPRICATED:
                 #raise exc_type, exc_value, exc_traceback
@@ -75,6 +72,7 @@ def ignores_exc_tb(func):
 
 
 def on_exception_report_input(func):
+    @ignores_exc_tb
     @wraps(func)
     def wrp_exception_report_input(*args, **kwargs):
         try:
@@ -147,7 +145,7 @@ def accepts_scalar_input(func):
 
 
 def __assert_param_consistency(args, argx_list):
-    if USE_ASSERT:
+    if NO_ASSERTS:
         return
     if len(argx_list) == 0:
         return True
@@ -288,6 +286,17 @@ def interested(func):
         print('INTERESTING... ' + (' ' * 30) + ' <----')
         return func(*args, **kwargs)
     return wrp_interested
+
+
+def show_return_value(func):
+    from .util_str import func_str
+    @wraps(func)
+    def wrp_show_return_value(*args, **kwargs):
+        ret = func(*args, **kwargs)
+        #print('%s(*%r, **%r) returns %r' % (get_funcname(func), args, kwargs, rv))
+        print(func_str(func, args, kwargs)  + ' -> ret=%r' % (ret,))
+        return ret
+    return wrp_show_return_value
 
 
 def time_func(func):

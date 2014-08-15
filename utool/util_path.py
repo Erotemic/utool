@@ -1,4 +1,6 @@
 """
+python -c "import utool, doctest; print(doctest.testmod(utool.util_path))"
+
 This module becomes nav
 """
 
@@ -16,13 +18,13 @@ from .util_dbg import get_caller_name, printex
 from .util_progress import progress_func
 from ._internal import meta_util_path
 from . import util_inject
+from .util_arg import NO_ASSERTS
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[path]')
 
 
 VERBOSE     = '--verbose' in sys.argv
 VERYVERBOSE = '--veryverbose' in sys.argv
 QUIET       = '--quiet' in sys.argv
-USE_ASSERT  = not ('--no-assert' in sys.argv)
 
 
 __IMG_EXTS = ['.jpg', '.jpeg', '.png', '.tif', '.tiff', '.ppm']
@@ -42,26 +44,27 @@ truepath = meta_util_path.truepath
 
 
 def truepath_relative(path):
-    """ Normalizes and returns absolute path with so specs </CYTHE> """
+    """ Normalizes and returns absolute path with so specs </CYTH> """
     return normpath(relpath(path, truepath(os.getcwd())))
 
 
 def path_ndir_split(path_, n, force_unix=True):
-    """
+    r"""
     Shows only a little bit of the path. Up to the n bottom-level directories
     Unit Tests:
-        >>> path_list = ['/usr/bin/local/foo/bar',
-                         '/',
-                         '/usr/bin',
-                         'C:/',
-                         r'C:\Program Files (x86)/foobar/bin',]
-        result = []
-        for path_ in path_list:
-            result.append('----')
-            result.append('Input: %r' % path_)
-            for n in [0, 1, 2, 3, 4, 5, 6]:
-                result.append('n=%r: %r' % (n, path_ndir_split(path_, n)))
-        print('\n'.join(result))
+    >>> import utool
+    >>> paths = [r'/usr/bin/local/foo/bar',
+    ...          r'C:/',
+    ...          r'C:\Program Files (x86)/foobar/bin',]
+    >>> output = '\n'.join(['n=%r: %r' % (n, utool.path_ndir_split(path, n))
+    ...                     for path, n in utool.iprod(paths, range(1, 3))])
+    >>> print(output)
+    n=1: 'bar'
+    n=2: 'foo/bar'
+    n=1: 'C:'
+    n=2: 'C:'
+    n=1: 'bin'
+    n=2: 'foobar/bin'
     """
     if n is None:
         return path_
@@ -177,7 +180,7 @@ def remove_file_list(fpath_list, verbose=VERYVERBOSE):
 
 
 def longest_existing_path(_path):
-    """ </CYTHE> """
+    """ </CYTH> """
     while True:
         _path_new = os.path.dirname(_path)
         if exists(_path_new):
@@ -231,7 +234,7 @@ def ensurepath(path_, verbose=VERYVERBOSE):
 
 
 def ensuredir(path_, verbose=VERYVERBOSE):
-    """ </CYTHE> """
+    """ </CYTH> """
     if not checkpath(path_):
         if verbose:
             print('[path] mkdir(%r)' % path_)
@@ -240,7 +243,7 @@ def ensuredir(path_, verbose=VERYVERBOSE):
 
 
 def assertpath(path_, **kwargs):
-    if USE_ASSERT:
+    if NO_ASSERTS:
         return
     if not checkpath(path_, **kwargs):
         raise AssertionError('Asserted path does not exist: ' + path_)
@@ -252,6 +255,7 @@ def copy_task(cp_list, test=False, nooverwrite=False, print_tasks=True):
     Input list of tuples:
         format = [(src_1, dst_1), ..., (src_N, dst_N)]
     Copies all files src_i to dst_i
+    <CYTH>
     </CYTH> """
     num_overwrite = 0
     _cp_tasks = []  # Build this list with the actual tasks
@@ -418,7 +422,7 @@ def glob(dirname, pattern, recursive=False, with_files=True, with_dirs=True,
 
 def iglob(dirname, pattern, recursive=False, with_files=True, with_dirs=True, **kwargs):
     """ Globs directory for pattern
-    </CYTHE:DISABLE>
+    </CYTH:DISABLE>
     """
     if kwargs.get('verbose', False):  # log what i'm going to do
         print('[util_path] glob(dirname=%r)' % truepath(dirname,))
@@ -596,7 +600,7 @@ def list_images(img_dpath, ignore_list=[], recursive=False, fullpath=False,
 
 
 def assert_exists(path):
-    if USE_ASSERT:
+    if NO_ASSERTS:
         return
     assert exists(path), 'path=%r does not exist!' % path
 

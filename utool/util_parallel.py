@@ -28,6 +28,23 @@ __NUM_PROCS__ = util_arg.get_arg('--num-procs', int, default=None)
 __FORCE_SERIAL__ = util_arg.get_flag('--utool-force-serial')
 
 
+BACKEND = 'multiprocessing'
+
+if BACKEND == 'gevent':
+    raise NotImplementedError('gevent cannot run on multiple cpus')
+    pass
+elif BACKEND == 'zeromq':
+    #http://zguide.zeromq.org/py:mtserver
+    raise NotImplementedError('no zeromq yet')
+    pass
+elif BACKEND == 'multiprocessing':
+    def new_pool(num_procs, init_worker, maxtasksperchild):
+        return multiprocessing.Pool(processes=num_procs,
+                                    initializer=init_worker,
+                                    maxtasksperchild=maxtasksperchild)
+    pass
+
+
 def set_num_procs(num_procs):
     global __NUM_PROCS__
     __NUM_PROCS__ = num_procs
@@ -72,8 +89,8 @@ def init_pool(num_procs=None, maxtasksperchild=None):
         print('close pool before reinitializing')
         return
     # Create the pool of processes
-    __POOL__ = multiprocessing.Pool(processes=num_procs, initializer=init_worker,
-                                    maxtasksperchild=maxtasksperchild)
+    #__POOL__ = multiprocessing.Pool(processes=num_procs, initializer=init_worker, maxtasksperchild=maxtasksperchild)
+    __POOL__ = new_pool(num_procs, init_worker, maxtasksperchild)
 
 
 @atexit.register
@@ -95,7 +112,7 @@ def close_pool(terminate=False):
 
 
 def _process_serial(func, args_list, args_dict={}):
-    """" </CYTHE> """
+    """" </CYTH> """
     num_tasks = len(args_list)
     result_list = []
     mark_prog, end_prog = progress_func(max_val=num_tasks,
@@ -111,7 +128,7 @@ def _process_serial(func, args_list, args_dict={}):
 
 
 def _process_parallel(func, args_list, args_dict={}):
-    """" </CYTHE> """
+    """" </CYTH> """
     # Define progress observers
     num_tasks = len(args_list)
     num_tasks_returned_ptr = [0]
@@ -136,7 +153,7 @@ def _process_parallel(func, args_list, args_dict={}):
 
 def _generate_parallel(func, args_list, ordered=True, chunksize=1,
                        prog=True, verbose=True):
-    """ </CYTHE> """
+    """ </CYTH> """
     prog = prog and verbose
     nTasks = len(args_list)
     if chunksize is None:
@@ -171,7 +188,7 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
 
 
 def _generate_serial(func, args_list, prog=True, verbose=True):
-    """ </CYTHE> """
+    """ </CYTH> """
     if verbose:
         print('[parallel] executing %d %s tasks in serial' %
                 (len(args_list), get_funcname(func)))
@@ -199,7 +216,7 @@ def ensure_pool(warn=False):
 def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
              chunksize=1, prog=True, verbose=True):
     """ Returns a generator which asynchronously returns results
-    </CYTHE> """
+    </CYTH> """
     num_tasks = len(args_list)
     if num_tasks == 0:
         if verbose:
@@ -228,7 +245,7 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
 
 
 def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__):
-    """" </CYTHE> """
+    """" </CYTH> """
 
     ensure_pool()
     if __POOL__ == 1 or force_serial:

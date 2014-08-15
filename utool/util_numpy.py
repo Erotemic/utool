@@ -42,7 +42,7 @@ def index_of(item, array):
 def spaced_indexes(len_, n, trunc=False):
     """ Returns n evenly spaced indexes.
         Returns as many as possible if trunc is true
-    </CYTHE> """
+    </CYTH> """
 
     if n is None:
         return np.arange(len_)
@@ -103,10 +103,13 @@ def intersect2d(A, B):
 
 def deterministic_shuffle(list_, seed=1):
     rand_seed = int(np.random.rand() * np.uint(0 - 2) / 2)
+    if not isinstance(list_, (np.ndarray, list)):
+        list_ = list(list_)
     seed_ = len(list_) + seed
     np.random.seed(seed_)
     np.random.shuffle(list_)
     np.random.seed(rand_seed)  # reseed
+    return list_
 
 
 def listlike_copy(list_):
@@ -115,6 +118,18 @@ def listlike_copy(list_):
     else:
         list2_ = np.copy(list_)
     return list2_
+
+
+def random_sample(list_, nSample, strict=False):
+    """ Grabs data randomly, but in a repeatable way """
+    list2_ = listlike_copy(list_)
+    np.random.shuffle(list2_)
+    if nSample is None and strict is False:
+        return list2_
+    if not strict:
+        nSample = min(nSample, len(list2_))
+    sample_list = list2_[:nSample]
+    return sample_list
 
 
 def deterministic_sample(list_, nSample, seed=1, strict=False):
@@ -143,14 +158,15 @@ def sample_domain(min_, max_, nSamp, mode='linear'):
     >>> max_ = 1000
     >>> nSamp  = 7
     >>> utool.sample_domain(min_, max_, nSamp)
+    [10, 151, 293, 434, 576, 717, 859]
     """
     if mode == 'linear':
-        samples_ = np.rint(np.linspace(min_, max_, nSamp)).astype(np.int64)
+        samples_ = np.rint(np.linspace(min_, max_, nSamp + 1)).astype(np.int64)
     elif mode == 'log':
         base = 2
         logmin = np.log2(min_) / np.log2(base)
         logmax = np.log2(max_) / np.log2(base)
-        samples_ = np.rint(np.logspace(logmin, logmax, nSamp, base=base)).astype(np.int64)
+        samples_ = np.rint(np.logspace(logmin, logmax, nSamp + 1, base=base)).astype(np.int64)
     else:
         raise NotImplementedError(mode)
     sample = [index for index in samples_ if index < max_]

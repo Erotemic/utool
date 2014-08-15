@@ -334,6 +334,52 @@ def get_callable_name(func):
                                         'type(func)=%r') % (func, type(func)))
 
 
+def align(text, character='='):
+    """ Left justifies text on the left side of character
+
+    >>> character = '='
+    >>> text = '''
+            a = b
+            one = two
+            three = fish '''
+    >>> print(align(text, '='))
+
+    """
+    line_list = text.splitlines()
+    new_lines = align_lines(line_list, character)
+    new_text = '\n'.join(new_lines)
+    return new_text
+
+
+def align_lines(line_list, character='='):
+    """ Left justifies text on the left side of character"""
+
+    tup_list = [line.split(character) for line in line_list]
+    maxlen = 0
+    for tup in tup_list:
+        if len(tup) == 2:
+            maxlen = max(maxlen, len(tup[0]))
+
+    new_lines = []
+    for tup in tup_list:
+        if len(tup) == 2:
+            lhs, rhs = tup
+            newline = lhs.ljust(maxlen) + character + rhs
+            new_lines.append(newline)
+        else:
+            new_lines.append(character.join(tup))
+    return new_lines
+
+
 def get_freespace_str(dir_='.'):
     from . import util_cplat
     return byte_str2(util_cplat.get_free_diskbytes(dir_))
+
+
+#def parse_commas_wrt_groups(str_):
+#    """
+#    str_ = 'cdef np.ndarray[np.float64_t, cast=True] x, y, z'
+#    """
+#    nLParen = 0
+#    nLBracket = 0
+#    pass
