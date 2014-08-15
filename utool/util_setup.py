@@ -91,6 +91,7 @@ def clean(setup_dir, clutter_patterns, clutter_dirs, cython_files):
 
 
 def build_cython(cython_files):
+    """ doesn't work """
     for fpath in cython_files:
         util_dev.compile_cython(fpath)
 

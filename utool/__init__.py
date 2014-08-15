@@ -145,12 +145,14 @@ else:
     from .util_cplat import (COMPUTER_NAME, DARWIN, LIB_DICT, LIB_EXT_LIST, LINUX, 
                              OS_TYPE, PYLIB_DICT, WIN32, cmd, editfile, 
                              get_app_resource_dir, get_computer_name, 
+                             get_dir_diskspaces, get_disk_space, 
                              get_dynamic_lib_globstrs, get_dynlib_dependencies, 
                              get_flops, get_free_diskbytes, get_lib_ext, 
                              get_pylib_ext, get_resource_dir, get_user_name, 
-                             getroot, ls_libs, python_executable, 
-                             run_realtime_process, set_process_title, shell, 
-                             startfile, truepath, unixpath, vd, view_directory,) 
+                             getroot, ls_libs, print_dir_diskspace, 
+                             python_executable, run_realtime_process, 
+                             set_process_title, shell, startfile, truepath, 
+                             unixpath, vd, view_directory,) 
     from .util_class import (classmember, inject_func_as_method, inject_instance, 
                              makeForwardingMetaclass,) 
     from .util_csv import (is_float, is_int, is_list, is_str, make_csv_table, 
@@ -216,8 +218,8 @@ else:
     from .util_io import (load_cPkl, read_from, save_cPkl, try_decode, write_to,) 
     from .util_iter import (chain, cycle, ensure_iterable, ichunks, ifilter_Nones, 
                             ifilter_items, ifilterfalse_items, iflatten, 
-                            iflatten_scalars, interleave, interleave2, islice, 
-                            roundrobin,) 
+                            iflatten_scalars, interleave, interleave2, interleave3, 
+                            islice, roundrobin,) 
     from .util_inspect import (list_class_funcnames,) 
     from .util_logging import (PRINT_ALL_CALLERS, add_logging_handler, 
                                get_log_fpath, get_logging_dir, logdir_cacheid, 
