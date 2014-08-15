@@ -452,7 +452,7 @@ def ast_to_sourcecode(node):
 
 def replace_funcalls(source, funcname, replacement):
     """
-    >>> from cyth_script import *
+    >>> from cyth_script import *  # NOQA
     >>> replace_funcalls('foo(5)', 'foo', 'bar')
     'bar(5)'
     >>> replace_funcalls('foo(5)', 'bar', 'baz')
@@ -527,7 +527,7 @@ def get_benchline(src, funcname):
 
 def make_benchmarks(funcname, docstring, py_modname):
     r"""
-    >>> from cyth.cyth_script import *
+    >>> from cyth.cyth_script import *  # NOQA
     >>> funcname = 'replace_funcalls'
     >>> docstring = replace_funcalls.func_doc
     >>> py_modname = 'cyth.cyth_script'
