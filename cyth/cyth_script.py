@@ -53,6 +53,8 @@ class CythVisitor(BASE_CLASS):
         self.plain_funcs = {}
         self.fpig = FirstpassInformationGatherer()
         self.spig = SecondpassInformationGatherer(self.fpig)
+        self.modules_to_cimport = []
+        self.interface_lines = [] # generated for the pxd header
 
     def get_result(self):
         """ returns cythonized pyx text """
@@ -61,7 +63,8 @@ class CythVisitor(BASE_CLASS):
             '\n' +
             ''.join(self.result)
         )
-        return cyth_text
+        pxd_text = ('cimport numpy as np\n' + '\n\n'.join(self.interface_lines))
+        return cyth_text, pxd_text
 
     def process_args(self, args, vararg, kwarg, defaults=None):
         processed_argslist = map(self.visit, args)
@@ -76,7 +79,9 @@ class CythVisitor(BASE_CLASS):
         return processed_argslist
 
     def signature(self, node, typedict={}):
-        types_minus_sigtypes = typedict.copy()
+        # remove type declarations that are 'used up' in the function's 
+        # call signature, to avoid duplicating them in the body
+        nonsig_typedict = typedict.copy()
         want_comma = []
 
         def write_comma():
@@ -90,7 +95,7 @@ class CythVisitor(BASE_CLASS):
             for arg, default in zip(args, padding + defaults):
                 if arg.id in typedict:
                     arg_ = typedict[arg.id] + ' ' + arg.id
-                    types_minus_sigtypes.pop(arg.id)
+                    nonsig_typedict.pop(arg.id)
                 else:
                     arg_ = arg
                 self.write(write_comma, arg_)
@@ -105,7 +110,7 @@ class CythVisitor(BASE_CLASS):
             if node.vararg is None:
                 self.write(write_comma, '*')
             loop_args(kwonlyargs, node.kw_defaults)
-        return types_minus_sigtypes
+        return nonsig_typedict
 
     def parse_cythdef(self, cyth_def):
         """ Hacky string manipulation parsing """
@@ -272,7 +277,16 @@ class CythVisitor(BASE_CLASS):
                 if any([modulename.startswith(x) for x in self.cimport_whitelist]) and not modulename in self.cimport_blacklist:
                     temp_cv = CythVisitor()
                     temp_cv.visit_ImportFrom(impnode, emitCimport=True)
-                    imports.append(temp_cv.get_result())
+                    imports.append(temp_cv.get_result()[0])
+        for (modulename) in set(self.modules_to_cimport):
+            module_alias = modules.get(modulename, [None])[0]
+            if module_alias is not None:
+                assert isinstance(module_alias, ast.alias), type(module_alias)
+                cythed_alias = deepcopy(module_alias)
+                cythed_alias.name = cyth_helpers.get_cyth_name(module_alias.name)
+                # short circuit exploit for brevity
+                cythed_alias.asname = cythed_alias.asname and cyth_helpers.get_cyth_name(module_alias.asname)
+                imports.append('c' + ast_to_sourcecode(ast.Import(names=[cythed_alias])))
         funcs_declared_in_current_module = dict(chain(self.cythonized_funcs.iteritems(), self.plain_funcs.iteritems()))
         called_funcs = []
         #@utool.show_return_value
@@ -299,15 +313,22 @@ class CythVisitor(BASE_CLASS):
 
     def visit_Call(self, node):
         #print(ast.dump(node))
+        is_cyth_call = lambda name: name.endswith('_cyth') and not name.startswith('_')
         if isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
             #print('visit_Call, branch 1')
             if node.func.value.id in self.imported_modules:
                 self.imported_modules[node.func.value.id][1] = True
+            if is_cyth_call(node.func.attr):
+                self.modules_to_cimport.append(node.func.value.id)
+                newnode = deepcopy(node)
+                newnode.func.attr = '_' + node.func.attr
+                newnode.func.value.id = cyth_helpers.get_cyth_name(node.func.value.id)
+                return BASE_CLASS.visit_Call(self, newnode)
         if isinstance(node.func, ast.Name):
             #print('visit_Call, branch 2')
             if node.func.id in self.imported_functions:
                 self.imported_functions[node.func.id][2] = True
-            if node.func.id.endswith('_cyth') and not node.func.id.startswith('_'):
+            if is_cyth_call(node.func.id):
                 newnode = deepcopy(node)
                 newnode.func.id = '_' + node.func.id
                 return BASE_CLASS.visit_Call(self, newnode)
@@ -340,10 +361,18 @@ class CythVisitor(BASE_CLASS):
                 ''').strip()
 
                 return_string = (" %s " % return_type) if return_type is not None else " "
-                self.statement(node, func_prefix + '\ncpdef%s%s(' % (return_string, cyth_funcname,))
-                types_minus_sigtypes = self.signature(node.args, typedict=typedict)
-                cyth_def_body = self.typedict_to_cythdef(types_minus_sigtypes)
+                #self.statement(node, func_prefix + '\ncpdef%s%s(' % (return_string, cyth_funcname,))
+                self.statement(node, func_prefix + '\n')
+                # HACK: indexing is used to extract a portion of the generated stream, which wouldn't 
+                # be needed if statement/write/etc all returned values rather than writing a stream
+                index_before = len(self.result)
+                self.write('cpdef%s%s(' % (return_string, cyth_funcname,))
+                nonsig_typedict = self.signature(node.args, typedict=typedict)
+                cyth_def_body = self.typedict_to_cythdef(nonsig_typedict)
                 self.write(')')
+                function_signature = ''.join(self.result[index_before:])
+                self.interface_lines.append(function_signature)
+                print('funcsig: %r' % (function_signature,))
                 if getattr(node, 'returns', None) is not None:
                     self.write(' ->', node.returns)
                 self.write(':')
@@ -356,6 +385,12 @@ class CythVisitor(BASE_CLASS):
                 cyth_def = cyth_action[1]
                 self.newline(extra=1)
                 self.write(cyth_def)
+                regex_flags = re.MULTILINE
+                sig_regex = re.compile('(cpdef.*\)):$', regex_flags)
+                match = sig_regex.search(cyth_def)
+                function_signature = match.group(1)
+                print('sigreplace: %r' % function_signature)
+                self.interface_lines.append(function_signature)
         else:
             self.plain_funcs[node.name] = node
 
@@ -649,6 +684,7 @@ def translate_fpath(py_fpath):
     # Get cython pyx and benchmark output path
     cy_fpath = cyth_helpers.get_cyth_path(py_fpath)
     cy_bpath = cyth_helpers.get_cyth_bench_path(py_fpath)
+    cy_pxdpath = cyth_helpers.get_cyth_pxd_path(py_fpath)
     # Infer the python module name
     py_modname = cyth_helpers.get_py_module_name(py_fpath)
     # Read the python file
@@ -661,11 +697,12 @@ def translate_fpath(py_fpath):
     visitor = CythVisitor(py_modname=py_modname)
     visitor.visit(ast.parse(py_text))
     # Get the generated pyx file and benchmark file
-    cython_text = visitor.get_result()
+    cython_text, pxd_text = visitor.get_result()
     bench_text = visitor.get_benchmarks()
     # Write pyx and benchmark
     utool.write_to(cy_fpath, cython_text)
     utool.write_to(cy_bpath, bench_text, verbose=False)
+    utool.write_to(cy_pxdpath, pxd_text, verbose=False)
     return cy_bpath
 
 
