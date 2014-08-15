@@ -9,6 +9,7 @@ cyth_script.py "~/code/vtool/vtool"
 
 """
 from __future__ import absolute_import, division, print_function
+import six
 from six.moves import zip, map
 from itertools import chain
 import utool
@@ -41,11 +42,11 @@ class CythVisitor(BASE_CLASS):
         #print('in module ', py_modname)
         self.imported_modules = {}
         self.imported_functions = {}
-#        self.all_funcalls = []
+        #self.all_funcalls = []
         #self.imports_with_usemaps = {}
         self.import_lines = ["cimport cython", "import cython"]
         self.cimport_whitelist = ['numpy']
-        self.import_blacklist = ['range', 'map', 'zip']
+        self.import_from_blacklist = ['range', 'map', 'zip']
         self.cythonized_funcs = {}
         self.plain_funcs = {}
         self.fpig = FirstpassInformationGatherer()
@@ -101,7 +102,6 @@ class CythVisitor(BASE_CLASS):
     def parse_cythdef(self, cyth_def):
         """ Hacky string manipulation parsing """
         #ast.literal_eval(utool.unindent(cyth_def))
-
         typedict = {}
         cdef_mode = False
         current_indent = 0
@@ -123,6 +123,14 @@ class CythVisitor(BASE_CLASS):
                 cdef_mode = True
                 continue
             if cdef_mode or line.startswith('cdef '):
+                #def parse_cdef_line(line):
+                #    # todo put in better line parsing
+                #    # allow for cdef np.array[float, ndims=2] x, y, z
+                #    type_ = []
+                #    lbrackets = 0
+                #    for sub in line.split(','):
+                #        sub
+                #    pass
                 assign_str = line.replace('cdef ', '')
                 pos = assign_str.rfind(' ')
                 type_ = assign_str[:pos]
@@ -142,10 +150,6 @@ class CythVisitor(BASE_CLASS):
     def parse_cyth_markup(self, docstr, toplevel=False, funcdef_node=None):
         funcname = None if funcdef_node is None else funcdef_node.name
         comment_str = docstr.strip()
-        #doctest_examples = filter(lambda x: isinstance(x, doctest.Example),
-        #                            doctest.DocTestParser().parse(docstr))
-        #for (i, (x, y)) in enumerate(map(lambda x: (x.source, x.want), doctest_examples)):
-        #    print("doctest_examples[%d] = (%r, %r)" % (i, x, y))
         has_markup = comment_str.find('<CYTH') != -1
         # type returned_action = [`defines of string * (string, string) Hashtbl.t | `replace of string] option
         def make_defines(cyth_def, return_type=None):
@@ -162,12 +166,16 @@ class CythVisitor(BASE_CLASS):
         regex_flags = re.DOTALL | re.MULTILINE
         regex_to_actions = [(re.compile(tag + '(.*?)' + end_tag, regex_flags), act)
                             for tag, act in tags_to_actions]
+
+        # only return something if CYTH markup was found
         if has_markup:
             if funcname:
-                (benchmark_name, benchmark_code) = get_benchmark(funcname, docstr, self.py_modname)
-                self.benchmark_names.append(benchmark_name)
-                self.benchmark_codes.append(benchmark_code)
+                # Parse doctests for benchmarks
+                (bench_name, bench_code) = parse_benchmarks(funcname, docstr, self.py_modname)
+                self.benchmark_names.append(bench_name)
+                self.benchmark_codes.append(bench_code)
             if toplevel:
+                # module level cyth-docstrs are always CYTH:REPLACE
                 comment_str = re.sub('<CYTH>', '<CYTH:REPLACE>', comment_str)
             for (regex, action) in regex_to_actions:
                 match = regex.search(comment_str)
@@ -192,9 +200,13 @@ class CythVisitor(BASE_CLASS):
         # self.all_funcalls = cr.calls
         self.fpig.visit(node)
         self.spig.visit(node)
+
         def get_alias_name(al):
-            return al.asname if al.asname is not None else al.name
+            alias_name = al.name if al.asname is None else al.asname
+            return alias_name
+
         for subnode in node.body:
+            # parse for cythtags
             if is_docstring(subnode):
                 #print('Encountered global docstring: %s' % repr(subnode.value.s))
                 action = self.parse_cyth_markup(subnode.value.s, toplevel=True)
@@ -203,14 +215,20 @@ class CythVisitor(BASE_CLASS):
                         cyth_def = action[1]
                         self.newline(extra=1)
                         self.write(cyth_def)
+            # try to parse functions for cyth tags
             elif isinstance(subnode, ast.FunctionDef):
                 self.visit(subnode)
+            # register imports
             elif isinstance(subnode, ast.Import):
                 for alias in subnode.names:
-                    self.imported_modules[get_alias_name(alias)] = [alias, False]
+                    alias_ = get_alias_name(alias)
+                    self.imported_modules[alias_] = [alias, False]
+            # register from imports
             elif isinstance(subnode, ast.ImportFrom):
                 for alias in subnode.names:
-                    self.imported_functions[get_alias_name(alias)] = [subnode.module, alias, False]
+                    alias_ = get_alias_name(alias)
+                    self.imported_functions[alias_] = [subnode.module, alias, False]
+            # register a global
             elif isinstance(subnode, (ast.Assign, ast.AugAssign)):
                 targets = assignment_targets(subnode)
                 if any((self.spig.globals_used.get(target, False) for target in targets)):
@@ -218,19 +236,20 @@ class CythVisitor(BASE_CLASS):
             else:
                 #print('Skipping a global %r' % subnode.__class__)
                 pass
-        self.import_lines.extend(self.generate_imports(self.imported_modules, self.imported_functions))
+        imports = self.generate_imports(self.imported_modules, self.imported_functions)
+        self.import_lines.extend(imports)
         #return BASE_CLASS.visit_Module(self, node)
 
     def generate_imports(self, modules, functions):
         imports = []
-        for (alias, used_flag) in modules.itervalues():
+        for (alias, used_flag) in six.itervalues(modules):
             if used_flag:
                 import_line = ast_to_sourcecode(ast.Import(names=[alias]))
                 imports.append(import_line)
                 if alias.name in self.cimport_whitelist:
                     imports.append('c' + import_line)
-        for (modulename, alias, used_flag) in functions.itervalues():
-            if used_flag and not ((modulename == '__future__') or (alias.name in self.import_blacklist)):
+        for (modulename, alias, used_flag) in six.itervalues(functions):
+            if used_flag and not ((modulename == '__future__') or (alias.name in self.import_from_blacklist)):
                 imports.append(ast_to_sourcecode(ast.ImportFrom(module=modulename, names=[alias], level=0)))
         funcs_declared_in_current_module = dict(chain(self.cythonized_funcs.iteritems(), self.plain_funcs.iteritems()))
         called_funcs = []
@@ -246,7 +265,7 @@ class CythVisitor(BASE_CLASS):
                 return [call.func.id]
             return name in chain(*map(name_of_call, calls))
         for callee in funcs_declared_in_current_module.keys():
-            for (caller, caller_node) in self.cythonized_funcs.iteritems():
+            for (caller, caller_node) in six.iteritems(self.cythonized_funcs):
                 if is_called_in(callee, caller_node):
                     called_funcs.append(callee)
         if len(called_funcs) > 0:
@@ -314,21 +333,6 @@ class CythVisitor(BASE_CLASS):
         else:
             self.plain_funcs[node.name] = node
 
-#    def visit_ImportFrom(self, node):
-#        if node.module:
-#            self.statement(node, 'from ', node.level * '.',
-#                           node.module, ' import ')
-#        else:
-#            self.statement(node, 'from ', node.level * '. import ')
-#        self.comma_list(node.names)
-#
-#    def visit_Import(self, node):
-#        #def get_alias_name(al):
-#        #    return al.asname if al.asname is not None else al.name
-#        self.statement(node, 'import ')
-#        #if all_funcalls.
-#        self.comma_list(node.names)
-
     def comma_list(self, items, trailing=False):
         for idx, item in enumerate(items):
             if idx:
@@ -373,29 +377,26 @@ def is_docstring(node):
     return isinstance(node, ast.Expr) and isinstance(node.value, ast.Str)
 
 
-"""
-<CYTH>
-import ast
-import astor
-</CYTH>
-"""
-
-
 def assignment_targets(node):
+    """
+    Assign nodes have a list of multiple targets, which is used for
+    'a = b = c' (a and b are both targets)
+
+    'x, y = y, x' has a tuple as the only element of the targets array,
+    (likewise for '[x, y] = [y, x]', but with lists)
+    """
     assert isinstance(node, (ast.Assign, ast.AugAssign)), type(node)
-    # "Assign" nodes have a list of multiple targets, which is used for 'a = b = c' (a and b are both targets):
-    # 'x, y = y, x' has a tuple as the only element of the targets array,
-    # (likewise for '[x, y] = [y, x]', but with lists)
-    if isinstance(node, ast.Assign):
-        targets = []
+    if isinstance(node, ast.AugAssign):
+        assign_targets = [node.target]
+        return assign_targets
+    elif isinstance(node, ast.Assign):
+        assign_targets = []
         for target in node.targets:
             if isinstance(target, (ast.Tuple, ast.List)):
-                targets.extend(target.elts)
+                assign_targets.extend(target.elts)
             else:
-                targets.append(target)
-        return targets
-    elif isinstance(node, ast.AugAssign):
-        return [node.target]
+                assign_targets.append(target)
+        return assign_targets
     else:
         raise AssertionError('unexpected node type %r' % type(node))
 
@@ -406,7 +407,8 @@ class FirstpassInformationGatherer(ast.NodeVisitor):
     def visit_Module(self, node):
         for subnode in node.body:
             if isinstance(subnode, (ast.Assign, ast.AugAssign)):
-                for target in assignment_targets(subnode):
+                assign_targets = assignment_targets(subnode)
+                for target in assign_targets:
                     self.global_names.append(target)
 
 
@@ -476,30 +478,6 @@ def replace_funcalls(source, funcname, replacement):
     #return ast.dump(tree)
 
 
-def get_doctest_examples(source):
-    # parse list of docstrings
-    comment_iter = doctest.DocTestParser().parse(source)
-    # remove any non-doctests
-    example_list = [c for c in comment_iter if isinstance(c, doctest.Example)]
-    return example_list
-
-
-def get_benchline(src, funcname):
-    """ Returns the  from a doctest source """
-    pt = ast.parse(src)
-    assert isinstance(pt, ast.Module), type(pt)
-    body = pt.body
-    if len(body) != 1:
-        return None
-    stmt = body[0]
-    if not isinstance(stmt, (ast.Expr, ast.Assign)):
-        return None
-    if isinstance(stmt.value, ast.Call) and isinstance(stmt.value.func, ast.Name):
-        if stmt.value.func.id == funcname:
-            benchline = ast_to_sourcecode(stmt.value)
-            return benchline
-
-
 def infer_return_type(funcdef_node, typedict):
     class ReturnTypeInferrer(ast.NodeVisitor):
         def __init__(self, node):
@@ -523,24 +501,43 @@ def infer_return_type(funcdef_node, typedict):
     return ReturnTypeInferrer(funcdef_node).return_type
 
 
+def parse_doctest_examples(source):
+    # parse list of docstrings
+    comment_iter = doctest.DocTestParser().parse(source)
+    # remove any non-doctests
+    example_list = [c for c in comment_iter if isinstance(c, doctest.Example)]
+    return example_list
+
+
+def get_benchline(src, funcname):
+    """ Returns the  from a doctest source """
+    pt = ast.parse(src)
+    assert isinstance(pt, ast.Module), type(pt)
+    body = pt.body
+    if len(body) != 1:
+        return None
+    stmt = body[0]
+    if not isinstance(stmt, (ast.Expr, ast.Assign)):
+        return None
+    if isinstance(stmt.value, ast.Call) and isinstance(stmt.value.func, ast.Name):
+        if stmt.value.func.id == funcname:
+            benchline = ast_to_sourcecode(stmt.value)
+            return benchline
+
+
 def make_benchmarks(funcname, docstring, py_modname):
     r"""
     >>> from cyth.cyth_script import *
     >>> funcname = 'replace_funcalls'
-    >>> docstring =  '''
-    ...         >>> from cyth_script import *
-    ...         >>> replace_funcalls('foo(5)', 'foo', 'bar')
-    ...         'bar(5)'
-    ...         >>> replace_funcalls('foo(5)', 'bar', 'baz')
-    ...         'foo(5)'
-    ... '''
+    >>> docstring = replace_funcalls.func_doc
     >>> py_modname = 'cyth.cyth_script'
     >>> benchmark_list = list(make_benchmarks(funcname, docstring, py_modname))
-    >>> output = [((x.source, x.want), y.source, y.want) for x, y in benchmark_list]
-    >>> print(output)
-    [(('from cyth_script import *\n', ''), 'from cyth_script import *', ''), (("replace_funcalls('foo(5)', 'foo', 'bar')\n", "'bar(5)'\n"), "_replace_funcalls_cyth('foo(5)', 'foo', 'bar')", "'bar(5)'\n"), (("replace_funcalls('foo(5)', 'bar', 'baz')\n", "'foo(5)'\n"), "_replace_funcalls_cyth('foo(5)', 'bar', 'baz')", "'foo(5)'\n")]
+    >>> print(benchmark_list)
+
+    #>>> output = [((x.source, x.want), y.source, y.want) for x, y in benchmark_list]
+    #>>> print(utool.hashstr(repr(output)))
     """
-    doctest_examples = get_doctest_examples(docstring)
+    doctest_examples = parse_doctest_examples(docstring)
     test_lines = []
     cyth_lines = []
     setup_lines = []
@@ -560,7 +557,7 @@ def make_benchmarks(funcname, docstring, py_modname):
     return test_tuples, setup_script
 
 
-def get_benchmark(funcname, docstring, py_modname):
+def parse_benchmarks(funcname, docstring, py_modname):
     test_tuples_, setup_script_ = make_benchmarks(funcname, docstring, py_modname)
     if len(test_tuples_) == 0:
         test_tuples = '[]'
@@ -621,8 +618,6 @@ def translate_fpath(py_fpath):
     return cy_bpath
 
 
-#cyth.import_cyth(__name__)
-
 def translate(*paths):
     """ Translates a list of paths """
     cy_bench_list = []
@@ -667,6 +662,9 @@ def translate_all():
     #for fpath in fpath_list:
     #    abspath = utool.unixpath(fpath)
     #    translate_fpath(abspath)
+
+
+#exec(cyth.import_cyth_execstr(__name__))
 
 if __name__ == '__main__':
     print('[cyth] main')
