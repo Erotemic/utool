@@ -112,10 +112,13 @@ def find_ext_modules(disable_warnings=True):
     BUILD_EXT = 'build_ext' in sys.argv
     BUILD = 'build' in sys.argv
     CYTH = 'cyth' in sys.argv
-    if not any([BEXT, BUILD, BUILD_EXT, CYTH]):
-        return []
 
-    translate_cyth()  # translate cyth before finding ext modules
+    if any([BEXT, CYTH]):
+        translate_cyth()  # translate cyth before finding ext modules
+
+    if not any([BEXT, BUILD, BUILD_EXT]):
+        # dont find modules if they are not being built
+        return []
 
     #pyx_list = utool.glob(cwd, '*_cython.pyx', recursive=True)
     pyx_list = utool.glob(cwd, '*.pyx', recursive=True)
