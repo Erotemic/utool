@@ -147,3 +147,10 @@ def printif(func, condition=VERBOSE and not QUIET):
     """ execute printfunc only if condition=QUIET"""
     if condition:
         print(func())
+
+
+def print_locals():
+    from . import util_str
+    from . import util_dbg
+    locals_ = util_dbg.get_caller_locals()
+    print(util_str.dict_str(locals_))
