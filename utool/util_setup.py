@@ -251,7 +251,7 @@ def parse_package_for_version(name):
         You must include a __version__ variable
         in %s\'s __init__.py file.
         Try something like:
-        __version__ = '1.0.0.dev1' ''')
+        __version__ = '1.0.0.dev1' ''' % (name,))
     if not exists(init_fpath):
         raise AssertionError(version_errmsg)
     def parse_version(line):
