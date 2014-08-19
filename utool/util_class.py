@@ -19,13 +19,14 @@ def classmember(classtype):
     return closure_classmember
 
 
-def inject_func_as_method(self, func, method_name=None):
+def inject_func_as_method(self, func, method_name=None, class_=None):
     """
     Wraps func as a bound method of self. Then injects func into self
     Input:
         self - class instance
         func - some function whos first arugment is a class instance
         method_name - default=func.__name__, if specified renames the method
+        class_ - if func is an unbound method of this class
     """
     if method_name is None:
         method_name = get_funcname(func)
@@ -97,3 +98,13 @@ def makeForwardingMetaclass(forwarding_dest_getter, whitelist, base_class=object
                     old_setattr(self, name, val)
             metaself.__setattr__ = new_setattr
     return ForwardingMetaclass
+
+
+def reload_class_methods(self, class_):
+    """
+    """
+    self.__class__ = class_
+    for key in dir(class_):
+        func = getattr(class_, key)
+        if isinstance(func, types.MethodType):
+            inject_func_as_method(self, func, class_=class_)
