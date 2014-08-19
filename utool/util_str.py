@@ -1,3 +1,6 @@
+"""
+python -c "import utool, doctest; print(doctest.testmod(utool.util_str))"
+"""
 from __future__ import absolute_import, division, print_function
 import sys
 import six
@@ -212,13 +215,13 @@ def dict_str(dict_, strvals=False, sorted_=False):
 
 
 def horiz_string(*args):
-    """
+    r"""
     prints a list of objects ensuring that the next item in the list
     is all the way to the right of any previous items.
     >>> # Pretty printing of matrices demo / test
     >>> import utool
     >>> import numpy as np
-    >>> # Wouldn't it be nice if we could print this operation easilly?
+    >>> # Wouldn't it be nice if we could print this operation easily?
     >>> B = np.array(((1, 2), (3, 4)))
     >>> C = np.array(((5, 6), (7, 8)))
     >>> A = B.dot(C)
@@ -226,8 +229,12 @@ def horiz_string(*args):
     >>> str_list = ['A = ', str(B), ' * ', str(C)]
     >>> horizstr = (utool.horiz_string(*str_list))
     >>> print(horizstr)
+    A = [[1 2]  * [[5 6]
+         [3 4]]    [7 8]]
     >>> # Eg 2:
     >>> print(utool.hz_str('A = ', A, ' = ', B, ' * ', C))
+    A = [[19 22]  = [[1 2]  * [[5 6]
+         [43 50]]    [3 4]]    [7 8]]
     """
     if len(args) == 1 and not isinstance(args[0], str):
         str_list = args[0]
@@ -335,15 +342,14 @@ def get_callable_name(func):
 
 
 def align(text, character='='):
-    """ Left justifies text on the left side of character
+    r""" Left justifies text on the left side of character
 
     >>> character = '='
-    >>> text = '''
-            a = b
-            one = two
-            three = fish '''
+    >>> text = 'a = b\none = two\nthree = fish\n'
     >>> print(align(text, '='))
-
+    a     = b
+    one   = two
+    three = fish
     """
     line_list = text.splitlines()
     new_lines = align_lines(line_list, character)
