@@ -78,6 +78,27 @@ def load_cache(dpath, fname, cfgstr):
     return util_io.load_cPkl(fpath)
 
 
+#class Cacher(object):
+#    def __init__(self, dpath, fname, cfgstr, text='data'):
+#        self.dpath = dpath
+#        self.fname = fname
+#        self.cfgstr = cfgstr
+#        self.data = None
+#        self.text = text
+#    def tryload(self):
+#        try:
+#            data = load_cache(self.dpath, self.fname, self.cfgstr)
+#            print('... ' + self.text + ' Cacher hit')
+#            return data
+#        except IOError:
+#            print('... ' + self.text + ' Cacher miss')
+#    def __exit__(self, type_, value, trace):
+#        if trace is not None:
+#            print('[util_cache] Error in context manager!: ' + str(value))
+#            return False  # return a falsey value on error
+#        save_cache(self.dpath, self.fname, self.cfgstr, self.data)
+
+
 # --- Global Cache ---
 
 def get_global_cache_dir(appname=None, ensure=False):

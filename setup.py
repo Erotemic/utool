@@ -23,7 +23,6 @@ if __name__ == '__main__':
             'utool._internal',
             'utool.tests',
             'utool.util_scripts',
-            'cyth',
         ],
         #packages=util_setup.find_packages(),
         version='1.0.0.dev1',
