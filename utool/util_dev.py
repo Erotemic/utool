@@ -277,6 +277,17 @@ def get_object_base():
         return DynStruct
 
 
+def get_cython_exe():
+    from . import util_cplat
+    if util_cplat.WIN32:
+        cython_exe = r'C:\Python27\Scripts\cython.exe'
+        if not exists(cython_exe):
+            cython_exe = 'cython.py'
+    else:
+        cython_exe = 'cython'
+    return cython_exe
+
+
 def compile_cython(fpath, clean=True):
     r""" compiles pyx -> pyd/dylib/so
 
@@ -331,13 +342,11 @@ def compile_cython(fpath, clean=True):
     utool.checkpath(fname_lib, verbose=True, info=False, n=4)
 
     # Cython build arguments
+    cython_exe = get_cython_exe()
     if util_cplat.WIN32:
         os.environ['LDFLAGS'] = '-march=i486'
         os.environ['CFLAGS'] = '-march=i486'
         cc_exe = r'C:\MinGW\bin\gcc.exe'
-        cython_py = r'C:\Python27\Scripts\cython.exe'
-        if not exists(cython_py):
-            cython_py = 'cython.py'
         pyinclude_list = [
             r'C:\Python27\Lib\site-packages\numpy\core\include',
             r'C:\Python27\include',
@@ -375,7 +384,7 @@ def compile_cython(fpath, clean=True):
 
     else:
         cc_exe = 'gcc'
-        cython_py = 'cython'
+        cython_exe = 'cython'
         pyinclude_list = [r'/usr/include/python2.7', np.get_include()]
         pylib_list     = []
         plat_gcc_flags = ' '.join([
@@ -400,7 +409,7 @@ def compile_cython(fpath, clean=True):
     gcc_flags = ' '.join(filter(lambda x: len(x) > 0, gcc_flag_list))
     gcc_build_cmd = cc_exe + ' ' + gcc_flags + ' -o ' + fname_lib + ' -c ' + fname_c
 
-    cython_build_cmd = cython_py + ' ' + fpath
+    cython_build_cmd = cython_exe + ' ' + fpath
 
     # HACK
     print('\n --- CYTHON_COMMANDS ---')
@@ -434,8 +443,8 @@ def compile_cython(fpath, clean=True):
     #    pass
     #    raise
 
-    #out, err, ret = util_cplat.shell(cython_py + ' ' + fpath)
-    #out, err, ret = util_cplat.shell((cython_py, fpath))
+    #out, err, ret = util_cplat.shell(cython_exe + ' ' + fpath)
+    #out, err, ret = util_cplat.shell((cython_exe, fpath))
     #if ret == 0:
     #    out, err, ret = util_cplat.shell(cc_exe + ' ' + gcc_flags + ' -o ' + fname_so + ' ' + fname_c)
     return ret

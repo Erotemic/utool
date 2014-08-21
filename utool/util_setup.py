@@ -6,17 +6,27 @@ from os.path import exists, join, dirname, split, splitext
 import os
 from . import util_cplat
 from . import util_path
-from . import util_dev
 from . import util_io
 from . import util_str
+from . import util_dev
 from .util_dbg import printex
 
 VERBOSE = '--verbose' in sys.argv
 
 
 class SETUP_PATTERNS():
-    clutter = ['*.pyc', '*.pyo', '*_cython.o', '*_cython.c', '*_cython.pyd',
-               '*_cython.so', '*_cython.dylib']
+    clutter = ['*.pyc',
+               '*.pyo',
+               '_*_cyth.o',
+               '_*_cyth_bench.py',
+               'run_cyth_benchmarks.sh',
+               '_*_cyth.c',
+               '_*_cyth.pyd',
+               '_*_cyth.pxd',
+               '_*_cyth.html',
+               '_*_cyth.pyx',
+               '_*_cyth.so',
+               '_*_cyth.dylib']
     chmod   = ['test_*.py']
 
 
@@ -90,10 +100,10 @@ def clean(setup_dir, clutter_patterns, clutter_dirs, cython_files):
         util_path.remove_file(fname + '.c')
 
 
-def build_cython(cython_files):
-    """ doesn't work """
-    for fpath in cython_files:
-        util_dev.compile_cython(fpath)
+#def build_cython(cython_files):
+#    """ doesn't work """
+#    for fpath in cython_files:
+#        util_dev.compile_cython(fpath)
 
 
 def translate_cyth():
@@ -108,10 +118,11 @@ def find_ext_modules(disable_warnings=True):
     import numpy as np
     cwd = os.getcwd()
 
-    BEXT = 'bext' in sys.argv
+    CYTH      = 'cyth' in sys.argv
+    BEXT      = 'bext' in sys.argv
+    BUILD     = 'build' in sys.argv
     BUILD_EXT = 'build_ext' in sys.argv
-    BUILD = 'build' in sys.argv
-    CYTH = 'cyth' in sys.argv
+    CYTHON_HTML = '--annotate' in sys.argv or '-a' in sys.argv
 
     if any([BEXT, CYTH]):
         translate_cyth()  # translate cyth before finding ext modules
