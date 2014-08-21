@@ -8,7 +8,7 @@ from . import util_cplat
 from . import util_path
 from . import util_io
 from . import util_str
-from . import util_dev
+#from . import util_dev
 from .util_dbg import printex
 
 VERBOSE = '--verbose' in sys.argv
@@ -122,7 +122,6 @@ def find_ext_modules(disable_warnings=True):
     BEXT      = 'bext' in sys.argv
     BUILD     = 'build' in sys.argv
     BUILD_EXT = 'build_ext' in sys.argv
-    CYTHON_HTML = '--annotate' in sys.argv or '-a' in sys.argv
 
     if any([BEXT, CYTH]):
         translate_cyth()  # translate cyth before finding ext modules
