@@ -27,8 +27,10 @@ def DEPRICATED(func):
 
 # --- Info Strings ---
 
-def print_mystats(_list):
+def print_mystats(_list, lbl=None):
     import utool
+    if lbl is not None:
+        print('Mystats for %s' % lbl)
     print(utool.dict_str(utool.mystats(_list)))
 
 
