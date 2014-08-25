@@ -207,11 +207,14 @@ def list_str(list_):
     return '[%s\n]' % indentjoin(list_, suffix=',')
 
 
-def dict_str(dict_, strvals=False, sorted_=False):
+def dict_str(dict_, strvals=False, sorted_=False, newlines=True):
     """ returns a human-readable and execable string representation of a
     dictionary """
     itemstr_list = dict_itemstr_list(dict_, strvals, sorted_)
-    return '{%s\n}' % indentjoin(itemstr_list)
+    if newlines:
+        return '{%s\n}' % indentjoin(itemstr_list)
+    else:
+        return '{%s}' % ' '.join(itemstr_list)
 
 
 def horiz_string(*args):
