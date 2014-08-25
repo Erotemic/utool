@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 import types
 from collections import defaultdict
 from .util_inject import inject
+import sys
 from ._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[class]', DEBUG=False)
 
@@ -76,6 +77,7 @@ def makeForwardingMetaclass(forwarding_dest_getter, whitelist, base_class=object
             #  {forwarding_dest_getter: %r; whitelist: %r}' % (forwarding_dest_getter, whitelist))
             super(ForwardingMetaclass, metaself).__init__(name, bases, dict)
             old_getattr = metaself.__getattribute__
+            old_setattr = metaself.__setattr__
             def new_getattr(self, item):
                 if item in whitelist:
                     #dest = old_getattr(self, forwarding_dest_name)
@@ -87,8 +89,6 @@ def makeForwardingMetaclass(forwarding_dest_getter, whitelist, base_class=object
                 else:
                     val = old_getattr(self, item)
                 return val
-            metaself.__getattribute__ = new_getattr
-            old_setattr = metaself.__setattr__
             def new_setattr(self, name, val):
                 if name in whitelist:
                     #dest = old_getattr(self, forwarding_dest_name)
@@ -96,8 +96,24 @@ def makeForwardingMetaclass(forwarding_dest_getter, whitelist, base_class=object
                     dest.__class__.__setattr__(dest, name, val)
                 else:
                     old_setattr(self, name, val)
+            metaself.__getattribute__ = new_getattr
             metaself.__setattr__ = new_setattr
     return ForwardingMetaclass
+
+
+class ReloadingMetaclass(type):
+    def __init__(metaself, name, bases, dct):
+        super(ReloadingMetaclass, metaself).__init__(name, bases, dict)
+
+        def rrr(self):
+            classname = self.__class__.__name__
+            modname = self.__class__.__module__
+            print('reloading ' + classname)
+            module = sys.modules[modname]
+            module.rrr()
+            class_ = getattr(module, classname)
+            reload_class_methods(self, class_)
+        metaself.rrr = rrr
 
 
 def reload_class_methods(self, class_):
