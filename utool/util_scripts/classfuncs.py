@@ -3,6 +3,7 @@
 flake8: noqa
 set PATH=%HOME%\code\utool\utool\util_scripts;%PATH%
 classfuncs.py %HOME%/code/ibeis/ibeis/control/IBEISControl.py %HOME%/code/ibeis
+classfuncs.py C:/Users/joncrall/code/ibeis/ibeis/model/hots/query_request.py %HOME%/code/ibeis
 """
 from __future__ import absolute_import, division, print_function
 import utool

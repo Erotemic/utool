@@ -61,7 +61,7 @@ def get_injected_modules():
     return list(__INJECTED_MODULES__)
 
 
-def _get_module(module_name=None, module=None):
+def _get_module(module_name=None, module=None, register=True):
     if module is None and module_name is not None:
         try:
             module = sys.modules[module_name]
@@ -73,7 +73,8 @@ def _get_module(module_name=None, module=None):
         pass
     else:
         raise ValueError('module_name or module must be exclusively specified')
-    _add_injected_module(module)
+    if register is True:
+        _add_injected_module(module)
     return module
 
 
@@ -143,7 +144,7 @@ def inject_print_functions(module_name=None, module_prefix='[???]', DEBUG=False,
 
 def inject_reload_function(module_name=None, module_prefix='[???]', module=None):
     """ Injects dynamic module reloading """
-    module = _get_module(module_name, module)
+    module = _get_module(module_name, module, register=False)
     if module_name is None:
         module_name = str(module.__name__)
     def rrr():
@@ -159,6 +160,13 @@ def inject_reload_function(module_name=None, module_prefix='[???]', module=None)
             print(ex)
             print('%s Failed to reload' % module_prefix)
             raise
+    # this doesn't seem to set anything on import *
+    #rrr.__dict__['module_name'] = module_name
+    #rrr.__dict__['module_prefix'] = module_prefix
+    #print(id(rrr))
+    #print('module_name = %r' % module_name)
+    #print('module_prefix = %r' % module_prefix)
+    #print('rrr.__dict__ = %r' % (rrr.__dict__,))
     _inject_funcs(module, rrr)
     return rrr
 
