@@ -2,11 +2,16 @@ from __future__ import absolute_import, division, print_function
 import hashlib
 import six
 import uuid
+import random
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[hash]')
 
 # default length of hash codes
 HASH_LEN = 16
+
+# HEX alphabet
+ALPHABET_16 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+               'a', 'b', 'c', 'd', 'e', 'f']
 
 # A large base-54 alphabet (all chars are valid for filenames but not # pretty)
 ALPHABET_54 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
@@ -227,6 +232,13 @@ def deterministic_uuid(hashable):
 def random_uuid():
     """ <CYTH> """
     return uuid.uuid4()
+
+
+def random_nonce(length=64, alphabet=None):
+    assert length > 0
+    if alphabet is None:
+        alphabet = ALPHABET_16
+    return ''.join( [alphabet[random.randint(0, len(alphabet) - 1)] for _ in range(length)] )
 
 
 def get_zero_uuid():
