@@ -129,6 +129,11 @@ def unixtime_to_datetime(unixtime, timefmt='%Y/%m/%d %H:%M:%S'):
     return datetime.datetime.fromtimestamp(unixtime).strftime(timefmt)
 
 
+def unixtime_to_timedelta(unixtime_diff):
+    timedelta = datetime.timedelta(seconds=abs(unixtime_diff))
+    return timedelta
+
+
 def get_unix_timedelta(unixtime_diff):
     timedelta = datetime.timedelta(seconds=abs(unixtime_diff))
     return timedelta
@@ -144,3 +149,20 @@ def get_day():
 
 def get_year():
     return datetime.datetime.now().year
+
+
+def get_timestats_str(unixtime_list):
+    import utool
+    unixtime_stats = utool.mystats(unixtime_list)
+    for key in ['max', 'min', 'mean']:
+        try:
+            unixtime_stats[key] = utool.unixtime_to_datetime(unixtime_stats[key])
+        except KeyError:
+            pass
+    for key in ['std']:
+        try:
+            unixtime_stats[key] = str(utool.unixtime_to_timedelta(int(round(unixtime_stats[key]))))
+        except KeyError:
+            pass
+    timestat_str = utool.dict_str(unixtime_stats, newlines=False)
+    return timestat_str
