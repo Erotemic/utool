@@ -25,7 +25,7 @@ PROGGRESS_BACKSPACE = '--screen' not in sys.argv
 
 
 def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
-                 start=True, repl=False, approx=False):
+                 start=True, repl=False, approx=False, disable=False):
     """
     Returns two functions (mark_progress, end_progress) which will handle
     logging progress in a for loop.
@@ -54,7 +54,7 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
     <BLANKLINE>
     """
     global AGGROFLUSH
-    if nTotal < startafter:
+    if nTotal < startafter or disable:
         # Do not mark progress if only executing a small number of tasks
         def mark_progress(*args):
             pass
