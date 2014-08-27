@@ -335,3 +335,13 @@ def set_process_title(title):
     except ImportError as ex:
         import utool
         utool.printex(ex, iswarning=True)
+
+
+#from subprocess import check_output
+#http://stackoverflow.com/questions/8015163/how-to-check-screen-is-running
+#def screen_present(name):
+#        var = check_output(["screen -ls; true"],shell=True)
+#        if "."+name+"\t(" in var:
+#                print name+" is running"
+#        else:
+#                print name+" is not running"

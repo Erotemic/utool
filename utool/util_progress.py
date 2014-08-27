@@ -21,6 +21,7 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[progress]')
 #VERBOSE = get_flag('--verbose')
 VALID_PROGRESS_TYPES = ['none', 'dots', 'fmtstr', 'simple']
 AGGROFLUSH = '--aggroflush' in sys.argv
+PROGGRESS_BACKSPACE = '--screen' not in sys.argv
 
 
 def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
@@ -209,8 +210,11 @@ def progress_str(max_val, lbl='Progress: ', repl=False, approx=False):
     dnumstr = str(len(max_str))
     cur_str = '%' + dnumstr + 'd'
     if repl:
-        fmt_str = lbl.replace('<cur_str>', cur_str).replace('<max_str>', max_str)
+        fmt_str_ = lbl.replace('<cur_str>', cur_str).replace('<max_str>', max_str)
     else:
-        fmt_str = lbl + cur_str + '/' + max_str
-    fmt_str = '\b' * (len(fmt_str) - len(dnumstr) + len(max_str)) + fmt_str
+        fmt_str_ = lbl + cur_str + '/' + max_str
+    if PROGGRESS_BACKSPACE:
+        fmt_str = '\b' * (len(fmt_str_) - len(dnumstr) + len(max_str)) + fmt_str_
+    else:
+        fmt_str = fmt_str_ + '\n'
     return fmt_str
