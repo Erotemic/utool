@@ -183,7 +183,7 @@ def argv_flag_dec_true(func):
     return __argv_flag_dec(func, default=True)
 
 
-def __argv_flag_dec(func, default=False, quiet=False):
+def __argv_flag_dec(func, default=False, quiet=QUIET):
     flag = get_funcname(func)
     if flag.find('no') == 0:
         flag = flag[2:]
@@ -199,6 +199,6 @@ def __argv_flag_dec(func, default=False, quiet=False):
             print('')
         else:
             if not quiet:
-                print('\n~~~ %s ~~~\n' % flag)
+                print('\n~~~ %s ~~~' % flag)
     set_funcname(GaurdWrapper, get_funcname(func))
     return GaurdWrapper
