@@ -355,3 +355,16 @@ class copy_argspec(object):
         except Exception as ex:
             printex(ex, 'error wrapping: %r' % (tgt_func,))
             raise
+
+
+def lazyfunc(func):
+    closuremem_ = [{}]
+    def wrapper(*args, **kwargs):
+        mem = closuremem_[0]
+        key = (repr(args), repr(kwargs))
+        try:
+            return mem[key]
+        except KeyError:
+            mem[key] = func(*args, **kwargs)
+        return mem[key]
+    return wrapper
