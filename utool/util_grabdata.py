@@ -15,12 +15,12 @@ QUIET = '--quiet' in sys.argv
 BadZipfile = zipfile.BadZipfile
 
 
-def unarchive_file(archive_fpath):
+def unarchive_file(archive_fpath, force_commonprefix=True):
     print('Unarchive: %r' % archive_fpath)
     if tarfile.is_tarfile(archive_fpath):
-        return untar_file(archive_fpath)
+        return untar_file(archive_fpath, force_commonprefix=force_commonprefix)
     elif zipfile.is_zipfile(archive_fpath):
-        return unzip_file(archive_fpath)
+        return unzip_file(archive_fpath, force_commonprefix=force_commonprefix)
     else:
         raise AssertionError('unknown archive format')
 
@@ -114,12 +114,14 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
     return fpath
 
 
-def grab_zipped_url(zipped_url, ensure=True, appname='utool', download_dir=None):
+def grab_zipped_url(zipped_url, ensure=True, appname='utool', download_dir=None, force_commonprefix=True):
     """
     Input zipped_url - this must look like:
     http://www.spam.com/eggs/data.zip
     eg:
     https://dl.dropboxusercontent.com/s/of2s82ed4xf86m6/testdata.zip
+
+    downloads and unzips the url
     """
     zipped_url = fix_dropbox_link(zipped_url)
     zip_fname = split(zipped_url)[1]
@@ -136,7 +138,7 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool', download_dir=None)
             zip_fpath = realpath(join(download_dir, zip_fname))
             print('[utool] Downloading archive %s' % zip_fpath)
             download_url(zipped_url, zip_fpath)
-            unarchive_file(zip_fpath)
+            unarchive_file(zip_fpath, force_commonprefix)
             util_path.delete(zip_fpath)  # Cleanup
     util_path.assert_exists(data_dir)
     return util_path.unixpath(data_dir)
