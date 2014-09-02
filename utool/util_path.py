@@ -41,6 +41,7 @@ def newcd(path):
 
 unixpath = meta_util_path.unixpath
 truepath = meta_util_path.truepath
+unixjoin = meta_util_path.unixjoin
 
 
 def truepath_relative(path):
@@ -502,7 +503,7 @@ def ls(path, pattern='*'):
 
 
 def ls_dirs(path, pattern='*'):
-    dir_iter = list(glob(path, pattern, recursive=False))
+    dir_iter = list(glob(path, pattern, recursive=False, with_files=False))
     return sorted(list(dir_iter))
 
 

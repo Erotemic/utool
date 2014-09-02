@@ -35,9 +35,11 @@ if __name__ == '__main__':
         keywords='',
         install_requires=INSTALL_REQUIRES,
         package_data={},
-        scripts=['utool/util_scripts/makeinit.py',
-                 'utool/util_scripts/profiler.sh',
-                 'utool/util_scripts/profiler.py',
-                 ],
+        scripts=[
+            'utool/util_scripts/makesetup.py',
+            'utool/util_scripts/makeinit.py',
+            'utool/util_scripts/profiler.sh',
+            'utool/util_scripts/profiler.py',
+        ],
         classifiers=[],
     )
