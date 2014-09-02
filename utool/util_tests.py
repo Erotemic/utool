@@ -52,9 +52,12 @@ def run_test(func, *args, **kwargs):
                 # Write timings
             printTEST('[TEST.FINISH] %s -- SUCCESS' % (get_funcname(func),))
             print(HAPPY_FACE)
-            with open('test_times.txt', 'a') as file_:
-                msg = '%.4fs in %s\n' % (timer.ellapsed, upper_funcname)
-                file_.write(msg)
+            try:
+                with open('test_times.txt', 'a') as file_:
+                    msg = '%.4fs in %s\n' % (timer.ellapsed, upper_funcname)
+                    file_.write(msg)
+            except IOError as ex:
+                print('[util_test] IOWarning: %r' % ex)
             return test_locals
         except Exception as ex:
             # Get locals in the wrapped function
