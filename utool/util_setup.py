@@ -93,11 +93,11 @@ def clean(setup_dir, clutter_patterns, clutter_dirs, cython_files):
         util_path.delete(dir_, verbose=VERBOSE, print_exists=False)
         #util_path.remove_files_in_dir(dir_)
 
-    for fpath in cython_files:
-        fname, ext = splitext(fpath)
-        for libext in util_cplat.LIB_EXT_LIST:
-            util_path.remove_file(fname + libext)
-        util_path.remove_file(fname + '.c')
+    #for fpath in cython_files:
+    #    fname, ext = splitext(fpath)
+    #    for libext in util_cplat.LIB_EXT_LIST:
+    #        util_path.remove_file(fname + libext)
+    #    util_path.remove_file(fname + '.c')
 
 
 #def build_cython(cython_files):
@@ -179,9 +179,9 @@ def NOOP():
     pass
 
 
-def presetup(setup_fpath, kwargs):
+def presetup_commands(setup_fpath, kwargs):
     if VERBOSE:
-        print('[setup] presetup()')
+        print('[setup] presetup_commands()')
     name = kwargs.get('name', '')
     project_dirs     = kwargs.pop('project_dirs', None)
     chmod_patterns   = kwargs.pop('chmod_patterns', SETUP_PATTERNS.chmod)
@@ -196,7 +196,7 @@ def presetup(setup_fpath, kwargs):
     assert_in_setup_repo(setup_fpath, name)
 
     if clutter_dirs is None:
-        clutter_dirs = ['build', 'dist', name + '.egg-info']
+        clutter_dirs = ['build', 'dist', name + '.egg-info', '__pycache__']
 
     if project_dirs is None:
         project_dirs = util_path.ls_moduledirs(setup_dir)
@@ -249,7 +249,7 @@ def presetup(setup_fpath, kwargs):
         pass
 
 
-presetup_commands = presetup  # TODO:
+presetup = presetup_commands
 
 
 def parse_package_for_version(name):
@@ -372,7 +372,7 @@ def setuptools_setup(setup_fpath=None, module=None, **kwargs):
     if VERBOSE:
         print(util_str.dict_str(kwargs))
     __infer_setup_kwargs(module, kwargs)
-    presetup(setup_fpath, kwargs)
+    presetup_commands(setup_fpath, kwargs)
     if VERBOSE:
         print(util_str.dict_str(kwargs))
     return kwargs

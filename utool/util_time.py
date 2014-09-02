@@ -15,7 +15,7 @@ def tic(msg=None):
 def toc(tt, return_msg=False, write_msg=True):
     (msg, start_time) = tt
     ellapsed = (time.time() - start_time)
-    if not return_msg and write_msg and msg is not None:
+    if (not return_msg) and write_msg and msg is not None:
         sys.stdout.write('...toc(%.4fs, ' % ellapsed + '"' + str(msg) + '"' + ')\n')
     if return_msg:
         return msg

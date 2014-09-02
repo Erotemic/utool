@@ -12,13 +12,13 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[git]')
 repo_list = mu.repo_list
 set_userid = mu.set_userid
 
-try:
-    import __REPOS__
-    PROJECT_REPO_DIRS = __REPOS__.PROJECT_REPO_DIRS
-    PROJECT_REPO_URLS = __REPOS__.PROJECT_REPO_URLS
-except ImportError:
-    PROJECT_REPO_DIRS = []
-    PROJECT_REPO_URLS = []
+#try:
+#    import __REPOS__
+#    PROJECT_REPO_DIRS = __REPOS__.PROJECT_REPO_DIRS
+#    PROJECT_REPO_URLS = __REPOS__.PROJECT_REPO_URLS
+#except ImportError:
+PROJECT_REPO_DIRS = []
+PROJECT_REPO_URLS = []
 
 
 def set_project_repos(repo_urls, repo_dirs):
