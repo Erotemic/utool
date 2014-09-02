@@ -25,24 +25,28 @@ def unarchive_file(archive_fpath):
         raise AssertionError('unknown archive format')
 
 
-def untar_file(targz_fpath):
+def untar_file(targz_fpath, force_commonprefix=True):
     tar_file = tarfile.open(targz_fpath, 'r:gz')
     output_dir = dirname(targz_fpath)
     archive_namelist = [mem.path for mem in tar_file.getmembers()]
-    _extract_archive(tar_file, archive_namelist, output_dir)
+    _extract_archive(targz_fpath, tar_file, archive_namelist, output_dir, force_commonprefix)
 
 
 def unzip_file(zip_fpath, force_commonprefix=True):
     zip_file = zipfile.ZipFile(zip_fpath)
     output_dir  = dirname(zip_fpath)
     archive_namelist = zip_file.namelist()
+    _extract_archive(zip_fpath, zip_file, archive_namelist, output_dir, force_commonprefix)
+
+
+def _extract_archive(archive_fpath, archive_file, archive_namelist, output_dir, force_commonprefix=True):
+    # force extracted components into a subdirectory if force_commonprefix is on
     if force_commonprefix and commonprefix(archive_namelist) == '':
-        name, ext = splitext(basename(zip_fpath))
-        output_dir = join(output_dir, name)
-    _extract_archive(zip_file, archive_namelist, output_dir)
+        # use the archivename as the default common prefix
+        archive_basename, ext = split_archive_ext(basename(archive_fpath))
+        output_dir = join(output_dir, archive_basename)
+        util_path.ensurepath(archive_basename)
 
-
-def _extract_archive(archive_file, archive_namelist, output_dir):
     for member in archive_namelist:
         (dname, fname) = split(member)
         dpath = join(output_dir, dname)
