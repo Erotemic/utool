@@ -337,6 +337,15 @@ def set_process_title(title):
         utool.printex(ex, iswarning=True)
 
 
+def is64bit_python():
+    #http://stackoverflow.com/questions/1405913/how-do-i-determine-if-my-python-shell-is-executing-in-32bit-or-64bit-mode-on-os
+    is64bit = sys.maxsize > 2 ** 32
+    #import platform
+    #platform.architecture()
+    #import ctypes
+    #(ctypes.sizeof(ctypes.c_voidp))
+    return is64bit
+
 #from subprocess import check_output
 #http://stackoverflow.com/questions/8015163/how-to-check-screen-is-running
 #def screen_present(name):
