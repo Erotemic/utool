@@ -26,6 +26,8 @@ __APPNAME__ = default_appname  # the global application name
 def text_dict_write(fpath, key, val):
     """
     Very naive, but readable way of storing a dictionary on disk
+    FIXME: This broke on RoseMary's big dataset. Not sure why. It gave bad
+    syntax. And the SyntaxError did not seem to be excepted.
     """
     try:
         dict_text = util_io.read_from(fpath)
@@ -69,7 +71,7 @@ def _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl=False):
 
 
 def save_cache(dpath, fname, cfgstr, data):
-    fpath = _args2_fpath(dpath, fname, cfgstr, '.cPkl', write_hashtbl=True)
+    fpath = _args2_fpath(dpath, fname, cfgstr, '.cPkl', write_hashtbl=False)
     util_io.save_cPkl(fpath, data)
 
 

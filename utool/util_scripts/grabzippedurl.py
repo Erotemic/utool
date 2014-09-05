@@ -10,4 +10,4 @@ import utool
 if __name__ == '__main__':
     url = sys.argv[1]
     download_dir = '.'
-    utool.grab_zipped_url(url, download_dir=download_dir)
+    utool.grab_zipped_url(url, download_dir=download_dir, cleanup=False)

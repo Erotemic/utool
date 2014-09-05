@@ -114,7 +114,8 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
     return fpath
 
 
-def grab_zipped_url(zipped_url, ensure=True, appname='utool', download_dir=None, force_commonprefix=True):
+def grab_zipped_url(zipped_url, ensure=True, appname='utool', download_dir=None,
+                    force_commonprefix=True, cleanup=True):
     """
     Input zipped_url - this must look like:
     http://www.spam.com/eggs/data.zip
@@ -139,6 +140,8 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool', download_dir=None,
             print('[utool] Downloading archive %s' % zip_fpath)
             download_url(zipped_url, zip_fpath)
             unarchive_file(zip_fpath, force_commonprefix)
-            util_path.delete(zip_fpath)  # Cleanup
-    util_path.assert_exists(data_dir)
+            if cleanup:
+                util_path.delete(zip_fpath)  # Cleanup
+    if cleanup:
+        util_path.assert_exists(data_dir)
     return util_path.unixpath(data_dir)
