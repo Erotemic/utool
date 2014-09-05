@@ -61,7 +61,7 @@ def _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl=False):
 
 
 def save_cache(dpath, fname, cfgstr, data):
-    fpath = _args2_fpath(dpath, fname, cfgstr, '.cPkl', write_hashtbl=True)
+    fpath = _args2_fpath(dpath, fname, cfgstr, '.cPkl', write_hashtbl=False)
     util_io.save_cPkl(fpath, data)
 
 
