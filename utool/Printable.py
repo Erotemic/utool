@@ -2,7 +2,10 @@ from __future__ import absolute_import, division, print_function
 import six
 from collections import OrderedDict
 import re
-import numpy as np
+try:
+    import numpy as np
+except ImportError:
+    pass
 #from .util_classes import AutoReloader
 
 MAX_VALSTR = -1

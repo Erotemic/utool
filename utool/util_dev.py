@@ -3,7 +3,10 @@ import sys
 import six
 import os
 import warnings
-import numpy as np
+try:
+    import numpy as np
+except ImportError as ex:
+    pass
 from os.path import splitext, exists, join, split, relpath
 from .Printable import printableVal, common_stats, mystats  # NOQA
 from . import util_inject

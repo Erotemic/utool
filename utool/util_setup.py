@@ -111,11 +111,18 @@ def translate_cyth():
     cyth.translate_all()
 
 
+def get_numpy_include_dir():
+    try:
+        import numpy as np
+        return np.get_include()
+    except ImportError:
+        return ''
+
+
 def find_ext_modules(disable_warnings=True):
     from setuptools import Extension
     import utool
     from os.path import relpath
-    import numpy as np
     cwd = os.getcwd()
 
     CYTH      = 'cyth' in sys.argv
@@ -146,7 +153,7 @@ def find_ext_modules(disable_warnings=True):
         print('   * pyx_modname = %r' % (pyx_modname,))
         print('   * pyx_relpath = %r' % (pyx_relpath,))
         extmod = Extension(pyx_modname, [pyx_relpath],
-                           include_dirs=[np.get_include()],
+                           include_dirs=[get_numpy_include_dir()],
                            extra_compile_args=extra_compile_args)
         ext_modules.append(extmod)
     return ext_modules

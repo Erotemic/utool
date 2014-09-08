@@ -1,5 +1,8 @@
 from __future__ import absolute_import, division, print_function
-import numpy as np
+try:
+    import numpy as np
+except ImportError:
+    pass
 from six.moves import zip
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[dist]')

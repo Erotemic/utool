@@ -5,12 +5,12 @@ the __setattr__ __getattr__ stuff needs to be redone, and
 DynStruct needs to go away.
 """
 from __future__ import absolute_import, division, print_function
-# Python
 import six
 from six.moves import cPickle
-# Science
-import numpy as np
-# Util
+try:
+    import numpy as np
+except ImportError as ex:
+    pass
 from .DynamicStruct import DynStruct
 from .util_dbg import printex
 from .util_type import is_str, is_dict, try_cast

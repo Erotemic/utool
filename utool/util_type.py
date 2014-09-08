@@ -1,34 +1,45 @@
 from __future__ import absolute_import, division, print_function
 import sys
 import six
-# Science
-import numpy as np
 import functools
 import types
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    # TODO remove numpy
+    HAS_NUMPY = False
+    pass
 from .util_inject import inject
 from ._internal.meta_util_six import IntType, LongType, FloatType, BooleanType
 print, print_, printDBG, rrr, profile = inject(__name__, '[type]')
 
 
 # Very odd that I have to put in dtypes in two different ways.
-VALID_INT_TYPES = (IntType,
-                   LongType,
-                   np.typeDict['int64'],
-                   np.typeDict['int32'],
-                   np.typeDict['uint8'],
-                   np.dtype('int32'),
-                   np.dtype('uint8'),
-                   np.dtype('int64'),)
+if HAS_NUMPY:
+    VALID_INT_TYPES = (IntType, LongType,
+                       np.typeDict['int64'],
+                       np.typeDict['int32'],
+                       np.typeDict['uint8'],
+                       np.dtype('int32'),
+                       np.dtype('uint8'),
+                       np.dtype('int64'),)
 
-VALID_FLOAT_TYPES = (FloatType,
-                     np.typeDict['float64'],
-                     np.typeDict['float32'],
-                     np.typeDict['float16'],
-                     np.dtype('float64'),
-                     np.dtype('float32'),
-                     np.dtype('float16'),)
+    VALID_FLOAT_TYPES = (FloatType,
+                         np.typeDict['float64'],
+                         np.typeDict['float32'],
+                         np.typeDict['float16'],
+                         np.dtype('float64'),
+                         np.dtype('float32'),
+                         np.dtype('float16'),)
 
-VALID_BOOL_TYPES = (BooleanType, np.bool_)
+    VALID_BOOL_TYPES = (BooleanType, np.bool_)
+    NP_NDARRAY = np.ndarray
+else:
+    VALID_INT_TYPES = (IntType, LongType,)
+    VALID_FLOAT_TYPES = (FloatType,)
+    VALID_BOOL_TYPES = (BooleanType,)
+    NP_NDARRAY = None
 
 
 def is_valid_floattype(type_):
@@ -89,12 +100,12 @@ if sys.platform == 'win32':
     # Well this is a weird system specific error
     # https://github.com/numpy/numpy/issues/3667
     def get_type(var):
-        'Gets types accounting for numpy'
-        return var.dtype if isinstance(var, np.ndarray) else type(var)
+        """Gets types accounting for numpy"""
+        return var.dtype if isinstance(var, NP_NDARRAY) else type(var)
 else:
     def get_type(var):
-        'Gets types accounting for numpy'
-        return var.dtype.type if isinstance(var, np.ndarray) else type(var)
+        """Gets types accounting for numpy"""
+        return var.dtype.type if isinstance(var, NP_NDARRAY) else type(var)
 
 
 def is_type(var, valid_types):
@@ -134,7 +145,7 @@ def is_list(var):
 
 
 def is_listlike(var):
-    return isinstance(var, (list, tuple, np.ndarray))
+    return isinstance(var, (list, tuple, NP_NDARRAY))
 
 
 def is_tuple(var):

@@ -1,5 +1,8 @@
 from __future__ import absolute_import, division, print_function
-import numpy as np
+try:
+    import numpy as np
+except ImportError as ex:
+    pass
 import decimal
 from .util_type import is_float, is_int
 from .util_inject import inject

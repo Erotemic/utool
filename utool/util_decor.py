@@ -4,12 +4,15 @@ import inspect
 import six
 import sys
 from functools import wraps
+try:
+    import numpy as np
+except ImportError:
+    pass
 from .util_arg import NO_ASSERTS
 from .util_iter import isiterable
 from .util_print import Indenter
 from .util_dbg import printex
 from . import util_time
-import numpy as np
 from .util_inject import inject
 from utool._internal.meta_util_six import get_funcname
 (print, print_, printDBG, rrr, profile) = inject(__name__, '[decor]')

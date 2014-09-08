@@ -1,5 +1,8 @@
 from __future__ import absolute_import, division, print_function
-import numpy as np
+try:
+    import numpy as np
+except ImportError as ex:
+    pass
 from .util_type import is_list, is_int, is_str, is_float
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[csv]')

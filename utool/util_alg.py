@@ -4,7 +4,11 @@
 # util_science
 #
 from __future__ import absolute_import, division, print_function
-import numpy as np
+try:
+    import numpy as np
+except ImportError:
+    # TODO remove numpy
+    pass
 from collections import defaultdict
 #import six
 from six.moves import zip, range

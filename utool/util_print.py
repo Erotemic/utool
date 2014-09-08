@@ -1,5 +1,8 @@
 from __future__ import absolute_import, division, print_function
-import numpy as np
+try:
+    import numpy as np
+except ImportError:
+    pass
 import six
 import functools
 import sys
@@ -99,7 +102,7 @@ class Indenter(object):
 
 def printshape(arr_name, locals_):
     arr = locals_[arr_name]
-    if type(arr) is np.ndarray:
+    if isinstance(arr, np.ndarray):
         print(arr_name + '.shape = ' + str(arr.shape))
     else:
         print('len(%s) = %r' % (arr_name, len(arr)))
@@ -116,6 +119,12 @@ class NpPrintOpts(object):
         if exc_traceback is not None:
             print('[util_print] ERROR IN TRACEBACK: ' + str(exc_value))
             return False
+
+
+def full_numpy_repr(arr):
+    with NpPrintOpts(threshold=np.uint64(-1)):
+        arr_repr = repr(arr)
+    return arr_repr
 
 
 def printVERBOSE(msg, verbarg):

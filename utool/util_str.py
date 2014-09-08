@@ -6,21 +6,21 @@ import sys
 import six
 import textwrap
 from six.moves import map, range
+import math
 from os.path import split
-import numpy as np
 from .util_inject import inject
 from .util_time import get_unix_timedelta
 from ._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[str]')
 
 
-np.tau = (2 * np.pi)  # tauday.com
+TAU = (2 * math.pi)  # tauday.com
 
 
 def theta_str(theta, taustr=('tau' if '--myway' in sys.argv else '2pi')):
     """ Format theta so it is interpretable in base 10 """
     #coeff = (((tau - theta) % tau) / tau)
-    coeff = (theta / np.tau)
+    coeff = (theta / TAU)
     return ('%.2f * ' % coeff) + taustr
 
 
@@ -294,25 +294,6 @@ def get_unix_timedelta_str(unixtime_diff):
     return timedelta_str
 
 
-class NpPrintOpts(object):
-    def __init__(self, **kwargs):
-        self.orig_opts = np.get_printoptions()
-        self.new_opts = kwargs
-    def __enter__(self):
-        np.set_printoptions(**self.new_opts)
-    def __exit__(self, type_, value, trace):
-        np.set_printoptions(**self.orig_opts)
-        if trace is not None:
-            print('[util_str] Error in context manager!: ' + str(value))
-            return False  # return a falsey value on error
-
-
-def full_numpy_repr(arr):
-    with NpPrintOpts(threshold=np.uint64(-1)):
-        arr_repr = repr(arr)
-    return arr_repr
-
-
 def str_between(str_, startstr, endstr):
     startpos = str_.find(startstr) + len(startstr)
     endpos = str_.find(endstr) - 1
@@ -321,6 +302,7 @@ def str_between(str_, startstr, endstr):
 
 def padded_str_range(start, end):
     """ Builds a list of (end - start) strings padded with zeros """
+    import numpy as np
     nDigits = np.ceil(np.log10(end))
     fmt = '%0' + str(nDigits) + 'd'
     str_range = (fmt % num for num in range(start, end))

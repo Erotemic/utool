@@ -4,7 +4,10 @@ from six.moves import range
 import fnmatch
 import inspect
 import traceback
-import numpy as np
+try:
+    import numpy as np
+except ImportError:
+    pass
 import sys
 import shelve
 import textwrap
