@@ -152,11 +152,14 @@ def find_ext_modules(disable_warnings=True):
     return ext_modules
 
 
-def find_packages():
+def find_packages(recursive=True, maxdepth=None):
+    """
+    Finds all directories with an __init__.py file in them
+    """
     import utool
     from os.path import relpath
     cwd = os.getcwd()
-    init_files = utool.glob(cwd, '__init__.py', recursive=True)
+    init_files = utool.glob(cwd, '__init__.py', recursive=recursive, maxdepth=maxdepth)
     package_paths = list(map(dirname, init_files))
     package_relpaths = [relpath(path, cwd) for path in package_paths]
 
@@ -173,6 +176,53 @@ def get_cmdclass():
     from Cython.Distutils import build_ext
     cmdclass = {'build_ext': build_ext}
     return cmdclass
+
+
+def parse_author():
+    """ TODO: this function should parse setup.py or a module for
+    the author variable
+    """
+    return 'Jon Crall'   # FIXME
+
+
+def autogen_sphinx_apidoc():
+    import utool
+    argfmt_list = [
+        'sphinx-apidoc',
+        '--full',
+        '--maxdepth="{maxdepth}"',
+        '--doc-author="{author}"',
+        '--doc-version="1.0.0"',
+        '--doc-release="1.0.0"',
+        '--output-dir="_doc"',
+        '{pkgdir}',
+    ]
+    outputdir = '_doc'
+    author = utool.parse_author()
+    packages = utool.find_packages(maxdepth=1)
+    assert len(packages) == 1, 'better msg: %r' % (packages,)
+    pkgdir = packages[0]
+    version = utool.parse_package_for_version(pkgdir)
+
+    fmtdict = {
+        'author': author,
+        'maxdepth': '8',
+        'pkgdir': pkgdir,
+        'doc_version': version,
+        'doc-release': version,
+        'outputdir': outputdir,
+    }
+    utool.assert_exists('setup.py')
+    utool.ensuredir('_doc')
+    cmd_fmtstr = ' '.join(argfmt_list)
+    cmdstr = cmd_fmtstr.format(**fmtdict)
+
+    print('[util_setup] autogenerate sphinx docs for %r' % (pkgdir,))
+    if utool.VERBOSE:
+        print(utool.dict_str(fmtdict))
+    utool.cmd(cmdstr)
+    os.chdir('_doc')
+    utool.cmd('make html')
 
 
 def NOOP():
@@ -223,6 +273,8 @@ def presetup_commands(setup_fpath, kwargs):
             except Exception as ex:
                 printex(ex, 'Error calling buildcommand from cwd=%r\n' % os.getcwd())
                 raise
+        if arg in ['docs']:
+            autogen_sphinx_apidoc()
         # Build optimized files
         if arg in ['o', 'pyo']:
             build_pyo(project_dirs)
@@ -234,6 +286,7 @@ def presetup_commands(setup_fpath, kwargs):
             setup_chmod(setup_fpath, setup_dir, chmod_patterns)
 
     try:
+        sys.argv.remove('docs')
         sys.argv.remove('cyth')
         #sys.argv.remove('--cyth-write')
     except ValueError:
@@ -253,9 +306,13 @@ presetup = presetup_commands
 
 
 def parse_package_for_version(name):
-    from .util_regex import named_field, regex_parse
+    """
+    Searches for a variable named __version__ in name's __init__.py file and
+    returns the value.  This function parses the source text. It does not load
+    the module.
+    """
+    from utool import util_regex
     init_fpath = join(name, '__init__.py')
-    val_regex = named_field('version', '[0-9a-zA-Z.]+')
     version_errmsg = textwrap.dedent(
         '''
         You must include a __version__ variable
@@ -264,13 +321,16 @@ def parse_package_for_version(name):
         __version__ = '1.0.0.dev1' ''' % (name,))
     if not exists(init_fpath):
         raise AssertionError(version_errmsg)
+    val_regex = util_regex.named_field('version', '[0-9a-zA-Z.]+')
+    regexstr = '__version__ *= *[\'"]' + val_regex
     def parse_version(line):
         # Helper
         line = line.replace(' ', '').replace('\t', '')
-        match_dict = regex_parse('__version__ *= *[\'"]' + val_regex, line)
+        match_dict = util_regex.regex_parse(regexstr, line)
         if match_dict is not None:
             return match_dict['version']
     # Find the version  in the text of the source
+    #version = 'UNKNOWN_VERSION'
     with open(init_fpath, 'r') as file_:
         for line in file_.readlines():
             if line.startswith('__version__'):

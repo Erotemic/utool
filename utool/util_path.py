@@ -404,34 +404,42 @@ def symlink(source, link_name, noraise=False):
 
 
 def file_bytes(fpath):
+    """ returns size of file in bytes (int) """
     return os.stat(fpath).st_size
 
 
 def file_megabytes(fpath):
+    """ returns size of file in megabytes (float) """
     return os.stat(fpath).st_size / (2.0 ** 20)
 
 
-def glob(dirname, pattern, recursive=False, with_files=True, with_dirs=True,
+def glob(dirname, pattern, recursive=False, with_files=True, with_dirs=True,  maxdepth=None,
          **kwargs):
     """ Globs directory for pattern """
     gen = iglob(dirname, pattern, recursive=recursive,
-                with_files=with_files, with_dirs=with_dirs,
+                with_files=with_files, with_dirs=with_dirs, maxdepth=maxdepth,
                 **kwargs)
     path_list = list(gen)
     return path_list
 
 
-def iglob(dirname, pattern, recursive=False, with_files=True, with_dirs=True, **kwargs):
-    """ Globs directory for pattern
-    </CYTH:DISABLE>
-    """
+def iglob(dirname, pattern, recursive=False, with_files=True, with_dirs=True,
+          maxdepth=None, **kwargs):
+    """ Iteratively globs directory for pattern """
     if kwargs.get('verbose', False):  # log what i'm going to do
         print('[util_path] glob(dirname=%r)' % truepath(dirname,))
     nFiles = 0
     nDirs  = 0
-    for root, dirs, files in os.walk(truepath(dirname)):
+    current_depth = 0
+    dirname_ = truepath(dirname)
+    posx1 = len(dirname_) + len(os.path.sep)
+    for root, dirs, files in os.walk(dirname_):
         # yeild data
         # print it only if you want
+        if maxdepth is not None:
+            current_depth = root[posx1:].count(os.path.sep)
+            if maxdepth == current_depth:
+                continue
         if with_files:
             for fname in fnmatch.filter(files, pattern):
                 fpath = join(root, fname)
