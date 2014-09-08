@@ -218,9 +218,12 @@ def dict_str(dict_, strvals=False, sorted_=False, newlines=True):
 
 
 def horiz_string(*args):
-    r"""
-    prints a list of objects ensuring that the next item in the list
+    """
+    Horizontally prints objects
+
+    Prints a list of objects ensuring that the next item in the list
     is all the way to the right of any previous items.
+
     >>> # Pretty printing of matrices demo / test
     >>> import utool
     >>> import numpy as np
@@ -239,6 +242,7 @@ def horiz_string(*args):
     A = [[19 22]  = [[1 2]  * [[5 6]
          [43 50]]    [3 4]]    [7 8]]
     """
+
     if len(args) == 1 and not isinstance(args[0], str):
         str_list = args[0]
     else:

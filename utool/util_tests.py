@@ -40,6 +40,7 @@ SAD_FACE = r'''
 def run_test(func, *args, **kwargs):
     """
     Runs the test function with success / failure printing
+
     Input:
         Anything that needs to be passed to <func>
     """

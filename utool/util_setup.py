@@ -220,9 +220,9 @@ def autogen_sphinx_apidoc():
     print('[util_setup] autogenerate sphinx docs for %r' % (pkgdir,))
     if utool.VERBOSE:
         print(utool.dict_str(fmtdict))
-    utool.cmd(cmdstr)
+    utool.cmd(cmdstr, shell=True)
     os.chdir('_doc')
-    utool.cmd('make html')
+    utool.cmd('make html', shell=True)
 
 
 def NOOP():

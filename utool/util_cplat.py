@@ -231,7 +231,7 @@ def __parse_cmd_args(args, sudo):
             args = shlex.split(args)
         else:
             args = [args]
-    if sudo is True and not WIN32:
+    if not WIN32 and sudo is True:
         args = ['sudo'] + args
     return args
 
