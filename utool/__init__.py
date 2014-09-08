@@ -149,14 +149,14 @@ else:
                              get_dynamic_lib_globstrs, get_dynlib_dependencies, 
                              get_flops, get_free_diskbytes, get_lib_ext, 
                              get_pylib_ext, get_resource_dir, get_user_name, 
-                             getroot, ls_libs, print_dir_diskspace, 
+                             getroot, is64bit_python, ls_libs, print_dir_diskspace, 
                              python_executable, run_realtime_process, 
                              set_process_title, shell, startfile, truepath, 
                              unixpath, vd, view_directory,) 
     from .util_class import (ReloadingMetaclass, classmember, inject_func_as_method, 
                              inject_instance, makeForwardingMetaclass, 
                              reload_class_methods,) 
-    from .util_csv import (is_float, is_int, is_list, is_str, make_csv_table, 
+    from .util_csv import (ex, is_float, is_int, is_list, is_str, make_csv_table, 
                            numpy_to_csv,) 
     from .util_dbg import (IPYTHON_EMBED_STR, all_rrr, debug_exception, 
                            debug_hstack, debug_list, debug_npstack, debug_vstack, 
@@ -190,7 +190,7 @@ else:
                              accepts_scalar_input2, 
                              accepts_scalar_input_vector_output, copy_argspec, 
                              getter_1to1, getter_1toM, ignores_exc_tb, indent_func, 
-                             interested, isiterable, memorize, 
+                             interested, isiterable, lazyfunc, memorize, 
                              on_exception_report_input, show_return_value, 
                              time_func, wraps,) 
     from .util_distances import (L1, L2, L2_sqrd, compute_distances, emd, 
@@ -208,11 +208,11 @@ else:
                            gitcmd, is_gitrepo, isdir, pull_repos, repo_list, 
                            set_project_repos, set_userid, setup_develop_repos, 
                            std_build_command,) 
-    from .util_hash import (ALPHABET, BIGBASE, HASH_LEN, augment_uuid, 
+    from .util_hash import (ALPHABET, ALPHABET_16, BIGBASE, HASH_LEN, augment_uuid, 
                             convert_hexstr_to_bigbase, deterministic_uuid, 
                             get_file_hash, get_file_uuid, get_zero_uuid, 
                             hashable_to_uuid, hashstr, hashstr_arr, hashstr_md5, 
-                            hashstr_sha1, image_uuid, random_uuid,) 
+                            hashstr_sha1, image_uuid, random_nonce, random_uuid,) 
     from .util_inject import (ARGV_DEBUG_FLAGS, DUMMYPROF_FUNC, KERNPROF_FUNC, 
                               PROF_FUNC_PAT_LIST, PROF_MOD_PAT_LIST, SILENT, 
                               TIMERPROF_FUNC, argv, get_injected_modules, inject, 
@@ -258,13 +258,14 @@ else:
                             move_list, newcd, num_images_in_dir, path_ndir_split, 
                             platform_path, progress_func, remove_dirs, remove_file, 
                             remove_file_list, remove_files_in_dir, symlink, tail, 
-                            truepath, truepath_relative, win_shortcut,) 
+                            truepath, truepath_relative, unixjoin, win_shortcut,) 
     from .util_print import (Indenter, NO_INDENT, NpPrintOpts, filesize_str, 
-                             horiz_print, printNOTQUIET, printVERBOSE, printWARN, 
-                             print_filesize, print_locals, printif, printshape,) 
-    from .util_progress import (AGGROFLUSH, VALID_PROGRESS_TYPES, log_progress, 
-                                prog_func, progress_func, progress_str, 
-                                simple_progres_func,) 
+                             full_numpy_repr, horiz_print, printNOTQUIET, 
+                             printVERBOSE, printWARN, print_filesize, print_locals, 
+                             printif, printshape,) 
+    from .util_progress import (AGGROFLUSH, PROGGRESS_BACKSPACE, 
+                                VALID_PROGRESS_TYPES, log_progress, prog_func, 
+                                progress_func, progress_str, simple_progres_func,) 
     from .util_parallel import (BACKEND, close_pool, ensure_pool, generate, 
                                 get_default_numprocs, in_main_process, init_pool, 
                                 init_worker, new_pool, process, set_num_procs, tic, 
@@ -274,19 +275,21 @@ else:
                                  peak_memory, print_resource_usage, 
                                  time_in_systemmode, time_in_usermode, time_str2, 
                                  total_memory, used_memory,) 
-    from .util_str import (GLOBAL_TYPE_ALIASES, align, align_lines, bbox_str, 
+    from .util_str import (GLOBAL_TYPE_ALIASES, TAU, align, align_lines, bbox_str, 
                            byte_str, byte_str2, dict_aliased_repr, 
                            dict_itemstr_list, dict_str, extend_global_aliases, 
-                           file_megabytes_str, full_numpy_repr, func_str, 
-                           get_freespace_str, get_indentation, get_unix_timedelta, 
+                           file_megabytes_str, func_str, get_freespace_str, 
+                           get_indentation, get_unix_timedelta, 
                            get_unix_timedelta_str, horiz_string, hz_str, 
                            indent_list, indentjoin, joins, list_aliased_repr, 
                            list_str, listinfo_str, newlined_list, padded_str_range, 
                            remove_chars, str2, str_between, theta_str, tupstr, 
                            unindent, var_aliased_repr, verts_str,) 
     from .util_sysreq import (DEBUG, ensure_in_pythonpath, locate_path,) 
-    from .util_setup import (NOOP, SETUP_PATTERNS, assert_in_setup_repo, build_pyo, 
-                             clean, find_ext_modules, find_packages, get_cmdclass, 
+    from .util_setup import (NOOP, SETUP_PATTERNS, assert_in_setup_repo, 
+                             autogen_sphinx_apidoc, build_pyo, clean, 
+                             find_ext_modules, find_packages, get_cmdclass, 
+                             get_numpy_include_dir, parse_author, 
                              parse_package_for_version, parse_readme, presetup, 
                              presetup_commands, read_license, setup_chmod, 
                              setuptools_setup, translate_cyth,) 
@@ -296,12 +299,12 @@ else:
     from .util_time import (Timer, exiftime_to_unixtime, get_day, get_month, 
                             get_timestamp, get_timestats_str, get_year, tic, toc, 
                             unixtime_to_datetime, unixtime_to_timedelta,) 
-    from .util_type import (BooleanType, FloatType, IntType, LongType, 
-                            VALID_BOOL_TYPES, VALID_FLOAT_TYPES, VALID_INT_TYPES, 
-                            assert_int, bool_from_str, is_bool, is_dict, 
-                            is_func_or_method, is_func_or_method_or_partial, 
-                            is_funclike, is_tuple, is_type, is_valid_floattype, 
-                            smart_cast, type_str,) 
+    from .util_type import (BooleanType, FloatType, HAS_NUMPY, IntType, LongType, 
+                            NP_NDARRAY, VALID_BOOL_TYPES, VALID_FLOAT_TYPES, 
+                            VALID_INT_TYPES, assert_int, bool_from_str, is_bool, 
+                            is_dict, is_func_or_method, 
+                            is_func_or_method_or_partial, is_funclike, is_tuple, 
+                            is_type, is_valid_floattype, smart_cast, type_str,) 
     from .util_tests import (HAPPY_FACE, SAD_FACE, printTEST, run_test,) 
     from .DynamicStruct import (AbstractPrintable, DynStruct,) 
     from .Preferences import (Pref, PrefChoice, PrefInternal, PrefNode, PrefTree,) 
