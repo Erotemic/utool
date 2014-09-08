@@ -199,8 +199,8 @@ def autogen_sphinx_apidoc():
         '--full',
         '--maxdepth="{maxdepth}"',
         '--doc-author="{author}"',
-        '--doc-version="1.0.0"',
-        '--doc-release="1.0.0"',
+        '--doc-version="{doc_version}"',
+        '--doc-release="{doc_release"',
         '--output-dir="_doc"',
         '{pkgdir}',
     ]
@@ -216,7 +216,7 @@ def autogen_sphinx_apidoc():
         'maxdepth': '8',
         'pkgdir': pkgdir,
         'doc_version': version,
-        'doc-release': version,
+        'doc_release': version,
         'outputdir': outputdir,
     }
     utool.assert_exists('setup.py')

@@ -1,8 +1,8 @@
 from __future__ import absolute_import, division, print_function
+import sys
 import types
 from collections import defaultdict
 from .util_inject import inject
-import sys
 from ._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[class]', DEBUG=False)
 
@@ -31,7 +31,7 @@ def inject_func_as_method(self, func, method_name=None, class_=None):
     """
     if method_name is None:
         method_name = get_funcname(func)
-    printDBG('Injecting method_name=%r' % method_name)
+    #printDBG('Injecting method_name=%r' % method_name)
     method = types.MethodType(func, self)
     old_method = getattr(self, method_name, None)
     if old_method:
@@ -69,8 +69,10 @@ def inject_instance(classtype, self):
 #        print('Would register class %r now.' % (self,))
 
 def makeForwardingMetaclass(forwarding_dest_getter, whitelist, base_class=object):
-    """ makes a metaclass that overrides __getattr__ and __setattr__ to forward
-        some specific attribute references to a specified instance variable """
+    """
+    makes a metaclass that overrides __getattr__ and __setattr__ to forward some
+    specific attribute references to a specified instance variable
+    """
     class ForwardingMetaclass(base_class.__class__):
         def __init__(metaself, name, bases, dct):
             # print('ForwardingMetaclass.__init__():
@@ -118,6 +120,7 @@ class ReloadingMetaclass(type):
 
 def reload_class_methods(self, class_):
     """
+    reloads all class methods
     """
     self.__class__ = class_
     for key in dir(class_):

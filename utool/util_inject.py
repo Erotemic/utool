@@ -96,6 +96,9 @@ def inject_colored_exceptions():
 
 
 def inject_print_functions(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
+    """
+    makes print functions to be injected into the module
+    """
     module = _get_module(module_name, module)
     if SILENT:
         def print(*args):
@@ -292,8 +295,8 @@ def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
     rrr         = inject_reload_function(None, module_prefix, module)
     profile_    = inject_profile_function(None, module_prefix, module)
     print_funcs = inject_print_functions(None, module_prefix, DEBUG, module)
-    print, print_, printDBG = print_funcs
-    return print, print_, printDBG, rrr, profile_
+    (print, print_, printDBG) = print_funcs
+    return (print, print_, printDBG, rrr, profile_)
 
 
 def inject_all(DEBUG=False):
@@ -301,7 +304,7 @@ def inject_all(DEBUG=False):
     Injects the print, print_, printDBG, rrr, and profile functions into all
     loaded modules
     """
-    raise NotImplemented('!!!')
+    raise NotImplementedError('!!!')
     for key, module in sys.modules.items():
         if module is None or not hasattr(module, '__name__'):
             continue
