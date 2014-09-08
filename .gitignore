@@ -71,3 +71,4 @@ failed.txt
 run_cyth_benchmarks.sh
 
 *.orig
+_doc

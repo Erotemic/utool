@@ -346,6 +346,20 @@ def is64bit_python():
     #(ctypes.sizeof(ctypes.c_voidp))
     return is64bit
 
+
+def get_python_dynlib():
+    """
+    python -c "import utool; print(utool.get_python_dynlib())"
+    """
+    import sysconfig
+    cfgvars = sysconfig.get_config_vars()
+    dynlib = os.path.join(cfgvars['LIBDIR'], cfgvars['MULTIARCH'], cfgvars['LDLIBRARY'])
+    if not exists(dynlib):
+        dynlib = os.path.join(cfgvars['LIBDIR'], cfgvars['LDLIBRARY'])
+    assert exists(dynlib)
+    return dynlib
+
+
 #from subprocess import check_output
 #http://stackoverflow.com/questions/8015163/how-to-check-screen-is-running
 #def screen_present(name):
