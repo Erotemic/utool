@@ -17,7 +17,8 @@ def alloc_lists(num_alloc):
 
 def alloc_nones(num_alloc):
     """ allocates space for a list of Nones """
-    return [None for _ in range(num_alloc)]
+    return [None] * num_alloc
+    #return [None for _ in range(num_alloc)]
 
 
 def ensure_list_size(list_, size_):
