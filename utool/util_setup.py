@@ -31,10 +31,14 @@ class SETUP_PATTERNS():
 
 
 def read_license(license_file):
-    with open(license_file, 'r') as file_:
-        firstline = file_.readline()
-        license_type = firstline.replace('License', '').strip()
-        return license_type
+    try:
+        with open(license_file, 'r') as file_:
+            firstline = file_.readline()
+            license_type = firstline.replace('License', '').strip()
+            return license_type
+    except IOError:
+        print('Warning no LICENCE file')
+        return '???'
 
 
 def build_pyo(project_dirs):
