@@ -109,12 +109,22 @@ class ReloadingMetaclass(type):
 
         def rrr(self):
             classname = self.__class__.__name__
-            modname = self.__class__.__module__
-            print('reloading ' + classname)
-            module = sys.modules[modname]
-            module.rrr()
-            class_ = getattr(module, classname)
-            reload_class_methods(self, class_)
+            try:
+                modname = self.__class__.__module__
+                print('reloading ' + classname + ' from ' + modname)
+                module = sys.modules[modname]
+                if modname != '__main__':
+                    module.rrr()
+                class_ = getattr(module, classname)
+                reload_class_methods(self, class_)
+            except Exception as ex:
+                import utool
+                utool.printex(ex, keys=[
+                    'modname',
+                    'module',
+                    'class_',
+                    'self', ])
+                raise
         metaself.rrr = rrr
 
 
