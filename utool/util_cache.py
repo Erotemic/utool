@@ -103,9 +103,9 @@ def load_cache(dpath, fname, cfgstr):
 
 # --- Global Cache ---
 
-def get_global_cache_dir(appname=None, ensure=False):
+def get_global_cache_dir(appname='default', ensure=False):
     """ Returns (usually) writable directory for an application cache """
-    if appname is None:
+    if appname is None or  appname == 'default':
         appname = __APPNAME__
     global_cache_dir = util_cplat.get_app_resource_dir(appname, global_cache_dname)
     if ensure:
@@ -113,14 +113,14 @@ def get_global_cache_dir(appname=None, ensure=False):
     return global_cache_dir
 
 
-def get_global_shelf_fpath(appname=None, ensure=False):
+def get_global_shelf_fpath(appname='default', ensure=False):
     """ Returns the filepath to the global shelf """
     global_cache_dir = get_global_cache_dir(appname, ensure=ensure)
     shelf_fpath = join(global_cache_dir, global_cache_fname)
     return shelf_fpath
 
 
-#def get_global_shelf(appname=None):
+#def get_global_shelf(appname='default'):
 #    """ Returns the global shelf object """
 #    global __SHELF__
 #    if __SHELF__ is None:
@@ -138,7 +138,7 @@ def get_global_shelf_fpath(appname=None, ensure=False):
 
 
 #@atexit.register
-#def close_global_shelf(appname=None):
+#def close_global_shelf(appname='default'):
 #    # FIXME: If the program closes with ctrl+c this isnt called and
 #    # the global cache is not written
 #    global __SHELF__
@@ -173,7 +173,7 @@ class GlobalShelfContext(object):
         #close_global_shelf(self.appname)
 
 
-def global_cache_read(key, appname=None, **kwargs):
+def global_cache_read(key, appname='default', **kwargs):
     with GlobalShelfContext(appname) as shelf:
         if 'default' in kwargs:
             return shelf.get(key, kwargs['default'])
@@ -181,20 +181,20 @@ def global_cache_read(key, appname=None, **kwargs):
             return shelf[key]
 
 
-def global_cache_dump(appname=None):
+def global_cache_dump(appname='default'):
     shelf_fpath = get_global_shelf_fpath(appname)
     print('shelf_fpath = %r' % shelf_fpath)
     with GlobalShelfContext(appname) as shelf:
         print(util_str.dict_str(shelf))
 
 
-def global_cache_write(key, val, appname=None):
+def global_cache_write(key, val, appname='default'):
     """ Writes cache files to a safe place in each operating system """
     with GlobalShelfContext(appname) as shelf:
         shelf[key] = val
 
 
-def delete_global_cache(appname=None):
+def delete_global_cache(appname='default'):
     """ Reads cache files to a safe place in each operating system """
     #close_global_shelf(appname)
     shelf_fpath = get_global_shelf_fpath(appname)
