@@ -103,6 +103,12 @@ def load_cache(dpath, fname, cfgstr):
 
 # --- Global Cache ---
 
+def view_global_cache_dir(appname='default'):
+    import utool
+    dir_ = utool.get_global_cache_dir(appname=appname)
+    utool.view_directory(dir_)
+
+
 def get_global_cache_dir(appname='default', ensure=False):
     """ Returns (usually) writable directory for an application cache """
     if appname is None or  appname == 'default':

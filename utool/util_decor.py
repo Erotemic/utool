@@ -126,6 +126,12 @@ def indent_func(input_):
 
 #----------
 
+try:
+    import pandas as pd
+    HAS_PANDAS = True
+except Exception as ex:
+    HAS_PANDAS = False
+
 
 def accepts_scalar_input(func):
     """
@@ -137,6 +143,9 @@ def accepts_scalar_input(func):
     @ignores_exc_tb
     @wraps(func)
     def wrp_si(self, input_, *args, **kwargs):
+        #if HAS_PANDAS:
+        #    if isinstance(input_, (pd.DataFrame, pd.Series)):
+        #        input_ = input_.values
         if isiterable(input_):
             # If input is already iterable do default behavior
             return func(self, input_, *args, **kwargs)

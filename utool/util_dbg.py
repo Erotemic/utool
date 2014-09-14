@@ -9,6 +9,7 @@ try:
 except ImportError:
     pass
 import sys
+import six
 import shelve
 import textwrap
 import keyword
@@ -628,46 +629,89 @@ def formatex(ex, msg='[!?] Caught exception',
     return '\n'.join(errstr_list)
 
 
+def get_varname_from_locals(val, locals_, default='varname-not-found',
+                            strict=False):
+    """
+    Check the varname is in the parent namespace
+    This will only work with objects not primatives
+    """
+    try:
+        for count, val_ in enumerate(six.itervalues(locals_)):
+            if val is val_:
+                index_ = count
+        varname = str(locals_.keys()[index_])
+    except NameError:
+        varname = default
+        if strict:
+            raise
+    return varname
+
+
+def get_varval_from_locals(key, locals_):
+    assert isinstance(key, str), 'must have parsed key into a string already'
+    if key not in locals_:
+        dotpos = key.find('.')
+        if dotpos > -1:
+            key_ = key[:dotpos]
+            attrstr_ = key[dotpos:]
+            baseval = locals_[key_]  # NOQA
+            val = eval('baseval' + attrstr_)
+        else:
+            raise AssertionError('!!! %s not populated!' % (key))
+    else:
+        val = locals_[key]
+    return val
+
+
+def get_varstr(val, separate=True, locals_=None):
+    # TODO: combine with printex functionality
+    if locals_ is None:
+        locals_ = get_parent_locals()
+    name = get_varname_from_locals(val, locals_)
+    varstr_list = []
+    if separate:
+        varstr_list.append('\n\n+==========')
+    varstr_list.append(repr(type(val)) + ' ' + name + ' = ')
+    varstr_list.append(str(val))
+    if separate:
+        varstr_list.append('L==========')
+    varstr = '\n'.join(varstr_list)
+    return varstr
+
+
+def super_print(val, locals_=None):
+    if locals_ is None:
+        locals_ = get_parent_locals()
+    print(get_varstr(val, locals_=locals_))
+
+
 def parse_locals_keylist(locals_, key_list, strlist_, prefix):
     """ For each key in keylist, puts its value in locals into a stringlist """
-    from .util_str import get_callable_name
-
-    def get_key_value(key):
-        assert isinstance(key, str), 'must have parsed key into a string already'
-        if key not in locals_:
-            dotpos = key.find('.')
-            if dotpos > -1:
-                key_ = key[:dotpos]
-                attrstr_ = key[dotpos:]
-                baseval = locals_[key_]  # NOQA
-                val = eval('baseval' + attrstr_)
-            else:
-                raise AssertionError('%s !!! %s not populated!' % (prefix, key))
-        else:
-            val = locals_[key]
-        return val
+    #from .util_str import get_callable_name
+    from utool.util_str import get_callable_name
 
     for key in key_list:
         try:
             if key is None:
                 strlist_.append('')
             elif isinstance(key, tuple):
+                # Given a tuple of information
                 tup = key
                 func, key_ = tup
-                #assert key_ in locals_, 'key=%r not in locals' % (key_,)
-                #val = locals_[key_]
-                val = get_key_value(key_)
+                val = get_varval_from_locals(key_, locals_)
                 funcvalstr = str(func(val))
                 strlist_.append('%s %s(%s) = %s' % (prefix, get_callable_name(func), key_, funcvalstr))
-            #elif key in locals_:
-            #    #val = locals_[key]
-            #    val = get_key_value(key_)
-            #    valstr = truncate_str(repr(val), maxlen=200)
-            #    strlist_.append('%s %s = %s' % (prefix, key, valstr))
-            else:
-                val = get_key_value(key)
+            elif isinstance(key, six.string_types):
+                # Try to infer print from variable name
+                val = get_varval_from_locals(key)
                 valstr = truncate_str(repr(val), maxlen=200)
                 strlist_.append('%s %s = %s' % (prefix, key, valstr))
+            else:
+                # Try to infer print from variable value
+                typestr = repr(type(key))
+                namestr = get_varname_from_locals(key, locals_)
+                valstr = truncate_str(repr(val), maxlen=200)
+                strlist_.append('%s %s %s = %s' % (prefix, typestr, namestr, valstr))
         except AssertionError as ex:
             strlist_.append(str(ex))
 
