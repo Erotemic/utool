@@ -11,7 +11,7 @@ __PRINT_WRITES__ = False or __PRINT_IO__
 __PRINT_READS__  = False or __PRINT_IO__
 
 
-def write_to(fpath, to_write, verbose=__PRINT_WRITES__):
+def write_to(fpath, to_write, aslines=False, verbose=__PRINT_WRITES__):
     """
     writes_to(fpath, to_write)
     writes to_write to fpath
@@ -19,17 +19,23 @@ def write_to(fpath, to_write, verbose=__PRINT_WRITES__):
     if __PRINT_WRITES__:
         print('[io] * Writing to text file: %r ' % util_path.tail(fpath))
     with open(fpath, 'w') as file_:
-        file_.write(to_write)
+        if aslines:
+            file_.writelines(to_write)
+        else:
+            file_.write(to_write)
 
 
-def read_from(fpath, verbose=__PRINT_READS__, strict=True):
+def read_from(fpath, verbose=__PRINT_READS__, aslines=False, strict=True):
     if verbose:
         print('[io] * Reading text file: %r ' % util_path.tail(fpath))
     try:
         if not util_path.checkpath(fpath, verbose=verbose, n=3):
             raise IOError('[io] * FILE DOES NOT EXIST!')
         with open(fpath, 'r') as file_:
-            text = file_.read()
+            if aslines:
+                text = file_.readlines()
+            else:
+                text = file_.read()
         return text
     except IOError as ex:
         if verbose or strict:
