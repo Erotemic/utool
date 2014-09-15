@@ -12,6 +12,7 @@ from __future__ import absolute_import, division, print_function
 import sys
 from .util_inject import inject
 from .util_arg import QUIET
+from . import util_time
 #get_flag,
 #, VERBOSE
 print, print_, printDBG, rrr, profile = inject(__name__, '[progress]')
@@ -25,7 +26,8 @@ PROGGRESS_BACKSPACE = '--screen' not in sys.argv
 
 
 def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
-                 start=True, repl=False, approx=False, disable=False):
+                 start=True, repl=False, approx=False, disable=False,
+                 writefreq=1):
     """
     Returns two functions (mark_progress, end_progress) which will handle
     logging progress in a for loop.
@@ -75,15 +77,20 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
         else:
             # Progress function flushes every <flushfreq> times
             def mark_progress(count, fmt_str=fmt_str, flushfreq=flushfreq,
-                              write_fn=write_fn, flush_fn=flush_fn):
+                              writefreq=writefreq, write_fn=write_fn,
+                              flush_fn=flush_fn):
                 count_ = count + 1
-                write_fn(fmt_str % count_)
+                if count_ % writefreq == 0:
+                    write_fn(fmt_str % count_)
                 if count_ % flushfreq == 0:
                     flush_fn()
 
-        def end_progress():
+        tt = util_time.tic(lbl)
+
+        def end_progress(flush_fn=flush_fn):
             write_fn('\n')
-            sys.stdout.flush()
+            util_time.toc(tt)
+            flush_fn()
         #mark_progress(0)
         if start:
             mark_progress(-1)

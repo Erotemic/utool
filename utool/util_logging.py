@@ -24,6 +24,7 @@ __UTOOL_ROOT_LOGGER__ = None
 
 PRINT_ALL_CALLERS = '--print-all-callers' in sys.argv
 VERBOSE = '--verbose' in sys.argv
+VERYVERBOSE = '--veryverbose' in sys.argv
 
 # Remeber original python values
 __PYTHON_STDOUT__ = sys.stdout
@@ -100,8 +101,12 @@ def start_logging(log_fpath=None, mode='a', appname=None):
     global __UTOOL_PRINTDBG__
     global __UTOOL_WRITE__
     global __UTOOL_FLUSH__
+    if VERYVERBOSE:
+        print('[utool] start_logging()')
     # FIXME: The test for doctest may not work
     if __UTOOL_ROOT_LOGGER__ is None and __IN_MAIN_PROCESS__ and not __inside_doctest():
+        if VERYVERBOSE:
+            print('[utool] start_logging()... rootcheck OK')
         #logging.config.dictConfig(LOGGING)
         if log_fpath is None:
             log_fpath = get_log_fpath(num='next', appname=appname)
