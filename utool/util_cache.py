@@ -86,7 +86,7 @@ def load_cache(dpath, fname, cfgstr):
 
 class Cacher(object):
     def __init__(self, fname, cfgstr=None, cache_dir='default', appname='utool',
-                 verbose=True):
+                 verbose=VERBOSE):
         if cache_dir == 'default':
             cache_dir = util_cplat.get_app_resource_dir(appname)
         self.dpath = cache_dir
