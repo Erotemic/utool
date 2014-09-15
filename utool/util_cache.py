@@ -2,14 +2,18 @@ from __future__ import absolute_import, division, print_function
 import shelve
 #import atexit
 import sys
+from six.moves import range
 from os.path import join, normpath
-from .util_arg import SUPER_STRICT
-from . import util_inject
+import functools
+from itertools import chain
+from . import util_arg
 from . import util_hash
+from . import util_inject
 from . import util_path
 from . import util_io
 from . import util_str
 from . import util_cplat
+from ._internal.meta_util_six import get_funcname
 from ._internal.meta_util_constants import (global_cache_fname,
                                             global_cache_dname,
                                             default_appname)
@@ -39,7 +43,7 @@ def text_dict_write(fpath, key, val):
         print('Bad Syntax:')
         print(dict_text)
         dict_ = {}
-        if SUPER_STRICT:
+        if util_arg.SUPER_STRICT:
             raise
     dict_[key] = val
     dict_text2 = util_str.dict_str(dict_, strvals=False)
@@ -80,25 +84,96 @@ def load_cache(dpath, fname, cfgstr):
     return util_io.load_cPkl(fpath)
 
 
-#class Cacher(object):
-#    def __init__(self, dpath, fname, cfgstr, text='data'):
-#        self.dpath = dpath
-#        self.fname = fname
-#        self.cfgstr = cfgstr
-#        self.data = None
-#        self.text = text
-#    def tryload(self):
-#        try:
-#            data = load_cache(self.dpath, self.fname, self.cfgstr)
-#            print('... ' + self.text + ' Cacher hit')
-#            return data
-#        except IOError:
-#            print('... ' + self.text + ' Cacher miss')
-#    def __exit__(self, type_, value, trace):
-#        if trace is not None:
-#            print('[util_cache] Error in context manager!: ' + str(value))
-#            return False  # return a falsey value on error
-#        save_cache(self.dpath, self.fname, self.cfgstr, self.data)
+class Cacher(object):
+    def __init__(self, fname, cfgstr=None, cache_dir='default', appname='utool',
+                 verbose=True):
+        if cache_dir == 'default':
+            cache_dir = util_cplat.get_app_resource_dir(appname)
+        self.dpath = cache_dir
+        self.fname = fname
+        self.cfgstr = cfgstr
+        self.verbose = verbose
+
+    def load(self, cfgstr=None):
+        cfgstr = self.cfgstr if cfgstr is None else cfgstr
+        assert cfgstr is not None, 'must specify cfgstr in constructor or call'
+        assert self.fname is not None, 'no fname'
+        assert self.dpath is not None, 'no dpath'
+        data = load_cache(self.dpath, self.fname, cfgstr)
+        if self.verbose:
+            print('... ' + self.fname + ' Cacher hit')
+        return data
+
+    def tryload(self, cfgstr=None):
+        try:
+            if self.verbose:
+                assert cfgstr is not None or self.cfgstr is not None, 'must specify cfgstr in constructor or call'
+                print('[cache] tryload fname=' + self.fname)
+                print('[cache] cfgstr= ' + self.cfgstr if cfgstr is None else cfgstr)
+            return self.load(cfgstr)
+        except IOError:
+            if self.verbose:
+                print('... ' + self.fname + ' Cacher miss')
+
+    def save(self, data, cfgstr=None):
+        cfgstr = self.cfgstr if cfgstr is None else cfgstr
+        assert cfgstr is not None, 'must specify cfgstr in constructor or call'
+        assert self.fname is not None, 'no fname'
+        assert self.dpath is not None, 'no dpath'
+        if self.verbose:
+            print('... ' + self.fname + ' Cacher save')
+        save_cache(self.dpath, self.fname, cfgstr, data)
+
+
+def get_argname(func, x):
+    # FINISHME
+    return ('arg%d' % x)
+
+
+def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds):
+    fmt_str = '%s(%s)'
+    hashstr = util_hash.hashstr
+    if key_argx is None:
+        key_argx = range(len(args))
+    if key_kwds is None:
+        key_kwds = kwargs.keys()
+    args_hash_iter = (fmt_str % (get_argname(func, x), hashstr(repr(args[x])))
+                      for x in key_argx)
+    kwds_hash_iter = (fmt_str % (key, hashstr(repr(kwargs[key])))
+                      for key in key_kwds)
+    cfgstr = '_'.join(chain(args_hash_iter, kwds_hash_iter))
+    return cfgstr
+
+
+def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
+                key_kwds=None, use_cache=None):
+    """
+    Wraps a function with a Cacher object
+    """
+    def cached_closure(func):
+        fname_ = get_funcname(func) if fname is None else fname
+        cacher = Cacher(fname_, cache_dir=cache_dir, appname=appname)
+        if use_cache is None:
+            use_cache_ = not util_arg.get_flag('--nocache-' + fname)
+        @functools.wraps(func)
+        def cached_wraper(*args, **kwargs):
+            # Implicitly adds use_cache to kwargs
+            cfgstr = get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds)
+            assert cfgstr is not None, 'cfgstr cannot be None'
+            if kwargs.get('use_cache', use_cache_):
+                # Make cfgstr from specified input
+                data = cacher.tryload(cfgstr)
+                if data is not None:
+                    return data
+            # Cached missed compute function
+            data = func(*args, **kwargs)
+            # Cache save
+            cacher.save(data, cfgstr)
+            return data
+        # Give function a handle to the cacher object
+        cached_wraper.cacher = cacher
+        return cached_wraper
+    return cached_closure
 
 
 # --- Global Cache ---
@@ -174,7 +249,7 @@ class GlobalShelfContext(object):
     def __exit__(self, type_, value, trace):
         self.shelf.close()
         if trace is not None:
-            print('[util_cache] Error in context manager!: ' + str(value))
+            print('[cache] Error under GlobalShelfContext!: ' + str(value))
             return False  # return a falsey value on error
         #close_global_shelf(self.appname)
 
