@@ -27,7 +27,7 @@ PROGGRESS_BACKSPACE = '--screen' not in sys.argv
 
 def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
                  start=True, repl=False, approx=False, disable=False,
-                 writefreq=1, with_totaltime=False):
+                 writefreq=1, with_totaltime=False, backspace=True):
     """
     Returns two functions (mark_progress, end_progress) which will handle
     logging progress in a for loop.
@@ -67,7 +67,8 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
         write_fn = sys.stdout.write
         flush_fn = sys.stdout.flush
         # build format string for displaying progress
-        fmt_str = progress_str(nTotal, lbl=lbl, repl=repl, approx=approx)
+        fmt_str = progress_str(nTotal, lbl=lbl, repl=repl, approx=approx,
+                               backspace=backspace)
         if AGGROFLUSH:
             # Progress function which automatically flushes
             def mark_progress(count, flush_fn=flush_fn):
@@ -209,7 +210,7 @@ def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
     raise Exception('unkown progress type = %r' % progress_type)
 
 
-def progress_str(max_val, lbl='Progress: ', repl=False, approx=False):
+def progress_str(max_val, lbl='Progress: ', repl=False, approx=False, backspace=PROGGRESS_BACKSPACE):
     """ makes format string that prints progress: %Xd/MAX_VAL with backspaces
     </CYTH>
     """
@@ -220,11 +221,11 @@ def progress_str(max_val, lbl='Progress: ', repl=False, approx=False):
     dnumstr = str(len(max_str))
     cur_str = '%' + dnumstr + 'd'
     if repl:
-        fmt_str_ = lbl.replace('<cur_str>', cur_str).replace('<max_str>', max_str)
+        _fmt_str = lbl.replace('<cur_str>', cur_str).replace('<max_str>', max_str)
     else:
-        fmt_str_ = lbl + cur_str + '/' + max_str
-    if PROGGRESS_BACKSPACE:
-        fmt_str = '\b' * (len(fmt_str_) - len(dnumstr) + len(max_str)) + fmt_str_
+        _fmt_str = lbl + cur_str + '/' + max_str
+    if backspace:
+        fmt_str = '\b' * (len(_fmt_str) - len(dnumstr) + len(max_str)) + _fmt_str
     else:
-        fmt_str = fmt_str_ + '\n'
+        fmt_str = _fmt_str + '\n'
     return fmt_str
