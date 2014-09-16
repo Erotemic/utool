@@ -18,7 +18,7 @@ def permit_gitrepo(config_fpath, writeback=False):
     if not WRITEBACK:
         print(''.join(newlines))
     else:
-        utool.writelines(config_fpath, newlines, aslines=True)
+        utool.write_to(config_fpath, newlines, aslines=True)
 
 
 if __name__ == '__main__':
