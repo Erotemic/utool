@@ -56,7 +56,7 @@ def _extract_archive(archive_fpath, archive_file, archive_namelist, output_dir, 
         archive_file.extract(member, path=output_dir)
 
 
-def download_url(url, filename):
+def download_url(url, filename, spoof=False):
     # From http://blog.moleculea.com/2012/10/04/urlretrieve-progres-indicator/
     start_time_ptr = [0]
     def reporthook(count, block_size, total_size):
@@ -73,7 +73,23 @@ def download_url(url, filename):
                          (percent, progress_size / (1024 * 1024), speed, duration))
         sys.stdout.flush()
     print('[utool] Downloading url=%r to filename=%r' % (url, filename))
-    urllib.urlretrieve(url, filename=filename, reporthook=reporthook)
+    if not spoof:
+        urllib.urlretrieve(url, filename=filename, reporthook=reporthook)
+    else:
+        user_agents = [
+            'Mozilla/5.0 (Windows; U; Windows NT 5.1; it; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11',
+            'Opera/9.25 (Windows NT 5.1; U; en)',
+            'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)',
+            'Mozilla/5.0 (compatible; Konqueror/3.5; Linux) KHTML/3.5.5 (like Gecko) (Kubuntu)',
+            'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.0.12) Gecko/20070731 Ubuntu/dapper-security Firefox/1.5.0.12',
+            'Lynx/2.8.5rel.1 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/1.2.9'
+        ]
+
+        class SpoofingOpener(urllib.FancyURLopener, object):
+            version = user_agents[0]
+        myopener = SpoofingOpener()
+        myopener.retrieve(url, filename=filename, reporthook=reporthook)
+
 
 
 def fix_dropbox_link(dropbox_url):
@@ -93,7 +109,7 @@ def split_archive_ext(path):
 
 
 def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
-                  delay=None):
+                  delay=None, spoof=False):
     file_url = fix_dropbox_link(file_url)
     fname = split(file_url)[1]
     # Download zipfile to
@@ -109,7 +125,7 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
             if delay is not None:
                 print('[utool] delay download by %r seconds' % (delay,))
                 time.sleep(delay)
-            download_url(file_url, fpath)
+            download_url(file_url, fpath, spoof=spoof)
     util_path.assert_exists(fpath)
     return fpath
 
