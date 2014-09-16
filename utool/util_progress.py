@@ -89,7 +89,7 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
             tt = util_time.tic(lbl)
 
         def end_progress(write_fn=write_fn, flush_fn=flush_fn):
-            write_fn(fmt_str % (nTotal - 1))
+            write_fn(fmt_str % (nTotal))
             write_fn('\n')
             flush_fn()
             if with_totaltime:

@@ -77,7 +77,7 @@ def makeForwardingMetaclass(forwarding_dest_getter, whitelist, base_class=object
         def __init__(metaself, name, bases, dct):
             # print('ForwardingMetaclass.__init__():
             #  {forwarding_dest_getter: %r; whitelist: %r}' % (forwarding_dest_getter, whitelist))
-            super(ForwardingMetaclass, metaself).__init__(name, bases, dict)
+            super(ForwardingMetaclass, metaself).__init__(name, bases, dct)
             old_getattr = metaself.__getattribute__
             old_setattr = metaself.__setattr__
             def new_getattr(self, item):
@@ -105,7 +105,7 @@ def makeForwardingMetaclass(forwarding_dest_getter, whitelist, base_class=object
 
 class ReloadingMetaclass(type):
     def __init__(metaself, name, bases, dct):
-        super(ReloadingMetaclass, metaself).__init__(name, bases, dict)
+        super(ReloadingMetaclass, metaself).__init__(name, bases, dct)
 
         def rrr(self):
             classname = self.__class__.__name__
@@ -126,6 +126,40 @@ class ReloadingMetaclass(type):
                     'self', ])
                 raise
         metaself.rrr = rrr
+
+
+def get_comparison_methods():
+    method_list = []
+    def _register(func):
+        method_list.append(func)
+        return func
+
+    # Comparison operators for sorting and uniqueness
+    @_register
+    def __lt__(self, other):
+        return self.__hash__() < (other.__hash__())
+
+    @_register
+    def __le__(self, other):
+        return self.__hash__() <= (other.__hash__())
+
+    @_register
+    def __eq__(self, other):
+        return self.__hash__() == (other.__hash__())
+
+    @_register
+    def __ne__(self, other):
+        return self.__hash__() != (other.__hash__())
+
+    @_register
+    def __gt__(self, other):
+        return self.__hash__() > (other.__hash__())
+
+    @_register
+    def __ge__(self, other):
+        return self.__hash__() >= (other.__hash__())
+
+    return method_list
 
 
 def reload_class_methods(self, class_):
