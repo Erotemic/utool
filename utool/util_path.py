@@ -8,7 +8,7 @@ from __future__ import absolute_import, division, print_function
 from six.moves import zip, filter, filterfalse, map, range
 import six
 from os.path import (join, basename, relpath, normpath, split, isdir, isfile,
-                     exists, islink, ismount, dirname, splitext)
+                     exists, islink, ismount, dirname, splitext, realpath)
 import os
 import sys
 import shutil
@@ -34,6 +34,7 @@ IMG_EXTENSIONS =  set(__LOWER_EXTS + __UPPER_EXTS)
 
 
 def newcd(path):
+    """ DEPRICATE """
     cwd = os.getcwd()
     os.chdir(path)
     return cwd
@@ -45,7 +46,7 @@ unixjoin = meta_util_path.unixjoin
 
 
 def truepath_relative(path):
-    """ Normalizes and returns absolute path with so specs </CYTH> """
+    """ Normalizes and returns absolute path with so specs  """
     return normpath(relpath(path, truepath(os.getcwd())))
 
 
@@ -86,6 +87,7 @@ def path_ndir_split(path_, n, force_unix=True):
 
 
 def remove_file(fpath, verbose=True, dryrun=False, ignore_errors=True, **kwargs):
+    """ Removes a file """
     if dryrun:
         if verbose:
             print('[path] Dryrem %r' % fpath)
@@ -105,6 +107,7 @@ def remove_file(fpath, verbose=True, dryrun=False, ignore_errors=True, **kwargs)
 
 
 def remove_dirs(dpath, dryrun=False, ignore_errors=True, **kwargs):
+    """ Removes a directory """
     print('[path] Removing directory: %r' % dpath)
     try:
         shutil.rmtree(dpath)
@@ -118,6 +121,7 @@ def remove_dirs(dpath, dryrun=False, ignore_errors=True, **kwargs):
 
 def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False, verbose=True,
                         dryrun=False, ignore_errors=False, **kwargs):
+    """ Removes files matching a pattern from a directory """
     if isinstance(fname_pattern_list, six.string_types):
         fname_pattern_list = [fname_pattern_list]
     if not QUIET:
@@ -148,7 +152,7 @@ def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False, verbose=
 
 
 def delete(path, dryrun=False, recursive=True, verbose=True, print_exists=True, ignore_errors=True, **kwargs):
-    # Deletes regardless of what the path is
+    """ Removes a file or directory """
     #if verbose:
     print('[path] Deleting path=%r' % path)
     if not exists(path):
@@ -181,7 +185,7 @@ def remove_file_list(fpath_list, verbose=VERYVERBOSE):
 
 
 def longest_existing_path(_path):
-    """ </CYTH> """
+    """  Returns the longest root of _path that exists """
     while True:
         _path_new = os.path.dirname(_path)
         if exists(_path_new):
@@ -197,8 +201,7 @@ def longest_existing_path(_path):
 
 def checkpath(path_, verbose=VERYVERBOSE, n=None, info=VERYVERBOSE):
     """ returns true if path_ exists on the filesystem
-    show only the top n directories
-    </CYTH> """
+    show only the top n directories """
     path_ = normpath(path_)
     if verbose:
         #print_('[utool] checkpath(%r)' % (path_))
@@ -230,12 +233,12 @@ def checkpath(path_, verbose=VERYVERBOSE, n=None, info=VERYVERBOSE):
 
 
 def ensurepath(path_, verbose=VERYVERBOSE):
-    # DEPRICATE
+    """ DEPRICATE - use ensuredir instead """
     return ensuredir(path_, verbose=verbose)
 
 
 def ensuredir(path_, verbose=VERYVERBOSE):
-    """ </CYTH> """
+    """ Ensures that directory will exist """
     if not checkpath(path_):
         if verbose:
             print('[path] mkdir(%r)' % path_)
@@ -244,6 +247,7 @@ def ensuredir(path_, verbose=VERYVERBOSE):
 
 
 def assertpath(path_, **kwargs):
+    """ Asserts that a patha exists """
     if NO_ASSERTS:
         return
     if not checkpath(path_, **kwargs):
@@ -256,8 +260,8 @@ def copy_task(cp_list, test=False, nooverwrite=False, print_tasks=True):
     Input list of tuples:
         format = [(src_1, dst_1), ..., (src_N, dst_N)]
     Copies all files src_i to dst_i
-    <CYTH>
-    </CYTH> """
+
+    """
     num_overwrite = 0
     _cp_tasks = []  # Build this list with the actual tasks
     if nooverwrite:
@@ -292,6 +296,9 @@ def copy_task(cp_list, test=False, nooverwrite=False, print_tasks=True):
 
 
 def copy(src, dst):
+    """
+    Copies src file or folder to dst. If src is a folder this copy is recursive.
+    """
     if exists(src):
         if exists(dst):
             prefix = 'C+O'
@@ -370,6 +377,10 @@ def move_list(src_list, dst_list, lbl='Moving'):
 
 
 def win_shortcut(source, link_name):
+    """
+    Attempt to create windows shortcut
+    TODO: TEST / FIXME
+    """
     import ctypes
     csl = ctypes.windll.kernel32.CreateSymbolicLinkW
     csl.argtypes = (ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint32)
@@ -386,6 +397,10 @@ def win_shortcut(source, link_name):
 
 
 def symlink(source, link_name, noraise=False):
+    """
+    Attempt to create unix or windows symlink
+    TODO: TEST / FIXME
+    """
     if os.path.islink(link_name):
         print('[path] symlink %r exists' % (link_name))
         return
@@ -460,7 +475,7 @@ def iglob(dirname, pattern, recursive=False, with_files=True, with_dirs=True,
 # --- Images ----
 
 def num_images_in_dir(path):
-    'returns the number of images in a directory'
+    """returns the number of images in a directory"""
     num_imgs = 0
     for root, dirs, files in os.walk(path):
         for fname in files:
@@ -501,6 +516,7 @@ def get_module_dir(module, *args):
 
 
 def tail(fpath):
+    """ DEPRICATE USE os.path.basename """
     return split(fpath)[1]
 
 
@@ -574,7 +590,7 @@ def is_module_dir(path):
     return exists(join(path, '__init__.py'))
 
 
-def list_images(img_dpath, ignore_list=[], recursive=False, fullpath=False,
+def list_images(img_dpath_, ignore_list=[], recursive=False, fullpath=False,
                 full=None, sort=True):
     """ TODO: rename to ls_images
         TODO: Change all instances of fullpath to full
@@ -583,19 +599,25 @@ def list_images(img_dpath, ignore_list=[], recursive=False, fullpath=False,
     #    print(ignore_list)
     if full is not None:
         fullpath = fullpath or full
+    img_dpath = realpath(img_dpath_)
     ignore_set = set(ignore_list)
     gname_list_ = []
     assertpath(img_dpath)
     # Get all the files in a directory recursively
     for root, dlist, flist in os.walk(truepath(img_dpath)):
         rel_dpath = relpath(root, img_dpath)
+        # Ignore directories
         if any([dname in ignore_set for dname in dirsplit(rel_dpath)]):
             continue
         for fname in iter(flist):
             gname = join(rel_dpath, fname).replace('\\', '/').replace('./', '')
             if matches_image(gname):
+                # Ignore Files
+                if gname in ignore_set:
+                    continue
                 if fullpath:
-                    gname_list_.append(join(img_dpath, gname))
+                    gpath = join(img_dpath, gname)
+                    gname_list_.append(gpath)
                 else:
                     gname_list_.append(gname)
         if not recursive:
@@ -723,3 +745,18 @@ def platform_path(path):
     else:
         path2 = path1
     return path2
+
+
+def existing_subpath(root_path, valid_subpaths, tiebreaker='first', verbose=VERYVERBOSE):
+    """
+    Returns join(root_path, subpath) where subpath in valid_subpath ane
+    exists(subpath)
+    """
+    # Find the oxford_style groundtruth directory
+    for subpath in valid_subpaths:
+        path  = join(root_path, subpath)
+        if checkpath(path, verbose=verbose):
+            if tiebreaker == 'first':
+                return path
+    raise AssertionError('none of the following subpaths exist: %r' %
+                         (valid_subpaths,))

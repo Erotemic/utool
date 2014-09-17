@@ -20,6 +20,10 @@ python -c "import utool" --dump-utool-init
 python -c "import utool" --update-utool-init
 """
 
+
+#def reimport_names():
+#    pass
+
 if __DYNAMIC__:
     # TODO: import all utool external prereqs. Then the imports will not import
     # anything that has already in a toplevel namespace
@@ -76,6 +80,8 @@ if __DYNAMIC__:
         ('Preferences',    ['Pref']),
         ]
     from ._internal import util_importer
+    # FIXME: this might actually work with rrrr, but things arent being
+    # reimported because they are already in the modules list
     import_execstr = util_importer.dynamic_import(__name__, UTOOLS_LIST)
     exec(import_execstr)
 else:
