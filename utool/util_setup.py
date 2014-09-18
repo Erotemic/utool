@@ -15,18 +15,20 @@ VERBOSE = '--verbose' in sys.argv
 
 
 class SETUP_PATTERNS():
-    clutter = ['*.pyc',
-               '*.pyo',
-               '_*_cyth.o',
-               '_*_cyth_bench.py',
-               'run_cyth_benchmarks.sh',
-               '_*_cyth.c',
-               '_*_cyth.pyd',
-               '_*_cyth.pxd',
-               '_*_cyth.html',
-               '_*_cyth.pyx',
-               '_*_cyth.so',
-               '_*_cyth.dylib']
+    clutter = [
+        '*.pyc',
+        '*.pyo',
+        '_*_cyth.o',
+        '_*_cyth_bench.py',
+        'run_cyth_benchmarks.sh',
+        '_*_cyth.c',
+        '_*_cyth.pyd',
+        '_*_cyth.pxd',
+        '_*_cyth.html',
+        '_*_cyth.pyx',
+        '_*_cyth.so',
+        '_*_cyth.dylib'
+    ]
     chmod   = ['test_*.py']
 
 
