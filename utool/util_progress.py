@@ -31,7 +31,6 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
     """
     Returns two functions (mark_progress, end_progress) which will handle
     logging progress in a for loop.
-    </CYTH>
 
     # Example / Doctest
     # I don't completely understand why some of the >>> and ... had to be where
@@ -102,7 +101,6 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
 
 
 def simple_progres_func(verbosity, msg, progchar='.'):
-    """ </CYTH> """
     def mark_progress0(*args):
         pass
 
@@ -122,7 +120,6 @@ def simple_progres_func(verbosity, msg, progchar='.'):
 
 
 def prog_func(*args, **kwargs):
-    """ </CYTH> """
     return progress_func(*args, **kwargs)
 
 
@@ -134,7 +131,6 @@ def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
     """Returns a function that marks progress taking the iteration count as a
     parameter. Prints if max_val > mark_at. Prints dots if max_val not
     specified or simple=True
-    </CYTH>
     """
     write_fn = sys.stdout.write
     #write_fn = print_
@@ -212,7 +208,6 @@ def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
 
 def progress_str(max_val, lbl='Progress: ', repl=False, approx=False, backspace=PROGGRESS_BACKSPACE):
     """ makes format string that prints progress: %Xd/MAX_VAL with backspaces
-    </CYTH>
     """
     max_str = str(max_val)
     if approx:

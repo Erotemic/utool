@@ -35,7 +35,6 @@ BIGBASE = len(ALPHABET)
 
 
 def hashstr_arr(arr, lbl='arr', **kwargs):
-    """ <CYTH> """
     if isinstance(arr, list):
         arr = tuple(arr)  # force arrays into a tuple
     if isinstance(arr, tuple):
@@ -48,7 +47,6 @@ def hashstr_arr(arr, lbl='arr', **kwargs):
 
 
 def hashstr(data, hashlen=HASH_LEN):
-    """ <CYTH> """
     if isinstance(data, tuple):
         data = repr(data)
     if six.PY3:
@@ -85,7 +83,7 @@ valid_filename_ascii_chars()
 
 def convert_hexstr_to_bigbase(hexstr):
     """ Packs a long hexstr into a shorter length string with a larger base
-    <CYTH> """
+    """
     x = int(hexstr, 16)  # first convert to base 16
     if x == 0:
         return '0'
@@ -109,7 +107,6 @@ def hashstr_md5(data):
 
 
 def hashstr_sha1(data, base10=False):
-    """ <CYTH> """
     hashstr = hashlib.sha1(data).hexdigest()
     if base10:
         hashstr = int("0x" + hashstr, 0)
@@ -133,7 +130,6 @@ def get_file_hash(fpath, blocksize=65536, hasher=None):
 
 def get_file_uuid(fpath, hasher=None):
     """ Creates a uuid from the hash of a file
-    <CYTH>
     """
     if hasher is None:
         hasher = hashlib.sha1()  # 20 bytes of output
@@ -158,7 +154,6 @@ def image_uuid(pil_img):
 
 
 def augment_uuid(uuid_, *hashables):
-    """ <CYTH> """
     #from six.moves import reprlib
     #uuidhex_data   = uuid_.get_bytes()
     uuidhex_data   = uuid_.bytes
@@ -180,7 +175,7 @@ def augment_uuid(uuid_, *hashables):
 
 
 def hashable_to_uuid(hashable_):
-    """ <CYTH>
+    """
     hashables are bytes-like objects
        An object that supports the Buffer Protocol, like bytes, bytearray or
        memoryview. Bytes-like objects can be used for various operations that
@@ -225,12 +220,10 @@ def hashable_to_uuid(hashable_):
 
 
 def deterministic_uuid(hashable):
-    """ <CYTH> """
     return hashable_to_uuid(hashable)
 
 
 def random_uuid():
-    """ <CYTH> """
     return uuid.uuid4()
 
 

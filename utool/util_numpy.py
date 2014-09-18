@@ -45,7 +45,7 @@ def index_of(item, array):
 def spaced_indexes(len_, n, trunc=False):
     """ Returns n evenly spaced indexes.
         Returns as many as possible if trunc is true
-    </CYTH> """
+     """
 
     if n is None:
         return np.arange(len_)
