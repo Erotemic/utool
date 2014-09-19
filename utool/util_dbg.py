@@ -685,10 +685,12 @@ def super_print(val, locals_=None):
     print(get_varstr(val, locals_=locals_))
 
 
-def parse_locals_keylist(locals_, key_list, strlist_, prefix):
+def parse_locals_keylist(locals_, key_list, strlist_=None, prefix=''):
     """ For each key in keylist, puts its value in locals into a stringlist """
     #from .util_str import get_callable_name
     from utool.util_str import get_callable_name
+    if strlist_ is None:
+        strlist_ = []
 
     for key in key_list:
         try:
@@ -714,6 +716,7 @@ def parse_locals_keylist(locals_, key_list, strlist_, prefix):
                 strlist_.append('%s %s %s = %s' % (prefix, typestr, namestr, valstr))
         except AssertionError as ex:
             strlist_.append(str(ex))
+    return strlist_
 
 
 def get_reprs(*args, **kwargs):

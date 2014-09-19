@@ -105,6 +105,7 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=1):
             #return -1
         return -1
     except ValueError as ex:
+        from .util_arg import STRICT
         if isinstance(datetime_str_, six.string_types):
             if datetime_str_.find('No EXIF Data') == 0:
                 return -1
