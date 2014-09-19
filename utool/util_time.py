@@ -4,7 +4,6 @@ import six
 import time
 import datetime
 from .util_inject import inject
-from .util_arg import STRICT
 print, print_, printDBG, rrr, profile = inject(__name__, '[time]')
 
 
@@ -106,6 +105,7 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=1):
             #return -1
         return -1
     except ValueError as ex:
+        from .util_arg import STRICT
         if isinstance(datetime_str, six.string_types):
             if datetime_str.find('No EXIF Data') == 0:
                 return -1
