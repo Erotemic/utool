@@ -685,6 +685,13 @@ def super_print(val, locals_=None):
     print(get_varstr(val, locals_=locals_))
 
 
+def print_keys(key_list, locals_=None):
+    if locals_ is None:
+        locals_ = get_parent_locals()
+    strlist_ = parse_locals_keylist(locals_, key_list)
+    print('\n'.join(strlist_))
+
+
 def parse_locals_keylist(locals_, key_list, strlist_=None, prefix=''):
     """ For each key in keylist, puts its value in locals into a stringlist """
     #from .util_str import get_callable_name
@@ -705,7 +712,7 @@ def parse_locals_keylist(locals_, key_list, strlist_=None, prefix=''):
                 strlist_.append('%s %s(%s) = %s' % (prefix, get_callable_name(func), key_, funcvalstr))
             elif isinstance(key, six.string_types):
                 # Try to infer print from variable name
-                val = get_varval_from_locals(key)
+                val = get_varval_from_locals(key, locals_)
                 valstr = truncate_str(repr(val), maxlen=200)
                 strlist_.append('%s %s = %s' % (prefix, key, valstr))
             else:
