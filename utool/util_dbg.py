@@ -647,7 +647,7 @@ def get_varname_from_locals(val, locals_, default='varname-not-found',
     return varname
 
 
-def get_varval_from_locals(key, locals_):
+def get_varval_from_locals(key, locals_, strict=False):
     assert isinstance(key, str), 'must have parsed key into a string already'
     if key not in locals_:
         dotpos = key.find('.')
@@ -655,7 +655,12 @@ def get_varval_from_locals(key, locals_):
             key_ = key[:dotpos]
             attrstr_ = key[dotpos:]
             baseval = locals_[key_]  # NOQA
-            val = eval('baseval' + attrstr_)
+            try:
+                val = eval('baseval' + attrstr_)
+            except Exception as ex:
+                if strict:
+                    raise
+                val = ex
         else:
             raise AssertionError('!!! %s not populated!' % (key))
     else:
@@ -717,8 +722,9 @@ def parse_locals_keylist(locals_, key_list, strlist_=None, prefix=''):
                 strlist_.append('%s %s = %s' % (prefix, key, valstr))
             else:
                 # Try to infer print from variable value
-                typestr = repr(type(key))
-                namestr = get_varname_from_locals(key, locals_)
+                val = key
+                typestr = repr(type(val))
+                namestr = get_varname_from_locals(val, locals_)
                 valstr = truncate_str(repr(val), maxlen=200)
                 strlist_.append('%s %s %s = %s' % (prefix, typestr, namestr, valstr))
         except AssertionError as ex:
