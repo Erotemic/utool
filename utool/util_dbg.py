@@ -654,8 +654,8 @@ def get_varval_from_locals(key, locals_, strict=False):
         if dotpos > -1:
             key_ = key[:dotpos]
             attrstr_ = key[dotpos:]
-            baseval = locals_[key_]  # NOQA
             try:
+                baseval = locals_[key_]  # NOQA
                 val = eval('baseval' + attrstr_)
             except Exception as ex:
                 if strict:

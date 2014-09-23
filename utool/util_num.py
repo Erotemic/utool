@@ -95,7 +95,19 @@ def num2_sigfig(num):
     return int(np.ceil(np.log10(num)))
 
 
-def num_fmt(num, max_digits=1):
+def num_fmt(num, max_digits=None):
+    def num_in_mag(num, mag):
+        return mag > num and num > (-1 * mag)
+    if max_digits is None:
+        # TODO: generalize
+        if num_in_mag(num, 1):
+            if num_in_mag(num, .1):
+                max_digits = 4
+            else:
+                max_digits = 3
+        else:
+            max_digits = 1
+
     if is_float(num):
         return ('%.' + str(max_digits) + 'f') % num
     elif is_int(num):
