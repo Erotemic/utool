@@ -105,6 +105,7 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=1):
             #return -1
         return -1
     except ValueError as ex:
+        from .util_arg import STRICT
         if isinstance(datetime_str, six.string_types):
             if datetime_str.find('No EXIF Data') == 0:
                 return -1
@@ -112,15 +113,20 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=1):
                 return -1
             if datetime_str == '0000:00:00 00:00:00':
                 return -1
-        print('!!!!!!!!!!!!!!!!!!')
+        print('<!!! ValueError !!!>')
         print('[util_time] Caught Error: ' + repr(ex))
         print('[util_time] type(datetime_str)  = %r' % type(datetime_str))
-        print('[util_time] repr(datetime_str_) = %r' % datetime_str_)
         print('[util_time] repr(datetime_str)  = %r' % datetime_str)
         print('[util_time]     (datetime_str)  = %s' % datetime_str)
         print('[util_time]  len(datetime_str)  = %d' % len(datetime_str))
-        print('[util_time]  len(datetime_str_)  = %d' % len(datetime_str_))
-        raise
+        print('[util_time] repr(datetime_str_) = %r' % datetime_str_)
+        print('[util_time]  len(datetime_str_) = %d' % len(datetime_str_))
+        print('</!!! ValueError !!!>')
+        if STRICT:
+            raise
+        else:
+            print('Supressed ValueError')
+            return -1
 
 
 def unixtime_to_datetime(unixtime, timefmt='%Y/%m/%d %H:%M:%S'):
