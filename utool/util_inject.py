@@ -5,6 +5,7 @@ import sys
 from functools import wraps
 from . import util_logging
 from ._internal.meta_util_six import get_funcname
+from ._internal.meta_util_arg import get_arg
 
 
 __AGGROFLUSH__ = '--aggroflush' in sys.argv
@@ -62,6 +63,8 @@ def get_injected_modules():
 
 
 def _get_module(module_name=None, module=None, register=True):
+    """ finds module in sys.modules based on module name unless the module has
+    already been found and is passed in """
     if module is None and module_name is not None:
         try:
             module = sys.modules[module_name]
@@ -175,6 +178,7 @@ def inject_reload_function(module_name=None, module_prefix='[???]', module=None)
 
 
 def DUMMYPROF_FUNC(func):
+    """ dummy profiling func. does nothing """
     return func
 
 
@@ -220,21 +224,22 @@ except AttributeError:
 #    _inject_funcs(module, profile)
 #    return profile
 
-PROF_FUNC_PAT_LIST = None
-PROF_MOD_PAT_LIST = None  # ['spatial']
+#PROF_MOD_PAT_LIST = None  # ['spatial']
 # TODO: Add this to command line
 
-from ._internal.meta_util_arg import get_arg
 #PROF_MOD_PAT_LIST = ['spatial', 'linalg', 'keypoint']
+
+# Look in command line for functions to profile
+PROF_FUNC_PAT_LIST = get_arg('--prof-func', type_=str, default=None)
+if PROF_FUNC_PAT_LIST is not None:
+    PROF_FUNC_PAT_LIST = PROF_FUNC_PAT_LIST.split(',')
+    print('[util_inject] PROF_FUNC_PAT_LIST: %r' % (PROF_FUNC_PAT_LIST,))
+
+# Look in command line for modules to profile
 PROF_MOD_PAT_LIST = get_arg('--prof-mod', type_=str, default=None)
 if PROF_MOD_PAT_LIST is not None:
     PROF_MOD_PAT_LIST = PROF_MOD_PAT_LIST.split(';')
-    #print('PROF_MOD_PAT_LIST: %r' % (PROF_MOD_PAT_LIST,))
-    #sys.exit(1)
-#else:
-#    print('PROF_MOD_PAT_LIST: %r' % (PROF_MOD_PAT_LIST,))
-#    sys.exit(1)
-del get_arg
+    print('[util_inject] PROF_MOD_PAT_LIST: %r' % (PROF_MOD_PAT_LIST,))
 
 
 def _matches_list(name, pat_list):
@@ -242,12 +247,14 @@ def _matches_list(name, pat_list):
 
 
 def _profile_func_flag(funcname):
+    """ checks if func has been requested to be profiled """
     if PROF_FUNC_PAT_LIST is None:
         return True
     return _matches_list(funcname, PROF_FUNC_PAT_LIST)
 
 
 def _profile_module_flag(module_name):
+    """ checks if module has been requested to be profiled """
     if PROF_MOD_PAT_LIST is None:
         return True
     return _matches_list(module_name, PROF_MOD_PAT_LIST)
