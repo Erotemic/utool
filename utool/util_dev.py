@@ -486,4 +486,4 @@ def reset_catch_ctrl_c():
 
 def is_developer():
     import utool
-    return utool.get_computer_name() in ['Hyrule', 'Ooo', 'BakerStreet']
+    return utool.get_computer_name().lower() in ['hyrule', 'ooo', 'bakerstreet']
