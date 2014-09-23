@@ -238,7 +238,7 @@ if PROF_FUNC_PAT_LIST is not None:
 # Look in command line for modules to profile
 PROF_MOD_PAT_LIST = get_arg('--prof-mod', type_=str, default=None)
 if PROF_MOD_PAT_LIST is not None:
-    PROF_MOD_PAT_LIST = PROF_MOD_PAT_LIST.split(';')
+    PROF_MOD_PAT_LIST = PROF_MOD_PAT_LIST.split(',')
     print('[util_inject] PROF_MOD_PAT_LIST: %r' % (PROF_MOD_PAT_LIST,))
 
 
