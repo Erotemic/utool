@@ -12,6 +12,7 @@ from .util_print import Indenter
 from utool._internal.meta_util_six import get_funcname, set_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[arg]')
 
+DEBUG2 = '--debug2' in sys.argv
 QUIET = '--quiet' in sys.argv
 NOT_QUIET = not QUIET
 VERBOSE = '--verbose' in sys.argv
