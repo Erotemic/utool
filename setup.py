@@ -40,6 +40,7 @@ if __name__ == '__main__':
             'utool/util_scripts/makeinit.py',
             'utool/util_scripts/profiler.sh',
             'utool/util_scripts/profiler.py',
+            'utool/util_scripts/profiler_cleaner.py',
             'utool/util_scripts/utoolwc.py',
             'utool/util_scripts/grabzippedurl.py',
             'utool/util_scripts/autogen_sphinx_docs.py',

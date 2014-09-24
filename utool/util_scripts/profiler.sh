@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Globals
 echo "==========="
 echo "PROFILER.sh"
@@ -17,16 +17,6 @@ remove_profiles()
     echo "Finshed removing profiles"
 }
 
-# Input (get only the filename)
-
-export pyscript=$($PYEXE -c "import os; print(os.path.split(r'$1')[1])")
-#export pyscript=$(echo $1 | sed -e 's/.*[\/\\]//g')
-
-if [ "$pyscript" = "clean" ]; then
-    remove_profiles
-    exit
-fi 
-
 #echo $pyscript
 #set -e
 #/bin/command-that-fails
@@ -40,22 +30,38 @@ export PROFILE_TYPE="lineprof"
 export SYSNAME="$(expr substr $(uname -s) 1 10)"
 if [ "$SYSNAME" = "MINGW32_NT" ]; then
     # MINGW
-    export MINGW_PYDIR=$($PYEXE -c "import sys, os; print(os.path.dirname(sys.executable))")
-    export PYEXE=$($PYEXE -c "import sys; print(sys.executable)")
+    export MINGW_PYDIR=$(python -c "import sys, os; print(os.path.dirname(sys.executable))")
+    export PYEXE=$(python -c "import sys; print(sys.executable)")
     export PYSCRIPTS=$MINGW_PYDIR/Scripts
     export KERNPROF_PY="$PYEXE $PYSCRIPTS/kernprof.py"
-elif [[ "$OSTYPE" == "darwin"* ]]; then
+    export LINEPROF_CLEAN_PY="$PYEXE $PYSCRIPTS/profiler_cleaner.py"
+elif [ "$OSTYPE" = "darwin"* ]; then
     # MACPORTS
-    export PYEXE=$($PYEXE -c "import sys; print(sys.executable)")
+    export PYEXE=$(python -c "import sys; print(sys.executable)")
     export PYSCRIPTS="/opt/local/Library/Frameworks/Python.framework/Versions/2.7/bin"
     echo "Python EXE: $PYEXE"
     echo "Python Scripts $PYSCRIPTS"
     export KERNPROF_PY="$PYEXE $PYSCRIPTS/kernprof.py"
+    export LINEPROF_CLEAN_PY="$PYEXE $PYSCRIPTS/profiler_cleaner.py"
 else
     # UBUNTU
-    export KERNPROF_PY="kernprof.py"
+    #export KERNPROF_PY="kernprof.py"
+    export KERNPROF_PY="kernprof"
+    export LINEPROF_CLEAN_PY="profiler_cleaner.py"
+
     export RUNSNAKE_PY="runsnake"
+    export PYEXE=$(python -c "import sys; print(sys.executable)")
 fi
+
+# Input (get only the filename)
+
+export pyscript=$($PYEXE -c "import os; print(os.path.split(r'$1')[1])")
+#export pyscript=$(echo $1 | sed -e 's/.*[\/\\]//g')
+
+if [ "$pyscript" = "clean" ]; then
+    remove_profiles
+    exit
+fi 
 
 echo "pyscript: $pyscript"
 
@@ -81,7 +87,7 @@ elif [ $PROFILE_TYPE = "lineprof" ]; then
     # Dump the line profile output to a text file
     $PYEXE -m line_profiler $line_profile_output >> $raw_profile
     # Clean the line profile output
-    $PYEXE _scripts/profiler_cleaner.py $raw_profile $clean_profile
+    $LINEPROF_CLEAN_PY $raw_profile $clean_profile
     # Print the cleaned output
     cat $clean_profile
 #
