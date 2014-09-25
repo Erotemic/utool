@@ -24,24 +24,24 @@ SUPER_STRICT = '--super-strict' in sys.argv
 
 
 # TODO: rectify with meta_util_arg
-#from ._internal.meta_util_arg import get_arg
-def get_arg(argstr, type_=None, default=None, help_=None):
+#from ._internal.meta_util_arg import get_argval
+def get_argval(argstr, type_=None, default=None, help_=None):
     """ Returns a value of an argument specified on the command line after some flag
 
-    python -c "import utool; print([(type(x), x) for x in [utool.get_arg('--quest')]])" --quest="holy grail"
-    python -c "import utool; print([(type(x), x) for x in [utool.get_arg('--quest')]])" --quest="42"
-    python -c "import utool; print([(type(x), x) for x in [utool.get_arg('--quest')]])" --quest=42
-    python -c "import utool; print([(type(x), x) for x in [utool.get_arg('--quest')]])" --quest 42
-    python -c "import utool; print([(type(x), x) for x in [utool.get_arg('--quest', float)]])" --quest 42
+    python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest="holy grail"
+    python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest="42"
+    python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest=42
+    python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest 42
+    python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest', float)]])" --quest 42
 
     >>> from utool.util_arg import *  # NOQA
     >>> import sys
     >>> sys.argv.extend(['--spam', 'eggs', '--quest=holy grail', '--ans=42'])
-    >>> get_arg('--spam', type_=str, default=None)
+    >>> get_argval('--spam', type_=str, default=None)
     eggs
-    >>> get_arg('--quest', type_=str, default=None)
+    >>> get_argval('--quest', type_=str, default=None)
     holy grail
-    >>> get_arg('--ans', type_=int, default=None)
+    >>> get_argval('--ans', type_=int, default=None)
     42
     """
     arg_after = default

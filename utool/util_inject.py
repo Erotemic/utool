@@ -5,7 +5,7 @@ import sys
 from functools import wraps
 from . import util_logging
 from ._internal.meta_util_six import get_funcname
-from ._internal.meta_util_arg import get_arg
+from ._internal.meta_util_arg import get_argval
 
 
 __AGGROFLUSH__ = '--aggroflush' in sys.argv
@@ -230,13 +230,13 @@ except AttributeError:
 #PROF_MOD_PAT_LIST = ['spatial', 'linalg', 'keypoint']
 
 # Look in command line for functions to profile
-PROF_FUNC_PAT_LIST = get_arg('--prof-func', type_=str, default=None)
+PROF_FUNC_PAT_LIST = get_argval('--prof-func', type_=str, default=None)
 if PROF_FUNC_PAT_LIST is not None:
     PROF_FUNC_PAT_LIST = PROF_FUNC_PAT_LIST.split(',')
     print('[util_inject] PROF_FUNC_PAT_LIST: %r' % (PROF_FUNC_PAT_LIST,))
 
 # Look in command line for modules to profile
-PROF_MOD_PAT_LIST = get_arg('--prof-mod', type_=str, default=None)
+PROF_MOD_PAT_LIST = get_argval('--prof-mod', type_=str, default=None)
 if PROF_MOD_PAT_LIST is not None:
     PROF_MOD_PAT_LIST = PROF_MOD_PAT_LIST.split(',')
     print('[util_inject] PROF_MOD_PAT_LIST: %r' % (PROF_MOD_PAT_LIST,))

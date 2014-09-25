@@ -24,7 +24,7 @@ STRICT  = util_arg.STRICT
 __POOL__ = None
 __TIME__ = '--time' in sys.argv
 __SERIAL_FALLBACK__ = '--noserial-fallback' not in sys.argv
-__NUM_PROCS__ = util_arg.get_arg('--num-procs', int, default=None)
+__NUM_PROCS__ = util_arg.get_argval('--num-procs', int, default=None)
 __FORCE_SERIAL__ = util_arg.get_flag('--utool-force-serial')
 
 
