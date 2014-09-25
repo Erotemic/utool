@@ -50,8 +50,8 @@ def make_setup(repodir):
 
 
 if __name__ == '__main__':
-    writeflag = utool.get_flag(('--write', '-w'))
-    overwriteflag = utool.get_flag(('--yes', '-y'))
+    writeflag = utool.get_argflag(('--write', '-w'))
+    overwriteflag = utool.get_argflag(('--yes', '-y'))
     repodir = utool.unixpath(os.getcwd())
     print('[utool] making setup.py for: %r' % repodir)
     setup_text = make_setup(repodir)

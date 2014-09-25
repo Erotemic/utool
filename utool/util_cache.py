@@ -159,7 +159,7 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
         fname_ = get_funcname(func) if fname is None else fname
         cacher = Cacher(fname_, cache_dir=cache_dir, appname=appname)
         if use_cache is None:
-            use_cache_ = not util_arg.get_flag('--nocache-' + fname)
+            use_cache_ = not util_arg.get_argflag('--nocache-' + fname)
         @functools.wraps(func)
         def cached_wraper(*args, **kwargs):
             # Implicitly adds use_cache to kwargs

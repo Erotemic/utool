@@ -34,7 +34,7 @@ if __DYNAMIC__:
         ('_internal',      None),
         ('util_alg',       ['cartesian', 'almost_eq',]),
         ('util_aliases',   ['ddict' ,'odict']),
-        ('util_arg',       ['get_argval', 'get_flag', 'argv_flag_dec', 'QUIET',
+        ('util_arg',       ['get_argval', 'get_argflag', 'argv_flag_dec', 'QUIET',
                             'VERBOSE']),
         ('util_cache',     ['global_cache_read', 'global_cache_write']),
         ('util_cplat',     ['cmd', 'view_directory',]),
@@ -139,7 +139,7 @@ else:
     from .util_arg import (ArgumentParser2, Indenter, NOT_QUIET, NO_ASSERTS, QUIET,
                            STRICT, SUPER_STRICT, USE_ASSERT, VERBOSE, VERYVERBOSE,
                            argv_flag, argv_flag_dec, argv_flag_dec_true, fuzzy_int,
-                           get_argval, get_flag, get_fpath_args, get_funcname, inject,
+                           get_argval, get_argflag, get_fpath_args, get_funcname, inject,
                            make_argparse2, set_funcname, switch_sanataize,
                            try_cast,)
     from .util_cache import (GlobalShelfContext, default_appname,

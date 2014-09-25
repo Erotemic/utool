@@ -64,7 +64,7 @@ def get_argval(argstr, type_=None, default=None, help_=None):
     return arg_after
 
 
-def get_flag(arg, default=False, help_='', **kwargs):
+def get_argflag(arg, default=False, help_='', **kwargs):
     """ Checks if the commandline has a flag or a corresponding noflag """
     if isinstance(arg, (tuple, list)):
         arg_list = arg
@@ -83,14 +83,19 @@ def get_flag(arg, default=False, help_='', **kwargs):
     return default
 
 
-def argv_flag(name, default, **kwargs):
-    if name.find('--') == 0:
-        name = name[2:]
-    if '--' + name in sys.argv and default is False:
-        return True
-    if '--no' + name in sys.argv and default is True:
-        return False
-    return default
+# Aliases
+#get_arg  = get_argval
+#get_arg  = get_argval
+
+
+#def argv_flag(name, default, **kwargs):
+#    if name.find('--') == 0:
+#        name = name[2:]
+#    if '--' + name in sys.argv and default is False:
+#        return True
+#    if '--no' + name in sys.argv and default is True:
+#        return False
+#    return default
 
 
 # ---- OnTheFly argparse ^^^^
@@ -216,7 +221,7 @@ def __argv_flag_dec(func, default=False, quiet=QUIET):
 
     def GaurdWrapper(*args, **kwargs):
         # FIXME: the --print-all is a hack
-        if get_flag(flag, default) or get_flag('--print-all'):
+        if get_argflag(flag, default) or get_argflag('--print-all'):
             indent_lbl = flag.replace('--', '').replace('print-', '')
             print('')
             with Indenter('[%s]' % indent_lbl):

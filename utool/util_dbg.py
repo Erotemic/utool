@@ -18,7 +18,7 @@ import types
 import functools
 from os.path import splitext, split
 from . import util_inject
-from .util_arg import get_flag, SUPER_STRICT
+from .util_arg import get_argflag, SUPER_STRICT
 from .util_inject import inject
 from .util_list import list_allsame
 from .util_print import Indenter
@@ -257,7 +257,7 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
 
 
 def quitflag(num=None, embed_=False, parent_locals=None, parent_globals=None):
-    if num is None or get_flag('--quit' + str(num)):
+    if num is None or get_argflag('--quit' + str(num)):
         if parent_locals is None:
             parent_locals = get_parent_locals()
         if parent_globals is None:

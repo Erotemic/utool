@@ -23,6 +23,6 @@ def permit_gitrepo(config_fpath, writeback=False):
 
 if __name__ == '__main__':
     import utool
-    WRITEBACK = utool.get_flag('-i')
+    WRITEBACK = utool.get_argflag('-i')
     config_fpath = '.git/config'
     permit_gitrepo(config_fpath, writeback=WRITEBACK)

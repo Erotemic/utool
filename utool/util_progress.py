@@ -13,13 +13,13 @@ import sys
 from .util_inject import inject
 from .util_arg import QUIET
 from . import util_time
-#get_flag,
+#get_argflag,
 #, VERBOSE
 print, print_, printDBG, rrr, profile = inject(__name__, '[progress]')
 
 
-#QUIET = get_flag('--quiet')
-#VERBOSE = get_flag('--verbose')
+#QUIET = get_argflag('--quiet')
+#VERBOSE = get_argflag('--verbose')
 VALID_PROGRESS_TYPES = ['none', 'dots', 'fmtstr', 'simple']
 AGGROFLUSH = '--aggroflush' in sys.argv
 PROGGRESS_BACKSPACE = '--screen' not in sys.argv
