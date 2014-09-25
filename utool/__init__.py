@@ -126,200 +126,208 @@ else:
     from . import util_tests
     from . import DynamicStruct
     from . import Preferences
-
-    from .util_alg import (PHI, PHI_A, PHI_B, almost_eq, build_reverse_mapping,
-                           cartesian, choose, defaultdict, find_std_inliers,
-                           flatten_membership_mapping, get_nth_prime, get_phi,
-                           get_phi_ratio1, group_items, iceil, iround, is_prime,
-                           norm_zero_one, normalize, unique_row_indexes,
-                           unpack_items_sorted, unpack_items_sorted_by_lenvalue,
-                           unpack_items_sorted_by_value, void_rowview_numpy,
-                           xywh_to_tlbr,)
-    from .util_aliases import (OrderedDict, ddict, iprod, odict, product,)
-    from .util_arg import (ArgumentParser2, Indenter, NOT_QUIET, NO_ASSERTS, QUIET,
-                           STRICT, SUPER_STRICT, USE_ASSERT, VERBOSE, VERYVERBOSE,
-                           argv_flag, argv_flag_dec, argv_flag_dec_true, fuzzy_int,
-                           get_argval, get_argflag, get_fpath_args, get_funcname, inject,
-                           make_argparse2, set_funcname, switch_sanataize,
-                           try_cast,)
-    from .util_cache import (GlobalShelfContext, default_appname,
-                             delete_global_cache, get_global_cache_dir,
-                             get_global_shelf_fpath, global_cache_dname,
-                             global_cache_dump, global_cache_fname,
-                             global_cache_read, global_cache_write, load_cache,
-                             save_cache, text_dict_write,)
-    from .util_cplat import (COMPUTER_NAME, DARWIN, LIB_DICT, LIB_EXT_LIST, LINUX,
-                             OS_TYPE, PYLIB_DICT, WIN32, cmd, editfile,
-                             get_app_resource_dir, get_computer_name,
-                             get_dir_diskspaces, get_disk_space,
-                             get_dynamic_lib_globstrs, get_dynlib_dependencies,
-                             get_flops, get_free_diskbytes, get_lib_ext,
-                             get_pylib_ext, get_resource_dir, get_user_name,
-                             getroot, is64bit_python, ls_libs, print_dir_diskspace,
-                             python_executable, run_realtime_process,
-                             set_process_title, shell, startfile, truepath,
-                             unixpath, vd, view_directory,)
-    from .util_class import (ReloadingMetaclass, classmember, inject_func_as_method,
-                             inject_instance, makeForwardingMetaclass,
-                             reload_class_methods,)
-    from .util_csv import (ex, is_float, is_int, is_list, is_str, make_csv_table,
-                           numpy_to_csv,)
-    from .util_dbg import (IPYTHON_EMBED_STR, all_rrr, debug_exception,
-                           debug_hstack, debug_list, debug_npstack, debug_vstack,
-                           dict_dbgstr, embed, execstr_attr_list, execstr_dict,
-                           execstr_embed, execstr_func, execstr_parent_locals,
-                           execstr_src, explore_module, explore_stack, fmtlocals,
-                           formatex, get_caller_locals, get_caller_name,
-                           get_caller_prefix, get_parent_frame, get_parent_globals,
-                           get_parent_locals, get_reprs, get_stack_frame, get_type,
-                           haveIPython, horiz_string, import_testdata, inIPython,
-                           indent, ipython_execstr, ipython_execstr2, is_listlike,
-                           is_valid_varname, keys_dbgstr, len_dbgstr, list_allsame,
-                           list_dbgstr, load_testdata, module_functions,
-                           my_numpy_printops, pack_into, parse_locals_keylist,
-                           print_frame, print_varlen, printex, printvar, printvar2,
-                           public_attributes, qflag, quasiquote, quit, quitflag,
-                           save_testdata, search_stack_for_localvar,
-                           search_stack_for_var, split, truncate_str,
-                           varname_regex,)
-    from .util_dev import (DEPRICATED, common_stats, compile_cython,
-                           disable_garbage_collection, enable_garbage_collection,
-                           find_exe, garbage_collect, get_cython_exe,
-                           get_object_base, get_object_size, get_object_size_str,
-                           info, init_catch_ctrl_c, listinfo, make_call_graph,
-                           make_object_graph, memory_profile, myprint, mystats,
-                           npinfo, numpy_list_num_bits, print_mystats,
-                           print_object_size, print_object_size_tree, printableVal,
-                           reset_catch_ctrl_c, runprofile, stats_str,)
-    from .util_decor import (IGNORE_TRACEBACK, NOINDENT_DECOR, PROFILING, TRACE,
-                             UNIQUE_NUMPY, accepts_numpy, accepts_scalar_input,
-                             accepts_scalar_input2,
-                             accepts_scalar_input_vector_output, copy_argspec,
-                             getter_1to1, getter_1toM, ignores_exc_tb, indent_func,
-                             interested, isiterable, lazyfunc, memorize,
-                             on_exception_report_input, show_return_value,
-                             time_func, wraps,)
-    from .util_distances import (L1, L2, L2_sqrd, compute_distances, emd,
-                                 hist_isect, nearest_point,)
-    from .util_dict import (all_dict_combinations, all_dict_combinations_lbls,
-                            build_conflict_dict, dict_union, dict_union2,
-                            dict_update_newkeys, items_sorted_by_value,
-                            keys_sorted_by_value, updateif_haskey,)
-    from .util_func import (general_get, general_set, uinput_1to1,)
-    from .util_grabdata import (BadZipfile, download_url, fix_dropbox_link,
-                                grab_file_url, grab_zipped_url, split_archive_ext,
-                                unarchive_file, untar_file, unzip_file,)
-    from .util_git import (PROJECT_REPO_DIRS, PROJECT_REPO_URLS, checkout_repos,
-                           ensure_repos, get_repo_dirs, get_repo_dname, gg_command,
-                           gitcmd, is_gitrepo, isdir, pull_repos, repo_list,
-                           set_project_repos, set_userid, setup_develop_repos,
-                           std_build_command,)
-    from .util_hash import (ALPHABET, ALPHABET_16, BIGBASE, HASH_LEN, augment_uuid,
-                            convert_hexstr_to_bigbase, deterministic_uuid,
-                            get_file_hash, get_file_uuid, get_zero_uuid,
-                            hashable_to_uuid, hashstr, hashstr_arr, hashstr_md5,
-                            hashstr_sha1, image_uuid, random_nonce, random_uuid,)
-    from .util_inject import (ARGV_DEBUG_FLAGS, DUMMYPROF_FUNC, KERNPROF_FUNC,
-                              PROF_FUNC_PAT_LIST, PROF_MOD_PAT_LIST, SILENT,
-                              TIMERPROF_FUNC, argv, get_injected_modules, inject,
-                              inject_all, inject_colored_exceptions,
-                              inject_print_functions, inject_profile_function,
-                              inject_reload_function,)
-    from .util_io import (load_cPkl, read_from, save_cPkl, try_decode, write_to,)
-    from .util_iter import (chain, cycle, ensure_iterable, ichunks, ifilter_Nones,
-                            ifilter_items, ifilterfalse_items, iflatten,
-                            iflatten_scalars, interleave, interleave2, interleave3,
-                            islice, roundrobin,)
-    from .util_inspect import (list_class_funcnames,)
-    from .util_logging import (PRINT_ALL_CALLERS, add_logging_handler,
-                               get_log_fpath, get_logging_dir, logdir_cacheid,
-                               start_logging, stop_logging,)
-    from .util_list import (alloc_lists, alloc_nones, assert_all_not_None,
-                            assert_unflat_level, ensure_list_size, filter_Nones,
-                            filter_items, filterfalse_items, flag_unique_items,
-                            flatten, flattenize, get_callable_name, get_dirty_items,
-                            get_list_column, intersect_ordered, invertable_flatten,
-                            list_getat, list_replace, listfind, partial_imap_1to1,
-                            safe_listget, safe_slice, sample_zip, scalar_input_map,
-                            sortedby, tuplize, unflatten, unique_keep_order2,
-                            unique_ordered, unique_unordered,)
-    from .util_num import (commas, fewest_digits_float_str, float_to_decimal,
-                           format_, int_comma_str, num2_sigfig, num_fmt,
-                           order_of_magnitude_ceil, sigfig_str,)
-    from .util_numpy import (deterministic_sample, deterministic_shuffle, inbounds,
-                             index_of, intersect2d, intersect2d_numpy, list_index,
-                             listlike_copy, npfind, random_indexes, random_sample,
-                             sample_domain, spaced_indexes, spaced_items,
-                             tiled_range,)
-    from .util_path import (IMG_EXTENSIONS, append_suffixlist_to_namelist,
-                            assert_exists, assertpath, basename_noext, checkpath,
-                            copy, copy_all, copy_list, copy_task, delete, dirsplit,
-                            ensuredir, ensurepath, ext, extend_regex, file_bytes,
-                            file_megabytes, fixwin32_shortname, fnames_to_fpaths,
-                            fpaths_to_fnames, get_basename_noext_list,
-                            get_basepath_list, get_ext_list, get_module_dir, glob,
-                            grep, iglob, is_module_dir, is_private_module, isfile,
-                            islink, ismount, list_images, longest_existing_path, ls,
-                            ls_dirs, ls_moduledirs, ls_modulefiles, matches_image,
-                            move_list, newcd, num_images_in_dir, path_ndir_split,
-                            platform_path, progress_func, remove_dirs, remove_file,
-                            remove_file_list, remove_files_in_dir, symlink, tail,
-                            truepath, truepath_relative, unixjoin, win_shortcut,)
-    from .util_print import (Indenter, NO_INDENT, NpPrintOpts, filesize_str,
-                             full_numpy_repr, horiz_print, printNOTQUIET,
-                             printVERBOSE, printWARN, print_filesize, print_locals,
-                             printif, printshape,)
-    from .util_progress import (AGGROFLUSH, PROGGRESS_BACKSPACE,
-                                VALID_PROGRESS_TYPES, log_progress, prog_func,
-                                progress_func, progress_str, simple_progres_func,)
-    from .util_parallel import (BACKEND, close_pool, ensure_pool, generate,
-                                get_default_numprocs, in_main_process, init_pool,
-                                init_worker, new_pool, process, set_num_procs, tic,
-                                toc,)
-    from .util_resources import (available_memory, byte_str2, current_memory_usage,
-                                 get_resource_limits, memstats, num_cpus,
-                                 peak_memory, print_resource_usage,
-                                 time_in_systemmode, time_in_usermode, time_str2,
-                                 total_memory, used_memory,)
-    from .util_str import (GLOBAL_TYPE_ALIASES, TAU, align, align_lines, bbox_str,
-                           byte_str, byte_str2, dict_aliased_repr,
-                           dict_itemstr_list, dict_str, extend_global_aliases,
-                           file_megabytes_str, func_str, get_freespace_str,
-                           get_indentation, get_unix_timedelta,
-                           get_unix_timedelta_str, horiz_string, hz_str,
-                           indent_list, indentjoin, joins, list_aliased_repr,
-                           list_str, listinfo_str, newlined_list, padded_str_range,
-                           remove_chars, str2, str_between, theta_str, tupstr,
-                           unindent, var_aliased_repr, verts_str,)
-    from .util_sysreq import (DEBUG, ensure_in_pythonpath, locate_path,)
-    from .util_setup import (NOOP, SETUP_PATTERNS, assert_in_setup_repo,
-                             autogen_sphinx_apidoc, build_pyo, clean,
-                             find_ext_modules, find_packages, get_cmdclass,
-                             get_numpy_include_dir, parse_author,
-                             parse_package_for_version, parse_readme, presetup,
-                             presetup_commands, read_license, setup_chmod,
-                             setuptools_setup, translate_cyth,)
-    from .util_regex import (RE_FLAGS, RE_KWARGS, get_match_text, named_field,
-                             named_field_regex, regex_parse, regex_search,
-                             regex_split,)
-    from .util_time import (Timer, exiftime_to_unixtime, get_day, get_month,
-                            get_timestamp, get_timestats_str, get_year, tic, toc,
-                            unixtime_to_datetime, unixtime_to_timedelta,)
-    from .util_type import (BooleanType, FloatType, HAS_NUMPY, IntType, LongType,
-                            NP_NDARRAY, VALID_BOOL_TYPES, VALID_FLOAT_TYPES,
-                            VALID_INT_TYPES, assert_int, bool_from_str, is_bool,
-                            is_dict, is_func_or_method,
-                            is_func_or_method_or_partial, is_funclike, is_tuple,
-                            is_type, is_valid_floattype, smart_cast, type_str,)
-    from .util_tests import (HAPPY_FACE, SAD_FACE, printTEST, run_test,)
-    from .DynamicStruct import (AbstractPrintable, DynStruct,)
-    from .Preferences import (Pref, PrefChoice, PrefInternal, PrefNode, PrefTree,)
+     
+    from .util_alg import (PHI, PHI_A, PHI_B, almost_eq, build_reverse_mapping, 
+                           cartesian, choose, defaultdict, find_std_inliers, 
+                           flatten_membership_mapping, get_nth_prime, get_phi, 
+                           get_phi_ratio1, group_items, iceil, iround, is_prime, 
+                           norm_zero_one, normalize, unique_row_indexes, 
+                           unpack_items_sorted, unpack_items_sorted_by_lenvalue, 
+                           unpack_items_sorted_by_value, void_rowview_numpy, 
+                           xywh_to_tlbr,) 
+    from .util_aliases import (OrderedDict, ddict, iprod, odict, product,) 
+    from .util_arg import (ArgumentParser2, DEBUG2, Indenter, NOT_QUIET, NO_ASSERTS, 
+                           QUIET, STRICT, SUPER_STRICT, USE_ASSERT, VERBOSE, 
+                           VERYVERBOSE, argv_flag_dec, argv_flag_dec_true, 
+                           fuzzy_int, get_argflag, get_argval, get_fpath_args, 
+                           get_funcname, inject, make_argparse2, set_funcname, 
+                           switch_sanataize, try_cast,) 
+    from .util_cache import (Cacher, GlobalShelfContext, cached_func, chain, 
+                             default_appname, delete_global_cache, get_argname, 
+                             get_cfgstr_from_args, get_default_appname, 
+                             get_global_cache_dir, get_global_shelf_fpath, 
+                             global_cache_dname, global_cache_dump, 
+                             global_cache_fname, global_cache_read, 
+                             global_cache_write, load_cache, save_cache, 
+                             text_dict_write, view_global_cache_dir,) 
+    from .util_cplat import (COMPUTER_NAME, DARWIN, LIB_DICT, LIB_EXT_LIST, LINUX, 
+                             OS_TYPE, PYLIB_DICT, WIN32, cmd, editfile, 
+                             get_app_resource_dir, get_computer_name, 
+                             get_dir_diskspaces, get_disk_space, 
+                             get_dynamic_lib_globstrs, get_dynlib_dependencies, 
+                             get_flops, get_free_diskbytes, get_lib_ext, 
+                             get_pylib_ext, get_python_dynlib, get_resource_dir, 
+                             get_user_name, getroot, is64bit_python, ls_libs, 
+                             print_dir_diskspace, python_executable, 
+                             run_realtime_process, set_process_title, shell, 
+                             startfile, truepath, unixpath, vd, view_directory,) 
+    from .util_class import (ReloadingMetaclass, classmember, 
+                             get_comparison_methods, inject_func_as_method, 
+                             inject_instance, makeForwardingMetaclass, 
+                             reload_class_methods,) 
+    from .util_csv import (is_float, is_int, is_list, is_str, make_csv_table, 
+                           numpy_to_csv,) 
+    from .util_dbg import (IPYTHON_EMBED_STR, all_rrr, debug_exception, 
+                           debug_hstack, debug_list, debug_npstack, debug_vstack, 
+                           dict_dbgstr, embed, execstr_attr_list, execstr_dict, 
+                           execstr_embed, execstr_func, execstr_parent_locals, 
+                           execstr_src, explore_module, explore_stack, fmtlocals, 
+                           formatex, get_caller_locals, get_caller_name, 
+                           get_caller_prefix, get_parent_frame, get_parent_globals, 
+                           get_parent_locals, get_reprs, get_stack_frame, get_type, 
+                           get_varname_from_locals, get_varstr, 
+                           get_varval_from_locals, haveIPython, horiz_string, 
+                           import_testdata, inIPython, indent, ipython_execstr, 
+                           ipython_execstr2, is_listlike, is_valid_varname, 
+                           keys_dbgstr, len_dbgstr, list_allsame, list_dbgstr, 
+                           load_testdata, module_functions, my_numpy_printops, 
+                           pack_into, parse_locals_keylist, print_frame, print_keys, 
+                           print_varlen, printex, printvar, printvar2, 
+                           public_attributes, qflag, quasiquote, quit, quitflag, 
+                           save_testdata, search_stack_for_localvar, 
+                           search_stack_for_var, split, super_print, truncate_str, 
+                           varname_regex,) 
+    from .util_dev import (DEPRICATED, common_stats, compile_cython, 
+                           disable_garbage_collection, enable_garbage_collection, 
+                           find_exe, garbage_collect, get_cython_exe, 
+                           get_object_base, get_object_size, get_object_size_str, 
+                           info, init_catch_ctrl_c, is_developer, listinfo, 
+                           make_call_graph, make_object_graph, memory_profile, 
+                           myprint, mystats, npinfo, numpy_list_num_bits, 
+                           print_mystats, print_object_size, print_object_size_tree, 
+                           printableVal, reset_catch_ctrl_c, runprofile, stats_str,) 
+    from .util_decor import (HAS_PANDAS, IGNORE_TRACEBACK, NOINDENT_DECOR, 
+                             PROFILING, TRACE, UNIQUE_NUMPY, accepts_numpy, 
+                             accepts_scalar_input, accepts_scalar_input2, 
+                             accepts_scalar_input_vector_output, copy_argspec, 
+                             getter_1to1, getter_1toM, ignores_exc_tb, indent_func, 
+                             interested, isiterable, lazyfunc, memorize, 
+                             on_exception_report_input, show_return_value, 
+                             time_func, wraps,) 
+    from .util_distances import (L1, L2, L2_sqrd, compute_distances, emd, 
+                                 hist_isect, nearest_point,) 
+    from .util_dict import (all_dict_combinations, all_dict_combinations_lbls, 
+                            build_conflict_dict, dict_union, dict_union2, 
+                            dict_update_newkeys, items_sorted_by_value, 
+                            keys_sorted_by_value, updateif_haskey,) 
+    from .util_func import (general_get, general_set, uinput_1to1,) 
+    from .util_grabdata import (BadZipfile, download_url, fix_dropbox_link, 
+                                grab_file_url, grab_zipped_url, split_archive_ext, 
+                                unarchive_file, untar_file, unzip_file,) 
+    from .util_git import (PROJECT_REPO_DIRS, PROJECT_REPO_URLS, checkout_repos, 
+                           ensure_repos, get_repo_dirs, get_repo_dname, gg_command, 
+                           gitcmd, is_gitrepo, isdir, pull_repos, repo_list, 
+                           set_project_repos, set_userid, setup_develop_repos, 
+                           std_build_command,) 
+    from .util_hash import (ALPHABET, ALPHABET_16, BIGBASE, HASH_LEN, augment_uuid, 
+                            convert_hexstr_to_bigbase, deterministic_uuid, 
+                            get_file_hash, get_file_uuid, get_zero_uuid, 
+                            hashable_to_uuid, hashstr, hashstr_arr, hashstr_md5, 
+                            hashstr_sha1, image_uuid, random_nonce, random_uuid,) 
+    from .util_inject import (ARGV_DEBUG_FLAGS, DUMMYPROF_FUNC, KERNPROF_FUNC, 
+                              PROF_FUNC_PAT_LIST, PROF_MOD_PAT_LIST, SILENT, 
+                              TIMERPROF_FUNC, argv, get_injected_modules, inject, 
+                              inject_all, inject_colored_exceptions, 
+                              inject_print_functions, inject_profile_function, 
+                              inject_reload_function,) 
+    from .util_io import (load_cPkl, read_from, save_cPkl, try_decode, write_to,) 
+    from .util_iter import (cycle, ensure_iterable, ichunks, ifilter_Nones, 
+                            ifilter_items, ifilterfalse_items, iflatten, 
+                            iflatten_scalars, interleave, interleave2, interleave3, 
+                            islice, roundrobin,) 
+    from .util_inspect import (list_class_funcnames,) 
+    from .util_logging import (PRINT_ALL_CALLERS, add_logging_handler, 
+                               get_log_fpath, get_logging_dir, logdir_cacheid, 
+                               start_logging, stop_logging,) 
+    from .util_list import (alloc_lists, alloc_nones, assert_all_not_None, 
+                            assert_unflat_level, debug_consec_list, 
+                            ensure_list_size, filter_Nones, filter_items, 
+                            filterfalse_items, flag_unique_items, flatten, 
+                            flattenize, get_callable_name, get_dirty_items, 
+                            get_list_column, intersect_ordered, invertable_flatten, 
+                            issorted, list_getat, list_replace, listfind, 
+                            partial_imap_1to1, safe_listget, safe_slice, sample_zip, 
+                            scalar_input_map, sortedby, tuplize, unflatten, 
+                            unique_keep_order2, unique_ordered, unique_unordered,) 
+    from .util_num import (commas, fewest_digits_float_str, float_to_decimal, 
+                           format_, int_comma_str, num2_sigfig, num_fmt, 
+                           order_of_magnitude_ceil, sigfig_str,) 
+    from .util_numpy import (deterministic_sample, deterministic_shuffle, inbounds, 
+                             index_of, intersect2d, intersect2d_numpy, list_index, 
+                             listlike_copy, npfind, random_indexes, random_sample, 
+                             sample_domain, spaced_indexes, spaced_items, 
+                             tiled_range,) 
+    from .util_path import (IMG_EXTENSIONS, append_suffixlist_to_namelist, 
+                            assert_exists, assertpath, basename_noext, checkpath, 
+                            copy, copy_all, copy_list, copy_task, delete, dirsplit, 
+                            ensuredir, ensurepath, existing_subpath, ext, 
+                            extend_regex, file_bytes, file_megabytes, 
+                            fixwin32_shortname, fnames_to_fpaths, fpaths_to_fnames, 
+                            get_basename_noext_list, get_basepath_list, 
+                            get_ext_list, get_module_dir, glob, grep, iglob, 
+                            is_module_dir, is_private_module, isfile, islink, 
+                            ismount, list_images, longest_existing_path, ls, 
+                            ls_dirs, ls_moduledirs, ls_modulefiles, matches_image, 
+                            move_list, newcd, num_images_in_dir, path_ndir_split, 
+                            platform_path, progress_func, remove_dirs, remove_file, 
+                            remove_file_list, remove_files_in_dir, symlink, tail, 
+                            truepath, truepath_relative, unixjoin, win_shortcut,) 
+    from .util_print import (Indenter, NO_INDENT, NpPrintOpts, filesize_str, 
+                             full_numpy_repr, horiz_print, printNOTQUIET, 
+                             printVERBOSE, printWARN, print_filesize, print_locals, 
+                             printif, printshape,) 
+    from .util_progress import (AGGROFLUSH, PROGGRESS_BACKSPACE, 
+                                VALID_PROGRESS_TYPES, log_progress, prog_func, 
+                                progress_func, progress_str, simple_progres_func,) 
+    from .util_parallel import (BACKEND, close_pool, ensure_pool, generate, 
+                                get_default_numprocs, in_main_process, init_pool, 
+                                init_worker, new_pool, process, set_num_procs, tic, 
+                                toc,) 
+    from .util_resources import (available_memory, byte_str2, current_memory_usage, 
+                                 get_resource_limits, memstats, num_cpus, 
+                                 peak_memory, print_resource_usage, 
+                                 time_in_systemmode, time_in_usermode, time_str2, 
+                                 total_memory, used_memory,) 
+    from .util_str import (GLOBAL_TYPE_ALIASES, TAU, align, align_lines, bbox_str, 
+                           byte_str, byte_str2, dict_aliased_repr, 
+                           dict_itemstr_list, dict_str, extend_global_aliases, 
+                           file_megabytes_str, func_str, get_freespace_str, 
+                           get_indentation, get_unix_timedelta, 
+                           get_unix_timedelta_str, horiz_string, hz_str, 
+                           indent_list, indentjoin, joins, list_aliased_repr, 
+                           list_str, listinfo_str, newlined_list, padded_str_range, 
+                           remove_chars, str2, str_between, theta_str, tupstr, 
+                           unindent, var_aliased_repr, verts_str,) 
+    from .util_sysreq import (DEBUG, ensure_in_pythonpath, locate_path,) 
+    from .util_setup import (NOOP, SETUP_PATTERNS, assert_in_setup_repo, 
+                             autogen_sphinx_apidoc, build_pyo, clean, 
+                             find_ext_modules, find_packages, get_cmdclass, 
+                             get_numpy_include_dir, parse_author, 
+                             parse_package_for_version, parse_readme, presetup, 
+                             presetup_commands, read_license, setup_chmod, 
+                             setuptools_setup, translate_cyth,) 
+    from .util_regex import (REGEX_VARNAME, RE_FLAGS, RE_KWARGS, get_match_text, 
+                             named_field, named_field_regex, regex_get_match, 
+                             regex_parse, regex_replace, regex_replace_lines, 
+                             regex_search, regex_split, repl_field,) 
+    from .util_time import (Timer, exiftime_to_unixtime, get_day, get_month, 
+                            get_timestamp, get_timestats_str, get_year, tic, toc, 
+                            unixtime_to_datetime, unixtime_to_timedelta,) 
+    from .util_type import (BooleanType, FloatType, HAS_NUMPY, IntType, LongType, 
+                            NP_NDARRAY, VALID_BOOL_TYPES, VALID_FLOAT_TYPES, 
+                            VALID_INT_TYPES, assert_int, bool_from_str, is_bool, 
+                            is_dict, is_func_or_method, 
+                            is_func_or_method_or_partial, is_funclike, is_tuple, 
+                            is_type, is_valid_floattype, smart_cast, type_str,) 
+    from .util_tests import (HAPPY_FACE, SAD_FACE, printTEST, run_test,) 
+    from .DynamicStruct import (AbstractPrintable, DynStruct,) 
+    from .Preferences import (Pref, PrefChoice, PrefInternal, PrefNode, PrefTree,) 
     print, print_, printDBG, rrr, profile = util_inject.inject(
         __name__, '[utool]')
-
+    
     def reload_subs():
         """ Reloads utool and submodules """
-        #rrr()
+        rrr()
         getattr(_internal, 'rrr', lambda: None)()
         getattr(util_alg, 'rrr', lambda: None)()
         getattr(util_aliases, 'rrr', lambda: None)()
@@ -359,7 +367,6 @@ else:
         getattr(util_tests, 'rrr', lambda: None)()
         getattr(DynamicStruct, 'rrr', lambda: None)()
         getattr(Preferences, 'rrr', lambda: None)()
-        # TODO Figure out how to get the from imports reloading here too
         rrr()
     rrrr = reload_subs
     # </AUTOGEN_INIT>
