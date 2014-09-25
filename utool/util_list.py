@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function
+import operator
 from six.moves import zip, map, zip_longest, range
 from .util_iter import iflatten, isiterable, ifilter_Nones, ifilter_items, ifilterfalse_items
 from .util_inject import inject
@@ -371,3 +372,36 @@ def sample_zip(items_list, num_samples, allow_overflow=False, per_bin=1):
         else:
             raise AssertionError('Overflow occured')
         return samples_list
+
+
+def issorted(list_, op=operator.le):
+    return all(op(list_[ix], list_[ix + 1]) for ix in range(len(list_) - 1))
+
+
+def debug_consec_list(list_):
+    """
+    Returns tuple of (missing_items, missing_indicies, duplicate_items)
+    """
+    if not issorted(list_):
+        print('warning list is not sorted. indicies will not match')
+    sortedlist = sorted(list_)
+    start = sortedlist[0]
+    last = start - 1
+    missing_vals = []
+    missing_indicies = []
+    duplicate_items = []
+    for count, item in enumerate(sortedlist):
+        diff = item - last
+        if diff > 1:
+            missing_indicies.append(count)
+            for miss in range(last + 1, last + diff):
+                missing_vals.append(miss)
+        elif diff == 0:
+            duplicate_items.append(item)
+        elif diff == 1:
+            # Expected case
+            pass
+        else:
+            raise AssertionError('We sorted the list. diff can not be negative')
+        last = item
+    return missing_vals, missing_indicies, duplicate_items

@@ -23,25 +23,49 @@ USE_ASSERT = not NO_ASSERTS
 SUPER_STRICT = '--super-strict' in sys.argv
 
 
+# TODO: rectify with meta_util_arg
 #from ._internal.meta_util_arg import get_arg
-def get_arg(arg, type_=None, default=None, **kwargs):
+def get_arg(argstr, type_=None, default=None, help_=None):
+    """ Returns a value of an argument specified on the command line after some flag
+
+    python -c "import utool; print([(type(x), x) for x in [utool.get_arg('--quest')]])" --quest="holy grail"
+    python -c "import utool; print([(type(x), x) for x in [utool.get_arg('--quest')]])" --quest="42"
+    python -c "import utool; print([(type(x), x) for x in [utool.get_arg('--quest')]])" --quest=42
+    python -c "import utool; print([(type(x), x) for x in [utool.get_arg('--quest')]])" --quest 42
+    python -c "import utool; print([(type(x), x) for x in [utool.get_arg('--quest', float)]])" --quest 42
+
+    >>> from utool.util_arg import *  # NOQA
+    >>> import sys
+    >>> sys.argv.extend(['--spam', 'eggs', '--quest=holy grail', '--ans=42'])
+    >>> get_arg('--spam', type_=str, default=None)
+    eggs
+    >>> get_arg('--quest', type_=str, default=None)
+    holy grail
+    >>> get_arg('--ans', type_=int, default=None)
+    42
+    """
     arg_after = default
     if type_ is bool:
         arg_after = False if default is None else default
     try:
-        argx = sys.argv.index(arg)
-        if argx < len(sys.argv):
-            if type_ is bool:
-                arg_after = True
-            else:
-                arg_after = try_cast(sys.argv[argx + 1], type_)
+        # New for loop way (accounts for =)
+        for argx, item in enumerate(sys.argv):
+            if item == argstr:
+                if argx < len(sys.argv):
+                    if type_ is bool:
+                        arg_after = True
+                    else:
+                        arg_after = try_cast(sys.argv[argx + 1], type_)
+            if item.startswith(argstr + '='):
+                val_after = ''.join(item.split('=')[1:])
+                arg_after = try_cast(val_after, type_)
     except Exception:
         pass
     return arg_after
 
 
 def get_flag(arg, default=False, help_='', **kwargs):
-    'Checks if the commandline has a flag or a corresponding noflag'
+    """ Checks if the commandline has a flag or a corresponding noflag """
     if isinstance(arg, (tuple, list)):
         arg_list = arg
     else:

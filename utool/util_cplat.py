@@ -186,9 +186,10 @@ def editfile(fpath):
     pass
 
 
-def view_directory(dname=None):
+def view_directory(dname=None, verbose=True):
     """ view directory """
-    print('[cplat] view_directory(%r) ' % dname)
+    if verbose:
+        print('[cplat] view_directory(%r) ' % dname)
     dname = os.getcwd() if dname is None else dname
     open_prog = {'win32': 'explorer.exe',
                  'linux': 'nautilus',
@@ -200,7 +201,6 @@ def view_directory(dname=None):
 
 # Alias
 vd = view_directory
-
 
 get_resource_dir = meta_util_cplat.get_resource_dir
 

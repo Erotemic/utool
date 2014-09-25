@@ -43,10 +43,13 @@ __UTOOL_WRITE_BUFFER__ = []
 logdir_cacheid = 'log_dpath'
 
 
-def get_logging_dir(appname=None):
+def get_logging_dir(appname='default'):
     from ._internal.meta_util_cache import global_cache_read
     from ._internal.meta_util_cplat import get_resource_dir
-    log_dir = global_cache_read(logdir_cacheid, appname=appname, default=join(get_resource_dir(), 'utool', 'logs'))
+    from .util_cache import get_default_appname  # Hacky
+    if appname is None or  appname == 'default':
+        appname = get_default_appname()
+    log_dir = global_cache_read(logdir_cacheid, appname=appname, default=join(get_resource_dir(), appname, 'logs'))
     return realpath(log_dir)
 
 
@@ -92,7 +95,7 @@ def add_logging_handler(handler, format_='file'):
     __UTOOL_ROOT_LOGGER__.addHandler(handler)
 
 
-def start_logging(log_fpath=None, mode='a', appname=None):
+def start_logging(log_fpath=None, mode='a', appname='default'):
     """
     Overwrites utool print functions to use a logger
     """

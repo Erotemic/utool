@@ -22,8 +22,8 @@ if __LOGGING__:
 # Read all flags with --debug in them
 ARGV_DEBUG_FLAGS = []
 for argv in sys.argv:
-    if argv.startswith('--debug'):
-        ARGV_DEBUG_FLAGS.append(argv.replace('--debug', '').strip('-'))
+    if argv.startswith('--debug-'):
+        ARGV_DEBUG_FLAGS.append(argv.replace('--debug-', '').replace('-', '_'))
 
 
 #print('ARGV_DEBUG_FLAGS: %r' % (ARGV_DEBUG_FLAGS,))

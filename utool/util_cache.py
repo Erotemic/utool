@@ -27,6 +27,11 @@ __SHELF__ = None  # GLOBAL CACHE
 __APPNAME__ = default_appname  # the global application name
 
 
+def get_default_appname():
+    global __APPNAME__
+    return __APPNAME__
+
+
 def text_dict_write(fpath, key, val):
     """
     Very naive, but readable way of storing a dictionary on disk
@@ -187,7 +192,7 @@ def view_global_cache_dir(appname='default'):
 def get_global_cache_dir(appname='default', ensure=False):
     """ Returns (usually) writable directory for an application cache """
     if appname is None or  appname == 'default':
-        appname = __APPNAME__
+        appname = get_default_appname()
     global_cache_dir = util_cplat.get_app_resource_dir(appname, global_cache_dname)
     if ensure:
         util_path.ensuredir(global_cache_dir)
