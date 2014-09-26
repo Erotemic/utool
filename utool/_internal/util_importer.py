@@ -5,6 +5,7 @@ import multiprocessing
 import textwrap
 #import types
 
+DEBUG_IMPORTS = True
 #----------
 # EXECUTORS
 #----------
@@ -13,6 +14,8 @@ def __excecute_imports(module, module_name, IMPORTS):
     """ Module Imports """
     # level: -1 is a the Python2 import strategy
     # level:  0 is a the Python3 absolute import
+    if DEBUG_IMPORTS:
+        print('[UTIL_IMPORT] EXECUTING IMPORT')
     level = 0
     for name in IMPORTS:
         if level == -1:
@@ -23,16 +26,20 @@ def __excecute_imports(module, module_name, IMPORTS):
 
 def __execute_fromimport(module, module_name, IMPORT_TUPLES):
     """ Module From Imports """
+    if DEBUG_IMPORTS:
+        print('[UTIL_IMPORT] EXECUTING FROM STAR')
     FROM_IMPORTS = __get_from_imports(IMPORT_TUPLES)
     for name, fromlist in FROM_IMPORTS:
         tmp = __import__(module_name + '.' + name, globals(), locals(), fromlist=fromlist, level=0)
-        for member in fromlist:
-            setattr(module, member, getattr(tmp, member))
+        for attrname in fromlist:
+            setattr(module, attrname, getattr(tmp, attrname))
     return FROM_IMPORTS
 
 
 def __execute_fromimport_star(module, module_name, IMPORT_TUPLES):
     """ Effectively import * statements """
+    if DEBUG_IMPORTS:
+        print('[UTIL_IMPORT] EXECUTE FROMIMPORT STAR.')
     FROM_IMPORTS = []
     # Explicitly ignore these special functions (usually stdlib functions)
     ignoreset = set(['print', 'print_', 'printDBG', 'rrr', 'profile',
@@ -47,35 +54,38 @@ def __execute_fromimport_star(module, module_name, IMPORT_TUPLES):
         other_module = sys.modules[module_name + '.' + name]
         varset = set(vars(module))
         fromset = set(fromlist) if fromlist is not None else set()
-        def valid_member(member):
+        def valid_attrname(attrname):
             """
-            Guess if the member is valid based on its name
+            Guess if the attrname is valid based on its name
             """
-            is_private = member.startswith('_')
-            is_conflit = member in varset
-            is_module  = member in sys.modules  # Isn't fool proof (next step is)
-            is_forced  = member in fromset
-            is_ignore  = member in ignoreset
+            is_private = attrname.startswith('_')
+            is_conflit = attrname in varset
+            is_module  = attrname in sys.modules  # Isn't fool proof (next step is)
+            is_forced  = attrname in fromset
+            is_ignore  = attrname in ignoreset
             return (is_forced or not (is_ignore or is_private or is_conflit or is_module))
-        fromlist_ = [member for member in dir(other_module) if valid_member(member)]
+        fromlist_ = [attrname for attrname in dir(other_module) if valid_attrname(attrname)]
         valid_fromlist_ = []
-        for member in fromlist_:
-            member_val = getattr(other_module, member)
+        for attrname in fromlist_:
+            attrval = getattr(other_module, attrname)
             try:
                 # Disallow fromimport modules
-                forced = member in fromset
-                if not forced and getattr(member_val, '__name__') in sys.modules:
-                    #print('not importing: %r' % member)
+                forced = attrname in fromset
+                if not forced and getattr(attrval, '__name__') in sys.modules:
+                    if DEBUG_IMPORTS:
+                        print('[UTIL_IMPORT] not importing: %r' % attrname)
                     continue
             except AttributeError:
                 pass
-            #if isinstance(member_val, types.FunctionType):
-            #    if member_val.func_globals['__name__'] != absname:
-            #        print('not importing: %r' % member)
+            #if isinstance(attrval, types.FunctionType):
+            #    if attrval.func_globals['__name__'] != absname:
+            #        print('not importing: %r' % attrname)
             #        continue
-            #print('importing: %r' % member)
-            valid_fromlist_.append(member)
-            setattr(module, member, member_val)
+            #print('importing: %r' % attrname)
+            if DEBUG_IMPORTS:
+                print('[UTIL_IMPORT] importing: %r' % attrname)
+            valid_fromlist_.append(attrname)
+            setattr(module, attrname, attrval)
         FROM_IMPORTS.append((name, valid_fromlist_))
     return FROM_IMPORTS
 
@@ -143,11 +153,13 @@ def _make_fromimport_str(FROM_IMPORTS):
     return from_str
 
 def _inject_execstr(module_name, IMPORT_TUPLES):
-    # Injection and Reload String Defs
+    """ Injection and Reload String Defs """
     if module_name == 'utool':
+        # Special case import of the util_inject module
         injecter = 'util_inject'
         injecter_import = ''
     else:
+        # Normal case implicit import of util_inject
         injecter_import = 'import utool'
         injecter = 'utool'
     injectstr_fmt = textwrap.dedent('''
@@ -161,7 +173,7 @@ def _inject_execstr(module_name, IMPORT_TUPLES):
         {body}
         rrr()
     rrrr = reload_subs''')
-    rrrdir_fmt = '    getattr(%s, \'reload_subs\', lambda: None)()'
+    rrrdir_fmt  = '    getattr(%s, \'reload_subs\', lambda: None)()'
     rrrfile_fmt = '    getattr(%s, \'rrr\', lambda: None)()'
 
     def _reload_command(tup):
@@ -185,17 +197,20 @@ def _inject_execstr(module_name, IMPORT_TUPLES):
 
 def dynamic_import(module_name, IMPORT_TUPLES, developing=True, dump=False):
     """
-    Dynamically import listed util libraries and their members.
+    Dynamically import listed util libraries and their attributes.
     Create reload_subs function.
 
     Using __import__ like this is typically not considered good style However,
     it is better than import * and this will generate the good file text that
     can be used when the module is "frozen"
     """
-    #print('[DYNAMIC IMPORT] Running Dynamic Imports: %r ' % module_name)
+    if DEBUG_IMPORTS:
+        print('[UTIL_IMPORT] Running Dynamic Imports: %r ' % module_name)
+    # Get the module that will be imported into
     module = sys.modules[module_name]
-
+    # List of modules to be imported
     IMPORTS = __get_imports(IMPORT_TUPLES)
+    # Import the modules
     __excecute_imports(module, module_name, IMPORTS)
     # If developing do explicit import stars
     if developing:
