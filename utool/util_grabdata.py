@@ -91,7 +91,6 @@ def download_url(url, filename, spoof=False):
         myopener.retrieve(url, filename=filename, reporthook=reporthook)
 
 
-
 def fix_dropbox_link(dropbox_url):
     """ Dropbox links should be en-mass downloaed from dl.dropbox """
     return dropbox_url.replace('www.dropbox', 'dl.dropbox')

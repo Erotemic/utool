@@ -83,9 +83,9 @@ def get_argflag(arg, default=False, help_='', **kwargs):
     return default
 
 
-# Aliases
-#get_argval  = get_argval
-#get_argval  = get_argval
+# Backwards Compatibility Aliases
+get_arg  = get_argval
+get_flag  = get_argflag
 
 
 #def argv_flag(name, default, **kwargs):

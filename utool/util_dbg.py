@@ -225,6 +225,10 @@ def import_testdata():
 
 def embed(parent_locals=None, parent_globals=None, exec_lines=None,
           remove_pyqt_hook=True):
+    """
+    Starts interactive session. Similar to keyboard command in matlab.
+    Wrapper around IPython.embed
+    """
     if parent_globals is None:
         parent_globals = get_parent_globals(N=0)
         # not sure why N=1 works over N=0 here only for globals
@@ -285,6 +289,9 @@ def quit(num=None, embed_=False):
 
 
 def inIPython():
+    """
+    Tests if running in IPython
+    """
     try:
         __IPYTHON__
         return True
@@ -293,6 +300,9 @@ def inIPython():
 
 
 def haveIPython():
+    """
+    Tests if IPython is available
+    """
     try:
         import IPython  # NOQA
         return True
@@ -315,6 +325,10 @@ def print_frame(frame):
 
 
 def search_stack_for_localvar(varname):
+    """
+    Finds a local varable named <varname> somewhere in the stack.
+    Returns the value.
+    """
     curr_frame = inspect.currentframe()
     print(' * Searching parent frames for: ' + str(varname))
     frame_no = 0
@@ -329,6 +343,10 @@ def search_stack_for_localvar(varname):
 
 
 def search_stack_for_var(varname):
+    """
+    Finds a varable named <varname> somewhere in the stack.
+    Returns the value.
+    """
     curr_frame = inspect.currentframe()
     print(' * Searching parent frames for: ' + str(varname))
     frame_no = 0
@@ -343,6 +361,10 @@ def search_stack_for_var(varname):
         curr_frame = curr_frame.f_back
     print('... Found nothing in all ' + str(frame_no) + ' frames.')
     return None
+
+# Alias
+get_var_from_stack = search_stack_for_var
+get_localvar_from_stack = search_stack_for_localvar
 
 
 def get_stack_frame(N=0):
@@ -574,7 +596,9 @@ def debug_exception(func):
 def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
             locals_=None, iswarning=False, tb=False, separate=False, N=0,
             use_stdout=False, reraise=False, msg_=None, keys=None):
-    """ Prints an exception with relevant info """
+    """
+    Prints an exception with relevant info
+    """
     if keys is not None:
         # shorthand for key_list
         key_list = keys
@@ -648,6 +672,12 @@ def get_varname_from_locals(val, locals_, default='varname-not-found',
 
 
 def get_varval_from_locals(key, locals_, strict=False):
+    """
+    Returns a variable value from locals.
+    Different from locals()['varname'] because
+    get_varval_from_locals('varname.attribute', locals())
+    is allowed
+    """
     assert isinstance(key, str), 'must have parsed key into a string already'
     if key not in locals_:
         dotpos = key.find('.')
