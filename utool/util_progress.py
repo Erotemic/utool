@@ -27,7 +27,8 @@ PROGGRESS_BACKSPACE = '--screen' not in sys.argv
 
 def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
                  start=True, repl=False, approx=False, disable=False,
-                 writefreq=1, with_totaltime=False, backspace=True):
+                 writefreq=1, with_totaltime=False, backspace=True,
+                 separate=False):
     """
     Returns two functions (mark_progress, end_progress) which will handle
     logging progress in a for loop.
@@ -85,6 +86,11 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
                 if count_ % flushfreq == 0:
                     flush_fn()
 
+        if separate:
+            write_fn('\n')
+            write_fn('\n')
+            flush_fn()
+
         if with_totaltime:
             tt = util_time.tic(lbl)
 
@@ -94,6 +100,10 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
             flush_fn()
             if with_totaltime:
                 util_time.toc(tt)
+            if separate:
+                write_fn('\n')
+                write_fn('\n')
+                flush_fn()
         #mark_progress(0)
         if start:
             mark_progress(-1)

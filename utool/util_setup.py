@@ -15,9 +15,11 @@ VERBOSE = '--verbose' in sys.argv
 
 
 class SETUP_PATTERNS():
-    clutter = [
+    clutter_pybuild = [
         '*.pyc',
         '*.pyo',
+    ]
+    clutter_cyth = [
         '_*_cyth.o',
         '_*_cyth_bench.py',
         'run_cyth_benchmarks.sh',
@@ -29,7 +31,7 @@ class SETUP_PATTERNS():
         '_*_cyth.so',
         '_*_cyth.dylib'
     ]
-    chmod   = ['test_*.py']
+    chmod_test   = ['test_*.py']
 
 
 def read_license(license_file):
@@ -84,11 +86,12 @@ def assert_in_setup_repo(setup_fpath, name=''):
         raise
 
 
-def clean(setup_dir, clutter_patterns, clutter_dirs, cython_files):
+def clean(setup_dir, clutter_patterns, clutter_dirs):
     print('[setup] clean()')
 
     clutter_patterns_ = [pat for pat in clutter_patterns if not pat.endswith('/')]
-    clutter_dirs_ = [pat[:-1] for pat in clutter_patterns if pat.endswith('/')] + clutter_dirs
+    _clutter_dirs = [pat[:-1] for pat in clutter_patterns if pat.endswith('/')]
+    clutter_dirs_ = _clutter_dirs + clutter_dirs
 
     util_path.remove_files_in_dir(setup_dir,
                                   clutter_patterns_,
@@ -246,20 +249,32 @@ def presetup_commands(setup_fpath, kwargs):
     if VERBOSE:
         print('[setup] presetup_commands()')
     name = kwargs.get('name', '')
+    # Parse args
     project_dirs     = kwargs.pop('project_dirs', None)
-    chmod_patterns   = kwargs.pop('chmod_patterns', SETUP_PATTERNS.chmod)
+    chmod_patterns   = kwargs.pop('chmod_patterns', [])
     clutter_dirs     = kwargs.pop('clutter_dirs', None)
-    clutter_patterns = kwargs.pop('clutter_patterns', SETUP_PATTERNS.clutter)
-    cython_files     = kwargs.pop('cython_files', [])  # todo remove
+    clutter_patterns = kwargs.pop('clutter_patterns', [])
     build_command    = kwargs.pop('build_command', NOOP)
+    # Augment patterns with builtin patterns
+    chmod_patterns   += SETUP_PATTERNS.chmod_test if kwargs.pop('chmod_tests', True) else []
+    clutter_patterns += SETUP_PATTERNS.clutter_pybuild if kwargs.pop('clean_pybuild', True) else []
+    clutter_patterns += SETUP_PATTERNS.clutter_cyth if kwargs.pop('clean_pybuild', True) else []
     setup_fpath = util_path.truepath(setup_fpath)
+    #
     setup_dir = dirname(setup_fpath)
     build_dir = join(setup_dir, 'build')
     os.chdir(setup_dir)  # change into setup directory
     assert_in_setup_repo(setup_fpath, name)
 
+    # Augment clutter dirs
     if clutter_dirs is None:
-        clutter_dirs = ['build', 'dist', name + '.egg-info', '__pycache__']
+        clutter_dirs = []
+    clutter_dirs += [
+        'build',
+        'dist',
+        name + '.egg-info',
+        '__pycache__'
+    ]
 
     if project_dirs is None:
         project_dirs = util_path.ls_moduledirs(setup_dir)
@@ -275,7 +290,7 @@ def presetup_commands(setup_fpath, kwargs):
         #print(arg)
         # Clean clutter files
         if arg in ['clean']:
-            clean(setup_dir, clutter_patterns, clutter_dirs, cython_files)
+            clean(setup_dir, clutter_patterns, clutter_dirs)
             #sys.exit(0)
         if arg in ['build'] or (not exists(build_dir) and
                                 'clean' not in sys.argv):

@@ -16,6 +16,16 @@ ext_modules = util_setup.find_ext_modules()
 
 
 if __name__ == '__main__':
+    import sys
+    for arg in iter(sys.argv[:]):
+        # Clean clutter files
+        if arg in ['clean']:
+            import utool
+            from os.path import dirname
+            clutter_dirs = ['cyth']
+            clutter_patterns = ['cyth']
+            utool.clean(dirname(__file__), clutter_patterns, clutter_dirs)
+
     setup(
         name='utool',
         packages=[

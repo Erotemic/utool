@@ -24,8 +24,9 @@ SUPER_STRICT = '--super-strict' in sys.argv
 
 
 # TODO: rectify with meta_util_arg
+# This has diverged and is now better
 #from ._internal.meta_util_arg import get_argval
-def get_argval(argstr, type_=None, default=None, help_=None):
+def get_argval(argstr_, type_=None, default=None, help_=None):
     """ Returns a value of an argument specified on the command line after some flag
 
     python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest="holy grail"
@@ -33,6 +34,7 @@ def get_argval(argstr, type_=None, default=None, help_=None):
     python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest=42
     python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest 42
     python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest', float)]])" --quest 42
+    python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--nAssign'), int)]])" --nAssign 42
 
     >>> from utool.util_arg import *  # NOQA
     >>> import sys
@@ -49,16 +51,21 @@ def get_argval(argstr, type_=None, default=None, help_=None):
         arg_after = False if default is None else default
     try:
         # New for loop way (accounts for =)
+        if isinstance(argstr_, six.string_types):
+            argstr_list = (argstr_,)
+        else:
+            argstr_list = argstr_
         for argx, item in enumerate(sys.argv):
-            if item == argstr:
-                if argx < len(sys.argv):
-                    if type_ is bool:
-                        arg_after = True
-                    else:
-                        arg_after = try_cast(sys.argv[argx + 1], type_)
-            if item.startswith(argstr + '='):
-                val_after = ''.join(item.split('=')[1:])
-                arg_after = try_cast(val_after, type_)
+            for argstr in argstr_list:
+                if item == argstr:
+                    if argx < len(sys.argv):
+                        if type_ is bool:
+                            arg_after = True
+                        else:
+                            arg_after = try_cast(sys.argv[argx + 1], type_)
+                if item.startswith(argstr + '='):
+                    val_after = ''.join(item.split('=')[1:])
+                    arg_after = try_cast(val_after, type_)
     except Exception:
         pass
     return arg_after
