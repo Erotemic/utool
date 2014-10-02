@@ -5,6 +5,7 @@ from .util_iter import iflatten, isiterable, ifilter_Nones, ifilter_items, ifilt
 from .util_inject import inject
 from .util_str import get_callable_name
 from .util_arg import NO_ASSERTS
+from .util_type import is_listlike
 from ._internal.meta_util_six import get_funcname, set_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[list]')
 
@@ -405,3 +406,46 @@ def debug_consec_list(list_):
             raise AssertionError('We sorted the list. diff can not be negative')
         last = item
     return missing_vals, missing_indicies, duplicate_items
+
+
+def list_depth(list_, func=max, depth=0):
+    """
+    Returns the deepest level of nesting within a list of lists
+
+    list_ = [[[[[1]]], [3]], [[1], [3]], [[1], [3]]]
+    print(list_depth(list_, depth=0))
+
+    """
+    depth_list = [list_depth(item, func=func, depth=depth + 1)
+                  for item in  list_ if is_listlike(item)]
+    if len(depth_list) > 0:
+        return func(depth_list)
+    else:
+        return depth
+
+
+def list_deep_types(list_):
+    """
+    Returns all types in a deep list
+    """
+    type_list = []
+    for item in list_:
+        if is_listlike(item):
+            type_list.extend(list_deep_types(item))
+        else:
+            type_list.append(type(item))
+    return type_list
+
+
+def depth_profile(list_):
+    """
+    >>> from utool.util_list import *  # NOQA
+    """
+    level_shape_list = []
+    # For a pure bottom level list return the length
+    if not any(map(is_listlike, list_)):
+        return len(list_)
+    for item in list_:
+        if is_listlike(item):
+            level_shape_list.append(depth_profile(item))
+    return level_shape_list

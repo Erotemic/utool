@@ -885,3 +885,29 @@ def all_rrr():
         except Exception as ex:
             print(ex)
             print('mod = %r ' % mod)
+
+
+class EmbedOnException(object):
+    """
+    Context manager which embeds in ipython if an exception is thrown
+    """
+    def __init__(self):
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type_, value, trace):
+        if trace is not None:
+            print('!!!!!!!!!!!!!!!!!!!')
+            print('[util_dbg] %r in context manager!: %s ' % (type_, str(value)))
+            import utool
+            import traceback
+            traceback.print_exception(type_, value, trace)
+            #parent_locals = utool.get_parent_locals()
+            #execstr_parent = utool.execstr_dict(parent_locals, 'parent_locals')
+            #exec(execstr_parent)
+            trace_locals = trace.tb_frame.f_locals
+            execstr_trace = utool.execstr_dict(trace_locals, 'trace_locals')
+            exec(execstr_trace)
+            utool.embed()
