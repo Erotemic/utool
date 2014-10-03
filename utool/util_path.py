@@ -170,8 +170,9 @@ def delete(path, dryrun=False, recursive=True, verbose=True, print_exists=True, 
     return flag
 
 
-def remove_file_list(fpath_list, verbose=VERYVERBOSE):
-    print('[util_path] Removing %d files' % len(fpath_list))
+def remove_file_list(fpath_list, verbose=VERYVERBOSE, silent=False):
+    if not silent:
+        print('[util_path] Removing %d files' % len(fpath_list))
     nRemoved = 0
     for fpath in fpath_list:
         try:
@@ -181,7 +182,8 @@ def remove_file_list(fpath_list, verbose=VERYVERBOSE):
             if verbose:
                 printex(ex, 'Could not remove fpath = %r' % (fpath,), iswarning=True)
             pass
-    print('[util_path] Removed %d / %d files' % (nRemoved, len(fpath_list)))
+    if not silent:
+        print('[util_path] Removed %d / %d files' % (nRemoved, len(fpath_list)))
 
 
 def longest_existing_path(_path):
