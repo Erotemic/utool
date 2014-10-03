@@ -24,10 +24,10 @@ def inject_func_as_method(self, func, method_name=None, class_=None):
     """
     Wraps func as a bound method of self. Then injects func into self
     Input:
-        self - class instance
-        func - some function whos first arugment is a class instance
-        method_name - default=func.__name__, if specified renames the method
-        class_ - if func is an unbound method of this class
+    *   self - class instance
+    *   func - some function whos first arugment is a class instance
+    *   method_name - default=func.__name__, if specified renames the method
+    *   class_ - if func is an unbound method of this class
     """
     if method_name is None:
         method_name = get_funcname(func)

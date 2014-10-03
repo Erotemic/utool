@@ -45,16 +45,16 @@ def cartesian(arrays, out=None):
     Generate a cartesian product of input arrays.
 
     Parameters
-    ----------
+    #----------
     arrays : list of array-like
-        1-D arrays to form the cartesian product of.
+    *   1-D arrays to form the cartesian product of.
     out : ndarray
-        Array to place the cartesian product in.
+    *    Array to place the cartesian product in.
     Returns
-    -------
+    #-------
     out : ndarray
-        2-D array of shape (M, len(arrays)) containing cartesian products
-        formed of input arrays.
+    *    2-D array of shape (M, len(arrays)) containing cartesian products
+    *    formed of input arrays.
     Examples
     --------
     >>> cartesian(([1, 2, 3], [4, 5], [6, 7]))
