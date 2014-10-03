@@ -189,7 +189,11 @@ def common_stats(_list, newlines=False):
     return ret
 
 
-def mystats(_list):
+def mystats(_list, axis=None):
+    """
+    axis = 0
+    _list = np.random.rand(10, 2)
+    """
     # Move to util_dev
     if isinstance(_list, np.ndarray):
         nparr = _list
@@ -199,15 +203,20 @@ def mystats(_list):
         _list = list(_list)
         nparr = np.array(_list)
     if len(_list) == 0:
-        return {'empty_list': True}
-    min_val = nparr.min()
-    max_val = nparr.max()
-    nMin = np.sum(nparr == min_val)  # number of entries with min val
-    nMax = np.sum(nparr == max_val)  # number of entries with min val
-    return OrderedDict([('max',   np.float32(max_val)),
-                        ('min',   np.float32(min_val)),
-                        ('mean',  np.float32(nparr.mean())),
-                        ('std',   np.float32(nparr.std())),
-                        ('nMin',  np.int32(nMin)),
-                        ('nMax',  np.int32(nMax)),
-                        ('shape', repr(nparr.shape))])
+        statdict = {'empty_list': True}
+    else:
+        min_val = nparr.min(axis=axis)
+        max_val = nparr.max(axis=axis)
+        nMin = np.sum(nparr == min_val, axis=axis)  # number of entries with min val
+        nMax = np.sum(nparr == max_val, axis=axis)  # number of entries with min val
+        mean_ = nparr.mean(axis=axis)
+        std_  = nparr.std(axis=axis)
+        statdict = OrderedDict(
+            [('max',   np.float32(max_val)),
+             ('min',   np.float32(min_val)),
+             ('mean',  np.float32(mean_)),
+             ('std',   np.float32(std_)),
+             ('nMin',  np.int32(nMin)),
+             ('nMax',  np.int32(nMax)),
+             ('shape', repr(nparr.shape))])
+    return statdict
