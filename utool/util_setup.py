@@ -173,6 +173,8 @@ def find_packages(recursive=True, maxdepth=None):
     Finds all directories with an __init__.py file in them
     """
     import utool
+    if utool.VERBOSE:
+        print('[util_setup] find_packages(recursive=%r, maxdepth=%r)' % (recursive, maxdepth))
     from os.path import relpath
     cwd = os.getcwd()
     init_files = utool.glob(cwd, '__init__.py', recursive=recursive, maxdepth=maxdepth)
@@ -203,20 +205,29 @@ def parse_author():
 
 def autogen_sphinx_apidoc():
     import utool
+    # TODO: assert sphinx-apidoc exe is found
+    # TODO: make find_exe word?
+    print('')
+    print('if this fails try: sudo pip install sphinx')
+    print('')
     argfmt_list = [
         'sphinx-apidoc',
         '--full',
         '--maxdepth="{maxdepth}"',
         '--doc-author="{author}"',
         '--doc-version="{doc_version}"',
-        '--doc-release="{doc_release"',
+        '--doc-release="{doc_release}"',
         '--output-dir="_doc"',
         '{pkgdir}',
     ]
     outputdir = '_doc'
     author = utool.parse_author()
     packages = utool.find_packages(maxdepth=1)
-    assert len(packages) == 1, 'better msg: %r' % (packages,)
+    assert len(packages) != 0, 'directory must contain at least one package'
+    if len(packages) > 1:
+        assert len(packages) == 1,\
+            ('FIXME I dont know what to do with more than one root package: %r'
+             % (packages,))
     pkgdir = packages[0]
     version = utool.parse_package_for_version(pkgdir)
 

@@ -100,10 +100,10 @@ def latex_multirow(data, nrow=2):
     return r'\multirow{%d}{*}{|c|}{%s}' % (nrow, data)
 
 
-def latex_mystats(lbl, data, mode=0):
-    stats_ = util_dev.mystats(data)
+def latex_get_stats(lbl, data, mode=0):
+    stats_ = util_dev.get_stats(data)
     if stats_.get('empty_list', False):
-        return '% NA: latex_mystats, data=[]'
+        return '% NA: latex_get_stats, data=[]'
     try:
         max_ = stats_['max']
         min_ = stats_['min']

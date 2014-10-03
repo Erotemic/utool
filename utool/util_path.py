@@ -448,13 +448,20 @@ def iglob(dirname, pattern, recursive=False, with_files=True, with_dirs=True,
     current_depth = 0
     dirname_ = truepath(dirname)
     posx1 = len(dirname_) + len(os.path.sep)
+    #print('\n\n\n')
     for root, dirs, files in os.walk(dirname_):
         # yeild data
         # print it only if you want
         if maxdepth is not None:
             current_depth = root[posx1:].count(os.path.sep)
-            if maxdepth == current_depth:
+            if maxdepth <= current_depth:
                 continue
+        #print('-----------')
+        #print(current_depth)
+        #print(root)
+        #print('==')
+        #print(dirs)
+        #print('-----------')
         if with_files:
             for fname in fnmatch.filter(files, pattern):
                 fpath = join(root, fname)

@@ -160,7 +160,7 @@ def get_year():
 
 def get_timestats_str(unixtime_list):
     import utool
-    unixtime_stats = utool.mystats(unixtime_list)
+    unixtime_stats = utool.get_stats(unixtime_list)
     for key in ['max', 'min', 'mean']:
         try:
             unixtime_stats[key] = utool.unixtime_to_datetime(unixtime_stats[key])

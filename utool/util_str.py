@@ -25,6 +25,7 @@ def theta_str(theta, taustr=('tau' if '--myway' in sys.argv else '2pi')):
 
 
 def bbox_str(bbox, pad=4):
+    """ makes a string from an integer bounding box """
     if bbox is None:
         return 'None'
     fmtstr = ', '.join(['%' + str(pad) + 'd'] * 4)
@@ -32,6 +33,7 @@ def bbox_str(bbox, pad=4):
 
 
 def verts_str(verts, pad=1):
+    """ makes a string from a list of integer verticies """
     if verts is None:
         return 'None'
     fmtstr = ', '.join(['%' + str(pad) + 'd' + ', %' + str(pad) + 'd'] * 1)
@@ -46,6 +48,9 @@ def tupstr(tuple_):
 
 
 def remove_chars(instr, illegals_chars):
+    """
+    replaces all illegal characters in instr with ''
+    """
     outstr = instr
     for ill_char in iter(illegals_chars):
         outstr = outstr.replace(ill_char, '')
@@ -58,29 +63,56 @@ def get_indentation(line_):
 
 
 def unindent(string):
+    """
+    Unindent a block of text
+
+    Alias for textwrap.dedent
+    """
     return textwrap.dedent(string)
 
 
 def indent(string, indent='    '):
+    """
+    Indents a block of text
+    """
     return indent + string.replace('\n', '\n' + indent)
 
 
 def indentjoin(strlist, indent='\n    ', suffix=''):
+    r"""
+    Convineince
+
+    similar to '\n    '.join(strlist) but indent is also prefixed
+    """
     return indent + indent.join([str(str_) + suffix for str_ in strlist])
 
 
-def truncate_str(str_, maxlen=110):
-    if len(str_) < maxlen:
+def truncate_str(str_, maxlen=110, truncmsg=' ~~~TRUNCATED~~~ '):
+    """
+    Removes the middle part of any string over maxlen characters.
+    """
+    if maxlen is None or maxlen == -1 or len(str_) < maxlen:
         return str_
     else:
-        truncmsg = ' ~~~TRUNCATED~~~ '
         maxlen_ = maxlen - len(truncmsg)
         lowerb  = int(maxlen_ * .8)
         upperb  = maxlen_ - lowerb
-        return str_[:lowerb] + truncmsg + str_[-upperb:]
+        tup = (str_[:lowerb], truncmsg, str_[-upperb:])
+        return ''.join(tup)
 
 
 def pack_into(instr, textwidth=160, breakchars=' ', break_words=True, newline_prefix=''):
+    """
+    Inserts newlines into a string enforcing a maximum textwidth.
+    Similar to vim's gq command in visual select mode.
+
+    breakchars is a string containing valid characters to insert a newline
+    before or after.
+
+    break_words is True if words are allowed to be split over multiple lines.
+
+    all inserted newlines are prefixed with newline_prefix
+    """
     textwidth_ = textwidth
     line_list = ['']
     word_list = instr.split(breakchars)
@@ -125,6 +157,12 @@ def filesize_str(fpath):
 
 
 def byte_str2(nBytes):
+    """
+    Automatically chooses relevant unit (KB, MB, or GB) for displaying some
+    number of bytes.
+
+    returns a string
+    """
     if nBytes < 2.0 ** 10:
         return byte_str(nBytes, 'KB')
     if nBytes < 2.0 ** 20:
@@ -136,6 +174,11 @@ def byte_str2(nBytes):
 
 
 def byte_str(nBytes, unit='bytes'):
+    """
+    representing the number of bytes with the chosen unit
+
+    returns a string
+    """
     if unit.lower().startswith('b'):
         nUnit = nBytes
     elif unit.lower().startswith('k'):
@@ -159,11 +202,19 @@ GLOBAL_TYPE_ALIASES = []
 
 
 def extend_global_aliases(type_aliases):
+    """
+    State function for aliased_repr calls
+    """
     global GLOBAL_TYPE_ALIASES
     GLOBAL_TYPE_ALIASES.extend(type_aliases)
 
 
 def var_aliased_repr(var, type_aliases):
+    """
+    Returns a representation of var
+
+    Replaces unweildy type strings with predefined more human-readable aliases
+    """
     global GLOBAL_TYPE_ALIASES
     # Replace aliased values
     for alias_type, alias_name in (type_aliases + GLOBAL_TYPE_ALIASES):
@@ -172,12 +223,22 @@ def var_aliased_repr(var, type_aliases):
     return repr(var)
 
 
-def list_aliased_repr(args, type_aliases=[]):
+def list_aliased_repr(list_, type_aliases=[]):
+    """
+    Returns a representation of list_
+
+    Replaces unweildy type strings with predefined more human-readable aliases
+    """
     return [var_aliased_repr(item, type_aliases)
-            for item in args]
+            for item in list_]
 
 
 def dict_aliased_repr(dict_, type_aliases=[]):
+    """
+    Returns a representation of dict_
+
+    Replaces unweildy type strings with predefined more human-readable aliases
+    """
     return ['%s : %s' % (key, var_aliased_repr(val, type_aliases))
             for (key, val) in six.iteritems(dict_)]
 
@@ -185,7 +246,11 @@ def dict_aliased_repr(dict_, type_aliases=[]):
 
 
 def func_str(func, args=[], kwargs={}, type_aliases=[]):
-    """ string representation of function definition """
+    """
+    Returns a representation of func with args, kwargs, and type_aliases
+
+    string representation of function definition
+    """
     repr_list = list_aliased_repr(args, type_aliases) + dict_aliased_repr(kwargs)
     argskwargs_str = newlined_list(repr_list, ', ', textwidth=80)
     func_str = '%s(%s)' % (get_funcname(func), argskwargs_str)

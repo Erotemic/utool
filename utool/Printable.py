@@ -1,11 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import six
-from collections import OrderedDict
 import re
-try:
-    import numpy as np
-except ImportError:
-    pass
 #from .util_classes import AutoReloader
 
 MAX_VALSTR = -1
@@ -22,6 +17,7 @@ class AbstractPrintable(__BASE_CLASS__):
         self._printable_exclude = ['_printable_exclude'] + child_print_exclude
 
     def __str__(self):
+        from .util_dev import printableType
         head = printableType(self)
         body = self.get_printable(type_bit=True)
         body = re.sub('\n *\n *\n', '\n\n', body)
@@ -52,6 +48,8 @@ class AbstractPrintable(__BASE_CLASS__):
                       val_bit=True,
                       max_valstr=MAX_VALSTR,
                       justlength=False):
+        from .util_dev import printableVal, printableType
+        from .util_str import truncate_str
         body = ''
         attri_list = []
         exclude_key_list = list(self._printable_exclude) + list(print_exclude_aug)
@@ -64,11 +62,12 @@ class AbstractPrintable(__BASE_CLASS__):
                 if not val_bit:
                     attri_list.append((typestr, namestr, '<ommited>'))
                     continue
-                valstr  = printableVal(val, type_bit=type_bit, justlength=justlength)
-                if len(valstr) > max_valstr and max_valstr > 0:
-                    pos1 =  max_valstr // 2
-                    pos2 = -max_valstr // 2
-                    valstr = valstr[0:pos1] + ' \n ~~~ \n ' + valstr[pos2: - 1]
+                valstr = printableVal(val, type_bit=type_bit, justlength=justlength)
+                valstr = truncate_str(valstr, maxlen=max_valstr, truncmsg=' \n ~~~ \n ')
+                #if len(valstr) > max_valstr and max_valstr > 0:
+                #    pos1 =  max_valstr // 2
+                #    pos2 = -max_valstr // 2
+                #    valstr = valstr[0:pos1] + ' \n ~~~ \n ' + valstr[pos2: - 1]
                 attri_list.append((typestr, namestr, valstr))
             except Exception as ex:
                 print('[printable] ERROR %r' % ex)
@@ -93,130 +92,4 @@ class AbstractPrintable(__BASE_CLASS__):
         return _printable_str
 
 
-def npArrInfo(arr):
-    # Move to util_dev
-    from .DynamicStruct import DynStruct
-    info = DynStruct()
-    info.shapestr  = '[' + ' x '.join([str(x) for x in arr.shape]) + ']'
-    info.dtypestr  = str(arr.dtype)
-    if info.dtypestr == 'bool':
-        info.bittotal = 'T=%d, F=%d' % (sum(arr), sum(1 - arr))
-    elif info.dtypestr == 'object':
-        info.minmaxstr = 'NA'
-    elif info.dtypestr[0] == '|':
-        info.minmaxstr = 'NA'
-    else:
-        if arr.size > 0:
-            info.minmaxstr = '(%r, %r)' % (arr.min(), arr.max())
-        else:
-            info.minmaxstr = '(None)'
-    return info
-
-
 # - --------------
-def printableType(val, name=None, parent=None):
-    # Move to util_dev
-    if hasattr(parent, 'customPrintableType'):
-        # Hack for non - trivial preference types
-        _typestr = parent.customPrintableType(name)
-        if _typestr is not None:
-            return _typestr
-    if type(val) == np.ndarray:
-        info = npArrInfo(val)
-        _typestr = info.dtypestr
-    elif isinstance(val, object):
-        _typestr = val.__class__.__name__
-    else:
-        _typestr = str(type(val))
-        _typestr = _typestr.replace('type', '')
-        _typestr = re.sub('[\'><]', '', _typestr)
-        _typestr = re.sub('  *', ' ', _typestr)
-        _typestr = _typestr.strip()
-    return _typestr
-
-
-def printableVal(val, type_bit=True, justlength=False):
-    # Move to util_dev
-    # NUMPY ARRAY
-    if type(val) is np.ndarray:
-        info = npArrInfo(val)
-        if info.dtypestr.startswith('bool'):
-            _valstr = '{ shape:' + info.shapestr + ' bittotal: ' + info.bittotal + '}'  # + '\n  |_____'
-        elif info.dtypestr.startswith('float'):
-            _valstr = common_stats(val)
-        else:
-            _valstr = '{ shape:' + info.shapestr + ' mM:' + info.minmaxstr + ' }'  # + '\n  |_____'
-    # String
-    elif isinstance(val, (str, unicode)):
-        _valstr = '\'%s\'' % val
-    # List
-    elif isinstance(val, list):
-        if justlength or len(val) > 30:
-            _valstr = 'len=' + str(len(val))
-        else:
-            _valstr = '[ ' + (', \n  '.join([str(v) for v in val])) + ' ]'
-    elif hasattr(val, 'get_printable') and type(val) != type:  # WTF? isinstance(val, AbstractPrintable):
-        _valstr = val.get_printable(type_bit=type_bit)
-    elif isinstance(val, dict):
-        _valstr = '{\n'
-        for val_key in val.keys():
-            val_val = val[val_key]
-            _valstr += '  ' + str(val_key) + ' : ' + str(val_val) + '\n'
-        _valstr += '}'
-    else:
-        _valstr = str(val)
-    if _valstr.find('\n') > 0:  # Indent if necessary
-        _valstr = _valstr.replace('\n', '\n    ')
-        _valstr = '\n    ' + _valstr
-    _valstr = re.sub('\n *$', '', _valstr)  # Replace empty lines
-    return _valstr
-
-
-def common_stats(_list, newlines=False):
-    # Move to util_dev
-    stat_dict = mystats(_list)
-    stat_strs = ['%r: %s' % (key, val) for key, val in six.iteritems(stat_dict)]
-    if newlines:
-        indent = '    '
-        head = '{\n' + indent
-        sep  = ',\n' + indent
-        tail = '\n}'
-    else:
-        head = '{'
-        sep = ', '
-        tail = '}'
-    ret = head + sep.join(stat_strs) + tail
-    return ret
-
-
-def mystats(_list, axis=None):
-    """
-    axis = 0
-    _list = np.random.rand(10, 2)
-    """
-    # Move to util_dev
-    if isinstance(_list, np.ndarray):
-        nparr = _list
-    elif isinstance(_list, list):
-        nparr = np.array(_list)
-    else:
-        _list = list(_list)
-        nparr = np.array(_list)
-    if len(_list) == 0:
-        statdict = {'empty_list': True}
-    else:
-        min_val = nparr.min(axis=axis)
-        max_val = nparr.max(axis=axis)
-        nMin = np.sum(nparr == min_val, axis=axis)  # number of entries with min val
-        nMax = np.sum(nparr == max_val, axis=axis)  # number of entries with min val
-        mean_ = nparr.mean(axis=axis)
-        std_  = nparr.std(axis=axis)
-        statdict = OrderedDict(
-            [('max',   np.float32(max_val)),
-             ('min',   np.float32(min_val)),
-             ('mean',  np.float32(mean_)),
-             ('std',   np.float32(std_)),
-             ('nMin',  np.int32(nMin)),
-             ('nMax',  np.int32(nMax)),
-             ('shape', repr(nparr.shape))])
-    return statdict

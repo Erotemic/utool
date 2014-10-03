@@ -1,14 +1,15 @@
 from __future__ import absolute_import, division, print_function
 import sys
 import six
+import re
 import os
 import warnings
+from collections import OrderedDict
 try:
     import numpy as np
 except ImportError as ex:
     pass
 from os.path import splitext, exists, join, split, relpath
-from .Printable import printableVal, common_stats, mystats  # NOQA
 from . import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[dev]')
 
@@ -28,21 +29,172 @@ def DEPRICATED(func):
     return __DEP_WRAPPER
 
 
+def get_stats(_list, axis=None):
+    """
+    Returns a ordered dictionary of common numpy statistics
+    (min, max, mean, std, nMin, nMax, shape)
+
+    axis = 0
+    _list = np.random.rand(10, 2)
+    """
+    # Assure input is in numpy format
+    if isinstance(_list, np.ndarray):
+        nparr = _list
+    elif isinstance(_list, list):
+        nparr = np.array(_list)
+    else:
+        _list = list(_list)
+        nparr = np.array(_list)
+    # Check to make sure stats are feasible
+    if len(_list) == 0:
+        stat_dict = {'empty_list': True}
+    else:
+        # Compute stats
+        min_val = nparr.min(axis=axis)
+        max_val = nparr.max(axis=axis)
+        mean_ = nparr.mean(axis=axis)
+        std_  = nparr.std(axis=axis)
+        # number of entries with min val
+        nMin = np.sum(nparr == min_val, axis=axis)
+        # number of entries with min val
+        nMax = np.sum(nparr == max_val, axis=axis)
+        stat_dict = OrderedDict(
+            [('max',   np.float32(max_val)),
+             ('min',   np.float32(min_val)),
+             ('mean',  np.float32(mean_)),
+             ('std',   np.float32(std_)),
+             ('nMin',  np.int32(nMin)),
+             ('nMax',  np.int32(nMax)),
+             ('shape', repr(nparr.shape))])
+    return stat_dict
+
+
 # --- Info Strings ---
 
-def print_mystats(_list, lbl=None):
-    import utool
+
+def get_stats_str(_list, newlines=False):
+    """
+    Returns the string version of get_stats
+    """
+    from .util_str import dict_str
+    stat_dict = get_stats(_list)
+    stat_str  = dict_str(stat_dict, strvals=True, newlines=newlines)
+    #stat_strs = ['%r: %s' % (key, val) for key, val in six.iteritems(stat_dict)]
+    #if newlines:
+    #    indent = '    '
+    #    head = '{\n' + indent
+    #    sep  = ',\n' + indent
+    #    tail = '\n}'
+    #else:
+    #    head = '{'
+    #    sep = ', '
+    #    tail = '}'
+    #stat_str = head + sep.join(stat_strs) + tail
+    return stat_str
+
+
+def print_stats(_list, lbl=None, newlines=False):
+    """
+    Prints string representation of stat of _list
+    """
     if lbl is not None:
         print('Mystats for %s' % lbl)
-    print(utool.dict_str(utool.mystats(_list)))
+    stat_str = get_stats_str(_list, newlines=newlines)
+    print(stat_str)
 
 
-def stats_str(*args, **kwargs):
-    # wrapper for common_stats
-    return common_stats(*args, **kwargs)
+def npArrInfo(arr):
+    """
+    OLD update and refactor
+    """
+    from .DynamicStruct import DynStruct
+    info = DynStruct()
+    info.shapestr  = '[' + ' x '.join([str(x) for x in arr.shape]) + ']'
+    info.dtypestr  = str(arr.dtype)
+    if info.dtypestr == 'bool':
+        info.bittotal = 'T=%d, F=%d' % (sum(arr), sum(1 - arr))
+    elif info.dtypestr == 'object':
+        info.minmaxstr = 'NA'
+    elif info.dtypestr[0] == '|':
+        info.minmaxstr = 'NA'
+    else:
+        if arr.size > 0:
+            info.minmaxstr = '(%r, %r)' % (arr.min(), arr.max())
+        else:
+            info.minmaxstr = '(None)'
+    return info
+
+
+def printableType(val, name=None, parent=None):
+    """
+    Tries to make a nice type string for a value.
+    Can also pass in a Printable parent object
+    """
+    if parent is not None and hasattr(parent, 'customPrintableType'):
+        # Hack for non - trivial preference types
+        _typestr = parent.customPrintableType(name)
+        if _typestr is not None:
+            return _typestr
+    if isinstance(val, np.ndarray):
+        info = npArrInfo(val)
+        _typestr = info.dtypestr
+    elif isinstance(val, object):
+        _typestr = val.__class__.__name__
+    else:
+        _typestr = str(type(val))
+        _typestr = _typestr.replace('type', '')
+        _typestr = re.sub('[\'><]', '', _typestr)
+        _typestr = re.sub('  *', ' ', _typestr)
+        _typestr = _typestr.strip()
+    return _typestr
+
+
+def printableVal(val, type_bit=True, justlength=False):
+    """
+    Very old way of doing pretty printing. Need to update and refactor.
+    """
+    from . import util_dev
+    # Move to util_dev
+    # NUMPY ARRAY
+    if type(val) is np.ndarray:
+        info = npArrInfo(val)
+        if info.dtypestr.startswith('bool'):
+            _valstr = '{ shape:' + info.shapestr + ' bittotal: ' + info.bittotal + '}'  # + '\n  |_____'
+        elif info.dtypestr.startswith('float'):
+            _valstr = util_dev.get_stats_str(val)
+        else:
+            _valstr = '{ shape:' + info.shapestr + ' mM:' + info.minmaxstr + ' }'  # + '\n  |_____'
+    # String
+    elif isinstance(val, (str, unicode)):
+        _valstr = '\'%s\'' % val
+    # List
+    elif isinstance(val, list):
+        if justlength or len(val) > 30:
+            _valstr = 'len=' + str(len(val))
+        else:
+            _valstr = '[ ' + (', \n  '.join([str(v) for v in val])) + ' ]'
+    elif hasattr(val, 'get_printable') and type(val) != type:  # WTF? isinstance(val, AbstractPrintable):
+        _valstr = val.get_printable(type_bit=type_bit)
+    elif isinstance(val, dict):
+        _valstr = '{\n'
+        for val_key in val.keys():
+            val_val = val[val_key]
+            _valstr += '  ' + str(val_key) + ' : ' + str(val_val) + '\n'
+        _valstr += '}'
+    else:
+        _valstr = str(val)
+    if _valstr.find('\n') > 0:  # Indent if necessary
+        _valstr = _valstr.replace('\n', '\n    ')
+        _valstr = '\n    ' + _valstr
+    _valstr = re.sub('\n *$', '', _valstr)  # Replace empty lines
+    return _valstr
 
 
 def myprint(input_=None, prefix='', indent='', lbl=''):
+    """
+    OLD PRINT FUNCTION USED WITH PRINTABLE VAL
+    TODO: Refactor and update
+    """
     if len(lbl) > len(prefix):
         prefix = lbl
     if len(prefix) > 0:
