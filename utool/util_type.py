@@ -43,7 +43,13 @@ else:
 
 
 def is_valid_floattype(type_):
-    """ Returns if a type_ is a valid float type_ (not variable) """
+    """
+    Args:
+        type_ (type): type to check
+
+    Returns:
+        if a type_ is a valid float type_ (not variable)
+    """
     return type_ in VALID_FLOAT_TYPES
     #try:
     #    #flags = [type_ == float_type for float_type in VALID_FLOAT_TYPES]
@@ -109,7 +115,7 @@ else:
 
 
 def is_type(var, valid_types):
-    'Checks for types accounting for numpy'
+    """ Checks for types accounting for numpy """
     #printDBG('checking type var=%r' % (var,))
     #var_type = type(var)
     #printDBG('type is type(var)=%r' % (var_type,))

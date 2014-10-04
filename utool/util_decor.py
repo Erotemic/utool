@@ -322,12 +322,15 @@ def time_func(func):
 
 class copy_argspec(object):
     """
+    copy_argspec is a signature modifying decorator.
+
+    Specifically, it copies the signature from `source_func` to the wrapper, and
+    the wrapper will call the original function (which should be using *args,
+    **kwds).  The argspec, docstring, and default values are copied from
+    src_func, and __module__ and __dict__ from tgt_func.
+
+    .. References
     http://stackoverflow.com/questions/18625510/how-can-i-programmatically-change-the-argspec-of-a-function-not-in-a-python-de
-    copy_argspec is a signature modifying decorator.  Specifically, it copies
-    the signature from `source_func` to the wrapper, and the wrapper will call
-    the original function (which should be using *args, **kwds).  The argspec,
-    docstring, and default values are copied from src_func, and __module__ and
-    __dict__ from tgt_func.
     """
     def __init__(self, src_func):
         self.argspec = inspect.getargspec(src_func)

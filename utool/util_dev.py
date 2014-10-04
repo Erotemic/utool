@@ -446,30 +446,31 @@ def get_cython_exe():
 
 
 def compile_cython(fpath, clean=True):
-    r""" compiles pyx -> pyd/dylib/so
+    r""" Compiles a cython pyx into a shared library
 
+    This seems broken
+    compiles pyx -> pyd/dylib/so
 
-    REAL SETUP.PY OUTPUT
-    cythoning vtool/linalg_cython.pyx to vtool\linalg_cython.c
-    C:\MinGW\bin\gcc.exe -mdll -O -Wall ^
-            -IC:\Python27\Lib\site-packages\numpy\core\include ^
-            -IC:\Python27\include -IC:\Python27\PC ^
-            -c vtool\linalg_cython.c ^
-            -o build\temp.win32-2.7\Release\vtool\linalg_cython.o
+    Examples:
+        REAL SETUP.PY OUTPUT
+        cythoning vtool/linalg_cython.pyx to vtool\linalg_cython.c
+        C:\MinGW\bin\gcc.exe -mdll -O -Wall ^
+        -IC:\Python27\Lib\site-packages\numpy\core\include ^
+        -IC:\Python27\include -IC:\Python27\PC ^
+        -c vtool\linalg_cython.c ^
+        -o build\temp.win32-2.7\Release\vtool\linalg_cython.o
 
+        writing build\temp.win32-2.7\Release\vtool\linalg_cython.def
 
-    writing build\temp.win32-2.7\Release\vtool\linalg_cython.def
-
-
-    C:\MinGW\bin\gcc.exe -shared \
-            -s \
-            build\temp.win32-2.7\Release\vtool\linalg_cython.o \
-            build\temp.win32-2.7\Release\vtool\linalg_cython.def \
-            -LC:\Python27\libs \
-            -LC:\Python27\PCbuild \
-            -lpython27 \
-            -lmsvcr90 \
-            -o build\lib.win32-2.7\vtool\linalg_cython.pyd
+        C:\MinGW\bin\gcc.exe -shared \
+        -s \
+        build\temp.win32-2.7\Release\vtool\linalg_cython.o \
+        build\temp.win32-2.7\Release\vtool\linalg_cython.def \
+        -LC:\Python27\libs \
+        -LC:\Python27\PCbuild \
+        -lpython27 \
+        -lmsvcr90 \
+        -o build\lib.win32-2.7\vtool\linalg_cython.pyd
 
     """
     from . import util_cplat

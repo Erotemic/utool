@@ -39,10 +39,9 @@ def gitcmd(repo, command):
 
 
 def std_build_command(repo):
-    """ Uses my standard for build script names
-    aka:
-        mingw_build.bat
-        unix_build.sh
+    """  My build script names.
+
+    Calls mingw_build.bat on windows and unix_build.sh  on unix
     """
     print("************")
     print(repo)

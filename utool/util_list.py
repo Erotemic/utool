@@ -24,7 +24,14 @@ def alloc_nones(num_alloc):
 
 
 def ensure_list_size(list_, size_):
-    """ extend list length to size_ """
+    """ Allocates more space if needbe.
+
+    Ensures len(list_) == size_.
+
+    Args:
+        list_ (list): list to extend
+        size_ (int): amount to exent by
+    """
     lendiff = (size_) - len(list_)
     if lendiff > 0:
         extension = [None for _ in range(lendiff)]
@@ -102,33 +109,33 @@ def tuplize(list_):
 
 def flattenize(list_):
     """ maps flatten to a tuplized list
-    list_ = [[1, 2, 3], [2, 3, [4, 2, 1]], [3, 2], [[1, 2], [3, 4]]]
-    #
-    # test flattenize
-    import utool
-    from itertools import zip
-    val_list1 = [(1, 2), (2, 4), (5, 3)]
-    id_list1  = [(1,),     (2,),   (3,)]
-    out_list1 = utool.flattenize(zip(val_list1, id_list1))
 
-    val_list2 = [1, 4, 5]
-    id_list2  = [(1,),     (2,),   (3,)]
-    out_list2 = utool.flattenize(zip(val_list2, id_list2))
+    Example:
+        >>> list_ = [[1, 2, 3], [2, 3, [4, 2, 1]], [3, 2], [[1, 2], [3, 4]]]
+        >>> import utool
+        >>> from itertools import zip
+        >>> val_list1 = [(1, 2), (2, 4), (5, 3)]
+        >>> id_list1  = [(1,),     (2,),   (3,)]
+        >>> out_list1 = utool.flattenize(zip(val_list1, id_list1))
 
-    val_list3 = [1, 4, 5]
-    id_list3  = [1, 2, 3]
-    out_list3 = utool.flattenize(zip(val_list3, id_list3))
+        >>> val_list2 = [1, 4, 5]
+        >>> id_list2  = [(1,),     (2,),   (3,)]
+        >>> out_list2 = utool.flattenize(zip(val_list2, id_list2))
 
-    out_list4 = list(zip(val_list3, id_list3))
-    %timeit utool.flattenize(zip(val_list1, id_list1))
-    %timeit utool.flattenize(zip(val_list2, id_list2))
-    %timeit utool.flattenize(zip(val_list3, id_list3))
-    %timeit list(zip(val_list3, id_list3))
+        >>> val_list3 = [1, 4, 5]
+        >>> id_list3  = [1, 2, 3]
+        >>> out_list3 = utool.flattenize(zip(val_list3, id_list3))
 
-    100000 loops, best of 3: 14 us per loop
-    100000 loops, best of 3: 16.5 us per loop
-    100000 loops, best of 3: 18 us per loop
-    1000000 loops, best of 3: 1.18 us per loop
+        out_list4 = list(zip(val_list3, id_list3))
+        %timeit utool.flattenize(zip(val_list1, id_list1))
+        %timeit utool.flattenize(zip(val_list2, id_list2))
+        %timeit utool.flattenize(zip(val_list3, id_list3))
+        %timeit list(zip(val_list3, id_list3))
+
+        100000 loops, best of 3: 14 us per loop
+        100000 loops, best of 3: 16.5 us per loop
+        100000 loops, best of 3: 18 us per loop
+        1000000 loops, best of 3: 1.18 us per loop
     """
 
     #return map(iflatten, list_)
@@ -291,12 +298,22 @@ def unique_unordered(list_):
 
 
 def sortedby(list_, sortable, reverse=False):
-    """ Returns a list sorted by the values of another list
-    >>> import utool
-    >>> list_    = [1, 2, 3, 4, 5]
-    >>> sortable = [2, 5, 3, 1, 5]
-    >>> utool.sortedby(list_, sortable, reverse=True)
-    [5, 2, 3, 1, 4]
+    """ sorts list_ using sortable
+
+    Args:
+        list_ (list): list to sort
+        sortable (list): list to by
+
+    Returns:
+        a list sorted by the values of another list
+
+    Examples:
+        >>> import utool
+        >>> list_    = [1, 2, 3, 4, 5]
+        >>> sortable = [2, 5, 3, 1, 5]
+        >>> utool.sortedby(list_, sortable, reverse=True)
+        [5, 2, 3, 1, 4]
+
     """
     assert len(list_) == len(sortable), 'must be same len'
     sorted_list = [item for (key, item) in sorted(list(zip(sortable, list_)), reverse=reverse)]
@@ -305,8 +322,14 @@ def sortedby(list_, sortable, reverse=False):
 
 def scalar_input_map(func, input_):
     """
-    If input_ is iterable this function behaves like map
-    otherwise applies func to input
+    Map like function
+
+    Args:
+        func: function to apply
+        input_ : either an iterable or scalar value
+    Returns:
+        If input_ is iterable this function behaves like map
+        otherwise applies func to input_
     """
     if isiterable(input_):
         return list(map(func, input_))
@@ -328,7 +351,9 @@ def partial_imap_1to1(func, si_func):
 
 
 def sample_zip(items_list, num_samples, allow_overflow=False, per_bin=1):
-    """ Given a list of lists, samples one item for each list and bins them into
+    """ Helper for sampling
+
+    Given a list of lists, samples one item for each list and bins them into
     num_samples bins. If all sublists are of equal size this is equivilent to a
     zip, but otherewise consecutive bins will have monotonically less
     elemements
@@ -338,17 +363,18 @@ def sample_zip(items_list, num_samples, allow_overflow=False, per_bin=1):
     #...
     #AssertionError: Overflow occured
 
-    >>> from utool import util_list
-    >>> items_list = [[1, 2, 3, 4, 0], [5, 6, 7], [], [8, 9], [10]]
-    >>> util_list.sample_zip(items_list, 5)
-    ...
-    [[1, 5, 8, 10], [2, 6, 9], [3, 7], [4], [0]]
-    >>> util_list.sample_zip(items_list, 2, allow_overflow=True)
-    ...
-    ([[1, 5, 8, 10], [2, 6, 9]], [3, 7, 4])
-    >>> util_list.sample_zip(items_list, 4, allow_overflow=True, per_bin=2)
-    ...
-    ([[1, 5, 8, 10, 2, 6, 9], [3, 7, 4], [], []], [0])
+    Examples:
+        >>> from utool import util_list
+        >>> items_list = [[1, 2, 3, 4, 0], [5, 6, 7], [], [8, 9], [10]]
+        >>> util_list.sample_zip(items_list, 5)
+        ...
+        [[1, 5, 8, 10], [2, 6, 9], [3, 7], [4], [0]]
+        >>> util_list.sample_zip(items_list, 2, allow_overflow=True)
+        ...
+        ([[1, 5, 8, 10], [2, 6, 9]], [3, 7, 4])
+        >>> util_list.sample_zip(items_list, 4, allow_overflow=True, per_bin=2)
+        ...
+        ([[1, 5, 8, 10, 2, 6, 9], [3, 7, 4], [], []], [0])
     """
     # Prealloc a list of lists
     samples_list = [[] for _ in range(num_samples)]
@@ -381,7 +407,8 @@ def issorted(list_, op=operator.le):
 
 def debug_consec_list(list_):
     """
-    Returns tuple of (missing_items, missing_indicies, duplicate_items)
+    Returns:
+        tuple of (missing_items, missing_indicies, duplicate_items)
     """
     if not issorted(list_):
         print('warning list is not sorted. indicies will not match')
@@ -408,20 +435,26 @@ def debug_consec_list(list_):
     return missing_vals, missing_indicies, duplicate_items
 
 
-def list_depth(list_, func=max, depth=0):
+def list_depth(list_, func=max, _depth=0):
     """
     Returns the deepest level of nesting within a list of lists
 
-    list_ = [[[[[1]]], [3]], [[1], [3]], [[1], [3]]]
-    print(list_depth(list_, depth=0))
+    Args:
+       list_  : a nested listlike object
+       func   : depth aggregation strategy (defaults to max)
+       _depth : internal var
+
+    Example:
+        >>> list_ = [[[[[1]]], [3]], [[1], [3]], [[1], [3]]]
+        >>> print(list_depth(list_, _depth=0))
 
     """
-    depth_list = [list_depth(item, func=func, depth=depth + 1)
+    depth_list = [list_depth(item, func=func, _depth=_depth + 1)
                   for item in  list_ if is_listlike(item)]
     if len(depth_list) > 0:
         return func(depth_list)
     else:
-        return depth
+        return _depth
 
 
 def list_deep_types(list_):

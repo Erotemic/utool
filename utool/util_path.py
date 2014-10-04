@@ -202,8 +202,11 @@ def longest_existing_path(_path):
 
 
 def checkpath(path_, verbose=VERYVERBOSE, n=None, info=VERYVERBOSE):
-    """ returns true if path_ exists on the filesystem
-    show only the top n directories """
+    """ verbose wrapper around os.path.exists
+
+    Returns:
+        true if path_ exists on the filesystem show only the top n directories
+    """
     path_ = normpath(path_)
     if verbose:
         #print_('[utool] checkpath(%r)' % (path_))
@@ -258,11 +261,10 @@ def assertpath(path_, **kwargs):
 
 # ---File Copy---
 def copy_task(cp_list, test=False, nooverwrite=False, print_tasks=True):
-    """
-    Input list of tuples:
-        format = [(src_1, dst_1), ..., (src_N, dst_N)]
-    Copies all files src_i to dst_i
+    """ Copies all files src_i to dst_i
 
+    Args:
+        cp_list (list of tupls): [(src_1, dst_1), ..., (src_N, dst_N)]
     """
     num_overwrite = 0
     _cp_tasks = []  # Build this list with the actual tasks
@@ -702,6 +704,16 @@ def extend_regex(regexpr):
 
 
 def grep(tofind_list, recursive=True, dpath_list=None):
+    """
+    Python implementation of grep. NOT FINISHED
+
+    greps for patterns
+
+    Args:
+        tofind_list (str, list): one or more patterns to find
+        recursive (bool):
+        dpath_list (list): directories to search (defaults to cwd)
+    """
     include_patterns = ['*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c',
                         '*.h', '*.vim']  # , '*.txt']
     exclude_dirs = []
@@ -719,7 +731,7 @@ def grep(tofind_list, recursive=True, dpath_list=None):
     for fpath in _matching_fnames(dpath_list, include_patterns, exclude_dirs,
                                   recursive=recursive):
         if len(tofind_list) > 1:
-            print('WARNING IN ROB NAV 133')
+            print('[util_path] WARNING IN GREP')
         regexpr = extend_regex(tofind_list[0])
         found_lines, found_lxs = _regex_grepfile(fpath, regexpr)
         if len(found_lines) > 0:

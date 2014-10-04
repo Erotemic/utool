@@ -33,27 +33,27 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
     Returns two functions (mark_progress, end_progress) which will handle
     logging progress in a for loop.
 
-    # Example / Doctest
     # I don't completely understand why some of the >>> and ... had to be where
     # they are, but doctest gets very angry if its not in this format
-    >>> import utool, time
-    >>> from six.moves import range
-    >>> # Define a dummy task
-    >>> spam = 42.0
-    >>> nTotal = 1000
-    >>> iter_ = (num for num in range(0, nTotal * 2, 2))
-    >>> # Create progress functions
-    ... mark_, end_ = utool.log_progress('prog ', nTotal, flushfreq=17)
-    \b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\bprog    0/1000
-    >>> for count, item in enumerate(iter_):  #doctest: +ELLIPSIS
-    ...     # Call with enumerate to keep track of a count variable
-    ...     time.sleep(.001)
-    ...     spam += item + count
-    ...     mark_(count)
-    \b...prog 1000/1000
-    >>> # Mark completion
-    >>> end_()
-    <BLANKLINE>
+    Example:
+        >>> import utool, time
+        >>> from six.moves import range
+        >>> # Define a dummy task
+        >>> spam = 42.0
+        >>> nTotal = 1000
+        >>> iter_ = (num for num in range(0, nTotal * 2, 2))
+        >>> # Create progress functions
+        ... mark_, end_ = utool.log_progress('prog ', nTotal, flushfreq=17)
+        \b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\bprog    0/1000
+        >>> for count, item in enumerate(iter_):  #doctest: +ELLIPSIS
+        ...     # Call with enumerate to keep track of a count variable
+        ...     time.sleep(.001)
+        ...     spam += item + count
+        ...     mark_(count)
+        \b...prog 1000/1000
+        >>> # Mark completion
+        >>> end_()
+        <BLANKLINE>
     """
     global AGGROFLUSH
     if nTotal < startafter or disable:
@@ -138,9 +138,12 @@ def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
                   flush_after=4, spacing=0, line_len=80,
                   progress_type='fmtstr', mark_start=False, repl=False,
                   approx=False, override_quiet=False):
-    """Returns a function that marks progress taking the iteration count as a
-    parameter. Prints if max_val > mark_at. Prints dots if max_val not
-    specified or simple=True
+    """ DEPRICATE
+
+    Returns:
+        a function that marks progress taking the iteration count as a
+        parameter. Prints if max_val > mark_at. Prints dots if max_val not
+        specified or simple=True
     """
     write_fn = sys.stdout.write
     #write_fn = print_

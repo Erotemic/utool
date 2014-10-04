@@ -315,7 +315,7 @@ else:
     from .util_regex import (REGEX_VARNAME, RE_FLAGS, RE_KWARGS, get_match_text, 
                              named_field, named_field_regex, regex_get_match, 
                              regex_parse, regex_replace, regex_replace_lines, 
-                             regex_search, regex_split, repl_field,) 
+                             regex_search, regex_split, repl_field, sed, sedfile,) 
     from .util_time import (Timer, exiftime_to_unixtime, get_day, get_month, 
                             get_timestamp, get_timestats_str, get_year, tic, toc, 
                             unixtime_to_datetime, unixtime_to_timedelta,) 

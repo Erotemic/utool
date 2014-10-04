@@ -211,9 +211,13 @@ def extend_global_aliases(type_aliases):
 
 def var_aliased_repr(var, type_aliases):
     """
-    Returns a representation of var
-
     Replaces unweildy type strings with predefined more human-readable aliases
+
+    Args:
+        var: some object
+
+    Returns:
+        an "intelligently" chosen string representation of var
     """
     global GLOBAL_TYPE_ALIASES
     # Replace aliased values
@@ -225,9 +229,13 @@ def var_aliased_repr(var, type_aliases):
 
 def list_aliased_repr(list_, type_aliases=[]):
     """
-    Returns a representation of list_
-
     Replaces unweildy type strings with predefined more human-readable aliases
+
+    Args:
+        list_ (list): list to get repr
+
+    Returns:
+        string representation of list_
     """
     return [var_aliased_repr(item, type_aliases)
             for item in list_]
@@ -235,9 +243,13 @@ def list_aliased_repr(list_, type_aliases=[]):
 
 def dict_aliased_repr(dict_, type_aliases=[]):
     """
-    Returns a representation of dict_
-
     Replaces unweildy type strings with predefined more human-readable aliases
+
+    Args:
+        dict_ (dict): dictionary to get repr
+
+    Returns:
+        string representation of dict_
     """
     return ['%s : %s' % (key, var_aliased_repr(val, type_aliases))
             for (key, val) in six.iteritems(dict_)]
@@ -247,9 +259,9 @@ def dict_aliased_repr(dict_, type_aliases=[]):
 
 def func_str(func, args=[], kwargs={}, type_aliases=[]):
     """
-    Returns a representation of func with args, kwargs, and type_aliases
-
     string representation of function definition
+
+    Returns: a representation of func with args, kwargs, and type_aliases
     """
     repr_list = list_aliased_repr(args, type_aliases) + dict_aliased_repr(kwargs)
     argskwargs_str = newlined_list(repr_list, ', ', textwidth=80)
@@ -273,8 +285,10 @@ def list_str(list_):
 
 
 def dict_str(dict_, strvals=False, sorted_=False, newlines=True):
-    """ returns a human-readable and execable string representation of a
-    dictionary """
+    """
+    Returns:
+        a human-readable and execable string representation of a dictionary
+    """
     itemstr_list = dict_itemstr_list(dict_, strvals, sorted_)
     if newlines:
         return '{%s\n}' % indentjoin(itemstr_list)
@@ -289,23 +303,24 @@ def horiz_string(*args):
     Prints a list of objects ensuring that the next item in the list
     is all the way to the right of any previous items.
 
-    >>> # Pretty printing of matrices demo / test
-    >>> import utool
-    >>> import numpy as np
-    >>> # Wouldn't it be nice if we could print this operation easily?
-    >>> B = np.array(((1, 2), (3, 4)))
-    >>> C = np.array(((5, 6), (7, 8)))
-    >>> A = B.dot(C)
-    >>> # Eg 1:
-    >>> str_list = ['A = ', str(B), ' * ', str(C)]
-    >>> horizstr = (utool.horiz_string(*str_list))
-    >>> print(horizstr)
-    A = [[1 2]  * [[5 6]
-         [3 4]]    [7 8]]
-    >>> # Eg 2:
-    >>> print(utool.hz_str('A = ', A, ' = ', B, ' * ', C))
-    A = [[19 22]  = [[1 2]  * [[5 6]
-         [43 50]]    [3 4]]    [7 8]]
+    Example:
+        >>> # Pretty printing of matrices demo / test
+        >>> import utool
+        >>> import numpy as np
+        >>> # Wouldn't it be nice if we could print this operation easily?
+        >>> B = np.array(((1, 2), (3, 4)))
+        >>> C = np.array(((5, 6), (7, 8)))
+        >>> A = B.dot(C)
+        >>> # Eg 1:
+        >>> str_list = ['A = ', str(B), ' * ', str(C)]
+        >>> horizstr = (utool.horiz_string(*str_list))
+        >>> print(horizstr)
+        A = [[1 2]  * [[5 6]
+             [3 4]]    [7 8]]
+        >>> # Eg 2:
+        >>> print(utool.hz_str('A = ', A, ' = ', B, ' * ', C))
+        A = [[19 22]  = [[1 2]  * [[5 6]
+             [43 50]]    [3 4]]    [7 8]]
     """
 
     if len(args) == 1 and not isinstance(args[0], str):
@@ -398,12 +413,13 @@ def get_callable_name(func):
 def align(text, character='='):
     r""" Left justifies text on the left side of character
 
-    >>> character = '='
-    >>> text = 'a = b\none = two\nthree = fish\n'
-    >>> print(align(text, '='))
-    a     = b
-    one   = two
-    three = fish
+    Example:
+        >>> character = '='
+        >>> text = 'a = b\none = two\nthree = fish\n'
+        >>> print(align(text, '='))
+        a     = b
+        one   = two
+        three = fish
     """
     line_list = text.splitlines()
     new_lines = align_lines(line_list, character)

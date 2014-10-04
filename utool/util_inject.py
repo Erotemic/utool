@@ -82,6 +82,11 @@ def _get_module(module_name=None, module=None, register=True):
 
 
 def inject_colored_exceptions():
+    """
+    Causes exceptions to be colored if not already
+
+    Hooks into sys.excepthook
+    """
     def myexcepthook(type, value, tb):
         #https://stackoverflow.com/questions/14775916/coloring-exceptions-from-python-on-a-terminal
         import traceback
@@ -105,6 +110,7 @@ def inject_print_functions(module_name=None, module_prefix='[???]', DEBUG=False,
     module = _get_module(module_name, module)
     if SILENT:
         def print(*args):
+            """ silent print """
             pass
         def printDBG(*args):
             pass
@@ -112,6 +118,7 @@ def inject_print_functions(module_name=None, module_prefix='[???]', DEBUG=False,
             pass
     else:
         def print(*args):
+            """ logging print """
             util_logging.__UTOOL_PRINT__(*args)
 
         if __AGGROFLUSH__:
@@ -293,10 +300,20 @@ def inject_profile_function(module_name=None, module_prefix='[???]', module=None
 
 def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
     """
-    Usage:
-        from __future__ import absolute_import, division, print_function
-        from util.util_inject import inject
-        print, print_, printDBG, rrr, profile = inject(__name__, '[mod]')
+    Injects your module with utool magic
+
+    Utool magic is not actually magic. It just turns your print statments into
+    logging statments, allows for your module to be used with the utool.Indent
+    context manager and the and utool.indent_func decorator. printDBG will soon
+    be deprecated as will print_. The function rrr is a developer convinience for
+    reloading the module dynamically durring runtime. The profile decorator is
+    a no-op if not using kernprof.py, otherwise it is kernprof.py's profile
+    decorator.
+
+    Example:
+        >>> from __future__ import absolute_import, division, print_function
+        >>> from util.util_inject import inject
+        >>> print, print_, printDBG, rrr, profile = inject(__name__, '[mod]')
     """
     module = _get_module(module_name, module)
     rrr         = inject_reload_function(None, module_prefix, module)
@@ -308,6 +325,8 @@ def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
 
 def inject_all(DEBUG=False):
     """
+    UNFINISHED. DO NOT USE
+
     Injects the print, print_, printDBG, rrr, and profile functions into all
     loaded modules
     """
@@ -327,4 +346,5 @@ def inject_all(DEBUG=False):
             raise
 
 
+# Inject this module with itself!
 print, print_, printDBG, rrr, profile = inject(__name__, '[inject]')

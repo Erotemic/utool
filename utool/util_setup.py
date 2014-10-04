@@ -204,20 +204,36 @@ def parse_author():
 
 
 def autogen_sphinx_apidoc():
+    r"""
+    autogen_sphinx_docs.py
+
+    C:\Python27\Scripts\autogen_sphinx_docs.py
+    pip uninstall sphinx
+    pip install sphinx
+    pip install sphinxcontrib-napoleon
+
+    cd C:\Python27\Scripts
+    ls C:\Python27\Scripts
+    """
     import utool
     # TODO: assert sphinx-apidoc exe is found
     # TODO: make find_exe word?
     print('')
     print('if this fails try: sudo pip install sphinx')
     print('')
-    argfmt_list = [
-        'sphinx-apidoc',
+    winprefix = 'C:/Python27/Scripts/'
+    apidoc = 'sphinx-apidoc'
+    sphinx_apidoc_exe = apidoc if not utool.WIN32 else winprefix + apidoc + '.exe'
+    apidoc_argfmt_list = [
+        sphinx_apidoc_exe,
         '--full',
         '--maxdepth="{maxdepth}"',
         '--doc-author="{author}"',
         '--doc-version="{doc_version}"',
         '--doc-release="{doc_release}"',
         '--output-dir="_doc"',
+        '--separate',  # Put documentation for each module on its own page
+        #'--private',  # Include "_private" modules
         '{pkgdir}',
     ]
     outputdir = '_doc'
@@ -231,7 +247,7 @@ def autogen_sphinx_apidoc():
     pkgdir = packages[0]
     version = utool.parse_package_for_version(pkgdir)
 
-    fmtdict = {
+    apidoc_fmtdict = {
         'author': author,
         'maxdepth': '8',
         'pkgdir': pkgdir,
@@ -241,15 +257,39 @@ def autogen_sphinx_apidoc():
     }
     utool.assert_exists('setup.py')
     utool.ensuredir('_doc')
-    cmd_fmtstr = ' '.join(argfmt_list)
-    cmdstr = cmd_fmtstr.format(**fmtdict)
+    apidoc_fmtstr = ' '.join(apidoc_argfmt_list)
+    apidoc_cmdstr = apidoc_fmtstr.format(**apidoc_fmtdict)
 
+    # sphinx-apidoc outputs conf.py to <outputdir>, add custom commands
     print('[util_setup] autogenerate sphinx docs for %r' % (pkgdir,))
     if utool.VERBOSE:
-        print(utool.dict_str(fmtdict))
-    utool.cmd(cmdstr, shell=True)
-    os.chdir('_doc')
-    utool.cmd('make html', shell=True)
+        print(utool.dict_str(apidoc_fmtdict))
+    utool.cmd(apidoc_cmdstr, shell=True)
+    # Change dir to <outputdir>
+    print('chdir' + outputdir)
+    os.chdir(outputdir)
+    # Make custom edits to conf.py
+    search_text = utool.unindent(
+        '''
+        extensions = [
+            'sphinx.ext.autodoc',
+            'sphinx.ext.viewcode',
+        ]''').strip()
+    repl_text = utool.unindent(
+        '''
+        extensions = [
+            'sphinx.ext.autodoc',
+            'sphinx.ext.viewcode',
+            'sphinx.ext.napoleon',
+            #'sphinxcontrib.napoleon',
+        ]''').strip()
+    conf_fname = 'conf.py'
+    conf_text = utool.read_from(conf_fname)
+    conf_text = conf_text.replace(search_text, repl_text)
+    utool.write_to(conf_fname, conf_text)
+
+    #utool.cmd('make html', shell=True)
+    utool.cmd('make', 'html', shell=True)
 
 
 def NOOP():
@@ -433,9 +473,10 @@ def setuptools_setup(setup_fpath=None, module=None, **kwargs):
     """
     Arguments which can be passed to setuptools
 
-    #-------------------------------------------------------------------------------------
+    +---
     Install-Data       Value            Description
-    #-------------------------------------------------------------------------------------
+    L---
+
     *packages          strlist          a list of packages modules to be distributed
     py_modules         strlist          a list of singlefile modules to be distributed
     scripts            strlist          a list of standalone scripts to build and install
@@ -448,9 +489,9 @@ def setuptools_setup(setup_fpath=None, module=None, **kwargs):
     *entry_pionts      dict             installs a script {'console_scripts': ['script_name_to_install = entry_module:entry_function']}
 
 
-    #-------------------------------------------------------------------------------------
+    +---
     Meta-Data          Value            Description
-    #-------------------------------------------------------------------------------------
+    L---
     name               short string     ('name of the package')
     version            short string     ('version of this release')
     author             short string     ('package authors name')
