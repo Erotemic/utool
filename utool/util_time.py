@@ -45,9 +45,12 @@ def get_timestamp(format_='filename', use_second=False):
 
 class Timer(object):
     """
-    Timer with-statment context object
-    e.g with Timer() as t: some_function()
-    A ++quality utool
+    Timer with-statment context object.
+
+    Example:
+        >>> import utool
+        >>> with utool.Timer('Timer test!'):
+        >>>     prime = utool.get_nth_prime(4000)
     """
     def __init__(self, msg='', verbose=True, newline=True):
         self.msg = msg
@@ -88,6 +91,9 @@ class Timer(object):
 
 
 def exiftime_to_unixtime(datetime_str, timestamp_format=1):
+    """
+    converts a datetime string to posixtime (unixtime)
+    """
     try:
         # Normal format, or non-standard year first data
         if timestamp_format == 2:

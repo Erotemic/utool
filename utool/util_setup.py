@@ -232,7 +232,7 @@ def autogen_sphinx_apidoc():
         '--doc-version="{doc_version}"',
         '--doc-release="{doc_release}"',
         '--output-dir="_doc"',
-        '--separate',  # Put documentation for each module on its own page
+        #'--separate',  # Put documentation for each module on its own page
         #'--private',  # Include "_private" modules
         '{pkgdir}',
     ]
@@ -265,10 +265,19 @@ def autogen_sphinx_apidoc():
     if utool.VERBOSE:
         print(utool.dict_str(apidoc_fmtdict))
     utool.cmd(apidoc_cmdstr, shell=True)
+    #
     # Change dir to <outputdir>
     print('chdir' + outputdir)
     os.chdir(outputdir)
+    #
     # Make custom edits to conf.py
+    # FIXME:
+    #search_text = utool.unindent(
+    #    r'''
+    #    extensions = [
+    #    [^\]]*
+    #    ]
+    #    ''')
     search_text = utool.unindent(
         '''
         extensions = [
@@ -280,14 +289,14 @@ def autogen_sphinx_apidoc():
         extensions = [
             'sphinx.ext.autodoc',
             'sphinx.ext.viewcode',
-            'sphinx.ext.napoleon',
-            #'sphinxcontrib.napoleon',
+            #'sphinx.ext.napoleon',
+            'sphinxcontrib.napoleon',
         ]''').strip()
     conf_fname = 'conf.py'
     conf_text = utool.read_from(conf_fname)
     conf_text = conf_text.replace(search_text, repl_text)
     utool.write_to(conf_fname, conf_text)
-
+    # Make the documentation
     #utool.cmd('make html', shell=True)
     utool.cmd('make', 'html', shell=True)
 

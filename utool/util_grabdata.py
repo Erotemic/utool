@@ -57,7 +57,16 @@ def _extract_archive(archive_fpath, archive_file, archive_namelist, output_dir, 
 
 
 def download_url(url, filename, spoof=False):
-    # From http://blog.moleculea.com/2012/10/04/urlretrieve-progres-indicator/
+    """ downloads a url to a filename.
+
+    Args:
+        url (str): url to download
+        filename (str): path to download to
+        spoof (bool): if True pretends to by Firefox
+
+    References:
+        http://blog.moleculea.com/2012/10/04/urlretrieve-progres-indicator/
+    """
     start_time_ptr = [0]
     def reporthook(count, block_size, total_size):
         if count == 0:
@@ -132,12 +141,15 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
 def grab_zipped_url(zipped_url, ensure=True, appname='utool', download_dir=None,
                     force_commonprefix=True, cleanup=True):
     """
-    Input zipped_url - this must look like:
-    http://www.spam.com/eggs/data.zip
-    eg:
-    https://dl.dropboxusercontent.com/s/of2s82ed4xf86m6/testdata.zip
-
     downloads and unzips the url
+
+    Args:
+        zipped_url (str): url which must be either a .zip of a .tar.gz file
+
+    Examples:
+        >>> zipped_url = 'https://dl.dropboxusercontent.com/s/of2s82ed4xf86m6/testdata.zip'
+        >>> zipped_url = 'http://www.spam.com/eggs/data.zip'
+
     """
     zipped_url = fix_dropbox_link(zipped_url)
     zip_fname = split(zipped_url)[1]

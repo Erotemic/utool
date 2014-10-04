@@ -31,11 +31,20 @@ def DEPRICATED(func):
 
 def get_stats(_list, axis=None):
     """
-    Returns a ordered dictionary of common numpy statistics
-    (min, max, mean, std, nMin, nMax, shape)
+    Args:
+        _list (listlike): list or array of values to get statistics of
+        axis (int): if _list is ndarray then this specifies the axis
 
-    axis = 0
-    _list = np.random.rand(10, 2)
+    Returns:
+        stat_dict (OrderedDict): dictionary of common numpy statistics
+            (min, max, mean, std, nMin, nMax, shape)
+
+    Examples:
+        >>> import numpy as np
+        >>> import utool
+        >>> axis = 0
+        >>> _list = np.random.rand(10, 2)
+        >>> utool.get_stats(_list, axis=axis)
     """
     # Assure input is in numpy format
     if isinstance(_list, np.ndarray):
@@ -274,47 +283,52 @@ def numpy_list_num_bits(nparr_list, expected_type, expected_dims):
     return num_bits,  num_items, num_elemt
 
 
-def runprofile(cmd, globals_=globals(), locals_=locals()):
-    # Meliae # from meliae import loader # om = loader.load('filename.json') # s = om.summarize();
-    #http://www.huyng.com/posts/python-performance-analysis/
-    #Once youve gotten your code setup with the <AT>profile decorator, use kernprof.py to run your script.
-    #kernprof.py -l -v fib.py
-    import cProfile
-    print('[util] Profiling Command: ' + cmd)
-    cProfOut_fpath = 'OpenGLContext.profile'
-    cProfile.runctx( cmd, globals_, locals_, filename=cProfOut_fpath)
-    # RUN SNAKE
-    print('[util] Profiled Output: ' + cProfOut_fpath)
-    if sys.platform == 'win32':
-        rsr_fpath = 'C:/Python27/Scripts/runsnake.exe'
-    else:
-        rsr_fpath = 'runsnake'
-    view_cmd = rsr_fpath + ' "' + cProfOut_fpath + '"'
-    os.system(view_cmd)
-    return True
+#def runprofile(cmd, globals_=globals(), locals_=locals()):
+#    """ DEPRICATE. Tries to run a function and profile it """
+#    # Meliae # from meliae import loader # om = loader.load('filename.json') # s = om.summarize();
+#    #http://www.huyng.com/posts/python-performance-analysis/
+#    #Once youve gotten your code setup with the <AT>profile decorator, use kernprof.py to run your script.
+#    #kernprof.py -l -v fib.py
+#    import cProfile
+#    print('[util] Profiling Command: ' + cmd)
+#    cProfOut_fpath = 'OpenGLContext.profile'
+#    cProfile.runctx( cmd, globals_, locals_, filename=cProfOut_fpath)
+#    # RUN SNAKE
+#    print('[util] Profiled Output: ' + cProfOut_fpath)
+#    if sys.platform == 'win32':
+#        rsr_fpath = 'C:/Python27/Scripts/runsnake.exe'
+#    else:
+#        rsr_fpath = 'runsnake'
+#    view_cmd = rsr_fpath + ' "' + cProfOut_fpath + '"'
+#    os.system(view_cmd)
+#    return True
 
 
-def memory_profile(with_gc=False):
-    #http://stackoverflow.com/questions/2629680/deciding-between-subprocess-multiprocessing-and-thread-in-python
-    from . import util_str
-    import guppy
-    if with_gc:
-        garbage_collect()
-    hp = guppy.hpy()
-    print('[hpy] Waiting for heap output...')
-    heap_output = hp.heap()
-    print(heap_output)
-    print('[hpy] total heap size: ' + util_str.byte_str2(heap_output.size))
-    from . import util_resources
-    util_resources.memstats()
-    # Graphical Browser
-    #hp.pb()
+#def memory_profile(with_gc=False):
+#    #http://stackoverflow.com/questions/2629680/deciding-between-subprocess-multiprocessing-and-thread-in-python
+#    from . import util_str
+#    import guppy
+#    if with_gc:
+#        garbage_collect()
+#    hp = guppy.hpy()
+#    print('[hpy] Waiting for heap output...')
+#    heap_output = hp.heap()
+#    print(heap_output)
+#    print('[hpy] total heap size: ' + util_str.byte_str2(heap_output.size))
+#    from . import util_resources
+#    util_resources.memstats()
+#    # Graphical Browser
+#    #hp.pb()
 
 
 def make_call_graph(func, *args, **kwargs):
     """ profile with pycallgraph
-    pycallgraph graphviz -- ./mypythonscript.py
-    http://pycallgraph.slowchop.com/en/master/
+
+    Example:
+        pycallgraph graphviz -- ./mypythonscript.py
+
+    References:
+        http://pycallgraph.slowchop.com/en/master/
     """
     from pycallgraph import PyCallGraph
     from pycallgraph.output import GraphvizOutput
@@ -324,7 +338,9 @@ def make_call_graph(func, *args, **kwargs):
 
 def make_object_graph(obj, fpath='sample_graph.png'):
     """ memoryprofile with objgraph
-    http://mg.pov.lt/objgraph/
+
+    References:
+        http://mg.pov.lt/objgraph/
     """
     import objgraph
     objgraph.show_refs([obj], filename='ref_graph.png')

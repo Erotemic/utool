@@ -1,7 +1,5 @@
 """
 If logging is on, utool will overwrite the print function with a logging function
-Yay __future__ print_function. Lets try to get to python3 quickly!
-Unrelated, but important reminder: Don't Panic
 
 This is a special module which will not get injected into (should it be internal?)
 """
@@ -44,16 +42,25 @@ logdir_cacheid = 'log_dpath'
 
 
 def get_logging_dir(appname='default'):
+    """
+    Returns:
+        log_dir_realpath (str): real path to logging directory
+    """
     from ._internal.meta_util_cache import global_cache_read
     from ._internal.meta_util_cplat import get_resource_dir
     from .util_cache import get_default_appname  # Hacky
     if appname is None or  appname == 'default':
         appname = get_default_appname()
     log_dir = global_cache_read(logdir_cacheid, appname=appname, default=join(get_resource_dir(), appname, 'logs'))
-    return realpath(log_dir)
+    log_dir_realpath = realpath(log_dir)
+    return log_dir_realpath
 
 
 def get_log_fpath(num='next', appname=None):
+    """
+    Returns:
+        log_fpath (str): path to log file
+    """
     log_dir = get_logging_dir(appname=appname)
     if not exists(log_dir):
         os.makedirs(log_dir)
@@ -74,6 +81,9 @@ def get_log_fpath(num='next', appname=None):
 
 
 def add_logging_handler(handler, format_='file'):
+    """
+    mostly for util_logging internals
+    """
     global __UTOOL_ROOT_LOGGER__
     if __UTOOL_ROOT_LOGGER__ is None:
         builtins.print('[WARNING] logger not started, cannot add handler')

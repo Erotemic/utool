@@ -29,22 +29,25 @@ SUPER_STRICT = '--super-strict' in sys.argv
 def get_argval(argstr_, type_=None, default=None, help_=None):
     """ Returns a value of an argument specified on the command line after some flag
 
-    python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest="holy grail"
-    python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest="42"
-    python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest=42
-    python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest 42
-    python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest', float)]])" --quest 42
-    python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--nAssign'), int)]])" --nAssign 42
 
-    >>> from utool.util_arg import *  # NOQA
-    >>> import sys
-    >>> sys.argv.extend(['--spam', 'eggs', '--quest=holy grail', '--ans=42'])
-    >>> get_argval('--spam', type_=str, default=None)
-    eggs
-    >>> get_argval('--quest', type_=str, default=None)
-    holy grail
-    >>> get_argval('--ans', type_=int, default=None)
-    42
+    Examples:
+        >>> from utool.util_arg import *  # NOQA
+        >>> import sys
+        >>> sys.argv.extend(['--spam', 'eggs', '--quest=holy grail', '--ans=42'])
+        >>> get_argval('--spam', type_=str, default=None)
+        eggs
+        >>> get_argval('--quest', type_=str, default=None)
+        holy grail
+        >>> get_argval('--ans', type_=int, default=None)
+        42
+
+
+        python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest="holy grail"
+        python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest="42"
+        python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest=42
+        python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest 42
+        python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest', float)]])" --quest 42
+        python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--nAssign'), int)]])" --nAssign 42
     """
     arg_after = default
     if type_ is bool:
@@ -135,7 +138,7 @@ def fuzzy_int(str_):
 
 
 class ArgumentParser2(object):
-    'Wrapper around argparse.ArgumentParser with convinence functions'
+    """ Wrapper around argparse.ArgumentParser with convinence functions """
     def __init__(self, parser):
         self.parser = parser
 
@@ -213,6 +216,12 @@ def get_fpath_args(arglist_=None, pat='*'):
 
 
 def argv_flag_dec(func):
+    """
+    Decorators which control program flow based on sys.argv
+    the decorated function does not execute without its corresponding
+    flag
+    """
+
     return __argv_flag_dec(func, default=False)
 
 

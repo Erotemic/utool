@@ -115,8 +115,9 @@ def hashstr_sha1(data, base10=False):
 
 def get_file_hash(fpath, blocksize=65536, hasher=None):
     """
-    http://stackoverflow.com/questions/3431825/generating-a-md5-checksum-of-a-file
-    http://stackoverflow.com/questions/5001893/when-should-i-use-sha-1-and-when-should-i-use-sha-2
+    References:
+        http://stackoverflow.com/questions/3431825/generating-a-md5-checksum-of-a-file
+        http://stackoverflow.com/questions/5001893/when-should-i-use-sha-1-and-when-should-i-use-sha-2
     """
     if hasher is None:
         hasher = hashlib.sha1()
@@ -143,9 +144,13 @@ def get_file_uuid(fpath, hasher=None):
 
 
 def image_uuid(pil_img):
-    """ UNSAFE: DEPRICATE: JPEG IS NOT GAURENTEED TO PRODUCE CONSITENT VALUES ON
+    """
+    UNSAFE: DEPRICATE: JPEG IS NOT GAURENTEED TO PRODUCE CONSITENT VALUES ON
+
     MULTIPLE MACHINES image global unique id
-    http://stackoverflow.com/questions/23565889/jpeg-images-have-different-pixel-values-across-multiple-devices
+
+    References:
+        http://stackoverflow.com/questions/23565889/jpeg-images-have-different-pixel-values-across-multiple-devices
     """
     # Get the bytes of the image
     img_bytes_ = pil_img.tobytes()
@@ -176,12 +181,13 @@ def augment_uuid(uuid_, *hashables):
 
 def hashable_to_uuid(hashable_):
     """
-    hashables are bytes-like objects
-       An object that supports the Buffer Protocol, like bytes, bytearray or
-       memoryview. Bytes-like objects can be used for various operations that
-       expect binary data, such as compression, saving to a binary file or
-       sending over a socket. Some operations need the binary data to be
-       mutable, in which case not all bytes-like objects can apply.
+    Args:
+        hashable_ (hashable): hashables are bytes-like objects
+           An object that supports the Buffer Protocol, like bytes, bytearray or
+           memoryview. Bytes-like objects can be used for various operations
+           that expect binary data, such as compression, saving to a binary file
+           or sending over a socket. Some operations need the binary data to be
+           mutable, in which case not all bytes-like objects can apply.
     """
     # Hash the bytes
     try:

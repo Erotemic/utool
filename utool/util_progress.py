@@ -1,12 +1,14 @@
 """
 # Need to invoke this way because of relative imports
-python -c "import utool, doctest; print(doctest.testmod(utool.util_progress))"
 
-python -m doctest -v ~/code/utool/utool/util_progress.py
-python -c "import utool, doctest; doctest.testmod(utool.util_progress, verbose=True)"
-python -c "import utool, doctest; doctest.testmod(utool.util_progress)" -v
-python -c "import utool, doctest; doctest.testmod(utool.util_progress)"
-python -c "import utool, doctest; help(doctest.testmod)"
+
+Examples:
+    python -c "import utool, doctest; print(doctest.testmod(utool.util_progress))"
+    python -m doctest -v ~/code/utool/utool/util_progress.py
+    python -c "import utool, doctest; doctest.testmod(utool.util_progress, verbose=True)"
+    python -c "import utool, doctest; doctest.testmod(utool.util_progress)" -v
+    python -c "import utool, doctest; doctest.testmod(utool.util_progress)"
+    python -c "import utool, doctest; help(doctest.testmod)"
 """
 from __future__ import absolute_import, division, print_function
 import sys
@@ -35,6 +37,7 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
 
     # I don't completely understand why some of the >>> and ... had to be where
     # they are, but doctest gets very angry if its not in this format
+
     Example:
         >>> import utool, time
         >>> from six.moves import range

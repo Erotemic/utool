@@ -53,20 +53,21 @@ def truepath_relative(path):
 def path_ndir_split(path_, n, force_unix=True):
     r"""
     Shows only a little bit of the path. Up to the n bottom-level directories
-    Unit Tests:
-    >>> import utool
-    >>> paths = [r'/usr/bin/local/foo/bar',
-    ...          r'C:/',
-    ...          r'C:\Program Files (x86)/foobar/bin',]
-    >>> output = '\n'.join(['n=%r: %r' % (n, utool.path_ndir_split(path, n))
-    ...                     for path, n in utool.iprod(paths, range(1, 3))])
-    >>> print(output)
-    n=1: 'bar'
-    n=2: 'foo/bar'
-    n=1: 'C:'
-    n=2: 'C:'
-    n=1: 'bin'
-    n=2: 'foobar/bin'
+
+    Example:
+        >>> import utool
+        >>> paths = [r'/usr/bin/local/foo/bar',
+        ...          r'C:/',
+        ...          r'C:\Program Files (x86)/foobar/bin',]
+        >>> output = '\n'.join(['n=%r: %r' % (n, utool.path_ndir_split(path, n))
+        ...                     for path, n in utool.iprod(paths, range(1, 3))])
+        >>> print(output)
+        n=1: 'bar'
+        n=2: 'foo/bar'
+        n=1: 'C:'
+        n=2: 'C:'
+        n=1: 'bin'
+        n=2: 'foobar/bin'
     """
     if n is None:
         return path_
@@ -264,7 +265,7 @@ def copy_task(cp_list, test=False, nooverwrite=False, print_tasks=True):
     """ Copies all files src_i to dst_i
 
     Args:
-        cp_list (list of tupls): [(src_1, dst_1), ..., (src_N, dst_N)]
+        cp_list (list of tuples): [(src_1, dst_1), ..., (src_N, dst_N)]
     """
     num_overwrite = 0
     _cp_tasks = []  # Build this list with the actual tasks
@@ -301,7 +302,9 @@ def copy_task(cp_list, test=False, nooverwrite=False, print_tasks=True):
 
 def copy(src, dst):
     """
-    Copies src file or folder to dst. If src is a folder this copy is recursive.
+    Copies src file or folder to dst.
+
+    If src is a folder this copy is recursive.
     """
     if exists(src):
         if exists(dst):
@@ -507,8 +510,10 @@ def dirsplit(path):
 
 def fpaths_to_fnames(fpath_list):
     """
-    Input: Filepath list
-    Output: Filename list
+    Args:
+        fpath_list (list of strs): list of file-paths
+    Returns:
+        fname_list (list of strs): list of file-names
     """
     fname_list = [split(fpath)[1] for fpath in fpath_list]
     return fname_list

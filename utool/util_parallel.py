@@ -112,7 +112,9 @@ def close_pool(terminate=False):
 
 
 def _process_serial(func, args_list, args_dict={}):
-    """"  """
+    """
+    Serial process map
+    """
     num_tasks = len(args_list)
     result_list = []
     mark_prog, end_prog = progress_func(max_val=num_tasks,
@@ -128,7 +130,9 @@ def _process_serial(func, args_list, args_dict={}):
 
 
 def _process_parallel(func, args_list, args_dict={}):
-    """"  """
+    """
+    Parallel process map
+    """
     # Define progress observers
     num_tasks = len(args_list)
     num_tasks_returned_ptr = [0]
@@ -153,7 +157,9 @@ def _process_parallel(func, args_list, args_dict={}):
 
 def _generate_parallel(func, args_list, ordered=True, chunksize=1,
                        prog=True, verbose=True):
-    """  """
+    """
+    Parallel process generator
+    """
     prog = prog and verbose
     nTasks = len(args_list)
     if chunksize is None:
@@ -188,7 +194,7 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
 
 
 def _generate_serial(func, args_list, prog=True, verbose=True):
-    """  """
+    """ internal serial generator  """
     if verbose:
         print('[parallel] executing %d %s tasks in serial' %
                 (len(args_list), get_funcname(func)))
@@ -215,8 +221,10 @@ def ensure_pool(warn=False):
 
 def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
              chunksize=1, prog=True, verbose=True):
-    """ Returns a generator which asynchronously returns results
-     """
+    """
+    Yeilds:
+        result of applying func to args in args_list
+    """
     num_tasks = len(args_list)
     if num_tasks == 0:
         if verbose:
@@ -245,7 +253,10 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
 
 
 def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__):
-    """"  """
+    """
+    Returns:
+        result of parallel map(func, args_list)
+    """
 
     ensure_pool()
     if __POOL__ == 1 or force_serial:

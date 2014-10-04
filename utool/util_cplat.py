@@ -39,7 +39,10 @@ PYLIB_DICT = {
 
 def get_free_diskbytes(dir_):
     """
-    Return folder/drive free space (in bytes)
+    Returns:
+    folder/drive free space (in bytes)
+
+    References::
     http://stackoverflow.com/questions/51658/cross-platform-space-remaining-on-volume-using-python
     """
     if WIN32:
@@ -220,12 +223,17 @@ def __parse_cmd_kwargs(kwargs):
     detatch = kwargs.get('detatch', False)
     shell   = kwargs.get('shell', False)
     sudo    = kwargs.get('sudo', False)
-    return verbose, detatch, shell, sudo
+    separate    = kwargs.get('separate', True)
+    return verbose, detatch, shell, sudo, separate
 
 
 def __parse_cmd_args(args, sudo):
-    if len(args) == 1 and isinstance(args[0], list):
-        args = args[0]
+    if len(args) == 1:
+        if isinstance(args[0], list):
+            args = args[0]
+        elif isinstance(args[0], str):
+            if WIN32:
+                args = shlex.split(args[0])
     if isinstance(args, six.string_types):
         if os.name == 'posix':
             args = shlex.split(args)
@@ -257,13 +265,26 @@ def _run_process(proc):
 
 
 def cmd(*args, **kwargs):
-    """ A really roundabout way to issue a system call """
+    """ A really roundabout way to issue a system call
+
+    # FIXME: This function needs some work
+    # It should work without a hitch on windows or unix.
+    # It should be able to spit out stdout in realtime.
+    # Should be able to configure detatchment, shell, and sudo.
+
+    """
+    from .util_arg import VERBOSE
     sys.stdout.flush()
     # Parse the keyword arguments
-    verbose, detatch, shell, sudo = __parse_cmd_kwargs(kwargs)
+    verbose, detatch, shell, sudo, separate = __parse_cmd_kwargs(kwargs)
     args = __parse_cmd_args(args, sudo)
     # Print what you are about to do
+    if separate:
+        print('\n+--------------')
     print('[cplat] RUNNING: %r' % (args,))
+    if VERBOSE:
+        print('[cplat] Joined args:')
+        print(' '.join(args))
     # Open a subprocess with a pipe
     proc = subprocess.Popen(args,
                             stdout=subprocess.PIPE,
@@ -294,6 +315,8 @@ def cmd(*args, **kwargs):
     # Make sure process if finished
     ret = proc.wait()
     print('[cplat] PROCESS FINISHED')
+    if separate:
+        print('L--------------\n')
     return out, err, ret
 
 
