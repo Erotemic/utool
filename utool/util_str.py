@@ -161,7 +161,8 @@ def byte_str2(nBytes):
     Automatically chooses relevant unit (KB, MB, or GB) for displaying some
     number of bytes.
 
-    returns a string
+    Returns:
+        str
     """
     if nBytes < 2.0 ** 10:
         return byte_str(nBytes, 'KB')
@@ -177,7 +178,8 @@ def byte_str(nBytes, unit='bytes'):
     """
     representing the number of bytes with the chosen unit
 
-    returns a string
+    Returns:
+        str
     """
     if unit.lower().startswith('b'):
         nUnit = nBytes
@@ -217,7 +219,7 @@ def var_aliased_repr(var, type_aliases):
         var: some object
 
     Returns:
-        an "intelligently" chosen string representation of var
+        str: an "intelligently" chosen string representation of var
     """
     global GLOBAL_TYPE_ALIASES
     # Replace aliased values
@@ -232,10 +234,10 @@ def list_aliased_repr(list_, type_aliases=[]):
     Replaces unweildy type strings with predefined more human-readable aliases
 
     Args:
-        list_ (list): list to get repr
+        list_ (list): ``list`` to get repr
 
     Returns:
-        string representation of list_
+        str: string representation of ``list_``
     """
     return [var_aliased_repr(item, type_aliases)
             for item in list_]
@@ -249,7 +251,7 @@ def dict_aliased_repr(dict_, type_aliases=[]):
         dict_ (dict): dictionary to get repr
 
     Returns:
-        string representation of dict_
+        str: string representation of ``dict_``
     """
     return ['%s : %s' % (key, var_aliased_repr(val, type_aliases))
             for (key, val) in six.iteritems(dict_)]
@@ -261,7 +263,8 @@ def func_str(func, args=[], kwargs={}, type_aliases=[]):
     """
     string representation of function definition
 
-    Returns: a representation of func with args, kwargs, and type_aliases
+    Returns:
+        str: a representation of func with args, kwargs, and type_aliases
     """
     repr_list = list_aliased_repr(args, type_aliases) + dict_aliased_repr(kwargs)
     argskwargs_str = newlined_list(repr_list, ', ', textwidth=80)
@@ -287,7 +290,7 @@ def list_str(list_):
 def dict_str(dict_, strvals=False, sorted_=False, newlines=True):
     """
     Returns:
-        a human-readable and execable string representation of a dictionary
+        str: a human-readable and execable string representation of a dictionary
     """
     itemstr_list = dict_itemstr_list(dict_, strvals, sorted_)
     if newlines:

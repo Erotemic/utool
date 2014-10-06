@@ -203,10 +203,10 @@ def longest_existing_path(_path):
 
 
 def checkpath(path_, verbose=VERYVERBOSE, n=None, info=VERYVERBOSE):
-    """ verbose wrapper around os.path.exists
+    """ verbose wrapper around ``os.path.exists``
 
     Returns:
-        true if path_ exists on the filesystem show only the top n directories
+        true if ``path_`` exists on the filesystem show only the top n directories
     """
     path_ = normpath(path_)
     if verbose:

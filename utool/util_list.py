@@ -13,12 +13,12 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[list]')
 # --- List Allocations ---
 
 def alloc_lists(num_alloc):
-    """ allocates space for a list of lists """
+    """ allocates space for a ``list`` of lists """
     return [[] for _ in range(num_alloc)]
 
 
 def alloc_nones(num_alloc):
-    """ allocates space for a list of Nones """
+    """ allocates space for a ``list`` of Nones """
     return [None] * num_alloc
     #return [None for _ in range(num_alloc)]
 
@@ -26,10 +26,10 @@ def alloc_nones(num_alloc):
 def ensure_list_size(list_, size_):
     """ Allocates more space if needbe.
 
-    Ensures len(list_) == size_.
+    Ensures len(``list_``) == ``size_``.
 
     Args:
-        list_ (list): list to extend
+        list_ (list): ``list`` to extend
         size_ (int): amount to exent by
     """
     lendiff = (size_) - len(list_)
@@ -79,8 +79,9 @@ def flatten(list_):
 
 def invertable_flatten(unflat_list):
     """
-    Flattens list but remember how to reconstruct the unflat list
-    Returns flat list and the unflat list with indexes into the flat list
+    Flattens ``list`` but remember how to reconstruct the unflat ``list``
+    Returns flat ``list`` and the unflat ``list`` with indexes into the flat
+    ``list``
     """
 
     def nextnum(trick_=[0]):
@@ -298,14 +299,14 @@ def unique_unordered(list_):
 
 
 def sortedby(list_, sortable, reverse=False):
-    """ sorts list_ using sortable
+    """ sorts ``list_`` using sortable
 
     Args:
         list_ (list): list to sort
         sortable (list): list to by
 
     Returns:
-        a list sorted by the values of another list
+        a ``list`` sorted by the values of another ``list``
 
     Examples:
         >>> import utool
@@ -327,9 +328,10 @@ def scalar_input_map(func, input_):
     Args:
         func: function to apply
         input_ : either an iterable or scalar value
+
     Returns:
-        If input_ is iterable this function behaves like map
-        otherwise applies func to input_
+        If ``input_`` is iterable this function behaves like map
+        otherwise applies func to ``input_``
     """
     if isiterable(input_):
         return list(map(func, input_))

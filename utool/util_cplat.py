@@ -115,6 +115,10 @@ def ls_libs(dpath):
 
 
 def get_dynlib_dependencies(lib_path):
+    """
+    Executes tools for inspecting dynamic library dependencies depending on the
+    current platform.
+    """
     if LINUX:
         depend_out, depend_err, ret = cmd('ldd', lib_path, verbose=False)
     elif DARWIN:
@@ -136,10 +140,12 @@ def get_dynamic_lib_globstrs():
 
 
 def get_computer_name():
+    """ Returns machine name """
     return COMPUTER_NAME
 
 
 def get_user_name():
+    """ Returns user homefolder name """
     return basename(truepath('~'))
 
 
@@ -153,6 +159,7 @@ def getroot():
 
 
 def startfile(fpath):
+    """ Uses default program defined by the system to open a file. """
     print('[cplat] startfile(%r)' % fpath)
     if not exists(fpath):
         raise Exception('Cannot start nonexistant file: %r' % fpath)
@@ -170,6 +177,7 @@ def startfile(fpath):
 
 
 def editfile(fpath):
+    """ Runs gvim """
     print('[cplat] startfile(%r)' % fpath)
     if not exists(fpath):
         raise Exception('Cannot start nonexistant file: %r' % fpath)
@@ -228,19 +236,54 @@ def __parse_cmd_kwargs(kwargs):
 
 
 def __parse_cmd_args(args, sudo):
-    if len(args) == 1:
-        if isinstance(args[0], list):
+    """
+    Returns:
+        args suitable for subprocess.Popen
+
+        I'm not quite sure what those are yet. Plain old string seem to work
+        well? But I remember needing shlex at some point.
+    """
+    #from .util_arg import VERBOSE
+    #args = ' '.join(args)
+    #if VERBOSE:
+    #    print('[cplat] Joined args:')
+    #    print(' '.join(args))
+    print(type(args))
+    print(args)
+    print(shlex)
+    if isinstance(args, (list, tuple)) and len(args) > 1:
+        # Input is ['cmd', 'arg1', 'arg2']
+        args = ' '.join(args)
+    elif isinstance(args, (list, tuple)) and len(args) == 1:
+        if isinstance(args[0], (tuple, list)):
+            # input got nexted
+            args = ' '.join(args)
+        elif isinstance(args[0], six.string_types):
+            # input is just nested string
             args = args[0]
-        elif isinstance(args[0], str):
-            if WIN32:
-                args = shlex.split(args[0])
-    if isinstance(args, six.string_types):
-        if os.name == 'posix':
-            args = shlex.split(args)
-        else:
-            args = [args]
+    elif isinstance(args, six.string_types):
+        pass
     if not WIN32 and sudo is True:
         args = ['sudo'] + args
+    #if isinstance(args, (list, tuple)):
+    #    if len(args) == 1:
+    #        print('HERE1')
+    #        if isinstance(args[0], list):
+    #            print('HERE5')
+    #            args = args[0]
+    #        elif isinstance(args[0], str):
+    #            print('HERE2')
+    #            if WIN32:
+    #                args = shlex.split(args[0])
+    #    #else:
+    #        #if LINUX:
+    #        #    args = ' '.join(args)
+    #if isinstance(args, six.string_types):
+    #    print('HERE3')
+    #    #if os.name == 'posix':
+    #    #    args = shlex.split(args)
+    #    #else:
+    #        #args = [args]
     return args
 
 
@@ -273,18 +316,14 @@ def cmd(*args, **kwargs):
     # Should be able to configure detatchment, shell, and sudo.
 
     """
-    from .util_arg import VERBOSE
     sys.stdout.flush()
     # Parse the keyword arguments
     verbose, detatch, shell, sudo, separate = __parse_cmd_kwargs(kwargs)
-    args = __parse_cmd_args(args, sudo)
-    # Print what you are about to do
     if separate:
         print('\n+--------------')
+    args = __parse_cmd_args(args, sudo)
+    # Print what you are about to do
     print('[cplat] RUNNING: %r' % (args,))
-    if VERBOSE:
-        print('[cplat] Joined args:')
-        print(' '.join(args))
     # Open a subprocess with a pipe
     proc = subprocess.Popen(args,
                             stdout=subprocess.PIPE,
@@ -361,6 +400,10 @@ def set_process_title(title):
 
 
 def is64bit_python():
+    """
+    Returns:
+        True if running 64 bit python and False if running on 32 bit
+    """
     #http://stackoverflow.com/questions/1405913/how-do-i-determine-if-my-python-shell-is-executing-in-32bit-or-64bit-mode-on-os
     is64bit = sys.maxsize > 2 ** 32
     #import platform

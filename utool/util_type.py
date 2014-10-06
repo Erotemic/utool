@@ -45,10 +45,10 @@ else:
 def is_valid_floattype(type_):
     """
     Args:
-        type_ (type): type to check
+        type_ (``type``): type to check
 
     Returns:
-        if a type_ is a valid float type_ (not variable)
+        bool: if a ``type_`` is a valid float ``type_`` (not variable)
     """
     return type_ in VALID_FLOAT_TYPES
     #try:

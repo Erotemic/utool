@@ -302,10 +302,10 @@ def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
     """
     Injects your module with utool magic
 
-    Utool magic is not actually magic. It just turns your print statments into
+    Utool magic is not actually magic. It just turns your ``print`` statments into
     logging statments, allows for your module to be used with the utool.Indent
-    context manager and the and utool.indent_func decorator. printDBG will soon
-    be deprecated as will print_. The function rrr is a developer convinience for
+    context manager and the and utool.indent_func decorator. ``printDBG`` will soon
+    be deprecated as will ``print_``. The function rrr is a developer convinience for
     reloading the module dynamically durring runtime. The profile decorator is
     a no-op if not using kernprof.py, otherwise it is kernprof.py's profile
     decorator.
@@ -327,7 +327,7 @@ def inject_all(DEBUG=False):
     """
     UNFINISHED. DO NOT USE
 
-    Injects the print, print_, printDBG, rrr, and profile functions into all
+    Injects the ``print``, ``print_``, ``printDBG``, rrr, and profile functions into all
     loaded modules
     """
     raise NotImplementedError('!!!')

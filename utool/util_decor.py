@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
+import decorator  # NOQA
 from six.moves import builtins
-import inspect
+#import inspect
 import six
 import sys
 from functools import wraps
@@ -75,6 +76,7 @@ def ignores_exc_tb(func):
         return wrp_no_exectb
 
 
+#@decorator.decorator
 def on_exception_report_input(func):
     @ignores_exc_tb
     @wraps(func)
@@ -82,13 +84,16 @@ def on_exception_report_input(func):
         try:
             return func(*args, **kwargs)
         except Exception as ex:
-            msg = ('ERROR: funcname=%r,\n * args=%r,\n * kwargs=%r' % (get_funcname(func), args, kwargs))
-            printex(ex, msg)
+            msg = ('ERROR: funcname=%r,\n * args=%r,\n * kwargs=%r\n' % (get_funcname(func), args, kwargs))
+            msg += ' * len(args) = %r\n' % len(args)
+            msg += ' * len(kwlargs) = %r\n' % len(kwargs)
+            printex(ex, msg, separate=True)
             raise
     return wrp_exception_report_input
 
 
 def _indent_decor(lbl):
+    #@decorator.decorator
     def closure_indent(func):
         #printDBG('Indenting lbl=%r, func=%r' % (lbl, func))
         @ignores_exc_tb
@@ -126,13 +131,14 @@ def indent_func(input_):
 
 #----------
 
-try:
-    import pandas as pd
-    HAS_PANDAS = True
-except Exception as ex:
-    HAS_PANDAS = False
+#try:
+#    import pandas as pd
+#    HAS_PANDAS = True
+#except Exception as ex:
+#    HAS_PANDAS = False
 
 
+#@decorator.decorator
 def accepts_scalar_input(func):
     """
     accepts_scalar_input is a decorator which expects to be used on class methods.
@@ -140,6 +146,7 @@ def accepts_scalar_input(func):
     the function treats everything like a vector. Input and output is sanatized
     to the user expected format on return.
     """
+    #@on_exception_report_input
     @ignores_exc_tb
     @wraps(func)
     def wrp_si(self, input_, *args, **kwargs):
@@ -180,6 +187,7 @@ def accepts_scalar_input2(argx_list=range(0, 1)):
     the function treats everything like a vector. Input and output is sanatized
     to the user expected format on return.
     """
+    #@decorator.decorator
     def closure_si2(func):
         @ignores_exc_tb
         @wraps(func)
@@ -199,6 +207,7 @@ def accepts_scalar_input2(argx_list=range(0, 1)):
     return closure_si2
 
 
+#@decorator.decorator
 def accepts_scalar_input_vector_output(func):
     """
     accepts_scalar_input is a decorator which expects to be used on class
@@ -244,6 +253,7 @@ getter_1toM = accepts_scalar_input_vector_output
 #    return wrp_sivo
 
 
+#@decorator.decorator
 def accepts_numpy(func):
     """ Allows the first input to be a numpy array and get result in numpy form """
     #@ignores_exc_tb
@@ -288,6 +298,7 @@ def memorize(func):
     return _memorizer(func)
 
 
+#@decorator.decorator
 def interested(func):
     @indent_func
     #@ignores_exc_tb
@@ -301,6 +312,7 @@ def interested(func):
     return wrp_interested
 
 
+#@decorator.decorator
 def show_return_value(func):
     from .util_str import func_str
     @wraps(func)
@@ -312,6 +324,7 @@ def show_return_value(func):
     return wrp_show_return_value
 
 
+#@decorator.decorator
 def time_func(func):
     @wraps(func)
     def wrp_time(*args, **kwargs):
@@ -320,58 +333,55 @@ def time_func(func):
     return wrp_time
 
 
-class copy_argspec(object):
-    """
-    copy_argspec is a signature modifying decorator.
-
-    Specifically, it copies the signature from `source_func` to the wrapper, and
-    the wrapper will call the original function (which should be using *args,
-    **kwds).  The argspec, docstring, and default values are copied from
-    src_func, and __module__ and __dict__ from tgt_func.
-
-    .. References
-    http://stackoverflow.com/questions/18625510/how-can-i-programmatically-change-the-argspec-of-a-function-not-in-a-python-de
-    """
-    def __init__(self, src_func):
-        self.argspec = inspect.getargspec(src_func)
-        self.src_doc = src_func.__doc__
-        self.src_defaults = src_func.func_defaults
-
-    def __call__(self, tgt_func):
-        try:
-            tgt_argspec = inspect.getargspec(tgt_func)
-            need_self = False
-            if len(tgt_argspec) > 0 and len(tgt_argspec[0]) > 0 and tgt_argspec[0][0] == 'self':
-                need_self = True
-
-            name = tgt_func.__name__
-            argspec = self.argspec
-            if len(argspec) > 0 and len(argspec[0]) > 0 and argspec[0][0] == 'self':
-                need_self = False
-            if need_self:
-                newargspec = (['self'] + argspec[0],) + argspec[1:]
-            else:
-                newargspec = argspec
-            signature = inspect.formatargspec(formatvalue=lambda val: "",
-                                              *newargspec)[1:-1]
-            new_func = (
-                'def _wrapper_({signature}):\n'
-                '    return {tgt_func}({signature})'
-            ).format(signature=signature, tgt_func='tgt_func')
-            evaldict = {'tgt_func' : tgt_func}
-            exec new_func in evaldict
-            wrapped = evaldict['_wrapper_']
-            wrapped.__name__ = name
-            wrapped.__doc__ = self.src_doc
-            wrapped.func_defaults = self.src_defaults
-            wrapped.__module__ = tgt_func.__module__
-            wrapped.__dict__ = tgt_func.__dict__
-            return wrapped
-        except Exception as ex:
-            printex(ex, 'error wrapping: %r' % (tgt_func,))
-            raise
+#class copy_argspec(object):
+#    """
+#    copy_argspec is a signature modifying decorator.
+#    Specifically, it copies the signature from `source_func` to the wrapper, and
+#    the wrapper will call the original function (which should be using *args,
+#    **kwds).  The argspec, docstring, and default values are copied from
+#    src_func, and __module__ and __dict__ from tgt_func.
+#    .. References
+#    http://stackoverflow.com/questions/18625510/how-can-i-programmatically-change-the-argspec-of-a-function-not-in-a-python-de
+#    """
+#    def __init__(self, src_func):
+#        self.argspec = inspect.getargspec(src_func)
+#        self.src_doc = src_func.__doc__
+#        self.src_defaults = src_func.func_defaults
+#    def __call__(self, tgt_func):
+#        try:
+#            tgt_argspec = inspect.getargspec(tgt_func)
+#            need_self = False
+#            if len(tgt_argspec) > 0 and len(tgt_argspec[0]) > 0 and tgt_argspec[0][0] == 'self':
+#                need_self = True
+#            name = tgt_func.__name__
+#            argspec = self.argspec
+#            if len(argspec) > 0 and len(argspec[0]) > 0 and argspec[0][0] == 'self':
+#                need_self = False
+#            if need_self:
+#                newargspec = (['self'] + argspec[0],) + argspec[1:]
+#            else:
+#                newargspec = argspec
+#            signature = inspect.formatargspec(formatvalue=lambda val: "",
+#                                              *newargspec)[1:-1]
+#            new_func = (
+#                'def _wrapper_({signature}):\n'
+#                '    return {tgt_func}({signature})'
+#            ).format(signature=signature, tgt_func='tgt_func')
+#            evaldict = {'tgt_func' : tgt_func}
+#            exec new_func in evaldict
+#            wrapped = evaldict['_wrapper_']
+#            wrapped.__name__ = name
+#            wrapped.__doc__ = self.src_doc
+#            wrapped.func_defaults = self.src_defaults
+#            wrapped.__module__ = tgt_func.__module__
+#            wrapped.__dict__ = tgt_func.__dict__
+#            return wrapped
+#        except Exception as ex:
+#            printex(ex, 'error wrapping: %r' % (tgt_func,))
+#            raise
 
 
+#@decorator.decorator
 def lazyfunc(func):
     closuremem_ = [{}]
     def wrapper(*args, **kwargs):

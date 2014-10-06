@@ -32,11 +32,11 @@ def DEPRICATED(func):
 def get_stats(_list, axis=None):
     """
     Args:
-        _list (listlike): list or array of values to get statistics of
-        axis (int): if _list is ndarray then this specifies the axis
+        _list (listlike): values to get statistics of
+        axis (int): if ``_list`` is ndarray then this specifies the axis
 
     Returns:
-        stat_dict (OrderedDict): dictionary of common numpy statistics
+        OrderedDict: stat_dict - dictionary of common numpy statistics
             (min, max, mean, std, nMin, nMax, shape)
 
     Examples:

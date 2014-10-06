@@ -5,9 +5,12 @@ from setuptools import setup
 
 INSTALL_REQUIRES = [
     'six',
-    'numpy >= 1.8.0',
+    'numpy >= 1.8.0',  # TODO REMOVE DEPENDENCY
     'psutil',
     'astor',
+    'decorator',
+    'sphinx',
+    'sphinxcontrib-napoleon',
 ]
 
 # HACK: Please remove someday

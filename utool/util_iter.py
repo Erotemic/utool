@@ -48,7 +48,7 @@ def iflatten_scalars(list_):
 
 def ichunks(list_, chunksize):
     """
-    generates successive n-sized chunks from list_.
+    generates successive n-sized chunks from ``list_``.
 
     Args:
         list_ (list): input to iterate over
