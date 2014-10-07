@@ -437,6 +437,9 @@ def debug_consec_list(list_):
     return missing_vals, missing_indicies, duplicate_items
 
 
+#get_non_consecutive_positions = debug_consec_list
+
+
 def list_depth(list_, func=max, _depth=0):
     """
     Returns the deepest level of nesting within a list of lists

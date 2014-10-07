@@ -199,6 +199,9 @@ def editfile(fpath):
 
 def view_directory(dname=None, verbose=True):
     """ view directory """
+    from .util_arg import STRICT
+    from .util_path import checkpath
+
     if verbose:
         print('[cplat] view_directory(%r) ' % dname)
     dname = os.getcwd() if dname is None else dname
@@ -206,6 +209,8 @@ def view_directory(dname=None, verbose=True):
                  'linux': 'nautilus',
                  'darwin': 'open'}[OS_TYPE]
     dname = normpath(dname)
+    if STRICT:
+        assert checkpath(dname, verbose=verbose)
     if dname.find(' ') != -1 and not dname.startswith(('"', '\'')):
         dname = '"%s"' % dname
     os.system(open_prog + ' ' + dname)
