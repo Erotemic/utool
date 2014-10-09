@@ -1,10 +1,11 @@
 from __future__ import absolute_import, division, print_function
 import decorator  # NOQA
 from six.moves import builtins
-#import inspect
+import inspect
+import textwrap
 import six
 import sys
-from functools import wraps
+from functools import wraps, update_wrapper
 try:
     import numpy as np
 except ImportError:
@@ -73,6 +74,7 @@ def ignores_exc_tb(func):
                 #raise ex
                 # https://github.com/jcrocholl/pep8/issues/34  # NOQA
                 # http://legacy.python.org/dev/peps/pep-3109/
+        wrp_no_exectb = preserve_sig(func, wrp_no_exectb)
         return wrp_no_exectb
 
 
@@ -89,6 +91,7 @@ def on_exception_report_input(func):
             msg += ' * len(kwlargs) = %r\n' % len(kwargs)
             printex(ex, msg, separate=True)
             raise
+    wrp_exception_report_input = preserve_sig(func, wrp_exception_report_input)
     return wrp_exception_report_input
 
 
@@ -96,17 +99,25 @@ def _indent_decor(lbl):
     #@decorator.decorator
     def closure_indent(func):
         #printDBG('Indenting lbl=%r, func=%r' % (lbl, func))
-        @ignores_exc_tb
-        @wraps(func)
-        def wrp_indent(*args, **kwargs):
-            with Indenter(lbl):
-                if TRACE:
+        if TRACE:
+            @ignores_exc_tb
+            @wraps(func)
+            def wrp_indent(*args, **kwargs):
+                with Indenter(lbl):
                     print('    ...trace[in]')
-                ret = func(*args, **kwargs)
-                if TRACE:
+                    ret = func(*args, **kwargs)
                     print('    ...trace[out]')
-                return ret
-        return wrp_indent
+                    return ret
+        else:
+            @ignores_exc_tb
+            @wraps(func)
+            def wrp_indent(*args, **kwargs):
+                with Indenter(lbl):
+                    ret = func(*args, **kwargs)
+                    return ret
+        wrp_indent_ = ignores_exc_tb(wrp_indent)
+        wrp_indent_ = preserve_sig(func,  wrp_indent)
+        return wrp_indent_
     return closure_indent
 
 
@@ -393,3 +404,49 @@ def lazyfunc(func):
             mem[key] = func(*args, **kwargs)
         return mem[key]
     return wrapper
+
+
+def preserve_sig(wrapper, orig_func):
+    """
+    Decorates a wrapper function.
+
+    It seems impossible to presever signatures in python 2 without eval
+
+    Args:
+        wrapper: the function wrapping orig_func to change the signature of
+        orig_func: the original function to take the signature from
+
+    References:
+        http://emptysqua.re/blog/copying-a-python-functions-signature/
+    """
+    SIG_PRESERVE = False
+    if not SIG_PRESERVE:
+        # Turn off signature preservation
+        return update_wrapper(wrapper, orig_func)
+    else:
+        # Put wrapped function into a scope
+        globals_ =  {'wrapper': wrapper}
+        # Extract argspec from orig function
+        argspec = inspect.getargspec(orig_func)
+        defsig = inspect.formatargspec(*argspec)
+        # Get format without defaults
+        callsig = inspect.formatargspec((argspec[0]))
+        # Define an exec function
+        src = textwrap.dedent('''
+        def _wrp_preserve{defsig}:
+            try:
+                return wrapper{callsig}
+            except Exception as ex:
+                print('AGGG')
+                print(ex)
+                print("{defsig}")
+                print("{callsig}")
+                raise
+        ''').format(defsig=defsig, callsig=callsig)
+        locals_ = {}
+        exec(src, globals_, locals_)
+        _wrp_preserve = update_wrapper(locals_['_wrp_preserve'], orig_func)
+        # Set an internal sig variable that we may use
+        #_wrp_preserve.__sig__ = defsig
+        _wrp_preserve._dbgsrc = src
+        return _wrp_preserve
