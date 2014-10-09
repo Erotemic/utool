@@ -1,0 +1,447 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>utool.util_latex &mdash; utool 1.0.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html" />
+    <link rel="up" title="utool" href="../utool.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" accesskey="U">utool</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for utool.util_latex</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="c"># Python</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">map</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">textwrap</span>
+<span class="c"># Science</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">splitext</span>
+<span class="c"># Util</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_cplat</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_path</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_num</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_dev</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_io</span>
+<span class="kn">from</span> <span class="nn">.util_dbg</span> <span class="kn">import</span> <span class="n">printex</span>
+<span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[latex]&#39;</span><span class="p">)</span>
+
+<span class="c">#def ensure_latex_environ():</span>
+<span class="c">#    paths = os.environ[&#39;PATH&#39;].split(os.pathsep)</span>
+<span class="c">#    mpl.rc(&#39;font&#39;,**{&#39;family&#39;:&#39;serif&#39;})</span>
+<span class="c">#    mpl.rc(&#39;text&#39;, usetex=True)</span>
+<span class="c">#    mpl.rc(&#39;text.latex&#39;,unicode=True)</span>
+<span class="c">#    mpl.rc(&#39;text.latex&#39;,preamble=&#39;\usepackage[utf8]{inputenc}&#39;)</span>
+
+
+<div class="viewcode-block" id="make_full_document"><a class="viewcode-back" href="../../utool.html#utool.util_latex.make_full_document">[docs]</a><span class="k">def</span> <span class="nf">make_full_document</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+    <span class="n">doc_preamb</span> <span class="o">=</span> <span class="s">r&#39;&#39;&#39;</span>
+<span class="s">    \documentclass{article}</span>
+<span class="s">    \pagenumbering{gobble}</span>
+<span class="s">    &#39;&#39;&#39;</span>
+    <span class="n">doc_header</span> <span class="o">=</span> <span class="s">r&#39;&#39;&#39;</span>
+<span class="s">    \begin{document}</span>
+<span class="s">    &#39;&#39;&#39;</span>
+    <span class="n">doc_footer</span> <span class="o">=</span> <span class="s">r&#39;&#39;&#39;</span>
+<span class="s">    \end{document}</span>
+<span class="s">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">doc_preamb</span> <span class="o">+</span> <span class="n">doc_header</span> <span class="o">+</span> <span class="n">text</span> <span class="o">+</span> <span class="n">doc_footer</span>
+
+</div>
+<div class="viewcode-block" id="render"><a class="viewcode-back" href="../../utool.html#utool.util_latex.render">[docs]</a><span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="n">input_text</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">pylab</span> <span class="kn">as</span> <span class="nn">plt</span>
+    <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="kn">as</span> <span class="nn">mpl</span>
+    <span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">make_full_document</span><span class="p">(</span><span class="n">input_text</span><span class="p">)</span>
+    <span class="n">cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+    <span class="n">text_dir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cwd</span><span class="p">,</span> <span class="s">&#39;tmptex&#39;</span><span class="p">)</span>
+    <span class="n">text_fname</span> <span class="o">=</span> <span class="s">&#39;latex_formatter_temp.tex&#39;</span>
+    <span class="n">text_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">text_dir</span><span class="p">,</span> <span class="n">text_fname</span><span class="p">)</span>
+    <span class="n">pdf_fpath</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">text_fpath</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;.pdf&#39;</span>
+    <span class="n">jpg_fpath</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">text_fpath</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;.jpg&#39;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">util_path</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">text_dir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">text_dir</span><span class="p">)</span>
+        <span class="n">util_io</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="n">text_fpath</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+        <span class="n">util_cplat</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="s">&#39;pdflatex&#39;</span><span class="p">,</span> <span class="n">text_fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">util_path</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">pdf_fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">),</span> <span class="s">&#39;latex failed&#39;</span>
+        <span class="n">util_cplat</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="s">&#39;convert&#39;</span><span class="p">,</span> <span class="s">&#39;-density&#39;</span><span class="p">,</span> <span class="s">&#39;300&#39;</span><span class="p">,</span> <span class="n">pdf_fpath</span><span class="p">,</span> <span class="s">&#39;-quality&#39;</span><span class="p">,</span> <span class="s">&#39;90&#39;</span><span class="p">,</span> <span class="n">jpg_fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">util_path</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">jpg_fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">),</span> <span class="s">&#39;imgmagick failed&#39;</span>
+        <span class="n">tex_img</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">jpg_fpath</span><span class="p">)</span>
+        <span class="c"># Crop img bbox</span>
+        <span class="n">nonwhite_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">tex_img</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">255</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">nonwhite_rows</span> <span class="o">=</span> <span class="n">nonwhite_x</span> <span class="o">//</span> <span class="n">tex_img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">nonwhite_cols</span> <span class="o">=</span> <span class="n">nonwhite_x</span> <span class="o">%</span> <span class="n">tex_img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">x1</span> <span class="o">=</span> <span class="n">nonwhite_cols</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="n">y1</span> <span class="o">=</span> <span class="n">nonwhite_rows</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="n">x2</span> <span class="o">=</span> <span class="n">nonwhite_cols</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="n">y2</span> <span class="o">=</span> <span class="n">nonwhite_rows</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="c">#util.embed()</span>
+        <span class="n">cropped</span> <span class="o">=</span> <span class="n">tex_img</span><span class="p">[</span><span class="n">y1</span><span class="p">:</span><span class="n">y2</span><span class="p">,</span> <span class="n">x1</span><span class="p">:</span><span class="n">x2</span><span class="p">]</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">cropped</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">mpl</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">gray</span><span class="p">)</span>
+        <span class="c">#plt.show()</span>
+        <span class="c">#mpl.rc(&#39;text&#39;, usetex=True)</span>
+        <span class="c">#mpl.rc(&#39;font&#39;, family=&#39;serif&#39;)</span>
+        <span class="c">#plt.figure()</span>
+        <span class="c">#plt.text(9, 3.4, text, size=12)</span>
+        <span class="c">#plt.show()</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;LATEX ERROR&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;LATEX ERROR&#39;</span><span class="p">)</span>
+        <span class="k">pass</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">cwd</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">util_path</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">text_dir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">):</span>
+            <span class="n">util_path</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">text_dir</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="latex_multicolumn"><a class="viewcode-back" href="../../utool.html#utool.util_latex.latex_multicolumn">[docs]</a><span class="k">def</span> <span class="nf">latex_multicolumn</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ncol</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">escape_latex</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s">r&#39;\multicolumn{</span><span class="si">%d</span><span class="s">}{|c|}{</span><span class="si">%s</span><span class="s">}&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ncol</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="latex_multirow"><a class="viewcode-back" href="../../utool.html#utool.util_latex.latex_multirow">[docs]</a><span class="k">def</span> <span class="nf">latex_multirow</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">nrow</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">r&#39;\multirow{</span><span class="si">%d</span><span class="s">}{*}{|c|}{</span><span class="si">%s</span><span class="s">}&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nrow</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="latex_get_stats"><a class="viewcode-back" href="../../utool.html#utool.util_latex.latex_get_stats">[docs]</a><span class="k">def</span> <span class="nf">latex_get_stats</span><span class="p">(</span><span class="n">lbl</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="n">stats_</span> <span class="o">=</span> <span class="n">util_dev</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">stats_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;empty_list&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;% NA: latex_get_stats, data=[]&#39;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">max_</span> <span class="o">=</span> <span class="n">stats_</span><span class="p">[</span><span class="s">&#39;max&#39;</span><span class="p">]</span>
+        <span class="n">min_</span> <span class="o">=</span> <span class="n">stats_</span><span class="p">[</span><span class="s">&#39;min&#39;</span><span class="p">]</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="n">stats_</span><span class="p">[</span><span class="s">&#39;mean&#39;</span><span class="p">]</span>
+        <span class="n">std</span>  <span class="o">=</span> <span class="n">stats_</span><span class="p">[</span><span class="s">&#39;std&#39;</span><span class="p">]</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">stats_</span><span class="p">[</span><span class="s">&#39;shape&#39;</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">stat_keys</span> <span class="o">=</span> <span class="n">stats_</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>  <span class="c"># NOQA</span>
+        <span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;stat_keys&#39;</span><span class="p">,</span> <span class="s">&#39;stats_&#39;</span><span class="p">,</span> <span class="s">&#39;data&#39;</span><span class="p">])</span>
+        <span class="k">raise</span>
+
+    <span class="c">#int_fmt = lambda num: util.num_fmt(int(num))</span>
+    <span class="n">float_fmt</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">num</span><span class="p">:</span> <span class="n">util_num</span><span class="o">.</span><span class="n">num_fmt</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">num</span><span class="p">))</span>
+    <span class="n">tup_fmt</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">tup</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span>
+    <span class="n">fmttup</span> <span class="o">=</span> <span class="p">(</span><span class="n">float_fmt</span><span class="p">(</span><span class="n">min_</span><span class="p">),</span> <span class="n">float_fmt</span><span class="p">(</span><span class="n">max_</span><span class="p">),</span> <span class="n">float_fmt</span><span class="p">(</span><span class="n">mean</span><span class="p">),</span> <span class="n">float_fmt</span><span class="p">(</span><span class="n">std</span><span class="p">),</span> <span class="n">tup_fmt</span><span class="p">(</span><span class="n">shape</span><span class="p">))</span>
+    <span class="n">lll</span> <span class="o">=</span> <span class="s">&#39; &#39;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">lbl</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">prefmtstr</span> <span class="o">=</span> <span class="s">r&#39;&#39;&#39;</span>
+<span class="s">        {label} stats &amp; min ; max = </span><span class="si">%s</span><span class="s"> ; </span><span class="si">%s</span><span class="s">\\</span>
+<span class="s">        {space}       &amp; mean; std = </span><span class="si">%s</span><span class="s"> ; </span><span class="si">%s</span><span class="s">\\</span>
+<span class="s">        {space}       &amp; shape = </span><span class="si">%s</span><span class="s"> \\&#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">prefmtstr</span> <span class="o">=</span> <span class="s">r&#39;&#39;&#39;</span>
+<span class="s">        {label} stats &amp; min  = $</span><span class="si">%s</span><span class="s">$\\</span>
+<span class="s">        {space}       &amp; max  = $</span><span class="si">%s</span><span class="s">$\\</span>
+<span class="s">        {space}       &amp; mean = $</span><span class="si">%s</span><span class="s">$\\</span>
+<span class="s">        {space}       &amp; std  = $</span><span class="si">%s</span><span class="s">$\\</span>
+<span class="s">        {space}       &amp; shape = $</span><span class="si">%s</span><span class="s">$\\&#39;&#39;&#39;</span>
+    <span class="n">fmtstr</span> <span class="o">=</span> <span class="n">prefmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">lbl</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="n">lll</span><span class="p">)</span>
+    <span class="n">latex_str</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="n">fmtstr</span> <span class="o">%</span> <span class="n">fmttup</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="k">return</span> <span class="n">latex_str</span>
+
+</div>
+<div class="viewcode-block" id="latex_scalar"><a class="viewcode-back" href="../../utool.html#utool.util_latex.latex_scalar">[docs]</a><span class="k">def</span> <span class="nf">latex_scalar</span><span class="p">(</span><span class="n">lbl</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="s">r&#39;</span><span class="si">%s</span><span class="s"> &amp; </span><span class="si">%s</span><span class="se">\\</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">lbl</span><span class="p">,</span> <span class="n">util_num</span><span class="o">.</span><span class="n">num_fmt</span><span class="p">(</span><span class="n">data</span><span class="p">)))</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+
+</div>
+<div class="viewcode-block" id="make_stats_tabular"><a class="viewcode-back" href="../../utool.html#utool.util_latex.make_stats_tabular">[docs]</a><span class="k">def</span> <span class="nf">make_stats_tabular</span><span class="p">():</span>
+    <span class="s">&#39;tabular for dipslaying statistics&#39;</span>
+    <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="ensure_rowvec"><a class="viewcode-back" href="../../utool.html#utool.util_latex.ensure_rowvec">[docs]</a><span class="k">def</span> <span class="nf">ensure_rowvec</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+    <span class="n">arr</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">arr</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">arr</span>
+
+</div>
+<div class="viewcode-block" id="ensure_colvec"><a class="viewcode-back" href="../../utool.html#utool.util_latex.ensure_colvec">[docs]</a><span class="k">def</span> <span class="nf">ensure_colvec</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+    <span class="n">arr</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">arr</span>
+
+</div>
+<div class="viewcode-block" id="padvec"><a class="viewcode-back" href="../../utool.html#utool.util_latex.padvec">[docs]</a><span class="k">def</span> <span class="nf">padvec</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
+    <span class="n">pad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="s">&#39; &#39;</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span>
+    <span class="k">return</span> <span class="n">pad</span>
+
+</div>
+<div class="viewcode-block" id="escape_latex"><a class="viewcode-back" href="../../utool.html#utool.util_latex.escape_latex">[docs]</a><span class="k">def</span> <span class="nf">escape_latex</span><span class="p">(</span><span class="n">unescaped_latex_str</span><span class="p">):</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="n">unescaped_latex_str</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="n">ret</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;#&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\\</span><span class="s">#&#39;</span><span class="p">)</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="n">ret</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;%&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\\</span><span class="s">%&#39;</span><span class="p">)</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="n">ret</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\\</span><span class="s">_&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ret</span>
+
+</div>
+<div class="viewcode-block" id="replace_all"><a class="viewcode-back" href="../../utool.html#utool.util_latex.replace_all">[docs]</a><span class="k">def</span> <span class="nf">replace_all</span><span class="p">(</span><span class="n">str_</span><span class="p">,</span> <span class="n">repltups</span><span class="p">):</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="n">str_</span>
+    <span class="k">for</span> <span class="n">ser</span><span class="p">,</span> <span class="n">rep</span> <span class="ow">in</span> <span class="n">repltups</span><span class="p">:</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">ser</span><span class="p">,</span> <span class="n">rep</span><span class="p">,</span> <span class="n">ret</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ret</span>
+
+</div>
+<div class="viewcode-block" id="make_score_tabular"><a class="viewcode-back" href="../../utool.html#utool.util_latex.make_score_tabular">[docs]</a><span class="k">def</span> <span class="nf">make_score_tabular</span><span class="p">(</span><span class="n">row_lbls</span><span class="p">,</span> <span class="n">col_lbls</span><span class="p">,</span> <span class="n">scores</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                       <span class="n">out_of</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">bold_best</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                       <span class="n">replace_rowlbl</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">flip</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="s">&#39;tabular for displaying scores&#39;</span>
+    <span class="n">bigger_is_better</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">if</span> <span class="n">flip</span><span class="p">:</span>
+        <span class="n">bigger_is_better</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">bigger_is_better</span>
+        <span class="n">flip_repltups</span> <span class="o">=</span> <span class="p">[(</span><span class="s">&#39;&lt;&#39;</span><span class="p">,</span> <span class="s">&#39;&gt;&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;score&#39;</span><span class="p">,</span> <span class="s">&#39;error&#39;</span><span class="p">)]</span>
+        <span class="n">col_lbls</span> <span class="o">=</span> <span class="p">[</span><span class="n">replace_all</span><span class="p">(</span><span class="n">lbl</span><span class="p">,</span> <span class="n">flip_repltups</span><span class="p">)</span> <span class="k">for</span> <span class="n">lbl</span> <span class="ow">in</span> <span class="n">col_lbls</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="n">replace_all</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">flip_repltups</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">out_of</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">scores</span> <span class="o">=</span> <span class="n">out_of</span> <span class="o">-</span> <span class="n">scores</span>
+
+    <span class="k">if</span> <span class="n">replace_rowlbl</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">ser</span><span class="p">,</span> <span class="n">rep</span> <span class="ow">in</span> <span class="n">replace_rowlbl</span><span class="p">:</span>
+            <span class="n">row_lbls</span> <span class="o">=</span> <span class="p">[</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">ser</span><span class="p">,</span> <span class="n">rep</span><span class="p">,</span> <span class="n">lbl</span><span class="p">)</span> <span class="k">for</span> <span class="n">lbl</span> <span class="ow">in</span> <span class="n">row_lbls</span><span class="p">]</span>
+
+    <span class="c"># Abbreviate based on common substrings</span>
+    <span class="n">SHORTEN_ROW_LBLS</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">common_rowlbl</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="n">SHORTEN_ROW_LBLS</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">row_lbls</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">row_lbl_list</span> <span class="o">=</span> <span class="n">row_lbls</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">row_lbl_list</span> <span class="o">=</span> <span class="n">row_lbls</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="c"># Split the rob labels into the alg components</span>
+        <span class="c">#algcomp_list = [lbl.split(&#39;)_&#39;) for lbl in row_lbl_list]</span>
+        <span class="n">longest</span> <span class="o">=</span> <span class="n">long_substr</span><span class="p">(</span><span class="n">row_lbl_list</span><span class="p">)</span>
+        <span class="n">common_strs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">longest</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="n">common_strs</span> <span class="o">+=</span> <span class="p">[</span><span class="n">longest</span><span class="p">]</span>
+            <span class="n">row_lbl_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">row</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">longest</span><span class="p">,</span> <span class="s">&#39;...&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">row_lbl_list</span><span class="p">]</span>
+            <span class="n">longest</span> <span class="o">=</span> <span class="n">long_substr</span><span class="p">(</span><span class="n">row_lbl_list</span><span class="p">)</span>
+        <span class="n">common_rowlbl</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;...&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">common_strs</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;)_&#39;</span><span class="p">,</span> <span class="s">&#39;)_</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">row_lbls</span> <span class="o">=</span> <span class="n">row_lbl_list</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">row_lbl_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">common_rowlbl</span> <span class="o">=</span> <span class="n">row_lbl_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">row_lbls</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;0&#39;</span><span class="p">]</span>
+
+    <span class="c"># Stack into a tabular body</span>
+    <span class="n">col_lbls</span> <span class="o">=</span> <span class="n">ensure_rowvec</span><span class="p">(</span><span class="n">col_lbls</span><span class="p">)</span>
+    <span class="n">row_lbls</span> <span class="o">=</span> <span class="n">ensure_colvec</span><span class="p">(</span><span class="n">row_lbls</span><span class="p">)</span>
+    <span class="n">_0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">padvec</span><span class="p">(),</span> <span class="n">row_lbls</span><span class="p">])</span>
+    <span class="n">_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">col_lbls</span><span class="p">,</span> <span class="n">scores</span><span class="p">])</span>
+    <span class="n">body</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">_0</span><span class="p">,</span> <span class="n">_1</span><span class="p">])</span>
+    <span class="n">body</span> <span class="o">=</span> <span class="p">[[</span><span class="n">str_</span> <span class="k">for</span> <span class="n">str_</span> <span class="ow">in</span> <span class="n">row</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">body</span><span class="p">]</span>
+    <span class="c"># Fix things in each body cell</span>
+    <span class="n">AUTOFIX_LATEX</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">FORCE_INT</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">DO_PERCENT</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">body</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">body</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+            <span class="c"># In data land</span>
+            <span class="k">if</span> <span class="n">r</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">c</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c"># Force integer</span>
+                <span class="k">if</span> <span class="n">FORCE_INT</span><span class="p">:</span>
+                    <span class="n">body</span><span class="p">[</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">body</span><span class="p">[</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">])))</span>
+            <span class="c"># Remove bad formatting;</span>
+            <span class="k">if</span> <span class="n">AUTOFIX_LATEX</span><span class="p">:</span>
+                <span class="n">body</span><span class="p">[</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">escape_latex</span><span class="p">(</span><span class="n">body</span><span class="p">[</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">])</span>
+
+    <span class="c"># Bold the best scores</span>
+    <span class="k">if</span> <span class="n">bold_best</span><span class="p">:</span>
+        <span class="n">best_col_scores</span> <span class="o">=</span> <span class="n">scores</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="k">if</span> <span class="n">bigger_is_better</span> <span class="k">else</span> <span class="n">scores</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">rows_to_bold</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">scores</span><span class="p">[:,</span> <span class="n">colx</span><span class="p">]</span> <span class="o">==</span> <span class="n">best_col_scores</span><span class="p">[</span><span class="n">colx</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="k">for</span> <span class="n">colx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">scores</span><span class="o">.</span><span class="n">T</span><span class="p">))]</span>
+        <span class="k">for</span> <span class="n">colx</span><span class="p">,</span> <span class="n">rowx_list</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rows_to_bold</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">rowx</span> <span class="ow">in</span> <span class="n">rowx_list</span><span class="p">:</span>
+                <span class="n">body</span><span class="p">[</span><span class="n">rowx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="n">colx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\\</span><span class="s">txtbf{&#39;</span> <span class="o">+</span> <span class="n">body</span><span class="p">[</span><span class="n">rowx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="n">colx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;}&#39;</span>
+
+    <span class="c"># More fixing after the bold is in place</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">body</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">body</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+            <span class="c"># In data land</span>
+            <span class="k">if</span> <span class="n">r</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">c</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">out_of</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">body</span><span class="p">[</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">body</span><span class="p">[</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;/&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">out_of</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">DO_PERCENT</span><span class="p">:</span>
+                        <span class="n">percent</span> <span class="o">=</span> <span class="s">&#39; = </span><span class="si">%.1f%%</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">float</span><span class="p">(</span><span class="mi">100</span> <span class="o">*</span> <span class="n">scores</span><span class="p">[</span><span class="n">r</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">c</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">out_of</span><span class="p">)</span>
+                        <span class="n">body</span><span class="p">[</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">]</span> <span class="o">+=</span> <span class="n">escape_latex</span><span class="p">(</span><span class="n">percent</span><span class="p">)</span>
+
+    <span class="c"># Align columns for pretty printing</span>
+    <span class="n">body</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
+    <span class="n">ALIGN_BODY</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">if</span> <span class="n">ALIGN_BODY</span><span class="p">:</span>
+        <span class="n">new_body_cols</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">body</span><span class="o">.</span><span class="n">T</span><span class="p">:</span>
+            <span class="n">colstrs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">col</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span>
+            <span class="n">collens</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">colstrs</span><span class="p">))</span>
+            <span class="n">maxlen</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">collens</span><span class="p">)</span>
+            <span class="n">newcols</span> <span class="o">=</span> <span class="p">[</span><span class="n">str_</span> <span class="o">+</span> <span class="p">(</span><span class="s">&#39; &#39;</span> <span class="o">*</span> <span class="p">(</span><span class="n">maxlen</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">str_</span><span class="p">)))</span> <span class="k">for</span> <span class="n">str_</span> <span class="ow">in</span> <span class="n">colstrs</span><span class="p">]</span>
+            <span class="n">new_body_cols</span> <span class="o">+=</span> <span class="p">[</span><span class="n">newcols</span><span class="p">]</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">new_body_cols</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="c"># Build Body (and row layout)</span>
+    <span class="n">HLINE_SEP</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">rowsep</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="n">colsep</span> <span class="o">=</span> <span class="s">&#39;&amp;&#39;</span>
+    <span class="n">endl</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\\\\\n</span><span class="s">&#39;</span>
+    <span class="n">hline</span> <span class="o">=</span> <span class="s">r&#39;\hline&#39;</span>
+    <span class="n">extra_rowsep_pos_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">HLINE_SEP</span><span class="p">:</span>
+        <span class="n">rowsep</span> <span class="o">=</span> <span class="n">hline</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="n">rowstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">colsep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">+</span> <span class="n">endl</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">body</span><span class="p">]</span>
+    <span class="c"># Insert title</span>
+    <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">tex_title</span> <span class="o">=</span> <span class="n">latex_multicolumn</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">body</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="o">+</span> <span class="n">endl</span>
+        <span class="n">rowstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">tex_title</span><span class="p">]</span> <span class="o">+</span> <span class="n">rowstr_list</span>
+        <span class="n">extra_rowsep_pos_list</span> <span class="o">+=</span> <span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="c"># Apply an extra hline (for label)</span>
+    <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">extra_rowsep_pos_list</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="n">rowstr_list</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">tabular_body</span> <span class="o">=</span> <span class="n">rowsep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rowstr_list</span><span class="p">)</span>
+
+    <span class="c"># Build Column Layout</span>
+    <span class="n">col_layout_sep</span> <span class="o">=</span> <span class="s">&#39;|&#39;</span>
+    <span class="n">col_layout_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;l&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">body</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">extra_collayoutsep_pos_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span>  <span class="nb">sorted</span><span class="p">(</span><span class="n">extra_collayoutsep_pos_list</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="n">col_layout_list</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">col_layout</span> <span class="o">=</span> <span class="n">col_layout_sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">col_layout_list</span><span class="p">)</span>
+
+    <span class="n">tabular_head</span> <span class="o">=</span> <span class="p">(</span><span class="s">r&#39;\begin{tabular}{|</span><span class="si">%s</span><span class="s">|}&#39;</span> <span class="o">%</span> <span class="n">col_layout</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="n">tabular_tail</span> <span class="o">=</span> <span class="s">r&#39;\end{tabular}&#39;</span>
+
+    <span class="n">tabular_str</span> <span class="o">=</span> <span class="n">rowsep</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">tabular_head</span><span class="p">,</span> <span class="n">tabular_body</span><span class="p">,</span> <span class="n">tabular_tail</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">common_rowlbl</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c">#tabular_str += escape_latex(&#39;\n\nThe following parameters were held fixed:\n&#39; + common_rowlbl)</span>
+        <span class="k">pass</span>
+    <span class="k">return</span> <span class="n">tabular_str</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_tabular_header_and_footer</span><span class="p">(</span><span class="n">col_layout</span><span class="p">):</span>
+    <span class="n">tabular_head</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="s">r&#39;\begin{tabular}{|</span><span class="si">%s</span><span class="s">|}&#39;</span> <span class="o">%</span> <span class="n">col_layout</span><span class="p">)</span>
+    <span class="n">tabular_tail</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="s">r&#39;\end{tabular}&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tabular_head</span><span class="p">,</span> <span class="n">tabular_tail</span>
+
+
+<div class="viewcode-block" id="long_substr"><a class="viewcode-back" href="../../utool.html#utool.util_latex.long_substr">[docs]</a><span class="k">def</span> <span class="nf">long_substr</span><span class="p">(</span><span class="n">strlist</span><span class="p">):</span>
+    <span class="c"># Longest common substring</span>
+    <span class="c"># http://stackoverflow.com/questions/2892931/longest-common-substring-from-more-than-two-strings-python</span>
+    <span class="n">substr</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">strlist</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">strlist</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">strlist</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">strlist</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">j</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">substr</span><span class="p">)</span> <span class="ow">and</span> <span class="n">is_substr</span><span class="p">(</span><span class="n">strlist</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">j</span><span class="p">],</span> <span class="n">strlist</span><span class="p">):</span>
+                    <span class="n">substr</span> <span class="o">=</span> <span class="n">strlist</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">j</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">substr</span>
+
+</div>
+<div class="viewcode-block" id="is_substr"><a class="viewcode-back" href="../../utool.html#utool.util_latex.is_substr">[docs]</a><span class="k">def</span> <span class="nf">is_substr</span><span class="p">(</span><span class="n">find</span><span class="p">,</span> <span class="n">strlist</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">strlist</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">find</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">False</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">strlist</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">find</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">strlist</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+    <span class="k">return</span> <span class="bp">True</span>
+
+</div>
+<div class="viewcode-block" id="tabular_join"><a class="viewcode-back" href="../../utool.html#utool.util_latex.tabular_join">[docs]</a><span class="k">def</span> <span class="nf">tabular_join</span><span class="p">(</span><span class="n">tabular_body_list</span><span class="p">,</span> <span class="n">nCols</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="n">dedent</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span>
+    <span class="n">tabular_head</span> <span class="o">=</span> <span class="n">dedent</span><span class="p">(</span><span class="s">r&#39;&#39;&#39;</span>
+<span class="s">    \begin{tabular}{|l|l|}</span>
+<span class="s">    &#39;&#39;&#39;</span><span class="p">)</span>
+    <span class="n">tabular_tail</span> <span class="o">=</span> <span class="n">dedent</span><span class="p">(</span><span class="s">r&#39;&#39;&#39;</span>
+<span class="s">    \end{tabular}</span>
+<span class="s">    &#39;&#39;&#39;</span><span class="p">)</span>
+    <span class="n">hline</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">r&#39;\hline&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">])</span>
+    <span class="n">tabular_body</span> <span class="o">=</span> <span class="n">hline</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tabular_body_list</span><span class="p">)</span>
+    <span class="n">tabular</span> <span class="o">=</span> <span class="n">hline</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">tabular_head</span><span class="p">,</span> <span class="n">tabular_body</span><span class="p">,</span> <span class="n">tabular_tail</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">tabular</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" >utool</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

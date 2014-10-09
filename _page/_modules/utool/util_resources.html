@@ -1,0 +1,240 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>utool.util_resources &mdash; utool 1.0.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html" />
+    <link rel="up" title="utool" href="../utool.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" accesskey="U">utool</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for utool.util_resources</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="c"># Python</span>
+<span class="kn">import</span> <span class="nn">psutil</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="kn">from</span> <span class="nn">.util_str</span> <span class="kn">import</span> <span class="n">byte_str2</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[print]&#39;</span><span class="p">)</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="c"># Resource does not exist in win32</span>
+    <span class="kn">import</span> <span class="nn">resource</span>
+
+    <span class="k">def</span> <span class="nf">time_in_usermode</span><span class="p">():</span>
+        <span class="n">stime</span> <span class="o">=</span> <span class="n">resource</span><span class="o">.</span><span class="n">getrusage</span><span class="p">(</span><span class="n">resource</span><span class="o">.</span><span class="n">RUSAGE_SELF</span><span class="p">)</span><span class="o">.</span><span class="n">ru_stime</span>
+        <span class="k">return</span> <span class="n">stime</span>
+
+    <span class="k">def</span> <span class="nf">time_in_systemmode</span><span class="p">():</span>
+        <span class="n">utime</span> <span class="o">=</span> <span class="n">resource</span><span class="o">.</span><span class="n">getrusage</span><span class="p">(</span><span class="n">resource</span><span class="o">.</span><span class="n">RUSAGE_SELF</span><span class="p">)</span><span class="o">.</span><span class="n">ru_utime</span>
+        <span class="k">return</span> <span class="n">utime</span>
+
+    <span class="k">def</span> <span class="nf">peak_memory</span><span class="p">():</span>
+        <span class="sd">&quot;&quot;&quot;Returns the resident set size (the portion of</span>
+<span class="sd">        a process&#39;s memory that is held in RAM.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># MAXRSS is expressed in kilobytes. Convert to bytes</span>
+        <span class="n">maxrss</span> <span class="o">=</span> <span class="n">resource</span><span class="o">.</span><span class="n">getrusage</span><span class="p">(</span><span class="n">resource</span><span class="o">.</span><span class="n">RUSAGE_SELF</span><span class="p">)</span><span class="o">.</span><span class="n">ru_maxrss</span> <span class="o">*</span> <span class="mi">1024</span>
+        <span class="k">return</span> <span class="n">maxrss</span>
+
+    <span class="k">def</span> <span class="nf">get_resource_limits</span><span class="p">():</span>
+        <span class="c">#rlimit_keys = [key for key in six.iterkeys(resource.__dict__) if key.startswith(&#39;RLIMIT_&#39;)]</span>
+        <span class="c">#print(&#39;\n&#39;.join([&#39;(\&#39;%s\&#39;, resource.%s),&#39; % (key.replace(&#39;RLIMIT_&#39;, &#39;&#39;), key) for key in rlimit_keys]))</span>
+        <span class="n">rlim_keytups</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s">&#39;MEMLOCK&#39;</span><span class="p">,</span> <span class="n">resource</span><span class="o">.</span><span class="n">RLIMIT_MEMLOCK</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;NOFILE&#39;</span><span class="p">,</span> <span class="n">resource</span><span class="o">.</span><span class="n">RLIMIT_NOFILE</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;CPU&#39;</span><span class="p">,</span> <span class="n">resource</span><span class="o">.</span><span class="n">RLIMIT_CPU</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;DATA&#39;</span><span class="p">,</span> <span class="n">resource</span><span class="o">.</span><span class="n">RLIMIT_DATA</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;OFILE&#39;</span><span class="p">,</span> <span class="n">resource</span><span class="o">.</span><span class="n">RLIMIT_OFILE</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;STACK&#39;</span><span class="p">,</span> <span class="n">resource</span><span class="o">.</span><span class="n">RLIMIT_STACK</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;FSIZE&#39;</span><span class="p">,</span> <span class="n">resource</span><span class="o">.</span><span class="n">RLIMIT_FSIZE</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;CORE&#39;</span><span class="p">,</span> <span class="n">resource</span><span class="o">.</span><span class="n">RLIMIT_CORE</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;NPROC&#39;</span><span class="p">,</span> <span class="n">resource</span><span class="o">.</span><span class="n">RLIMIT_NPROC</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;AS&#39;</span><span class="p">,</span> <span class="n">resource</span><span class="o">.</span><span class="n">RLIMIT_AS</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">&#39;RSS&#39;</span><span class="p">,</span> <span class="n">resource</span><span class="o">.</span><span class="n">RLIMIT_RSS</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="n">rlim_valtups</span> <span class="o">=</span> <span class="p">[(</span><span class="n">lbl</span><span class="p">,</span> <span class="n">resource</span><span class="o">.</span><span class="n">getrlimit</span><span class="p">(</span><span class="n">rlim_key</span><span class="p">))</span> <span class="k">for</span> <span class="p">(</span><span class="n">lbl</span><span class="p">,</span> <span class="n">rlim_key</span><span class="p">)</span> <span class="ow">in</span> <span class="n">rlim_keytups</span><span class="p">]</span>
+        <span class="k">def</span> <span class="nf">rlimval_str</span><span class="p">(</span><span class="n">rlim_val</span><span class="p">):</span>
+            <span class="n">soft</span><span class="p">,</span> <span class="n">hard</span> <span class="o">=</span> <span class="n">rlim_val</span>
+            <span class="n">softstr</span> <span class="o">=</span> <span class="n">byte_str2</span><span class="p">(</span><span class="n">soft</span><span class="p">)</span> <span class="k">if</span> <span class="n">soft</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="k">else</span> <span class="s">&#39;None&#39;</span>
+            <span class="n">hardstr</span> <span class="o">=</span> <span class="n">byte_str2</span><span class="p">(</span><span class="n">hard</span><span class="p">)</span> <span class="k">if</span> <span class="n">hard</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="k">else</span> <span class="s">&#39;None&#39;</span>
+            <span class="k">return</span> <span class="s">&#39;</span><span class="si">%12s</span><span class="s">, </span><span class="si">%12s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">softstr</span><span class="p">,</span> <span class="n">hardstr</span><span class="p">)</span>
+        <span class="n">rlim_strs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;</span><span class="si">%8s</span><span class="s">: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">lbl</span><span class="p">,</span> <span class="n">rlimval_str</span><span class="p">(</span><span class="n">rlim_val</span><span class="p">))</span> <span class="k">for</span> <span class="p">(</span><span class="n">lbl</span><span class="p">,</span> <span class="n">rlim_val</span><span class="p">)</span> <span class="ow">in</span> <span class="n">rlim_valtups</span><span class="p">]</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Resource Limits: &#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%8s</span><span class="s">  </span><span class="si">%12s</span><span class="s">  </span><span class="si">%12s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="s">&#39;soft&#39;</span><span class="p">,</span> <span class="s">&#39;hard&#39;</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rlim_strs</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">rlim_strs</span>
+
+    <span class="c">#def rusage_flags():</span>
+        <span class="c">#0	ru_utime	time in user mode (float)</span>
+        <span class="c">#1	ru_stime	time in system mode (float)</span>
+        <span class="c">#2	ru_maxrss	maximum resident set size</span>
+        <span class="c">#3	ru_ixrss	shared memory size</span>
+        <span class="c">#4	ru_idrss	unshared memory size</span>
+        <span class="c">#5	ru_isrss	unshared stack size</span>
+        <span class="c">#6	ru_minflt	page faults not requiring I/O</span>
+        <span class="c">#7	ru_majflt	page faults requiring I/O</span>
+        <span class="c">#8	ru_nswap	number of swap outs</span>
+        <span class="c">#9	ru_inblock	block input operations</span>
+        <span class="c">#10	ru_oublock	block output operations</span>
+        <span class="c">#11	ru_msgsnd	messages sent</span>
+        <span class="c">#12	ru_msgrcv	messages received</span>
+        <span class="c">#13	ru_nsignals	signals received</span>
+        <span class="c">#14	ru_nvcsw	voluntary context switches</span>
+        <span class="c">#15	ru_nivcsw	involuntary context switches</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+<div class="viewcode-block" id="time_in_usermode"><a class="viewcode-back" href="../../utool.html#utool.util_resources.time_in_usermode">[docs]</a>    <span class="k">def</span> <span class="nf">time_in_usermode</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;unavailable in win32&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="time_in_systemmode"><a class="viewcode-back" href="../../utool.html#utool.util_resources.time_in_systemmode">[docs]</a>    <span class="k">def</span> <span class="nf">time_in_systemmode</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;unavailable in win32&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="peak_memory"><a class="viewcode-back" href="../../utool.html#utool.util_resources.peak_memory">[docs]</a>    <span class="k">def</span> <span class="nf">peak_memory</span><span class="p">():</span>
+        <span class="sd">&quot;&quot;&quot;Returns the resident set size (the portion of</span>
+<span class="sd">        a process&#39;s memory that is held in RAM.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;unavailable in win32&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="get_resource_limits"><a class="viewcode-back" href="../../utool.html#utool.util_resources.get_resource_limits">[docs]</a>    <span class="k">def</span> <span class="nf">get_resource_limits</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;unavailable in win32&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="time_str2"><a class="viewcode-back" href="../../utool.html#utool.util_resources.time_str2">[docs]</a><span class="k">def</span> <span class="nf">time_str2</span><span class="p">(</span><span class="n">seconds</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">&#39;</span><span class="si">%.2f</span><span class="s"> sec&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">seconds</span><span class="p">,)</span>
+
+</div>
+<div class="viewcode-block" id="print_resource_usage"><a class="viewcode-back" href="../../utool.html#utool.util_resources.print_resource_usage">[docs]</a><span class="k">def</span> <span class="nf">print_resource_usage</span><span class="p">():</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;+______________________&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;|    RESOURCE_USAGE    &#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;|  * current_memory = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">byte_str2</span><span class="p">(</span><span class="n">current_memory_usage</span><span class="p">()))</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;|  * peak_memory    = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">byte_str2</span><span class="p">(</span><span class="n">peak_memory</span><span class="p">()))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;|  * user_time      = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">time_str2</span><span class="p">(</span><span class="n">time_in_usermode</span><span class="p">()))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;|  * system_time    = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">time_str2</span><span class="p">(</span><span class="n">time_in_systemmode</span><span class="p">()))</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;L______________________&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="current_memory_usage"><a class="viewcode-back" href="../../utool.html#utool.util_resources.current_memory_usage">[docs]</a><span class="k">def</span> <span class="nf">current_memory_usage</span><span class="p">():</span>
+    <span class="n">meminfo</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">())</span><span class="o">.</span><span class="n">get_memory_info</span><span class="p">()</span>
+    <span class="n">rss</span> <span class="o">=</span> <span class="n">meminfo</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c"># Resident Set Size / Mem Usage</span>
+    <span class="n">vms</span> <span class="o">=</span> <span class="n">meminfo</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="c"># Virtual Memory Size / VM Size  # NOQA</span>
+    <span class="k">return</span> <span class="n">rss</span>
+
+</div>
+<div class="viewcode-block" id="num_cpus"><a class="viewcode-back" href="../../utool.html#utool.util_resources.num_cpus">[docs]</a><span class="k">def</span> <span class="nf">num_cpus</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">psutil</span><span class="o">.</span><span class="n">NUM_CPUS</span>
+
+</div>
+<div class="viewcode-block" id="available_memory"><a class="viewcode-back" href="../../utool.html#utool.util_resources.available_memory">[docs]</a><span class="k">def</span> <span class="nf">available_memory</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">psutil</span><span class="o">.</span><span class="n">virtual_memory</span><span class="p">()</span><span class="o">.</span><span class="n">available</span>
+
+</div>
+<div class="viewcode-block" id="total_memory"><a class="viewcode-back" href="../../utool.html#utool.util_resources.total_memory">[docs]</a><span class="k">def</span> <span class="nf">total_memory</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">psutil</span><span class="o">.</span><span class="n">virtual_memory</span><span class="p">()</span><span class="o">.</span><span class="n">total</span>
+
+</div>
+<div class="viewcode-block" id="used_memory"><a class="viewcode-back" href="../../utool.html#utool.util_resources.used_memory">[docs]</a><span class="k">def</span> <span class="nf">used_memory</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">total_memory</span><span class="p">()</span> <span class="o">-</span> <span class="n">available_memory</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="memstats"><a class="viewcode-back" href="../../utool.html#utool.util_resources.memstats">[docs]</a><span class="k">def</span> <span class="nf">memstats</span><span class="p">():</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[psutil] total     = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">byte_str2</span><span class="p">(</span><span class="n">total_memory</span><span class="p">()))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[psutil] available = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">byte_str2</span><span class="p">(</span><span class="n">available_memory</span><span class="p">()))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[psutil] used      = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">byte_str2</span><span class="p">(</span><span class="n">used_memory</span><span class="p">()))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[psutil] current   = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">byte_str2</span><span class="p">(</span><span class="n">current_memory_usage</span><span class="p">()))</span>
+
+
+<span class="c">#psutil.virtual_memory()</span>
+<span class="c">#psutil.swap_memory()</span>
+<span class="c">#psutil.disk_partitions()</span>
+<span class="c">#psutil.disk_usage(&quot;/&quot;)</span>
+<span class="c">#psutil.disk_io_counters()</span>
+<span class="c">#psutil.net_io_counters(pernic=True)</span>
+<span class="c">#psutil.get_users()</span>
+<span class="c">#psutil.get_boot_time()</span>
+<span class="c">#psutil.get_pid_list()</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" >utool</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

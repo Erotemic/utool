@@ -1,0 +1,489 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>utool.util_decor &mdash; utool 1.0.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html" />
+    <link rel="up" title="utool" href="../utool.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" accesskey="U">utool</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for utool.util_decor</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">decorator</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">builtins</span>
+<span class="c">#import inspect</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">pass</span>
+<span class="kn">from</span> <span class="nn">.util_arg</span> <span class="kn">import</span> <span class="n">NO_ASSERTS</span>
+<span class="kn">from</span> <span class="nn">.util_iter</span> <span class="kn">import</span> <span class="n">isiterable</span>
+<span class="kn">from</span> <span class="nn">.util_print</span> <span class="kn">import</span> <span class="n">Indenter</span>
+<span class="kn">from</span> <span class="nn">.util_dbg</span> <span class="kn">import</span> <span class="n">printex</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_time</span>
+<span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[decor]&#39;</span><span class="p">)</span>
+
+
+<span class="c"># do not ignore traceback when profiling</span>
+<span class="n">PROFILING</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">builtins</span><span class="p">,</span> <span class="s">&#39;profile&#39;</span><span class="p">)</span>
+<span class="n">IGNORE_TRACEBACK</span> <span class="o">=</span> <span class="s">&#39;--smalltb&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="ow">or</span> <span class="s">&#39;--ignoretb&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<span class="n">TRACE</span> <span class="o">=</span> <span class="s">&#39;--trace&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<span class="n">UNIQUE_NUMPY</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">NOINDENT_DECOR</span> <span class="o">=</span> <span class="bp">False</span>
+
+<span class="c">#def composed(*decs):</span>
+<span class="c">#    &quot;&quot;&quot; combines multiple decorators &quot;&quot;&quot;</span>
+<span class="c">#    def deco(f):</span>
+<span class="c">#        for dec in reversed(decs):</span>
+<span class="c">#            f = dec(f)</span>
+<span class="c">#        return f</span>
+<span class="c">#    return deco</span>
+
+
+<div class="viewcode-block" id="ignores_exc_tb"><a class="viewcode-back" href="../../utool.html#utool.util_decor.ignores_exc_tb">[docs]</a><span class="k">def</span> <span class="nf">ignores_exc_tb</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ignore_exc_tb decorates a function and remove both itself</span>
+<span class="sd">    and the function from any exception traceback that occurs.</span>
+
+<span class="sd">    This is useful to decorate other trivial decorators</span>
+<span class="sd">    which are polluting your stacktrace.</span>
+
+<span class="sd">    if IGNORE_EXC_TB is False then this decorator does nothing</span>
+<span class="sd">    (and it should do nothing in production code!)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">IGNORE_TRACEBACK</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">func</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">wrp_no_exectb</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_traceback</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
+                <span class="c"># Code to remove this decorator from traceback</span>
+                <span class="c"># Remove two levels to remove this one as well</span>
+                <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_traceback</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">exc_traceback</span> <span class="o">=</span> <span class="n">exc_traceback</span><span class="o">.</span><span class="n">tb_next</span>
+                    <span class="n">exc_traceback</span> <span class="o">=</span> <span class="n">exc_traceback</span><span class="o">.</span><span class="n">tb_next</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                <span class="c"># Python 2*3=6</span>
+                <span class="n">six</span><span class="o">.</span><span class="n">reraise</span><span class="p">(</span><span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_traceback</span><span class="p">)</span>
+                <span class="c"># PYTHON 2.7 DEPRICATED:</span>
+                <span class="c">#raise exc_type, exc_value, exc_traceback</span>
+                <span class="c"># PYTHON 3.3 NEW METHODS</span>
+                <span class="c">#ex = exc_type(exc_value)</span>
+                <span class="c">#ex.__traceback__ = exc_traceback</span>
+                <span class="c">#raise ex</span>
+                <span class="c"># https://github.com/jcrocholl/pep8/issues/34  # NOQA</span>
+                <span class="c"># http://legacy.python.org/dev/peps/pep-3109/</span>
+        <span class="k">return</span> <span class="n">wrp_no_exectb</span>
+
+
+<span class="c">#@decorator.decorator</span></div>
+<div class="viewcode-block" id="on_exception_report_input"><a class="viewcode-back" href="../../utool.html#utool.util_decor.on_exception_report_input">[docs]</a><span class="k">def</span> <span class="nf">on_exception_report_input</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="nd">@ignores_exc_tb</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrp_exception_report_input</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;ERROR: funcname=</span><span class="si">%r</span><span class="s">,</span><span class="se">\n</span><span class="s"> * args=</span><span class="si">%r</span><span class="s">,</span><span class="se">\n</span><span class="s"> * kwargs=</span><span class="si">%r</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">),</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">))</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39; * len(args) = </span><span class="si">%r</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39; * len(kwlargs) = </span><span class="si">%r</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">separate</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">raise</span>
+    <span class="k">return</span> <span class="n">wrp_exception_report_input</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_indent_decor</span><span class="p">(</span><span class="n">lbl</span><span class="p">):</span>
+    <span class="c">#@decorator.decorator</span>
+    <span class="k">def</span> <span class="nf">closure_indent</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="c">#printDBG(&#39;Indenting lbl=%r, func=%r&#39; % (lbl, func))</span>
+        <span class="nd">@ignores_exc_tb</span>
+        <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">wrp_indent</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">with</span> <span class="n">Indenter</span><span class="p">(</span><span class="n">lbl</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">TRACE</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;    ...trace[in]&#39;</span><span class="p">)</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">TRACE</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;    ...trace[out]&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">ret</span>
+        <span class="k">return</span> <span class="n">wrp_indent</span>
+    <span class="k">return</span> <span class="n">closure_indent</span>
+
+
+<div class="viewcode-block" id="indent_func"><a class="viewcode-back" href="../../utool.html#utool.util_decor.indent_func">[docs]</a><span class="k">def</span> <span class="nf">indent_func</span><span class="p">(</span><span class="n">input_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes either no arguments or an alias label</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+        <span class="c"># A label was specified</span>
+        <span class="n">lbl</span> <span class="o">=</span> <span class="n">input_</span>
+        <span class="k">return</span> <span class="n">_indent_decor</span><span class="p">(</span><span class="n">lbl</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_</span><span class="p">,</span> <span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+        <span class="c"># Allow individually turning of of this decorator</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="n">input_</span>
+        <span class="k">return</span> <span class="n">func</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># Use the function name as the label</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="n">input_</span>
+        <span class="kn">from</span> <span class="nn">._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
+        <span class="n">lbl</span> <span class="o">=</span> <span class="s">&#39;[&#39;</span> <span class="o">+</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;]&#39;</span>
+        <span class="k">return</span> <span class="n">_indent_decor</span><span class="p">(</span><span class="n">lbl</span><span class="p">)(</span><span class="n">func</span><span class="p">)</span>
+
+<span class="c">#----------</span>
+
+<span class="c">#try:</span>
+<span class="c">#    import pandas as pd</span>
+<span class="c">#    HAS_PANDAS = True</span>
+<span class="c">#except Exception as ex:</span>
+<span class="c">#    HAS_PANDAS = False</span>
+
+
+<span class="c">#@decorator.decorator</span></div>
+<div class="viewcode-block" id="accepts_scalar_input"><a class="viewcode-back" href="../../utool.html#utool.util_decor.accepts_scalar_input">[docs]</a><span class="k">def</span> <span class="nf">accepts_scalar_input</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    accepts_scalar_input is a decorator which expects to be used on class methods.</span>
+<span class="sd">    It lets the user pass either a vector or a scalar to a function, as long as</span>
+<span class="sd">    the function treats everything like a vector. Input and output is sanatized</span>
+<span class="sd">    to the user expected format on return.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#@on_exception_report_input</span>
+    <span class="nd">@ignores_exc_tb</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrp_si</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c">#if HAS_PANDAS:</span>
+        <span class="c">#    if isinstance(input_, (pd.DataFrame, pd.Series)):</span>
+        <span class="c">#        input_ = input_.values</span>
+        <span class="k">if</span> <span class="n">isiterable</span><span class="p">(</span><span class="n">input_</span><span class="p">):</span>
+            <span class="c"># If input is already iterable do default behavior</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># If input is scalar, wrap input, execute, and unpack result</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">input_</span><span class="p">,),</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ret</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">ret</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">wrp_si</span>
+
+</div>
+<span class="k">def</span> <span class="nf">__assert_param_consistency</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">argx_list</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">NO_ASSERTS</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">argx_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">True</span>
+    <span class="n">argx_flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">isiterable</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="n">argx</span><span class="p">])</span> <span class="k">for</span> <span class="n">argx</span> <span class="ow">in</span> <span class="n">argx_list</span><span class="p">]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="n">argx_flags</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">flag</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">argx_flags</span><span class="p">]),</span> <span class="p">(</span>
+            <span class="s">&#39;invalid mixing of iterable and scalar inputs&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;!!! ASSERTION ERROR !!!&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">argx</span> <span class="ow">in</span> <span class="n">argx_list</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;args[</span><span class="si">%d</span><span class="s">] = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">argx</span><span class="p">,</span> <span class="n">args</span><span class="p">[</span><span class="n">argx</span><span class="p">]))</span>
+        <span class="k">raise</span>
+
+
+<div class="viewcode-block" id="accepts_scalar_input2"><a class="viewcode-back" href="../../utool.html#utool.util_decor.accepts_scalar_input2">[docs]</a><span class="k">def</span> <span class="nf">accepts_scalar_input2</span><span class="p">(</span><span class="n">argx_list</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    accepts_scalar_input is a decorator which expects to be used on class methods.</span>
+<span class="sd">    It lets the user pass either a vector or a scalar to a function, as long as</span>
+<span class="sd">    the function treats everything like a vector. Input and output is sanatized</span>
+<span class="sd">    to the user expected format on return.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#@decorator.decorator</span>
+    <span class="k">def</span> <span class="nf">closure_si2</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="nd">@ignores_exc_tb</span>
+        <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">wrp_si2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">__assert_param_consistency</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">argx_list</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">all</span><span class="p">([</span><span class="n">isiterable</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="n">ix</span><span class="p">])</span> <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="n">argx_list</span><span class="p">]):</span>
+                <span class="c"># If input is already iterable do default behavior</span>
+                <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c"># If input is scalar, wrap input, execute, and unpack result</span>
+                <span class="n">args_wrapped</span> <span class="o">=</span> <span class="p">[(</span><span class="n">arg</span><span class="p">,)</span> <span class="k">if</span> <span class="n">ix</span> <span class="ow">in</span> <span class="n">argx_list</span> <span class="k">else</span> <span class="n">arg</span>
+                                <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args_wrapped</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">ret</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">ret</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">wrp_si2</span>
+    <span class="k">return</span> <span class="n">closure_si2</span>
+
+
+<span class="c">#@decorator.decorator</span></div>
+<div class="viewcode-block" id="accepts_scalar_input_vector_output"><a class="viewcode-back" href="../../utool.html#utool.util_decor.accepts_scalar_input_vector_output">[docs]</a><span class="k">def</span> <span class="nf">accepts_scalar_input_vector_output</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    accepts_scalar_input is a decorator which expects to be used on class</span>
+<span class="sd">    methods.  It lets the user pass either a vector or a scalar to a function,</span>
+<span class="sd">    as long as the function treats everything like a vector. Input and output is</span>
+<span class="sd">    sanatized to the user expected format on return.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nd">@ignores_exc_tb</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrp_sivo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">isiterable</span><span class="p">(</span><span class="n">input_</span><span class="p">):</span>
+            <span class="c"># If input is already iterable do default behavior</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># If input is scalar, wrap input, execute, and unpack result</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">input_</span><span class="p">,),</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="c"># The output length could be 0 on a scalar input</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">result</span>
+    <span class="k">return</span> <span class="n">wrp_sivo</span>
+
+<span class="c"># TODO: Rename to listget_1to1 1toM etc...</span></div>
+<span class="n">getter_1to1</span> <span class="o">=</span> <span class="n">accepts_scalar_input</span>
+<span class="n">getter_1toM</span> <span class="o">=</span> <span class="n">accepts_scalar_input_vector_output</span>
+<span class="c">#----------</span>
+
+
+<span class="c">#def accepts_scalar_input_vector_output(func):</span>
+<span class="c">#    @wraps(func)</span>
+<span class="c">#    def wrp_sivo(self, input_, *args, **kwargs):</span>
+<span class="c">#        is_scalar = not isiterable(input_)</span>
+<span class="c">#        if is_scalar:</span>
+<span class="c">#            iter_input = (input_,)</span>
+<span class="c">#        else:</span>
+<span class="c">#            iter_input = input_</span>
+<span class="c">#        result = func(self, iter_input, *args, **kwargs)</span>
+<span class="c">#        if is_scalar:</span>
+<span class="c">#            if len(result) != 0:</span>
+<span class="c">#                result = result[0]</span>
+<span class="c">#        return result</span>
+<span class="c">#    return wrp_sivo</span>
+
+
+<span class="c">#@decorator.decorator</span>
+<div class="viewcode-block" id="accepts_numpy"><a class="viewcode-back" href="../../utool.html#utool.util_decor.accepts_numpy">[docs]</a><span class="k">def</span> <span class="nf">accepts_numpy</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Allows the first input to be a numpy array and get result in numpy form &quot;&quot;&quot;</span>
+    <span class="c">#@ignores_exc_tb</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrp_accepts_numpy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="c"># If the input is not numpy, just call the function</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># If the input is a numpy array, and return the output with the same</span>
+            <span class="c"># shape as the input</span>
+            <span class="k">if</span> <span class="n">UNIQUE_NUMPY</span><span class="p">:</span>
+                <span class="c"># Remove redundant input (because we are passing it to SQL)</span>
+                <span class="n">input_list</span><span class="p">,</span> <span class="n">inverse_unique</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">input_</span><span class="p">,</span> <span class="n">return_inverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">input_list</span> <span class="o">=</span> <span class="n">input_</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+            <span class="n">input_list</span> <span class="o">=</span> <span class="n">input_list</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">output_list</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">UNIQUE_NUMPY</span><span class="p">:</span>
+                <span class="c"># Reconstruct redundant queries (the user will never know!)</span>
+                <span class="n">output_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">output_list</span><span class="p">)[</span><span class="n">inverse_unique</span><span class="p">]</span>
+                <span class="n">output_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">input_</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">output_arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+                <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">output_arr</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">output_shape</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">output_list</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">input_</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wrp_accepts_numpy</span>
+
+</div>
+<div class="viewcode-block" id="memorize"><a class="viewcode-back" href="../../utool.html#utool.util_decor.memorize">[docs]</a><span class="k">def</span> <span class="nf">memorize</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Memoization decorator for functions taking one or more arguments.</span>
+<span class="sd">    # http://code.activestate.com/recipes/578231-probably-the-fastest-memoization-decorator-in-the-/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">class</span> <span class="nc">_memorizer</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">func</span> <span class="o">=</span> <span class="n">func</span>
+        <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">args</span><span class="p">]</span>
+        <span class="k">def</span> <span class="nf">__missing__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">key</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ret</span>
+    <span class="k">return</span> <span class="n">_memorizer</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+
+
+<span class="c">#@decorator.decorator</span></div>
+<div class="viewcode-block" id="interested"><a class="viewcode-back" href="../../utool.html#utool.util_decor.interested">[docs]</a><span class="k">def</span> <span class="nf">interested</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="nd">@indent_func</span>
+    <span class="c">#@ignores_exc_tb</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrp_interested</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;#</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;#</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;&lt;!INTERESTED&gt;: &#39;</span> <span class="o">+</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;INTERESTING... &#39;</span> <span class="o">+</span> <span class="p">(</span><span class="s">&#39; &#39;</span> <span class="o">*</span> <span class="mi">30</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; &lt;----&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wrp_interested</span>
+
+
+<span class="c">#@decorator.decorator</span></div>
+<div class="viewcode-block" id="show_return_value"><a class="viewcode-back" href="../../utool.html#utool.util_decor.show_return_value">[docs]</a><span class="k">def</span> <span class="nf">show_return_value</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">.util_str</span> <span class="kn">import</span> <span class="n">func_str</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrp_show_return_value</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c">#print(&#39;%s(*%r, **%r) returns %r&#39; % (get_funcname(func), args, kwargs, rv))</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>  <span class="o">+</span> <span class="s">&#39; -&gt; ret=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ret</span><span class="p">,))</span>
+        <span class="k">return</span> <span class="n">ret</span>
+    <span class="k">return</span> <span class="n">wrp_show_return_value</span>
+
+
+<span class="c">#@decorator.decorator</span></div>
+<div class="viewcode-block" id="time_func"><a class="viewcode-back" href="../../utool.html#utool.util_decor.time_func">[docs]</a><span class="k">def</span> <span class="nf">time_func</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrp_time</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">util_time</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wrp_time</span>
+
+
+<span class="c">#class copy_argspec(object):</span>
+<span class="c">#    &quot;&quot;&quot;</span>
+<span class="c">#    copy_argspec is a signature modifying decorator.</span>
+<span class="c">#    Specifically, it copies the signature from `source_func` to the wrapper, and</span>
+<span class="c">#    the wrapper will call the original function (which should be using *args,</span>
+<span class="c">#    **kwds).  The argspec, docstring, and default values are copied from</span>
+<span class="c">#    src_func, and __module__ and __dict__ from tgt_func.</span>
+<span class="c">#    .. References</span>
+<span class="c">#    http://stackoverflow.com/questions/18625510/how-can-i-programmatically-change-the-argspec-of-a-function-not-in-a-python-de</span>
+<span class="c">#    &quot;&quot;&quot;</span>
+<span class="c">#    def __init__(self, src_func):</span>
+<span class="c">#        self.argspec = inspect.getargspec(src_func)</span>
+<span class="c">#        self.src_doc = src_func.__doc__</span>
+<span class="c">#        self.src_defaults = src_func.func_defaults</span>
+<span class="c">#    def __call__(self, tgt_func):</span>
+<span class="c">#        try:</span>
+<span class="c">#            tgt_argspec = inspect.getargspec(tgt_func)</span>
+<span class="c">#            need_self = False</span>
+<span class="c">#            if len(tgt_argspec) &gt; 0 and len(tgt_argspec[0]) &gt; 0 and tgt_argspec[0][0] == &#39;self&#39;:</span>
+<span class="c">#                need_self = True</span>
+<span class="c">#            name = tgt_func.__name__</span>
+<span class="c">#            argspec = self.argspec</span>
+<span class="c">#            if len(argspec) &gt; 0 and len(argspec[0]) &gt; 0 and argspec[0][0] == &#39;self&#39;:</span>
+<span class="c">#                need_self = False</span>
+<span class="c">#            if need_self:</span>
+<span class="c">#                newargspec = ([&#39;self&#39;] + argspec[0],) + argspec[1:]</span>
+<span class="c">#            else:</span>
+<span class="c">#                newargspec = argspec</span>
+<span class="c">#            signature = inspect.formatargspec(formatvalue=lambda val: &quot;&quot;,</span>
+<span class="c">#                                              *newargspec)[1:-1]</span>
+<span class="c">#            new_func = (</span>
+<span class="c">#                &#39;def _wrapper_({signature}):\n&#39;</span>
+<span class="c">#                &#39;    return {tgt_func}({signature})&#39;</span>
+<span class="c">#            ).format(signature=signature, tgt_func=&#39;tgt_func&#39;)</span>
+<span class="c">#            evaldict = {&#39;tgt_func&#39; : tgt_func}</span>
+<span class="c">#            exec new_func in evaldict</span>
+<span class="c">#            wrapped = evaldict[&#39;_wrapper_&#39;]</span>
+<span class="c">#            wrapped.__name__ = name</span>
+<span class="c">#            wrapped.__doc__ = self.src_doc</span>
+<span class="c">#            wrapped.func_defaults = self.src_defaults</span>
+<span class="c">#            wrapped.__module__ = tgt_func.__module__</span>
+<span class="c">#            wrapped.__dict__ = tgt_func.__dict__</span>
+<span class="c">#            return wrapped</span>
+<span class="c">#        except Exception as ex:</span>
+<span class="c">#            printex(ex, &#39;error wrapping: %r&#39; % (tgt_func,))</span>
+<span class="c">#            raise</span>
+
+
+<span class="c">#@decorator.decorator</span></div>
+<div class="viewcode-block" id="lazyfunc"><a class="viewcode-back" href="../../utool.html#utool.util_decor.lazyfunc">[docs]</a><span class="k">def</span> <span class="nf">lazyfunc</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="n">closuremem_</span> <span class="o">=</span> <span class="p">[{}]</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">mem</span> <span class="o">=</span> <span class="n">closuremem_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">args</span><span class="p">),</span> <span class="nb">repr</span><span class="p">(</span><span class="n">kwargs</span><span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">mem</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">mem</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mem</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">wrapper</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" >utool</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

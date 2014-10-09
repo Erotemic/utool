@@ -1,0 +1,196 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>utool.util_iter &mdash; utool 1.0.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html" />
+    <link rel="up" title="utool" href="../utool.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" accesskey="U">utool</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for utool.util_iter</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+    <span class="k">pass</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span><span class="p">,</span> <span class="n">cycle</span><span class="p">,</span> <span class="n">islice</span>
+<span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[iter]&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ensure_iterable"><a class="viewcode-back" href="../../utool.html#utool.util_iter.ensure_iterable">[docs]</a><span class="k">def</span> <span class="nf">ensure_iterable</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">iterable</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">obj</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="isiterable"><a class="viewcode-back" href="../../utool.html#utool.util_iter.isiterable">[docs]</a><span class="k">def</span> <span class="nf">isiterable</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">iterable</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="ifilter_items"><a class="viewcode-back" href="../../utool.html#utool.util_iter.ifilter_items">[docs]</a><span class="k">def</span> <span class="nf">ifilter_items</span><span class="p">(</span><span class="n">item_iter</span><span class="p">,</span> <span class="n">flag_iter</span><span class="p">):</span>
+    <span class="n">true_items</span> <span class="o">=</span> <span class="p">(</span><span class="n">item</span> <span class="k">for</span> <span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">flag</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">item_iter</span><span class="p">,</span> <span class="n">flag_iter</span><span class="p">)</span> <span class="k">if</span> <span class="n">flag</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">true_items</span>
+
+</div>
+<div class="viewcode-block" id="ifilterfalse_items"><a class="viewcode-back" href="../../utool.html#utool.util_iter.ifilterfalse_items">[docs]</a><span class="k">def</span> <span class="nf">ifilterfalse_items</span><span class="p">(</span><span class="n">item_iter</span><span class="p">,</span> <span class="n">flag_iter</span><span class="p">):</span>
+    <span class="n">false_items</span> <span class="o">=</span> <span class="p">(</span><span class="n">item</span> <span class="k">for</span> <span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">flag</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">item_iter</span><span class="p">,</span> <span class="n">flag_iter</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">flag</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">false_items</span>
+
+</div>
+<div class="viewcode-block" id="ifilter_Nones"><a class="viewcode-back" href="../../utool.html#utool.util_iter.ifilter_Nones">[docs]</a><span class="k">def</span> <span class="nf">ifilter_Nones</span><span class="p">(</span><span class="n">iter_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Removes any nones from the iterable &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">iter_</span> <span class="k">if</span> <span class="n">item</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="iflatten"><a class="viewcode-back" href="../../utool.html#utool.util_iter.iflatten">[docs]</a><span class="k">def</span> <span class="nf">iflatten</span><span class="p">(</span><span class="n">list_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; flattens a list iteratively &quot;&quot;&quot;</span>
+    <span class="n">flat_iter</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span>  <span class="c"># very fast flatten</span>
+    <span class="k">return</span> <span class="n">flat_iter</span>
+
+</div>
+<div class="viewcode-block" id="iflatten_scalars"><a class="viewcode-back" href="../../utool.html#utool.util_iter.iflatten_scalars">[docs]</a><span class="k">def</span> <span class="nf">iflatten_scalars</span><span class="p">(</span><span class="n">list_</span><span class="p">):</span>
+    <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">list_</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="ichunks"><a class="viewcode-back" href="../../utool.html#utool.util_iter.ichunks">[docs]</a><span class="k">def</span> <span class="nf">ichunks</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    generates successive n-sized chunks from ``list_``.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        list_ (list): input to iterate over</span>
+<span class="sd">        chunksize (int): size of sublist to return</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_</span><span class="p">),</span> <span class="n">chunksize</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">list_</span><span class="p">[</span><span class="n">ix</span><span class="p">:</span> <span class="n">ix</span> <span class="o">+</span> <span class="n">chunksize</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="interleave"><a class="viewcode-back" href="../../utool.html#utool.util_iter.interleave">[docs]</a><span class="k">def</span> <span class="nf">interleave</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">arg_iters</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">iter</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
+    <span class="n">cycle_iter</span> <span class="o">=</span> <span class="n">cycle</span><span class="p">(</span><span class="n">arg_iters</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">iter_</span> <span class="ow">in</span> <span class="n">cycle_iter</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">iter_</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">iter_</span> <span class="ow">in</span> <span class="n">cycle_iter</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="nb">next</span><span class="p">(</span><span class="n">iter_</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="interleave2"><a class="viewcode-back" href="../../utool.html#utool.util_iter.interleave2">[docs]</a><span class="k">def</span> <span class="nf">interleave2</span><span class="p">(</span><span class="o">*</span><span class="n">iterables</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">iterables</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="interleave3"><a class="viewcode-back" href="../../utool.html#utool.util_iter.interleave3">[docs]</a><span class="k">def</span> <span class="nf">interleave3</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">cycle_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">iter_</span> <span class="ow">in</span> <span class="n">cycle_iter</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">iter_</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">iter_</span> <span class="ow">in</span> <span class="n">cycle_iter</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="nb">next</span><span class="p">(</span><span class="n">iter_</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="roundrobin"><a class="viewcode-back" href="../../utool.html#utool.util_iter.roundrobin">[docs]</a><span class="k">def</span> <span class="nf">roundrobin</span><span class="p">(</span><span class="o">*</span><span class="n">iterables</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;roundrobin(&#39;ABC&#39;, &#39;D&#39;, &#39;EF&#39;) --&gt; A D E B F C&quot;&quot;&quot;</span>
+    <span class="c"># http://stackoverflow.com/questions/11125212/interleaving-lists-in-python</span>
+    <span class="c">#sentinel = object()</span>
+    <span class="c">#return (x for x in chain(*zip_longest(fillvalue=sentinel, *iterables)) if x is not sentinel)</span>
+    <span class="n">pending</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">iterables</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
+        <span class="n">nexts</span> <span class="o">=</span> <span class="n">cycle</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">it</span><span class="p">)</span><span class="o">.</span><span class="n">next</span> <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="n">iterables</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nexts</span> <span class="o">=</span> <span class="n">cycle</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">it</span><span class="p">)</span><span class="o">.</span><span class="n">__next__</span> <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="n">iterables</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">pending</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="nb">next</span> <span class="ow">in</span> <span class="n">nexts</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="nb">next</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+            <span class="n">pending</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="n">nexts</span> <span class="o">=</span> <span class="n">cycle</span><span class="p">(</span><span class="n">islice</span><span class="p">(</span><span class="n">nexts</span><span class="p">,</span> <span class="n">pending</span><span class="p">))</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" >utool</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

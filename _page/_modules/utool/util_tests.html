@@ -1,0 +1,183 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>utool.util_tests &mdash; utool 1.0.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html" />
+    <link rel="up" title="utool" href="../utool.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" accesskey="U">utool</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for utool.util_tests</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot; Helpers for tests &quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">builtins</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_print</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_dbg</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_arg</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_time</span>
+<span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[tests]&#39;</span><span class="p">)</span>
+
+
+<span class="n">HAPPY_FACE</span> <span class="o">=</span> <span class="s">r&#39;&#39;&#39;</span>
+<span class="s">               .-&quot;&quot;&quot;&quot;&quot;&quot;-.</span>
+<span class="s">             .&#39;          &#39;.</span>
+<span class="s">            /   O      O   \</span>
+<span class="s">           :                :</span>
+<span class="s">           |                |</span>
+<span class="s">           : &#39;,          ,&#39; :</span>
+<span class="s">            \  &#39;-......-&#39;  /</span>
+<span class="s">             &#39;.          .&#39;</span>
+<span class="s">               &#39;-......-&#39;</span>
+<span class="s">                   &#39;&#39;&#39;</span>
+
+
+<span class="n">SAD_FACE</span> <span class="o">=</span> <span class="s">r&#39;&#39;&#39;</span>
+<span class="s">               .-&quot;&quot;&quot;&quot;&quot;&quot;-.</span>
+<span class="s">             .&#39;          &#39;.</span>
+<span class="s">            /   O      O   \</span>
+<span class="s">           :           `    :</span>
+<span class="s">           |                |</span>
+<span class="s">           :    .------.    :</span>
+<span class="s">            \  &#39;        &#39;  /</span>
+<span class="s">             &#39;.          .&#39;</span>
+<span class="s">               &#39;-......-&#39;</span>
+<span class="s">                  &#39;&#39;&#39;</span>
+
+
+<div class="viewcode-block" id="run_test"><a class="viewcode-back" href="../../utool.html#utool.util_tests.run_test">[docs]</a><span class="k">def</span> <span class="nf">run_test</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Runs the test function with success / failure printing</span>
+
+<span class="sd">    Input:</span>
+<span class="sd">        Anything that needs to be passed to &lt;func&gt;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">upper_funcname</span> <span class="o">=</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">util_print</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s">&#39;[&#39;</span> <span class="o">+</span> <span class="n">upper_funcname</span> <span class="o">+</span> <span class="s">&#39;]&#39;</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">utool</span>
+            <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+                <span class="n">printTEST</span><span class="p">(</span><span class="s">&#39;[TEST.BEGIN] </span><span class="si">%s</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">))</span>
+                <span class="n">printTEST</span><span class="p">(</span><span class="s">&#39;[TEST.BEGIN] </span><span class="si">%s</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">),))</span>
+            <span class="k">with</span> <span class="n">util_time</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="n">upper_funcname</span><span class="p">)</span> <span class="k">as</span> <span class="n">timer</span><span class="p">:</span>
+                <span class="n">test_locals</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="c"># Write timings</span>
+            <span class="n">printTEST</span><span class="p">(</span><span class="s">&#39;[TEST.FINISH] </span><span class="si">%s</span><span class="s"> -- SUCCESS&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">),))</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">HAPPY_FACE</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;_test_times.txt&#39;</span><span class="p">,</span> <span class="s">&#39;a&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%.4f</span><span class="s">s in </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">timer</span><span class="o">.</span><span class="n">ellapsed</span><span class="p">,</span> <span class="n">upper_funcname</span><span class="p">)</span>
+                <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">test_locals</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="c"># Get locals in the wrapped function</span>
+            <span class="n">util_dbg</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+            <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">tb</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
+            <span class="n">printTEST</span><span class="p">(</span><span class="s">&#39;[TEST.FINISH] </span><span class="si">%s</span><span class="s"> -- FAILED: </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">),</span> <span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span> <span class="n">ex</span><span class="p">))</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">SAD_FACE</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">STRICT</span><span class="p">:</span>
+                <span class="c"># Remove this function from stack strace</span>
+                <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_traceback</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
+                <span class="n">exc_traceback</span> <span class="o">=</span> <span class="n">exc_traceback</span><span class="o">.</span><span class="n">tb_next</span>
+                <span class="c"># Python 2*3=6</span>
+                <span class="kn">import</span> <span class="nn">six</span>
+                <span class="n">six</span><span class="o">.</span><span class="n">reraise</span><span class="p">(</span><span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_traceback</span><span class="p">)</span>
+                <span class="c"># PYTHON 2.7 DEPRICATED:</span>
+                <span class="c">#raise exc_type, exc_value, exc_traceback.tb_next</span>
+                <span class="c"># PYTHON 3.3 NEW METHODS</span>
+                <span class="c">#ex = exc_type(exc_value)</span>
+                <span class="c">#ex.__traceback__ = exc_traceback.tb_next</span>
+                <span class="c">#raise ex</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+</div>
+<div class="viewcode-block" id="printTEST"><a class="viewcode-back" href="../../utool.html#utool.util_tests.printTEST">[docs]</a><span class="k">def</span> <span class="nf">printTEST</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">=============================&#39;</span><span class="p">)</span>
+    <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="s">&#39;**&#39;</span> <span class="o">+</span> <span class="n">msg</span><span class="p">)</span>
+    <span class="c">#if INTERACTIVE and wait:</span>
+    <span class="c"># raw_input(&#39;press enter to continue&#39;)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" >utool</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>
