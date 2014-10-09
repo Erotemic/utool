@@ -24,6 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="utool 1.0.0.dev1 documentation" href="index.html" />
+    <link rel="next" title="utool._internal package" href="utool._internal.html" />
     <link rel="prev" title="Welcome to utool’s documentation!" href="index.html" /> 
   </head>
   <body>
@@ -36,6 +37,9 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
+        <li class="right" >
+          <a href="utool._internal.html" title="utool._internal package"
+             accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="index.html" title="Welcome to utool’s documentation!"
              accesskey="P">previous</a> |</li>
@@ -50,6 +54,27 @@
             
   <div class="section" id="utool-package">
 <h1>utool package<a class="headerlink" href="#utool-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="utool._internal.html">utool._internal package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="utool._internal.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utool._internal.html#module-utool._internal.__prefwidg_dep">utool._internal.__prefwidg_dep module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utool._internal.html#module-utool._internal.meta_util_arg">utool._internal.meta_util_arg module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utool._internal.html#module-utool._internal.meta_util_cache">utool._internal.meta_util_cache module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utool._internal.html#module-utool._internal.meta_util_constants">utool._internal.meta_util_constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utool._internal.html#module-utool._internal.meta_util_cplat">utool._internal.meta_util_cplat module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utool._internal.html#module-utool._internal.meta_util_git">utool._internal.meta_util_git module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utool._internal.html#module-utool._internal.meta_util_path">utool._internal.meta_util_path module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utool._internal.html#module-utool._internal.meta_util_six">utool._internal.meta_util_six module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utool._internal.html#module-utool._internal.util_importer">utool._internal.util_importer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utool._internal.html#module-utool._internal">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
@@ -1436,6 +1461,27 @@ which are polluting your stacktrace.</p>
 <dt id="utool.util_decor.on_exception_report_input">
 <tt class="descclassname">utool.util_decor.</tt><tt class="descname">on_exception_report_input</tt><big>(</big><em>func</em><big>)</big><a class="reference internal" href="_modules/utool/util_decor.html#on_exception_report_input"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_decor.on_exception_report_input" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="function">
+<dt id="utool.util_decor.preserve_sig">
+<tt class="descclassname">utool.util_decor.</tt><tt class="descname">preserve_sig</tt><big>(</big><em>wrapper</em>, <em>orig_func</em><big>)</big><a class="reference internal" href="_modules/utool/util_decor.html#preserve_sig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_decor.preserve_sig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorates a wrapper function.</p>
+<p>It seems impossible to presever signatures in python 2 without eval</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>wrapper</strong> &#8211; the function wrapping orig_func to change the signature of</li>
+<li><strong>orig_func</strong> &#8211; the original function to take the signature from</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">References</p>
+<p><a class="reference external" href="http://emptysqua.re/blog/copying-a-python-functions-signature/">http://emptysqua.re/blog/copying-a-python-functions-signature/</a></p>
+</dd></dl>
 
 <dl class="function">
 <dt id="utool.util_decor.show_return_value">
@@ -4377,6 +4423,7 @@ before or after.</p>
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">utool package</a><ul>
+<li><a class="reference internal" href="#subpackages">Subpackages</a></li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
 <li><a class="reference internal" href="#module-utool.DynamicStruct">utool.DynamicStruct module</a></li>
 <li><a class="reference internal" href="#module-utool.Preferences">utool.Preferences module</a></li>
@@ -4427,6 +4474,9 @@ before or after.</p>
   <h4>Previous topic</h4>
   <p class="topless"><a href="index.html"
                         title="previous chapter">Welcome to utool&#8217;s documentation!</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="utool._internal.html"
+                        title="next chapter">utool._internal package</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/utool.txt"
@@ -4458,6 +4508,9 @@ before or after.</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
+        <li class="right" >
+          <a href="utool._internal.html" title="utool._internal package"
+             >next</a> |</li>
         <li class="right" >
           <a href="index.html" title="Welcome to utool’s documentation!"
              >previous</a> |</li>

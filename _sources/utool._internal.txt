@@ -1,0 +1,86 @@
+utool._internal package
+=======================
+
+Submodules
+----------
+
+utool._internal.__prefwidg_dep module
+-------------------------------------
+
+.. automodule:: utool._internal.__prefwidg_dep
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool._internal.meta_util_arg module
+------------------------------------
+
+.. automodule:: utool._internal.meta_util_arg
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool._internal.meta_util_cache module
+--------------------------------------
+
+.. automodule:: utool._internal.meta_util_cache
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool._internal.meta_util_constants module
+------------------------------------------
+
+.. automodule:: utool._internal.meta_util_constants
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool._internal.meta_util_cplat module
+--------------------------------------
+
+.. automodule:: utool._internal.meta_util_cplat
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool._internal.meta_util_git module
+------------------------------------
+
+.. automodule:: utool._internal.meta_util_git
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool._internal.meta_util_path module
+-------------------------------------
+
+.. automodule:: utool._internal.meta_util_path
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool._internal.meta_util_six module
+------------------------------------
+
+.. automodule:: utool._internal.meta_util_six
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool._internal.util_importer module
+------------------------------------
+
+.. automodule:: utool._internal.util_importer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: utool._internal
+    :members:
+    :undoc-members:
+    :show-inheritance:
