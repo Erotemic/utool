@@ -1,6 +1,13 @@
 utool package
 =============
 
+Subpackages
+-----------
+
+.. toctree::
+
+    utool._internal
+
 Submodules
 ----------
 

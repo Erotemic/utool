@@ -49,12 +49,13 @@
             
   <h1>Source code for utool.util_decor</h1><div class="highlight"><pre>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">import</span> <span class="nn">decorator</span>  <span class="c"># NOQA</span>
+<span class="c"># import decorator  # NOQA</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">builtins</span>
-<span class="c">#import inspect</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">import</span> <span class="nn">textwrap</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span><span class="p">,</span> <span class="n">update_wrapper</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -102,6 +103,10 @@
         <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">wrp_no_exectb</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
+                <span class="c">#import utool</span>
+                <span class="c">#if utool.DEBUG:</span>
+                <span class="c">#    print(&#39;[IN IGNORETB] args=%r&#39; % (args,))</span>
+                <span class="c">#    print(&#39;[IN IGNORETB] kwargs=%r&#39; % (kwargs,))</span>
                 <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_traceback</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
@@ -123,6 +128,7 @@
                 <span class="c">#raise ex</span>
                 <span class="c"># https://github.com/jcrocholl/pep8/issues/34  # NOQA</span>
                 <span class="c"># http://legacy.python.org/dev/peps/pep-3109/</span>
+        <span class="n">wrp_no_exectb</span> <span class="o">=</span> <span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_no_exectb</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">wrp_no_exectb</span>
 
 
@@ -132,6 +138,10 @@
     <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">wrp_exception_report_input</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
+            <span class="c">#import utool</span>
+            <span class="c">#if utool.DEBUG:</span>
+            <span class="c">#    print(&#39;[IN EXCPRPT] args=%r&#39; % (args,))</span>
+            <span class="c">#    print(&#39;[IN EXCPRPT] kwargs=%r&#39; % (kwargs,))</span>
             <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;ERROR: funcname=</span><span class="si">%r</span><span class="s">,</span><span class="se">\n</span><span class="s"> * args=</span><span class="si">%r</span><span class="s">,</span><span class="se">\n</span><span class="s"> * kwargs=</span><span class="si">%r</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">),</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">))</span>
@@ -139,6 +149,7 @@
             <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39; * len(kwlargs) = </span><span class="si">%r</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">separate</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
             <span class="k">raise</span>
+    <span class="n">wrp_exception_report_input</span> <span class="o">=</span> <span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_exception_report_input</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">wrp_exception_report_input</span>
 
 </div>
@@ -146,17 +157,25 @@
     <span class="c">#@decorator.decorator</span>
     <span class="k">def</span> <span class="nf">closure_indent</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
         <span class="c">#printDBG(&#39;Indenting lbl=%r, func=%r&#39; % (lbl, func))</span>
-        <span class="nd">@ignores_exc_tb</span>
-        <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-        <span class="k">def</span> <span class="nf">wrp_indent</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-            <span class="k">with</span> <span class="n">Indenter</span><span class="p">(</span><span class="n">lbl</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">TRACE</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">TRACE</span><span class="p">:</span>
+            <span class="nd">@ignores_exc_tb</span>
+            <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+            <span class="k">def</span> <span class="nf">wrp_indent</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                <span class="k">with</span> <span class="n">Indenter</span><span class="p">(</span><span class="n">lbl</span><span class="p">):</span>
                     <span class="k">print</span><span class="p">(</span><span class="s">&#39;    ...trace[in]&#39;</span><span class="p">)</span>
-                <span class="n">ret</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">TRACE</span><span class="p">:</span>
+                    <span class="n">ret</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
                     <span class="k">print</span><span class="p">(</span><span class="s">&#39;    ...trace[out]&#39;</span><span class="p">)</span>
-                <span class="k">return</span> <span class="n">ret</span>
-        <span class="k">return</span> <span class="n">wrp_indent</span>
+                    <span class="k">return</span> <span class="n">ret</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nd">@ignores_exc_tb</span>
+            <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+            <span class="k">def</span> <span class="nf">wrp_indent</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                <span class="k">with</span> <span class="n">Indenter</span><span class="p">(</span><span class="n">lbl</span><span class="p">):</span>
+                    <span class="n">ret</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">ret</span>
+        <span class="n">wrp_indent_</span> <span class="o">=</span> <span class="n">ignores_exc_tb</span><span class="p">(</span><span class="n">wrp_indent</span><span class="p">)</span>
+        <span class="n">wrp_indent_</span> <span class="o">=</span> <span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_indent</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">wrp_indent_</span>
     <span class="k">return</span> <span class="n">closure_indent</span>
 
 
@@ -268,6 +287,10 @@
     <span class="nd">@ignores_exc_tb</span>
     <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">wrp_sivo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c">#import utool</span>
+        <span class="c">#if utool.DEBUG:</span>
+        <span class="c">#    print(&#39;[IN SIVO] args=%r&#39; % (args,))</span>
+        <span class="c">#    print(&#39;[IN SIVO] kwargs=%r&#39; % (kwargs,))</span>
         <span class="k">if</span> <span class="n">isiterable</span><span class="p">(</span><span class="n">input_</span><span class="p">):</span>
             <span class="c"># If input is already iterable do default behavior</span>
             <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -442,7 +465,60 @@
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="n">mem</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">mem</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">wrapper</span></div>
+    <span class="k">return</span> <span class="n">wrapper</span>
+
+</div>
+<div class="viewcode-block" id="preserve_sig"><a class="viewcode-back" href="../../utool.html#utool.util_decor.preserve_sig">[docs]</a><span class="k">def</span> <span class="nf">preserve_sig</span><span class="p">(</span><span class="n">wrapper</span><span class="p">,</span> <span class="n">orig_func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decorates a wrapper function.</span>
+
+<span class="sd">    It seems impossible to presever signatures in python 2 without eval</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        wrapper: the function wrapping orig_func to change the signature of</span>
+<span class="sd">        orig_func: the original function to take the signature from</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://emptysqua.re/blog/copying-a-python-functions-signature/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">SIG_PRESERVE</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">SIG_PRESERVE</span><span class="p">:</span>
+        <span class="c"># Turn off signature preservation</span>
+        <span class="k">return</span> <span class="n">update_wrapper</span><span class="p">(</span><span class="n">wrapper</span><span class="p">,</span> <span class="n">orig_func</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">src_fmt</span> <span class="o">=</span> <span class="s">r&#39;&#39;&#39;</span>
+<span class="s">        def _wrp_preserve{defsig}:</span>
+<span class="s">            try:</span>
+<span class="s">                return wrapper{callsig}</span>
+<span class="s">            except Exception as ex:</span>
+<span class="s">                import utool</span>
+<span class="s">                msg = (&#39;Failure in signature preserving wrapper:\n&#39;)</span>
+<span class="s">                msg += (&quot;{defsig}\n&quot;)</span>
+<span class="s">                msg += (&quot;{callsig}\n&quot;)</span>
+<span class="s">                utool.print(ex, msg)</span>
+<span class="s">                raise</span>
+<span class="s">        &#39;&#39;&#39;</span>
+        <span class="c"># Put wrapped function into a scope</span>
+        <span class="n">globals_</span> <span class="o">=</span>  <span class="p">{</span><span class="s">&#39;wrapper&#39;</span><span class="p">:</span> <span class="n">wrapper</span><span class="p">}</span>
+        <span class="n">locals_</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c"># Extract argspec from orig function</span>
+        <span class="n">argspec</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getargspec</span><span class="p">(</span><span class="n">orig_func</span><span class="p">)</span>
+        <span class="c"># Get the function definition signature</span>
+        <span class="n">defsig</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">formatargspec</span><span class="p">(</span><span class="o">*</span><span class="n">argspec</span><span class="p">)</span>
+        <span class="c"># Get function call signature (no defaults)</span>
+        <span class="n">callsig</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">formatargspec</span><span class="p">(</span><span class="o">*</span><span class="n">argspec</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span>
+        <span class="c"># Define an exec function</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="n">src_fmt</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">defsig</span><span class="o">=</span><span class="n">defsig</span><span class="p">,</span> <span class="n">callsig</span><span class="o">=</span><span class="n">callsig</span><span class="p">)</span>
+        <span class="c"># Define the new function on the fly</span>
+        <span class="c"># (I wish there was a non exec / eval way to do this)</span>
+        <span class="c">#print(src)</span>
+        <span class="k">exec</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">globals_</span><span class="p">,</span> <span class="n">locals_</span><span class="p">)</span>
+        <span class="c"># Grab the function definition</span>
+        <span class="n">_wrp_preserve</span> <span class="o">=</span> <span class="n">update_wrapper</span><span class="p">(</span><span class="n">locals_</span><span class="p">[</span><span class="s">&#39;_wrp_preserve&#39;</span><span class="p">],</span> <span class="n">orig_func</span><span class="p">)</span>
+        <span class="c"># Set an internal sig variable that we may use</span>
+        <span class="c">#_wrp_preserve.__sig__ = defsig</span>
+        <span class="n">_wrp_preserve</span><span class="o">.</span><span class="n">_dbgsrc</span> <span class="o">=</span> <span class="n">src</span>
+        <span class="k">return</span> <span class="n">_wrp_preserve</span></div>
 </pre></div>
 
           </div>

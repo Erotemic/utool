@@ -234,7 +234,7 @@ def autogen_sphinx_apidoc():
         '--doc-release="{doc_release}"',
         '--output-dir="_doc"',
         #'--separate',  # Put documentation for each module on its own page
-        #'--private',  # Include "_private" modules
+        '--private',  # Include "_private" modules
         '{pkgdir}',
     ]
     outputdir = '_doc'
