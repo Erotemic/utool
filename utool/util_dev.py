@@ -78,6 +78,16 @@ def get_stats(_list, axis=None):
     return stat_dict
 
 
+def tuples_to_unique_scalars(tup_list):
+    seen = {}
+    def addval(tup):
+        val = len(seen)
+        seen[tup] = val
+        return val
+    scalar_list = [seen[tup] if tup in seen else addval(tup) for tup in tup_list]
+    return scalar_list
+
+
 # --- Info Strings ---
 
 
