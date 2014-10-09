@@ -53,6 +53,10 @@ def ignores_exc_tb(func):
         @wraps(func)
         def wrp_no_exectb(*args, **kwargs):
             try:
+                #import utool
+                #if utool.DEBUG:
+                #    print('[IN IGNORETB] args=%r' % (args,))
+                #    print('[IN IGNORETB] kwargs=%r' % (kwargs,))
                 return func(*args, **kwargs)
             except Exception:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -74,7 +78,7 @@ def ignores_exc_tb(func):
                 #raise ex
                 # https://github.com/jcrocholl/pep8/issues/34  # NOQA
                 # http://legacy.python.org/dev/peps/pep-3109/
-        wrp_no_exectb = preserve_sig(func, wrp_no_exectb)
+        wrp_no_exectb = preserve_sig(wrp_no_exectb, func)
         return wrp_no_exectb
 
 
@@ -84,6 +88,10 @@ def on_exception_report_input(func):
     @wraps(func)
     def wrp_exception_report_input(*args, **kwargs):
         try:
+            #import utool
+            #if utool.DEBUG:
+            #    print('[IN EXCPRPT] args=%r' % (args,))
+            #    print('[IN EXCPRPT] kwargs=%r' % (kwargs,))
             return func(*args, **kwargs)
         except Exception as ex:
             msg = ('ERROR: funcname=%r,\n * args=%r,\n * kwargs=%r\n' % (get_funcname(func), args, kwargs))
@@ -91,7 +99,7 @@ def on_exception_report_input(func):
             msg += ' * len(kwlargs) = %r\n' % len(kwargs)
             printex(ex, msg, separate=True)
             raise
-    wrp_exception_report_input = preserve_sig(func, wrp_exception_report_input)
+    wrp_exception_report_input = preserve_sig(wrp_exception_report_input, func)
     return wrp_exception_report_input
 
 
@@ -116,7 +124,7 @@ def _indent_decor(lbl):
                     ret = func(*args, **kwargs)
                     return ret
         wrp_indent_ = ignores_exc_tb(wrp_indent)
-        wrp_indent_ = preserve_sig(func,  wrp_indent)
+        wrp_indent_ = preserve_sig(wrp_indent, func)
         return wrp_indent_
     return closure_indent
 
@@ -229,6 +237,10 @@ def accepts_scalar_input_vector_output(func):
     @ignores_exc_tb
     @wraps(func)
     def wrp_sivo(self, input_, *args, **kwargs):
+        #import utool
+        #if utool.DEBUG:
+        #    print('[IN SIVO] args=%r' % (args,))
+        #    print('[IN SIVO] kwargs=%r' % (kwargs,))
         if isiterable(input_):
             # If input is already iterable do default behavior
             return func(self, input_, *args, **kwargs)
@@ -419,32 +431,39 @@ def preserve_sig(wrapper, orig_func):
     References:
         http://emptysqua.re/blog/copying-a-python-functions-signature/
     """
-    SIG_PRESERVE = False
+    SIG_PRESERVE = True
     if not SIG_PRESERVE:
         # Turn off signature preservation
         return update_wrapper(wrapper, orig_func)
     else:
-        # Put wrapped function into a scope
-        globals_ =  {'wrapper': wrapper}
-        # Extract argspec from orig function
-        argspec = inspect.getargspec(orig_func)
-        defsig = inspect.formatargspec(*argspec)
-        # Get format without defaults
-        callsig = inspect.formatargspec((argspec[0]))
-        # Define an exec function
-        src = textwrap.dedent('''
+        src_fmt = r'''
         def _wrp_preserve{defsig}:
             try:
                 return wrapper{callsig}
             except Exception as ex:
-                print('AGGG')
-                print(ex)
-                print("{defsig}")
-                print("{callsig}")
+                import utool
+                msg = ('Failure in signature preserving wrapper:\n')
+                msg += ("{defsig}\n")
+                msg += ("{callsig}\n")
+                utool.print(ex, msg)
                 raise
-        ''').format(defsig=defsig, callsig=callsig)
+        '''
+        # Put wrapped function into a scope
+        globals_ =  {'wrapper': wrapper}
         locals_ = {}
+        # Extract argspec from orig function
+        argspec = inspect.getargspec(orig_func)
+        # Get the function definition signature
+        defsig = inspect.formatargspec(*argspec)
+        # Get function call signature (no defaults)
+        callsig = inspect.formatargspec(*argspec[0:3])
+        # Define an exec function
+        src = textwrap.dedent(src_fmt).format(defsig=defsig, callsig=callsig)
+        # Define the new function on the fly
+        # (I wish there was a non exec / eval way to do this)
+        #print(src)
         exec(src, globals_, locals_)
+        # Grab the function definition
         _wrp_preserve = update_wrapper(locals_['_wrp_preserve'], orig_func)
         # Set an internal sig variable that we may use
         #_wrp_preserve.__sig__ = defsig
