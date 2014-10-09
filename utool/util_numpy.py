@@ -174,3 +174,10 @@ def sample_domain(min_, max_, nSamp, mode='linear'):
         raise NotImplementedError(mode)
     sample = [index for index in samples_ if index < max_]
     return sample
+
+
+def make_incrementer():
+    def incrementer(_mem=[0]):
+        _mem[0] += 1
+        return _mem[0]
+    return incrementer
