@@ -1,0 +1,345 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>utool.util_arg &mdash; utool 1.0.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html" />
+    <link rel="up" title="utool" href="../utool.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" accesskey="U">utool</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for utool.util_arg</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="c"># Python</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="c">#import six</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">from</span> <span class="nn">.util_type</span> <span class="kn">import</span> <span class="n">try_cast</span>
+<span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="kn">from</span> <span class="nn">.util_print</span> <span class="kn">import</span> <span class="n">Indenter</span>
+<span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span><span class="p">,</span> <span class="n">set_funcname</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[arg]&#39;</span><span class="p">)</span>
+
+<span class="n">DEBUG2</span> <span class="o">=</span> <span class="s">&#39;--debug2&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<span class="n">QUIET</span> <span class="o">=</span> <span class="s">&#39;--quiet&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<span class="n">NOT_QUIET</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">QUIET</span>
+<span class="n">VERBOSE</span> <span class="o">=</span> <span class="s">&#39;--verbose&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<span class="n">VERYVERBOSE</span> <span class="o">=</span> <span class="s">&#39;--very-verbose&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="ow">or</span> <span class="s">&#39;-veryverbose&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<span class="c">#STRICT = &#39;--nostrict&#39; not in sys.argv</span>
+<span class="n">STRICT</span> <span class="o">=</span> <span class="s">&#39;--strict&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<span class="n">NO_ASSERTS</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;--no-assert&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+<span class="n">USE_ASSERT</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">NO_ASSERTS</span>
+<span class="n">SUPER_STRICT</span> <span class="o">=</span> <span class="s">&#39;--super-strict&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+
+
+<span class="c"># TODO: rectify with meta_util_arg</span>
+<span class="c"># This has diverged and is now better</span>
+<span class="c">#from ._internal.meta_util_arg import get_argval</span>
+<div class="viewcode-block" id="get_argval"><a class="viewcode-back" href="../../utool.html#utool.util_arg.get_argval">[docs]</a><span class="k">def</span> <span class="nf">get_argval</span><span class="p">(</span><span class="n">argstr_</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">help_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Returns a value of an argument specified on the command line after some flag</span>
+
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_arg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import sys</span>
+<span class="sd">        &gt;&gt;&gt; sys.argv.extend([&#39;--spam&#39;, &#39;eggs&#39;, &#39;--quest=holy grail&#39;, &#39;--ans=42&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; get_argval(&#39;--spam&#39;, type_=str, default=None)</span>
+<span class="sd">        eggs</span>
+<span class="sd">        &gt;&gt;&gt; get_argval(&#39;--quest&#39;, type_=str, default=None)</span>
+<span class="sd">        holy grail</span>
+<span class="sd">        &gt;&gt;&gt; get_argval(&#39;--ans&#39;, type_=int, default=None)</span>
+<span class="sd">        42</span>
+
+
+<span class="sd">        python -c &quot;import utool; print([(type(x), x) for x in [utool.get_argval(&#39;--quest&#39;)]])&quot; --quest=&quot;holy grail&quot;</span>
+<span class="sd">        python -c &quot;import utool; print([(type(x), x) for x in [utool.get_argval(&#39;--quest&#39;)]])&quot; --quest=&quot;42&quot;</span>
+<span class="sd">        python -c &quot;import utool; print([(type(x), x) for x in [utool.get_argval(&#39;--quest&#39;)]])&quot; --quest=42</span>
+<span class="sd">        python -c &quot;import utool; print([(type(x), x) for x in [utool.get_argval(&#39;--quest&#39;)]])&quot; --quest 42</span>
+<span class="sd">        python -c &quot;import utool; print([(type(x), x) for x in [utool.get_argval(&#39;--quest&#39;, float)]])&quot; --quest 42</span>
+<span class="sd">        python -c &quot;import utool; print([(type(x), x) for x in [utool.get_argval((&#39;--nAssign&#39;), int)]])&quot; --nAssign 42</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">arg_after</span> <span class="o">=</span> <span class="n">default</span>
+    <span class="k">if</span> <span class="n">type_</span> <span class="ow">is</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="n">arg_after</span> <span class="o">=</span> <span class="bp">False</span> <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">default</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c"># New for loop way (accounts for =)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">argstr_</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="n">argstr_list</span> <span class="o">=</span> <span class="p">(</span><span class="n">argstr_</span><span class="p">,)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">argstr_list</span> <span class="o">=</span> <span class="n">argstr_</span>
+        <span class="k">for</span> <span class="n">argx</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">argstr</span> <span class="ow">in</span> <span class="n">argstr_list</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">item</span> <span class="o">==</span> <span class="n">argstr</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">argx</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="n">type_</span> <span class="ow">is</span> <span class="nb">bool</span><span class="p">:</span>
+                            <span class="n">arg_after</span> <span class="o">=</span> <span class="bp">True</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">arg_after</span> <span class="o">=</span> <span class="n">try_cast</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">argx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">type_</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">argstr</span> <span class="o">+</span> <span class="s">&#39;=&#39;</span><span class="p">):</span>
+                    <span class="n">val_after</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:])</span>
+                    <span class="n">arg_after</span> <span class="o">=</span> <span class="n">try_cast</span><span class="p">(</span><span class="n">val_after</span><span class="p">,</span> <span class="n">type_</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">return</span> <span class="n">arg_after</span>
+
+</div>
+<div class="viewcode-block" id="get_argflag"><a class="viewcode-back" href="../../utool.html#utool.util_arg.get_argflag">[docs]</a><span class="k">def</span> <span class="nf">get_argflag</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">help_</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Checks if the commandline has a flag or a corresponding noflag &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+        <span class="n">arg_list</span> <span class="o">=</span> <span class="n">arg</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">arg_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">arg</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">arg_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;--&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+        <span class="c">#if arg.find(&#39;--no&#39;) == 0:</span>
+            <span class="c">#arg = arg.replace(&#39;--no&#39;, &#39;--&#39;)</span>
+        <span class="n">noarg</span> <span class="o">=</span> <span class="n">arg</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;--&#39;</span><span class="p">,</span> <span class="s">&#39;--no&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">elif</span> <span class="n">noarg</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+    <span class="k">return</span> <span class="n">default</span>
+
+
+<span class="c"># Backwards Compatibility Aliases</span></div>
+<span class="n">get_arg</span>  <span class="o">=</span> <span class="n">get_argval</span>
+<span class="n">get_flag</span>  <span class="o">=</span> <span class="n">get_argflag</span>
+
+
+<span class="c">#def argv_flag(name, default, **kwargs):</span>
+<span class="c">#    if name.find(&#39;--&#39;) == 0:</span>
+<span class="c">#        name = name[2:]</span>
+<span class="c">#    if &#39;--&#39; + name in sys.argv and default is False:</span>
+<span class="c">#        return True</span>
+<span class="c">#    if &#39;--no&#39; + name in sys.argv and default is True:</span>
+<span class="c">#        return False</span>
+<span class="c">#    return default</span>
+
+
+<span class="c"># ---- OnTheFly argparse ^^^^</span>
+<span class="c"># ---- Documented argparse VVVV</span>
+
+
+<div class="viewcode-block" id="switch_sanataize"><a class="viewcode-back" href="../../utool.html#utool.util_arg.switch_sanataize">[docs]</a><span class="k">def</span> <span class="nf">switch_sanataize</span><span class="p">(</span><span class="n">switch</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">switch</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+        <span class="n">dest</span> <span class="o">=</span> <span class="n">switch</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="s">&#39;_&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">switch</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">switch</span> <span class="o">=</span> <span class="n">switch</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">switch</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">switch</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">switch</span><span class="p">)</span>
+        <span class="n">dest</span> <span class="o">=</span> <span class="n">switch</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="s">&#39;_&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dest</span><span class="p">,</span> <span class="n">switch</span>
+
+</div>
+<div class="viewcode-block" id="fuzzy_int"><a class="viewcode-back" href="../../utool.html#utool.util_arg.fuzzy_int">[docs]</a><span class="k">def</span> <span class="nf">fuzzy_int</span><span class="p">(</span><span class="n">str_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    lets some special strings be interpreted as ints</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">str_</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s">r&#39;\d*:\d*:?\d*&#39;</span><span class="p">,</span> <span class="n">str_</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">str_</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">))))</span>
+        <span class="k">raise</span>
+
+</div>
+<div class="viewcode-block" id="ArgumentParser2"><a class="viewcode-back" href="../../utool.html#utool.util_arg.ArgumentParser2">[docs]</a><span class="k">class</span> <span class="nc">ArgumentParser2</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Wrapper around argparse.ArgumentParser with convinence functions &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parser</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span> <span class="o">=</span> <span class="n">parser</span>
+
+<div class="viewcode-block" id="ArgumentParser2.add_arg"><a class="viewcode-back" href="../../utool.html#utool.util_arg.ArgumentParser2.add_arg">[docs]</a>    <span class="k">def</span> <span class="nf">add_arg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">switch</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c">#print(&#39;[argparse2] add_arg(%r) &#39; % (switch,))</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">switch</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">switch</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">switch</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ArgumentParser2.add_meta"><a class="viewcode-back" href="../../utool.html#utool.util_arg.ArgumentParser2.add_meta">[docs]</a>    <span class="k">def</span> <span class="nf">add_meta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">switch</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c">#print(&#39;[argparse2] add_meta()&#39;)</span>
+        <span class="n">dest</span><span class="p">,</span> <span class="n">switch</span> <span class="o">=</span> <span class="n">switch_sanataize</span><span class="p">(</span><span class="n">switch</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_arg</span><span class="p">(</span><span class="n">switch</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="n">dest</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="n">help</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ArgumentParser2.add_flag"><a class="viewcode-back" href="../../utool.html#utool.util_arg.ArgumentParser2.add_flag">[docs]</a>    <span class="k">def</span> <span class="nf">add_flag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">switch</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c">#print(&#39;[argparse2] add_flag()&#39;)</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="s">&#39;store_false&#39;</span> <span class="k">if</span> <span class="n">default</span> <span class="k">else</span> <span class="s">&#39;store_true&#39;</span>
+        <span class="n">dest</span><span class="p">,</span> <span class="n">switch</span> <span class="o">=</span> <span class="n">switch_sanataize</span><span class="p">(</span><span class="n">switch</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_arg</span><span class="p">(</span><span class="n">switch</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="n">dest</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="n">action</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ArgumentParser2.add_int"><a class="viewcode-back" href="../../utool.html#utool.util_arg.ArgumentParser2.add_int">[docs]</a>    <span class="k">def</span> <span class="nf">add_int</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">switch</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_meta</span><span class="p">(</span><span class="n">switch</span><span class="p">,</span> <span class="n">fuzzy_int</span><span class="p">,</span>  <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ArgumentParser2.add_intlist"><a class="viewcode-back" href="../../utool.html#utool.util_arg.ArgumentParser2.add_intlist">[docs]</a>    <span class="k">def</span> <span class="nf">add_intlist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">switch</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_meta</span><span class="p">(</span><span class="n">switch</span><span class="p">,</span> <span class="n">fuzzy_int</span><span class="p">,</span>  <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s">&#39;*&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</div>
+    <span class="n">add_ints</span> <span class="o">=</span> <span class="n">add_intlist</span>
+
+<div class="viewcode-block" id="ArgumentParser2.add_strlist"><a class="viewcode-back" href="../../utool.html#utool.util_arg.ArgumentParser2.add_strlist">[docs]</a>    <span class="k">def</span> <span class="nf">add_strlist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">switch</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_meta</span><span class="p">(</span><span class="n">switch</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span>  <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s">&#39;*&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</div>
+    <span class="n">add_strs</span> <span class="o">=</span> <span class="n">add_strlist</span>
+
+<div class="viewcode-block" id="ArgumentParser2.add_float"><a class="viewcode-back" href="../../utool.html#utool.util_arg.ArgumentParser2.add_float">[docs]</a>    <span class="k">def</span> <span class="nf">add_float</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">switch</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_meta</span><span class="p">(</span><span class="n">switch</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ArgumentParser2.add_str"><a class="viewcode-back" href="../../utool.html#utool.util_arg.ArgumentParser2.add_str">[docs]</a>    <span class="k">def</span> <span class="nf">add_str</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">switch</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_meta</span><span class="p">(</span><span class="n">switch</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ArgumentParser2.add_argument_group"><a class="viewcode-back" href="../../utool.html#utool.util_arg.ArgumentParser2.add_argument_group">[docs]</a>    <span class="k">def</span> <span class="nf">add_argument_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ArgumentParser2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_argument_group</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+
+</div></div>
+<div class="viewcode-block" id="make_argparse2"><a class="viewcode-back" href="../../utool.html#utool.util_arg.make_argparse2">[docs]</a><span class="k">def</span> <span class="nf">make_argparse2</span><span class="p">(</span><span class="n">prog</span><span class="o">=</span><span class="s">&#39;Program&#39;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">formatter_classes</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span><span class="p">,</span>
+        <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentDefaultsHelpFormatter</span><span class="p">]</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">prog</span><span class="o">=</span><span class="n">prog</span><span class="p">,</span>
+                                     <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                     <span class="n">prefix_chars</span><span class="o">=</span><span class="s">&#39;+-&#39;</span><span class="p">,</span>
+                                     <span class="n">formatter_class</span><span class="o">=</span><span class="n">formatter_classes</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+                                     <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ArgumentParser2</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span>
+
+
+<span class="c"># Decorators which control program flow based on sys.argv</span>
+<span class="c"># the decorated function does not execute without its corresponding</span>
+<span class="c"># flag</span>
+</div>
+<div class="viewcode-block" id="get_fpath_args"><a class="viewcode-back" href="../../utool.html#utool.util_arg.get_fpath_args">[docs]</a><span class="k">def</span> <span class="nf">get_fpath_args</span><span class="p">(</span><span class="n">arglist_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">pat</span><span class="o">=</span><span class="s">&#39;*&#39;</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">utool</span>
+    <span class="k">if</span> <span class="n">arglist_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">arglist_</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">input_path_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">input_path</span> <span class="ow">in</span> <span class="n">arglist_</span><span class="p">:</span>
+        <span class="n">input_path</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="n">input_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">input_path</span><span class="p">):</span>
+            <span class="n">input_path_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">input_path</span><span class="p">,</span> <span class="n">pat</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">with_dirs</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">input_path_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">input_path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">input_path_list</span>
+
+</div>
+<div class="viewcode-block" id="argv_flag_dec"><a class="viewcode-back" href="../../utool.html#utool.util_arg.argv_flag_dec">[docs]</a><span class="k">def</span> <span class="nf">argv_flag_dec</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decorators which control program flow based on sys.argv</span>
+<span class="sd">    the decorated function does not execute without its corresponding</span>
+<span class="sd">    flag</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">__argv_flag_dec</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="argv_flag_dec_true"><a class="viewcode-back" href="../../utool.html#utool.util_arg.argv_flag_dec_true">[docs]</a><span class="k">def</span> <span class="nf">argv_flag_dec_true</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">__argv_flag_dec</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+</div>
+<span class="k">def</span> <span class="nf">__argv_flag_dec</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="n">QUIET</span><span class="p">):</span>
+    <span class="n">flag</span> <span class="o">=</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">flag</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;no&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">flag</span> <span class="o">=</span> <span class="n">flag</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span>
+    <span class="n">flag</span> <span class="o">=</span> <span class="s">&#39;--&#39;</span> <span class="o">+</span> <span class="n">flag</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="s">&#39;-&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">GaurdWrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c"># FIXME: the --print-all is a hack</span>
+        <span class="k">if</span> <span class="n">get_argflag</span><span class="p">(</span><span class="n">flag</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span> <span class="ow">or</span> <span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--print-all&#39;</span><span class="p">):</span>
+            <span class="n">indent_lbl</span> <span class="o">=</span> <span class="n">flag</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;--&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;print-&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">Indenter</span><span class="p">(</span><span class="s">&#39;[</span><span class="si">%s</span><span class="s">]&#39;</span> <span class="o">%</span> <span class="n">indent_lbl</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">quiet</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">~~~ </span><span class="si">%s</span><span class="s"> ~~~&#39;</span> <span class="o">%</span> <span class="n">flag</span><span class="p">)</span>
+    <span class="n">set_funcname</span><span class="p">(</span><span class="n">GaurdWrapper</span><span class="p">,</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">GaurdWrapper</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" >utool</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

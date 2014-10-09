@@ -1,0 +1,381 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>utool.util_cache &mdash; utool 1.0.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html" />
+    <link rel="up" title="utool" href="../utool.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" accesskey="U">utool</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for utool.util_cache</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">shelve</span>
+<span class="c">#import atexit</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">normpath</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_arg</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_hash</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_inject</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_path</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_io</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_str</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_cplat</span>
+<span class="kn">from</span> <span class="nn">._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
+<span class="kn">from</span> <span class="nn">._internal.meta_util_constants</span> <span class="kn">import</span> <span class="p">(</span><span class="n">global_cache_fname</span><span class="p">,</span>
+                                            <span class="n">global_cache_dname</span><span class="p">,</span>
+                                            <span class="n">default_appname</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[cache]&#39;</span><span class="p">)</span>
+
+
+<span class="c"># TODO: Remove globalness</span>
+
+<span class="n">VERBOSE</span> <span class="o">=</span> <span class="s">&#39;--verbose&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<span class="n">__SHELF__</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># GLOBAL CACHE</span>
+<span class="n">__APPNAME__</span> <span class="o">=</span> <span class="n">default_appname</span>  <span class="c"># the global application name</span>
+
+
+<div class="viewcode-block" id="get_default_appname"><a class="viewcode-back" href="../../utool.html#utool.util_cache.get_default_appname">[docs]</a><span class="k">def</span> <span class="nf">get_default_appname</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">__APPNAME__</span>
+    <span class="k">return</span> <span class="n">__APPNAME__</span>
+
+</div>
+<div class="viewcode-block" id="text_dict_write"><a class="viewcode-back" href="../../utool.html#utool.util_cache.text_dict_write">[docs]</a><span class="k">def</span> <span class="nf">text_dict_write</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Very naive, but readable way of storing a dictionary on disk</span>
+<span class="sd">    FIXME: This broke on RoseMary&#39;s big dataset. Not sure why. It gave bad</span>
+<span class="sd">    syntax. And the SyntaxError did not seem to be excepted.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">dict_text</span> <span class="o">=</span> <span class="n">util_io</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+        <span class="n">dict_text</span> <span class="o">=</span> <span class="s">&#39;{}&#39;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">dict_</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">dict_text</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">SyntaxError</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Bad Syntax:&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">dict_text</span><span class="p">)</span>
+        <span class="n">dict_</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">SUPER_STRICT</span><span class="p">:</span>
+            <span class="k">raise</span>
+    <span class="n">dict_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="n">dict_text2</span> <span class="o">=</span> <span class="n">util_str</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">strvals</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[cache] &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">dict_text2</span><span class="p">))</span>
+    <span class="n">util_io</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">dict_text2</span><span class="p">)</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_args2_fpath</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">,</span> <span class="n">ext</span><span class="p">,</span> <span class="n">write_hashtbl</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ensures that the filename is not too long (looking at you windows)</span>
+<span class="sd">    Windows MAX_PATH=260 characters</span>
+<span class="sd">    Absolute length is limited to 32,000 characters</span>
+<span class="sd">    Each filename component is limited to 255 characters</span>
+
+<span class="sd">    if write_hashtbl is True, hashed values expaneded and written to a text file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ext</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">ext</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;.&#39;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;Fatal Error: Please be explicit and use a dot in ext&#39;</span><span class="p">)</span>
+    <span class="n">fname_cfgstr</span> <span class="o">=</span> <span class="n">fname</span> <span class="o">+</span> <span class="n">cfgstr</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fname_cfgstr</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">128</span><span class="p">:</span>
+        <span class="n">hashed_cfgstr</span> <span class="o">=</span> <span class="n">util_hash</span><span class="o">.</span><span class="n">hashstr</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">write_hashtbl</span><span class="p">:</span>
+            <span class="n">text_dict_write</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="s">&#39;hashtbl.txt&#39;</span><span class="p">),</span> <span class="n">hashed_cfgstr</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">)</span>
+        <span class="n">fname_cfgstr</span> <span class="o">=</span> <span class="n">fname</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">hashed_cfgstr</span>
+    <span class="n">fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="n">fname_cfgstr</span> <span class="o">+</span> <span class="n">ext</span><span class="p">)</span>
+    <span class="n">fpath</span> <span class="o">=</span> <span class="n">normpath</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fpath</span>
+
+
+<div class="viewcode-block" id="save_cache"><a class="viewcode-back" href="../../utool.html#utool.util_cache.save_cache">[docs]</a><span class="k">def</span> <span class="nf">save_cache</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="n">fpath</span> <span class="o">=</span> <span class="n">_args2_fpath</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">,</span> <span class="s">&#39;.cPkl&#39;</span><span class="p">,</span> <span class="n">write_hashtbl</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">util_io</span><span class="o">.</span><span class="n">save_cPkl</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="load_cache"><a class="viewcode-back" href="../../utool.html#utool.util_cache.load_cache">[docs]</a><span class="k">def</span> <span class="nf">load_cache</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">):</span>
+    <span class="n">fpath</span> <span class="o">=</span> <span class="n">_args2_fpath</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">,</span> <span class="s">&#39;.cPkl&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">util_io</span><span class="o">.</span><span class="n">load_cPkl</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="Cacher"><a class="viewcode-back" href="../../utool.html#utool.util_cache.Cacher">[docs]</a><span class="k">class</span> <span class="nc">Cacher</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cache_dir</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s">&#39;utool&#39;</span><span class="p">,</span>
+                 <span class="n">verbose</span><span class="o">=</span><span class="n">VERBOSE</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">cache_dir</span> <span class="o">==</span> <span class="s">&#39;default&#39;</span><span class="p">:</span>
+            <span class="n">cache_dir</span> <span class="o">=</span> <span class="n">util_cplat</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="n">appname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dpath</span> <span class="o">=</span> <span class="n">cache_dir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="o">=</span> <span class="n">fname</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cfgstr</span> <span class="o">=</span> <span class="n">cfgstr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+
+<div class="viewcode-block" id="Cacher.load"><a class="viewcode-back" href="../../utool.html#utool.util_cache.Cacher.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">cfgstr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cfgstr</span> <span class="k">if</span> <span class="n">cfgstr</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">cfgstr</span>
+        <span class="k">assert</span> <span class="n">cfgstr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;must specify cfgstr in constructor or call&#39;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;no fname&#39;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">dpath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;no dpath&#39;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">load_cache</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dpath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;... &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="o">+</span> <span class="s">&#39; Cacher hit&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span>
+</div>
+<div class="viewcode-block" id="Cacher.tryload"><a class="viewcode-back" href="../../utool.html#utool.util_cache.Cacher.tryload">[docs]</a>    <span class="k">def</span> <span class="nf">tryload</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="n">cfgstr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">cfgstr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;must specify cfgstr in constructor or call&#39;</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[cache] tryload fname=&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[cache] cfgstr= &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">cfgstr</span> <span class="k">if</span> <span class="n">cfgstr</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">cfgstr</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;... &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="o">+</span> <span class="s">&#39; Cacher miss&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Cacher.save"><a class="viewcode-back" href="../../utool.html#utool.util_cache.Cacher.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">cfgstr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cfgstr</span> <span class="k">if</span> <span class="n">cfgstr</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">cfgstr</span>
+        <span class="k">assert</span> <span class="n">cfgstr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;must specify cfgstr in constructor or call&#39;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;no fname&#39;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">dpath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;no dpath&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;... &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="o">+</span> <span class="s">&#39; Cacher save&#39;</span><span class="p">)</span>
+        <span class="n">save_cache</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dpath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="get_argname"><a class="viewcode-back" href="../../utool.html#utool.util_cache.get_argname">[docs]</a><span class="k">def</span> <span class="nf">get_argname</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="c"># FINISHME</span>
+    <span class="k">return</span> <span class="p">(</span><span class="s">&#39;arg</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">x</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="get_cfgstr_from_args"><a class="viewcode-back" href="../../utool.html#utool.util_cache.get_cfgstr_from_args">[docs]</a><span class="k">def</span> <span class="nf">get_cfgstr_from_args</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">key_argx</span><span class="p">,</span> <span class="n">key_kwds</span><span class="p">):</span>
+    <span class="n">fmt_str</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">(</span><span class="si">%s</span><span class="s">)&#39;</span>
+    <span class="n">hashstr</span> <span class="o">=</span> <span class="n">util_hash</span><span class="o">.</span><span class="n">hashstr</span>
+    <span class="k">if</span> <span class="n">key_argx</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">key_argx</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">key_kwds</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">key_kwds</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+    <span class="n">args_hash_iter</span> <span class="o">=</span> <span class="p">(</span><span class="n">fmt_str</span> <span class="o">%</span> <span class="p">(</span><span class="n">get_argname</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span> <span class="n">hashstr</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="n">x</span><span class="p">])))</span>
+                      <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">key_argx</span><span class="p">)</span>
+    <span class="n">kwds_hash_iter</span> <span class="o">=</span> <span class="p">(</span><span class="n">fmt_str</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">hashstr</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">])))</span>
+                      <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">key_kwds</span><span class="p">)</span>
+    <span class="n">cfgstr</span> <span class="o">=</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chain</span><span class="p">(</span><span class="n">args_hash_iter</span><span class="p">,</span> <span class="n">kwds_hash_iter</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">cfgstr</span>
+
+</div>
+<div class="viewcode-block" id="cached_func"><a class="viewcode-back" href="../../utool.html#utool.util_cache.cached_func">[docs]</a><span class="k">def</span> <span class="nf">cached_func</span><span class="p">(</span><span class="n">fname</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cache_dir</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s">&#39;utool&#39;</span><span class="p">,</span> <span class="n">key_argx</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">key_kwds</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wraps a function with a Cacher object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">cached_closure</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="n">fname_</span> <span class="o">=</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="k">if</span> <span class="n">fname</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">fname</span>
+        <span class="n">cacher</span> <span class="o">=</span> <span class="n">Cacher</span><span class="p">(</span><span class="n">fname_</span><span class="p">,</span> <span class="n">cache_dir</span><span class="o">=</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="n">appname</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">use_cache</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">use_cache_</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nocache-&#39;</span> <span class="o">+</span> <span class="n">fname</span><span class="p">)</span>
+        <span class="nd">@functools.wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">cached_wraper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="c"># Implicitly adds use_cache to kwargs</span>
+            <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">get_cfgstr_from_args</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">key_argx</span><span class="p">,</span> <span class="n">key_kwds</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">cfgstr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;cfgstr cannot be None&#39;</span>
+            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_cache&#39;</span><span class="p">,</span> <span class="n">use_cache_</span><span class="p">):</span>
+                <span class="c"># Make cfgstr from specified input</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">cacher</span><span class="o">.</span><span class="n">tryload</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">data</span>
+            <span class="c"># Cached missed compute function</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="c"># Cache save</span>
+            <span class="n">cacher</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">data</span>
+        <span class="c"># Give function a handle to the cacher object</span>
+        <span class="n">cached_wraper</span><span class="o">.</span><span class="n">cacher</span> <span class="o">=</span> <span class="n">cacher</span>
+        <span class="k">return</span> <span class="n">cached_wraper</span>
+    <span class="k">return</span> <span class="n">cached_closure</span>
+
+
+<span class="c"># --- Global Cache ---</span>
+</div>
+<div class="viewcode-block" id="view_global_cache_dir"><a class="viewcode-back" href="../../utool.html#utool.util_cache.view_global_cache_dir">[docs]</a><span class="k">def</span> <span class="nf">view_global_cache_dir</span><span class="p">(</span><span class="n">appname</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">utool</span>
+    <span class="n">dir_</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_global_cache_dir</span><span class="p">(</span><span class="n">appname</span><span class="o">=</span><span class="n">appname</span><span class="p">)</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">view_directory</span><span class="p">(</span><span class="n">dir_</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="get_global_cache_dir"><a class="viewcode-back" href="../../utool.html#utool.util_cache.get_global_cache_dir">[docs]</a><span class="k">def</span> <span class="nf">get_global_cache_dir</span><span class="p">(</span><span class="n">appname</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Returns (usually) writable directory for an application cache &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">appname</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span>  <span class="n">appname</span> <span class="o">==</span> <span class="s">&#39;default&#39;</span><span class="p">:</span>
+        <span class="n">appname</span> <span class="o">=</span> <span class="n">get_default_appname</span><span class="p">()</span>
+    <span class="n">global_cache_dir</span> <span class="o">=</span> <span class="n">util_cplat</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="n">appname</span><span class="p">,</span> <span class="n">global_cache_dname</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
+        <span class="n">util_path</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">global_cache_dir</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">global_cache_dir</span>
+
+</div>
+<div class="viewcode-block" id="get_global_shelf_fpath"><a class="viewcode-back" href="../../utool.html#utool.util_cache.get_global_shelf_fpath">[docs]</a><span class="k">def</span> <span class="nf">get_global_shelf_fpath</span><span class="p">(</span><span class="n">appname</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Returns the filepath to the global shelf &quot;&quot;&quot;</span>
+    <span class="n">global_cache_dir</span> <span class="o">=</span> <span class="n">get_global_cache_dir</span><span class="p">(</span><span class="n">appname</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">)</span>
+    <span class="n">shelf_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">global_cache_dir</span><span class="p">,</span> <span class="n">global_cache_fname</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">shelf_fpath</span>
+
+
+<span class="c">#def get_global_shelf(appname=&#39;default&#39;):</span>
+<span class="c">#    &quot;&quot;&quot; Returns the global shelf object &quot;&quot;&quot;</span>
+<span class="c">#    global __SHELF__</span>
+<span class="c">#    if __SHELF__ is None:</span>
+<span class="c">#        try:</span>
+<span class="c">#            shelf_fpath = get_global_shelf_fpath(appname, ensure=True)</span>
+<span class="c">#            print(shelf_fpath)</span>
+<span class="c">#            __SHELF__ = shelve.open(shelf_fpath)</span>
+<span class="c">#        except Exception as ex:</span>
+<span class="c">#            from . import util_dbg</span>
+<span class="c">#            util_dbg.printex(ex, &#39;Failed opening shelf_fpath&#39;,</span>
+<span class="c">#                             key_list=[&#39;shelf_fpath&#39;])</span>
+<span class="c">#            raise</span>
+<span class="c">#        #shelf_file = open(shelf_fpath, &#39;w&#39;)</span>
+<span class="c">#    return __SHELF__</span>
+
+
+<span class="c">#@atexit.register</span>
+<span class="c">#def close_global_shelf(appname=&#39;default&#39;):</span>
+<span class="c">#    # FIXME: If the program closes with ctrl+c this isnt called and</span>
+<span class="c">#    # the global cache is not written</span>
+<span class="c">#    global __SHELF__</span>
+<span class="c">#    if __SHELF__ is not None:</span>
+<span class="c">#        __SHELF__.close()</span>
+<span class="c">#    __SHELF__ = None</span>
+
+</div>
+<div class="viewcode-block" id="GlobalShelfContext"><a class="viewcode-back" href="../../utool.html#utool.util_cache.GlobalShelfContext">[docs]</a><span class="k">class</span> <span class="nc">GlobalShelfContext</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">appname</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">appname</span> <span class="o">=</span> <span class="n">appname</span>
+
+    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c">#self.shelf = get_global_shelf(self.appname)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">shelf_fpath</span> <span class="o">=</span> <span class="n">get_global_shelf_fpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">appname</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">VERBOSE</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[cache] open: &#39;</span> <span class="o">+</span> <span class="n">shelf_fpath</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">shelf</span> <span class="o">=</span> <span class="n">shelve</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">shelf_fpath</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_dbg</span>
+            <span class="n">util_dbg</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Failed opening shelf_fpath&#39;</span><span class="p">,</span>
+                             <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;shelf_fpath&#39;</span><span class="p">])</span>
+            <span class="k">raise</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">shelf</span>
+
+    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">trace</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shelf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">trace</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[cache] Error under GlobalShelfContext!: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">False</span>  <span class="c"># return a falsey value on error</span>
+        <span class="c">#close_global_shelf(self.appname)</span>
+
+</div>
+<div class="viewcode-block" id="global_cache_read"><a class="viewcode-back" href="../../utool.html#utool.util_cache.global_cache_read">[docs]</a><span class="k">def</span> <span class="nf">global_cache_read</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">GlobalShelfContext</span><span class="p">(</span><span class="n">appname</span><span class="p">)</span> <span class="k">as</span> <span class="n">shelf</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s">&#39;default&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">shelf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">shelf</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="global_cache_dump"><a class="viewcode-back" href="../../utool.html#utool.util_cache.global_cache_dump">[docs]</a><span class="k">def</span> <span class="nf">global_cache_dump</span><span class="p">(</span><span class="n">appname</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">):</span>
+    <span class="n">shelf_fpath</span> <span class="o">=</span> <span class="n">get_global_shelf_fpath</span><span class="p">(</span><span class="n">appname</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;shelf_fpath = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">shelf_fpath</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">GlobalShelfContext</span><span class="p">(</span><span class="n">appname</span><span class="p">)</span> <span class="k">as</span> <span class="n">shelf</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">util_str</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">shelf</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="global_cache_write"><a class="viewcode-back" href="../../utool.html#utool.util_cache.global_cache_write">[docs]</a><span class="k">def</span> <span class="nf">global_cache_write</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Writes cache files to a safe place in each operating system &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">GlobalShelfContext</span><span class="p">(</span><span class="n">appname</span><span class="p">)</span> <span class="k">as</span> <span class="n">shelf</span><span class="p">:</span>
+        <span class="n">shelf</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+</div>
+<div class="viewcode-block" id="delete_global_cache"><a class="viewcode-back" href="../../utool.html#utool.util_cache.delete_global_cache">[docs]</a><span class="k">def</span> <span class="nf">delete_global_cache</span><span class="p">(</span><span class="n">appname</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Reads cache files to a safe place in each operating system &quot;&quot;&quot;</span>
+    <span class="c">#close_global_shelf(appname)</span>
+    <span class="n">shelf_fpath</span> <span class="o">=</span> <span class="n">get_global_shelf_fpath</span><span class="p">(</span><span class="n">appname</span><span class="p">)</span>
+    <span class="n">util_path</span><span class="o">.</span><span class="n">remove_file</span><span class="p">(</span><span class="n">shelf_fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" >utool</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>utool.util_git &mdash; utool 1.0.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html" />
+    <link rel="up" title="utool" href="../utool.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" accesskey="U">utool</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for utool.util_git</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python2.7</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">isdir</span>
+<span class="kn">from</span> <span class="nn">._internal</span> <span class="kn">import</span> <span class="n">meta_util_git</span> <span class="k">as</span> <span class="n">mu</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">._internal.meta_util_git</span> <span class="kn">import</span> <span class="n">get_repo_dirs</span><span class="p">,</span> <span class="n">get_repo_dname</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_inject</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[git]&#39;</span><span class="p">)</span>
+
+<span class="n">repo_list</span> <span class="o">=</span> <span class="n">mu</span><span class="o">.</span><span class="n">repo_list</span>
+<span class="n">set_userid</span> <span class="o">=</span> <span class="n">mu</span><span class="o">.</span><span class="n">set_userid</span>
+
+<span class="c">#try:</span>
+<span class="c">#    import __REPOS__</span>
+<span class="c">#    PROJECT_REPO_DIRS = __REPOS__.PROJECT_REPO_DIRS</span>
+<span class="c">#    PROJECT_REPO_URLS = __REPOS__.PROJECT_REPO_URLS</span>
+<span class="c">#except ImportError:</span>
+<span class="n">PROJECT_REPO_DIRS</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">PROJECT_REPO_URLS</span> <span class="o">=</span> <span class="p">[]</span>
+
+
+<div class="viewcode-block" id="set_project_repos"><a class="viewcode-back" href="../../utool.html#utool.util_git.set_project_repos">[docs]</a><span class="k">def</span> <span class="nf">set_project_repos</span><span class="p">(</span><span class="n">repo_urls</span><span class="p">,</span> <span class="n">repo_dirs</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">PROJECT_REPO_DIRS</span>
+    <span class="k">global</span> <span class="n">PROJECT_REPO_URLS</span>
+    <span class="n">PROJECT_REPO_URLS</span> <span class="o">=</span> <span class="n">repo_urls</span>
+    <span class="n">PROJECT_REPO_DIRS</span> <span class="o">=</span> <span class="n">repo_dirs</span>
+
+</div>
+<div class="viewcode-block" id="gitcmd"><a class="viewcode-back" href="../../utool.html#utool.util_git.gitcmd">[docs]</a><span class="k">def</span> <span class="nf">gitcmd</span><span class="p">(</span><span class="n">repo</span><span class="p">,</span> <span class="n">command</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;************&quot;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">repo</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">repo</span><span class="p">)</span>
+    <span class="c">#if command.find(&#39;git&#39;) != 0:</span>
+    <span class="c">#    command = &#39;git &#39; + command</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;************&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="std_build_command"><a class="viewcode-back" href="../../utool.html#utool.util_git.std_build_command">[docs]</a><span class="k">def</span> <span class="nf">std_build_command</span><span class="p">(</span><span class="n">repo</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;  My build script names.</span>
+
+<span class="sd">    Calls mingw_build.bat on windows and unix_build.sh  on unix</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;************&quot;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">repo</span><span class="p">)</span>
+    <span class="n">WIN32</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;win32&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">WIN32</span><span class="p">:</span>
+        <span class="n">scriptname</span> <span class="o">=</span> <span class="s">&#39;./mingw_build.sh&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">scriptname</span> <span class="o">=</span> <span class="s">&#39;./unix_build.sh&#39;</span>
+    <span class="c"># Execute build</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">repo</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">scriptname</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;************&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="gg_command"><a class="viewcode-back" href="../../utool.html#utool.util_git.gg_command">[docs]</a><span class="k">def</span> <span class="nf">gg_command</span><span class="p">(</span><span class="n">command</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Runs a command on all of your PROJECT_REPO_DIRS &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&#39;ensure&#39;</span><span class="p">:</span>
+        <span class="n">ensure_repos</span><span class="p">(</span><span class="n">PROJECT_REPO_URLS</span><span class="p">,</span> <span class="n">PROJECT_REPO_DIRS</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="k">for</span> <span class="n">repo</span> <span class="ow">in</span> <span class="n">PROJECT_REPO_DIRS</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">repo</span><span class="p">):</span>
+            <span class="n">gitcmd</span><span class="p">(</span><span class="n">repo</span><span class="p">,</span> <span class="n">command</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="checkout_repos"><a class="viewcode-back" href="../../utool.html#utool.util_git.checkout_repos">[docs]</a><span class="k">def</span> <span class="nf">checkout_repos</span><span class="p">(</span><span class="n">repo_urls</span><span class="p">,</span> <span class="n">repo_dirs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">checkout_dir</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Checkout every repo in repo_urls into checkout_dir &quot;&quot;&quot;</span>
+    <span class="c"># Check out any repo you dont have</span>
+    <span class="k">if</span> <span class="n">checkout_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">repo_dirs</span> <span class="o">=</span> <span class="n">mu</span><span class="o">.</span><span class="n">get_repo_dirs</span><span class="p">(</span><span class="n">checkout_dir</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">repo_dirs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;specify checkout dir or repo_dirs&#39;</span>
+    <span class="k">for</span> <span class="n">repodir</span><span class="p">,</span> <span class="n">repourl</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">repo_dirs</span><span class="p">,</span> <span class="n">repo_urls</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[git] checkexist: &#39;</span> <span class="o">+</span> <span class="n">repodir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">repodir</span><span class="p">):</span>
+            <span class="n">mu</span><span class="o">.</span><span class="n">cd</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">repodir</span><span class="p">))</span>
+            <span class="n">mu</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="s">&#39;git clone &#39;</span> <span class="o">+</span> <span class="n">repourl</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="ensure_repos"><a class="viewcode-back" href="../../utool.html#utool.util_git.ensure_repos">[docs]</a><span class="k">def</span> <span class="nf">ensure_repos</span><span class="p">(</span><span class="n">repo_urls</span><span class="p">,</span> <span class="n">repo_dirs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">checkout_dir</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Checkout every repo in repo_urls into checkout_dir &quot;&quot;&quot;</span>
+    <span class="c"># Check out any repo you dont have</span>
+    <span class="k">if</span> <span class="n">checkout_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">repo_dirs</span> <span class="o">=</span> <span class="n">mu</span><span class="o">.</span><span class="n">get_repo_dirs</span><span class="p">(</span><span class="n">checkout_dir</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">repo_dirs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;specify checkout dir or repo_dirs&#39;</span>
+    <span class="k">for</span> <span class="n">repodir</span><span class="p">,</span> <span class="n">repourl</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">repo_dirs</span><span class="p">,</span> <span class="n">repo_urls</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[git] checkexist: &#39;</span> <span class="o">+</span> <span class="n">repodir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">repodir</span><span class="p">):</span>
+            <span class="n">mu</span><span class="o">.</span><span class="n">cd</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">repodir</span><span class="p">))</span>
+            <span class="n">mu</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="s">&#39;git clone &#39;</span> <span class="o">+</span> <span class="n">repourl</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="setup_develop_repos"><a class="viewcode-back" href="../../utool.html#utool.util_git.setup_develop_repos">[docs]</a><span class="k">def</span> <span class="nf">setup_develop_repos</span><span class="p">(</span><span class="n">repo_dirs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Run python installs &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">repodir</span> <span class="ow">in</span> <span class="n">repo_dirs</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Installing: &#39;</span> <span class="o">+</span> <span class="n">repodir</span><span class="p">)</span>
+        <span class="n">mu</span><span class="o">.</span><span class="n">cd</span><span class="p">(</span><span class="n">repodir</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="s">&#39;setup.py&#39;</span><span class="p">),</span> <span class="s">&#39;cannot setup a nonpython repo&#39;</span>
+        <span class="n">mu</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="s">&#39;python setup.py develop&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="pull_repos"><a class="viewcode-back" href="../../utool.html#utool.util_git.pull_repos">[docs]</a><span class="k">def</span> <span class="nf">pull_repos</span><span class="p">(</span><span class="n">repo_dirs</span><span class="p">,</span> <span class="n">repos_with_submodules</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="k">for</span> <span class="n">repodir</span> <span class="ow">in</span> <span class="n">repo_dirs</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Pulling: &#39;</span> <span class="o">+</span> <span class="n">repodir</span><span class="p">)</span>
+        <span class="n">mu</span><span class="o">.</span><span class="n">cd</span><span class="p">(</span><span class="n">repodir</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="s">&#39;.git&#39;</span><span class="p">),</span> <span class="s">&#39;cannot pull a nongit repo&#39;</span>
+        <span class="n">mu</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="s">&#39;git pull&#39;</span><span class="p">)</span>
+        <span class="n">reponame</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">repodir</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">reponame</span> <span class="ow">in</span> <span class="n">repos_with_submodules</span> <span class="ow">or</span>\
+           <span class="n">repodir</span> <span class="ow">in</span> <span class="n">repos_with_submodules</span><span class="p">:</span>
+            <span class="n">repos_with_submodules</span>
+            <span class="n">mu</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="s">&#39;git submodule init&#39;</span><span class="p">)</span>
+            <span class="n">mu</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="s">&#39;git submodule update&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="is_gitrepo"><a class="viewcode-back" href="../../utool.html#utool.util_git.is_gitrepo">[docs]</a><span class="k">def</span> <span class="nf">is_gitrepo</span><span class="p">(</span><span class="n">repo_dir</span><span class="p">):</span>
+    <span class="n">gitdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">repo_dir</span><span class="p">,</span> <span class="s">&#39;.git&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">exists</span><span class="p">(</span><span class="n">gitdir</span><span class="p">)</span> <span class="ow">and</span> <span class="n">isdir</span><span class="p">(</span><span class="n">gitdir</span><span class="p">)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">command</span> <span class="o">=</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+    <span class="c"># Apply command to all repos</span>
+    <span class="n">gg_command</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" >utool</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

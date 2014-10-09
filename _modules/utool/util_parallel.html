@@ -1,0 +1,365 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>utool.util_parallel &mdash; utool 1.0.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html" />
+    <link rel="up" title="utool" href="../utool.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" accesskey="U">utool</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for utool.util_parallel</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">There are a lot of fancier things we can do here.</span>
+<span class="sd">A good thing to do would be to keep similar function calls</span>
+<span class="sd">and use multiprocessing.Queues for the backend.</span>
+<span class="sd">This way we can print out progress.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span>
+<span class="kn">import</span> <span class="nn">atexit</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">signal</span>
+<span class="kn">from</span> <span class="nn">._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
+<span class="kn">from</span> <span class="nn">.util_progress</span> <span class="kn">import</span> <span class="n">progress_func</span>
+<span class="kn">from</span> <span class="nn">.util_time</span> <span class="kn">import</span> <span class="n">tic</span><span class="p">,</span> <span class="n">toc</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_arg</span>
+<span class="c">#from .util_cplat import WIN32</span>
+<span class="kn">from</span> <span class="nn">.util_dbg</span> <span class="kn">import</span> <span class="n">printex</span>
+
+
+<span class="n">QUIET</span>   <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">QUIET</span>
+<span class="n">VERBOSE</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">VERBOSE</span>
+<span class="n">STRICT</span>  <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">STRICT</span>
+
+<span class="n">__POOL__</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="n">__TIME__</span> <span class="o">=</span> <span class="s">&#39;--time&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<span class="n">__SERIAL_FALLBACK__</span> <span class="o">=</span> <span class="s">&#39;--noserial-fallback&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<span class="n">__NUM_PROCS__</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--num-procs&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="n">__FORCE_SERIAL__</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--utool-force-serial&#39;</span><span class="p">)</span>
+
+
+<span class="n">BACKEND</span> <span class="o">=</span> <span class="s">&#39;multiprocessing&#39;</span>
+
+<span class="k">if</span> <span class="n">BACKEND</span> <span class="o">==</span> <span class="s">&#39;gevent&#39;</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;gevent cannot run on multiple cpus&#39;</span><span class="p">)</span>
+    <span class="k">pass</span>
+<span class="k">elif</span> <span class="n">BACKEND</span> <span class="o">==</span> <span class="s">&#39;zeromq&#39;</span><span class="p">:</span>
+    <span class="c">#http://zguide.zeromq.org/py:mtserver</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;no zeromq yet&#39;</span><span class="p">)</span>
+    <span class="k">pass</span>
+<span class="k">elif</span> <span class="n">BACKEND</span> <span class="o">==</span> <span class="s">&#39;multiprocessing&#39;</span><span class="p">:</span>
+<div class="viewcode-block" id="new_pool"><a class="viewcode-back" href="../../utool.html#utool.util_parallel.new_pool">[docs]</a>    <span class="k">def</span> <span class="nf">new_pool</span><span class="p">(</span><span class="n">num_procs</span><span class="p">,</span> <span class="n">init_worker</span><span class="p">,</span> <span class="n">maxtasksperchild</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">num_procs</span><span class="p">,</span>
+                                    <span class="n">initializer</span><span class="o">=</span><span class="n">init_worker</span><span class="p">,</span>
+                                    <span class="n">maxtasksperchild</span><span class="o">=</span><span class="n">maxtasksperchild</span><span class="p">)</span></div>
+    <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="set_num_procs"><a class="viewcode-back" href="../../utool.html#utool.util_parallel.set_num_procs">[docs]</a><span class="k">def</span> <span class="nf">set_num_procs</span><span class="p">(</span><span class="n">num_procs</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">__NUM_PROCS__</span>
+    <span class="n">__NUM_PROCS__</span> <span class="o">=</span> <span class="n">num_procs</span>
+
+</div>
+<div class="viewcode-block" id="in_main_process"><a class="viewcode-back" href="../../utool.html#utool.util_parallel.in_main_process">[docs]</a><span class="k">def</span> <span class="nf">in_main_process</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; Returns if you are executing in a multiprocessing subprocess</span>
+<span class="sd">    Usefull to disable init print messages on windows &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">current_process</span><span class="p">()</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;MainProcess&#39;</span>
+
+</div>
+<div class="viewcode-block" id="get_default_numprocs"><a class="viewcode-back" href="../../utool.html#utool.util_parallel.get_default_numprocs">[docs]</a><span class="k">def</span> <span class="nf">get_default_numprocs</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">__NUM_PROCS__</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">__NUM_PROCS__</span>
+    <span class="c">#if WIN32:</span>
+    <span class="c">#    num_procs = 3  # default windows to 3 processes for now</span>
+    <span class="c">#else:</span>
+    <span class="c">#    num_procs = max(multiprocessing.cpu_count() - 2, 1)</span>
+    <span class="n">num_procs</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">num_procs</span>
+
+</div>
+<div class="viewcode-block" id="init_worker"><a class="viewcode-back" href="../../utool.html#utool.util_parallel.init_worker">[docs]</a><span class="k">def</span> <span class="nf">init_worker</span><span class="p">():</span>
+    <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGINT</span><span class="p">,</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIG_IGN</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="init_pool"><a class="viewcode-back" href="../../utool.html#utool.util_parallel.init_pool">[docs]</a><span class="k">def</span> <span class="nf">init_pool</span><span class="p">(</span><span class="n">num_procs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">maxtasksperchild</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">__POOL__</span>
+    <span class="k">if</span> <span class="n">num_procs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c"># Get number of cpu cores</span>
+        <span class="n">num_procs</span> <span class="o">=</span> <span class="n">get_default_numprocs</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">QUIET</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel] initializing pool with </span><span class="si">%d</span><span class="s"> processes&#39;</span> <span class="o">%</span> <span class="n">num_procs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">num_procs</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel] num_procs=1, Will process in serial&#39;</span><span class="p">)</span>
+        <span class="n">__POOL__</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="n">STRICT</span><span class="p">:</span>
+        <span class="c">#assert __POOL__ is None, &#39;pool is a singleton. can only initialize once&#39;</span>
+        <span class="k">assert</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">current_process</span><span class="p">()</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s">&#39;can only initialize from main process&#39;</span>
+    <span class="k">if</span> <span class="n">__POOL__</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;close pool before reinitializing&#39;</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="c"># Create the pool of processes</span>
+    <span class="c">#__POOL__ = multiprocessing.Pool(processes=num_procs, initializer=init_worker, maxtasksperchild=maxtasksperchild)</span>
+    <span class="n">__POOL__</span> <span class="o">=</span> <span class="n">new_pool</span><span class="p">(</span><span class="n">num_procs</span><span class="p">,</span> <span class="n">init_worker</span><span class="p">,</span> <span class="n">maxtasksperchild</span><span class="p">)</span>
+
+</div>
+<span class="nd">@atexit.register</span>
+<div class="viewcode-block" id="close_pool"><a class="viewcode-back" href="../../utool.html#utool.util_parallel.close_pool">[docs]</a><span class="k">def</span> <span class="nf">close_pool</span><span class="p">(</span><span class="n">terminate</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">__POOL__</span>
+    <span class="k">if</span> <span class="n">__POOL__</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">QUIET</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">terminate</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel] terminating pool&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel] closing pool&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">__POOL__</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="c"># Must join after close to avoid runtime errors</span>
+            <span class="k">if</span> <span class="n">terminate</span><span class="p">:</span>
+                <span class="n">__POOL__</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+            <span class="n">__POOL__</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">__POOL__</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+        <span class="n">__POOL__</span> <span class="o">=</span> <span class="bp">None</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_process_serial</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">args_dict</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Serial process map</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">num_tasks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">args_list</span><span class="p">)</span>
+    <span class="n">result_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">mark_prog</span><span class="p">,</span> <span class="n">end_prog</span> <span class="o">=</span> <span class="n">progress_func</span><span class="p">(</span><span class="n">max_val</span><span class="o">=</span><span class="n">num_tasks</span><span class="p">,</span>
+                                        <span class="n">lbl</span><span class="o">=</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;: &#39;</span><span class="p">)</span>
+    <span class="n">mark_prog</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c"># Execute each task sequentially</span>
+    <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">args</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">args_list</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">args_dict</span><span class="p">)</span>
+        <span class="n">result_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        <span class="n">mark_prog</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+    <span class="n">end_prog</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">result_list</span>
+
+
+<span class="k">def</span> <span class="nf">_process_parallel</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">args_dict</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parallel process map</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Define progress observers</span>
+    <span class="n">num_tasks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">args_list</span><span class="p">)</span>
+    <span class="n">num_tasks_returned_ptr</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">mark_prog</span><span class="p">,</span> <span class="n">end_prog</span> <span class="o">=</span> <span class="n">progress_func</span><span class="p">(</span><span class="n">max_val</span><span class="o">=</span><span class="n">num_tasks</span><span class="p">,</span>
+                                        <span class="n">lbl</span><span class="o">=</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;: &#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_callback</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
+        <span class="n">mark_prog</span><span class="p">(</span><span class="n">num_tasks_returned_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="n">num_tasks_returned_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="c"># Send all tasks to be executed asynconously</span>
+    <span class="n">apply_results</span> <span class="o">=</span> <span class="p">[</span><span class="n">__POOL__</span><span class="o">.</span><span class="n">apply_async</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">args_dict</span><span class="p">,</span> <span class="n">_callback</span><span class="p">)</span>
+                     <span class="k">for</span> <span class="n">args</span> <span class="ow">in</span> <span class="n">args_list</span><span class="p">]</span>
+    <span class="c"># Wait until all tasks have been processed</span>
+    <span class="k">while</span> <span class="n">num_tasks_returned_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">num_tasks</span><span class="p">:</span>
+        <span class="c">#print(&#39;Waiting: &#39; + str(num_tasks_returned_ptr[0]) + &#39;/&#39; + str(num_tasks))</span>
+        <span class="k">pass</span>
+    <span class="n">end_prog</span><span class="p">()</span>
+    <span class="c"># Get the results</span>
+    <span class="n">result_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ap</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="k">for</span> <span class="n">ap</span> <span class="ow">in</span> <span class="n">apply_results</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">result_list</span>
+
+
+<span class="k">def</span> <span class="nf">_generate_parallel</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">chunksize</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                       <span class="n">prog</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parallel process generator</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">prog</span> <span class="o">=</span> <span class="n">prog</span> <span class="ow">and</span> <span class="n">verbose</span>
+    <span class="n">nTasks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">args_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">chunksize</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">chunksize</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nTasks</span> <span class="o">//</span> <span class="p">(</span><span class="n">__POOL__</span><span class="o">.</span><span class="n">_processes</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel] executing </span><span class="si">%d</span><span class="s"> </span><span class="si">%s</span><span class="s"> tasks using </span><span class="si">%d</span><span class="s"> processes with chunksize=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
+                <span class="p">(</span><span class="n">nTasks</span><span class="p">,</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">),</span> <span class="n">__POOL__</span><span class="o">.</span><span class="n">_processes</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">prog</span><span class="p">:</span>
+        <span class="n">mark_prog</span><span class="p">,</span> <span class="n">end_prog</span> <span class="o">=</span> <span class="n">progress_func</span><span class="p">(</span><span class="n">max_val</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">args_list</span><span class="p">),</span> <span class="n">lbl</span><span class="o">=</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;: &#39;</span><span class="p">)</span>
+    <span class="c">#assert isinstance(__POOL__, multiprocessing.Pool),\</span>
+    <span class="c">#        &#39;%r __POOL__ = %r&#39; % (type(__POOL__), __POOL__,)</span>
+    <span class="k">if</span> <span class="n">ordered</span><span class="p">:</span>
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">__POOL__</span><span class="o">.</span><span class="n">imap</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">generator</span> <span class="o">=</span> <span class="n">__POOL__</span><span class="o">.</span><span class="n">imap_unordered</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">generator</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">prog</span><span class="p">:</span>
+                <span class="n">mark_prog</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">result</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Parallel Generation Failed!&#39;</span><span class="p">,</span> <span class="s">&#39;[utool]&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;__SERIAL_FALLBACK__ = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">__SERIAL_FALLBACK__</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">__SERIAL_FALLBACK__</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">_generate_serial</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">prog</span><span class="o">=</span><span class="n">prog</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">result</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span>
+    <span class="k">if</span> <span class="n">prog</span><span class="p">:</span>
+        <span class="n">end_prog</span><span class="p">()</span>
+    <span class="c">#close_pool()</span>
+
+
+<span class="k">def</span> <span class="nf">_generate_serial</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">prog</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; internal serial generator  &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel] executing </span><span class="si">%d</span><span class="s"> </span><span class="si">%s</span><span class="s"> tasks in serial&#39;</span> <span class="o">%</span>
+                <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args_list</span><span class="p">),</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)))</span>
+    <span class="n">prog</span> <span class="o">=</span> <span class="n">prog</span> <span class="ow">and</span> <span class="n">verbose</span>
+    <span class="k">if</span> <span class="n">prog</span><span class="p">:</span>
+        <span class="n">mark_prog</span><span class="p">,</span> <span class="n">end_prog</span> <span class="o">=</span> <span class="n">progress_func</span><span class="p">(</span><span class="n">max_val</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">args_list</span><span class="p">),</span> <span class="n">lbl</span><span class="o">=</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;: &#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">args</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">args_list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">prog</span><span class="p">:</span>
+            <span class="n">mark_prog</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">result</span>
+    <span class="k">if</span> <span class="n">prog</span><span class="p">:</span>
+        <span class="n">end_prog</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="ensure_pool"><a class="viewcode-back" href="../../utool.html#utool.util_parallel.ensure_pool">[docs]</a><span class="k">def</span> <span class="nf">ensure_pool</span><span class="p">(</span><span class="n">warn</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">__POOL__</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;must init_pool() first&#39;</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">warn</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;(WARNING) AssertionError: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
+        <span class="n">init_pool</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="generate"><a class="viewcode-back" href="../../utool.html#utool.util_parallel.generate">[docs]</a><span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">force_serial</span><span class="o">=</span><span class="n">__FORCE_SERIAL__</span><span class="p">,</span>
+             <span class="n">chunksize</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">prog</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Yeilds:</span>
+<span class="sd">        result of applying func to args in args_list</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">num_tasks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">args_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">num_tasks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel] submitted 0 tasks&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">VERBOSE</span> <span class="ow">and</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel.generate] ordered=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">ordered</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel.generate] force_serial=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">force_serial</span><span class="p">)</span>
+    <span class="n">force_serial_</span> <span class="o">=</span> <span class="n">num_tasks</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">force_serial</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">force_serial_</span><span class="p">:</span>
+        <span class="n">ensure_pool</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">__TIME__</span><span class="p">:</span>
+        <span class="n">tt</span> <span class="o">=</span> <span class="n">tic</span><span class="p">(</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">force_serial_</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">__POOL__</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">VERBOSE</span> <span class="ow">and</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel.generate] generate_serial&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_generate_serial</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">prog</span><span class="o">=</span><span class="n">prog</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">VERBOSE</span> <span class="ow">and</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel.generate] generate_parallel&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_generate_parallel</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="n">ordered</span><span class="p">,</span>
+                                  <span class="n">chunksize</span><span class="o">=</span><span class="n">chunksize</span><span class="p">,</span> <span class="n">prog</span><span class="o">=</span><span class="n">prog</span><span class="p">,</span>
+                                  <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">__TIME__</span><span class="p">:</span>
+        <span class="n">toc</span><span class="p">(</span><span class="n">tt</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="process"><a class="viewcode-back" href="../../utool.html#utool.util_parallel.process">[docs]</a><span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">args_dict</span><span class="o">=</span><span class="p">{},</span> <span class="n">force_serial</span><span class="o">=</span><span class="n">__FORCE_SERIAL__</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        result of parallel map(func, args_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">ensure_pool</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">__POOL__</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">force_serial</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">QUIET</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel] executing </span><span class="si">%d</span><span class="s"> </span><span class="si">%s</span><span class="s"> tasks in serial&#39;</span> <span class="o">%</span>
+                  <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args_list</span><span class="p">),</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)))</span>
+        <span class="n">result_list</span> <span class="o">=</span> <span class="n">_process_serial</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">args_dict</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel] executing </span><span class="si">%d</span><span class="s"> </span><span class="si">%s</span><span class="s"> tasks using </span><span class="si">%d</span><span class="s"> processes&#39;</span> <span class="o">%</span>
+              <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args_list</span><span class="p">),</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">),</span> <span class="n">__POOL__</span><span class="o">.</span><span class="n">_processes</span><span class="p">))</span>
+        <span class="n">result_list</span> <span class="o">=</span> <span class="n">_process_parallel</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">args_dict</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result_list</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" >utool</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

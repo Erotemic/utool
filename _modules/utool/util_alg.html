@@ -1,0 +1,332 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>utool.util_alg &mdash; utool 1.0.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html" />
+    <link rel="up" title="utool" href="../utool.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" accesskey="U">utool</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for utool.util_alg</h1><div class="highlight"><pre>
+<span class="c"># Licence:</span>
+<span class="c">#</span>
+<span class="c"># TODO: Rename</span>
+<span class="c"># util_science</span>
+<span class="c">#</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="c"># TODO remove numpy</span>
+    <span class="k">pass</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="c">#import six</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_inject</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[alg]&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="normalize"><a class="viewcode-back" href="../../utool.html#utool.util_alg.normalize">[docs]</a><span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">norm_zero_one</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="norm_zero_one"><a class="viewcode-back" href="../../utool.html#utool.util_alg.norm_zero_one">[docs]</a><span class="k">def</span> <span class="nf">norm_zero_one</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    normalizes a numpy array from 0 to 1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">array_max</span>  <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
+    <span class="n">array_min</span>  <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
+    <span class="n">array_exnt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">array_max</span><span class="p">,</span> <span class="n">array_min</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">array_min</span><span class="p">),</span> <span class="n">array_exnt</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="find_std_inliers"><a class="viewcode-back" href="../../utool.html#utool.util_alg.find_std_inliers">[docs]</a><span class="k">def</span> <span class="nf">find_std_inliers</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="n">data</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">data</span><span class="p">))</span> <span class="o">&lt;</span> <span class="n">m</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="choose"><a class="viewcode-back" href="../../utool.html#utool.util_alg.choose">[docs]</a><span class="k">def</span> <span class="nf">choose</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">scipy.misc</span>
+    <span class="k">return</span> <span class="n">scipy</span><span class="o">.</span><span class="n">misc</span><span class="o">.</span><span class="n">comb</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="cartesian"><a class="viewcode-back" href="../../utool.html#utool.util_alg.cartesian">[docs]</a><span class="k">def</span> <span class="nf">cartesian</span><span class="p">(</span><span class="n">arrays</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a cartesian product of input arrays.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        arrays (list of array-like): 1-D arrays to form the cartesian product of</span>
+<span class="sd">        out (ndarray): Outvar which is modified in place if specified</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        out (ndarray): cartesian products formed of input arrays</span>
+<span class="sd">            2-D array of shape (M, len(arrays))</span>
+
+<span class="sd">    #Example:</span>
+<span class="sd">    #    &gt;&gt;&gt; cartesian(([1, 2, 3], [4, 5], [6, 7]))</span>
+<span class="sd">    #    array([[1, 4, 6], [1, 4, 7], [1, 5, 6], [1, 5, 7],</span>
+<span class="sd">    #           [2, 4, 6], [2, 4, 7], [2, 5, 6], [2, 5, 7],</span>
+<span class="sd">    #           [3, 4, 6], [3, 4, 7], [3, 5, 6], [3, 5, 7]])</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">arrays</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">arrays</span><span class="p">]</span>
+    <span class="n">dtype</span> <span class="o">=</span> <span class="n">arrays</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span>
+
+    <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">arrays</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">arrays</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">n</span> <span class="o">//</span> <span class="n">arrays</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
+    <span class="n">out</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">arrays</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">m</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">arrays</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+        <span class="n">cartesian</span><span class="p">(</span><span class="n">arrays</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">m</span><span class="p">,</span> <span class="mi">1</span><span class="p">:])</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">arrays</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">j</span> <span class="o">*</span> <span class="n">m</span><span class="p">:(</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">m</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">m</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+</div>
+<div class="viewcode-block" id="almost_eq"><a class="viewcode-back" href="../../utool.html#utool.util_alg.almost_eq">[docs]</a><span class="k">def</span> <span class="nf">almost_eq</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">thresh</span><span class="o">=</span><span class="mf">1E-11</span><span class="p">,</span> <span class="n">ret_error</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; checks if floating point number are equal to a threshold</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">a</span> <span class="o">-</span> <span class="n">b</span><span class="p">)</span>
+    <span class="n">passed</span> <span class="o">=</span> <span class="n">error</span> <span class="o">&lt;</span> <span class="n">thresh</span>
+    <span class="k">if</span> <span class="n">ret_error</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">passed</span><span class="p">,</span> <span class="n">error</span>
+    <span class="k">return</span> <span class="n">passed</span>
+
+</div>
+<div class="viewcode-block" id="xywh_to_tlbr"><a class="viewcode-back" href="../../utool.html#utool.util_alg.xywh_to_tlbr">[docs]</a><span class="k">def</span> <span class="nf">xywh_to_tlbr</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="n">img_wh</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; converts xywh format to (tlx, tly, blx, bly) &quot;&quot;&quot;</span>
+    <span class="p">(</span><span class="n">img_w</span><span class="p">,</span> <span class="n">img_h</span><span class="p">)</span> <span class="o">=</span> <span class="n">img_wh</span>
+    <span class="k">if</span> <span class="n">img_w</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">img_h</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">img_w</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">img_h</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;[cc2.1] Your csv tables have an invalid ANNOTATION.&#39;</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="c">#warnings.warn(msg)</span>
+        <span class="c">#ht = 1</span>
+        <span class="c">#wt = 1</span>
+    <span class="c"># Ensure ANNOTATION is within bounds</span>
+    <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="o">=</span> <span class="n">bbox</span>
+    <span class="n">x1</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">y1</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">x2</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">w</span><span class="p">,</span> <span class="n">img_w</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">y2</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">y</span> <span class="o">+</span> <span class="n">h</span><span class="p">,</span> <span class="n">img_h</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="build_reverse_mapping"><a class="viewcode-back" href="../../utool.html#utool.util_alg.build_reverse_mapping">[docs]</a><span class="k">def</span> <span class="nf">build_reverse_mapping</span><span class="p">(</span><span class="n">uid_list</span><span class="p">,</span> <span class="n">cluster_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given a list of ids (uid_list) and a corresponding cluster index list</span>
+<span class="sd">    (cluster_list), this builds a mapping from cluster index to uids</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Sort by clusterid for cache efficiency</span>
+    <span class="n">sortx</span> <span class="o">=</span> <span class="n">cluster_list</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>
+    <span class="n">cluster_list</span> <span class="o">=</span> <span class="n">cluster_list</span><span class="p">[</span><span class="n">sortx</span><span class="p">]</span>
+    <span class="n">uid_list</span> <span class="o">=</span> <span class="n">uid_list</span><span class="p">[</span><span class="n">sortx</span><span class="p">]</span>
+    <span class="c"># Initialize dict of lists</span>
+    <span class="n">cluster2_uids</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">uid</span><span class="p">,</span> <span class="n">cluster</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">uid_list</span><span class="p">,</span> <span class="n">cluster_list</span><span class="p">):</span>
+        <span class="n">cluster2_uids</span><span class="p">[</span><span class="n">cluster</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">uid</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cluster2_uids</span>
+
+</div>
+<div class="viewcode-block" id="group_items"><a class="viewcode-back" href="../../utool.html#utool.util_alg.group_items">[docs]</a><span class="k">def</span> <span class="nf">group_items</span><span class="p">(</span><span class="n">item_list</span><span class="p">,</span> <span class="n">groupid_list</span><span class="p">):</span>
+    <span class="c"># Sort by groupid for cache efficiency</span>
+    <span class="n">sorted_pairs</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">groupid_list</span><span class="p">,</span> <span class="n">item_list</span><span class="p">)))</span>
+    <span class="c"># Initialize dict of lists</span>
+    <span class="n">groupid2_items</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">groupid</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">sorted_pairs</span><span class="p">:</span>
+        <span class="n">groupid2_items</span><span class="p">[</span><span class="n">groupid</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">groupid2_items</span>
+
+</div>
+<div class="viewcode-block" id="unpack_items_sorted"><a class="viewcode-back" href="../../utool.html#utool.util_alg.unpack_items_sorted">[docs]</a><span class="k">def</span> <span class="nf">unpack_items_sorted</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">sortfn</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Unpacks and sorts the dictionary by sortfn</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">items</span> <span class="o">=</span> <span class="n">dict_</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="n">sorted_items</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">sortfn</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="n">reverse</span><span class="p">)</span>
+    <span class="n">sorted_keys</span><span class="p">,</span> <span class="n">sorted_vals</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">sorted_items</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">sorted_keys</span><span class="p">,</span> <span class="n">sorted_vals</span>
+
+</div>
+<div class="viewcode-block" id="unpack_items_sorted_by_lenvalue"><a class="viewcode-back" href="../../utool.html#utool.util_alg.unpack_items_sorted_by_lenvalue">[docs]</a><span class="k">def</span> <span class="nf">unpack_items_sorted_by_lenvalue</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Unpacks and sorts the dictionary by key</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">sort_lenvalue</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">unpack_items_sorted</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">sort_lenvalue</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="unpack_items_sorted_by_value"><a class="viewcode-back" href="../../utool.html#utool.util_alg.unpack_items_sorted_by_value">[docs]</a><span class="k">def</span> <span class="nf">unpack_items_sorted_by_value</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Unpacks and sorts the dictionary by key</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">sort_value</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">unpack_items_sorted</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">sort_value</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="flatten_membership_mapping"><a class="viewcode-back" href="../../utool.html#utool.util_alg.flatten_membership_mapping">[docs]</a><span class="k">def</span> <span class="nf">flatten_membership_mapping</span><span class="p">(</span><span class="n">uid_list</span><span class="p">,</span> <span class="n">members_list</span><span class="p">):</span>
+    <span class="n">num_members</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">members_list</span><span class="p">)))</span>
+    <span class="n">flat_uids</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_members</span><span class="p">)]</span>
+    <span class="n">flat_members</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_members</span><span class="p">)]</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">uid</span><span class="p">,</span> <span class="n">members</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">uid_list</span><span class="p">,</span> <span class="n">members_list</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">members</span><span class="p">:</span>
+            <span class="n">flat_uids</span><span class="p">[</span><span class="n">count</span><span class="p">]</span>    <span class="o">=</span> <span class="n">uid</span>
+            <span class="n">flat_members</span><span class="p">[</span><span class="n">count</span><span class="p">]</span> <span class="o">=</span> <span class="n">member</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">flat_uids</span><span class="p">,</span> <span class="n">flat_members</span>
+
+</div>
+<div class="viewcode-block" id="void_rowview_numpy"><a class="viewcode-back" href="../../utool.html#utool.util_alg.void_rowview_numpy">[docs]</a><span class="k">def</span> <span class="nf">void_rowview_numpy</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; returns view of nparray where each row is a single item</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">void_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">void</span><span class="p">,</span> <span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">itemsize</span> <span class="o">*</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">arr_void_view</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">void_dtype</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">arr_void_view</span>
+
+</div>
+<div class="viewcode-block" id="unique_row_indexes"><a class="viewcode-back" href="../../utool.html#utool.util_alg.unique_row_indexes">[docs]</a><span class="k">def</span> <span class="nf">unique_row_indexes</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; np.unique on rows &quot;&quot;&quot;</span>
+    <span class="n">arr_void_view</span> <span class="o">=</span> <span class="n">void_rowview_numpy</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">unique_rowx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">arr_void_view</span><span class="p">,</span> <span class="n">return_index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="c"># cast back to original dtype</span>
+    <span class="n">unique_rowx</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">unique_rowx</span>
+
+</div>
+<div class="viewcode-block" id="get_phi"><a class="viewcode-back" href="../../utool.html#utool.util_alg.get_phi">[docs]</a><span class="k">def</span> <span class="nf">get_phi</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; Golden Ratio: phi = 1 / sqrt(5) / 2.0 = 1.61803398875 &quot;&quot;&quot;</span>
+    <span class="c">#phi = (1.0 + np.sqrt(5)) / 2.0 = 1.61803398875</span>
+    <span class="c"># return phi</span>
+    <span class="k">return</span> <span class="mf">1.61803398875</span>
+
+</div>
+<div class="viewcode-block" id="get_phi_ratio1"><a class="viewcode-back" href="../../utool.html#utool.util_alg.get_phi_ratio1">[docs]</a><span class="k">def</span> <span class="nf">get_phi_ratio1</span><span class="p">():</span>
+    <span class="k">return</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">get_phi</span><span class="p">()</span>
+
+</div>
+<span class="n">PHI</span> <span class="o">=</span> <span class="n">get_phi</span><span class="p">()</span>
+<span class="n">PHI_A</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">PHI</span><span class="p">)</span>
+<span class="n">PHI_B</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">PHI_A</span>
+
+
+<div class="viewcode-block" id="iceil"><a class="viewcode-back" href="../../utool.html#utool.util_alg.iceil">[docs]</a><span class="k">def</span> <span class="nf">iceil</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Integer ceiling. (because numpy doesn&#39;t have it! &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">num</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="iround"><a class="viewcode-back" href="../../utool.html#utool.util_alg.iround">[docs]</a><span class="k">def</span> <span class="nf">iround</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Integer round. (because numpy doesn&#39;t have it! &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">num</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="is_prime"><a class="viewcode-back" href="../../utool.html#utool.util_alg.is_prime">[docs]</a><span class="k">def</span> <span class="nf">is_prime</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; http://thelivingpearl.com/2013/01/06/how-to-find-prime-numbers-in-python/ &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">num</span> <span class="o">%</span> <span class="n">j</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+    <span class="k">return</span> <span class="bp">True</span>
+
+</div>
+<div class="viewcode-block" id="get_nth_prime"><a class="viewcode-back" href="../../utool.html#utool.util_alg.get_nth_prime">[docs]</a><span class="k">def</span> <span class="nf">get_nth_prime</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">max_prime</span><span class="o">=</span><span class="mi">4100</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; horribly inefficient but convinient for small tests &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;=</span> <span class="mi">100</span><span class="p">:</span>
+        <span class="n">first_100_primes</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">17</span><span class="p">,</span> <span class="mi">19</span><span class="p">,</span> <span class="mi">23</span><span class="p">,</span> <span class="mi">29</span><span class="p">,</span> <span class="mi">31</span><span class="p">,</span> <span class="mi">37</span><span class="p">,</span> <span class="mi">41</span><span class="p">,</span> <span class="mi">43</span><span class="p">,</span> <span class="mi">47</span><span class="p">,</span> <span class="mi">53</span><span class="p">,</span> <span class="mi">59</span><span class="p">,</span> <span class="mi">61</span><span class="p">,</span>
+            <span class="mi">67</span><span class="p">,</span> <span class="mi">71</span><span class="p">,</span> <span class="mi">73</span><span class="p">,</span> <span class="mi">79</span><span class="p">,</span> <span class="mi">83</span><span class="p">,</span> <span class="mi">89</span><span class="p">,</span> <span class="mi">97</span><span class="p">,</span> <span class="mi">101</span><span class="p">,</span> <span class="mi">103</span><span class="p">,</span> <span class="mi">107</span><span class="p">,</span> <span class="mi">109</span><span class="p">,</span> <span class="mi">113</span><span class="p">,</span> <span class="mi">127</span><span class="p">,</span> <span class="mi">131</span><span class="p">,</span> <span class="mi">137</span><span class="p">,</span>
+            <span class="mi">139</span><span class="p">,</span> <span class="mi">149</span><span class="p">,</span> <span class="mi">151</span><span class="p">,</span> <span class="mi">157</span><span class="p">,</span> <span class="mi">163</span><span class="p">,</span> <span class="mi">167</span><span class="p">,</span> <span class="mi">173</span><span class="p">,</span> <span class="mi">179</span><span class="p">,</span> <span class="mi">181</span><span class="p">,</span> <span class="mi">191</span><span class="p">,</span> <span class="mi">193</span><span class="p">,</span> <span class="mi">197</span><span class="p">,</span> <span class="mi">199</span><span class="p">,</span>
+            <span class="mi">211</span><span class="p">,</span> <span class="mi">223</span><span class="p">,</span> <span class="mi">227</span><span class="p">,</span> <span class="mi">229</span><span class="p">,</span> <span class="mi">233</span><span class="p">,</span> <span class="mi">239</span><span class="p">,</span> <span class="mi">241</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">257</span><span class="p">,</span> <span class="mi">263</span><span class="p">,</span> <span class="mi">269</span><span class="p">,</span> <span class="mi">271</span><span class="p">,</span> <span class="mi">277</span><span class="p">,</span>
+            <span class="mi">281</span><span class="p">,</span> <span class="mi">283</span><span class="p">,</span> <span class="mi">293</span><span class="p">,</span> <span class="mi">307</span><span class="p">,</span> <span class="mi">311</span><span class="p">,</span> <span class="mi">313</span><span class="p">,</span> <span class="mi">317</span><span class="p">,</span> <span class="mi">331</span><span class="p">,</span> <span class="mi">337</span><span class="p">,</span> <span class="mi">347</span><span class="p">,</span> <span class="mi">349</span><span class="p">,</span> <span class="mi">353</span><span class="p">,</span> <span class="mi">359</span><span class="p">,</span>
+            <span class="mi">367</span><span class="p">,</span> <span class="mi">373</span><span class="p">,</span> <span class="mi">379</span><span class="p">,</span> <span class="mi">383</span><span class="p">,</span> <span class="mi">389</span><span class="p">,</span> <span class="mi">397</span><span class="p">,</span> <span class="mi">401</span><span class="p">,</span> <span class="mi">409</span><span class="p">,</span> <span class="mi">419</span><span class="p">,</span> <span class="mi">421</span><span class="p">,</span> <span class="mi">431</span><span class="p">,</span> <span class="mi">433</span><span class="p">,</span> <span class="mi">439</span><span class="p">,</span>
+            <span class="mi">443</span><span class="p">,</span> <span class="mi">449</span><span class="p">,</span> <span class="mi">457</span><span class="p">,</span> <span class="mi">461</span><span class="p">,</span> <span class="mi">463</span><span class="p">,</span> <span class="mi">467</span><span class="p">,</span> <span class="mi">479</span><span class="p">,</span> <span class="mi">487</span><span class="p">,</span> <span class="mi">491</span><span class="p">,</span> <span class="mi">499</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="mi">509</span><span class="p">,</span> <span class="mi">521</span><span class="p">,</span>
+            <span class="mi">523</span><span class="p">,</span> <span class="mi">541</span><span class="p">,</span> <span class="p">]</span>
+        <span class="n">nth_prime</span> <span class="o">=</span> <span class="n">first_100_primes</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">primes</span> <span class="o">=</span> <span class="p">[</span><span class="n">num</span> <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_prime</span><span class="p">)</span> <span class="k">if</span> <span class="n">is_prime</span><span class="p">(</span><span class="n">num</span><span class="p">)]</span>
+        <span class="n">nth_prime</span> <span class="o">=</span> <span class="n">primes</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">nth_prime</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" >utool</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

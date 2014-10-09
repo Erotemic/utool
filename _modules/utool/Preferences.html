@@ -1,0 +1,646 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>utool.Preferences &mdash; utool 1.0.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html" />
+    <link rel="up" title="utool" href="../utool.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" accesskey="U">utool</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for utool.Preferences</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">FIXME: This class is very old, convoluted, and coupled.</span>
+<span class="sd">It really needs to be rewritten efficiently.</span>
+<span class="sd">the __setattr__ __getattr__ stuff needs to be redone, and</span>
+<span class="sd">DynStruct needs to go away.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">cPickle</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+    <span class="k">pass</span>
+<span class="kn">from</span> <span class="nn">.DynamicStruct</span> <span class="kn">import</span> <span class="n">DynStruct</span>
+<span class="kn">from</span> <span class="nn">.util_dbg</span> <span class="kn">import</span> <span class="n">printex</span>
+<span class="kn">from</span> <span class="nn">.util_type</span> <span class="kn">import</span> <span class="n">is_str</span><span class="p">,</span> <span class="n">is_dict</span><span class="p">,</span> <span class="n">try_cast</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_inject</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_type</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[pref]&#39;</span><span class="p">)</span>
+
+<span class="c"># ---</span>
+<span class="c"># GLOBALS</span>
+<span class="c"># ---</span>
+<span class="n">PrefNode</span> <span class="o">=</span> <span class="n">DynStruct</span>
+
+
+<div class="viewcode-block" id="printDBG"><a class="viewcode-back" href="../../utool.html#utool.Preferences.printDBG">[docs]</a><span class="k">def</span> <span class="nf">printDBG</span><span class="p">(</span><span class="n">msg</span><span class="p">):</span>
+    <span class="c">#print(&#39;[PREFS] &#39;+msg)</span>
+    <span class="k">pass</span>
+
+
+<span class="c"># ---</span>
+<span class="c"># Classes</span>
+<span class="c"># ---</span></div>
+<div class="viewcode-block" id="PrefInternal"><a class="viewcode-back" href="../../utool.html#utool.Preferences.PrefInternal">[docs]</a><span class="k">class</span> <span class="nc">PrefInternal</span><span class="p">(</span><span class="n">DynStruct</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">_intern</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">doc</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">hidden</span><span class="p">,</span> <span class="n">fpath</span><span class="p">,</span> <span class="n">depeq</span><span class="p">,</span> <span class="n">choices</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PrefInternal</span><span class="p">,</span> <span class="n">_intern</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">child_exclude_list</span><span class="o">=</span><span class="p">[])</span>
+        <span class="c"># self._intern describes this node</span>
+        <span class="n">_intern</span><span class="o">.</span><span class="n">name</span>    <span class="o">=</span> <span class="n">name</span>     <span class="c"># A node has a name</span>
+        <span class="n">_intern</span><span class="o">.</span><span class="n">doc</span>     <span class="o">=</span> <span class="n">doc</span>      <span class="c"># A node has a name</span>
+        <span class="n">_intern</span><span class="o">.</span><span class="n">value</span>   <span class="o">=</span> <span class="n">default</span>  <span class="c"># A node has a value</span>
+        <span class="n">_intern</span><span class="o">.</span><span class="n">hidden</span>  <span class="o">=</span> <span class="n">hidden</span>   <span class="c"># A node can be hidden</span>
+        <span class="n">_intern</span><span class="o">.</span><span class="n">fpath</span>   <span class="o">=</span> <span class="n">fpath</span>    <span class="c"># A node is cached to</span>
+        <span class="n">_intern</span><span class="o">.</span><span class="n">depeq</span>   <span class="o">=</span> <span class="n">depeq</span>    <span class="c"># A node depends on</span>
+        <span class="n">_intern</span><span class="o">.</span><span class="n">_frozen_type</span> <span class="o">=</span> <span class="bp">None</span>     <span class="c"># A node&#39;s value type</span>
+        <span class="c"># Some preferences are constrained to a list of choices</span>
+        <span class="k">if</span> <span class="n">choices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">_intern</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">PrefChoice</span><span class="p">(</span><span class="n">choices</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PrefInternal.get_type"><a class="viewcode-back" href="../../utool.html#utool.Preferences.PrefInternal.get_type">[docs]</a>    <span class="k">def</span> <span class="nf">get_type</span><span class="p">(</span><span class="n">_intern</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">_intern</span><span class="o">.</span><span class="n">_frozen_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_intern</span><span class="o">.</span><span class="n">_frozen_type</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="PrefInternal.freeze_type"><a class="viewcode-back" href="../../utool.html#utool.Preferences.PrefInternal.freeze_type">[docs]</a>    <span class="k">def</span> <span class="nf">freeze_type</span><span class="p">(</span><span class="n">_intern</span><span class="p">):</span>
+        <span class="n">_intern</span><span class="o">.</span><span class="n">_frozen_type</span> <span class="o">=</span> <span class="n">_intern</span><span class="o">.</span><span class="n">get_type</span><span class="p">()</span>
+
+</div></div>
+<div class="viewcode-block" id="PrefTree"><a class="viewcode-back" href="../../utool.html#utool.Preferences.PrefTree">[docs]</a><span class="k">class</span> <span class="nc">PrefTree</span><span class="p">(</span><span class="n">DynStruct</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">_tree</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PrefTree</span><span class="p">,</span> <span class="n">_tree</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">child_exclude_list</span><span class="o">=</span><span class="p">[])</span>
+        <span class="c"># self._tree describes node&#39;s children and the parents</span>
+        <span class="c"># relationship to them</span>
+        <span class="n">_tree</span><span class="o">.</span><span class="n">parent</span>               <span class="o">=</span> <span class="n">parent</span>  <span class="c"># Children have parents</span>
+        <span class="n">_tree</span><span class="o">.</span><span class="n">hidden_children</span>      <span class="o">=</span> <span class="p">[]</span>  <span class="c"># Children can be hidden</span>
+        <span class="n">_tree</span><span class="o">.</span><span class="n">child_list</span>           <span class="o">=</span> <span class="p">[]</span>  <span class="c"># There can be many children</span>
+        <span class="n">_tree</span><span class="o">.</span><span class="n">child_names</span>          <span class="o">=</span> <span class="p">[]</span>  <span class="c"># Each child has a name</span>
+        <span class="n">_tree</span><span class="o">.</span><span class="n">num_visible_children</span> <span class="o">=</span> <span class="mi">0</span>   <span class="c"># Statistic</span>
+        <span class="n">_tree</span><span class="o">.</span><span class="n">aschildx</span>             <span class="o">=</span> <span class="mi">0</span>   <span class="c"># This node is the x-th child</span>
+
+</div>
+<div class="viewcode-block" id="PrefChoice"><a class="viewcode-back" href="../../utool.html#utool.Preferences.PrefChoice">[docs]</a><span class="k">class</span> <span class="nc">PrefChoice</span><span class="p">(</span><span class="n">DynStruct</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">choices</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PrefChoice</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">child_exclude_list</span><span class="o">=</span><span class="p">[])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">choices</span> <span class="o">=</span> <span class="n">choices</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sel</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">change_val</span><span class="p">(</span><span class="n">default</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PrefChoice.change_val"><a class="viewcode-back" href="../../utool.html#utool.Preferences.PrefChoice.change_val">[docs]</a>    <span class="k">def</span> <span class="nf">change_val</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_val</span><span class="p">):</span>
+        <span class="c"># Try to select by index</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">new_val</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sel</span> <span class="o">=</span> <span class="n">new_val</span>
+        <span class="c"># Try to select by value</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">new_val</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">choices</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">new_val</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span><span class="p">(</span><span class="s">&#39;Exception: Unknown newval=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">new_val</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sel</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">sel</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">choices</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;self.sel=</span><span class="si">%r</span><span class="s"> is not in the self.choices=</span><span class="si">%r</span><span class="s"> &#39;</span>
+                            <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">choices</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="PrefChoice.combo_val"><a class="viewcode-back" href="../../utool.html#utool.Preferences.PrefChoice.combo_val">[docs]</a>    <span class="k">def</span> <span class="nf">combo_val</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">sel</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="PrefChoice.get_tuple"><a class="viewcode-back" href="../../utool.html#utool.Preferences.PrefChoice.get_tuple">[docs]</a>    <span class="k">def</span> <span class="nf">get_tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">choices</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="Pref"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref">[docs]</a><span class="k">class</span> <span class="nc">Pref</span><span class="p">(</span><span class="n">PrefNode</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Structure for Creating Preferences.</span>
+<span class="sd">    Caveats: When using a value call with [&#39;valname&#39;] to be safe</span>
+<span class="sd">    Features:</span>
+<span class="sd">    * Can be saved and loaded.</span>
+<span class="sd">    * Can be nested</span>
+<span class="sd">    * Dynamically add/remove</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">default</span><span class="o">=</span><span class="n">PrefNode</span><span class="p">,</span>  <span class="c"># Default value for a Pref is to be itself</span>
+                 <span class="n">doc</span><span class="o">=</span><span class="s">&#39;empty docs&#39;</span><span class="p">,</span>  <span class="c"># Documentation for a preference</span>
+                 <span class="n">hidden</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>      <span class="c"># Is a hidden preference?</span>
+                 <span class="n">choices</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>      <span class="c"># A list of choices</span>
+                 <span class="n">depeq</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>        <span class="c"># List of tuples representing dependencies</span>
+                 <span class="n">fpath</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>          <span class="c"># Where to save to</span>
+                 <span class="n">name</span><span class="o">=</span><span class="s">&#39;root&#39;</span><span class="p">,</span>       <span class="c"># Name of this node</span>
+                 <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>      <span class="c"># Reference to parent Pref</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a pref struct that will save itself to pref_fpath if</span>
+<span class="sd">        available and have init all members of some dictionary</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Pref</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">child_exclude_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;_intern&#39;</span><span class="p">,</span> <span class="s">&#39;_tree&#39;</span><span class="p">])</span>
+        <span class="c"># Private internal structure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span> <span class="o">=</span> <span class="n">PrefInternal</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">doc</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">hidden</span><span class="p">,</span> <span class="n">fpath</span><span class="p">,</span> <span class="n">depeq</span><span class="p">,</span> <span class="n">choices</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span> <span class="o">=</span> <span class="n">PrefTree</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="c">#if default is PrefNode:</span>
+        <span class="c">#    printDBG(&#39;----------&#39;)</span>
+        <span class="c">#    printDBG(&#39;new Pref(default=PrefNode)&#39;)</span>
+
+<div class="viewcode-block" id="Pref.get_type"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.get_type">[docs]</a>    <span class="k">def</span> <span class="nf">get_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">get_type</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Pref.ensure_attr"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.ensure_attr">[docs]</a>    <span class="k">def</span> <span class="nf">ensure_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
+
+    <span class="c"># -------------------</span>
+    <span class="c"># Attribute Setters</span></div>
+<div class="viewcode-block" id="Pref.toggle"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.toggle">[docs]</a>    <span class="k">def</span> <span class="nf">toggle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Toggles a boolean key &quot;&quot;&quot;</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">bool</span><span class="p">),</span> <span class="s">&#39;key[</span><span class="si">%r</span><span class="s">] = </span><span class="si">%r</span><span class="s"> is not a bool&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pref_update</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="ow">not</span> <span class="n">val</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Pref.change_combo_val"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.change_combo_val">[docs]</a>    <span class="k">def</span> <span class="nf">change_combo_val</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_val</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks to see if a selection is a valid index or choice of a combo</span>
+<span class="sd">        preference</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">choice_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">PrefChoice</span><span class="p">),</span> <span class="s">&#39;must be a choice&#39;</span>
+        <span class="k">return</span> <span class="n">choice_obj</span><span class="o">.</span><span class="n">get_tuple</span><span class="p">()</span>
+</div>
+    <span class="k">def</span> <span class="nf">__overwrite_child_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+        <span class="c">#printDBG( &quot;overwrite_attr: %s.%s = %r&quot; % (self._intern.name, name, attr))</span>
+        <span class="c"># get child node to &quot;overwrite&quot;</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">child_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">child</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">child_list</span><span class="p">[</span><span class="n">row</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">Pref</span><span class="p">):</span>
+            <span class="c"># Do not break pointers when overwriting a Preference</span>
+            <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">attr</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">PrefNode</span><span class="p">):</span>
+                <span class="c"># Main Branch Logic</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">attr</span><span class="p">):</span>
+                    <span class="n">child</span><span class="o">.</span><span class="n">__setattr__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__overwrite_child_attr</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">attr</span><span class="o">.</span><span class="n">value</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c"># Main Leaf Logic:</span>
+            <span class="c">#assert(not issubclass(child._intern.type, PrefNode), #(self.full_name() + &#39; Must be a leaf&#39;))</span>
+            <span class="c"># Keep user-readonly map up to date with internals</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">PrefChoice</span><span class="p">):</span>
+                <span class="n">child</span><span class="o">.</span><span class="n">change_combo_val</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">child_type</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">get_type</span><span class="p">()</span>
+                <span class="n">attr_type</span>  <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">child_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">attr_type</span><span class="p">:</span>
+                    <span class="c">#print(&#39;WARNING TYPE DIFFERENCE! %r, %r&#39; % (child_type, attr_type))</span>
+                    <span class="n">attr</span> <span class="o">=</span> <span class="n">try_cast</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">child_type</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+                <span class="n">child</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">attr</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">value</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__new_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        On a new child attribute:</span>
+<span class="sd">            1) Check to see if it is wrapped by a Pref object</span>
+<span class="sd">            2) If not do so, if so add it to the tree structure</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">Pref</span><span class="p">):</span>
+            <span class="c"># Child attribute already has a Pref wrapping</span>
+
+            <span class="c">#printDBG( &#39;new_attr: %s.%s = %r&#39; % (self._intern.name, name, attr.value()))</span>
+            <span class="n">new_childx</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">child_names</span><span class="p">)</span>
+            <span class="c"># Children know about parents</span>
+            <span class="n">attr</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="bp">self</span>     <span class="c"># Give child parent</span>
+            <span class="n">attr</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>     <span class="c"># Give child name</span>
+            <span class="k">if</span> <span class="n">attr</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">depeq</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">attr</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">depeq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">depeq</span>  <span class="c"># Give child parent dependencies</span>
+            <span class="k">if</span> <span class="n">attr</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">hidden</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">hidden_children</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_childx</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">hidden_children</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+            <span class="c"># Used for QTIndexing</span>
+            <span class="n">attr</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">aschildx</span> <span class="o">=</span> <span class="n">new_childx</span>
+            <span class="c"># Parents know about children</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">child_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>  <span class="c"># Add child to tree</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">child_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">value</span><span class="p">()</span>   <span class="c"># Add child value to dict</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># The child attribute is not wrapped. Wrap with Pref and readd.</span>
+            <span class="n">pref_attr</span> <span class="o">=</span> <span class="n">Pref</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">attr</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__new_attr</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">pref_attr</span><span class="p">)</span>
+
+    <span class="c"># Attributes are children</span>
+<div class="viewcode-block" id="Pref.__setattr__"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.__setattr__">[docs]</a>    <span class="k">def</span> <span class="nf">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called when an attribute assignment is attempted. This is called instead</span>
+<span class="sd">        of the normal mechanism (i.e. store the value in the instance</span>
+<span class="sd">        dictionary). name is the attribute name, value is the value to be</span>
+<span class="sd">        assigned to it.</span>
+
+<span class="sd">        If __setattr__() wants to assign to an instance attribute, it should not</span>
+<span class="sd">        simply execute self.name = value  this would cause a recursive call to</span>
+<span class="sd">        itself.  Instead, it should insert the value in the dictionary of</span>
+<span class="sd">        instance attributes, e.g., self.__dict__[name] = value. For new-style</span>
+<span class="sd">        classes, rather than accessing the instance dictionary, it should call</span>
+<span class="sd">        the base class method with the same name, for example,</span>
+<span class="sd">        object.__setattr__(self, name, value).</span>
+<span class="sd">        &#39;Wraps child attributes in a Pref object if not already done&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># No wrapping for private vars: _printable_exclude, _intern, _tree</span>
+        <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">DynStruct</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__setattr__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+        <span class="c"># Overwrite if child exists</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">child_names</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__overwrite_child_attr</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__new_attr</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+
+    <span class="c"># -------------------</span>
+    <span class="c"># Attribute Getters</span></div>
+<div class="viewcode-block" id="Pref.value"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.value">[docs]</a>    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Return the wrapper in all its glory</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="n">PrefNode</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="c"># Return basic types</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">PrefChoice</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">combo_val</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span>  <span class="c"># TODO AS REFERENCE</span>
+</div>
+<div class="viewcode-block" id="Pref.__getattr__"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.__getattr__">[docs]</a>    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called when an attribute lookup has not found the attribute in the usual</span>
+<span class="sd">        places</span>
+<span class="sd">        (i.e. it is not an instance attribute nor is it found in the class tree</span>
+<span class="sd">        for self).</span>
+<span class="sd">        name is the attribute name.</span>
+<span class="sd">        This method should return the (computed) attribute value or raise an</span>
+<span class="sd">        AttributeError exception.</span>
+<span class="sd">        Get a child from this parent called as last resort.</span>
+<span class="sd">        Allows easy access to internal prefs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">PrefNode</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__getitem__</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">9</span> <span class="ow">and</span> <span class="n">name</span><span class="p">[</span><span class="o">-</span><span class="mi">9</span><span class="p">:]</span> <span class="o">==</span> <span class="s">&#39;_internal&#39;</span><span class="p">:</span>
+            <span class="n">attrx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">child_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">name</span><span class="p">[:</span><span class="o">-</span><span class="mi">9</span><span class="p">])</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">child_list</span><span class="p">[</span><span class="n">attrx</span><span class="p">]</span>
+        <span class="c">#print(self._internal.name)</span>
+        <span class="c">#print(self._tree)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">PrefNode</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__getitem__</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">base_self1</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">PrefNode</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+                    <span class="c">#base_self2 = super(DynStruct, self)</span>
+                    <span class="c">#base_self3 = super()</span>
+                    <span class="c">#import utool</span>
+                    <span class="c">#utool.embed()</span>
+                    <span class="k">return</span> <span class="n">base_self1</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;base_self1 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">base_self1</span><span class="p">,))</span>
+                    <span class="c">#print(&#39;base_self2 = %r&#39; % (base_self2,))</span>
+                    <span class="c">#print(&#39;base_self3 = %r&#39; % (base_self3,))</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;name = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,))</span>
+                    <span class="k">raise</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">raise</span>
+            <span class="c">#msg = &#39;\n&#39; + &#39;\n&#39;.join([</span>
+            <span class="c">#    &#39;[prefs!] !!! Attribute Error !!!&#39;,</span>
+            <span class="c">#    &#39;  * attribute: %s.%s not found&#39; % (self._intern.name, name),</span>
+            <span class="c">#    &#39;  * type(self) = %r&#39; % (type(self),),</span>
+            <span class="c">#    &#39;  * type(self._intern) = %r&#39; % (type(self._intern),),</span>
+            <span class="c">#])</span>
+            <span class="c">#print(msg)</span>
+            <span class="c">#raise AttributeError(msg)</span>
+</div>
+<div class="viewcode-block" id="Pref.iteritems"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.iteritems">[docs]</a>    <span class="k">def</span> <span class="nf">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Wow this class is messed up. I had to overwrite items when</span>
+<span class="sd">        moving to python3, just because I haden&#39;t called it yet</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_printable_exclude</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">yield</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Pref.items"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.items">[docs]</a>    <span class="k">def</span> <span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Wow this class is messed up. I had to overwrite items when</span>
+<span class="sd">        moving to python3, just because I haden&#39;t called it yet</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_printable_exclude</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">yield</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+
+    <span class="c">#----------------</span>
+    <span class="c"># Disk caching</span></div>
+<div class="viewcode-block" id="Pref.to_dict"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">split_structs_bit</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Converts prefeters to a dictionary.</span>
+<span class="sd">        Children Pref can be optionally separated &quot;&quot;&quot;</span>
+        <span class="n">pref_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">struct_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">split_structs_bit</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">Pref</span><span class="p">):</span>
+                <span class="n">struct_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+                <span class="k">continue</span>
+            <span class="n">pref_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="k">if</span> <span class="n">split_structs_bit</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">pref_dict</span><span class="p">,</span> <span class="n">struct_dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pref_dict</span>
+</div>
+<div class="viewcode-block" id="Pref.save"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&#39;Saves prefs to disk in dict format&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">fpath</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="c">#printDBG(&#39;[save] Can my parent save me?&#39;)  # ...to disk</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+            <span class="c">#printDBG(&#39;[save] I cannot be saved. I have no parents.&#39;)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[pref] Saving to &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">fpath</span><span class="p">)</span>
+            <span class="n">pref_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+            <span class="n">cPickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">pref_dict</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="Pref.load"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c">#printDBG(&#39;[pref.load()]&#39;)</span>
+        <span class="sd">&quot;&quot;&quot; Read pref dict stored on disk. Overwriting current values. &quot;&quot;&quot;</span>
+        <span class="c">#if not os.path.exists(self._intern.fpath):</span>
+        <span class="c">#    msg = &#39;[pref] fpath=%r does not exist&#39; % (self._intern.fpath)</span>
+        <span class="c">#    #printDBG(msg)</span>
+        <span class="c">#    return msg</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="c">#printDBG(&#39;load: %r&#39; % self._intern.fpath)</span>
+                <span class="n">pref_dict</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">EOFError</span> <span class="k">as</span> <span class="n">ex1</span><span class="p">:</span>
+            <span class="n">printex</span><span class="p">(</span><span class="n">ex1</span><span class="p">,</span> <span class="s">&#39;did not load pref fpath=</span><span class="si">%r</span><span class="s"> correctly&#39;</span> <span class="o">%</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">fpath</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="c">#warnings.warn(msg)</span>
+            <span class="k">raise</span>
+            <span class="c">#return msg</span>
+        <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex2</span><span class="p">:</span>
+            <span class="n">printex</span><span class="p">(</span><span class="n">ex2</span><span class="p">,</span> <span class="s">&#39;did not load pref fpath=</span><span class="si">%r</span><span class="s"> correctly&#39;</span> <span class="o">%</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">fpath</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="c">#warnings.warn(msg)</span>
+            <span class="k">raise</span>
+            <span class="c">#return msg</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_dict</span><span class="p">(</span><span class="n">pref_dict</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;Preference file is corrupted&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_dict</span><span class="p">(</span><span class="n">pref_dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">True</span>
+
+    <span class="c">#----------------------</span>
+    <span class="c"># String representation</span></div>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span> <span class="o">!=</span> <span class="n">PrefNode</span><span class="p">:</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">PrefNode</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__str__</span><span class="p">()</span>
+            <span class="c">#.replace(&#39;\n    &#39;, &#39;&#39;)</span>
+            <span class="n">ret</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">LEAF &#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;:&#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ret</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ret</span>
+
+<div class="viewcode-block" id="Pref.full_name"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.full_name">[docs]</a>    <span class="k">def</span> <span class="nf">full_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&#39;returns name all the way up the tree&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">full_name</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">name</span>
+</div>
+<div class="viewcode-block" id="Pref.get_printable"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.get_printable">[docs]</a>    <span class="k">def</span> <span class="nf">get_printable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_bit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">print_exclude_aug</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="c"># Remove unsatisfied dependencies from the printed structure</span>
+        <span class="n">further_aug</span> <span class="o">=</span> <span class="n">print_exclude_aug</span><span class="p">[:]</span>
+        <span class="k">for</span> <span class="n">child_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">child_names</span><span class="p">:</span>
+            <span class="n">depeq</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">child_name</span> <span class="o">+</span> <span class="s">&#39;_internal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">depeq</span>
+            <span class="k">if</span> <span class="n">depeq</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">depeq</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">()</span> <span class="o">!=</span> <span class="n">depeq</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">further_aug</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">child_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Pref</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_printable</span><span class="p">(</span><span class="n">type_bit</span><span class="p">,</span> <span class="n">print_exclude_aug</span><span class="o">=</span><span class="n">further_aug</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Pref.customPrintableType"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.customPrintableType">[docs]</a>    <span class="k">def</span> <span class="nf">customPrintableType</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">child_names</span><span class="p">:</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">child_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="c">#child = self._tree.child_list[row]  # child node to &quot;overwrite&quot;</span>
+            <span class="n">_typestr</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">child_list</span><span class="p">[</span><span class="n">row</span><span class="p">]</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">is_str</span><span class="p">(</span><span class="n">_typestr</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">_typestr</span>
+</div>
+<div class="viewcode-block" id="Pref.pref_update"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.pref_update">[docs]</a>    <span class="k">def</span> <span class="nf">pref_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">new_val</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Changes a preference value and saves it to disk &quot;&quot;&quot;</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Update and save pref from: </span><span class="si">%s</span><span class="s">=</span><span class="si">%r</span><span class="s">, to: </span><span class="si">%s</span><span class="s">=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
+              <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]),</span> <span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">new_val</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__setattr__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">new_val</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Pref.update"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c">#print(&#39;Updating Preference: kwargs = %r&#39; % (kwargs))</span>
+        <span class="n">self_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">self_keys</span><span class="p">:</span>
+                <span class="c">#print(&#39;update: key=%r, %r&#39; % (key, val))</span>
+                <span class="c">#if type(val) == types.ListType:</span>
+                    <span class="c">#val = val[0]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__setattr__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+
+    <span class="c"># Method for QTWidget</span></div>
+<div class="viewcode-block" id="Pref.createQWidget"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.createQWidget">[docs]</a>    <span class="k">def</span> <span class="nf">createQWidget</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># moving gui code away from utool</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c">#from utool._internal.PreferenceWidget import EditPrefWidget</span>
+            <span class="kn">from</span> <span class="nn">guitool.PreferenceWidget</span> <span class="kn">import</span> <span class="n">EditPrefWidget</span>
+            <span class="n">editpref_widget</span> <span class="o">=</span> <span class="n">EditPrefWidget</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="n">editpref_widget</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">editpref_widget</span>
+        <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Cannot create preference widget. Is guitool and PyQt 4/5 Installed&#39;</span><span class="p">)</span>
+            <span class="k">raise</span>
+</div>
+<div class="viewcode-block" id="Pref.qt_get_parent"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.qt_get_parent">[docs]</a>    <span class="k">def</span> <span class="nf">qt_get_parent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">parent</span>
+</div>
+<div class="viewcode-block" id="Pref.qt_parents_index_of_me"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.qt_parents_index_of_me">[docs]</a>    <span class="k">def</span> <span class="nf">qt_parents_index_of_me</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">aschildx</span>
+</div>
+<div class="viewcode-block" id="Pref.qt_get_child"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.qt_get_child">[docs]</a>    <span class="k">def</span> <span class="nf">qt_get_child</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+        <span class="n">row_offset</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">hidden_children</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">row</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">child_list</span><span class="p">[</span><span class="n">row</span> <span class="o">+</span> <span class="n">row_offset</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="Pref.qt_row_count"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.qt_row_count">[docs]</a>    <span class="k">def</span> <span class="nf">qt_row_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">child_list</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">hidden_children</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Pref.qt_col_count"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.qt_col_count">[docs]</a>    <span class="k">def</span> <span class="nf">qt_col_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">2</span>
+</div>
+<div class="viewcode-block" id="Pref.qt_get_data"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.qt_get_data">[docs]</a>    <span class="k">def</span> <span class="nf">qt_get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">column</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">Pref</span><span class="p">):</span>  <span class="c"># Recursive Case: Pref</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="k">elif</span> <span class="n">data</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># Check for a get of None</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="s">&#39;None&#39;</span>
+        <span class="k">return</span> <span class="n">data</span>
+</div>
+<div class="viewcode-block" id="Pref.qt_is_editable"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.qt_is_editable">[docs]</a>    <span class="k">def</span> <span class="nf">qt_is_editable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">uneditable_hack</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;feat_type&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">depeq</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">uneditable_hack</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">depeq</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">depeq</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">depeq</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c">#return self._intern.value is not None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span> <span class="o">!=</span> <span class="n">PrefNode</span>
+</div>
+<div class="viewcode-block" id="Pref.qt_set_leaf_data"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.qt_set_leaf_data">[docs]</a>    <span class="k">def</span> <span class="nf">qt_set_leaf_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qvar</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_qt_set_leaf_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qvar</span><span class="p">)</span>
+
+</div></div>
+<span class="k">def</span> <span class="nf">_qt_set_leaf_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qvar</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Sets backend data using QVariants &quot;&quot;&quot;</span>
+    <span class="c">#print(&#39;[pref] qt_set_leaf_data: qvar = %r&#39; % qvar)</span>
+    <span class="c">#print(&#39;[pref] qt_set_leaf_data: _intern.name=%r&#39; % self._intern.name)</span>
+    <span class="c">#print(&#39;[pref] qt_set_leaf_data: _intern.type_=%r&#39; % self._intern.get_type())</span>
+    <span class="c">#print(&#39;[pref] qt_set_leaf_data: type(_intern.value)=%r&#39; % type(self._intern.value))</span>
+    <span class="c">#print(&#39;[pref] qt_set_leaf_data: _intern.value=%r&#39; % self._intern.value)</span>
+    <span class="c">##print(&#39;[pref] qt_set_leaf_data: qvar.toString()=%s&#39; % str(qvar.toString()))</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;[Pref.qtleaf] Cannot set root preference&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">qt_is_editable</span><span class="p">():</span>
+        <span class="n">new_val</span> <span class="o">=</span> <span class="s">&#39;[Pref.qtleaf] BadThingsHappenedInPref&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="n">PrefNode</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;[Pref.qtleaf] Qt can only change leafs&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># None could be a number of types</span>
+            <span class="k">def</span> <span class="nf">cast_order</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">]):</span>
+                <span class="k">for</span> <span class="n">type_</span> <span class="ow">in</span> <span class="n">order</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">ret</span> <span class="o">=</span> <span class="n">type_</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="n">ret</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                        <span class="k">continue</span>
+            <span class="n">new_val</span> <span class="o">=</span> <span class="n">cast_order</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">qvar</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">get_type</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="c">#new_val = bool(qvar.toBool())</span>
+            <span class="n">new_val</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">qvar</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="c">#new_val = int(qvar.toInt()[0])</span>
+            <span class="n">new_val</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">qvar</span><span class="p">)</span>
+        <span class="c"># elif isinstance(self._intern.value, float):</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">get_type</span><span class="p">()</span> <span class="ow">in</span> <span class="n">util_type</span><span class="o">.</span><span class="n">VALID_FLOAT_TYPES</span><span class="p">:</span>
+            <span class="c">#new_val = float(qvar.toDouble()[0])</span>
+            <span class="n">new_val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">qvar</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="c">#new_val = str(qvar.toString())</span>
+            <span class="n">new_val</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">qvar</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">PrefChoice</span><span class="p">):</span>
+            <span class="c">#new_val = qvar.toString()</span>
+            <span class="n">new_val</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">qvar</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">new_val</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;NONE&#39;</span><span class="p">:</span>
+                <span class="n">new_val</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c">#new_val = str(qvar.toString())</span>
+                <span class="n">type_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">get_type</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">type_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">new_val</span> <span class="o">=</span> <span class="n">type_</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">qvar</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">new_val</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">qvar</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                    <span class="p">(</span><span class="s">&#39;[Pref.qtleaf] Unknown internal type. &#39;</span>
+                     <span class="s">&#39;type(_intern.value) = </span><span class="si">%r</span><span class="s">, &#39;</span>
+                     <span class="s">&#39;_intern.get_type() = </span><span class="si">%r</span><span class="s">, &#39;</span><span class="p">)</span>
+                    <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">value</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">get_type</span><span class="p">())</span>
+        <span class="c"># Check for a set of None</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">new_val</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">new_val</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;NONE&#39;</span><span class="p">:</span>
+                <span class="n">new_val</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="k">elif</span> <span class="n">new_val</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;TRUE&#39;</span><span class="p">:</span>
+                <span class="n">new_val</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">elif</span> <span class="n">new_val</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;FALSE&#39;</span><span class="p">:</span>
+                <span class="n">new_val</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="c"># save to disk after modifying data</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[pref] qt_set_leaf_data: new_val=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">new_val</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[pref] qt_set_leaf_data: type(new_val)=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">new_val</span><span class="p">))</span>
+        <span class="c"># TODO Add ability to set a callback function when certain</span>
+        <span class="c"># preferences are changed.</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">pref_update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">new_val</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s">&#39;PrefNotEditable&#39;</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" >utool</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

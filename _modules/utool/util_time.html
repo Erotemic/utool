@@ -1,0 +1,275 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>utool.util_time &mdash; utool 1.0.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html" />
+    <link rel="up" title="utool" href="../utool.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" accesskey="U">utool</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for utool.util_time</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[time]&#39;</span><span class="p">)</span>
+
+
+<span class="c"># --- Timing ---</span>
+<div class="viewcode-block" id="tic"><a class="viewcode-back" href="../../utool.html#utool.util_time.tic">[docs]</a><span class="k">def</span> <span class="nf">tic</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+
+</div>
+<div class="viewcode-block" id="toc"><a class="viewcode-back" href="../../utool.html#utool.util_time.toc">[docs]</a><span class="k">def</span> <span class="nf">toc</span><span class="p">(</span><span class="n">tt</span><span class="p">,</span> <span class="n">return_msg</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">write_msg</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">start_time</span><span class="p">)</span> <span class="o">=</span> <span class="n">tt</span>
+    <span class="n">ellapsed</span> <span class="o">=</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">return_msg</span><span class="p">)</span> <span class="ow">and</span> <span class="n">write_msg</span> <span class="ow">and</span> <span class="n">msg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;...toc(</span><span class="si">%.4f</span><span class="s">s, &#39;</span> <span class="o">%</span> <span class="n">ellapsed</span> <span class="o">+</span> <span class="s">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="s">&#39;)</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">return_msg</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">msg</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ellapsed</span>
+
+</div>
+<div class="viewcode-block" id="get_timestamp"><a class="viewcode-back" href="../../utool.html#utool.util_time.get_timestamp">[docs]</a><span class="k">def</span> <span class="nf">get_timestamp</span><span class="p">(</span><span class="n">format_</span><span class="o">=</span><span class="s">&#39;filename&#39;</span><span class="p">,</span> <span class="n">use_second</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">format_</span> <span class="o">==</span> <span class="s">&#39;tag&#39;</span><span class="p">:</span>
+        <span class="n">time_tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">now</span><span class="o">.</span><span class="n">year</span> <span class="o">-</span> <span class="mi">2000</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">day</span><span class="p">)</span>
+        <span class="n">stamp</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%02d%02d%02d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">time_tup</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">use_second</span><span class="p">:</span>
+            <span class="n">time_tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">now</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">day</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">hour</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">minute</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">second</span><span class="p">)</span>
+            <span class="n">time_formats</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s">&#39;filename&#39;</span><span class="p">:</span> <span class="s">&#39;ymd_hms-</span><span class="si">%04d</span><span class="s">-</span><span class="si">%02d</span><span class="s">-</span><span class="si">%02d</span><span class="s">_</span><span class="si">%02d</span><span class="s">-</span><span class="si">%02d</span><span class="s">-</span><span class="si">%02d</span><span class="s">&#39;</span><span class="p">,</span>
+                <span class="s">&#39;comment&#39;</span><span class="p">:</span> <span class="s">&#39;# (yyyy-mm-dd hh:mm:ss) </span><span class="si">%04d</span><span class="s">-</span><span class="si">%02d</span><span class="s">-</span><span class="si">%02d</span><span class="s"> </span><span class="si">%02d</span><span class="s">:</span><span class="si">%02d</span><span class="s">:</span><span class="si">%02d</span><span class="s">&#39;</span><span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">time_tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">now</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">day</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">hour</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">minute</span><span class="p">)</span>
+            <span class="n">time_formats</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s">&#39;filename&#39;</span><span class="p">:</span> <span class="s">&#39;ymd_hm-</span><span class="si">%04d</span><span class="s">-</span><span class="si">%02d</span><span class="s">-</span><span class="si">%02d</span><span class="s">_</span><span class="si">%02d</span><span class="s">-</span><span class="si">%02d</span><span class="s">&#39;</span><span class="p">,</span>
+                <span class="s">&#39;comment&#39;</span><span class="p">:</span> <span class="s">&#39;# (yyyy-mm-dd hh:mm) </span><span class="si">%04d</span><span class="s">-</span><span class="si">%02d</span><span class="s">-</span><span class="si">%02d</span><span class="s"> </span><span class="si">%02d</span><span class="s">:</span><span class="si">%02d</span><span class="s">&#39;</span><span class="p">}</span>
+        <span class="n">stamp</span> <span class="o">=</span> <span class="n">time_formats</span><span class="p">[</span><span class="n">format_</span><span class="p">]</span> <span class="o">%</span> <span class="n">time_tup</span>
+    <span class="k">return</span> <span class="n">stamp</span>
+
+</div>
+<div class="viewcode-block" id="Timer"><a class="viewcode-back" href="../../utool.html#utool.util_time.Timer">[docs]</a><span class="k">class</span> <span class="nc">Timer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Timer with-statment context object.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; import utool</span>
+<span class="sd">        &gt;&gt;&gt; with utool.Timer(&#39;Timer test!&#39;):</span>
+<span class="sd">        &gt;&gt;&gt;     prime = utool.get_nth_prime(4000)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">newline</span> <span class="o">=</span> <span class="n">newline</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tstart</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ellapsed</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="c">#self.tic()</span>
+
+<div class="viewcode-block" id="Timer.tic"><a class="viewcode-back" href="../../utool.html#utool.util_time.Timer.tic">[docs]</a>    <span class="k">def</span> <span class="nf">tic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">tic(</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">newline</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tstart</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Timer.toc"><a class="viewcode-back" href="../../utool.html#utool.util_time.Timer.toc">[docs]</a>    <span class="k">def</span> <span class="nf">toc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ellapsed</span> <span class="o">=</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">tstart</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s">&#39;...toc(</span><span class="si">%r</span><span class="s">)=</span><span class="si">%.4f</span><span class="s">s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">,</span> <span class="n">ellapsed</span><span class="p">))</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">ellapsed</span>
+</div>
+    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c">#if self.msg is not None:</span>
+        <span class="c">#    sys.stdout.write(&#39;---tic---&#39; + self.msg + &#39;  \n&#39;)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tic</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">trace</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ellapsed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">toc</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">trace</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_time] Error in context manager!: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">False</span>  <span class="c"># return a falsey value on error</span>
+        <span class="c">#return self.ellapsed</span>
+
+</div>
+<div class="viewcode-block" id="exiftime_to_unixtime"><a class="viewcode-back" href="../../utool.html#utool.util_time.exiftime_to_unixtime">[docs]</a><span class="k">def</span> <span class="nf">exiftime_to_unixtime</span><span class="p">(</span><span class="n">datetime_str</span><span class="p">,</span> <span class="n">timestamp_format</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    converts a datetime string to posixtime (unixtime)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c"># Normal format, or non-standard year first data</span>
+        <span class="k">if</span> <span class="n">timestamp_format</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">timefmt</span> <span class="o">=</span> <span class="s">&#39;%m/</span><span class="si">%d</span><span class="s">/%Y %H:%M:%S&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">timefmt</span> <span class="o">=</span> <span class="s">&#39;%Y:%m:</span><span class="si">%d</span><span class="s"> %H:%M:%S&#39;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">datetime_str</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">19</span><span class="p">:</span>
+            <span class="n">datetime_str_</span> <span class="o">=</span> <span class="n">datetime_str</span><span class="p">[:</span><span class="mi">19</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">datetime_str_</span> <span class="o">=</span> <span class="n">datetime_str</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">datetime_str_</span><span class="p">,</span> <span class="n">timefmt</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">time</span><span class="o">.</span><span class="n">mktime</span><span class="p">(</span><span class="n">dt</span><span class="o">.</span><span class="n">timetuple</span><span class="p">())</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="c">#if datetime_str is None:</span>
+            <span class="c">#return -1</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">.util_arg</span> <span class="kn">import</span> <span class="n">STRICT</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">datetime_str_</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">datetime_str_</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;No EXIF Data&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="n">datetime_str_</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Invalid&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="n">datetime_str_</span> <span class="o">==</span> <span class="s">&#39;0000:00:00 00:00:00&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;&lt;!!! ValueError !!!&gt;&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_time] Caught Error: &#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_time] type(datetime_str)  = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">datetime_str</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_time] repr(datetime_str)  = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">datetime_str</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_time]     (datetime_str)  = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">datetime_str</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_time]  len(datetime_str)  = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">datetime_str</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_time] repr(datetime_str_) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">datetime_str_</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_time]  len(datetime_str_) = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">datetime_str_</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;&lt;/!!! ValueError !!!&gt;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">STRICT</span><span class="p">:</span>
+            <span class="k">raise</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Supressed ValueError&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+
+</div>
+<div class="viewcode-block" id="unixtime_to_datetime"><a class="viewcode-back" href="../../utool.html#utool.util_time.unixtime_to_datetime">[docs]</a><span class="k">def</span> <span class="nf">unixtime_to_datetime</span><span class="p">(</span><span class="n">unixtime</span><span class="p">,</span> <span class="n">timefmt</span><span class="o">=</span><span class="s">&#39;%Y/%m/</span><span class="si">%d</span><span class="s"> %H:%M:%S&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">unixtime</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&#39;NA&#39;</span>
+    <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">unixtime</span><span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">timefmt</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="unixtime_to_timedelta"><a class="viewcode-back" href="../../utool.html#utool.util_time.unixtime_to_timedelta">[docs]</a><span class="k">def</span> <span class="nf">unixtime_to_timedelta</span><span class="p">(</span><span class="n">unixtime_diff</span><span class="p">):</span>
+    <span class="n">timedelta</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="n">unixtime_diff</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">timedelta</span>
+
+</div>
+<div class="viewcode-block" id="get_unix_timedelta"><a class="viewcode-back" href="../../utool.html#utool.util_time.get_unix_timedelta">[docs]</a><span class="k">def</span> <span class="nf">get_unix_timedelta</span><span class="p">(</span><span class="n">unixtime_diff</span><span class="p">):</span>
+    <span class="n">timedelta</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="n">unixtime_diff</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">timedelta</span>
+
+</div>
+<div class="viewcode-block" id="get_month"><a class="viewcode-back" href="../../utool.html#utool.util_time.get_month">[docs]</a><span class="k">def</span> <span class="nf">get_month</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">month</span>
+
+</div>
+<div class="viewcode-block" id="get_day"><a class="viewcode-back" href="../../utool.html#utool.util_time.get_day">[docs]</a><span class="k">def</span> <span class="nf">get_day</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">day</span>
+
+</div>
+<div class="viewcode-block" id="get_year"><a class="viewcode-back" href="../../utool.html#utool.util_time.get_year">[docs]</a><span class="k">def</span> <span class="nf">get_year</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">year</span>
+
+</div>
+<div class="viewcode-block" id="get_timestats_str"><a class="viewcode-back" href="../../utool.html#utool.util_time.get_timestats_str">[docs]</a><span class="k">def</span> <span class="nf">get_timestats_str</span><span class="p">(</span><span class="n">unixtime_list</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">utool</span>
+    <span class="n">unixtime_stats</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">unixtime_list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;max&#39;</span><span class="p">,</span> <span class="s">&#39;min&#39;</span><span class="p">,</span> <span class="s">&#39;mean&#39;</span><span class="p">]:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">unixtime_stats</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">unixtime_to_datetime</span><span class="p">(</span><span class="n">unixtime_stats</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">pass</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;std&#39;</span><span class="p">]:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">unixtime_stats</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">unixtime_to_timedelta</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">unixtime_stats</span><span class="p">[</span><span class="n">key</span><span class="p">]))))</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">pass</span>
+    <span class="n">timestat_str</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">unixtime_stats</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">timestat_str</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" >utool</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

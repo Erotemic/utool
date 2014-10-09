@@ -1,0 +1,200 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>utool.util_io &mdash; utool 1.0.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html" />
+    <link rel="up" title="utool" href="../utool.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" accesskey="U">utool</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for utool.util_io</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">cPickle</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_path</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_inject</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[io]&#39;</span><span class="p">)</span>
+
+
+<span class="n">__PRINT_IO__</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">__PRINT_WRITES__</span> <span class="o">=</span> <span class="bp">False</span> <span class="ow">or</span> <span class="n">__PRINT_IO__</span>
+<span class="n">__PRINT_READS__</span>  <span class="o">=</span> <span class="bp">False</span> <span class="ow">or</span> <span class="n">__PRINT_IO__</span>
+
+
+<div class="viewcode-block" id="write_to"><a class="viewcode-back" href="../../utool.html#utool.util_io.write_to">[docs]</a><span class="k">def</span> <span class="nf">write_to</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">to_write</span><span class="p">,</span> <span class="n">aslines</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">__PRINT_WRITES__</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Writes text to a file</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fpath (str): file path</span>
+<span class="sd">        to_write (str): text to write</span>
+<span class="sd">        aslines (bool): if True to_write is assumed to be a list of lines</span>
+<span class="sd">        verbose (bool): verbosity flag</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">__PRINT_WRITES__</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] * Writing to text file: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">util_path</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">fpath</span><span class="p">))</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">aslines</span><span class="p">:</span>
+            <span class="n">file_</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">to_write</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">to_write</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="read_from"><a class="viewcode-back" href="../../utool.html#utool.util_io.read_from">[docs]</a><span class="k">def</span> <span class="nf">read_from</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">__PRINT_READS__</span><span class="p">,</span> <span class="n">aslines</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Reads text from a file</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fpath (str): file path</span>
+<span class="sd">        aslines (bool): if True returns list of lines</span>
+<span class="sd">        verbose (bool): verbosity flag</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        text from fpath</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] * Reading text file: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">util_path</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">fpath</span><span class="p">))</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">util_path</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s">&#39;[io] * FILE DOES NOT EXIST!&#39;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">aslines</span><span class="p">:</span>
+                <span class="n">text</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">text</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">text</span>
+    <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">.util_dbg</span> <span class="kn">import</span> <span class="n">printex</span>
+        <span class="k">if</span> <span class="n">verbose</span> <span class="ow">or</span> <span class="n">strict</span><span class="p">:</span>
+            <span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39; * Error reading fpath=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
+                    <span class="n">util_path</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">fpath</span><span class="p">),</span> <span class="s">&#39;[io]&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">strict</span><span class="p">:</span>
+            <span class="k">raise</span>
+
+</div>
+<div class="viewcode-block" id="save_cPkl"><a class="viewcode-back" href="../../utool.html#utool.util_io.save_cPkl">[docs]</a><span class="k">def</span> <span class="nf">save_cPkl</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">__PRINT_WRITES__</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] * save_cPkl(</span><span class="si">%r</span><span class="s">, data)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">util_path</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">fpath</span><span class="p">),))</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+        <span class="n">cPickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">file_</span><span class="p">,</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="load_cPkl"><a class="viewcode-back" href="../../utool.html#utool.util_io.load_cPkl">[docs]</a><span class="k">def</span> <span class="nf">load_cPkl</span><span class="p">(</span><span class="n">fpath</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">__PRINT_READS__</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] * load_cPkl(</span><span class="si">%r</span><span class="s">, data)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">util_path</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">fpath</span><span class="p">),))</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file_</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data</span>
+
+</div>
+<div class="viewcode-block" id="try_decode"><a class="viewcode-back" href="../../utool.html#utool.util_io.try_decode">[docs]</a><span class="k">def</span> <span class="nf">try_decode</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="c"># All python encoding formats</span>
+    <span class="n">codec_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&#39;ascii&#39;</span><span class="p">,</span> <span class="s">&#39;big5&#39;</span><span class="p">,</span> <span class="s">&#39;big5hkscs&#39;</span><span class="p">,</span> <span class="s">&#39;cp037&#39;</span><span class="p">,</span> <span class="s">&#39;cp424&#39;</span><span class="p">,</span> <span class="s">&#39;cp437&#39;</span><span class="p">,</span> <span class="s">&#39;cp500&#39;</span><span class="p">,</span>
+        <span class="s">&#39;cp720&#39;</span><span class="p">,</span> <span class="s">&#39;cp737&#39;</span><span class="p">,</span> <span class="s">&#39;cp775&#39;</span><span class="p">,</span> <span class="s">&#39;cp850&#39;</span><span class="p">,</span> <span class="s">&#39;cp852&#39;</span><span class="p">,</span> <span class="s">&#39;cp855&#39;</span><span class="p">,</span> <span class="s">&#39;cp856&#39;</span><span class="p">,</span> <span class="s">&#39;cp857&#39;</span><span class="p">,</span>
+        <span class="s">&#39;cp858&#39;</span><span class="p">,</span> <span class="s">&#39;cp860&#39;</span><span class="p">,</span> <span class="s">&#39;cp861&#39;</span><span class="p">,</span> <span class="s">&#39;cp862&#39;</span><span class="p">,</span> <span class="s">&#39;cp863&#39;</span><span class="p">,</span> <span class="s">&#39;cp864&#39;</span><span class="p">,</span> <span class="s">&#39;cp865&#39;</span><span class="p">,</span> <span class="s">&#39;cp866&#39;</span><span class="p">,</span>
+        <span class="s">&#39;cp869&#39;</span><span class="p">,</span> <span class="s">&#39;cp874&#39;</span><span class="p">,</span> <span class="s">&#39;cp875&#39;</span><span class="p">,</span> <span class="s">&#39;cp932&#39;</span><span class="p">,</span> <span class="s">&#39;cp949&#39;</span><span class="p">,</span> <span class="s">&#39;cp950&#39;</span><span class="p">,</span> <span class="s">&#39;cp1006&#39;</span><span class="p">,</span>
+        <span class="s">&#39;cp1026&#39;</span><span class="p">,</span> <span class="s">&#39;cp1140&#39;</span><span class="p">,</span> <span class="s">&#39;cp1250&#39;</span><span class="p">,</span> <span class="s">&#39;cp1251&#39;</span><span class="p">,</span> <span class="s">&#39;cp1252&#39;</span><span class="p">,</span> <span class="s">&#39;cp1253&#39;</span><span class="p">,</span> <span class="s">&#39;cp1254&#39;</span><span class="p">,</span>
+        <span class="s">&#39;cp1255&#39;</span><span class="p">,</span> <span class="s">&#39;cp1256&#39;</span><span class="p">,</span> <span class="s">&#39;cp1257&#39;</span><span class="p">,</span> <span class="s">&#39;cp1258&#39;</span><span class="p">,</span> <span class="s">&#39;euc_jp&#39;</span><span class="p">,</span> <span class="s">&#39;euc_jis_2004&#39;</span><span class="p">,</span>
+        <span class="s">&#39;euc_jisx0213&#39;</span><span class="p">,</span> <span class="s">&#39;euc_kr&#39;</span><span class="p">,</span> <span class="s">&#39;gb2312&#39;</span><span class="p">,</span> <span class="s">&#39;gbk&#39;</span><span class="p">,</span> <span class="s">&#39;gb18030&#39;</span><span class="p">,</span> <span class="s">&#39;hz&#39;</span><span class="p">,</span>
+        <span class="s">&#39;iso2022_jp&#39;</span><span class="p">,</span> <span class="s">&#39;iso2022_jp_1&#39;</span><span class="p">,</span> <span class="s">&#39;iso2022_jp_2&#39;</span><span class="p">,</span> <span class="s">&#39;iso2022_jp_2004&#39;</span><span class="p">,</span>
+        <span class="s">&#39;iso2022_jp_3&#39;</span><span class="p">,</span> <span class="s">&#39;iso2022_jp_ext&#39;</span><span class="p">,</span> <span class="s">&#39;iso2022_kr&#39;</span><span class="p">,</span> <span class="s">&#39;latin_1&#39;</span><span class="p">,</span> <span class="s">&#39;iso8859_2&#39;</span><span class="p">,</span>
+        <span class="s">&#39;iso8859_3&#39;</span><span class="p">,</span> <span class="s">&#39;iso8859_4&#39;</span><span class="p">,</span> <span class="s">&#39;iso8859_5&#39;</span><span class="p">,</span> <span class="s">&#39;iso8859_6&#39;</span><span class="p">,</span> <span class="s">&#39;iso8859_7&#39;</span><span class="p">,</span>
+        <span class="s">&#39;iso8859_8&#39;</span><span class="p">,</span> <span class="s">&#39;iso8859_9&#39;</span><span class="p">,</span> <span class="s">&#39;iso8859_10&#39;</span><span class="p">,</span> <span class="s">&#39;iso8859_13&#39;</span><span class="p">,</span> <span class="s">&#39;iso8859_14&#39;</span><span class="p">,</span>
+        <span class="s">&#39;iso8859_15&#39;</span><span class="p">,</span> <span class="s">&#39;iso8859_16&#39;</span><span class="p">,</span> <span class="s">&#39;johab&#39;</span><span class="p">,</span> <span class="s">&#39;koi8_r&#39;</span><span class="p">,</span> <span class="s">&#39;koi8_u&#39;</span><span class="p">,</span> <span class="s">&#39;mac_cyrillic&#39;</span><span class="p">,</span>
+        <span class="s">&#39;mac_greek&#39;</span><span class="p">,</span> <span class="s">&#39;mac_iceland&#39;</span><span class="p">,</span> <span class="s">&#39;mac_latin2&#39;</span><span class="p">,</span> <span class="s">&#39;mac_roman&#39;</span><span class="p">,</span> <span class="s">&#39;mac_turkish&#39;</span><span class="p">,</span>
+        <span class="s">&#39;ptcp154&#39;</span><span class="p">,</span> <span class="s">&#39;shift_jis&#39;</span><span class="p">,</span> <span class="s">&#39;shift_jis_2004&#39;</span><span class="p">,</span> <span class="s">&#39;shift_jisx0213&#39;</span><span class="p">,</span> <span class="s">&#39;utf_32&#39;</span><span class="p">,</span>
+        <span class="s">&#39;utf_32_be&#39;</span><span class="p">,</span> <span class="s">&#39;utf_32_le&#39;</span><span class="p">,</span> <span class="s">&#39;utf_16&#39;</span><span class="p">,</span> <span class="s">&#39;utf_16_be&#39;</span><span class="p">,</span> <span class="s">&#39;utf_16_le&#39;</span><span class="p">,</span> <span class="s">&#39;utf_7&#39;</span><span class="p">,</span>
+        <span class="s">&#39;utf_8&#39;</span><span class="p">,</span> <span class="s">&#39;utf_8_sig&#39;</span><span class="p">,</span> <span class="p">]</span>
+    <span class="k">for</span> <span class="n">codec</span> <span class="ow">in</span> <span class="n">codec_list</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">((</span><span class="s">&#39;</span><span class="si">%20s</span><span class="s">: &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">codec</span><span class="p">,))</span> <span class="o">+</span> <span class="n">x</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">codec</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">((</span><span class="s">&#39;</span><span class="si">%20s</span><span class="s">: &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">codec</span><span class="p">,))</span> <span class="o">+</span> <span class="s">&#39;FAILED&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">codec</span> <span class="ow">in</span> <span class="n">codec_list</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">((</span><span class="s">&#39;</span><span class="si">%20s</span><span class="s">: &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">codec</span><span class="p">,))</span> <span class="o">+</span> <span class="n">x</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">codec</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">((</span><span class="s">&#39;</span><span class="si">%20s</span><span class="s">: &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">codec</span><span class="p">,))</span> <span class="o">+</span> <span class="s">&#39;FAILED&#39;</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" >utool</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

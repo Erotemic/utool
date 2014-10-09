@@ -1,0 +1,342 @@
+utool package
+=============
+
+Submodules
+----------
+
+utool.DynamicStruct module
+--------------------------
+
+.. automodule:: utool.DynamicStruct
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.Preferences module
+------------------------
+
+.. automodule:: utool.Preferences
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.Printable module
+----------------------
+
+.. automodule:: utool.Printable
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_alg module
+---------------------
+
+.. automodule:: utool.util_alg
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_aliases module
+-------------------------
+
+.. automodule:: utool.util_aliases
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_arg module
+---------------------
+
+.. automodule:: utool.util_arg
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_cache module
+-----------------------
+
+.. automodule:: utool.util_cache
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_class module
+-----------------------
+
+.. automodule:: utool.util_class
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_cplat module
+-----------------------
+
+.. automodule:: utool.util_cplat
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_csv module
+---------------------
+
+.. automodule:: utool.util_csv
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_dbg module
+---------------------
+
+.. automodule:: utool.util_dbg
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_decor module
+-----------------------
+
+.. automodule:: utool.util_decor
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_dev module
+---------------------
+
+.. automodule:: utool.util_dev
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_dict module
+----------------------
+
+.. automodule:: utool.util_dict
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_distances module
+---------------------------
+
+.. automodule:: utool.util_distances
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_func module
+----------------------
+
+.. automodule:: utool.util_func
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_git module
+---------------------
+
+.. automodule:: utool.util_git
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_grabdata module
+--------------------------
+
+.. automodule:: utool.util_grabdata
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_hash module
+----------------------
+
+.. automodule:: utool.util_hash
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_inject module
+------------------------
+
+.. automodule:: utool.util_inject
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_inspect module
+-------------------------
+
+.. automodule:: utool.util_inspect
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_io module
+--------------------
+
+.. automodule:: utool.util_io
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_iter module
+----------------------
+
+.. automodule:: utool.util_iter
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_latex module
+-----------------------
+
+.. automodule:: utool.util_latex
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_list module
+----------------------
+
+.. automodule:: utool.util_list
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_logging module
+-------------------------
+
+.. automodule:: utool.util_logging
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_num module
+---------------------
+
+.. automodule:: utool.util_num
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_numpy module
+-----------------------
+
+.. automodule:: utool.util_numpy
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_parallel module
+--------------------------
+
+.. automodule:: utool.util_parallel
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_path module
+----------------------
+
+.. automodule:: utool.util_path
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_print module
+-----------------------
+
+.. automodule:: utool.util_print
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_progress module
+--------------------------
+
+.. automodule:: utool.util_progress
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_regex module
+-----------------------
+
+.. automodule:: utool.util_regex
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_resources module
+---------------------------
+
+.. automodule:: utool.util_resources
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_setup module
+-----------------------
+
+.. automodule:: utool.util_setup
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_six module
+---------------------
+
+.. automodule:: utool.util_six
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_str module
+---------------------
+
+.. automodule:: utool.util_str
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_sysreq module
+------------------------
+
+.. automodule:: utool.util_sysreq
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_tests module
+-----------------------
+
+.. automodule:: utool.util_tests
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_time module
+----------------------
+
+.. automodule:: utool.util_time
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_type module
+----------------------
+
+.. automodule:: utool.util_type
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: utool
+    :members:
+    :undoc-members:
+    :show-inheritance:
