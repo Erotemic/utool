@@ -199,15 +199,16 @@ else:
                            make_call_graph, make_object_graph, myprint, npArrInfo, 
                            npinfo, numpy_list_num_bits, print_object_size, 
                            print_object_size_tree, print_stats, printableType, 
-                           printableVal, reset_catch_ctrl_c,) 
+                           printableVal, reset_catch_ctrl_c, 
+                           tuples_to_unique_scalars,) 
     from .util_decor import (IGNORE_TRACEBACK, NOINDENT_DECOR, PROFILING, TRACE, 
                              UNIQUE_NUMPY, accepts_numpy, accepts_scalar_input, 
                              accepts_scalar_input2, 
                              accepts_scalar_input_vector_output, getter_1to1, 
                              getter_1toM, ignores_exc_tb, indent_func, interested, 
                              isiterable, lazyfunc, memorize, 
-                             on_exception_report_input, show_return_value, 
-                             time_func, wraps,) 
+                             on_exception_report_input, preserve_sig, 
+                             show_return_value, time_func, update_wrapper, wraps,) 
     from .util_distances import (L1, L2, L2_sqrd, compute_distances, emd, 
                                  hist_isect, nearest_point,) 
     from .util_dict import (all_dict_combinations, all_dict_combinations_lbls, 
