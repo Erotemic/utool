@@ -1,0 +1,269 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>utool.util_class &mdash; utool 1.0.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html" />
+    <link rel="up" title="utool" href="../utool.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" accesskey="U">utool</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for utool.util_class</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="kn">from</span> <span class="nn">._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[class]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+
+<span class="c"># Registers which classes have which attributes</span>
+<span class="n">__CLASSTYPE_ATTRIBUTES__</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="classmember"><a class="viewcode-back" href="../../utool.html#utool.util_class.classmember">[docs]</a><span class="k">def</span> <span class="nf">classmember</span><span class="p">(</span><span class="n">classtype</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; classtype is some key, which should be a type &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">closure_classmember</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="k">global</span> <span class="n">__CLASSTYPE_ATTRIBUTES__</span>
+        <span class="n">__CLASSTYPE_ATTRIBUTES__</span><span class="p">[</span><span class="n">classtype</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">func</span>
+    <span class="k">return</span> <span class="n">closure_classmember</span>
+
+</div>
+<div class="viewcode-block" id="inject_func_as_method"><a class="viewcode-back" href="../../utool.html#utool.util_class.inject_func_as_method">[docs]</a><span class="k">def</span> <span class="nf">inject_func_as_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">method_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">class_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Injects a function into an object as a method</span>
+
+<span class="sd">    Wraps func as a bound method of self. Then injects func into self</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">       self (object): class instance</span>
+<span class="sd">       func : some function whos first arugment is a class instance</span>
+<span class="sd">       method_name (str) : default=func.__name__, if specified renames the method</span>
+<span class="sd">       class_ (type) : if func is an unbound method of this class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">method_name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">method_name</span> <span class="o">=</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="c">#printDBG(&#39;Injecting method_name=%r&#39; % method_name)</span>
+    <span class="n">method</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">MethodType</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+    <span class="n">old_method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">old_method</span><span class="p">:</span>
+        <span class="k">del</span> <span class="n">old_method</span>
+    <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="inject_instance"><a class="viewcode-back" href="../../utool.html#utool.util_class.inject_instance">[docs]</a><span class="k">def</span> <span class="nf">inject_instance</span><span class="p">(</span><span class="n">classtype</span><span class="p">,</span> <span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Injects an instance (self) of type (classtype)</span>
+<span class="sd">    with all functions registered to (classtype)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">__CLASSTYPE_ATTRIBUTES__</span><span class="p">[</span><span class="n">classtype</span><span class="p">]:</span>
+        <span class="n">inject_func_as_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+
+
+<span class="c">#def __instancemember(self, func):</span>
+<span class="c">#    if isinstance(func, types.MethodType):</span>
+<span class="c">#        return func</span>
+<span class="c">#    else:</span>
+<span class="c">#        return inject_func_as_method(self, func)</span>
+
+
+<span class="c">#class ReloadableMetaclass(type):</span>
+<span class="c">#    def __new__(meta, name, bases, attrs):</span>
+<span class="c">#        #print(&#39;meta = %r&#39; (str(meta),))</span>
+<span class="c">#        #print(&#39;name = %r&#39; (str(name),))</span>
+<span class="c">#        #print(&#39;bases = %r&#39; (str(bases),))</span>
+<span class="c">#        #print(&#39;attrs = %r&#39; (str(attrs),))</span>
+<span class="c">#        return super(ReloadableMetaclass, meta).__new__(meta, name, bases, attrs)</span>
+
+<span class="c">#    def __init__(self, name, bases, attrs):</span>
+<span class="c">#        super(ReloadableMetaclass, self).__init__(name, bases, attrs)</span>
+<span class="c">#        # classregistry.register(self, self.interfaces)</span>
+<span class="c">#        print(&#39;Would register class %r now.&#39; % (self,))</span>
+</div>
+<div class="viewcode-block" id="makeForwardingMetaclass"><a class="viewcode-back" href="../../utool.html#utool.util_class.makeForwardingMetaclass">[docs]</a><span class="k">def</span> <span class="nf">makeForwardingMetaclass</span><span class="p">(</span><span class="n">forwarding_dest_getter</span><span class="p">,</span> <span class="n">whitelist</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    makes a metaclass that overrides __getattr__ and __setattr__ to forward some</span>
+<span class="sd">    specific attribute references to a specified instance variable</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">class</span> <span class="nc">ForwardingMetaclass</span><span class="p">(</span><span class="n">base_class</span><span class="o">.</span><span class="n">__class__</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
+            <span class="c"># print(&#39;ForwardingMetaclass.__init__():</span>
+            <span class="c">#  {forwarding_dest_getter: %r; whitelist: %r}&#39; % (forwarding_dest_getter, whitelist))</span>
+            <span class="nb">super</span><span class="p">(</span><span class="n">ForwardingMetaclass</span><span class="p">,</span> <span class="n">metaself</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
+            <span class="n">old_getattr</span> <span class="o">=</span> <span class="n">metaself</span><span class="o">.</span><span class="n">__getattribute__</span>
+            <span class="n">old_setattr</span> <span class="o">=</span> <span class="n">metaself</span><span class="o">.</span><span class="n">__setattr__</span>
+            <span class="k">def</span> <span class="nf">new_getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">whitelist</span><span class="p">:</span>
+                    <span class="c">#dest = old_getattr(self, forwarding_dest_name)</span>
+                    <span class="n">dest</span> <span class="o">=</span> <span class="n">forwarding_dest_getter</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">val</span> <span class="o">=</span> <span class="n">dest</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__getattribute__</span><span class="p">(</span><span class="n">dest</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                        <span class="n">val</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">dest</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">val</span> <span class="o">=</span> <span class="n">old_getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">val</span>
+            <span class="k">def</span> <span class="nf">new_setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">whitelist</span><span class="p">:</span>
+                    <span class="c">#dest = old_getattr(self, forwarding_dest_name)</span>
+                    <span class="n">dest</span> <span class="o">=</span> <span class="n">forwarding_dest_getter</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+                    <span class="n">dest</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__setattr__</span><span class="p">(</span><span class="n">dest</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">old_setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+            <span class="n">metaself</span><span class="o">.</span><span class="n">__getattribute__</span> <span class="o">=</span> <span class="n">new_getattr</span>
+            <span class="n">metaself</span><span class="o">.</span><span class="n">__setattr__</span> <span class="o">=</span> <span class="n">new_setattr</span>
+    <span class="k">return</span> <span class="n">ForwardingMetaclass</span>
+
+</div>
+<div class="viewcode-block" id="ReloadingMetaclass"><a class="viewcode-back" href="../../utool.html#utool.util_class.ReloadingMetaclass">[docs]</a><span class="k">class</span> <span class="nc">ReloadingMetaclass</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ReloadingMetaclass</span><span class="p">,</span> <span class="n">metaself</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">rrr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="n">classname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">modname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__module__</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;reloading &#39;</span> <span class="o">+</span> <span class="n">classname</span> <span class="o">+</span> <span class="s">&#39; from &#39;</span> <span class="o">+</span> <span class="n">modname</span><span class="p">)</span>
+                <span class="n">module</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">modname</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">modname</span> <span class="o">!=</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+                    <span class="n">module</span><span class="o">.</span><span class="n">rrr</span><span class="p">()</span>
+                <span class="n">class_</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">classname</span><span class="p">)</span>
+                <span class="n">reload_class_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">utool</span>
+                <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span>
+                    <span class="s">&#39;modname&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;module&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;class_&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;self&#39;</span><span class="p">,</span> <span class="p">])</span>
+                <span class="k">raise</span>
+        <span class="n">metaself</span><span class="o">.</span><span class="n">rrr</span> <span class="o">=</span> <span class="n">rrr</span>
+
+</div>
+<div class="viewcode-block" id="get_comparison_methods"><a class="viewcode-back" href="../../utool.html#utool.util_class.get_comparison_methods">[docs]</a><span class="k">def</span> <span class="nf">get_comparison_methods</span><span class="p">():</span>
+    <span class="n">method_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">def</span> <span class="nf">_register</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="n">method_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">func</span>
+
+    <span class="c"># Comparison operators for sorting and uniqueness</span>
+    <span class="nd">@_register</span>
+    <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hash__</span><span class="p">()</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">__hash__</span><span class="p">())</span>
+
+    <span class="nd">@_register</span>
+    <span class="k">def</span> <span class="nf">__le__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hash__</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">__hash__</span><span class="p">())</span>
+
+    <span class="nd">@_register</span>
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hash__</span><span class="p">()</span> <span class="o">==</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">__hash__</span><span class="p">())</span>
+
+    <span class="nd">@_register</span>
+    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hash__</span><span class="p">()</span> <span class="o">!=</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">__hash__</span><span class="p">())</span>
+
+    <span class="nd">@_register</span>
+    <span class="k">def</span> <span class="nf">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hash__</span><span class="p">()</span> <span class="o">&gt;</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">__hash__</span><span class="p">())</span>
+
+    <span class="nd">@_register</span>
+    <span class="k">def</span> <span class="nf">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hash__</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">__hash__</span><span class="p">())</span>
+
+    <span class="k">return</span> <span class="n">method_list</span>
+
+</div>
+<div class="viewcode-block" id="reload_class_methods"><a class="viewcode-back" href="../../utool.html#utool.util_class.reload_class_methods">[docs]</a><span class="k">def</span> <span class="nf">reload_class_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    reloads all class methods</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span> <span class="o">=</span> <span class="n">class_</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">class_</span><span class="p">):</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">class_</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">MethodType</span><span class="p">):</span>
+            <span class="n">inject_func_as_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">class_</span><span class="o">=</span><span class="n">class_</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" >utool</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

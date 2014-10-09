@@ -1,0 +1,1007 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>utool.util_dbg &mdash; utool 1.0.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html" />
+    <link rel="up" title="utool" href="../utool.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" accesskey="U">utool</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for utool.util_dbg</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="c">#import six</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span>
+<span class="kn">import</span> <span class="nn">fnmatch</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">pass</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">shelve</span>
+<span class="kn">import</span> <span class="nn">textwrap</span>
+<span class="kn">import</span> <span class="nn">keyword</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">split</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_inject</span>
+<span class="kn">from</span> <span class="nn">.util_arg</span> <span class="kn">import</span> <span class="n">get_argflag</span><span class="p">,</span> <span class="n">SUPER_STRICT</span>
+<span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="kn">from</span> <span class="nn">.util_list</span> <span class="kn">import</span> <span class="n">list_allsame</span>
+<span class="kn">from</span> <span class="nn">.util_print</span> <span class="kn">import</span> <span class="n">Indenter</span>
+<span class="kn">from</span> <span class="nn">.util_str</span> <span class="kn">import</span> <span class="n">pack_into</span><span class="p">,</span> <span class="n">truncate_str</span><span class="p">,</span> <span class="n">horiz_string</span><span class="p">,</span> <span class="n">indent</span>
+<span class="kn">from</span> <span class="nn">.util_type</span> <span class="kn">import</span> <span class="n">is_listlike</span><span class="p">,</span> <span class="n">get_type</span>
+<span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[dbg]&#39;</span><span class="p">)</span>
+
+<span class="c"># --- Exec Strings ---</span>
+<span class="n">IPYTHON_EMBED_STR</span> <span class="o">=</span> <span class="s">r&#39;&#39;&#39;</span>
+<span class="s">try:</span>
+<span class="s">    import IPython</span>
+<span class="s">    print(&#39;Presenting in new ipython shell.&#39;)</span>
+<span class="s">    embedded = True</span>
+<span class="s">    IPython.embed()</span>
+<span class="s">except Exception as ex:</span>
+<span class="s">    warnings.warn(repr(ex)+&#39;\n!!!!!!!!&#39;)</span>
+<span class="s">    embedded = False</span>
+<span class="s">&#39;&#39;&#39;</span>
+
+
+<div class="viewcode-block" id="execstr_embed"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.execstr_embed">[docs]</a><span class="k">def</span> <span class="nf">execstr_embed</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">IPYTHON_EMBED_STR</span>
+
+</div>
+<div class="viewcode-block" id="ipython_execstr2"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.ipython_execstr2">[docs]</a><span class="k">def</span> <span class="nf">ipython_execstr2</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="s">r&#39;&#39;&#39;</span>
+<span class="s">    import sys</span>
+<span class="s">    embedded = False</span>
+<span class="s">    try:</span>
+<span class="s">        __IPYTHON__</span>
+<span class="s">        in_ipython = True</span>
+<span class="s">    except NameError:</span>
+<span class="s">        in_ipython = False</span>
+<span class="s">    try:</span>
+<span class="s">        import IPython</span>
+<span class="s">        have_ipython = True</span>
+<span class="s">    except NameError:</span>
+<span class="s">        have_ipython = False</span>
+<span class="s">    if in_ipython:</span>
+<span class="s">        print(&#39;Presenting in current ipython shell.&#39;)</span>
+<span class="s">    elif &#39;--cmd&#39; in sys.argv:</span>
+<span class="s">        print(&#39;[utool.dbg] Requested IPython shell with --cmd argument.&#39;)</span>
+<span class="s">        if have_ipython:</span>
+<span class="s">            print(&#39;[utool.dbg] Found IPython&#39;)</span>
+<span class="s">            try:</span>
+<span class="s">                import IPython</span>
+<span class="s">                print(&#39;[utool.dbg] Presenting in new ipython shell.&#39;)</span>
+<span class="s">                embedded = True</span>
+<span class="s">                IPython.embed()</span>
+<span class="s">            except Exception as ex:</span>
+<span class="s">                print(repr(ex)+&#39;\n!!!!!!!!&#39;)</span>
+<span class="s">                embedded = False</span>
+<span class="s">        else:</span>
+<span class="s">            print(&#39;[utool.dbg] IPython is not installed&#39;)</span>
+<span class="s">    &#39;&#39;&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="ipython_execstr"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.ipython_execstr">[docs]</a><span class="k">def</span> <span class="nf">ipython_execstr</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="s">r&#39;&#39;&#39;</span>
+<span class="s">    import sys</span>
+<span class="s">    embedded = False</span>
+<span class="s">    if &#39;-w&#39; in sys.argv or &#39;--wait&#39; in sys.argv:</span>
+<span class="s">        print(&#39;waiting&#39;)</span>
+<span class="s">        in_ = raw_input(&#39;press enter&#39;)</span>
+<span class="s">    if &#39;--cmd&#39; in sys.argv or locals().get(&#39;in_&#39;, &#39;&#39;) == &#39;cmd&#39;:</span>
+<span class="s">        print(&#39;[utool.dbg] Requested IPython shell with --cmd argument.&#39;)</span>
+<span class="s">        try:</span>
+<span class="s">            __IPYTHON__</span>
+<span class="s">            print(&#39;[ipython_execstr] Already in IPython!&#39;)</span>
+<span class="s">        except NameError:</span>
+<span class="s">            try:</span>
+<span class="s">                import IPython</span>
+<span class="s">                print(&#39;[utool.dbg] Presenting in new ipython shell.&#39;)</span>
+<span class="s">                embedded = True</span>
+<span class="s">                IPython.embed()</span>
+<span class="s">            except Exception as ex:</span>
+<span class="s">                print(&#39;[ipython_execstr]: Error: &#39; + str(type(ex)) + str(ex))</span>
+<span class="s">                raise</span>
+<span class="s">    &#39;&#39;&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="execstr_parent_locals"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.execstr_parent_locals">[docs]</a><span class="k">def</span> <span class="nf">execstr_parent_locals</span><span class="p">():</span>
+    <span class="n">parent_locals</span> <span class="o">=</span> <span class="n">get_parent_locals</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">execstr_dict</span><span class="p">(</span><span class="n">parent_locals</span><span class="p">,</span> <span class="s">&#39;parent_locals&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="execstr_attr_list"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.execstr_attr_list">[docs]</a><span class="k">def</span> <span class="nf">execstr_attr_list</span><span class="p">(</span><span class="n">obj_name</span><span class="p">,</span> <span class="n">attr_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="c">#if attr_list is None:</span>
+        <span class="c">#exec(execstr_parent_locals())</span>
+        <span class="c">#exec(&#39;attr_list = dir(&#39;+obj_name+&#39;)&#39;)</span>
+    <span class="n">execstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">obj_name</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="n">attr</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">attr_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">execstr_list</span>
+
+</div>
+<span class="n">varname_regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;[_A-Za-z][_a-zA-Z0-9]*$&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="is_valid_varname"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.is_valid_varname">[docs]</a><span class="k">def</span> <span class="nf">is_valid_varname</span><span class="p">(</span><span class="n">varname</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Checks syntax and validity of a variable name &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">varname</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">False</span>
+    <span class="n">match_obj</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">varname_regex</span><span class="p">,</span> <span class="n">varname</span><span class="p">)</span>
+    <span class="n">valid_syntax</span> <span class="o">=</span> <span class="n">match_obj</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+    <span class="n">valid_name</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">keyword</span><span class="o">.</span><span class="n">iskeyword</span><span class="p">(</span><span class="n">varname</span><span class="p">)</span>
+    <span class="n">isvalid</span> <span class="o">=</span> <span class="n">valid_syntax</span> <span class="ow">and</span> <span class="n">valid_name</span>
+    <span class="k">return</span> <span class="n">isvalid</span>
+
+</div>
+<div class="viewcode-block" id="execstr_dict"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.execstr_dict">[docs]</a><span class="k">def</span> <span class="nf">execstr_dict</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">local_name</span><span class="p">,</span> <span class="n">exclude_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; returns execable python code that declares variables using keys and values &quot;&quot;&quot;</span>
+    <span class="c">#if local_name is None:</span>
+    <span class="c">#    local_name = dict_</span>
+    <span class="c">#    exec(execstr_parent_locals())</span>
+    <span class="c">#    exec(&#39;dict_ = local_name&#39;)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c">#if exclude_list is None:</span>
+        <span class="c">#    execstr = &#39;\n&#39;.join((key + &#39; = &#39; + local_name + &#39;[&#39; + repr(key) + &#39;]&#39;</span>
+        <span class="c">#                        for (key, val) in dict_.items()))</span>
+        <span class="c">#else:</span>
+        <span class="k">if</span> <span class="n">exclude_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">exclude_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exclude_list</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+        <span class="n">exclude_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">local_name</span><span class="p">)</span>
+        <span class="n">expr_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="nb">dict</span><span class="p">),</span> <span class="s">&#39;incorrect type type(dict_)=</span><span class="si">%r</span><span class="s">, dict_=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="nb">dict</span><span class="p">),</span> <span class="n">dict_</span><span class="p">)</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="n">dict_</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="s">&#39;keys must be strings&#39;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_valid_varname</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">((</span><span class="n">fnmatch</span><span class="o">.</span><span class="n">fnmatch</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">pat</span><span class="p">)</span> <span class="k">for</span> <span class="n">pat</span> <span class="ow">in</span> <span class="n">exclude_list</span><span class="p">)):</span>
+                <span class="n">expr</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> = </span><span class="si">%s</span><span class="s">[</span><span class="si">%r</span><span class="s">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">local_name</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+                <span class="n">expr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+        <span class="n">execstr</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">expr_list</span><span class="p">)</span>
+        <span class="c">#print(execstr)</span>
+        <span class="k">return</span> <span class="n">execstr</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">utool</span>
+        <span class="n">locals_</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;locals_&#39;</span><span class="p">]))</span>
+        <span class="k">raise</span>
+
+</div>
+<div class="viewcode-block" id="execstr_func"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.execstr_func">[docs]</a><span class="k">def</span> <span class="nf">execstr_func</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; ! Getting executable source for: &#39;</span> <span class="o">+</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
+    <span class="n">_src</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getsource</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="n">execstr</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="n">_src</span><span class="p">[</span><span class="n">_src</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:])</span>
+    <span class="c"># Remove return statments</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">stmtx</span> <span class="o">=</span> <span class="n">execstr</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;return&#39;</span><span class="p">)</span>  <span class="c"># Find first &#39;return&#39;</span>
+        <span class="k">if</span> <span class="n">stmtx</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">break</span>  <span class="c"># Fail condition</span>
+        <span class="c"># The characters which might make a return not have its own line</span>
+        <span class="n">stmt_endx</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">execstr</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">stmt_break</span> <span class="ow">in</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">;&#39;</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">execstr</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">stmtx</span><span class="p">)</span>
+            <span class="n">stmt_endx_new</span> <span class="o">=</span> <span class="n">execstr</span><span class="p">[</span><span class="n">stmtx</span><span class="p">:]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">stmt_break</span><span class="p">)</span>
+            <span class="k">if</span> <span class="o">-</span><span class="mi">1</span> <span class="o">&lt;</span> <span class="n">stmt_endx_new</span> <span class="o">&lt;</span> <span class="n">stmt_endx</span><span class="p">:</span>
+                <span class="n">stmt_endx</span> <span class="o">=</span> <span class="n">stmt_endx_new</span>
+        <span class="c"># now have variables stmt_x, stmt_endx</span>
+        <span class="n">before</span> <span class="o">=</span> <span class="n">execstr</span><span class="p">[:</span><span class="n">stmtx</span><span class="p">]</span>
+        <span class="n">after</span>  <span class="o">=</span> <span class="n">execstr</span><span class="p">[</span><span class="n">stmt_endx</span><span class="p">:]</span>
+        <span class="n">execstr</span> <span class="o">=</span> <span class="n">before</span> <span class="o">+</span> <span class="n">after</span>
+    <span class="k">return</span> <span class="n">execstr</span>
+
+</div>
+<div class="viewcode-block" id="execstr_src"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.execstr_src">[docs]</a><span class="k">def</span> <span class="nf">execstr_src</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">execstr_func</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="save_testdata"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.save_testdata">[docs]</a><span class="k">def</span> <span class="nf">save_testdata</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">uid</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;uid&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">shelf_fname</span> <span class="o">=</span> <span class="s">&#39;test_data_</span><span class="si">%s</span><span class="s">.shelf&#39;</span> <span class="o">%</span> <span class="n">uid</span>
+    <span class="n">shelf</span> <span class="o">=</span> <span class="n">shelve</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">shelf_fname</span><span class="p">)</span>
+    <span class="n">locals_</span> <span class="o">=</span> <span class="n">get_parent_locals</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;save_testdata(</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+        <span class="n">shelf</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">locals_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="n">shelf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="load_testdata"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.load_testdata">[docs]</a><span class="k">def</span> <span class="nf">load_testdata</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">uid</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;uid&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">shelf_fname</span> <span class="o">=</span> <span class="s">&#39;test_data_</span><span class="si">%s</span><span class="s">.shelf&#39;</span> <span class="o">%</span> <span class="n">uid</span>
+    <span class="n">shelf</span> <span class="o">=</span> <span class="n">shelve</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">shelf_fname</span><span class="p">)</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="p">[</span><span class="n">shelf</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span>
+    <span class="n">shelf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">ret</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;load_testdata(</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
+    <span class="k">return</span> <span class="n">ret</span>
+
+</div>
+<div class="viewcode-block" id="import_testdata"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.import_testdata">[docs]</a><span class="k">def</span> <span class="nf">import_testdata</span><span class="p">():</span>
+    <span class="n">shelf</span> <span class="o">=</span> <span class="n">shelve</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&#39;test_data.shelf&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;importing</span><span class="se">\n</span><span class="s"> * &#39;</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s"> * &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">shelf</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+    <span class="n">shelf_exec</span> <span class="o">=</span> <span class="n">execstr_dict</span><span class="p">(</span><span class="n">shelf</span><span class="p">,</span> <span class="s">&#39;shelf&#39;</span><span class="p">)</span>
+    <span class="k">exec</span><span class="p">(</span><span class="n">shelf_exec</span><span class="p">)</span>
+    <span class="n">shelf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">import_testdata</span><span class="o">.</span><span class="n">func_code</span><span class="o">.</span><span class="n">co_code</span>
+
+</div>
+<div class="viewcode-block" id="embed"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.embed">[docs]</a><span class="k">def</span> <span class="nf">embed</span><span class="p">(</span><span class="n">parent_locals</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parent_globals</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exec_lines</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+          <span class="n">remove_pyqt_hook</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Starts interactive session. Similar to keyboard command in matlab.</span>
+<span class="sd">    Wrapper around IPython.embed</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">parent_globals</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">parent_globals</span> <span class="o">=</span> <span class="n">get_parent_globals</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c"># not sure why N=1 works over N=0 here only for globals</span>
+        <span class="n">parent_globals1</span> <span class="o">=</span> <span class="n">get_parent_globals</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">exec</span><span class="p">(</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">parent_globals1</span><span class="p">,</span> <span class="s">&#39;parent_globals1&#39;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">parent_locals</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">parent_locals</span> <span class="o">=</span> <span class="n">get_parent_locals</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">exec</span><span class="p">(</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">parent_globals</span><span class="p">,</span> <span class="s">&#39;parent_globals&#39;</span><span class="p">))</span>
+    <span class="k">exec</span><span class="p">(</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">parent_locals</span><span class="p">,</span>  <span class="s">&#39;parent_locals&#39;</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util] embedding&#39;</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">IPython</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">remove_pyqt_hook</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">guitool</span>
+                <span class="n">guitool</span><span class="o">.</span><span class="n">remove_pyqt_input_hook</span><span class="p">()</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="c">#print(ex)</span>
+                <span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="k">pass</span>
+            <span class="c"># make qt not loop forever (I had qflag loop forever with this off)</span>
+    <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+    <span class="n">config_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c">#if exec_lines is not None:</span>
+    <span class="c">#    config_dict[&#39;exec_lines&#39;] = exec_lines</span>
+    <span class="n">IPython</span><span class="o">.</span><span class="n">embed</span><span class="p">(</span><span class="o">**</span><span class="n">config_dict</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="quitflag"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.quitflag">[docs]</a><span class="k">def</span> <span class="nf">quitflag</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">embed_</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">parent_locals</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parent_globals</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">num</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--quit&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">num</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">parent_locals</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">parent_locals</span> <span class="o">=</span> <span class="n">get_parent_locals</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">parent_globals</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">parent_globals</span> <span class="o">=</span> <span class="n">get_parent_globals</span><span class="p">()</span>
+        <span class="k">exec</span><span class="p">(</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">parent_locals</span><span class="p">,</span> <span class="s">&#39;parent_locals&#39;</span><span class="p">))</span>
+        <span class="k">exec</span><span class="p">(</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">parent_globals</span><span class="p">,</span> <span class="s">&#39;parent_globals&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">embed_</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Triggered --quit&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">num</span><span class="p">))</span>
+            <span class="n">embed</span><span class="p">(</span><span class="n">parent_locals</span><span class="o">=</span><span class="n">parent_locals</span><span class="p">,</span>
+                  <span class="n">parent_globals</span><span class="o">=</span><span class="n">parent_globals</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Triggered --quit&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">num</span><span class="p">))</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="qflag"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.qflag">[docs]</a><span class="k">def</span> <span class="nf">qflag</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">embed_</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">quitflag</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">embed_</span><span class="o">=</span><span class="n">embed_</span><span class="p">,</span>
+                    <span class="n">parent_locals</span><span class="o">=</span><span class="n">get_parent_locals</span><span class="p">(),</span>
+                    <span class="n">parent_globals</span><span class="o">=</span><span class="n">get_parent_globals</span><span class="p">())</span>
+
+</div>
+<div class="viewcode-block" id="quit"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.quit">[docs]</a><span class="k">def</span> <span class="nf">quit</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">embed_</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">quitflag</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">embed_</span><span class="o">=</span><span class="n">embed_</span><span class="p">,</span>
+                    <span class="n">parent_locals</span><span class="o">=</span><span class="n">get_parent_locals</span><span class="p">(),</span>
+                    <span class="n">parent_globals</span><span class="o">=</span><span class="n">get_parent_globals</span><span class="p">())</span>
+
+</div>
+<div class="viewcode-block" id="inIPython"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.inIPython">[docs]</a><span class="k">def</span> <span class="nf">inIPython</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Tests if running in IPython</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">__IPYTHON__</span>
+        <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+</div>
+<div class="viewcode-block" id="haveIPython"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.haveIPython">[docs]</a><span class="k">def</span> <span class="nf">haveIPython</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Tests if IPython is available</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">IPython</span>  <span class="c"># NOQA</span>
+        <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+</div>
+<div class="viewcode-block" id="print_frame"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.print_frame">[docs]</a><span class="k">def</span> <span class="nf">print_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">):</span>
+    <span class="n">frame</span> <span class="o">=</span> <span class="n">frame</span> <span class="k">if</span> <span class="s">&#39;frame&#39;</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">()</span> <span class="k">else</span> <span class="n">inspect</span><span class="o">.</span><span class="n">currentframe</span><span class="p">()</span>
+    <span class="n">attr_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;f_code.co_name&#39;</span><span class="p">,</span> <span class="s">&#39;f_back&#39;</span><span class="p">,</span> <span class="s">&#39;f_lineno&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;f_code.co_names&#39;</span><span class="p">,</span> <span class="s">&#39;f_code.co_filename&#39;</span><span class="p">]</span>
+    <span class="n">obj_name</span> <span class="o">=</span> <span class="s">&#39;frame&#39;</span>
+    <span class="n">execstr_print_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;print(&quot;</span><span class="si">%r</span><span class="s">=</span><span class="si">%%</span><span class="s">r&quot; </span><span class="si">%%</span><span class="s"> (</span><span class="si">%s</span><span class="s">,))&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_execstr</span><span class="p">,</span> <span class="n">_execstr</span><span class="p">)</span>
+                          <span class="k">for</span> <span class="n">_execstr</span> <span class="ow">in</span> <span class="n">execstr_attr_list</span><span class="p">(</span><span class="n">obj_name</span><span class="p">,</span> <span class="n">attr_list</span><span class="p">)]</span>
+    <span class="n">execstr</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">execstr_print_list</span><span class="p">)</span>
+    <span class="k">exec</span><span class="p">(</span><span class="n">execstr</span><span class="p">)</span>
+    <span class="n">local_varnames</span> <span class="o">=</span> <span class="n">pack_into</span><span class="p">(</span><span class="s">&#39;; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">f_locals</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">local_varnames</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;--- End Frame ---&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="search_stack_for_localvar"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.search_stack_for_localvar">[docs]</a><span class="k">def</span> <span class="nf">search_stack_for_localvar</span><span class="p">(</span><span class="n">varname</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Finds a local varable named &lt;varname&gt; somewhere in the stack.</span>
+<span class="sd">    Returns the value.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">curr_frame</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">currentframe</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * Searching parent frames for: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">varname</span><span class="p">))</span>
+    <span class="n">frame_no</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">curr_frame</span><span class="o">.</span><span class="n">f_back</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">varname</span> <span class="ow">in</span> <span class="n">curr_frame</span><span class="o">.</span><span class="n">f_locals</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39; * Found in frame: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">frame_no</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">curr_frame</span><span class="o">.</span><span class="n">f_locals</span><span class="p">[</span><span class="n">varname</span><span class="p">]</span>
+        <span class="n">frame_no</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">curr_frame</span> <span class="o">=</span> <span class="n">curr_frame</span><span class="o">.</span><span class="n">f_back</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;... Found nothing in all &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">frame_no</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; frames.&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">None</span>
+
+</div>
+<div class="viewcode-block" id="search_stack_for_var"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.search_stack_for_var">[docs]</a><span class="k">def</span> <span class="nf">search_stack_for_var</span><span class="p">(</span><span class="n">varname</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Finds a varable named &lt;varname&gt; somewhere in the stack.</span>
+<span class="sd">    Returns the value.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">curr_frame</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">currentframe</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * Searching parent frames for: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">varname</span><span class="p">))</span>
+    <span class="n">frame_no</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">curr_frame</span><span class="o">.</span><span class="n">f_back</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">varname</span> <span class="ow">in</span> <span class="n">curr_frame</span><span class="o">.</span><span class="n">f_locals</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39; * Found local in frame: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">frame_no</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">curr_frame</span><span class="o">.</span><span class="n">f_locals</span><span class="p">[</span><span class="n">varname</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">varname</span> <span class="ow">in</span> <span class="n">curr_frame</span><span class="o">.</span><span class="n">f_globals</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39; * Found global in frame: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">frame_no</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">curr_frame</span><span class="o">.</span><span class="n">f_globals</span><span class="p">[</span><span class="n">varname</span><span class="p">]</span>
+        <span class="n">frame_no</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">curr_frame</span> <span class="o">=</span> <span class="n">curr_frame</span><span class="o">.</span><span class="n">f_back</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;... Found nothing in all &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">frame_no</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; frames.&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">None</span>
+
+<span class="c"># Alias</span></div>
+<span class="n">get_var_from_stack</span> <span class="o">=</span> <span class="n">search_stack_for_var</span>
+<span class="n">get_localvar_from_stack</span> <span class="o">=</span> <span class="n">search_stack_for_localvar</span>
+
+
+<div class="viewcode-block" id="get_stack_frame"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.get_stack_frame">[docs]</a><span class="k">def</span> <span class="nf">get_stack_frame</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="n">frame_level0</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">currentframe</span><span class="p">()</span>
+    <span class="n">frame_cur</span> <span class="o">=</span> <span class="n">frame_level0</span>
+    <span class="k">for</span> <span class="n">_ix</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">frame_next</span> <span class="o">=</span> <span class="n">frame_cur</span><span class="o">.</span><span class="n">f_back</span>
+        <span class="k">if</span> <span class="n">frame_next</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;Frame level </span><span class="si">%r</span><span class="s"> is root&#39;</span> <span class="o">%</span> <span class="n">_ix</span><span class="p">)</span>
+        <span class="n">frame_cur</span> <span class="o">=</span> <span class="n">frame_next</span>
+    <span class="k">return</span> <span class="n">frame_cur</span>
+
+</div>
+<div class="viewcode-block" id="get_parent_frame"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.get_parent_frame">[docs]</a><span class="k">def</span> <span class="nf">get_parent_frame</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="n">parent_frame</span> <span class="o">=</span> <span class="n">get_stack_frame</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="n">N</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">parent_frame</span>
+
+</div>
+<div class="viewcode-block" id="get_parent_locals"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.get_parent_locals">[docs]</a><span class="k">def</span> <span class="nf">get_parent_locals</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; returns the locals of the function that called you &quot;&quot;&quot;</span>
+    <span class="n">parent_frame</span> <span class="o">=</span> <span class="n">get_parent_frame</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">parent_frame</span><span class="o">.</span><span class="n">f_locals</span>
+
+</div>
+<div class="viewcode-block" id="get_parent_globals"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.get_parent_globals">[docs]</a><span class="k">def</span> <span class="nf">get_parent_globals</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="n">parent_frame</span> <span class="o">=</span> <span class="n">get_stack_frame</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">parent_frame</span><span class="o">.</span><span class="n">f_globals</span>
+
+</div>
+<div class="viewcode-block" id="get_caller_locals"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.get_caller_locals">[docs]</a><span class="k">def</span> <span class="nf">get_caller_locals</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; returns the locals of the function that called you &quot;&quot;&quot;</span>
+    <span class="n">locals_</span> <span class="o">=</span> <span class="n">get_parent_locals</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">locals_</span>
+
+</div>
+<div class="viewcode-block" id="quasiquote"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.quasiquote">[docs]</a><span class="k">def</span> <span class="nf">quasiquote</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">string</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">get_caller_locals</span><span class="p">())</span>
+
+</div>
+<span class="n">fmtlocals</span> <span class="o">=</span> <span class="n">quasiquote</span>  <span class="c"># non-lispy alias for quasiquote</span>
+
+
+<div class="viewcode-block" id="get_caller_prefix"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.get_caller_prefix">[docs]</a><span class="k">def</span> <span class="nf">get_caller_prefix</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">aserror</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="n">prefix_fmt</span> <span class="o">=</span> <span class="s">&#39;[!</span><span class="si">%s</span><span class="s">]&#39;</span> <span class="k">if</span> <span class="n">aserror</span> <span class="k">else</span> <span class="s">&#39;[</span><span class="si">%s</span><span class="s">]&#39;</span>
+    <span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix_fmt</span> <span class="o">%</span> <span class="p">(</span><span class="n">get_caller_name</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),)</span>
+    <span class="k">return</span> <span class="n">prefix</span>
+
+</div>
+<div class="viewcode-block" id="get_caller_name"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.get_caller_name">[docs]</a><span class="k">def</span> <span class="nf">get_caller_name</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; returns the name of the function that called you &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+        <span class="n">name_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">N_</span> <span class="ow">in</span> <span class="n">N</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">name_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_caller_name</span><span class="p">(</span><span class="n">N_</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
+                <span class="n">name_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;X&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s">&#39;[&#39;</span> <span class="o">+</span> <span class="s">&#39;][&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">name_list</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;]&#39;</span>
+    <span class="n">parent_frame</span> <span class="o">=</span> <span class="n">get_parent_frame</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">caller_name</span> <span class="o">=</span> <span class="n">parent_frame</span><span class="o">.</span><span class="n">f_code</span><span class="o">.</span><span class="n">co_name</span>
+    <span class="c">#try:</span>
+    <span class="c">#    if &#39;func&#39; in  parent_frame.f_locals:</span>
+    <span class="c">#        caller_name += &#39;(&#39; + get_funcname(parent_frame.f_locals[&#39;func&#39;]) + &#39;)&#39;</span>
+    <span class="c">#except Exception:</span>
+    <span class="c">#    pass</span>
+    <span class="k">if</span> <span class="n">caller_name</span> <span class="o">==</span> <span class="s">&#39;&lt;module&gt;&#39;</span><span class="p">:</span>
+        <span class="n">co_filename</span> <span class="o">=</span> <span class="n">parent_frame</span><span class="o">.</span><span class="n">f_code</span><span class="o">.</span><span class="n">co_filename</span>
+        <span class="n">caller_name</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">split</span><span class="p">(</span><span class="n">co_filename</span><span class="p">)[</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">caller_name</span>
+
+</div>
+<div class="viewcode-block" id="module_functions"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.module_functions">[docs]</a><span class="k">def</span> <span class="nf">module_functions</span><span class="p">(</span><span class="n">module</span><span class="p">):</span>
+    <span class="n">module_members</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmembers</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+    <span class="n">function_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">module_members</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isfunction</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="ow">and</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmodule</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="n">module</span><span class="p">:</span>
+            <span class="n">function_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">function_list</span>
+
+</div>
+<div class="viewcode-block" id="public_attributes"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.public_attributes">[docs]</a><span class="k">def</span> <span class="nf">public_attributes</span><span class="p">(</span><span class="nb">input</span><span class="p">):</span>
+    <span class="n">public_attr_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">all_attr_list</span> <span class="o">=</span> <span class="nb">dir</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">all_attr_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">attr</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;__&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">public_attr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">public_attr_list</span>
+
+</div>
+<div class="viewcode-block" id="explore_stack"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.explore_stack">[docs]</a><span class="k">def</span> <span class="nf">explore_stack</span><span class="p">():</span>
+    <span class="n">stack</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">stack</span><span class="p">()</span>
+    <span class="n">tup</span> <span class="o">=</span> <span class="n">stack</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">ix</span><span class="p">,</span> <span class="n">tup</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">stack</span><span class="p">))):</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;--- Frame </span><span class="si">%2d</span><span class="s">: ---&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ix</span><span class="p">))</span>
+        <span class="n">print_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="c">#next_frame = curr_frame.f_back</span>
+
+</div>
+<div class="viewcode-block" id="explore_module"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.explore_module">[docs]</a><span class="k">def</span> <span class="nf">explore_module</span><span class="p">(</span><span class="n">module_</span><span class="p">,</span> <span class="n">seen</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">maxdepth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nonmodules</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__childiter</span><span class="p">(</span><span class="n">module</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">aname</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="nb">dir</span><span class="p">(</span><span class="n">module</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">aname</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">module</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">aname</span><span class="p">],</span> <span class="n">aname</span>
+            <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
+                <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">__explore_module</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">indent</span><span class="p">,</span> <span class="n">seen</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">maxdepth</span><span class="p">,</span> <span class="n">nonmodules</span><span class="p">):</span>
+        <span class="n">valid_children</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="s">u&#39;&#39;</span>
+        <span class="n">modname</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+        <span class="c">#modname = repr(module)</span>
+        <span class="k">for</span> <span class="n">child</span><span class="p">,</span> <span class="n">aname</span> <span class="ow">in</span> <span class="n">__childiter</span><span class="p">(</span><span class="n">module</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">childtype</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">childtype</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">nonmodules</span><span class="p">:</span>
+                        <span class="c">#print_(depth)</span>
+                        <span class="n">fullstr</span> <span class="o">=</span> <span class="n">indent</span> <span class="o">+</span> <span class="s">&#39;    &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">aname</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; = &#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+                        <span class="n">truncstr</span> <span class="o">=</span> <span class="n">truncate_str</span><span class="p">(</span><span class="n">fullstr</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+                        <span class="n">ret</span> <span class="o">+=</span>  <span class="n">truncstr</span>
+                    <span class="k">continue</span>
+                <span class="n">childname</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">seen</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">childname</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="k">elif</span> <span class="n">maxdepth</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">childname</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">childname</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">valid_children</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
+                <span class="k">pass</span>
+        <span class="c"># Print</span>
+        <span class="c"># print_(depth)</span>
+        <span class="n">ret</span> <span class="o">+=</span> <span class="n">indent</span> <span class="o">+</span> <span class="n">modname</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="c"># Recurse</span>
+        <span class="k">if</span> <span class="n">maxdepth</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">depth</span> <span class="o">&gt;=</span> <span class="n">maxdepth</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ret</span>
+        <span class="n">ret</span> <span class="o">+=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">__explore_module</span><span class="p">(</span><span class="n">child</span><span class="p">,</span>
+                                         <span class="n">indent</span> <span class="o">+</span> <span class="s">&#39;    &#39;</span><span class="p">,</span>
+                                         <span class="n">seen</span><span class="p">,</span> <span class="n">depth</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                                         <span class="n">maxdepth</span><span class="p">,</span>
+                                         <span class="n">nonmodules</span><span class="p">)</span>
+                       <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">valid_children</span><span class="p">)])</span>
+        <span class="k">return</span> <span class="n">ret</span>
+    <span class="c">#ret +=</span>
+    <span class="c">#print(&#39;#module = &#39; + str(module_))</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="n">__explore_module</span><span class="p">(</span><span class="n">module_</span><span class="p">,</span> <span class="s">&#39;     &#39;</span><span class="p">,</span> <span class="n">seen</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">maxdepth</span><span class="p">,</span> <span class="n">nonmodules</span><span class="p">)</span>
+    <span class="c">#print(ret)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">ret</span>
+
+</div>
+<div class="viewcode-block" id="debug_npstack"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.debug_npstack">[docs]</a><span class="k">def</span> <span class="nf">debug_npstack</span><span class="p">(</span><span class="n">stacktup</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Debugging numpy [hv]stack:&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;len(stacktup) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">stacktup</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">stacktup</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39; * item[</span><span class="si">%d</span><span class="s">].shape = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39; * len(item[</span><span class="si">%d</span><span class="s">]) = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">item</span><span class="p">)))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39; * DEBUG LIST&#39;</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">Indenter</span><span class="p">(</span><span class="s">&#39; * &#39;</span><span class="p">):</span>
+                <span class="n">debug_list</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39; *  type(item[</span><span class="si">%d</span><span class="s">]) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">item</span><span class="p">)))</span>
+
+</div>
+<div class="viewcode-block" id="debug_list"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.debug_list">[docs]</a><span class="k">def</span> <span class="nf">debug_list</span><span class="p">(</span><span class="n">list_</span><span class="p">):</span>
+    <span class="n">dbgmessage</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">append</span> <span class="o">=</span> <span class="n">dbgmessage</span><span class="o">.</span><span class="n">append</span>
+    <span class="n">append</span><span class="p">(</span><span class="s">&#39;debug_list&#39;</span><span class="p">)</span>
+    <span class="n">dim2</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="nb">all</span><span class="p">([</span><span class="n">is_listlike</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">list_</span><span class="p">]):</span>
+        <span class="n">append</span><span class="p">(</span><span class="s">&#39; * list items are all listlike&#39;</span><span class="p">)</span>
+        <span class="n">all_lens</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">list_</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">list_allsame</span><span class="p">(</span><span class="n">all_lens</span><span class="p">):</span>
+            <span class="n">dim2</span> <span class="o">=</span> <span class="n">all_lens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">append</span><span class="p">(</span><span class="s">&#39; * uniform lens=</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">dim2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">append</span><span class="p">(</span><span class="s">&#39; * nonuniform lens = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">all_lens</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">all_types</span> <span class="o">=</span> <span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">list_</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">list_allsame</span><span class="p">(</span><span class="n">all_types</span><span class="p">):</span>
+            <span class="n">append</span><span class="p">(</span><span class="s">&#39; * uniform types=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">all_types</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">append</span><span class="p">(</span><span class="s">&#39; * nonuniform types: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">all_types</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dbgmessage</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">dim2</span>
+
+</div>
+<div class="viewcode-block" id="debug_hstack"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.debug_hstack">[docs]</a><span class="k">def</span> <span class="nf">debug_hstack</span><span class="p">(</span><span class="n">stacktup</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">stacktup</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;ValueError in debug_hstack: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
+        <span class="n">debug_npstack</span><span class="p">(</span><span class="n">stacktup</span><span class="p">)</span>
+        <span class="k">raise</span>
+
+</div>
+<div class="viewcode-block" id="debug_vstack"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.debug_vstack">[docs]</a><span class="k">def</span> <span class="nf">debug_vstack</span><span class="p">(</span><span class="n">stacktup</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">stacktup</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;ValueError in debug_vstack: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
+        <span class="n">debug_npstack</span><span class="p">(</span><span class="n">stacktup</span><span class="p">)</span>
+        <span class="k">raise</span>
+
+</div>
+<div class="viewcode-block" id="debug_exception"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.debug_exception">[docs]</a><span class="k">def</span> <span class="nf">debug_exception</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="nd">@functools.wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">ex_wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[tools] ERROR: </span><span class="si">%s</span><span class="s">(</span><span class="si">%r</span><span class="s">, </span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">),</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[tools] ERROR: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">ex</span><span class="p">)</span>
+            <span class="k">raise</span>
+    <span class="k">return</span> <span class="n">ex_wrapper</span>
+
+</div>
+<div class="viewcode-block" id="printex"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.printex">[docs]</a><span class="k">def</span> <span class="nf">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s">&#39;[!?] Caught exception&#39;</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">locals_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">separate</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">use_stdout</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">reraise</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">msg_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Prints an exception with relevant info</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c"># shorthand for key_list</span>
+        <span class="n">key_list</span> <span class="o">=</span> <span class="n">keys</span>
+    <span class="c"># Get error prefix and local info</span>
+    <span class="k">if</span> <span class="n">prefix</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="n">get_caller_prefix</span><span class="p">(</span><span class="n">aserror</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">locals_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">locals_</span> <span class="o">=</span> <span class="n">get_caller_locals</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
+    <span class="c"># build exception message</span>
+    <span class="k">if</span> <span class="n">msg</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">key_list</span> <span class="o">=</span> <span class="n">get_caller_locals</span><span class="p">()</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">msg_</span>
+    <span class="n">exstr</span> <span class="o">=</span> <span class="n">formatex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">key_list</span><span class="p">,</span> <span class="n">locals_</span><span class="p">,</span> <span class="n">iswarning</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="n">tb</span><span class="p">)</span>
+    <span class="c"># get requested print function</span>
+    <span class="k">if</span> <span class="n">use_stdout</span><span class="p">:</span>
+        <span class="k">def</span> <span class="nf">print_func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">msg</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">print_func</span> <span class="o">=</span> <span class="k">print</span>
+    <span class="k">if</span> <span class="n">separate</span><span class="p">:</span>
+        <span class="n">print_func</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="c"># print the execption</span>
+    <span class="n">print_func</span><span class="p">(</span><span class="n">exstr</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">separate</span><span class="p">:</span>
+        <span class="n">print_func</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="c"># If you dont know where an error is coming from be super-strict</span>
+    <span class="k">if</span> <span class="n">SUPER_STRICT</span> <span class="ow">or</span> <span class="p">(</span><span class="n">reraise</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">iswarning</span><span class="p">):</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="k">raise</span> <span class="n">ex</span>
+
+</div>
+<div class="viewcode-block" id="formatex"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.formatex">[docs]</a><span class="k">def</span> <span class="nf">formatex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s">&#39;[!?] Caught exception&#39;</span><span class="p">,</span>
+             <span class="n">prefix</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">locals_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Formats an exception with relevant info &quot;&quot;&quot;</span>
+    <span class="c"># Get error prefix and local info</span>
+    <span class="k">if</span> <span class="n">prefix</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="n">get_caller_prefix</span><span class="p">(</span><span class="n">aserror</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">locals_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">locals_</span> <span class="o">=</span> <span class="n">get_caller_locals</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
+    <span class="c"># build exception message</span>
+    <span class="n">errstr_list</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># list of exception strings</span>
+    <span class="n">ex_tag</span> <span class="o">=</span> <span class="s">&#39;WARNING&#39;</span> <span class="k">if</span> <span class="n">iswarning</span> <span class="k">else</span> <span class="s">&#39;EXCEPTION&#39;</span>
+    <span class="n">errstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;!!! </span><span class="si">%s</span><span class="s"> !!!&gt;&#39;</span> <span class="o">%</span> <span class="n">ex_tag</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">tb</span><span class="p">:</span>
+        <span class="n">errstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+    <span class="n">errstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prefix</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="si">%r</span><span class="s">: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">)))</span>
+    <span class="n">parse_locals_keylist</span><span class="p">(</span><span class="n">locals_</span><span class="p">,</span> <span class="n">key_list</span><span class="p">,</span> <span class="n">errstr_list</span><span class="p">,</span> <span class="n">prefix</span><span class="p">)</span>
+    <span class="n">errstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;/!!! </span><span class="si">%s</span><span class="s"> !!!&gt;&#39;</span> <span class="o">%</span> <span class="n">ex_tag</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">errstr_list</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="get_varname_from_locals"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.get_varname_from_locals">[docs]</a><span class="k">def</span> <span class="nf">get_varname_from_locals</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">locals_</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;varname-not-found&#39;</span><span class="p">,</span>
+                            <span class="n">strict</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check the varname is in the parent namespace</span>
+<span class="sd">    This will only work with objects not primatives</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">val_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">locals_</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="n">val_</span><span class="p">:</span>
+                <span class="n">index_</span> <span class="o">=</span> <span class="n">count</span>
+        <span class="n">varname</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">locals_</span><span class="o">.</span><span class="n">keys</span><span class="p">()[</span><span class="n">index_</span><span class="p">])</span>
+    <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+        <span class="n">varname</span> <span class="o">=</span> <span class="n">default</span>
+        <span class="k">if</span> <span class="n">strict</span><span class="p">:</span>
+            <span class="k">raise</span>
+    <span class="k">return</span> <span class="n">varname</span>
+
+</div>
+<div class="viewcode-block" id="get_varval_from_locals"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.get_varval_from_locals">[docs]</a><span class="k">def</span> <span class="nf">get_varval_from_locals</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">locals_</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a variable value from locals.</span>
+<span class="sd">    Different from locals()[&#39;varname&#39;] because</span>
+<span class="sd">    get_varval_from_locals(&#39;varname.attribute&#39;, locals())</span>
+<span class="sd">    is allowed</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="s">&#39;must have parsed key into a string already&#39;</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">locals_</span><span class="p">:</span>
+        <span class="n">dotpos</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dotpos</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">key_</span> <span class="o">=</span> <span class="n">key</span><span class="p">[:</span><span class="n">dotpos</span><span class="p">]</span>
+            <span class="n">attrstr_</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="n">dotpos</span><span class="p">:]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">baseval</span> <span class="o">=</span> <span class="n">locals_</span><span class="p">[</span><span class="n">key_</span><span class="p">]</span>  <span class="c"># NOQA</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="s">&#39;baseval&#39;</span> <span class="o">+</span> <span class="n">attrstr_</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">strict</span><span class="p">:</span>
+                    <span class="k">raise</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="n">ex</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;!!! </span><span class="si">%s</span><span class="s"> not populated!&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">locals_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">val</span>
+
+</div>
+<div class="viewcode-block" id="get_varstr"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.get_varstr">[docs]</a><span class="k">def</span> <span class="nf">get_varstr</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">separate</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">locals_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="c"># TODO: combine with printex functionality</span>
+    <span class="k">if</span> <span class="n">locals_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">locals_</span> <span class="o">=</span> <span class="n">get_parent_locals</span><span class="p">()</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">get_varname_from_locals</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">locals_</span><span class="p">)</span>
+    <span class="n">varstr_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">separate</span><span class="p">:</span>
+        <span class="n">varstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s">+==========&#39;</span><span class="p">)</span>
+    <span class="n">varstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">))</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&#39; = &#39;</span><span class="p">)</span>
+    <span class="n">varstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">separate</span><span class="p">:</span>
+        <span class="n">varstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;L==========&#39;</span><span class="p">)</span>
+    <span class="n">varstr</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">varstr_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">varstr</span>
+
+</div>
+<div class="viewcode-block" id="super_print"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.super_print">[docs]</a><span class="k">def</span> <span class="nf">super_print</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">locals_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">locals_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">locals_</span> <span class="o">=</span> <span class="n">get_parent_locals</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">get_varstr</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">locals_</span><span class="o">=</span><span class="n">locals_</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="print_keys"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.print_keys">[docs]</a><span class="k">def</span> <span class="nf">print_keys</span><span class="p">(</span><span class="n">key_list</span><span class="p">,</span> <span class="n">locals_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">locals_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">locals_</span> <span class="o">=</span> <span class="n">get_parent_locals</span><span class="p">()</span>
+    <span class="n">strlist_</span> <span class="o">=</span> <span class="n">parse_locals_keylist</span><span class="p">(</span><span class="n">locals_</span><span class="p">,</span> <span class="n">key_list</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">strlist_</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="parse_locals_keylist"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.parse_locals_keylist">[docs]</a><span class="k">def</span> <span class="nf">parse_locals_keylist</span><span class="p">(</span><span class="n">locals_</span><span class="p">,</span> <span class="n">key_list</span><span class="p">,</span> <span class="n">strlist_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; For each key in keylist, puts its value in locals into a stringlist &quot;&quot;&quot;</span>
+    <span class="c">#from .util_str import get_callable_name</span>
+    <span class="kn">from</span> <span class="nn">utool.util_str</span> <span class="kn">import</span> <span class="n">get_callable_name</span>
+    <span class="k">if</span> <span class="n">strlist_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">strlist_</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">key_list</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">strlist_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="c"># Given a tuple of information</span>
+                <span class="n">tup</span> <span class="o">=</span> <span class="n">key</span>
+                <span class="n">func</span><span class="p">,</span> <span class="n">key_</span> <span class="o">=</span> <span class="n">tup</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="n">get_varval_from_locals</span><span class="p">(</span><span class="n">key_</span><span class="p">,</span> <span class="n">locals_</span><span class="p">)</span>
+                <span class="n">funcvalstr</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">func</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+                <span class="n">strlist_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">(</span><span class="si">%s</span><span class="s">) = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">get_callable_name</span><span class="p">(</span><span class="n">func</span><span class="p">),</span> <span class="n">key_</span><span class="p">,</span> <span class="n">funcvalstr</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+                <span class="c"># Try to infer print from variable name</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="n">get_varval_from_locals</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">locals_</span><span class="p">)</span>
+                <span class="n">valstr</span> <span class="o">=</span> <span class="n">truncate_str</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">val</span><span class="p">),</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+                <span class="n">strlist_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">valstr</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c"># Try to infer print from variable value</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="n">key</span>
+                <span class="n">typestr</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+                <span class="n">namestr</span> <span class="o">=</span> <span class="n">get_varname_from_locals</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">locals_</span><span class="p">)</span>
+                <span class="n">valstr</span> <span class="o">=</span> <span class="n">truncate_str</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">val</span><span class="p">),</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+                <span class="n">strlist_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">typestr</span><span class="p">,</span> <span class="n">namestr</span><span class="p">,</span> <span class="n">valstr</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">strlist_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">strlist_</span>
+
+</div>
+<div class="viewcode-block" id="get_reprs"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.get_reprs">[docs]</a><span class="k">def</span> <span class="nf">get_reprs</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">if</span> <span class="s">&#39;locals_&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">locals_</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;locals_&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">locals_</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
+        <span class="n">locals_</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">get_caller_locals</span><span class="p">())</span>
+
+    <span class="n">msg_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">var_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">+</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;var_list&#39;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">var_list</span><span class="p">:</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">locals_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">horiz_string</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; = &#39;</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">var</span><span class="p">))</span>
+        <span class="n">msg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+    <span class="n">reprs</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">indent</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">##</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">msg_list</span><span class="p">))</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="k">return</span> <span class="n">reprs</span>
+
+</div>
+<div class="viewcode-block" id="printvar2"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.printvar2">[docs]</a><span class="k">def</span> <span class="nf">printvar2</span><span class="p">(</span><span class="n">varstr</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">typepad</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="n">locals_</span> <span class="o">=</span> <span class="n">get_parent_locals</span><span class="p">()</span>
+    <span class="n">printvar</span><span class="p">(</span><span class="n">locals_</span><span class="p">,</span> <span class="n">varstr</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">typepad</span><span class="o">=</span><span class="n">typepad</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="printvar"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.printvar">[docs]</a><span class="k">def</span> <span class="nf">printvar</span><span class="p">(</span><span class="n">locals_</span><span class="p">,</span> <span class="n">varname</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="s">&#39;.shape&#39;</span><span class="p">,</span> <span class="n">typepad</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="n">npprintopts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">get_printoptions</span><span class="p">()</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="n">dotpos</span> <span class="o">=</span> <span class="n">varname</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span>
+    <span class="c"># Locate var</span>
+    <span class="k">if</span> <span class="n">dotpos</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">locals_</span><span class="p">[</span><span class="n">varname</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">varname_</span> <span class="o">=</span> <span class="n">varname</span><span class="p">[:</span><span class="n">dotpos</span><span class="p">]</span>
+        <span class="n">dotname_</span> <span class="o">=</span> <span class="n">varname</span><span class="p">[</span><span class="n">dotpos</span><span class="p">:]</span>
+        <span class="n">var_</span> <span class="o">=</span> <span class="n">locals_</span><span class="p">[</span><span class="n">varname_</span><span class="p">]</span>  <span class="c"># NOQA</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="s">&#39;var_&#39;</span> <span class="o">+</span> <span class="n">dotname_</span><span class="p">)</span>
+    <span class="c"># Print in format</span>
+    <span class="n">typestr</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">get_type</span><span class="p">(</span><span class="n">var</span><span class="p">))</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="n">typepad</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="n">varstr</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="s">&#39;str(var&#39;</span> <span class="o">+</span> <span class="n">attr</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[var] </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">typestr</span><span class="p">,</span> <span class="n">varname</span> <span class="o">+</span> <span class="n">attr</span><span class="p">,</span> <span class="n">varstr</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">attr</span> <span class="o">==</span> <span class="s">&#39;.shape&#39;</span><span class="p">:</span>
+            <span class="n">func</span> <span class="o">=</span> <span class="s">&#39;len&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">func</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="n">varstr</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="s">&#39;str(&#39;</span> <span class="o">+</span> <span class="n">func</span> <span class="o">+</span> <span class="s">&#39;(var))&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[var] </span><span class="si">%s</span><span class="s"> len(</span><span class="si">%s</span><span class="s">) = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">typestr</span><span class="p">,</span> <span class="n">varname</span><span class="p">,</span> <span class="n">varstr</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[var] </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">typestr</span><span class="p">,</span> <span class="n">varname</span><span class="p">,</span> <span class="n">var</span><span class="p">))</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="o">**</span><span class="n">npprintopts</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="my_numpy_printops"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.my_numpy_printops">[docs]</a><span class="k">def</span> <span class="nf">my_numpy_printops</span><span class="p">(</span><span class="n">linewidth</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">edgeitems</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">linewidth</span><span class="o">=</span><span class="n">linewidth</span><span class="p">,</span>
+                        <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span>
+                        <span class="n">edgeitems</span><span class="o">=</span><span class="n">edgeitems</span><span class="p">,</span>
+                        <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="dict_dbgstr"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.dict_dbgstr">[docs]</a><span class="k">def</span> <span class="nf">dict_dbgstr</span><span class="p">(</span><span class="n">dict_name</span><span class="p">,</span> <span class="n">locals_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">locals_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">locals_</span> <span class="o">=</span> <span class="n">get_parent_locals</span><span class="p">()</span>
+    <span class="n">lenstr</span> <span class="o">=</span> <span class="n">len_dbgstr</span><span class="p">(</span><span class="n">dict_name</span><span class="p">,</span> <span class="n">locals_</span><span class="p">)</span>
+    <span class="n">keystr</span> <span class="o">=</span> <span class="n">keys_dbgstr</span><span class="p">(</span><span class="n">dict_name</span><span class="p">,</span> <span class="n">locals_</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">keystr</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="n">lenstr</span>
+    <span class="c">#printvar(locals_, dict_name)</span>
+
+</div>
+<div class="viewcode-block" id="keys_dbgstr"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.keys_dbgstr">[docs]</a><span class="k">def</span> <span class="nf">keys_dbgstr</span><span class="p">(</span><span class="n">dict_name</span><span class="p">,</span> <span class="n">locals_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">locals_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">locals_</span> <span class="o">=</span> <span class="n">get_parent_locals</span><span class="p">()</span>
+    <span class="n">dict_</span> <span class="o">=</span> <span class="n">locals_</span><span class="p">[</span><span class="n">dict_name</span><span class="p">]</span>
+    <span class="n">key_str</span> <span class="o">=</span> <span class="n">dict_name</span> <span class="o">+</span> <span class="s">&#39;.keys() = &#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">dict_</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">key_str</span>
+    <span class="c">#dict_ = locals_[dict_name]</span>
+
+</div>
+<div class="viewcode-block" id="print_varlen"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.print_varlen">[docs]</a><span class="k">def</span> <span class="nf">print_varlen</span><span class="p">(</span><span class="n">name_</span><span class="p">,</span> <span class="n">locals_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">locals_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">locals_</span> <span class="o">=</span> <span class="n">get_parent_locals</span><span class="p">()</span>
+    <span class="n">prefix</span> <span class="o">=</span> <span class="n">get_caller_prefix</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">prefix</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="n">len_dbgstr</span><span class="p">(</span><span class="n">name_</span><span class="p">,</span> <span class="n">locals_</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="len_dbgstr"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.len_dbgstr">[docs]</a><span class="k">def</span> <span class="nf">len_dbgstr</span><span class="p">(</span><span class="n">lenable_name</span><span class="p">,</span> <span class="n">locals_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">locals_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">locals_</span> <span class="o">=</span> <span class="n">get_parent_locals</span><span class="p">()</span>
+        <span class="n">lenable_</span> <span class="o">=</span> <span class="n">locals_</span><span class="p">[</span><span class="n">lenable_name</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">exec</span><span class="p">(</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">locals_</span><span class="p">,</span> <span class="s">&#39;locals_&#39;</span><span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">lenable_</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">lenable_name</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;locals.keys = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">locals_</span><span class="o">.</span><span class="n">keys</span><span class="p">(),))</span>
+            <span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;[!util_dbg]&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;Cannot lendbg: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">lenable_name</span><span class="p">)</span>
+    <span class="n">len_str</span> <span class="o">=</span> <span class="s">&#39;len(</span><span class="si">%s</span><span class="s">) = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">lenable_name</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lenable_</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">len_str</span>
+
+</div>
+<div class="viewcode-block" id="list_dbgstr"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.list_dbgstr">[docs]</a><span class="k">def</span> <span class="nf">list_dbgstr</span><span class="p">(</span><span class="n">list_name</span><span class="p">,</span> <span class="n">trunc</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="n">locals_</span> <span class="o">=</span> <span class="n">get_parent_locals</span><span class="p">()</span>
+    <span class="n">list_</span>   <span class="o">=</span> <span class="n">locals_</span><span class="p">[</span><span class="n">list_name</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">trunc</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">pos</span>     <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">trunc</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">list_str</span> <span class="o">=</span> <span class="n">list_name</span> <span class="o">+</span> <span class="s">&#39; = &#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">list_</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">pos</span><span class="p">],)</span>
+    <span class="k">return</span> <span class="n">list_str</span>
+
+</div>
+<div class="viewcode-block" id="all_rrr"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.all_rrr">[docs]</a><span class="k">def</span> <span class="nf">all_rrr</span><span class="p">():</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;!!! STOP !!!&#39;</span><span class="p">)</span>
+    <span class="n">util_inject</span><span class="o">.</span><span class="n">inject_all</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">mod</span> <span class="ow">in</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">get_injected_modules</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">):</span>
+                <span class="n">mod</span><span class="o">.</span><span class="n">rrr</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;mod = </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">mod</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="EmbedOnException"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.EmbedOnException">[docs]</a><span class="k">class</span> <span class="nc">EmbedOnException</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Context manager which embeds in ipython if an exception is thrown</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">trace</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">trace</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;!!!!!!!!!!!!!!!!!!!&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_dbg] </span><span class="si">%r</span><span class="s"> in context manager!: </span><span class="si">%s</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">type_</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)))</span>
+            <span class="kn">import</span> <span class="nn">utool</span>
+            <span class="kn">import</span> <span class="nn">traceback</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exception</span><span class="p">(</span><span class="n">type_</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">trace</span><span class="p">)</span>
+            <span class="c">#parent_locals = utool.get_parent_locals()</span>
+            <span class="c">#execstr_parent = utool.execstr_dict(parent_locals, &#39;parent_locals&#39;)</span>
+            <span class="c">#exec(execstr_parent)</span>
+            <span class="n">trace_locals</span> <span class="o">=</span> <span class="n">trace</span><span class="o">.</span><span class="n">tb_frame</span><span class="o">.</span><span class="n">f_locals</span>
+            <span class="n">execstr_trace</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">trace_locals</span><span class="p">,</span> <span class="s">&#39;trace_locals&#39;</span><span class="p">)</span>
+            <span class="k">exec</span><span class="p">(</span><span class="n">execstr_trace</span><span class="p">)</span>
+            <span class="n">utool</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" >utool</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

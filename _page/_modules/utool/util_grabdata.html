@@ -1,0 +1,268 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>utool.util_grabdata &mdash; utool 1.0.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html" />
+    <link rel="up" title="utool" href="../utool.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" accesskey="U">utool</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for utool.util_grabdata</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">realpath</span><span class="p">,</span> <span class="n">basename</span><span class="p">,</span> <span class="n">commonprefix</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">zipfile</span>
+<span class="kn">import</span> <span class="nn">tarfile</span>
+<span class="kn">import</span> <span class="nn">urllib</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_path</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_cplat</span>
+<span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[grabdata]&#39;</span><span class="p">)</span>
+
+
+<span class="n">QUIET</span> <span class="o">=</span> <span class="s">&#39;--quiet&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<span class="n">BadZipfile</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">BadZipfile</span>
+
+
+<div class="viewcode-block" id="unarchive_file"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.unarchive_file">[docs]</a><span class="k">def</span> <span class="nf">unarchive_file</span><span class="p">(</span><span class="n">archive_fpath</span><span class="p">,</span> <span class="n">force_commonprefix</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Unarchive: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">archive_fpath</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">is_tarfile</span><span class="p">(</span><span class="n">archive_fpath</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">untar_file</span><span class="p">(</span><span class="n">archive_fpath</span><span class="p">,</span> <span class="n">force_commonprefix</span><span class="o">=</span><span class="n">force_commonprefix</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">is_zipfile</span><span class="p">(</span><span class="n">archive_fpath</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">unzip_file</span><span class="p">(</span><span class="n">archive_fpath</span><span class="p">,</span> <span class="n">force_commonprefix</span><span class="o">=</span><span class="n">force_commonprefix</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;unknown archive format&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="untar_file"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.untar_file">[docs]</a><span class="k">def</span> <span class="nf">untar_file</span><span class="p">(</span><span class="n">targz_fpath</span><span class="p">,</span> <span class="n">force_commonprefix</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="n">tar_file</span> <span class="o">=</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">targz_fpath</span><span class="p">,</span> <span class="s">&#39;r:gz&#39;</span><span class="p">)</span>
+    <span class="n">output_dir</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">targz_fpath</span><span class="p">)</span>
+    <span class="n">archive_namelist</span> <span class="o">=</span> <span class="p">[</span><span class="n">mem</span><span class="o">.</span><span class="n">path</span> <span class="k">for</span> <span class="n">mem</span> <span class="ow">in</span> <span class="n">tar_file</span><span class="o">.</span><span class="n">getmembers</span><span class="p">()]</span>
+    <span class="n">_extract_archive</span><span class="p">(</span><span class="n">targz_fpath</span><span class="p">,</span> <span class="n">tar_file</span><span class="p">,</span> <span class="n">archive_namelist</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">force_commonprefix</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="unzip_file"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.unzip_file">[docs]</a><span class="k">def</span> <span class="nf">unzip_file</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">,</span> <span class="n">force_commonprefix</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="n">zip_file</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">)</span>
+    <span class="n">output_dir</span>  <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">)</span>
+    <span class="n">archive_namelist</span> <span class="o">=</span> <span class="n">zip_file</span><span class="o">.</span><span class="n">namelist</span><span class="p">()</span>
+    <span class="n">_extract_archive</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">,</span> <span class="n">zip_file</span><span class="p">,</span> <span class="n">archive_namelist</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">force_commonprefix</span><span class="p">)</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_extract_archive</span><span class="p">(</span><span class="n">archive_fpath</span><span class="p">,</span> <span class="n">archive_file</span><span class="p">,</span> <span class="n">archive_namelist</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">force_commonprefix</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="c"># force extracted components into a subdirectory if force_commonprefix is on</span>
+    <span class="k">if</span> <span class="n">force_commonprefix</span> <span class="ow">and</span> <span class="n">commonprefix</span><span class="p">(</span><span class="n">archive_namelist</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+        <span class="c"># use the archivename as the default common prefix</span>
+        <span class="n">archive_basename</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">split_archive_ext</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">archive_fpath</span><span class="p">))</span>
+        <span class="n">output_dir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">archive_basename</span><span class="p">)</span>
+        <span class="n">util_path</span><span class="o">.</span><span class="n">ensurepath</span><span class="p">(</span><span class="n">archive_basename</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">archive_namelist</span><span class="p">:</span>
+        <span class="p">(</span><span class="n">dname</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">member</span><span class="p">)</span>
+        <span class="n">dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">dname</span><span class="p">)</span>
+        <span class="n">util_path</span><span class="o">.</span><span class="n">ensurepath</span><span class="p">(</span><span class="n">dpath</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">QUIET</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Unarchive &#39;</span> <span class="o">+</span> <span class="n">fname</span> <span class="o">+</span> <span class="s">&#39; in &#39;</span> <span class="o">+</span> <span class="n">dpath</span><span class="p">)</span>
+        <span class="n">archive_file</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">output_dir</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="download_url"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.download_url">[docs]</a><span class="k">def</span> <span class="nf">download_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">spoof</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; downloads a url to a filename.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        url (str): url to download</span>
+<span class="sd">        filename (str): path to download to</span>
+<span class="sd">        spoof (bool): if True pretends to by Firefox</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://blog.moleculea.com/2012/10/04/urlretrieve-progres-indicator/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">start_time_ptr</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">def</span> <span class="nf">reporthook</span><span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="n">block_size</span><span class="p">,</span> <span class="n">total_size</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">start_time_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="k">return</span>
+        <span class="n">duration</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">duration</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">duration</span> <span class="o">=</span> <span class="mf">1E-9</span>
+        <span class="n">progress_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">count</span> <span class="o">*</span> <span class="n">block_size</span><span class="p">)</span>
+        <span class="n">speed</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">progress_size</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">*</span> <span class="n">duration</span><span class="p">))</span>
+        <span class="n">percent</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">count</span> <span class="o">*</span> <span class="n">block_size</span> <span class="o">*</span> <span class="mi">100</span> <span class="o">/</span> <span class="n">total_size</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\r</span><span class="s">...</span><span class="si">%d%%</span><span class="s">, </span><span class="si">%d</span><span class="s"> MB, </span><span class="si">%d</span><span class="s"> KB/s, </span><span class="si">%d</span><span class="s"> seconds passed&#39;</span> <span class="o">%</span>
+                         <span class="p">(</span><span class="n">percent</span><span class="p">,</span> <span class="n">progress_size</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">),</span> <span class="n">speed</span><span class="p">,</span> <span class="n">duration</span><span class="p">))</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Downloading url=</span><span class="si">%r</span><span class="s"> to filename=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">filename</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">spoof</span><span class="p">:</span>
+        <span class="n">urllib</span><span class="o">.</span><span class="n">urlretrieve</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">reporthook</span><span class="o">=</span><span class="n">reporthook</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">user_agents</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s">&#39;Mozilla/5.0 (Windows; U; Windows NT 5.1; it; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11&#39;</span><span class="p">,</span>
+            <span class="s">&#39;Opera/9.25 (Windows NT 5.1; U; en)&#39;</span><span class="p">,</span>
+            <span class="s">&#39;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)&#39;</span><span class="p">,</span>
+            <span class="s">&#39;Mozilla/5.0 (compatible; Konqueror/3.5; Linux) KHTML/3.5.5 (like Gecko) (Kubuntu)&#39;</span><span class="p">,</span>
+            <span class="s">&#39;Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.0.12) Gecko/20070731 Ubuntu/dapper-security Firefox/1.5.0.12&#39;</span><span class="p">,</span>
+            <span class="s">&#39;Lynx/2.8.5rel.1 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/1.2.9&#39;</span>
+        <span class="p">]</span>
+
+        <span class="k">class</span> <span class="nc">SpoofingOpener</span><span class="p">(</span><span class="n">urllib</span><span class="o">.</span><span class="n">FancyURLopener</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
+            <span class="n">version</span> <span class="o">=</span> <span class="n">user_agents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">myopener</span> <span class="o">=</span> <span class="n">SpoofingOpener</span><span class="p">()</span>
+        <span class="n">myopener</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">reporthook</span><span class="o">=</span><span class="n">reporthook</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="fix_dropbox_link"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.fix_dropbox_link">[docs]</a><span class="k">def</span> <span class="nf">fix_dropbox_link</span><span class="p">(</span><span class="n">dropbox_url</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Dropbox links should be en-mass downloaed from dl.dropbox &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">dropbox_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;www.dropbox&#39;</span><span class="p">,</span> <span class="s">&#39;dl.dropbox&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="split_archive_ext"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.split_archive_ext">[docs]</a><span class="k">def</span> <span class="nf">split_archive_ext</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="n">special_exts</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;.tar.gz&#39;</span><span class="p">,</span> <span class="s">&#39;.tar.bz2&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">special_exts</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">ext</span><span class="p">):</span>
+            <span class="n">name</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">path</span><span class="p">[:</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">ext</span><span class="p">)],</span> <span class="n">path</span><span class="p">[</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">ext</span><span class="p">):]</span>
+            <span class="k">break</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">name</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">name</span><span class="p">,</span> <span class="n">ext</span>
+
+</div>
+<div class="viewcode-block" id="grab_file_url"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.grab_file_url">[docs]</a><span class="k">def</span> <span class="nf">grab_file_url</span><span class="p">(</span><span class="n">file_url</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s">&#39;utool&#39;</span><span class="p">,</span> <span class="n">download_dir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                  <span class="n">delay</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">spoof</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="n">file_url</span> <span class="o">=</span> <span class="n">fix_dropbox_link</span><span class="p">(</span><span class="n">file_url</span><span class="p">)</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">file_url</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="c"># Download zipfile to</span>
+    <span class="k">if</span> <span class="n">download_dir</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">download_dir</span> <span class="o">=</span> <span class="n">util_cplat</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="n">appname</span><span class="p">)</span>
+    <span class="c"># Zipfile should unzip to:</span>
+    <span class="n">fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">download_dir</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
+        <span class="n">util_path</span><span class="o">.</span><span class="n">ensurepath</span><span class="p">(</span><span class="n">download_dir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">fpath</span><span class="p">):</span>
+            <span class="c"># Download testdata</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Downloading file </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fpath</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">delay</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] delay download by </span><span class="si">%r</span><span class="s"> seconds&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">delay</span><span class="p">,))</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
+            <span class="n">download_url</span><span class="p">(</span><span class="n">file_url</span><span class="p">,</span> <span class="n">fpath</span><span class="p">,</span> <span class="n">spoof</span><span class="o">=</span><span class="n">spoof</span><span class="p">)</span>
+    <span class="n">util_path</span><span class="o">.</span><span class="n">assert_exists</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fpath</span>
+
+</div>
+<div class="viewcode-block" id="grab_zipped_url"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.grab_zipped_url">[docs]</a><span class="k">def</span> <span class="nf">grab_zipped_url</span><span class="p">(</span><span class="n">zipped_url</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s">&#39;utool&#39;</span><span class="p">,</span> <span class="n">download_dir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">force_commonprefix</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">cleanup</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    downloads and unzips the url</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        zipped_url (str): url which must be either a .zip of a .tar.gz file</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; zipped_url = &#39;https://dl.dropboxusercontent.com/s/of2s82ed4xf86m6/testdata.zip&#39;</span>
+<span class="sd">        &gt;&gt;&gt; zipped_url = &#39;http://www.spam.com/eggs/data.zip&#39;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">zipped_url</span> <span class="o">=</span> <span class="n">fix_dropbox_link</span><span class="p">(</span><span class="n">zipped_url</span><span class="p">)</span>
+    <span class="n">zip_fname</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">zipped_url</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">data_name</span> <span class="o">=</span> <span class="n">split_archive_ext</span><span class="p">(</span><span class="n">zip_fname</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c"># Download zipfile to</span>
+    <span class="k">if</span> <span class="n">download_dir</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">download_dir</span> <span class="o">=</span> <span class="n">util_cplat</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="n">appname</span><span class="p">)</span>
+    <span class="c"># Zipfile should unzip to:</span>
+    <span class="n">data_dir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">download_dir</span><span class="p">,</span> <span class="n">data_name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
+        <span class="n">util_path</span><span class="o">.</span><span class="n">ensurepath</span><span class="p">(</span><span class="n">download_dir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">data_dir</span><span class="p">):</span>
+            <span class="c"># Download and unzip testdata</span>
+            <span class="n">zip_fpath</span> <span class="o">=</span> <span class="n">realpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">download_dir</span><span class="p">,</span> <span class="n">zip_fname</span><span class="p">))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Downloading archive </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">zip_fpath</span><span class="p">)</span>
+            <span class="n">download_url</span><span class="p">(</span><span class="n">zipped_url</span><span class="p">,</span> <span class="n">zip_fpath</span><span class="p">)</span>
+            <span class="n">unarchive_file</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">,</span> <span class="n">force_commonprefix</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">cleanup</span><span class="p">:</span>
+                <span class="n">util_path</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">)</span>  <span class="c"># Cleanup</span>
+    <span class="k">if</span> <span class="n">cleanup</span><span class="p">:</span>
+        <span class="n">util_path</span><span class="o">.</span><span class="n">assert_exists</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">util_path</span><span class="o">.</span><span class="n">unixpath</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" >utool</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>utool.util_regex &mdash; utool 1.0.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html" />
+    <link rel="up" title="utool" href="../utool.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" accesskey="U">utool</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for utool.util_regex</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">split</span><span class="p">,</span> <span class="n">relpath</span>
+<span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[str]&#39;</span><span class="p">)</span>
+
+
+<span class="n">RE_FLAGS</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span> <span class="o">|</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span>
+<span class="n">RE_KWARGS</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;flags&#39;</span><span class="p">:</span> <span class="n">RE_FLAGS</span><span class="p">}</span>
+
+
+<span class="n">REGEX_VARNAME</span> <span class="o">=</span> <span class="s">&#39;[A-Za-z_][A-Za-z0-9_]*&#39;</span>
+
+
+<div class="viewcode-block" id="get_match_text"><a class="viewcode-back" href="../../utool.html#utool.util_regex.get_match_text">[docs]</a><span class="k">def</span> <span class="nf">get_match_text</span><span class="p">(</span><span class="n">match</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">start</span><span class="p">,</span> <span class="n">stop</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">start</span><span class="p">(),</span> <span class="n">match</span><span class="o">.</span><span class="n">end</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">match</span><span class="o">.</span><span class="n">string</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">stop</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span>
+
+</div>
+<div class="viewcode-block" id="regex_search"><a class="viewcode-back" href="../../utool.html#utool.util_regex.regex_search">[docs]</a><span class="k">def</span> <span class="nf">regex_search</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">regex_get_match</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">fromstart</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">match_text</span> <span class="o">=</span> <span class="n">get_match_text</span><span class="p">(</span><span class="n">match</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">match_text</span>
+
+</div>
+<div class="viewcode-block" id="regex_split"><a class="viewcode-back" href="../../utool.html#utool.util_regex.regex_split">[docs]</a><span class="k">def</span> <span class="nf">regex_split</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="o">**</span><span class="n">RE_KWARGS</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="named_field"><a class="viewcode-back" href="../../utool.html#utool.util_regex.named_field">[docs]</a><span class="k">def</span> <span class="nf">named_field</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">regex</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">regex</span>
+    <span class="k">return</span> <span class="s">r&#39;(?P&lt;</span><span class="si">%s</span><span class="s">&gt;</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">regex</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="repl_field"><a class="viewcode-back" href="../../utool.html#utool.util_regex.repl_field">[docs]</a><span class="k">def</span> <span class="nf">repl_field</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">r&#39;\g&lt;</span><span class="si">%s</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="regex_replace"><a class="viewcode-back" href="../../utool.html#utool.util_regex.regex_replace">[docs]</a><span class="k">def</span> <span class="nf">regex_replace</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">repl</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">repl</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="o">**</span><span class="n">RE_KWARGS</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="named_field_regex"><a class="viewcode-back" href="../../utool.html#utool.util_regex.named_field_regex">[docs]</a><span class="k">def</span> <span class="nf">named_field_regex</span><span class="p">(</span><span class="n">keypat_tups</span><span class="p">):</span>
+    <span class="n">named_fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">named_field</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">pat</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">pat</span> <span class="ow">in</span> <span class="n">keypat_tups</span><span class="p">]</span>
+    <span class="n">regex</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">named_fields</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">regex</span>
+
+</div>
+<div class="viewcode-block" id="regex_get_match"><a class="viewcode-back" href="../../utool.html#utool.util_regex.regex_get_match">[docs]</a><span class="k">def</span> <span class="nf">regex_get_match</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">fromstart</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">fromstart</span><span class="p">:</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="o">**</span><span class="n">RE_KWARGS</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="o">**</span><span class="n">RE_KWARGS</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">match</span>
+
+</div>
+<div class="viewcode-block" id="regex_parse"><a class="viewcode-back" href="../../utool.html#utool.util_regex.regex_parse">[docs]</a><span class="k">def</span> <span class="nf">regex_parse</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">fromstart</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">regex_get_match</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">fromstart</span><span class="o">=</span><span class="n">fromstart</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">parse_dict</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">groupdict</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">parse_dict</span>
+    <span class="k">return</span> <span class="bp">None</span>
+
+</div>
+<div class="viewcode-block" id="regex_replace_lines"><a class="viewcode-back" href="../../utool.html#utool.util_regex.regex_replace_lines">[docs]</a><span class="k">def</span> <span class="nf">regex_replace_lines</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="n">regexpat</span><span class="p">,</span> <span class="n">replpat</span><span class="p">):</span>
+    <span class="n">newlines</span> <span class="o">=</span> <span class="p">[</span><span class="n">regex_replace</span><span class="p">(</span><span class="n">regexpat</span><span class="p">,</span> <span class="n">replpat</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">newlines</span>
+
+</div>
+<div class="viewcode-block" id="sed"><a class="viewcode-back" href="../../utool.html#utool.util_regex.sed">[docs]</a><span class="k">def</span> <span class="nf">sed</span><span class="p">(</span><span class="n">regexpr</span><span class="p">,</span> <span class="n">repl</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">dpath_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Python implementation of sed. NOT FINISHED</span>
+
+<span class="sd">    searches and replaces text in files</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        regexpr (str): regx patterns to find</span>
+<span class="sd">        repl (str): text to replace</span>
+<span class="sd">        force (bool):</span>
+<span class="sd">        recursive (bool):</span>
+<span class="sd">        dpath_list (list): directories to search (defaults to cwd)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_path</span>
+    <span class="c">#_grep(r, [repl], dpath_list=dpath_list, recursive=recursive)</span>
+    <span class="n">include_patterns</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;*.py&#39;</span><span class="p">,</span> <span class="s">&#39;*.cxx&#39;</span><span class="p">,</span> <span class="s">&#39;*.cpp&#39;</span><span class="p">,</span> <span class="s">&#39;*.hxx&#39;</span><span class="p">,</span> <span class="s">&#39;*.hpp&#39;</span><span class="p">,</span> <span class="s">&#39;*.c&#39;</span><span class="p">,</span> <span class="s">&#39;*.h&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">dpath_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">dpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()]</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;sed-ing </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dpath_list</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * regular expression : </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">regexpr</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * replacement        : </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">repl</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * recursive: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">recursive</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * force: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">force</span><span class="p">,))</span>
+    <span class="n">regexpr</span> <span class="o">=</span> <span class="n">util_path</span><span class="o">.</span><span class="n">extend_regex</span><span class="p">(</span><span class="n">regexpr</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s">&#39;</span><span class="se">\x08</span><span class="s">&#39;</span> <span class="ow">in</span> <span class="n">regexpr</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Remember </span><span class="se">\\</span><span class="s">x08 != </span><span class="se">\\</span><span class="s">b&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;subsituting for you for you&#39;</span><span class="p">)</span>
+        <span class="n">regexpr</span> <span class="o">=</span> <span class="n">regexpr</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\x08</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\\</span><span class="s">b&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39; * regular expression : </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">regexpr</span><span class="p">,))</span>
+
+    <span class="c"># Walk through each directory recursively</span>
+    <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">util_path</span><span class="o">.</span><span class="n">_matching_fnames</span><span class="p">(</span><span class="n">dpath_list</span><span class="p">,</span> <span class="n">include_patterns</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">):</span>
+        <span class="n">sedfile</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">regexpr</span><span class="p">,</span> <span class="n">repl</span><span class="p">,</span> <span class="n">force</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="sedfile"><a class="viewcode-back" href="../../utool.html#utool.util_regex.sedfile">[docs]</a><span class="k">def</span> <span class="nf">sedfile</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">regexpr</span><span class="p">,</span> <span class="n">repl</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Executes sed on a specific file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># TODO: move to util_edit</span>
+    <span class="n">path</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+    <span class="n">new_file_lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="nb">file</span><span class="p">:</span>
+        <span class="n">file_lines</span> <span class="o">=</span> <span class="nb">file</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="c"># Search each line for the desired regexpr</span>
+        <span class="n">new_file_lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">regexpr</span><span class="p">,</span> <span class="n">repl</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">file_lines</span><span class="p">]</span>
+
+    <span class="n">changed_lines</span> <span class="o">=</span> <span class="p">[(</span><span class="n">newline</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
+                     <span class="k">for</span> <span class="n">newline</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">new_file_lines</span><span class="p">,</span> <span class="n">file_lines</span><span class="p">)</span>
+                     <span class="k">if</span>  <span class="n">newline</span> <span class="o">!=</span> <span class="n">line</span><span class="p">]</span>
+    <span class="n">nChanged</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">changed_lines</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">nChanged</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">rel_fpath</span> <span class="o">=</span> <span class="n">relpath</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39; * </span><span class="si">%s</span><span class="s"> changed </span><span class="si">%d</span><span class="s"> lines in </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span>
+              <span class="p">([</span><span class="s">&#39;(dry-run)&#39;</span><span class="p">,</span> <span class="s">&#39;(real-run)&#39;</span><span class="p">][</span><span class="n">force</span><span class="p">],</span> <span class="n">nChanged</span><span class="p">,</span> <span class="n">rel_fpath</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39; * --------------------&#39;</span><span class="p">)</span>
+        <span class="n">new_file</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">new_file_lines</span><span class="p">)</span>
+        <span class="c">#print(new_file.replace(&#39;\n&#39;,&#39;\n))</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">changed_new</span><span class="p">,</span> <span class="n">changed_old</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">changed_lines</span><span class="p">)</span>
+            <span class="n">prefixold</span> <span class="o">=</span> <span class="s">&#39; * old (</span><span class="si">%d</span><span class="s">, </span><span class="si">%r</span><span class="s">):  </span><span class="se">\n</span><span class="s"> | &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nChanged</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="n">prefixnew</span> <span class="o">=</span> <span class="s">&#39; * new (</span><span class="si">%d</span><span class="s">, </span><span class="si">%r</span><span class="s">):  </span><span class="se">\n</span><span class="s"> | &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nChanged</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">prefixold</span> <span class="o">+</span> <span class="p">(</span><span class="s">&#39; | &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">changed_old</span><span class="p">))</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39; * ____________________&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">prefixnew</span> <span class="o">+</span> <span class="p">(</span><span class="s">&#39; | &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">changed_new</span><span class="p">))</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39; * --------------------&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39; * =====================================================&#39;</span><span class="p">)</span>
+        <span class="c"># Write back to file</span>
+        <span class="k">if</span> <span class="n">force</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39; ! WRITING CHANGES&#39;</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="nb">file</span><span class="p">:</span>
+                <span class="nb">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">new_file</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">changed_lines</span>
+    <span class="k">return</span> <span class="bp">None</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" >utool</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

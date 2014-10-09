@@ -1,0 +1,189 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>utool.Printable &mdash; utool 1.0.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html" />
+    <link rel="up" title="utool" href="../utool.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" accesskey="U">utool</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for utool.Printable</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="c">#from .util_classes import AutoReloader</span>
+
+<span class="n">MAX_VALSTR</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="c">#100000</span>
+
+<span class="c">#__BASE_CLASS__ = AutoReloader</span>
+<span class="n">__BASE_CLASS__</span> <span class="o">=</span> <span class="nb">object</span>
+
+
+<div class="viewcode-block" id="AbstractPrintable"><a class="viewcode-back" href="../../utool.html#utool.Printable.AbstractPrintable">[docs]</a><span class="k">class</span> <span class="nc">AbstractPrintable</span><span class="p">(</span><span class="n">__BASE_CLASS__</span><span class="p">):</span>
+    <span class="s">&#39;A base class that prints its attributes instead of the memory address&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">child_print_exclude</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_printable_exclude</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;_printable_exclude&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">child_print_exclude</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">.util_dev</span> <span class="kn">import</span> <span class="n">printableType</span>
+        <span class="n">head</span> <span class="o">=</span> <span class="n">printableType</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_printable</span><span class="p">(</span><span class="n">type_bit</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s"> *</span><span class="se">\n</span><span class="s"> *</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">head</span> <span class="o">+</span> <span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">body</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">    &#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="AbstractPrintable.printme"><a class="viewcode-back" href="../../utool.html#utool.Printable.AbstractPrintable.printme">[docs]</a>    <span class="k">def</span> <span class="nf">printme</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="AbstractPrintable.printme3"><a class="viewcode-back" href="../../utool.html#utool.Printable.AbstractPrintable.printme3">[docs]</a>    <span class="k">def</span> <span class="nf">printme3</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_printable</span><span class="p">())</span>
+</div>
+<div class="viewcode-block" id="AbstractPrintable.printme2"><a class="viewcode-back" href="../../utool.html#utool.Printable.AbstractPrintable.printme2">[docs]</a>    <span class="k">def</span> <span class="nf">printme2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">type_bit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                 <span class="n">print_exclude_aug</span><span class="o">=</span><span class="p">[],</span>
+                 <span class="n">val_bit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                 <span class="n">max_valstr</span><span class="o">=</span><span class="n">MAX_VALSTR</span><span class="p">,</span>
+                 <span class="n">justlength</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="n">to_print</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_printable</span><span class="p">(</span><span class="n">type_bit</span><span class="o">=</span><span class="n">type_bit</span><span class="p">,</span>
+                                      <span class="n">print_exclude_aug</span><span class="o">=</span><span class="n">print_exclude_aug</span><span class="p">,</span>
+                                      <span class="n">val_bit</span><span class="o">=</span><span class="n">val_bit</span><span class="p">,</span>
+                                      <span class="n">max_valstr</span><span class="o">=</span><span class="n">max_valstr</span><span class="p">,</span>
+                                      <span class="n">justlength</span><span class="o">=</span><span class="n">justlength</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">to_print</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="AbstractPrintable.get_printable"><a class="viewcode-back" href="../../utool.html#utool.Printable.AbstractPrintable.get_printable">[docs]</a>    <span class="k">def</span> <span class="nf">get_printable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                      <span class="n">type_bit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                      <span class="n">print_exclude_aug</span><span class="o">=</span><span class="p">[],</span>
+                      <span class="n">val_bit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                      <span class="n">max_valstr</span><span class="o">=</span><span class="n">MAX_VALSTR</span><span class="p">,</span>
+                      <span class="n">justlength</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">.util_dev</span> <span class="kn">import</span> <span class="n">printableVal</span><span class="p">,</span> <span class="n">printableType</span>
+        <span class="kn">from</span> <span class="nn">.util_str</span> <span class="kn">import</span> <span class="n">truncate_str</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="n">attri_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">exclude_key_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_printable_exclude</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">print_exclude_aug</span><span class="p">)</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">exclude_key_list</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">namestr</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                <span class="n">typestr</span> <span class="o">=</span> <span class="n">printableType</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">val_bit</span><span class="p">:</span>
+                    <span class="n">attri_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">typestr</span><span class="p">,</span> <span class="n">namestr</span><span class="p">,</span> <span class="s">&#39;&lt;ommited&gt;&#39;</span><span class="p">))</span>
+                    <span class="k">continue</span>
+                <span class="n">valstr</span> <span class="o">=</span> <span class="n">printableVal</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">type_bit</span><span class="o">=</span><span class="n">type_bit</span><span class="p">,</span> <span class="n">justlength</span><span class="o">=</span><span class="n">justlength</span><span class="p">)</span>
+                <span class="n">valstr</span> <span class="o">=</span> <span class="n">truncate_str</span><span class="p">(</span><span class="n">valstr</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="n">max_valstr</span><span class="p">,</span> <span class="n">truncmsg</span><span class="o">=</span><span class="s">&#39; </span><span class="se">\n</span><span class="s"> ~~~ </span><span class="se">\n</span><span class="s"> &#39;</span><span class="p">)</span>
+                <span class="c">#if len(valstr) &gt; max_valstr and max_valstr &gt; 0:</span>
+                <span class="c">#    pos1 =  max_valstr // 2</span>
+                <span class="c">#    pos2 = -max_valstr // 2</span>
+                <span class="c">#    valstr = valstr[0:pos1] + &#39; \n ~~~ \n &#39; + valstr[pos2: - 1]</span>
+                <span class="n">attri_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">typestr</span><span class="p">,</span> <span class="n">namestr</span><span class="p">,</span> <span class="n">valstr</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[printable] ERROR </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">ex</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[printable] ERROR key = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">key</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[printable] ERROR val = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">val</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[printable] ERROR valstr = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">valstr</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                <span class="k">raise</span>
+        <span class="n">attri_list</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">typestr</span><span class="p">,</span> <span class="n">namestr</span><span class="p">,</span> <span class="n">valstr</span><span class="p">)</span> <span class="ow">in</span> <span class="n">attri_list</span><span class="p">:</span>
+            <span class="n">entrytail</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="k">if</span> <span class="n">valstr</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="k">else</span> <span class="s">&#39;</span><span class="se">\n\n</span><span class="s">&#39;</span>
+            <span class="n">typestr2</span> <span class="o">=</span> <span class="n">typestr</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="k">if</span> <span class="n">type_bit</span> <span class="k">else</span> <span class="s">&#39;&#39;</span>
+            <span class="n">body</span> <span class="o">+=</span> <span class="n">typestr2</span> <span class="o">+</span> <span class="n">namestr</span> <span class="o">+</span> <span class="s">&#39; = &#39;</span> <span class="o">+</span> <span class="n">valstr</span> <span class="o">+</span> <span class="n">entrytail</span>
+        <span class="k">return</span> <span class="n">body</span>
+</div>
+<div class="viewcode-block" id="AbstractPrintable.format_printable"><a class="viewcode-back" href="../../utool.html#utool.Printable.AbstractPrintable.format_printable">[docs]</a>    <span class="k">def</span> <span class="nf">format_printable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_bit</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">indstr</span><span class="o">=</span><span class="s">&#39;  * &#39;</span><span class="p">):</span>
+        <span class="n">_printable_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_printable</span><span class="p">(</span><span class="n">type_bit</span><span class="o">=</span><span class="n">type_bit</span><span class="p">)</span>
+        <span class="n">_printable_str</span> <span class="o">=</span> <span class="n">_printable_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\r</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">_printable_str</span> <span class="o">=</span> <span class="n">indstr</span> <span class="o">+</span> <span class="n">_printable_str</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">indstr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_printable_str</span>
+
+
+<span class="c"># - --------------</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" >utool</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>
