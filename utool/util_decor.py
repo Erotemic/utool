@@ -10,7 +10,7 @@ try:
     import numpy as np
 except ImportError:
     pass
-from .util_arg import NO_ASSERTS
+from .util_arg import NO_ASSERTS, SAFE, IGNORE_TRACEBACK, TRACE
 from .util_iter import isiterable
 from .util_print import Indenter
 from .util_dbg import printex
@@ -22,8 +22,6 @@ from utool._internal.meta_util_six import get_funcname
 
 # do not ignore traceback when profiling
 PROFILING = hasattr(builtins, 'profile')
-IGNORE_TRACEBACK = '--smalltb' in sys.argv or '--ignoretb' in sys.argv
-TRACE = '--trace' in sys.argv
 UNIQUE_NUMPY = True
 NOINDENT_DECOR = False
 
@@ -431,7 +429,7 @@ def preserve_sig(wrapper, orig_func):
     References:
         http://emptysqua.re/blog/copying-a-python-functions-signature/
     """
-    SIG_PRESERVE = False
+    SIG_PRESERVE = not SAFE
     if not SIG_PRESERVE:
         # Turn off signature preservation
         return update_wrapper(wrapper, orig_func)

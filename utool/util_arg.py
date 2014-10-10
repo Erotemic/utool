@@ -12,16 +12,19 @@ from .util_print import Indenter
 from utool._internal.meta_util_six import get_funcname, set_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[arg]')
 
+#STRICT = '--nostrict' not in sys.argv
 DEBUG2 = '--debug2' in sys.argv
+IGNORE_TRACEBACK = '--smalltb' in sys.argv or '--ignoretb' in sys.argv
+NO_ASSERTS = ('--no-assert' in sys.argv)
 QUIET = '--quiet' in sys.argv
-NOT_QUIET = not QUIET
+SAFE = '--safe' in sys.argv
+STRICT = '--strict' not in sys.argv
+SUPER_STRICT = '--super-strict' in sys.argv
+TRACE = '--trace' in sys.argv
+USE_ASSERT = not NO_ASSERTS
 VERBOSE = '--verbose' in sys.argv
 VERYVERBOSE = '--very-verbose' in sys.argv or '-veryverbose' in sys.argv
-#STRICT = '--nostrict' not in sys.argv
-STRICT = '--strict' not in sys.argv
-NO_ASSERTS = ('--no-assert' in sys.argv)
-USE_ASSERT = not NO_ASSERTS
-SUPER_STRICT = '--super-strict' in sys.argv
+NOT_QUIET = not QUIET
 
 
 # TODO: rectify with meta_util_arg
