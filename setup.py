@@ -5,13 +5,20 @@ from setuptools import setup
 
 INSTALL_REQUIRES = [
     'six',
-    'numpy >= 1.8.0',  # TODO REMOVE DEPENDENCY
     'psutil',
+    #'decorator',
+]
+
+INSTALL_OPTIONAL = [
+    'numpy >= 1.8.0',  # TODO REMOVE DEPENDENCY
     'astor',
-    'decorator',
+    'objgraph',
     'sphinx',
     'sphinxcontrib-napoleon',
+    'guppy',
 ]
+
+INSTALL_REQUIRES += INSTALL_OPTIONAL
 
 # HACK: Please remove someday
 from utool import util_setup

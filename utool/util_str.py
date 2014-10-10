@@ -164,11 +164,12 @@ def byte_str2(nBytes):
     Returns:
         str
     """
-    if nBytes < 2.0 ** 10:
+    nAbsBytes = abs(nBytes)
+    if nAbsBytes < 2.0 ** 10:
         return byte_str(nBytes, 'KB')
-    if nBytes < 2.0 ** 20:
+    if nAbsBytes < 2.0 ** 20:
         return byte_str(nBytes, 'KB')
-    if nBytes < 2.0 ** 30:
+    if nAbsBytes < 2.0 ** 30:
         return byte_str(nBytes, 'MB')
     else:
         return byte_str(nBytes, 'GB')

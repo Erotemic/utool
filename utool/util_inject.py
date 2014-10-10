@@ -200,6 +200,7 @@ def TIMERPROF_FUNC(func):
 
 try:
     #KERNPROF_FUNC = TIMERPROF_FUNC
+    raise AttributeError('')
     KERNPROF_FUNC = getattr(builtins, 'profile')
     PROFILING = True
 except AttributeError:
@@ -247,6 +248,11 @@ PROF_MOD_PAT_LIST = get_argval('--prof-mod', type_=str, default=None)
 if PROF_MOD_PAT_LIST is not None:
     PROF_MOD_PAT_LIST = PROF_MOD_PAT_LIST.split(',')
     print('[util_inject] PROF_MOD_PAT_LIST: %r' % (PROF_MOD_PAT_LIST,))
+
+
+def memprof(func):
+    import memory_profiler
+    return memory_profiler.profile(func)
 
 
 def _matches_list(name, pat_list):
