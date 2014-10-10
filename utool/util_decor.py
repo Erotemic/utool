@@ -431,7 +431,7 @@ def preserve_sig(wrapper, orig_func):
     References:
         http://emptysqua.re/blog/copying-a-python-functions-signature/
     """
-    SIG_PRESERVE = True
+    SIG_PRESERVE = False
     if not SIG_PRESERVE:
         # Turn off signature preservation
         return update_wrapper(wrapper, orig_func)
