@@ -159,7 +159,7 @@ def memory_dump():
 
 class MemoryTracker(object):
     """
-    Lightweight ``class`` for tracking memory usage.
+    A ``class`` for tracking memory usage.
     On initialization it logs the current available (free) memory.
     Calling the report method logs the current available memory as well
     as memory usage difference w.r.t the last report.
@@ -179,6 +179,7 @@ class MemoryTracker(object):
         #>>> memtrack.report_largest()
     """
     def __init__(self, lbl='Memtrack Init'):
+        self.init_nBytes = self.get_available_memory()
         self.prev_nBytes = None
         self.weakref_dict = {}  # weakref.WeakValueDictionary()
         self.weakref_dict2 = {}
@@ -224,9 +225,12 @@ class MemoryTracker(object):
         print('[memtrack] +----')
         if self.prev_nBytes is not None:
             diff = self.prev_nBytes - nBytes
-            print('[memtrack] | %s MemDiff = %s' % (lbl, byte_str2(diff)))
+            print('[memtrack] | [%s] diff = %s' % (lbl, byte_str2(diff)))
         else:
             print('[memtrack] | new MemoryTracker(%s)' % (lbl,))
+
+        total_diff = self.init_nBytes - nBytes
+        print('[memtrack] | Total diff = %s' % (byte_str2(total_diff)))
         print('[memtrack] | Available Memory = %s' %  (byte_str2(nBytes),))
         self.report_objs()
         print('[memtrack] L----')
@@ -271,16 +275,18 @@ def report_memsize(obj, name=None, verbose=True):
         obj = weakref.ref(obj)
 
     if obj() is None:
-        with utool.Indenter('| '):
+        with utool.Indenter('|   '):
+            print('+----')
             print('Memsize: ')
             print('type(%s) = %r' % (name, type(obj())))
             print('%s has been deallocated' % name)
+            print('L____')
             return
 
     referents = gc.get_referents(obj())
     referers  = gc.get_referrers(obj())
-    print('+----')
-    with utool.Indenter('| '):
+    with utool.Indenter('|   '):
+        print('+----')
         print('Memsize: ')
         print('type(%s) = %r' % (name, type(obj())))
         print('%s is using: %s' % (name, utool.get_object_size_str(obj())))
@@ -312,7 +318,7 @@ def report_memsize(obj, name=None, verbose=True):
         del obj
         del referents
         del referers
-    print('L____')
+        print('L____')
 
 
 def get_stats(_list, axis=None):

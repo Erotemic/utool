@@ -535,6 +535,60 @@ def get_freespace_str(dir_='.'):
     return byte_str2(util_cplat.get_free_diskbytes(dir_))
 
 
+# FIXME: HASHLEN is a global var in util_hash
+def long_fname_format(fmt_str, fmt_dict, hashable_keys=[], max_len=64, hashlen=16, ABS_MAX_LEN=255):
+    """
+
+    Args:
+        fmt_str (str): format of fname
+        fmt_dict (str): dict to format fname with
+        hashable_keys (list): list of dict keys you are willing to have hashed
+        max_len (int): tries to fit fname into this length
+        ABS_MAX_LEN (int): throws AssertionError if fname over this length
+
+    Example:
+        >>> import utool
+        >>> fmt_str = 'qaid={qaid}_res_{cfgstr}_quuid={quuid}'
+        >>> quuid_str = 'blahblahblahblahblahblah'
+        >>> cfgstr = 'big_long_string__________________________________'
+        >>> qaid = 5
+        >>> fmt_dict = dict(cfgstr=cfgstr, qaid=qaid, quuid=quuid_str)
+        >>> hashable_keys = ['cfgstr', 'quuid']
+        >>> max_len = 64
+        >>> hashlen = 8
+        >>> fname0 = utool.long_fname_format(fmt_str, fmt_dict, max_len=None)
+        >>> fname1 = utool.long_fname_format(fmt_str, fmt_dict, hashable_keys, max_len=64, hashlen=8)
+        >>> fname2 = utool.long_fname_format(fmt_str, fmt_dict, hashable_keys, max_len=42, hashlen=8)
+        >>> print(fname0)
+        qaid=5_res_big_long_string___________________________________quuid=blahblahblahblahblahblah
+        >>> print(fname1)
+        qaid=5_res_kjrok785_quuid=blahblahblahblahblahblah
+        >>> print(fname2)
+        qaid=5_res_du1&i&5l_quuid=euuaxoyi
+    """
+    from . import util_hash
+    fname = fmt_str.format(**fmt_dict)
+    if max_len is None:
+        return fname
+    if len(fname) > max_len:
+        # Copy because we will overwrite fmt_dict values with hashed values
+        fmt_dict_ = fmt_dict.copy()
+        for key in hashable_keys:
+            fmt_dict_[key] = util_hash.hashstr(fmt_dict_[key], hashlen=hashlen)
+            fname = fmt_str.format(**fmt_dict_)
+            if len(fname) <= max_len:
+                break
+        if len(fname) > max_len:
+            diff = len(fname) - max_len
+            msg = ('Warning: Too big by %d chars. Exausted all options to make fname fit into size. ' % diff)
+            print(msg)
+            print('len(fname) = %r' % len(fname))
+            print('fname = %r' % fname)
+            if ABS_MAX_LEN is not None and len(fname) > ABS_MAX_LEN:
+                raise AssertionError(msg)
+    return fname
+
+
 #def parse_commas_wrt_groups(str_):
 #    """
 #    str_ = 'cdef np.ndarray[np.float64_t, cast=True] x, y, z'
