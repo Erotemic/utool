@@ -3,6 +3,7 @@ import sys
 import six
 import re
 import os
+import gc
 import warnings
 import weakref
 from collections import OrderedDict
@@ -144,7 +145,6 @@ def memory_dump():
     References:
        from http://stackoverflow.com/questions/141351/how-do-i-find-what-is-using-memory-in-a-python-process-in-a-production-system
     """
-    import gc
     import cPickle
     dump = open("memory.pickle", 'w')
     for obj in gc.get_objects():
@@ -173,22 +173,53 @@ class MemoryTracker(object):
         >>> memtrack.report('[AFTER_CREATE]')
         >>> memtrack.track_obj(arr, 'arr')
         >>> memtrack.report_objs()
+        >>> memtrack.report_largest()
         >>> del arr
         >>> memtrack.report('[DELETE]')
+        #>>> memtrack.report_largest()
     """
     def __init__(self, lbl='Memtrack Init'):
         self.prev_nBytes = None
-        self.weakref_dict = weakref.WeakValueDictionary()
+        self.weakref_dict = {}  # weakref.WeakValueDictionary()
         self.weakref_dict2 = {}
         self.report(lbl)
 
     def __call__(self, lbl=''):
         self.report(lbl=lbl)
 
+    def collect(self):
+        gc.collect()
+
+    def report_largest(self):
+        # Doesnt quite work yet
+        import numpy as np
+        import gc
+        import utool
+        print('reporting largest')
+        obj_list = gc.get_objects()
+        #simple_size_list = np.array([sys.getsizeof(obj) for obj in obj_list])
+        #shortlist_size = 20
+        #sortx = simple_size_list.argsort()[::-1][0:shortlist_size]
+        #simple_size_sorted = simple_size_list[sortx]
+        #obj_sorted = [obj_list[x] for x in sortx]
+        #for obj, size in zip(obj_sorted, simple_size_sorted):
+        #    print('size = %r, type(obj) = %r' % (utool.byte_str2(size), type(obj)))
+
+        print('reporting largets ndarrays')
+        ndarray_list = [obj for obj in obj_list if isinstance(obj, np.ndarray)]
+        ndarray_list = [obj for obj in obj_list if str(type(obj)).find('array') > -1]
+        size_list = np.array([utool.get_object_size(obj) for obj in ndarray_list])
+        sortx = size_list.argsort()[::-1]
+        ndarray_sorted = [ndarray_list[x] for x in sortx]
+        for obj, size in zip(ndarray_sorted, size_list):
+            print('size = %r, type(obj) = %r' % (utool.byte_str2(size), type(obj)))
+
+        #size_list = [utool.get_object_size(obj) for obj in obj_list]
+        pass
+
     def report(self, lbl=''):
         from .util_str import byte_str2
-        import gc
-        gc.collect()
+        self.collect()
         nBytes = self.get_available_memory()
         print('[memtrack] +----')
         if self.prev_nBytes is not None:
@@ -197,9 +228,9 @@ class MemoryTracker(object):
         else:
             print('[memtrack] | new MemoryTracker(%s)' % (lbl,))
         print('[memtrack] | Available Memory = %s' %  (byte_str2(nBytes),))
+        self.report_objs()
         print('[memtrack] L----')
         self.prev_nBytes = nBytes
-        self.report_objs()
 
     def get_available_memory(self):
         from .util_resources import available_memory
@@ -207,6 +238,8 @@ class MemoryTracker(object):
 
     def track_obj(self, obj, name):
         oid = id(obj)
+        if not isinstance(obj, weakref.ref):
+            obj = weakref.ref(obj)
         #obj_weakref = weakref.ref(obj)
         self.weakref_dict[oid] = obj
         self.weakref_dict2[oid] = name
@@ -215,28 +248,42 @@ class MemoryTracker(object):
     def report_objs(self):
         if len(self.weakref_dict) == 0:
             return
-        print('[memtrack] +----')
-        for oid in self.weakref_dict.iterkeys():
-            obj = self.weakref_dict[oid]
-            name = self.weakref_dict2[oid]
-            report_memsize(weakref.ref(obj), name)
-            del obj
-
-        print('[memtrack] L----')
+        import utool
+        with utool.Indenter('[memtrack] '):
+            #print('[memtrack] +----')
+            for oid in self.weakref_dict.iterkeys():
+                obj = self.weakref_dict[oid]
+                if not isinstance(obj, weakref.ref):
+                    obj = weakref.ref(obj)
+                name = self.weakref_dict2[oid]
+                report_memsize(obj, name)
+                del obj
+        #print('[memtrack] L----')
 
 
 def report_memsize(obj, name=None, verbose=True):
-    import gc
     #import types
     import utool
     if name is None:
         name = 'obj'
-    referents = gc.get_referents(obj)
-    referers  = gc.get_referrers(obj)
+
+    if not isinstance(obj, weakref.ref):
+        obj = weakref.ref(obj)
+
+    if obj() is None:
+        with utool.Indenter('| '):
+            print('Memsize: ')
+            print('type(%s) = %r' % (name, type(obj())))
+            print('%s has been deallocated' % name)
+            return
+
+    referents = gc.get_referents(obj())
+    referers  = gc.get_referrers(obj())
     print('+----')
     with utool.Indenter('| '):
         print('Memsize: ')
-        print('%s is using: %s' % (name, utool.get_object_size_str(obj)))
+        print('type(%s) = %r' % (name, type(obj())))
+        print('%s is using: %s' % (name, utool.get_object_size_str(obj())))
         print('%s has %d referents' % (name, len(referents)))
         print('%s has %d referers' % (name, len(referers)))
         if verbose:
@@ -249,6 +296,16 @@ def report_memsize(obj, name=None, verbose=True):
                         print('    frame(referer).f_code.co_name = %s' % (referer.f_code.co_name))
                     except Exception:
                         pass
+                    try:
+                        #if isinstance(referer, frames.FrameType)
+                        print('    func(referer).func_name = %s' % (referer.func_name))
+                    except Exception:
+                        pass
+                    if isinstance(referer, dict):
+                        print('    len(referer) = %r' % len(referer))
+                        if len(referer) < 30:
+                            keystr = utool.packstr(repr(referer.keys()), 60, newline_prefix='        ')
+                            print('    referer.keys = %s' % (keystr),)
                     print('    id(referer) = %r' % id(referer))
                     #print('referer = ' + utool.truncate_str(repr(referer)))
                     print('  </Referer %d>' % count)
@@ -616,17 +673,14 @@ def make_object_graph(obj, fpath='sample_graph.png'):
 
 
 def disable_garbage_collection():
-    import gc
     gc.disable()
 
 
 def enable_garbage_collection():
-    import gc
     gc.enable()
 
 
 def garbage_collect():
-    import gc
     gc.collect()
 
 

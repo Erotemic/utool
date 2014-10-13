@@ -79,7 +79,8 @@ def indent(string, indent='    '):
     """
     Indents a block of text
     """
-    return indent + string.replace('\n', '\n' + indent)
+    indent_ = indent
+    return indent_ + string.replace('\n', '\n' + indent_)
 
 
 def indentjoin(strlist, indent='\n    ', suffix=''):
@@ -88,7 +89,8 @@ def indentjoin(strlist, indent='\n    ', suffix=''):
 
     similar to '\n    '.join(strlist) but indent is also prefixed
     """
-    return indent + indent.join([str(str_) + suffix for str_ in strlist])
+    indent_ = indent
+    return indent_ + indent_.join([str(str_) + suffix for str_ in strlist])
 
 
 def truncate_str(str_, maxlen=110, truncmsg=' ~~~TRUNCATED~~~ '):
@@ -130,6 +132,16 @@ def pack_into(instr, textwidth=160, breakchars=' ', break_words=True, newline_pr
             word = word[textwidth_:]
         line_list[-1] += word + ' '
     return ('\n' + newline_prefix).join(line_list)
+
+
+def packstr(instr, textwidth=160, breakchars=' ', break_words=True,
+            newline_prefix='', indentation=''):
+    """ alias for pack_into """
+
+    str_ = pack_into(instr, textwidth, breakchars, break_words, newline_prefix)
+    if indentation != '':
+        str_ = indent(str_, indentation)
+    return str_
 
 
 def newlined_list(list_, joinstr=', ', textwidth=160):
