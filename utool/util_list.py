@@ -172,14 +172,22 @@ def safe_slice(list_, *args):
 
 
 # --- List Queries --- #
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
 
 
 def list_allsame(list_):
     """ checks to see if list is equal everywhere """
     if len(list_) == 0:
         return True
-    item0 = list_[0]
-    return all([item == item0 for item in list_])
+    first_item = list_[0]
+    if HAS_NUMPY:
+        if isinstance(first_item, np.ndarray):
+            return all([np.all(item == first_item) for item in list_])
+    return all([item == first_item for item in list_])
 
 
 def assert_all_not_None(list_, list_name='some_list', key_list=[]):

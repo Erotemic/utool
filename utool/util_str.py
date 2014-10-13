@@ -71,6 +71,10 @@ def unindent(string):
     return textwrap.dedent(string)
 
 
+def codeblock(block_str):
+    return unindent(block_str).strip('\n')
+
+
 def indent(string, indent='    '):
     """
     Indents a block of text
@@ -154,6 +158,69 @@ def filesize_str(fpath):
     _, fname = split(fpath)
     mb_str = file_megabytes_str(fpath)
     return 'filesize(%r)=%s' % (fname, mb_str)
+
+
+def seconds_str(num, prefix=None):
+    r"""
+    Returns:
+        str
+
+    Example:
+        >>> import utool
+        >>> utool.util_str.rrr()
+        >>> num_list = sorted([4.2 / (10.0 ** exp_) for exp_ in range(-13, 13, 4)])
+        >>> secstr_list = [utool.util_str.seconds_str(num, prefix=None) for num in num_list]
+        >>> print(', '.join(secstr_list))
+        0.042 ns, 0.42 us, 4.2 ms, 0.042 ks, 0.42 Ms, 4.2 Gs, 42.0 Ts
+
+        #>>> print(',\n'.join(map(str, zip(secstr_list, num_list))))
+    """
+    exponent_list = [-12, -9, -6, -3, 0, 3, 6, 9, 12]
+    small_prefix_list = ['p', 'n', 'u', 'm', '', 'k', 'M', 'G', 'T']
+    #large_prefix_list = ['pico', 'nano', 'micro', 'mili', '', 'kilo', 'mega', 'giga', 'tera']
+    #large_suffix = 'second'
+    small_suffix = 's'
+    suffix = small_suffix
+    prefix_list = small_prefix_list
+    base = 10.0
+    secstr = order_of_magnitude_str(num, base, prefix_list, exponent_list,
+                                    suffix, prefix=prefix)
+    return secstr
+
+
+def order_of_magnitude_str(num, base=10.0,
+                           prefix_list=None,
+                           exponent_list=None,
+                           suffix='', prefix=None):
+    """
+    TODO: Rewrite byte_str to use this func
+    Returns:
+        str
+    """
+    abs_num = abs(num)
+    # Find the right magnidue
+    for prefix_, exponent in zip(prefix_list, exponent_list):
+        # Let user request the prefix
+        requested = False
+        if prefix is not None:
+            if prefix != prefix_:
+                continue
+            requested = True
+        # Otherwise find the best prefix
+        magnitude = base ** exponent
+        # Be less than this threshold to use this unit
+        thresh_mag = magnitude * base
+        if requested or abs_num <= thresh_mag:
+            break
+    unit_str = _magnitude_str(abs_num, magnitude, prefix_, suffix)
+    return unit_str
+
+
+def _magnitude_str(abs_num, magnitude, prefix_, suffix):
+    scaled_num = abs_num / magnitude
+    unit = prefix_ + suffix
+    unit_str = ('%.2f %s' % (scaled_num, unit))
+    return unit_str
 
 
 def byte_str2(nBytes):

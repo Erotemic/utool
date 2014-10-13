@@ -18,7 +18,7 @@ import types
 import functools
 from os.path import splitext, split
 from . import util_inject
-from .util_arg import get_argflag, SUPER_STRICT
+from .util_arg import get_argflag
 from .util_inject import inject
 from .util_list import list_allsame
 from .util_print import Indenter
@@ -26,6 +26,8 @@ from .util_str import pack_into, truncate_str, horiz_string, indent
 from .util_type import is_listlike, get_type
 from utool._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[dbg]')
+
+RAISE_ALL = get_argflag('--raise-all')
 
 # --- Exec Strings ---
 IPYTHON_EMBED_STR = r'''
@@ -626,8 +628,8 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
     print_func(exstr)
     if separate:
         print_func('\n\n\n')
-    # If you dont know where an error is coming from be super-strict
-    if SUPER_STRICT or (reraise and not iswarning):
+    # If you dont know where an error is coming from raise-all
+    if (reraise and not iswarning) or RAISE_ALL:
         sys.stdout.flush()
         sys.stderr.flush()
         raise ex

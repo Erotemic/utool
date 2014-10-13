@@ -4,6 +4,7 @@ import six
 import re
 import os
 import warnings
+import weakref
 from collections import OrderedDict
 try:
     import numpy as np
@@ -29,15 +30,156 @@ def DEPRICATED(func):
     return __DEP_WRAPPER
 
 
+#try:
+#    import numpy as np
+#    REUSABLE_ITERABLE_TYPES = (list, tuple, np.ndarray)
+#except ImportError as ex:
+#    REUSABLE_ITERABLE_TYPES = (list, tuple)
+
+
+#def ensure_vararg_list(varargs):
+#    """
+#    It is useful to have a function take a list of objects to act upon.
+#    But sometimes you want just one. Varargs lets you pass in as many as you
+#    want, and it lets you have just one if needbe.
+#    But sometimes the function caller explicitly passes in the list. In that
+#    case we parse it out
+#    """
+#    if len(varargs) == 1:
+#        if isinstance(varargs[0], REUSABLE_ITERABLE_TYPES):
+#            return varargs[0]
+#    return varargs
+
+
+def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
+                   strict=False):
+    """
+    Example:
+        >>> import utool
+        >>> setup = utool.unindent(
+            '''
+            import numpy as np
+            np.random.seed(0)
+            invVR_mats = np.random.rand(1000, 3, 3).astype(np.float64)
+            ''')
+        >>> stmt1 = 'invVR_mats[:, 0:2, 2].T'
+        >>> stmt2 = 'invVR_mats.T[2, 0:2]'
+        >>> iterations = 100000
+        >>> verbose = True
+        >>> stmt_list = [stmt1, stmt2]
+        >>> utool.timeit_compare(stmt_list, setup='', iterations=1000, verbose=True)
+    """
+    import timeit
+    import utool
+    if verbose:
+        print('+----------------')
+        print('| TIMEIT COMPARE')
+        print('+----------------')
+        print('| iterations = %d' % (iterations,))
+        print('| Input:')
+        #print('|     +------------')
+        print('|     | num | stmt')
+        for count, stmt in enumerate(stmt_list):
+            print('|     | %3d | %r' % (count, stmt))
+        sys.stdout.flush()
+        #print('+     L________________')
+
+    result_list = [testit(stmt, setup) for stmt in stmt_list]
+    time_list   = [timeit.timeit(stmt, setup=setup, number=iterations)
+                   for stmt in stmt_list]
+
+    if verbose:
+        print('| Output:')
+        valid_results = utool.util_list.list_allsame(result_list)
+        if not valid_results:
+            print('|    * RESULTS ARE NOT VALID!!!')
+            print('| Results:')
+            for result in result_list:
+                for count, result in enumerate(result_list):
+                    print('<Result %d>' % count)
+                    print(result)
+                    print('</Result %d>' % count)
+            if strict:
+                raise AssertionError('Results are not valid')
+        else:
+            print('|    * each statement produced the same result')
+        #print('|    +-----------------------------------')
+        print('|    | num | total time | per loop | stmt')
+        for count, tup in enumerate(zip(stmt_list, time_list)):
+            stmt, time = tup
+            print('|    | %3d | %10s | %8s | %s' %
+                  (count, utool.seconds_str(time),
+                   utool.seconds_str(time / iterations), stmt))
+        #print('|    L___________________________________')
+        print('L_________________')
+
+
+def testit(stmt, setup):
+    # Make temporary locals/globals for a sandboxlike run
+    _globals = {}
+    try:
+        exec(setup, _globals)
+    except Exception as ex:
+        import utool
+        print('Setup Error')
+        print(setup)
+        print('---')
+        utool.printex(ex, 'error executing setup', keys=['setup'])
+        raise
+    try:
+        result = eval(stmt, _globals)
+    except Exception as ex:
+        import utool
+        print('Statement Error')
+        print(setup)
+        print('---')
+        print(stmt)
+        utool.printex(ex, 'error executing statement', keys=['stmt'])
+        raise
+    return result
+
+
+def memory_dump():
+    """
+    References:
+       from http://stackoverflow.com/questions/141351/how-do-i-find-what-is-using-memory-in-a-python-process-in-a-production-system
+    """
+    import gc
+    import cPickle
+    dump = open("memory.pickle", 'w')
+    for obj in gc.get_objects():
+        i = id(obj)
+        size = sys.getsizeof(obj, 0)
+        #    referrers = [id(o) for o in gc.get_referrers(obj) if hasattr(o, '__class__')]
+        referents = [id(o) for o in gc.get_referents(obj) if hasattr(o, '__class__')]
+        if hasattr(obj, '__class__'):
+            cls = str(obj.__class__)
+            cPickle.dump({'id': i, 'class': cls, 'size': size, 'referents': referents}, dump)
+
+
 class MemoryTracker(object):
     """
     Lightweight ``class`` for tracking memory usage.
     On initialization it logs the current available (free) memory.
     Calling the report method logs the current available memory as well
     as memory usage difference w.r.t the last report.
+
+    Example:
+        >>> import utool
+        >>> import numpy as np
+        >>> memtrack = utool.MemoryTracker('[ENTRY]')
+        >>> memtrack.report('[BEFORE_CREATE]')
+        >>> arr = np.ones(128 * (2 ** 20), dtype=np.uint8)
+        >>> memtrack.report('[AFTER_CREATE]')
+        >>> memtrack.track_obj(arr, 'arr')
+        >>> memtrack.report_objs()
+        >>> del arr
+        >>> memtrack.report('[DELETE]')
     """
     def __init__(self, lbl='Memtrack Init'):
         self.prev_nBytes = None
+        self.weakref_dict = weakref.WeakValueDictionary()
+        self.weakref_dict2 = {}
         self.report(lbl)
 
     def __call__(self, lbl=''):
@@ -45,6 +187,8 @@ class MemoryTracker(object):
 
     def report(self, lbl=''):
         from .util_str import byte_str2
+        import gc
+        gc.collect()
         nBytes = self.get_available_memory()
         print('[memtrack] +----')
         if self.prev_nBytes is not None:
@@ -55,10 +199,63 @@ class MemoryTracker(object):
         print('[memtrack] | Available Memory = %s' %  (byte_str2(nBytes),))
         print('[memtrack] L----')
         self.prev_nBytes = nBytes
+        self.report_objs()
 
     def get_available_memory(self):
         from .util_resources import available_memory
         return available_memory()
+
+    def track_obj(self, obj, name):
+        oid = id(obj)
+        #obj_weakref = weakref.ref(obj)
+        self.weakref_dict[oid] = obj
+        self.weakref_dict2[oid] = name
+        del obj
+
+    def report_objs(self):
+        if len(self.weakref_dict) == 0:
+            return
+        print('[memtrack] +----')
+        for oid in self.weakref_dict.iterkeys():
+            obj = self.weakref_dict[oid]
+            name = self.weakref_dict2[oid]
+            report_memsize(weakref.ref(obj), name)
+            del obj
+
+        print('[memtrack] L----')
+
+
+def report_memsize(obj, name=None, verbose=True):
+    import gc
+    #import types
+    import utool
+    if name is None:
+        name = 'obj'
+    referents = gc.get_referents(obj)
+    referers  = gc.get_referrers(obj)
+    print('+----')
+    with utool.Indenter('| '):
+        print('Memsize: ')
+        print('%s is using: %s' % (name, utool.get_object_size_str(obj)))
+        print('%s has %d referents' % (name, len(referents)))
+        print('%s has %d referers' % (name, len(referers)))
+        if verbose:
+            if len(referers) > 0:
+                for count, referer in enumerate(referers):
+                    print('  <Referer %d>' % count)
+                    print('    type(referer) = %r' % type(referer))
+                    try:
+                        #if isinstance(referer, frames.FrameType)
+                        print('    frame(referer).f_code.co_name = %s' % (referer.f_code.co_name))
+                    except Exception:
+                        pass
+                    print('    id(referer) = %r' % id(referer))
+                    #print('referer = ' + utool.truncate_str(repr(referer)))
+                    print('  </Referer %d>' % count)
+        del obj
+        del referents
+        del referers
+    print('L____')
 
 
 def get_stats(_list, axis=None):
@@ -467,8 +664,8 @@ def get_object_size(obj):
 
 def print_object_size_tree(obj):
     """ Needs work """
-    seen = set([])
-    def _get_object_size_tree(obj, indent='', lbl='obj'):
+
+    def _get_object_size_tree(obj, indent='', lbl='obj', seen=None):
         if (obj is None or isinstance(obj, (str, int, bool, float))):
             return [sys.getsizeof(obj)]
         object_id = id(obj)
@@ -482,20 +679,22 @@ def print_object_size_tree(obj):
             print(indent + '%s = %s ' % ('arr', obj.nbytes))
         elif (isinstance(obj, (tuple, list, set, frozenset))):
             for item in obj:
-                size_list += _get_object_size_tree(item, indent + '   ', 'item')
+                size_list += _get_object_size_tree(item, indent + '   ', 'item', seen)
         elif isinstance(obj, dict):
             try:
                 for key, val in six.iteritems(obj):
-                    size_list += _get_object_size_tree(key, indent + '   ', key)
-                    size_list += _get_object_size_tree(val, indent + '   ', key)
+                    size_list += _get_object_size_tree(key, indent + '   ', key, seen)
+                    size_list += _get_object_size_tree(val, indent + '   ', key, seen)
             except RuntimeError:
                 print(key)
                 raise
         elif isinstance(obj, object) and hasattr(obj, '__dict__'):
-            size_list += _get_object_size_tree(obj.__dict__, indent + '   ', 'dict')
+            size_list += _get_object_size_tree(obj.__dict__, indent + '   ', 'dict', seen)
             return size_list
         return size_list
-    _get_object_size_tree(obj, '', 'obj')
+    seen = set([])
+    _get_object_size_tree(obj, '', 'obj', seen)
+    del seen
 
 
 def get_object_size_str(obj, lbl=''):
