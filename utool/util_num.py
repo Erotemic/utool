@@ -96,6 +96,8 @@ def num2_sigfig(num):
 
 
 def num_fmt(num, max_digits=None):
+    if num is None:
+        return 'None'
     def num_in_mag(num, mag):
         return mag > num and num > (-1 * mag)
     if max_digits is None:

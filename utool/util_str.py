@@ -135,9 +135,12 @@ def pack_into(instr, textwidth=160, breakchars=' ', break_words=True, newline_pr
 
 
 def packstr(instr, textwidth=160, breakchars=' ', break_words=True,
-            newline_prefix='', indentation=''):
+            newline_prefix='', indentation='', nlprefix=None):
     """ alias for pack_into """
-
+    if not isinstance(instr, six.string_types):
+        instr = repr(instr)
+    if nlprefix is not None:
+        newline_prefix = nlprefix
     str_ = pack_into(instr, textwidth, breakchars, break_words, newline_prefix)
     if indentation != '':
         str_ = indent(str_, indentation)

@@ -138,12 +138,13 @@ else:
                            unpack_items_sorted_by_value, void_rowview_numpy, 
                            xywh_to_tlbr,) 
     from .util_aliases import (OrderedDict, ddict, iprod, odict, product,) 
-    from .util_arg import (ArgumentParser2, DEBUG2, Indenter, NOT_QUIET, NO_ASSERTS, 
-                           QUIET, STRICT, SUPER_STRICT, USE_ASSERT, VERBOSE, 
-                           VERYVERBOSE, argv_flag_dec, argv_flag_dec_true, 
-                           fuzzy_int, get_arg, get_argflag, get_argval, get_flag, 
-                           get_fpath_args, get_funcname, inject, make_argparse2, 
-                           set_funcname, switch_sanataize, try_cast,) 
+    from .util_arg import (ArgumentParser2, DEBUG2, IGNORE_TRACEBACK, Indenter, 
+                           NOT_QUIET, NO_ASSERTS, QUIET, REPORT, SAFE, STRICT, 
+                           SUPER_STRICT, TRACE, USE_ASSERT, VERBOSE, VERYVERBOSE, 
+                           argv_flag_dec, argv_flag_dec_true, fuzzy_int, get_arg, 
+                           get_argflag, get_argval, get_flag, get_fpath_args, 
+                           get_funcname, inject, make_argparse2, set_funcname, 
+                           switch_sanataize, try_cast,) 
     from .util_cache import (Cacher, GlobalShelfContext, cached_func, chain, 
                              default_appname, delete_global_cache, get_argname, 
                              get_cfgstr_from_args, get_default_appname, 
@@ -169,7 +170,7 @@ else:
                              reload_class_methods,) 
     from .util_csv import (is_float, is_int, is_list, is_str, make_csv_table, 
                            numpy_to_csv,) 
-    from .util_dbg import (EmbedOnException, IPYTHON_EMBED_STR, all_rrr, 
+    from .util_dbg import (EmbedOnException, IPYTHON_EMBED_STR, RAISE_ALL, all_rrr, 
                            debug_exception, debug_hstack, debug_list, debug_npstack, 
                            debug_vstack, dict_dbgstr, embed, execstr_attr_list, 
                            execstr_dict, execstr_embed, execstr_func, 
@@ -191,19 +192,19 @@ else:
                            save_testdata, search_stack_for_localvar, 
                            search_stack_for_var, split, super_print, truncate_str, 
                            varname_regex,) 
-    from .util_dev import (DEPRICATED, compile_cython, disable_garbage_collection, 
-                           enable_garbage_collection, find_exe, garbage_collect, 
-                           get_cython_exe, get_object_base, get_object_size, 
-                           get_object_size_str, get_stats, get_stats_str, info, 
-                           init_catch_ctrl_c, is_developer, listinfo, 
-                           make_call_graph, make_object_graph, myprint, npArrInfo, 
+    from .util_dev import (DEPRICATED, MemoryTracker, compile_cython, 
+                           disable_garbage_collection, enable_garbage_collection, 
+                           find_exe, garbage_collect, get_cython_exe, 
+                           get_object_base, get_object_size, get_object_size_str, 
+                           get_stats, get_stats_str, info, init_catch_ctrl_c, 
+                           is_developer, listinfo, make_call_graph, 
+                           make_object_graph, memory_dump, myprint, npArrInfo, 
                            npinfo, numpy_list_num_bits, print_object_size, 
                            print_object_size_tree, print_stats, printableType, 
-                           printableVal, reset_catch_ctrl_c, 
-                           tuples_to_unique_scalars,) 
-    from .util_decor import (IGNORE_TRACEBACK, NOINDENT_DECOR, PROFILING, TRACE, 
-                             UNIQUE_NUMPY, accepts_numpy, accepts_scalar_input, 
-                             accepts_scalar_input2, 
+                           printableVal, report_memsize, reset_catch_ctrl_c, testit, 
+                           timeit_compare, tuples_to_unique_scalars,) 
+    from .util_decor import (NOINDENT_DECOR, PROFILING, UNIQUE_NUMPY, accepts_numpy, 
+                             accepts_scalar_input, accepts_scalar_input2, 
                              accepts_scalar_input_vector_output, getter_1to1, 
                              getter_1toM, ignores_exc_tb, indent_func, interested, 
                              isiterable, lazyfunc, memorize, 
@@ -234,7 +235,7 @@ else:
                               TIMERPROF_FUNC, argv, get_injected_modules, inject, 
                               inject_all, inject_colored_exceptions, 
                               inject_print_functions, inject_profile_function, 
-                              inject_reload_function,) 
+                              inject_reload_function, memprof,) 
     from .util_io import (load_cPkl, read_from, save_cPkl, try_decode, write_to,) 
     from .util_iter import (cycle, ensure_iterable, ichunks, ifilter_Nones, 
                             ifilter_items, ifilterfalse_items, iflatten, 
@@ -244,25 +245,26 @@ else:
     from .util_logging import (PRINT_ALL_CALLERS, add_logging_handler, 
                                get_log_fpath, get_logging_dir, logdir_cacheid, 
                                start_logging, stop_logging,) 
-    from .util_list import (alloc_lists, alloc_nones, assert_all_not_None, 
-                            assert_unflat_level, debug_consec_list, depth_profile, 
-                            ensure_list_size, filter_Nones, filter_items, 
-                            filterfalse_items, flag_unique_items, flatten, 
-                            flattenize, get_callable_name, get_dirty_items, 
-                            get_list_column, intersect_ordered, invertable_flatten, 
-                            issorted, list_deep_types, list_depth, list_getat, 
-                            list_replace, listfind, partial_imap_1to1, safe_listget, 
-                            safe_slice, sample_zip, scalar_input_map, sortedby, 
-                            tuplize, unflatten, unique_keep_order2, unique_ordered, 
+    from .util_list import (HAS_NUMPY, alloc_lists, alloc_nones, 
+                            assert_all_not_None, assert_unflat_level, 
+                            debug_consec_list, depth_profile, ensure_list_size, 
+                            filter_Nones, filter_items, filterfalse_items, 
+                            flag_unique_items, flatten, flattenize, 
+                            get_callable_name, get_dirty_items, get_list_column, 
+                            intersect_ordered, invertable_flatten, issorted, 
+                            list_deep_types, list_depth, list_getat, list_replace, 
+                            listfind, partial_imap_1to1, safe_listget, safe_slice, 
+                            sample_zip, scalar_input_map, sortedby, tuplize, 
+                            unflatten, unique_keep_order2, unique_ordered, 
                             unique_unordered,) 
     from .util_num import (commas, fewest_digits_float_str, float_to_decimal, 
                            format_, int_comma_str, num2_sigfig, num_fmt, 
                            order_of_magnitude_ceil, sigfig_str,) 
     from .util_numpy import (deterministic_sample, deterministic_shuffle, inbounds, 
                              index_of, intersect2d, intersect2d_numpy, list_index, 
-                             listlike_copy, npfind, random_indexes, random_sample, 
-                             sample_domain, spaced_indexes, spaced_items, 
-                             tiled_range,) 
+                             listlike_copy, make_incrementer, npfind, 
+                             random_indexes, random_sample, sample_domain, 
+                             spaced_indexes, spaced_items, tiled_range,) 
     from .util_path import (IMG_EXTENSIONS, append_suffixlist_to_namelist, 
                             assert_exists, assertpath, basename_noext, checkpath, 
                             copy, copy_all, copy_list, copy_task, delete, dirsplit, 
@@ -295,15 +297,16 @@ else:
                                  time_in_systemmode, time_in_usermode, time_str2, 
                                  total_memory, used_memory,) 
     from .util_str import (GLOBAL_TYPE_ALIASES, TAU, align, align_lines, bbox_str, 
-                           byte_str, byte_str2, dict_aliased_repr, 
+                           byte_str, byte_str2, codeblock, dict_aliased_repr, 
                            dict_itemstr_list, dict_str, extend_global_aliases, 
                            file_megabytes_str, func_str, get_freespace_str, 
                            get_indentation, get_unix_timedelta, 
                            get_unix_timedelta_str, horiz_string, hz_str, 
                            indent_list, indentjoin, joins, list_aliased_repr, 
-                           list_str, listinfo_str, newlined_list, padded_str_range, 
-                           remove_chars, str2, str_between, theta_str, tupstr, 
-                           unindent, var_aliased_repr, verts_str,) 
+                           list_str, listinfo_str, long_fname_format, newlined_list, 
+                           order_of_magnitude_str, packstr, padded_str_range, 
+                           remove_chars, seconds_str, str2, str_between, theta_str, 
+                           tupstr, unindent, var_aliased_repr, verts_str,) 
     from .util_sysreq import (DEBUG, ensure_in_pythonpath, locate_path,) 
     from .util_setup import (NOOP, SETUP_PATTERNS, assert_in_setup_repo, 
                              autogen_sphinx_apidoc, build_pyo, clean, 
@@ -319,12 +322,12 @@ else:
     from .util_time import (Timer, exiftime_to_unixtime, get_day, get_month, 
                             get_timestamp, get_timestats_str, get_year, tic, toc, 
                             unixtime_to_datetime, unixtime_to_timedelta,) 
-    from .util_type import (BooleanType, FloatType, HAS_NUMPY, IntType, LongType, 
-                            NP_NDARRAY, VALID_BOOL_TYPES, VALID_FLOAT_TYPES, 
-                            VALID_INT_TYPES, assert_int, bool_from_str, is_bool, 
-                            is_dict, is_func_or_method, 
-                            is_func_or_method_or_partial, is_funclike, is_tuple, 
-                            is_type, is_valid_floattype, smart_cast, type_str,) 
+    from .util_type import (BooleanType, FloatType, IntType, LongType, NP_NDARRAY, 
+                            VALID_BOOL_TYPES, VALID_FLOAT_TYPES, VALID_INT_TYPES, 
+                            assert_int, bool_from_str, is_bool, is_dict, 
+                            is_func_or_method, is_func_or_method_or_partial, 
+                            is_funclike, is_tuple, is_type, is_valid_floattype, 
+                            smart_cast, type_str,) 
     from .util_tests import (HAPPY_FACE, SAD_FACE, printTEST, run_test,) 
     from .DynamicStruct import (AbstractPrintable, DynStruct,) 
     from .Preferences import (Pref, PrefChoice, PrefInternal, PrefNode, PrefTree,) 

@@ -259,8 +259,10 @@ class Pref(PrefNode):
         Allows easy access to internal prefs
         """
         if name.find('_') == 0:
+            # Names that start with underscore actually belong to the Pref object
             return super(PrefNode, self).__getitem__[name]
         if len(name) > 9 and name[-9:] == '_internal':
+            # internal names belong to the internal structure
             attrx = self._tree.child_names.index(name[:-9])
             return self._tree.child_list[attrx]
         #print(self._internal.name)
@@ -283,16 +285,10 @@ class Pref(PrefNode):
                     #print('base_self3 = %r' % (base_self3,))
                     print('name = %r' % (name,))
                     raise
-        except Exception:
+        except Exception as ex:
+            import utool
+            utool.printex(ex, 'Pref object missing named attribute', keys=['self._intern.name', 'name'])
             raise
-            #msg = '\n' + '\n'.join([
-            #    '[prefs!] !!! Attribute Error !!!',
-            #    '  * attribute: %s.%s not found' % (self._intern.name, name),
-            #    '  * type(self) = %r' % (type(self),),
-            #    '  * type(self._intern) = %r' % (type(self._intern),),
-            #])
-            #print(msg)
-            #raise AttributeError(msg)
 
     def iteritems(self):
         """

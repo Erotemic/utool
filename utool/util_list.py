@@ -306,26 +306,30 @@ def unique_unordered(list_):
     return tuple(set(list_))
 
 
-def sortedby(list_, sortable, reverse=False):
-    """ sorts ``list_`` using sortable
+def sortedby(item_list, key_list, reverse=False):
+    """ sorts ``item_list`` using key_list
 
     Args:
         list_ (list): list to sort
-        sortable (list): list to by
+        key_list (list): list to sort by
+        reverse (bool): sort order is descending if True else acscending
 
     Returns:
-        a ``list`` sorted by the values of another ``list``
+        list : ``list_`` sorted by the values of another ``list``. defaults to
+        ascending order
 
     Examples:
         >>> import utool
         >>> list_    = [1, 2, 3, 4, 5]
-        >>> sortable = [2, 5, 3, 1, 5]
-        >>> utool.sortedby(list_, sortable, reverse=True)
+        >>> key_list = [2, 5, 3, 1, 5]
+        >>> utool.sortedby(list_, key_list, reverse=True)
         [5, 2, 3, 1, 4]
 
     """
-    assert len(list_) == len(sortable), 'must be same len'
-    sorted_list = [item for (key, item) in sorted(list(zip(sortable, list_)), reverse=reverse)]
+    assert len(item_list) == len(key_list), 'Expected same length. Got: %r != %r' % (
+        len(item_list), len(key_list))
+    sorted_list = [item for (key, item) in
+                   sorted(list(zip(key_list, item_list)), reverse=reverse)]
     return sorted_list
 
 
