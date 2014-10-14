@@ -157,6 +157,14 @@ def memory_dump():
             cPickle.dump({'id': i, 'class': cls, 'size': size, 'referents': referents}, dump)
 
 
+def _disableable(func):
+    def _wrp_disableable(self, *args, **kwargs):
+        if self.disabled:
+            return
+        return func(*args, **kwargs)
+    return _wrp_disableable
+
+
 class MemoryTracker(object):
     """
     A ``class`` for tracking memory usage.
@@ -179,18 +187,22 @@ class MemoryTracker(object):
         #>>> memtrack.report_largest()
     """
     def __init__(self, lbl='Memtrack Init'):
+        self.disabled = True
         self.init_nBytes = self.get_available_memory()
         self.prev_nBytes = None
         self.weakref_dict = {}  # weakref.WeakValueDictionary()
         self.weakref_dict2 = {}
         self.report(lbl)
 
+    @_disableable
     def __call__(self, lbl=''):
         self.report(lbl=lbl)
 
+    @_disableable
     def collect(self):
         gc.collect()
 
+    @_disableable
     def report_largest(self):
         # Doesnt quite work yet
         import numpy as np
@@ -218,6 +230,7 @@ class MemoryTracker(object):
         #size_list = [utool.get_object_size(obj) for obj in obj_list]
         pass
 
+    @_disableable
     def report(self, lbl=''):
         from .util_str import byte_str2
         self.collect()
@@ -236,10 +249,12 @@ class MemoryTracker(object):
         print('[memtrack] L----')
         self.prev_nBytes = nBytes
 
+    @_disableable
     def get_available_memory(self):
         from .util_resources import available_memory
         return available_memory()
 
+    @_disableable
     def track_obj(self, obj, name):
         oid = id(obj)
         if not isinstance(obj, weakref.ref):
@@ -249,6 +264,7 @@ class MemoryTracker(object):
         self.weakref_dict2[oid] = name
         del obj
 
+    @_disableable
     def report_objs(self):
         if len(self.weakref_dict) == 0:
             return
