@@ -356,19 +356,45 @@ def func_str(func, args=[], kwargs={}, type_aliases=[]):
 
 
 def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True,
-                      recursive=True, indent=''):
+                      recursive=True, indent_=''):
+    """
+    Returns:
+        list: a list of human-readable dictionary items
+    Example:
+        >>> from utool.util_str import dict_str, dict_itemstr_list
+        >>> import utool
+        >>> CONFIG_DICT = utool.get_default_repo_config()
+        #>>> utool.rrrr()
+        #>>> utool.util_str.rrr()
+        >>> config_str = dict_str(CONFIG_DICT, strvals=True)
+        >>> authstr = dict_str(CONFIG_DICT['AUTHORS'], strvals=True)
+        >>> mestr = dict_str(CONFIG_DICT['AUTHORS']['joncrall'], strvals=True)
+        >>> print(config_str)
+        >>> print(authstr)
+        >>> print(mestr)
+
+    Dev:
+        dict_ = CONFIG_DICT
+        strvals = False
+        sorted_ = False
+        newlines = True
+        recursive = True
+        indent_ = ''
+    """
     iteritems = six.iteritems
     if strvals:
-        fmtstr = indent + '%s: %s,'
+        fmtstr = indent_ + '%s: %s,'
     else:
-        fmtstr = indent + '%r: %r,'
+        fmtstr = indent_ + '%r: %r,'
     if sorted_:
         iteritems = lambda iter_: iter(sorted(iter_))
     if recursive:
         def valfunc(val):
             if isinstance(val, dict):
                 # recursive call
-                return dict_str(val, strvals, sorted_, newlines, recursive, indent + '    ')
+                print('reccall')
+                return dict_str(val, strvals, sorted_, newlines, recursive, indent_ + '    ')
+            print('base')
             # base case
             return val
         itemstr_list = [fmtstr % (key, valfunc(val)) for (key, val) in iteritems(dict_)]
@@ -381,19 +407,24 @@ def list_str(list_):
     return '[%s\n]' % indentjoin(list_, suffix=',')
 
 
-def dict_str(dict_, strvals=False, sorted_=False, newlines=True, recursive=True, indent=''):
+def dict_str(dict_, strvals=False, sorted_=False, newlines=True, recursive=True, indent_=''):
     """
     Returns:
         str: a human-readable and execable string representation of a dictionary
     Example:
         >>> import utool
         >>> CONFIG_DICT = utool.get_default_repo_config()
-        >>> config_str = utool.dict_str(CONFIG_DICT, strvals=True)
+        >>> config_str = utool.util_str.dict_str(CONFIG_DICT, strvals=True)
         >>> print(config_str)
+        >>> authstr = utool.util_str.dict_str(CONFIG_DICT['AUTHORS'], strvals=True)
+        >>> print(authstr)
+        >>> mestr = utool.util_str.dict_str(CONFIG_DICT['AUTHORS']['joncrall'], strvals=True)
+        >>> print(mestr)
     """
-    itemstr_list = dict_itemstr_list(dict_, strvals, sorted_, recursive, indent)
+    print('dictstr')
+    itemstr_list = dict_itemstr_list(dict_, strvals, sorted_, recursive, indent_)
     if newlines:
-        return indent + '{%s\n}' % indentjoin(itemstr_list)
+        return indent_ + '{%s\n}' % indentjoin(itemstr_list)
     else:
         return '{%s}' % ' '.join(itemstr_list)
 

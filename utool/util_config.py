@@ -33,40 +33,47 @@ def get_default_repo_config():
     """
     import utool
     """
-    CONFIG_DICT = {
-        # Core Info
-        'project_name': 'default_behavior',
-        'authors': ['default_author'],
+    REPO_CONFIG = {
+        'project_name': None,
+        'authors': [],
         'licence': None,
+        'enable_cyth': None,
+        'docstr_style': None,
+    }
 
-        # Utool Configs
-        'enable_cyth': False,
-        'docstr_style': 'Google',
+    return REPO_CONFIG
 
+
+def get_default_global_config():
+    GLOBAL_CONFIG = {
         # Supplementary Info
         'AUTHORS': {
-            #'username': {
-            #    'name': None,
-            #    'email': None,
-            #}
-            'default_author': {
-                'name': 'Arthur, King of the Britans',
-                'email': 'kingarthur@camelot.com',
-                'quest': 'To seek the holy grail.',
-                'airspeed velocity of an unladen swallow': 'What to you mean? An African or European swallow?',
-            },
+            'username': {'name': None,
+                         'email': None, },
 
-            'joncrall': {
-                'name': 'Jon Crall',
-                'email': 'erotemic@gmail.com',
-            }
-        }
+            'kingarthur': {'name': 'Arthur, King of the Britans',
+                           'email': 'kingarthur@camelot.com',
+                           'permited repos': ['kotr'],
+                           'aliases': [],
+                           'machines': [],
+                           'quest': 'To seek the holy grail.',
+                           'sa5ws5%lp&30sjnk': 'What to you mean? An African or European swallow?', },
+
+            'joncrall': {'name': 'Jon Crall',
+                         'email': 'erotemic@gmail.com',
+                         'permited repos': ['ibeis', 'utool', 'hesaff',
+                                            'guitool', 'plottool', 'vtool'],
+                         'aliases': [],
+                         'machines': [], },
+
+        },
     }
-    return CONFIG_DICT
+    return GLOBAL_CONFIG
 
 
 def write_default_repo_config():
     import utool
     CONFIG_DICT = utool.get_default_repo_config()
-    config_str = utool.dict_str(CONFIG_DICT, strvals=True, newlines=True)
+    config_str = utool.dict_str(CONFIG_DICT, strvals=True, newlines=True,
+                                recursive=True)
     print(config_str)
