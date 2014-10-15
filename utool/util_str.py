@@ -355,14 +355,25 @@ def func_str(func, args=[], kwargs={}, type_aliases=[]):
     return func_str
 
 
-def dict_itemstr_list(dict_, strvals=False, sorted_=False):
+def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True,
+                      recursive=True, indent=''):
     iteritems = six.iteritems
-    fmtstr = '%r: %r,'
     if strvals:
-        fmtstr = '%s: %s,'
+        fmtstr = indent + '%s: %s,'
+    else:
+        fmtstr = indent + '%r: %r,'
     if sorted_:
         iteritems = lambda iter_: iter(sorted(iter_))
-    itemstr_list = [fmtstr % (key, val) for (key, val) in iteritems(dict_)]
+    if recursive:
+        def valfunc(val):
+            if isinstance(val, dict):
+                # recursive call
+                return dict_str(val, strvals, sorted_, newlines, recursive, indent + '    ')
+            # base case
+            return val
+        itemstr_list = [fmtstr % (key, valfunc(val)) for (key, val) in iteritems(dict_)]
+    else:
+        itemstr_list = [fmtstr % (key, val) for (key, val) in iteritems(dict_)]
     return itemstr_list
 
 
@@ -370,14 +381,19 @@ def list_str(list_):
     return '[%s\n]' % indentjoin(list_, suffix=',')
 
 
-def dict_str(dict_, strvals=False, sorted_=False, newlines=True):
+def dict_str(dict_, strvals=False, sorted_=False, newlines=True, recursive=True, indent=''):
     """
     Returns:
         str: a human-readable and execable string representation of a dictionary
+    Example:
+        >>> import utool
+        >>> CONFIG_DICT = utool.get_default_repo_config()
+        >>> config_str = utool.dict_str(CONFIG_DICT, strvals=True)
+        >>> print(config_str)
     """
-    itemstr_list = dict_itemstr_list(dict_, strvals, sorted_)
+    itemstr_list = dict_itemstr_list(dict_, strvals, sorted_, recursive, indent)
     if newlines:
-        return '{%s\n}' % indentjoin(itemstr_list)
+        return indent + '{%s\n}' % indentjoin(itemstr_list)
     else:
         return '{%s}' % ' '.join(itemstr_list)
 

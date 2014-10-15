@@ -451,6 +451,7 @@ def preserve_sig(wrapper, orig_func):
         locals_ = {}
         # Extract argspec from orig function
         argspec = inspect.getargspec(orig_func)
+        # argspec is :ArgSpec(args=['bar', 'baz'], varargs=None, keywords=None, defaults=(True,))
         # Get the function definition signature
         defsig = inspect.formatargspec(*argspec)
         # Get function call signature (no defaults)

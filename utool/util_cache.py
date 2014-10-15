@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 import shelve
 #import atexit
 import sys
+import inspect
 from six.moves import range
 from os.path import join, normpath
 import functools
@@ -135,17 +136,42 @@ def get_argname(func, x):
     return ('arg%d' % x)
 
 
-def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds):
+def get_kwdefaults(func):
+    argspec = inspect.getargspec(func)
+    if argspec.keywords is None or argspec.defaults is None:
+        return {}
+    kwdefaults = dict(zip(argspec.keywords, argspec.defaults))
+    return kwdefaults
+
+
+def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults):
+    """
+    Dev:
+        x = ['fdsf', '432443432432', 43423432, 'fdsfsd', 3.2, True]
+        memlist = list(map(bytes_or_repr, x))
+    """
     fmt_str = '%s(%s)'
     hashstr = util_hash.hashstr
     if key_argx is None:
-        key_argx = range(len(args))
+        key_argx = iter(range(len(args)))
     if key_kwds is None:
-        key_kwds = kwargs.keys()
-    args_hash_iter = (fmt_str % (get_argname(func, x), hashstr(repr(args[x])))
-                      for x in key_argx)
-    kwds_hash_iter = (fmt_str % (key, hashstr(repr(kwargs[key])))
-                      for key in key_kwds)
+        key_kwds = iter(kwargs.keys())
+    # TODO: Use bytes or memoryview instead of repr
+    # Helper funcs
+
+    def bytes_or_repr(val):
+        try:
+            return memoryview(val).tobytes()
+        except Exception:
+            return repr(val)
+
+    hashrepr = lambda val: hashstr(bytes_or_repr(val))
+    kwdval   = lambda key: kwargs.get(key, kwdefaults.get(key, None))
+    # Iter funcs
+    argfmter = lambda   x: fmt_str % (get_argname(func, x), hashrepr(args[x]))
+    kwdfmter = lambda key: fmt_str % (key, hashrepr(kwdval(key)))
+    args_hash_iter = (argfmter(x) for x in key_argx)
+    kwds_hash_iter = (kwdfmter(key) for key in key_kwds)
     cfgstr = '_'.join(chain(args_hash_iter, kwds_hash_iter))
     return cfgstr
 
@@ -154,16 +180,20 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
                 key_kwds=None, use_cache=None):
     """
     Wraps a function with a Cacher object
+
+    uses a hash of arguments as input
     """
     def cached_closure(func):
         fname_ = get_funcname(func) if fname is None else fname
+        kwdefaults = get_kwdefaults(func)
         cacher = Cacher(fname_, cache_dir=cache_dir, appname=appname)
         if use_cache is None:
             use_cache_ = not util_arg.get_argflag('--nocache-' + fname)
         @functools.wraps(func)
         def cached_wraper(*args, **kwargs):
             # Implicitly adds use_cache to kwargs
-            cfgstr = get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds)
+            cfgstr = get_cfgstr_from_args(func, args, kwargs, key_argx,
+                                          key_kwds, kwdefaults)
             assert cfgstr is not None, 'cfgstr cannot be None'
             if kwargs.get('use_cache', use_cache_):
                 # Make cfgstr from specified input
