@@ -72,6 +72,17 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
     """
     import timeit
     import utool
+
+    for stmtx in range(len(stmt_list)):
+        # Hacky way of removing assignment and just getting statement
+        # We have to make sure it is ok when using it for kwargs
+        stmt = stmt_list[stmtx]
+        eqpos = stmt.find('=')
+        lparen_pos = stmt.find('(')
+        if eqpos > 0 and (lparen_pos == -1 or lparen_pos > eqpos):
+            stmt = '='.join(stmt.split('=')[1:])
+            stmt_list[stmtx] = stmt
+
     if verbose:
         print('+----------------')
         print('| TIMEIT COMPARE')
@@ -82,6 +93,7 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
         print('|     | num | stmt')
         for count, stmt in enumerate(stmt_list):
             print('|     | %3d | %r' % (count, stmt))
+        print('...')
         sys.stdout.flush()
         #print('+     L________________')
 

@@ -6,7 +6,9 @@
 from __future__ import absolute_import, division, print_function
 try:
     import numpy as np
+    HAS_NUMPY = True
 except ImportError:
+    HAS_NUMPY = False
     # TODO remove numpy
     pass
 from collections import defaultdict

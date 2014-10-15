@@ -65,3 +65,33 @@ def dict_update_newkeys(dict_, dict2):
     for key, val in six.iteritems(dict2):
         if key not in dict_:
             dict_[key] = val
+
+
+def is_dicteq(dict1_, dict2_, almosteq_ok=True, verbose_err=True):
+    """ Checks to see if dicts are the same. Performs recursion. Handles numpy """
+    import utool
+    try:
+        import numpy as np
+        HAS_NUMPY = True
+    except ImportError:
+        HAS_NUMPY = False
+        pass
+    assert len(dict1_) == len(dict2_), 'dicts are not of same length'
+    try:
+        for (key1, val1), (key2, val2) in zip(dict1_.items(), dict2_.items()):
+            assert key1 == key2, 'key mismatch'
+            assert type(val1) == type(val2), 'vals are not same type'
+            if HAS_NUMPY and np.iterable(val1):
+                if almosteq_ok and utool.is_float(val1):
+                    assert np.all(utool.almost_eq(val1, val2)), 'float vals are not within thresh'
+                else:
+                    assert all([np.all(x1 == x2) for (x1, x2) in zip(val1, val2)]), 'np vals are different'
+            elif isinstance(val1, dict):
+                is_dicteq(val1, val2, almosteq_ok=almosteq_ok, verbose_err=verbose_err)
+            else:
+                assert val1 == val2, 'vals are different'
+    except AssertionError as ex:
+        if verbose_err:
+            utool.printex(ex)
+        return False
+    return True
