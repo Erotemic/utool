@@ -286,9 +286,14 @@ class Pref(PrefNode):
                     print('name = %r' % (name,))
                     raise
         except Exception as ex:
-            import utool
-            utool.printex(ex, 'Pref object missing named attribute', keys=['self._intern.name', 'name'])
-            raise
+            if name == 'traid_names':
+                # HACK FOR IPYTHON
+                pass
+            else:
+                import utool
+                utool.printex(ex, 'Pref object missing named attribute', keys=['self._intern.name', 'name'])
+                raise AttributeError('Pref object is missing named attribute: name=%r'  % name)
+                #raise
 
     def iteritems(self):
         """
