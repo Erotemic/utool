@@ -107,17 +107,10 @@ def truncate_str(str_, maxlen=110, truncmsg=' ~~~TRUNCATED~~~ '):
         return ''.join(tup)
 
 
-def pack_into(instr, textwidth=160, breakchars=' ', break_words=True, newline_prefix=''):
+def __OLD_pack_into(instr, textwidth=160, breakchars=' ', break_words=True,
+                    newline_prefix='', wordsep=' '):
     """
-    Inserts newlines into a string enforcing a maximum textwidth.
-    Similar to vim's gq command in visual select mode.
-
-    breakchars is a string containing valid characters to insert a newline
-    before or after.
-
-    break_words is True if words are allowed to be split over multiple lines.
-
-    all inserted newlines are prefixed with newline_prefix
+    BROKEN DO NOT USE
     """
     textwidth_ = textwidth
     line_list = ['']
@@ -130,18 +123,81 @@ def pack_into(instr, textwidth=160, breakchars=' ', break_words=True, newline_pr
             line_list[-1] += word[:textwidth_]
             line_list.append('')
             word = word[textwidth_:]
-        line_list[-1] += word + ' '
+        line_list[-1] += word + wordsep
     return ('\n' + newline_prefix).join(line_list)
 
 
+def pack_into(instr, textwidth=160, breakchars=' ', break_words=True,
+              newline_prefix='', wordsep=' ', remove_newlines=True):
+    r"""
+    Inserts newlines into a string enforcing a maximum textwidth.
+    Similar to vim's gq command in visual select mode.
+
+    breakchars is a string containing valid characters to insert a newline
+    before or after.
+
+    break_words is True if words are allowed to be split over multiple lines.
+
+    all inserted newlines are prefixed with newline_prefix
+
+    #FIXME:
+
+    Example:
+        >>> instr = "set_image_uris(ibs<139684018194000>, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], [u'66ec193a-1619-b3b6-216d-1784b4833b61.jpg', u'd8903434-942f-e0f5-d6c2-0dcbe3137bf7.jpg', u'b73b72f4-4acb-c445-e72c-05ce02719d3d.jpg', u'0cd05978-3d83-b2ee-2ac9-798dd571c3b3.jpg', u'0a9bc03d-a75e-8d14-0153-e2949502aba7.jpg', u'2deeff06-5546-c752-15dc-2bd0fdb1198a.jpg', u'a9b70278-a936-c1dd-8a3b-bc1e9a998bf0.png', u'42fdad98-369a-2cbc-67b1-983d6d6a3a60.jpg', u'c459d381-fd74-1d99-6215-e42e3f432ea9.jpg', u'33fd9813-3a2b-774b-3fcc-4360d1ae151b.jpg', u'97e8ea74-873f-2092-b372-f928a7be30fa.jpg', u'588bc218-83a5-d400-21aa-d499832632b0.jpg', u'163a890c-36f2-981e-3529-c552b6d668a3.jpg'], ) "
+        >>> textwidth = 160
+        >>> breakchars = ' '
+        >>> break_words = True
+        >>> newline_prefix = '    '
+        >>> wordsep = ' '
+        >>> packstr1 = pack_into(instr, textwidth, breakchars, break_words, newline_prefix, wordsep)
+        >>> break_words = False
+        >>> packstr2 = pack_into(instr, textwidth, breakchars, break_words, newline_prefix, wordsep)
+        >>> print(packstr1)
+        >>> print(packstr2)
+
+
+    """
+    #FIXME: messy code
+    textwidth_ = textwidth
+    # Accumulate a list of lines
+    line_list = ['']
+    # Split text into list of words
+    word_list = instr.split(breakchars)
+    if remove_newlines:
+        word_list = [word.replace('\n', '') for word in word_list]
+    for word in word_list:
+        available = textwidth_ - len(line_list[-1])
+        # Check to see if we need to make a new line
+        while len(word) > available:
+            if break_words:
+                # If we are allowed to break words over multiple lines
+                # Fill the rest of the available textwidth with part of the word
+                line_list[-1] += word[:available]
+                word = word[available:]
+            # Append a new line to the list
+            # Reset the avaiablable textwidth for new line
+            line_list.append('')
+            textwidth_ = textwidth - len(newline_prefix)
+            available = textwidth_ - len(line_list[-1])
+            if not break_words:
+                break
+        # Append the word and a separator to the current line.
+        textwidth_ = textwidth - len(newline_prefix)
+        line_list[-1] += word + wordsep
+    packed_str = ('\n' + newline_prefix).join(line_list)
+    return packed_str
+
+
 def packstr(instr, textwidth=160, breakchars=' ', break_words=True,
-            newline_prefix='', indentation='', nlprefix=None):
-    """ alias for pack_into """
+            newline_prefix='', indentation='', nlprefix=None, wordsep=' ',
+            remove_newlines=True):
+    """ alias for pack_into. has more up to date kwargs """
     if not isinstance(instr, six.string_types):
         instr = repr(instr)
     if nlprefix is not None:
         newline_prefix = nlprefix
-    str_ = pack_into(instr, textwidth, breakchars, break_words, newline_prefix)
+    str_ = pack_into(instr, textwidth, breakchars, break_words, newline_prefix,
+                     wordsep, remove_newlines)
     if indentation != '':
         str_ = indent(str_, indentation)
     return str_
@@ -342,7 +398,8 @@ def dict_aliased_repr(dict_, type_aliases=[]):
 # </Alias repr funcs>
 
 
-def func_str(func, args=[], kwargs={}, type_aliases=[]):
+def func_str(func, args=[], kwargs={}, type_aliases=[], packed=False,
+             packkw=None):
     """
     string representation of function definition
 
@@ -352,6 +409,11 @@ def func_str(func, args=[], kwargs={}, type_aliases=[]):
     repr_list = list_aliased_repr(args, type_aliases) + dict_aliased_repr(kwargs)
     argskwargs_str = newlined_list(repr_list, ', ', textwidth=80)
     func_str = '%s(%s)' % (get_funcname(func), argskwargs_str)
+    if packed:
+        packkw_ = dict(textwidth=80, nlprefix='    ', break_words=False)
+        if packkw is not None:
+            packkw_.update(packkw_)
+        func_str = packstr(func_str, **packkw_)
     return func_str
 
 

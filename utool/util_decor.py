@@ -8,17 +8,20 @@ import sys
 from functools import wraps, update_wrapper
 try:
     import numpy as np
+    HAS_NUMPY = True
 except ImportError:
-    pass
-from .util_arg import NO_ASSERTS, SAFE, IGNORE_TRACEBACK, TRACE
-from .util_iter import isiterable
-from .util_print import Indenter
-from .util_dbg import printex
+    HAS_NUMPY = False
+from . import util_print
 from . import util_time
+from . import util_iter
+from . import util_dbg
+from . import util_arg
 from .util_inject import inject
 from utool._internal.meta_util_six import get_funcname
 (print, print_, printDBG, rrr, profile) = inject(__name__, '[decor]')
 
+#SIG_PRESERVE = not util_arg.SAFE
+SIG_PRESERVE = not util_arg.get_argflag('--nosigpreserve')
 
 # do not ignore traceback when profiling
 PROFILING = hasattr(builtins, 'profile')
@@ -45,7 +48,7 @@ def ignores_exc_tb(func):
     if IGNORE_EXC_TB is False then this decorator does nothing
     (and it should do nothing in production code!)
     """
-    if not IGNORE_TRACEBACK:
+    if not util_arg.IGNORE_TRACEBACK:
         return func
     else:
         @wraps(func)
@@ -82,7 +85,12 @@ def ignores_exc_tb(func):
 
 #@decorator.decorator
 def on_exception_report_input(func):
-    @ignores_exc_tb
+    """
+    If an error is thrown in the scope of this function's stack frame then the
+    decorated function name and the arguments passed to it will be printed to
+    the utool print function.
+    """
+    #@ignores_exc_tb
     @wraps(func)
     def wrp_exception_report_input(*args, **kwargs):
         try:
@@ -95,21 +103,24 @@ def on_exception_report_input(func):
             msg = ('ERROR: funcname=%r,\n * args=%r,\n * kwargs=%r\n' % (get_funcname(func), args, kwargs))
             msg += ' * len(args) = %r\n' % len(args)
             msg += ' * len(kwlargs) = %r\n' % len(kwargs)
-            printex(ex, msg, separate=True)
+            util_dbg.printex(ex, msg, separate=True)
             raise
     wrp_exception_report_input = preserve_sig(wrp_exception_report_input, func)
     return wrp_exception_report_input
 
 
 def _indent_decor(lbl):
+    """
+    does the actual work of indent_func
+    """
     #@decorator.decorator
     def closure_indent(func):
         #printDBG('Indenting lbl=%r, func=%r' % (lbl, func))
-        if TRACE:
+        if util_arg.TRACE:
             @ignores_exc_tb
             @wraps(func)
             def wrp_indent(*args, **kwargs):
-                with Indenter(lbl):
+                with util_print.Indenter(lbl):
                     print('    ...trace[in]')
                     ret = func(*args, **kwargs)
                     print('    ...trace[out]')
@@ -118,7 +129,7 @@ def _indent_decor(lbl):
             @ignores_exc_tb
             @wraps(func)
             def wrp_indent(*args, **kwargs):
-                with Indenter(lbl):
+                with util_print.Indenter(lbl):
                     ret = func(*args, **kwargs)
                     return ret
         wrp_indent_ = ignores_exc_tb(wrp_indent)
@@ -170,7 +181,7 @@ def accepts_scalar_input(func):
         #if HAS_PANDAS:
         #    if isinstance(input_, (pd.DataFrame, pd.Series)):
         #        input_ = input_.values
-        if isiterable(input_):
+        if util_iter.isiterable(input_):
             # If input is already iterable do default behavior
             return func(self, input_, *args, **kwargs)
         else:
@@ -182,11 +193,14 @@ def accepts_scalar_input(func):
 
 
 def __assert_param_consistency(args, argx_list):
-    if NO_ASSERTS:
+    """
+    debugging function for accepts_scalar_input2
+    """
+    if util_arg.NO_ASSERTS:
         return
     if len(argx_list) == 0:
         return True
-    argx_flags = [isiterable(args[argx]) for argx in argx_list]
+    argx_flags = [util_iter.isiterable(args[argx]) for argx in argx_list]
     try:
         assert all([argx_flags[0] == flag for flag in argx_flags]), (
             'invalid mixing of iterable and scalar inputs')
@@ -197,26 +211,36 @@ def __assert_param_consistency(args, argx_list):
         raise
 
 
-def accepts_scalar_input2(argx_list=range(0, 1)):
+def accepts_scalar_input2(argx_list=[0]):
     """
+    FIXME: change to better name. Complete implementation.
+
+    Args:
+        argx_list (list): indexes of args that could be passed in as scalars to
+            code that operates on lists. Ensures that decorated function gets
+            the argument as an iterable.
+
     accepts_scalar_input is a decorator which expects to be used on class methods.
     It lets the user pass either a vector or a scalar to a function, as long as
     the function treats everything like a vector. Input and output is sanatized
     to the user expected format on return.
     """
+    if not isinstance(argx_list, (list, tuple)):
+        raise AssertionError('accepts_scalar_input2 must be called with argument positions')
+
     #@decorator.decorator
     def closure_si2(func):
         @ignores_exc_tb
         @wraps(func)
         def wrp_si2(self, *args, **kwargs):
             __assert_param_consistency(args, argx_list)
-            if all([isiterable(args[ix]) for ix in argx_list]):
+            if all([util_iter.isiterable(args[ix]) for ix in argx_list]):
                 # If input is already iterable do default behavior
                 return func(self, *args, **kwargs)
             else:
                 # If input is scalar, wrap input, execute, and unpack result
                 args_wrapped = [(arg,) if ix in argx_list else arg
-                                for arg in args]
+                                for ix, arg in enumerate(args)]
                 ret = func(self, *args_wrapped, **kwargs)
                 if ret is not None:
                     return ret[0]
@@ -227,6 +251,8 @@ def accepts_scalar_input2(argx_list=range(0, 1)):
 #@decorator.decorator
 def accepts_scalar_input_vector_output(func):
     """
+    DEPRICATE IN FAVOR OF accepts_scalar_input2
+
     accepts_scalar_input is a decorator which expects to be used on class
     methods.  It lets the user pass either a vector or a scalar to a function,
     as long as the function treats everything like a vector. Input and output is
@@ -239,7 +265,7 @@ def accepts_scalar_input_vector_output(func):
         #if utool.DEBUG:
         #    print('[IN SIVO] args=%r' % (args,))
         #    print('[IN SIVO] kwargs=%r' % (kwargs,))
-        if isiterable(input_):
+        if util_iter.isiterable(input_):
             # If input is already iterable do default behavior
             return func(self, input_, *args, **kwargs)
         else:
@@ -280,7 +306,7 @@ def accepts_numpy(func):
     #@ignores_exc_tb
     @wraps(func)
     def wrp_accepts_numpy(self, input_, *args, **kwargs):
-        if not isinstance(input_, np.ndarray):
+        if not (HAS_NUMPY and isinstance(input_, np.ndarray)):
             # If the input is not numpy, just call the function
             return func(self, input_, *args, **kwargs)
         else:
@@ -398,7 +424,7 @@ def time_func(func):
 #            wrapped.__dict__ = tgt_func.__dict__
 #            return wrapped
 #        except Exception as ex:
-#            printex(ex, 'error wrapping: %r' % (tgt_func,))
+#            util_dbg.printex(ex, 'error wrapping: %r' % (tgt_func,))
 #            raise
 
 
@@ -416,7 +442,7 @@ def lazyfunc(func):
     return wrapper
 
 
-def preserve_sig(wrapper, orig_func):
+def preserve_sig(wrapper, orig_func, force=False):
     """
     Decorates a wrapper function.
 
@@ -429,11 +455,7 @@ def preserve_sig(wrapper, orig_func):
     References:
         http://emptysqua.re/blog/copying-a-python-functions-signature/
     """
-    SIG_PRESERVE = not SAFE
-    if not SIG_PRESERVE:
-        # Turn off signature preservation
-        return update_wrapper(wrapper, orig_func)
-    else:
+    if force or SIG_PRESERVE:
         src_fmt = r'''
         def _wrp_preserve{defsig}:
             try:
@@ -441,8 +463,8 @@ def preserve_sig(wrapper, orig_func):
             except Exception as ex:
                 import utool
                 msg = ('Failure in signature preserving wrapper:\n')
-                msg += ("{defsig}\n")
-                msg += ("{callsig}\n")
+                msg += ("defsig={defsig}\n")
+                msg += ("callsig={callsig}\n")
                 utool.print(ex, msg)
                 raise
         '''
@@ -452,6 +474,7 @@ def preserve_sig(wrapper, orig_func):
         # Extract argspec from orig function
         argspec = inspect.getargspec(orig_func)
         # argspec is :ArgSpec(args=['bar', 'baz'], varargs=None, keywords=None, defaults=(True,))
+        (args, varargs, varkw, defaults) = argspec
         # Get the function definition signature
         defsig = inspect.formatargspec(*argspec)
         # Get function call signature (no defaults)
@@ -462,9 +485,16 @@ def preserve_sig(wrapper, orig_func):
         # (I wish there was a non exec / eval way to do this)
         #print(src)
         exec(src, globals_, locals_)
-        # Grab the function definition
+        # Use functools.update_wapper to complete preservation
         _wrp_preserve = update_wrapper(locals_['_wrp_preserve'], orig_func)
+        # Keep debug info
+        _wrp_preserve._utinfo = {}
+        _wrp_preserve._utinfo['src'] = src
         # Set an internal sig variable that we may use
         #_wrp_preserve.__sig__ = defsig
         _wrp_preserve._dbgsrc = src
         return _wrp_preserve
+    else:
+        # signature preservation is turned off. just preserve the name.
+        # Does not use any exec or eval statments.
+        return update_wrapper(wrapper, orig_func)
