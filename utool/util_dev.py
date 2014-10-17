@@ -52,6 +52,56 @@ def DEPRICATED(func):
 #    return varargs
 
 
+def make_default_docstr(func):
+    """
+    Tries to make a sensible default docstr so the user
+    can fill things in without typing too much
+    """
+    import inspect
+    import utool
+    #current_doc = inspect.getdoc(func)
+    argspec = inspect.getargspec(func)
+    (args, varargs, varkw, defaults) = argspec
+    argdoc_list = [arg + ' ():' for arg in args]
+
+    default_docstr = ''
+
+    # Get args info
+    argsdoc = utool.indent('Args:' + utool.indentjoin(argdoc_list))
+    default_docstr += argsdoc
+
+    # Get returns info
+    sourcecode = inspect.getsource(func)
+    if sourcecode is not None:
+        #source_lines = sourcecode.splitlines()
+        import ast
+        pt = ast.parse(sourcecode)
+        def find_return_node(pt):
+            for node in pt.body[0].body:
+                if isinstance(node, ast.Return):
+                    return node
+                    #returnnode = node
+                    #print(type(node))
+        returnnode = find_return_node(pt)
+        if returnnode is None:
+            return_type = 'None'
+        elif isinstance(returnnode.value, ast.Tuple):
+            names = returnnode.value.elts
+            tupleid = '(%s)' % (', '.join([str(name.id) for name in names]))
+            #print(returnnode.value.__dict__)
+            return_type = 'tuple : ' + tupleid
+        elif isinstance(returnnode.value, ast.Name):
+            #print(returnnode.value.__dict__)
+            return_type = returnnode.value.id
+            pass
+        else:
+            return_type = str(type(returnnode.value))
+        returndoc = utool.indent('Returns: \n' + '    %s' % return_type)
+        default_docstr += '\n\n' + returndoc
+
+    return default_docstr
+
+
 def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
                    strict=False):
     """

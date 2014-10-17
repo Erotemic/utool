@@ -155,6 +155,9 @@ def pack_into(instr, textwidth=160, breakchars=' ', break_words=True,
         >>> print(packstr1)
         >>> print(packstr2)
 
+    CommandLine:
+        python -c "import utool" --dump-utool-init
+
 
     """
     #FIXME: messy code
@@ -182,7 +185,9 @@ def pack_into(instr, textwidth=160, breakchars=' ', break_words=True,
             if not break_words:
                 break
         # Append the word and a separator to the current line.
-        textwidth_ = textwidth - len(newline_prefix)
+        if len(line_list) > 1:
+            # Weird if statement. Probably bug somewhere.
+            textwidth_ = textwidth - len(newline_prefix)
         line_list[-1] += word + wordsep
     packed_str = ('\n' + newline_prefix).join(line_list)
     return packed_str

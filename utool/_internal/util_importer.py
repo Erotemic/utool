@@ -146,8 +146,11 @@ def _make_fromimport_str(FROM_IMPORTS):
             rawstr = from_module_str + ', '.join(fromlist) + ',)'
         else:
             rawstr = ''
-        packstr = util_str.pack_into(rawstr, textwidth=80,
-                                     newline_prefix=newline_prefix)
+
+        # not sure why this isn't 76? >= maybe?
+        packstr = util_str.pack_into(rawstr, textwidth=75,
+                                     newline_prefix=newline_prefix,
+                                    break_words=False)
         return packstr
     from_str = '\n'.join(map(_pack_fromimport, FROM_IMPORTS))
     return from_str
@@ -172,6 +175,11 @@ def _inject_execstr(module_name, IMPORT_TUPLES):
         rrr()
         {body}
         rrr()
+        try:
+            # For utool
+            dev_reimport()
+        except Exception:
+            pass
     rrrr = reload_subs''')
     rrrdir_fmt  = '    getattr(%s, \'reload_subs\', lambda: None)()'
     rrrfile_fmt = '    getattr(%s, \'rrr\', lambda: None)()'
