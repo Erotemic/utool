@@ -131,9 +131,9 @@ class Cacher(object):
         save_cache(self.dpath, self.fname, cfgstr, data)
 
 
-def get_argname(func, x):
+def get_argname(func, argx):
     # FINISHME
-    return ('arg%d' % x)
+    return ('arg%d' % argx)
 
 
 def get_kwdefaults(func):
@@ -147,32 +147,61 @@ def get_kwdefaults(func):
 def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults):
     """
     Dev:
-        x = ['fdsf', '432443432432', 43423432, 'fdsfsd', 3.2, True]
-        memlist = list(map(bytes_or_repr, x))
+        argx = ['fdsf', '432443432432', 43423432, 'fdsfsd', 3.2, True]
+        memlist = list(map(bytes_or_repr, argx))
     """
-    fmt_str = '%s(%s)'
-    hashstr = util_hash.hashstr
-    if key_argx is None:
-        key_argx = iter(range(len(args)))
-    if key_kwds is None:
-        key_kwds = iter(kwargs.keys())
-    # TODO: Use bytes or memoryview instead of repr
-    # Helper funcs
+    try:
+        fmt_str = '%s(%s)'
+        hashstr = util_hash.hashstr
+        if key_argx is None:
+            key_argx = list(range(len(args)))
+        if key_kwds is None:
+            key_kwds = list(kwargs.keys())
+        # TODO: Use bytes or memoryview instead of repr
+        # Helper funcs
 
-    def bytes_or_repr(val):
+        def bytes_or_repr(val):
+            try:
+                return memoryview(val).tobytes()
+            except Exception:
+                return repr(val)
+
+        def hashrepr(val):
+            return hashstr(bytes_or_repr(val))
+        def kwdval(key):
+            return kwargs.get(key, kwdefaults.get(key, None))
+        # Iter funcs
+        def argfmter(argx):
+            try:
+                return fmt_str % (get_argname(func, argx), hashrepr(args[argx]))
+            except Exception as ex:
+                import utool
+                msg = utool.unindent('''
+                [argfmter] argx=%r
+                [argfmter] len(args)=%r
+                [argfmter] map(type, args)) = %r
+                [argfmter] %s
+                ''') % (argx, len(args), map(type, args), utool.func_str(func),)
+                utool.printex(ex, msg, separate=True)
+                raise
+        def kwdfmter(key):
+            return fmt_str % (key, hashrepr(kwdval(key)))
+        #iterfun = list
+        #iterfun = iter
+        args_hash_iter = [argfmter(argx) for argx in key_argx]
+        kwds_hash_iter = [kwdfmter(key) for key in key_kwds]
+        cfgstr = '_'.join(chain(args_hash_iter, kwds_hash_iter))
+    except Exception as ex:
+        import utool
         try:
-            return memoryview(val).tobytes()
+            dbg_args_hash_iter = [argfmter(argx) for argx in key_argx if argx < len(args)]
+            dbg_kwds_hash_iter = [kwdfmter(key) for key in key_kwds]
+            dbg_cfgstr = '_'.join(chain(dbg_args_hash_iter, dbg_kwds_hash_iter))
         except Exception:
-            return repr(val)
-
-    hashrepr = lambda val: hashstr(bytes_or_repr(val))
-    kwdval   = lambda key: kwargs.get(key, kwdefaults.get(key, None))
-    # Iter funcs
-    argfmter = lambda   x: fmt_str % (get_argname(func, x), hashrepr(args[x]))
-    kwdfmter = lambda key: fmt_str % (key, hashrepr(kwdval(key)))
-    args_hash_iter = (argfmter(x) for x in key_argx)
-    kwds_hash_iter = (kwdfmter(key) for key in key_kwds)
-    cfgstr = '_'.join(chain(args_hash_iter, kwds_hash_iter))
+            pass
+        utool.printex(ex, keys=['key_argsx', 'key_kwds', 'kwdefaults',
+                                dbg_cfgstr], separate=True)
+        raise
     return cfgstr
 
 
@@ -189,22 +218,37 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
         cacher = Cacher(fname_, cache_dir=cache_dir, appname=appname)
         if use_cache is None:
             use_cache_ = not util_arg.get_argflag('--nocache-' + fname)
+        _dbgdict = dict(fname_=fname_, key_kwds=key_kwds, appname=appname,
+                        key_argx=key_argx, use_cache_=use_cache_)
         @functools.wraps(func)
         def cached_wraper(*args, **kwargs):
-            # Implicitly adds use_cache to kwargs
-            cfgstr = get_cfgstr_from_args(func, args, kwargs, key_argx,
-                                          key_kwds, kwdefaults)
-            assert cfgstr is not None, 'cfgstr cannot be None'
-            if kwargs.get('use_cache', use_cache_):
-                # Make cfgstr from specified input
-                data = cacher.tryload(cfgstr)
-                if data is not None:
-                    return data
-            # Cached missed compute function
-            data = func(*args, **kwargs)
-            # Cache save
-            cacher.save(data, cfgstr)
-            return data
+            try:
+                if True:
+                    print('[utool] computing cached function fname_=%s' % (fname_,))
+                # Implicitly adds use_cache to kwargs
+                cfgstr = get_cfgstr_from_args(func, args, kwargs, key_argx,
+                                              key_kwds, kwdefaults)
+                assert cfgstr is not None, 'cfgstr=%r cannot be None' % (cfgstr,)
+                if kwargs.get('use_cache', use_cache_):
+                    # Make cfgstr from specified input
+                    data = cacher.tryload(cfgstr)
+                    if data is not None:
+                        return data
+                # Cached missed compute function
+                data = func(*args, **kwargs)
+                # Cache save
+                cacher.save(data, cfgstr)
+                return data
+            except Exception as ex:
+                import utool
+                _dbgdict2 = dict(key_argx=key_argx, lenargs=len(args), lenkw=len(kwargs),)
+                msg = '\n'.join(
+                    ['+--- UTOOL --- ERROR IN CACHED FUNCTION',
+                     'dbgdict = ' + utool.dict_str(_dbgdict),
+                     'dbgdict2 = ' + utool.dict_str(_dbgdict2),
+                    ])
+                utool.printex(ex, msg)
+                raise
         # Give function a handle to the cacher object
         cached_wraper.cacher = cacher
         return cached_wraper

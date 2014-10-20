@@ -52,6 +52,51 @@ def DEPRICATED(func):
 #    return varargs
 
 
+def auto_docstr(modname, funcname):
+    """
+    >>> import utool
+    >>> docstr = utool.auto_docstr('ibeis.model.hots.smk.smk_index', 'compute_negentropy_names')
+    """
+    import utool
+    docstr = 'error'
+    if isinstance(modname, str):
+        module = __import__(modname)
+        try:
+            func = getattr(module, funcname)
+            docstr = make_default_docstr(func)
+            return docstr
+        except Exception as ex:
+            print('make_default_docstr is falling back')
+            #print(ex)
+            #print('modname = '  + modname)
+            #print('funcname = ' + funcname)
+            try:
+                execstr = utool.codeblock(
+                    '''
+                    import {modname}
+                    import utool
+                    docstr = utool.make_default_docstr({modname}.{funcname})
+                    '''
+                ).format(**locals())
+                exec(execstr)
+                return docstr
+                #print(execstr)
+            except Exception as ex:
+                pass
+                #print(ex)
+    else:
+        docstr = 'error'
+    return docstr
+
+
+def print_auto_docstr(modname, funcname):
+    """
+    python -c "import utool; utool.print_auto_docstr('ibeis.model.hots.smk.smk_index', 'compute_negentropy_names')"
+    python -c "import utool; utool.print_auto_docstr('ibeis.model.hots.smk.smk_index', 'compute_negentropy_names')"
+    """
+    print(auto_docstr(modname, funcname))
+
+
 def make_default_docstr(func):
     """
     Tries to make a sensible default docstr so the user

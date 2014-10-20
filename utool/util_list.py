@@ -101,6 +101,32 @@ def unflatten(flat_list, reverse_list):
     return unflat_list2
 
 
+def invertable_flatten2(unflat_list):
+    """
+    An alternative to invertable_flatten which uses cumsum
+
+    Flattens ``list`` but remember how to reconstruct the unflat ``list``
+    Returns flat ``list`` and the unflat ``list`` with indexes into the flat
+    ``list``
+
+    Example:
+        >>> import utool
+        >>> utool.util_list
+
+    """
+
+    def nextnum(trick_=[0]):
+        num = trick_[0]
+        trick_[0] += 1
+        return num
+    # Build an unflat list of flat indexes
+    reverse_list = [tuple([nextnum() for _ in tup]) for tup in unflat_list]
+    flat_list = flatten(unflat_list)
+    return flat_list, reverse_list
+
+
+
+
 def tuplize(list_):
     """ Converts each scalar item in a list to a dimension-1 tuple
     """

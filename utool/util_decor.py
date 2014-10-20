@@ -20,8 +20,8 @@ from .util_inject import inject
 from utool._internal.meta_util_six import get_funcname
 (print, print_, printDBG, rrr, profile) = inject(__name__, '[decor]')
 
-#SIG_PRESERVE = not util_arg.SAFE
 SIG_PRESERVE = not util_arg.get_argflag('--nosigpreserve')
+SIG_PRESERVE = not util_arg.SAFE or util_arg.get_argflag('--sigpreserve')
 
 # do not ignore traceback when profiling
 PROFILING = hasattr(builtins, 'profile')
