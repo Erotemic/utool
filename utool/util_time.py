@@ -164,7 +164,7 @@ def get_year():
     return datetime.datetime.now().year
 
 
-def get_timestats_str(unixtime_list):
+def get_timestats_str(unixtime_list, newlines=False):
     import utool
     unixtime_stats = utool.get_stats(unixtime_list)
     for key in ['max', 'min', 'mean']:
@@ -177,5 +177,5 @@ def get_timestats_str(unixtime_list):
             unixtime_stats[key] = str(utool.unixtime_to_timedelta(int(round(unixtime_stats[key]))))
         except KeyError:
             pass
-    timestat_str = utool.dict_str(unixtime_stats, newlines=False)
+    timestat_str = utool.dict_str(unixtime_stats, newlines=newlines)
     return timestat_str
