@@ -95,6 +95,7 @@ class Cacher(object):
                  verbose=VERBOSE):
         if cache_dir == 'default':
             cache_dir = util_cplat.get_app_resource_dir(appname)
+        util_path.ensuredir(cache_dir)
         self.dpath = cache_dir
         self.fname = fname
         self.cfgstr = cfgstr
@@ -131,11 +132,6 @@ class Cacher(object):
         save_cache(self.dpath, self.fname, cfgstr, data)
 
 
-def get_argname(func, argx):
-    # FINISHME
-    return ('arg%d' % argx)
-
-
 def get_kwdefaults(func):
     argspec = inspect.getargspec(func)
     if argspec.keywords is None or argspec.defaults is None:
@@ -144,64 +140,126 @@ def get_kwdefaults(func):
     return kwdefaults
 
 
-def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults):
+def get_argnames(func):
+    argspec = inspect.getargspec(func)
+    argnames = argspec.args
+    return argnames
+
+
+def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults, argnames):
     """
     Dev:
         argx = ['fdsf', '432443432432', 43423432, 'fdsfsd', 3.2, True]
         memlist = list(map(bytes_or_repr, argx))
+
+    Ignore:
+        argx = key_argx[0]
+        argval = args[argx]
+        val = argval
+        %timeit repr(argval)
+        %timeit any_repr(argval)
+        %timeit utool.hashstr(any_repr(argval))
+        %timeit memoryview(argval)
     """
-    try:
-        fmt_str = '%s(%s)'
-        hashstr = util_hash.hashstr
-        if key_argx is None:
-            key_argx = list(range(len(args)))
-        if key_kwds is None:
-            key_kwds = list(kwargs.keys())
-        # TODO: Use bytes or memoryview instead of repr
-        # Helper funcs
+    #try:
+    #fmt_str = '%s(%s)'
+    hashstr = util_hash.hashstr
+    if key_argx is None:
+        key_argx = list(range(len(args)))
+    if key_kwds is None:
+        key_kwds = list(kwargs.keys())
 
-        def bytes_or_repr(val):
-            try:
-                return memoryview(val).tobytes()
-            except Exception:
-                return repr(val)
+    # TODO: Use bytes or memoryview instead of repr
+    # Helper funcs
 
-        def hashrepr(val):
-            return hashstr(bytes_or_repr(val))
-        def kwdval(key):
-            return kwargs.get(key, kwdefaults.get(key, None))
-        # Iter funcs
-        def argfmter(argx):
-            try:
-                return fmt_str % (get_argname(func, argx), hashrepr(args[argx]))
-            except Exception as ex:
-                import utool
-                msg = utool.unindent('''
-                [argfmter] argx=%r
-                [argfmter] len(args)=%r
-                [argfmter] map(type, args)) = %r
-                [argfmter] %s
-                ''') % (argx, len(args), map(type, args), utool.func_str(func),)
-                utool.printex(ex, msg, separate=True)
-                raise
-        def kwdfmter(key):
-            return fmt_str % (key, hashrepr(kwdval(key)))
-        #iterfun = list
-        #iterfun = iter
-        args_hash_iter = [argfmter(argx) for argx in key_argx]
-        kwds_hash_iter = [kwdfmter(key) for key in key_kwds]
-        cfgstr = '_'.join(chain(args_hash_iter, kwds_hash_iter))
-    except Exception as ex:
-        import utool
+    def any_repr(val):
+        """ hopefully json will be able to compute a string representation """
+        import json
+        import numpy as np
+
+        class NumPyArangeEncoder(json.JSONEncoder):
+            def default(self, obj):
+                if isinstance(obj, np.ndarray):
+                    return obj.tolist()  # or map(int, obj)
+                return json.JSONEncoder.default(self, obj)
+
+        data = (json.dumps(val, cls=NumPyArangeEncoder))
+        return data
+
+    def bytes_or_repr(val):
         try:
-            dbg_args_hash_iter = [argfmter(argx) for argx in key_argx if argx < len(args)]
-            dbg_kwds_hash_iter = [kwdfmter(key) for key in key_kwds]
-            dbg_cfgstr = '_'.join(chain(dbg_args_hash_iter, dbg_kwds_hash_iter))
+            memview = memoryview(val)
+            return memview.tobytes()
         except Exception:
-            pass
-        utool.printex(ex, keys=['key_argsx', 'key_kwds', 'kwdefaults',
-                                dbg_cfgstr], separate=True)
-        raise
+            return any_repr(val)
+            #if isinstance(val, dict):
+            #    dict_keys = list(val.keys())
+            #    dict_values = list(val.values())
+            #    dict_keys_repr = bytes_or_repr(dict_keys)
+            #    dict_values_repr = bytes_or_repr(dict_values)
+            #    return dict_keys_repr + dict_values_repr
+            #elif isinstance(val, list):
+            #    pass
+            #else:
+            #    return repr(val)
+
+    def hashrepr(val):
+        return hashstr(bytes_or_repr(val))
+
+    def kwdval(key):
+        return kwargs.get(key, kwdefaults.get(key, None))
+
+    arg_hashfmtstr = [argnames[argx] + '(%s)' for argx in key_argx]
+    kwn_hashfmtstr = [kwdefaults.get(key, '???') + '(%s)' for key in key_kwds]
+    cfgstr_fmt = '_' + '_'.join(chain(arg_hashfmtstr, kwn_hashfmtstr))
+    print('cfgstr_fmt = %r' % cfgstr_fmt)
+    print('hashing args')
+    #import utool
+    #with utool.Timer('time') as t:
+    arg_hashiter = [hashrepr(args[argx]) for argx in key_argx]
+    #try:
+    #    if t.ellapsed > 4:
+    #        utool.embed()
+    #except Exception as ex:
+    #    utool.embed()
+    print('hashing kwargs')
+    kwn_hashiter = [hashrepr(kwdval(key)) for key in key_kwds]
+    print('formating args and kwargs')
+    cfgstr = cfgstr_fmt % tuple(chain(arg_hashiter, kwn_hashiter))
+    print('made cfgstr = %r' % cfgstr)
+
+    ## Iter funcs
+    #def argfmter(argx):
+    #    try:
+    #        return fmt_str % (argnames[argx], hashrepr(args[argx]))
+    #    except Exception as ex:
+    #        import utool
+    #        msg = utool.unindent('''
+    #        [argfmter] argx=%r
+    #        [argfmter] len(args)=%r
+    #        [argfmter] map(type, args)) = %r
+    #        [argfmter] %s
+    #        ''') % (argx, len(args), map(type, args), utool.func_str(func),)
+    #        utool.printex(ex, msg, separate=True)
+    #        raise
+    #def kwdfmter(key):
+    #    return fmt_str % (key, hashrepr(kwdval(key)))
+    #iterfun = list
+    #iterfun = iter
+    #args_hash_iter = [argfmter(argx) for argx in key_argx]
+    #kwds_hash_iter = [kwdfmter(key) for key in key_kwds]
+    #cfgstr = '_' + '_'.join(chain(args_hash_iter, kwds_hash_iter))
+    #except Exception as ex:
+    #    import utool
+    #    try:
+    #        dbg_args_hash_iter = [argfmter(argx) for argx in key_argx if argx < len(args)]
+    #        dbg_kwds_hash_iter = [kwdfmter(key) for key in key_kwds]
+    #        dbg_cfgstr =  '_' + '_'.join(chain(dbg_args_hash_iter, dbg_kwds_hash_iter))
+    #    except Exception:
+    #        pass
+    #    utool.printex(ex, keys=['key_argsx', 'key_kwds', 'kwdefaults',
+    #                            dbg_cfgstr], separate=True)
+    #    raise
     return cfgstr
 
 
@@ -211,15 +269,34 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
     Wraps a function with a Cacher object
 
     uses a hash of arguments as input
+
+    Example:
+        >>> import utool
+        >>> def costly_func(a, b, c='d', *args, **kwargs):
+        ...    return ([a] * b, c, args, kwargs)
+        >>> ans0 = costly_func(41, 3)
+        >>> ans1 = costly_func(42, 3)
+        >>> closure_ = utool.cached_func('costly_func', appname='utool_test', key_argx=[0, 1])
+        >>> efficient_func = closure_(costly_func)
+        >>> ans2 = efficient_func(42, 3)
+        >>> ans3 = efficient_func(42, 3)
+        >>> ans4 = efficient_func(41, 3)
+        >>> ans5 = efficient_func(41, 3)
+        >>> assert ans1 == ans2
+        >>> assert ans2 == ans3
+        >>> assert ans5 == ans4
+        >>> assert ans5 == ans0
+        >>> assert ans1 != ans0
     """
     def cached_closure(func):
         fname_ = get_funcname(func) if fname is None else fname
         kwdefaults = get_kwdefaults(func)
+        argnames   = get_argnames(func)
         cacher = Cacher(fname_, cache_dir=cache_dir, appname=appname)
         if use_cache is None:
             use_cache_ = not util_arg.get_argflag('--nocache-' + fname)
-        _dbgdict = dict(fname_=fname_, key_kwds=key_kwds, appname=appname,
-                        key_argx=key_argx, use_cache_=use_cache_)
+        #_dbgdict = dict(fname_=fname_, key_kwds=key_kwds, appname=appname,
+        #                key_argx=key_argx, use_cache_=use_cache_)
         @functools.wraps(func)
         def cached_wraper(*args, **kwargs):
             try:
@@ -227,7 +304,7 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
                     print('[utool] computing cached function fname_=%s' % (fname_,))
                 # Implicitly adds use_cache to kwargs
                 cfgstr = get_cfgstr_from_args(func, args, kwargs, key_argx,
-                                              key_kwds, kwdefaults)
+                                              key_kwds, kwdefaults, argnames)
                 assert cfgstr is not None, 'cfgstr=%r cannot be None' % (cfgstr,)
                 if kwargs.get('use_cache', use_cache_):
                     # Make cfgstr from specified input
@@ -242,11 +319,11 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
             except Exception as ex:
                 import utool
                 _dbgdict2 = dict(key_argx=key_argx, lenargs=len(args), lenkw=len(kwargs),)
-                msg = '\n'.join(
-                    ['+--- UTOOL --- ERROR IN CACHED FUNCTION',
-                     'dbgdict = ' + utool.dict_str(_dbgdict),
-                     'dbgdict2 = ' + utool.dict_str(_dbgdict2),
-                    ])
+                msg = '\n'.join([
+                    '+--- UTOOL --- ERROR IN CACHED FUNCTION',
+                    #'dbgdict = ' + utool.dict_str(_dbgdict),
+                    'dbgdict2 = ' + utool.dict_str(_dbgdict2),
+                ])
                 utool.printex(ex, msg)
                 raise
         # Give function a handle to the cacher object

@@ -256,10 +256,17 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
             # make qt not loop forever (I had qflag loop forever with this off)
     except ImportError as ex:
         print(ex)
-    config_dict = {}
+    #from IPython.config.loader import Config
+    # cfg = Config()
+    #config_dict = {}
     #if exec_lines is not None:
     #    config_dict['exec_lines'] = exec_lines
-    IPython.embed(**config_dict)
+    #IPython.embed(**config_dict)
+    IPython.embed()
+    # Exit python immediately if specifed
+    if vars().get('EXIT_NOW', False):
+        print('[utool.embed] EXIT_NOW specified')
+        sys.exit(1)
 
 
 def quitflag(num=None, embed_=False, parent_locals=None, parent_globals=None):
