@@ -24,7 +24,43 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[progress]')
 #VERBOSE = get_argflag('--verbose')
 VALID_PROGRESS_TYPES = ['none', 'dots', 'fmtstr', 'simple']
 AGGROFLUSH = '--aggroflush' in sys.argv
-PROGGRESS_BACKSPACE = '--screen' not in sys.argv
+PROGGRESS_BACKSPACE = ('--screen' not in sys.argv and '--progress-backspace' not in sys.argv)
+
+
+class ProgressIter(object):
+    """
+
+    Example:
+        >>> import utool
+        >>> from six.moves import range
+        >>> results1 = [x for x in utool.ProgressIter(range(10000), flushfreq=100)]
+        >>> results2 = [x for x in range(10000)]
+        >>> gener = (y + 1 for y in range(10000))
+        >>> results3 = [x for x in utool.progiter(gener, flushfreq=100, backspace=False)]
+        >>> assert results1 == results2
+
+    """
+    def __init__(self, iterable, *args, **kwargs):
+        self.iterable = iterable
+        if len(args) < 2 and 'nTotal' not in kwargs:
+            try:
+                nTotal = len(iterable)
+                kwargs['nTotal'] = nTotal
+            except Exception:
+                pass
+        mark, end = log_progress(*args, **kwargs)
+        self.mark = mark
+        self.end = end
+
+    def __iter__(self):
+        mark = self.mark
+        for count, item in enumerate(self.iterable):
+            mark(count)
+            yield item
+        self.end()
+
+
+progiter = ProgressIter
 
 
 def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,

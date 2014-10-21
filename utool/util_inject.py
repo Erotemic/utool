@@ -200,7 +200,8 @@ def TIMERPROF_FUNC(func):
 
 try:
     #KERNPROF_FUNC = TIMERPROF_FUNC
-    raise AttributeError('')
+    # TODO: Fix this in case using memprof instead
+    #raise AttributeError('')
     KERNPROF_FUNC = getattr(builtins, 'profile')
     PROFILING = True
 except AttributeError:
