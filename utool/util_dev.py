@@ -54,8 +54,21 @@ def DEPRICATED(func):
 
 def auto_docstr(modname, funcname):
     """
-    >>> import utool
-    >>> docstr = utool.auto_docstr('ibeis.model.hots.smk.smk_index', 'compute_negentropy_names')
+    Args:
+        modname (str):
+        funcname (str):
+
+    Returns:
+        docstr
+
+    Example:
+        >>> import utool
+        >>> utool.util_dev.rrr()
+        >>> #docstr = utool.auto_docstr('ibeis.model.hots.smk.smk_index', 'compute_negentropy_names')
+        >>> modname = 'utool.util_dev'
+        >>> funcname = 'auto_docstr'
+        >>> docstr = utool.util_dev.auto_docstr(modname, funcname)
+        >>> print(docstr)
     """
     import utool
     docstr = 'error'
@@ -65,7 +78,7 @@ def auto_docstr(modname, funcname):
             func = getattr(module, funcname)
             docstr = make_default_docstr(func)
             return docstr
-        except Exception as ex:
+        except Exception as ex1:
             print('make_default_docstr is falling back')
             #print(ex)
             #print('modname = '  + modname)
@@ -81,9 +94,10 @@ def auto_docstr(modname, funcname):
                 exec(execstr)
                 return docstr
                 #print(execstr)
-            except Exception as ex:
+            except Exception as ex2:
                 pass
-                #print(ex)
+                print(ex1)
+                print(ex2)
     else:
         docstr = 'error'
     return docstr
@@ -110,6 +124,8 @@ def make_default_docstr(func):
     #print('argspec: ')
     #print(argspec)
 
+    if defaults is None:
+        defaults = []
     default_types = [type(val).__name__.replace('NoneType', 'None') for val in defaults]
     arg_types = ['?'] * (len(args) - len(defaults)) + default_types
     #print(arg_types)
@@ -156,6 +172,9 @@ def make_default_docstr(func):
 def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
                    strict=False):
     """
+    Compares several statments by timing them and also
+    checks that they have the same return value
+
     Example:
         >>> import utool
         >>> setup = utool.unindent(
@@ -450,11 +469,21 @@ def report_memsize(obj, name=None, verbose=True):
         print('L____')
 
 
-def get_stats(_list, axis=None):
+def tuples_to_unique_scalars(tup_list):
+    seen = {}
+    def addval(tup):
+        val = len(seen)
+        seen[tup] = val
+        return val
+    scalar_list = [seen[tup] if tup in seen else addval(tup) for tup in tup_list]
+    return scalar_list
+
+
+def get_stats(list_, axis=None):
     """
     Args:
-        _list (listlike): values to get statistics of
-        axis (int): if ``_list`` is ndarray then this specifies the axis
+        list_ (listlike): values to get statistics of
+        axis (int): if ``list_`` is ndarray then this specifies the axis
 
     Returns:
         OrderedDict: stat_dict - dictionary of common numpy statistics
@@ -464,19 +493,23 @@ def get_stats(_list, axis=None):
         >>> import numpy as np
         >>> import utool
         >>> axis = 0
-        >>> _list = np.random.rand(10, 2)
-        >>> utool.get_stats(_list, axis=axis)
+        >>> list_ = np.random.rand(10, 2)
+        >>> utool.get_stats(list_, axis=axis)
+
+    SeeAlso:
+        print_stats
+        get_stats_str
     """
     # Assure input is in numpy format
-    if isinstance(_list, np.ndarray):
-        nparr = _list
-    elif isinstance(_list, list):
-        nparr = np.array(_list)
+    if isinstance(list_, np.ndarray):
+        nparr = list_
+    elif isinstance(list_, list):
+        nparr = np.array(list_)
     else:
-        _list = list(_list)
-        nparr = np.array(_list)
+        list_ = list(list_)
+        nparr = np.array(list_)
     # Check to make sure stats are feasible
-    if len(_list) == 0:
+    if len(list_) == 0:
         stat_dict = {'empty_list': True}
     else:
         # Compute stats
@@ -498,26 +531,19 @@ def get_stats(_list, axis=None):
              ('shape', repr(nparr.shape))])
     return stat_dict
 
-
-def tuples_to_unique_scalars(tup_list):
-    seen = {}
-    def addval(tup):
-        val = len(seen)
-        seen[tup] = val
-        return val
-    scalar_list = [seen[tup] if tup in seen else addval(tup) for tup in tup_list]
-    return scalar_list
-
-
 # --- Info Strings ---
 
 
-def get_stats_str(_list, newlines=False):
+def get_stats_str(list_, newlines=False):
     """
     Returns the string version of get_stats
+
+    SeeAlso:
+        print_stats
+        get_stats
     """
     from .util_str import dict_str
-    stat_dict = get_stats(_list)
+    stat_dict = get_stats(list_)
     stat_str  = dict_str(stat_dict, strvals=True, newlines=newlines)
     #stat_strs = ['%r: %s' % (key, val) for key, val in six.iteritems(stat_dict)]
     #if newlines:
@@ -533,13 +559,24 @@ def get_stats_str(_list, newlines=False):
     return stat_str
 
 
-def print_stats(_list, lbl=None, newlines=False):
+def print_stats(list_, lbl=None, newlines=False):
     """
-    Prints string representation of stat of _list
+    Prints string representation of stat of list_
+
+    Example:
+        >>> import utool
+        >>> list_ = [1, 2, 3, 4, 5]
+        >>> utool.print_stats(list_)
+        {max: 5.0, min: 1.0, mean: 3.0, std: 1.41421, nMin: 1, nMax: 1, shape: (5,),}
+
+    SeeAlso:
+        get_stats_str
+        get_stats
+
     """
     if lbl is not None:
-        print('Mystats for %s' % lbl)
-    stat_str = get_stats_str(_list, newlines=newlines)
+        print('Stats for %s' % lbl)
+    stat_str = get_stats_str(list_, newlines=newlines)
     print(stat_str)
 
 

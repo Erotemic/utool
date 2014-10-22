@@ -31,6 +31,25 @@ class ProgressIter(object):
     """
     Wraps a for loop with progress reporting
 
+    Args:
+        iterable (): iterable normally passed to for loop
+        lbl (str):  progress label
+        nTotal (int):
+        flushfreq (int):
+        startafter (int):
+        start (bool):
+        repl (bool):
+        approx (bool):
+        disable (bool):
+        writefreq (int):
+        with_totaltime (bool):
+        backspace (bool):
+        separate (bool):
+        wfreq (None): alias for write_freq
+        ffreq (None): alias for flush_freq
+        total (None): alias for nTotal
+        num (None):   alias for nTotal
+
     Example:
         >>> import utool
         >>> from six.moves import range
@@ -52,15 +71,19 @@ class ProgressIter(object):
         mark, end = log_progress(*args, **kwargs)
         self.mark = mark
         self.end = end
+        self.count = -1
 
     def __iter__(self):
         mark = self.mark
         # Wrap the for loop with a generator
-        count = -1
-        for count, item in enumerate(self.iterable):
-            mark(count)
+        self.count = -1
+        for self.count, item in enumerate(self.iterable):
+            mark(self.count)
             yield item
-        self.end(count + 1)
+        self.end(self.count + 1)
+
+    def mark_current(self):
+        self.mark(self.count)
 
 
 progiter = ProgressIter
@@ -69,7 +92,7 @@ progiter = ProgressIter
 def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
                  start=True, repl=False, approx=False, disable=False,
                  writefreq=1, with_totaltime=False, backspace=True,
-                 separate=False, wfreq=None, ffreq=None, total=None, num=None):
+                 separate=False, wfreq=None, ffreq=None, freq=None, total=None, num=None):
     """
     Returns two functions (mark_progress, end_progress) which will handle
     logging progress in a for loop.
@@ -91,6 +114,7 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
         separate (bool):
         wfreq (None): alias for write_freq
         ffreq (None): alias for flush_freq
+        freq (None):  alias for flush_freq and write_freq (prefered)
         total (None): alias for nTotal
         num (None):   alias for nTotal
 
@@ -121,6 +145,8 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
     #    I don't completely understand why some of the >>> and ... had to be where
     #    they are, but doctest gets very angry if its not in this format
 
+    # TODO: Option to display rate of progress
+    # TODO: Option to display eta
     global AGGROFLUSH
     # Alias kwargs with simpler names
     if num is not None:
@@ -131,6 +157,8 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
         writefreq = wfreq
     if ffreq is not None:
         flushfreq = ffreq
+    if freq is not None:
+        writefreq = flushfreq = freq
     # flush frequency must be a multiple of write frequency
     flushfreq = max(int(round(flushfreq / writefreq)), 1) * writefreq
     if nTotal < startafter or disable:
