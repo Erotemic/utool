@@ -107,7 +107,13 @@ def make_default_docstr(func):
     #current_doc = inspect.getdoc(func)
     argspec = inspect.getargspec(func)
     (args, varargs, varkw, defaults) = argspec
-    argdoc_list = [arg + ' ():' for arg in args]
+    #print('argspec: ')
+    #print(argspec)
+
+    default_types = [type(val).__name__.replace('NoneType', 'None') for val in defaults]
+    arg_types = ['?'] * (len(args) - len(defaults)) + default_types
+    #print(arg_types)
+    argdoc_list = [arg + ' (%s):' % _type for arg, _type in zip(args, arg_types)]
 
     default_docstr = ''
 

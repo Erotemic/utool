@@ -286,7 +286,7 @@ class Pref(PrefNode):
                     print('name = %r' % (name,))
                     raise
         except Exception as ex:
-            if name == 'traid_names':
+            if name == 'trait_names':
                 # HACK FOR IPYTHON
                 pass
             else:

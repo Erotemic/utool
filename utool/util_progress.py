@@ -29,14 +29,15 @@ PROGGRESS_BACKSPACE = ('--screen' not in sys.argv and '--progress-backspace' not
 
 class ProgressIter(object):
     """
+    Wraps a for loop with progress reporting
 
     Example:
         >>> import utool
         >>> from six.moves import range
-        >>> results1 = [x for x in utool.ProgressIter(range(10000), flushfreq=100)]
+        >>> results1 = [x for x in utool.ProgressIter(range(10000), wfreq=10)]
+        >>> results4 = [x for x in utool.ProgressIter(range(10000), wfreq=1)]
         >>> results2 = [x for x in range(10000)]
-        >>> gener = (y + 1 for y in range(10000))
-        >>> results3 = [x for x in utool.progiter(gener, flushfreq=100, backspace=False)]
+        >>> results3 = [x for x in utool.progiter((y + 1 for y in range(1000001)), nTotal=1000001, wfreq=1000, backspace=True)]
         >>> assert results1 == results2
 
     """
@@ -54,10 +55,12 @@ class ProgressIter(object):
 
     def __iter__(self):
         mark = self.mark
+        # Wrap the for loop with a generator
+        count = -1
         for count, item in enumerate(self.iterable):
             mark(count)
             yield item
-        self.end()
+        self.end(count + 1)
 
 
 progiter = ProgressIter
@@ -66,13 +69,30 @@ progiter = ProgressIter
 def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
                  start=True, repl=False, approx=False, disable=False,
                  writefreq=1, with_totaltime=False, backspace=True,
-                 separate=False):
+                 separate=False, wfreq=None, ffreq=None, total=None, num=None):
     """
     Returns two functions (mark_progress, end_progress) which will handle
     logging progress in a for loop.
 
-    # I don't completely understand why some of the >>> and ... had to be where
-    # they are, but doctest gets very angry if its not in this format
+    flush frequency must be a multiple of write frequency
+
+    Args:
+        lbl (str):  progress label
+        nTotal (int):
+        flushfreq (int):
+        startafter (int):
+        start (bool):
+        repl (bool):
+        approx (bool):
+        disable (bool):
+        writefreq (int):
+        with_totaltime (bool):
+        backspace (bool):
+        separate (bool):
+        wfreq (None): alias for write_freq
+        ffreq (None): alias for flush_freq
+        total (None): alias for nTotal
+        num (None):   alias for nTotal
 
     Example:
         >>> import utool, time
@@ -94,7 +114,25 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
         >>> end_()
         <BLANKLINE>
     """
+    # utool.auto_docstr('utool.util_progress', 'log_progress')
+    # python -c "import utool; utool.print_auto_docstr('utool.util_progress', 'log_progress')"
+    #
+    # In reference to above docstr:
+    #    I don't completely understand why some of the >>> and ... had to be where
+    #    they are, but doctest gets very angry if its not in this format
+
     global AGGROFLUSH
+    # Alias kwargs with simpler names
+    if num is not None:
+        nTotal = num
+    if total is not None:
+        nTotal = total
+    if wfreq is not None:
+        writefreq = wfreq
+    if ffreq is not None:
+        flushfreq = ffreq
+    # flush frequency must be a multiple of write frequency
+    flushfreq = max(int(round(flushfreq / writefreq)), 1) * writefreq
     if nTotal < startafter or disable:
         # Do not mark progress if only executing a small number of tasks
         def mark_progress(*args):
@@ -122,8 +160,8 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
                 count_ = count + 1
                 if count_ % writefreq == 0:
                     write_fn(fmt_str % count_)
-                if count_ % flushfreq == 0:
-                    flush_fn()
+                    if count_ % flushfreq == 0:
+                        flush_fn()
 
         if separate:
             write_fn('\n')
@@ -133,15 +171,14 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
         if with_totaltime:
             tt = util_time.tic(lbl)
 
-        def end_progress(write_fn=write_fn, flush_fn=flush_fn):
-            write_fn(fmt_str % (nTotal))
+        def end_progress(count_=nTotal, write_fn=write_fn, flush_fn=flush_fn):
+            write_fn(fmt_str % (count_))
             write_fn('\n')
             flush_fn()
             if with_totaltime:
                 util_time.toc(tt)
             if separate:
-                write_fn('\n')
-                write_fn('\n')
+                write_fn('\n\n')
                 flush_fn()
         #mark_progress(0)
         if start:
@@ -261,18 +298,26 @@ def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
 def progress_str(max_val, lbl='Progress: ', repl=False, approx=False, backspace=PROGGRESS_BACKSPACE):
     """ makes format string that prints progress: %Xd/MAX_VAL with backspaces
     """
+    # string that displays max value
     max_str = str(max_val)
     if approx:
         # denote approximate maximum
         max_str = '~' + max_str
     dnumstr = str(len(max_str))
+    # string that displays current progress
     cur_str = '%' + dnumstr + 'd'
+    # If user passed in the label
     if repl:
         _fmt_str = lbl.replace('<cur_str>', cur_str).replace('<max_str>', max_str)
     else:
         _fmt_str = lbl + cur_str + '/' + max_str
     if backspace:
-        fmt_str = '\b' * (len(_fmt_str) - len(dnumstr) + len(max_str)) + _fmt_str
+        # put backspace characters into the progress string
+        # (looks nice on normal terminals)
+        nBackspaces = len(_fmt_str) - len(dnumstr) + len(max_str)
+        backspaces = '\b' * nBackspaces
+        fmt_str = backspaces + _fmt_str
     else:
+        # this looks better on terminals without backspaces
         fmt_str = _fmt_str + '\n'
     return fmt_str

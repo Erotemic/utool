@@ -285,11 +285,14 @@ def autogen_sphinx_apidoc():
             'sphinx.ext.autodoc',
             'sphinx.ext.viewcode',
         ]''').strip()
+    # TODO: http://sphinx-doc.org/ext/math.html#module-sphinx.ext.pngmath
     repl_text = utool.unindent(
         '''
         extensions = [
             'sphinx.ext.autodoc',
             'sphinx.ext.viewcode',
+            #'sphinx.ext.mathjax',
+            'sphinx.ext.pngmath',
             #'sphinx.ext.napoleon',
             'sphinxcontrib.napoleon',
         ]''').strip()
