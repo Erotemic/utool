@@ -96,8 +96,9 @@ def auto_docstr(modname, funcname):
                 #print(execstr)
             except Exception as ex2:
                 pass
-                print(ex1)
-                print(ex2)
+                import utool
+                utool.printex(ex1, 'ex1')
+                utool.printex(ex2, 'ex2', tb=True)
     else:
         docstr = 'error'
     return docstr
@@ -106,9 +107,85 @@ def auto_docstr(modname, funcname):
 def print_auto_docstr(modname, funcname):
     """
     python -c "import utool; utool.print_auto_docstr('ibeis.model.hots.smk.smk_index', 'compute_negentropy_names')"
-    python -c "import utool; utool.print_auto_docstr('ibeis.model.hots.smk.smk_index', 'compute_negentropy_names')"
+    python -c "import utool;
+    utool.print_auto_docstr('ibeis.model.hots.smk.smk_index', 'compute_negentropy_names')"
     """
     print(auto_docstr(modname, funcname))
+
+
+def parse_return_type(sourcecode):
+    import utool
+    import ast
+    if utool.VERBOSE:
+        print('[utool] parsing return types')
+    #source_lines = sourcecode.splitlines()
+    sourcecode = 'from __future__ import print_function\n' + sourcecode
+    pt = ast.parse(sourcecode)
+    def find_return_node(pt):
+        if isinstance(pt, ast.Module):
+            if utool.VERBOSE:
+                print('Parsing Module: %r' % (pt,))
+            node = pt.body[0]
+            if len(pt.body) > 1:
+                print('warning len(pt.body) = %r' % (len(pt.body)))
+            if utool.VERBOSE:
+                print('  - node = %r' % (node,))
+            return find_return_node(node)
+        elif isinstance(pt, ast.FunctionDef):
+            if utool.VERBOSE:
+                print('Parsing FunctionDef: %r' % (pt,))
+            node = pt.body
+            if utool.VERBOSE:
+                print('  - node = %r' % (node,))
+            return find_return_node(node)
+        elif isinstance(pt, ast.Return):
+            node = pt
+            if utool.VERBOSE:
+                print('Found Return Type: ' + str(type(node)))
+            #returnnode = node
+            return node
+        elif isinstance(pt, ast.If):
+            node = pt
+            for subnode in node.body:
+                #print(subnode)
+                return find_return_node(subnode)
+        #if isinstance(pt)
+        elif isinstance(pt, list):
+            candidates = []
+            node_list = pt
+            for node in node_list:
+                if utool.VERBOSE:
+                    print(type(node))
+                candidate = find_return_node(node)
+                if candidate is not None:
+                    candidates.append(candidate)
+            if len(candidates) > 0:
+                #if len(candidates) > 1:
+                #    print(candidates)
+                return candidates[0]
+
+    if utool.VERBOSE:
+        print('[utool] parsing return types')
+    returnnode = find_return_node(pt)
+    if returnnode is None:
+        return_type = 'None'
+    elif isinstance(returnnode.value, ast.Tuple):
+        names = returnnode.value.elts
+        tupleid = '(%s)' % (', '.join([str(name.id) for name in names]))
+        #print(returnnode.value.__dict__)
+        return_type = 'tuple : ' + tupleid
+    elif isinstance(returnnode.value, ast.Dict):
+        #print(returnnode.__dict__)
+        #print(returnnode.value.__dict__)
+        #dictid = '(%s)' % (returnnode.id)
+        return_type = 'dict : '
+    elif isinstance(returnnode.value, ast.Name):
+        #print(returnnode.value.__dict__)
+        return_type = returnnode.value.id
+        pass
+    else:
+        return_type = str(type(returnnode.value))
+    return return_type
 
 
 def make_default_docstr(func):
@@ -120,16 +197,48 @@ def make_default_docstr(func):
     import utool
     #current_doc = inspect.getdoc(func)
     argspec = inspect.getargspec(func)
-    (args, varargs, varkw, defaults) = argspec
+    (argname_list, varargs, varkw, defaults) = argspec
     #print('argspec: ')
     #print(argspec)
 
     if defaults is None:
         defaults = []
     default_types = [type(val).__name__.replace('NoneType', 'None') for val in defaults]
-    arg_types = ['?'] * (len(args) - len(defaults)) + default_types
+    arg_types = ['?'] * (len(argname_list) - len(defaults)) + default_types
     #print(arg_types)
-    argdoc_list = [arg + ' (%s):' % _type for arg, _type in zip(args, arg_types)]
+
+    argdesc_list = ['' for _ in range(len(argname_list))]
+
+    if True or utool.is_developer():
+        # hacks for IBEIS
+        for argx in range(len(argname_list)):
+            if arg_types[argx] == '?' or arg_types[argx] == 'None':
+                if argname_list[argx].startswith('ibs'):
+                    arg_types[argx] = 'IBEISController'
+                elif argname_list[argx].startswith('qreq_'):
+                    arg_types[argx] = 'QueryRequest'
+                    argdesc_list[argx] = ' hyper-parameters'
+                elif argname_list[argx].startswith('qres'):
+                    arg_types[argx] = 'QueryResult'
+                elif argname_list[argx] == 'K':
+                    arg_types[argx] = 'int'
+                elif argname_list[argx] == 'Knorm':
+                    arg_types[argx] = 'int'
+                elif argname_list[argx].startswith('qfx2_') > 0:
+                    arg_types[argx] = 'ndarray'
+                elif argname_list[argx].find('2_') > 0:
+                    arg_types[argx] = 'dict'
+                elif argname_list[argx].endswith('_list'):
+                    arg_types[argx] = 'list'
+                elif argname_list[argx] == 'qaid':
+                    arg_types[argx] = 'int'
+                    argdesc_list[argx] = ' query annotation id'
+                elif argname_list[argx] == 'qnid':
+                    arg_types[argx] = 'int'
+                    argdesc_list[argx] = ' query name id'
+
+    argdoc_list = [arg + ' (%s):%s' % (_type, desc)
+                   for arg, _type, desc in zip(argname_list, arg_types, argdesc_list)]
 
     default_docstr = ''
 
@@ -140,29 +249,7 @@ def make_default_docstr(func):
     # Get returns info
     sourcecode = inspect.getsource(func)
     if sourcecode is not None:
-        #source_lines = sourcecode.splitlines()
-        import ast
-        pt = ast.parse(sourcecode)
-        def find_return_node(pt):
-            for node in pt.body[0].body:
-                if isinstance(node, ast.Return):
-                    return node
-                    #returnnode = node
-                    #print(type(node))
-        returnnode = find_return_node(pt)
-        if returnnode is None:
-            return_type = 'None'
-        elif isinstance(returnnode.value, ast.Tuple):
-            names = returnnode.value.elts
-            tupleid = '(%s)' % (', '.join([str(name.id) for name in names]))
-            #print(returnnode.value.__dict__)
-            return_type = 'tuple : ' + tupleid
-        elif isinstance(returnnode.value, ast.Name):
-            #print(returnnode.value.__dict__)
-            return_type = returnnode.value.id
-            pass
-        else:
-            return_type = str(type(returnnode.value))
+        return_type = parse_return_type(sourcecode)
         returndoc = utool.indent('Returns: \n' + '    %s' % return_type)
         default_docstr += '\n\n' + returndoc
 

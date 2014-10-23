@@ -5,9 +5,9 @@ Useful Utility Tools For You!
 
 Documenation: http://erotemic.github.io/utool
 
-More seriously, utool is a collection of tools that I've found useful. I've
-written most of them from scratch, but there are a few I've taken or partially
-taken from stackoverflow. 
+Utool is a collection of tools that I've found useful. I've written most of 
+them from scratch, but there are a few I've taken or partially taken from 
+stackoverflow. 
 
 The module contains mostly standalone functions that could easilly be
 copy/pasted into your project as you see fit. I not to introduce too many

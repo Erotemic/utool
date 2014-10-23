@@ -335,8 +335,13 @@ def print_frame(frame):
 
 def search_stack_for_localvar(varname):
     """
-    Finds a local varable named <varname> somewhere in the stack.
-    Returns the value.
+    Finds a local varable somewhere in the stack and returns the value
+
+    Args:
+        varname (str): variable name
+
+    Returns:
+        None if varname is not found else its value
     """
     curr_frame = inspect.currentframe()
     print(' * Searching parent frames for: ' + str(varname))
@@ -353,8 +358,13 @@ def search_stack_for_localvar(varname):
 
 def search_stack_for_var(varname):
     """
-    Finds a varable named <varname> somewhere in the stack.
-    Returns the value.
+    Finds a varable (local or global) somewhere in the stack and returns the value
+
+    Args:
+        varname (str): variable name
+
+    Returns:
+        None if varname is not found else its value
     """
     curr_frame = inspect.currentframe()
     print(' * Searching parent frames for: ' + str(varname))
@@ -393,9 +403,18 @@ def get_parent_frame(N=0):
 
 
 def get_parent_locals(N=0):
-    """ returns the locals of the function that called you """
+    """
+    returns the locals of the function that called you
+
+    Args:
+        N (int): (defaults to 0) number of levels up in the stack
+
+    Returns:
+        dict : locals_
+    """
     parent_frame = get_parent_frame(N=N + 1)
-    return parent_frame.f_locals
+    locals_ = parent_frame.f_locals
+    return locals_
 
 
 def get_parent_globals(N=0):
@@ -404,7 +423,17 @@ def get_parent_globals(N=0):
 
 
 def get_caller_locals(N=0):
-    """ returns the locals of the function that called you """
+    """
+    returns the locals of the function that called you
+    alias for get_parent_locals
+
+    Args:
+        N (int): (defaults to 0) number of levels up in the stack
+
+    Returns:
+        dict : locals_
+    """
+
     locals_ = get_parent_locals(N=N + 1)
     return locals_
 
@@ -423,7 +452,15 @@ def get_caller_prefix(N=0, aserror=False):
 
 
 def get_caller_name(N=0):
-    """ returns the name of the function that called you """
+    """
+    get the name of the function that called you
+
+    Args:
+        N (int): (defaults to 0) number of levels up in the stack
+
+    Returns:
+        str: a function name
+    """
     if isinstance(N, (list, tuple)):
         name_list = []
         for N_ in N:
@@ -596,8 +633,11 @@ def debug_exception(func):
         try:
             return func(*args, **kwargs)
         except Exception as ex:
-            print('[tools] ERROR: %s(%r, %r)' % (get_funcname(func), args, kwargs))
-            print('[tools] ERROR: %r' % ex)
+            import utool
+            msg = ('[tools] ERROR: %s(%r, %r)' % (get_funcname(func), args, kwargs))
+            #print(msg)
+            utool.printex(ex, msg)
+            #print('[tools] ERROR: %r' % ex)
             raise
     return ex_wrapper
 
@@ -606,7 +646,25 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
             locals_=None, iswarning=False, tb=False, separate=False, N=0,
             use_stdout=False, reraise=False, msg_=None, keys=None):
     """
-    Prints an exception with relevant info
+    Prints (and/or logs) an exception with relevant info
+
+    Args:
+        ex (Exception): exception to print
+        msg (str): a message to display to the user
+        keys (None): a list of strings denoting variables or expressions of interest
+        iswarning (bool): prints as a warning rather than an error if True (defaults to False)
+        tb (bool): if True prints the traceback in the error message
+        separate (bool): separate the error message from the rest of stdout with newlines
+        prefix (None):
+        locals_ (None):
+        N (int):
+        use_stdout (bool):
+        reraise (bool):
+        msg_ (None):
+        key_list (list): DEPRICATED use keys
+
+    Returns:
+        None
     """
     if keys is not None:
         # shorthand for key_list
@@ -667,6 +725,16 @@ def get_varname_from_locals(val, locals_, default='varname-not-found',
     """
     Check the varname is in the parent namespace
     This will only work with objects not primatives
+
+    Args:
+        val (): some value
+        locals_ (dict): local dictionary to search
+        default (str):
+        strict (bool):
+
+    Returns:
+        str: the varname which is Val (if it exists)
+
     """
     try:
         for count, val_ in enumerate(six.itervalues(locals_)):

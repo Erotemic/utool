@@ -4,6 +4,12 @@ from six.moves import zip
 from collections import defaultdict
 from .util_inject import inject
 import six
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
+    pass
 print, print_, printDBG, rrr, profile = inject(__name__, '[dict]')
 
 
@@ -20,9 +26,29 @@ def all_dict_combinations(varied_dict):
 
 
 def all_dict_combinations_lbls(varied_dict):
-    """ returns what parameters are varied"""
-    multitups_list = [[(key, val) for val in val_list] for key, val_list in six.iteritems(varied_dict) if len(val_list) > 1]
-    comb_lbls = map(str, list(iprod(*multitups_list)))
+    """ returns a label for each variation in a varydict.
+    It tries to not be oververbose and returns only what parameters are varied
+    in each label.
+
+    Example:
+        >>> import utool
+        >>> varied_dict = {'logdist_weight': [0.0, 1.0], 'pipeline_root': ['vsmany'], 'sv_on': [True, False, None]}
+        >>> comb_lbls = utool.all_dict_combinations_lbls(varied_dict)
+        >>> print(utool.list_str(comb_lbls))
+        [
+            (('sv_on', True), ('logdist_weight', 0.0)),
+            (('sv_on', True), ('logdist_weight', 1.0)),
+            (('sv_on', False), ('logdist_weight', 0.0)),
+            (('sv_on', False), ('logdist_weight', 1.0)),
+            (('sv_on', None), ('logdist_weight', 0.0)),
+            (('sv_on', None), ('logdist_weight', 1.0)),
+        ]
+
+    """
+    multitups_list = [[(key, val) for val in val_list]
+                      for key, val_list in six.iteritems(varied_dict)
+                      if len(val_list) > 1]
+    comb_lbls = list(map(str, list(iprod(*multitups_list))))
     return comb_lbls
 
 
@@ -70,12 +96,8 @@ def dict_update_newkeys(dict_, dict2):
 def is_dicteq(dict1_, dict2_, almosteq_ok=True, verbose_err=True):
     """ Checks to see if dicts are the same. Performs recursion. Handles numpy """
     import utool
-    try:
-        import numpy as np
-        HAS_NUMPY = True
-    except ImportError:
-        HAS_NUMPY = False
-        pass
+    from . import util_alg
+    from . import util_dbg
     assert len(dict1_) == len(dict2_), 'dicts are not of same length'
     try:
         for (key1, val1), (key2, val2) in zip(dict1_.items(), dict2_.items()):
@@ -83,7 +105,7 @@ def is_dicteq(dict1_, dict2_, almosteq_ok=True, verbose_err=True):
             assert type(val1) == type(val2), 'vals are not same type'
             if HAS_NUMPY and np.iterable(val1):
                 if almosteq_ok and utool.is_float(val1):
-                    assert np.all(utool.almost_eq(val1, val2)), 'float vals are not within thresh'
+                    assert np.all(util_alg.almost_eq(val1, val2)), 'float vals are not within thresh'
                 else:
                     assert all([np.all(x1 == x2) for (x1, x2) in zip(val1, val2)]), 'np vals are different'
             elif isinstance(val1, dict):
@@ -92,6 +114,6 @@ def is_dicteq(dict1_, dict2_, almosteq_ok=True, verbose_err=True):
                 assert val1 == val2, 'vals are different'
     except AssertionError as ex:
         if verbose_err:
-            utool.printex(ex)
+            util_dbg.printex(ex)
         return False
     return True
