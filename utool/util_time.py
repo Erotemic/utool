@@ -23,11 +23,17 @@ def toc(tt, return_msg=False, write_msg=True):
         return ellapsed
 
 
-def get_timestamp(format_='filename', use_second=False):
+def get_timestamp(format_='filename', use_second=False, delta_seconds=None):
     now = datetime.datetime.now()
+    if delta_seconds is not None:
+        now += datetime.timedelta(seconds=delta_seconds)
     if format_ == 'tag':
         time_tup = (now.year - 2000, now.month, now.day)
         stamp = '%02d%02d%02d' % time_tup
+    elif format_ == 'printable':
+        time_tup = (now.hour, now.minute, now.second, now.year, now.month, now.day)
+        time_format = '%02d:%02d:%02d %02d/%02d/%02d'
+        stamp = time_format % time_tup
     else:
         if use_second:
             time_tup = (now.year, now.month, now.day, now.hour, now.minute, now.second)
@@ -143,6 +149,7 @@ def unixtime_to_datetime(unixtime, timefmt='%Y/%m/%d %H:%M:%S'):
 
 
 def unixtime_to_timedelta(unixtime_diff):
+    """ alias for get_unix_timedelta """
     timedelta = datetime.timedelta(seconds=abs(unixtime_diff))
     return timedelta
 
@@ -150,6 +157,47 @@ def unixtime_to_timedelta(unixtime_diff):
 def get_unix_timedelta(unixtime_diff):
     timedelta = datetime.timedelta(seconds=abs(unixtime_diff))
     return timedelta
+
+
+def get_unix_timedelta_str(unixtime_diff):
+    """
+    Args:
+        unixtime_diff (int): number of seconds
+    Returns:
+        timestr (str): formated time string
+    """
+    timedelta = get_unix_timedelta(unixtime_diff)
+    timestr = get_timedelta_str(timedelta)
+    return timestr
+
+
+def get_timedelta_str(timedelta):
+    """
+    Returns:
+        timestr (str): formated time string
+    References:
+        http://stackoverflow.com/questions/8906926/formatting-python-timedelta-objects
+    """
+    days = timedelta.days
+    hours, rem = divmod(timedelta.seconds, 3600)
+    minutes, seconds = divmod(rem, 60)
+    fmtstr_list = []
+    fmtdict = {}
+    if abs(days) > 0:
+        fmtstr_list.append('{days} days')
+        fmtdict['days'] = days
+    if len(fmtstr_list) > 0 or abs(hours) > 0:
+        fmtstr_list.append('{hours} hours')
+        fmtdict['hours'] = hours
+    if len(fmtstr_list) > 0 or abs(minutes) > 0:
+        fmtstr_list.append('{minutes} minutes')
+        fmtdict['minutes'] = minutes
+    if len(fmtstr_list) > 0 or abs(seconds) > 0:
+        fmtstr_list.append('{seconds} seconds')
+        fmtdict['seconds'] = seconds
+    fmtstr = ' '.join(fmtstr_list)
+    timedelta_str = fmtstr.format(**fmtdict)
+    return timedelta_str
 
 
 def get_month():

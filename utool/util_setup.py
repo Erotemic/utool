@@ -207,13 +207,14 @@ def autogen_sphinx_apidoc():
     r"""
     autogen_sphinx_docs.py
 
-    C:\Python27\Scripts\autogen_sphinx_docs.py
-    pip uninstall sphinx
-    pip install sphinx
-    pip install sphinxcontrib-napoleon
+    Ignore:
+        C:\Python27\Scripts\autogen_sphinx_docs.py
+        pip uninstall sphinx
+        pip install sphinx
+        pip install sphinxcontrib-napoleon
 
-    cd C:\Python27\Scripts
-    ls C:\Python27\Scripts
+        cd C:\Python27\Scripts
+        ls C:\Python27\Scripts
     """
     import utool
     # TODO: assert sphinx-apidoc exe is found
@@ -279,23 +280,33 @@ def autogen_sphinx_apidoc():
     #    [^\]]*
     #    ]
     #    ''')
-    search_text = utool.unindent(
+    search_text = utool.codeblock(
         '''
         extensions = [
             'sphinx.ext.autodoc',
             'sphinx.ext.viewcode',
-        ]''').strip()
+        ]
+        '''
+    )
     # TODO: http://sphinx-doc.org/ext/math.html#module-sphinx.ext.pngmath
-    repl_text = utool.unindent(
+    #'sphinx.ext.mathjax',
+    repl_text = utool.codeblock(
         '''
         extensions = [
             'sphinx.ext.autodoc',
             'sphinx.ext.viewcode',
-            #'sphinx.ext.mathjax',
+            # For LaTeX
             'sphinx.ext.pngmath',
-            #'sphinx.ext.napoleon',
+            # For Google Sytle Docstrs
+            # https://pypi.python.org/pypi/sphinxcontrib-napoleon
             'sphinxcontrib.napoleon',
-        ]''').strip()
+            #'sphinx.ext.napoleon',
+        ]
+        autosummary_generate = True
+
+        modindex_common_prefix = ['_']
+        '''
+    )
     conf_fname = 'conf.py'
     conf_text = utool.read_from(conf_fname)
     conf_text = conf_text.replace(search_text, repl_text)
