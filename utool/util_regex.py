@@ -61,6 +61,11 @@ def regex_get_match(regex, text, fromstart=False):
     return match
 
 
+def regex_matches(regex, text, fromstart=True):
+    hasmatch = regex_get_match(regex, text, fromstart=fromstart) is not None
+    return hasmatch
+
+
 def regex_parse(regex, text, fromstart=True):
     match = regex_get_match(regex, text, fromstart=fromstart)
     if match is not None:

@@ -307,9 +307,23 @@ def autogen_sphinx_apidoc():
         modindex_common_prefix = ['_']
         '''
     )
+    head_text = utool.codeblock(
+        '''
+        from sphinx.ext.autodoc import between
+        '''
+    )
+    tail_text = utool.codeblock(
+        '''
+        def setup(app):
+            # Register a sphinx.ext.autodoc.between listener to ignore everything
+            # between lines that contain the word IGNORE
+            app.connect('autodoc-process-docstring', between('^.*IGNORE.*$', exclude=True))
+            return app
+        '''
+    )
     conf_fname = 'conf.py'
     conf_text = utool.read_from(conf_fname)
-    conf_text = conf_text.replace(search_text, repl_text)
+    conf_text = head_text + conf_text.replace(search_text, repl_text) + tail_text
     utool.write_to(conf_fname, conf_text)
     # Make the documentation
     #if utool.LINUX:

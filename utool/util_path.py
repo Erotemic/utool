@@ -548,6 +548,7 @@ def get_absolute_import(module_fpath):
         dpath, dname = split(dpath)
         absolute_list.append(dname)
     modname = '.'.join(absolute_list[::-1])
+    modname = modname.replace('.__init__', '').strip()
     return modname
 
 

@@ -92,7 +92,8 @@ progiter = ProgressIter
 def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
                  start=True, repl=False, approx=False, disable=False,
                  writefreq=1, with_totaltime=False, backspace=True,
-                 separate=False, wfreq=None, ffreq=None, freq=None, total=None, num=None):
+                 separate=False, wfreq=None, ffreq=None, freq=None, total=None,
+                 num=None, with_time=None):
     """
     Returns two functions (mark_progress, end_progress) which will handle
     logging progress in a for loop.
@@ -159,6 +160,8 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
         flushfreq = ffreq
     if freq is not None:
         writefreq = flushfreq = freq
+    if with_time is not None:
+        with_totaltime = with_time
     # flush frequency must be a multiple of write frequency
     flushfreq = max(int(round(flushfreq / writefreq)), 1) * writefreq
     if nTotal < startafter or disable:

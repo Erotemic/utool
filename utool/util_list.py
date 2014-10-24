@@ -1,5 +1,11 @@
 from __future__ import absolute_import, division, print_function
 import operator
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
+import itertools
 from six.moves import zip, map, zip_longest, range
 from .util_iter import iflatten, isiterable, ifilter_Nones, ifilter_items, ifilterfalse_items
 from .util_inject import inject
@@ -82,6 +88,12 @@ def invertable_flatten(unflat_list):
     Flattens ``list`` but remember how to reconstruct the unflat ``list``
     Returns flat ``list`` and the unflat ``list`` with indexes into the flat
     ``list``
+
+    Args:
+        unflat_list (list): list of nested lists that we will flatten.
+
+    Returns:
+        tuple : (flat_list, reverse_list)
     """
 
     def nextnum(trick_=[0]):
@@ -96,6 +108,20 @@ def invertable_flatten(unflat_list):
 
 def unflatten(flat_list, reverse_list):
     """ Rebuilds unflat list from invertable_flatten
+
+    Args:
+        flat_list (list): the flattened list
+        reverse_list (list): the list which undoes flattenting
+
+    Returns:
+        unflat_list2: original nested list
+
+
+    SeeAlso:
+        invertable_flatten
+        invertable_flatten2
+        unflatten2
+
     """
     unflat_list2 = [tuple([flat_list[index] for index in tup]) for tup in reverse_list]
     return unflat_list2
@@ -105,26 +131,96 @@ def invertable_flatten2(unflat_list):
     """
     An alternative to invertable_flatten which uses cumsum
 
+    TODO: This flatten is faster fix it to be used everywhere
+
     Flattens ``list`` but remember how to reconstruct the unflat ``list``
     Returns flat ``list`` and the unflat ``list`` with indexes into the flat
     ``list``
 
     Example:
+        >>> from utool.util_list import *
         >>> import utool
         >>> utool.util_list
+        >>> unflat_list = [[5], [2, 3, 12, 3, 3], [9], [13, 3], [5]]
+        >>> flat_list, cumlen_list = invertable_flatten2(unflat_list)
+        >>> unflat_list2 = unflatten2(flat_list, cumlen_list)
+        >>> assert unflat_list2 == unflat_list
+        >>> print((flat_list, cumlen_list))
+        ([5, 2, 3, 12, 3, 3, 9, 13, 3, 5], array([ 1,  6,  7,  9, 10]))
 
+    SeeAlso:
+        invertable_flatten
+        unflatten
+        unflatten2
+
+    Timeits:
+        import utool
+        unflat_list = aids_list1
+        flat_aids1, reverse_list = utool.invertable_flatten(unflat_list)
+        flat_aids2, cumlen_list = utool.invertable_flatten2(unflat_list)
+        unflat_list1 = utool.unflatten(flat_aids1, reverse_list)
+        unflat_list2 = utool.unflatten2(flat_aids2, cumlen_list)
+        assert list(map(list, unflat_list1)) == unflat_list2
+        print(utool.get_object_size_str(unflat_list,  'unflat_list  '))
+        print(utool.get_object_size_str(flat_aids1,   'flat_aids1   '))
+        print(utool.get_object_size_str(flat_aids2,   'flat_aids2   '))
+        print(utool.get_object_size_str(reverse_list, 'reverse_list '))
+        print(utool.get_object_size_str(cumlen_list,  'cumlen_list  '))
+        print(utool.get_object_size_str(unflat_list1, 'unflat_list1 '))
+        print(utool.get_object_size_str(unflat_list2, 'unflat_list2 '))
+        print('Timings 1:)
+        %timeit utool.invertable_flatten(unflat_list)
+        %timeit utool.unflatten(flat_aids1, reverse_list)
+        print('Timings 2:)
+        %timeit utool.invertable_flatten2(unflat_list)
+        %timeit utool.unflatten2(flat_aids2, cumlen_list)
     """
-
-    def nextnum(trick_=[0]):
-        num = trick_[0]
-        trick_[0] += 1
-        return num
-    # Build an unflat list of flat indexes
-    reverse_list = [tuple([nextnum() for _ in tup]) for tup in unflat_list]
+    sublen_list = list(map(len, unflat_list))
+    if not HAS_NUMPY:
+        cumlen_list = np.cumsum(sublen_list)
+        # Build an unflat list of flat indexes
+    else:
+        cumlen_list = list(accumulate(sublen_list))
     flat_list = flatten(unflat_list)
-    return flat_list, reverse_list
+    return flat_list, cumlen_list
 
 
+def accumulate(iterator):
+    """ use itertools.accumulate in python > 3.2 """
+    total = 0
+    for item in iterator:
+        total += item
+        yield total
+
+
+def unflatten2(flat_list, cumlen_list):
+    """ Rebuilds unflat list from invertable_flatten
+
+    Args:
+        flat_list (list): the flattened list
+        cumlen_list (list): the list which undoes flattenting
+
+    Returns:
+        unflat_list2: original nested list
+
+
+    SeeAlso:
+        invertable_flatten
+        invertable_flatten2
+        unflatten2
+
+    Example:
+        >>> from utool.util_list import *
+        >>> import utool
+        >>> utool.util_list
+        >>> flat_list = [5, 2, 3, 12, 3, 3, 9, 13, 3, 5]
+        >>> cumlen_list = np.array([ 1,  6,  7,  9, 10])
+        >>> unflat_list2 = unflatten2(flat_list, cumlen_list)
+        >>> print(unflat_list2)
+        [[5], [2, 3, 12, 3, 3], [9], [13, 3], [5]]
+    """
+    unflat_list2 = [flat_list[low:high] for low, high in zip(itertools.chain([0], cumlen_list), cumlen_list)]
+    return unflat_list2
 
 
 def tuplize(list_):
@@ -136,6 +232,8 @@ def tuplize(list_):
 
 def flattenize(list_):
     """ maps flatten to a tuplized list
+
+    Weird function. DEPRICATE
 
     Example:
         >>> list_ = [[1, 2, 3], [2, 3, [4, 2, 1]], [3, 2], [[1, 2], [3, 4]]]
@@ -198,15 +296,18 @@ def safe_slice(list_, *args):
 
 
 # --- List Queries --- #
-try:
-    import numpy as np
-    HAS_NUMPY = True
-except ImportError:
-    HAS_NUMPY = False
 
 
 def list_allsame(list_):
-    """ checks to see if list is equal everywhere """
+    """
+    checks to see if list is equal everywhere
+
+    Args:
+        list_ (list):
+
+    Returns:
+        True if all items in the list are equal
+    """
     if len(list_) == 0:
         return True
     first_item = list_[0]
@@ -250,7 +351,15 @@ def assert_unflat_level(unflat_list, level=1, basetype=None):
 
 
 def get_dirty_items(item_list, flag_list):
-    """ Returns each item in item_list where not flag in flag_list
+    """
+    Returns each item in item_list where not flag in flag_list
+
+    Args:
+        item_list (list):
+        flag_list (list):
+
+    Returns:
+        dirty_items
     """
     assert len(item_list) == len(flag_list)
     dirty_items = [item for (item, flag) in
@@ -265,6 +374,16 @@ def get_dirty_items(item_list, flag_list):
 def filter_items(item_list, flag_list):
     """
     Returns items in item list where the corresponding item in flag list is true
+
+    Args:
+        item_list (list):
+        flag_list (list):
+
+    Returns:
+        filtered_items
+
+    SeeAlso:
+        ifilter_items
     """
 
     assert len(item_list) == len(flag_list)
@@ -275,16 +394,33 @@ def filter_items(item_list, flag_list):
 def filterfalse_items(item_list, flag_list):
     """
     Returns items in item list where the corresponding item in flag list is true
+
+    Args:
+        item_list (list): list of items
+        flag_list (list): list of truthy values
+
+    Returns:
+        filtered_items : items where the corresponding flag was truthy
+
+    SeeAlso:
+        ifilterfalse_items
     """
     assert len(item_list) == len(flag_list)
     filtered_items = list(ifilterfalse_items(item_list, flag_list))
     return filtered_items
 
 
-def filter_Nones(list_):
-    """ Removes any nones from the list
+def filter_Nones(item_list):
     """
-    return list(ifilter_Nones(list_))
+    Removes any nones from the list
+
+    Args:
+        item_list (list):
+
+    Returns:
+        sublist which does not contain Nones
+    """
+    return list(ifilter_Nones(item_list))
 
 
 # --- List combinations --- #
@@ -304,6 +440,15 @@ def intersect_ordered(list1, list2):
 
 
 def flag_unique_items(list_):
+    """
+    Returns a list of flags corresponding to the first time an item is seen
+
+    Args:
+        list_ (list):
+
+    Returns:
+        flag_list
+    """
     seen = set()
     def unseen(item):
         if item in seen:
@@ -315,7 +460,15 @@ def flag_unique_items(list_):
 
 
 def unique_keep_order2(list_):
-    """ pure python version """
+    """
+    pure python version of unique_keep_ordered
+
+    Args:
+        list_ (list):
+
+    Returns:
+        unique_list : unique list which maintains order
+    """
     seen = set()
     def unseen(item):
         if item in seen:
@@ -403,6 +556,15 @@ def sample_zip(items_list, num_samples, allow_overflow=False, per_bin=1):
     #...
     #AssertionError: Overflow occured
 
+    Args:
+        items_list (list):
+        num_samples (?):
+        allow_overflow (bool):
+        per_bin (int):
+
+    Returns:
+        tuple : (samples_list, overflow_samples)
+
     Examples:
         >>> from utool import util_list
         >>> items_list = [[1, 2, 3, 4, 0], [5, 6, 7], [], [8, 9], [10]]
@@ -442,6 +604,14 @@ def sample_zip(items_list, num_samples, allow_overflow=False, per_bin=1):
 
 
 def issorted(list_, op=operator.le):
+    """
+    Args:
+        list_ (list):
+        op (builtin_function_or_method):
+
+    Returns:
+        bool : True if the list is sorted
+    """
     return all(op(list_[ix], list_[ix + 1]) for ix in range(len(list_) - 1))
 
 
@@ -515,7 +685,13 @@ def list_deep_types(list_):
 
 def depth_profile(list_):
     """
-    >>> from utool.util_list import *  # NOQA
+    Returns a nested list corresponding the shape of the nested structure
+
+    Example:
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [[[[[1]]], [3, 4, 33]], [[1], [3]], [[1], [3]]]
+        >>> print(depth_profile(list_))
+        [[[[1]], 3], [1, 1], [1, 1]]
     """
     level_shape_list = []
     # For a pure bottom level list return the length

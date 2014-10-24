@@ -74,11 +74,14 @@ def auto_docstr(modname, funcname, verbose=True):
     docstr = 'error'
     if isinstance(modname, str):
         module = __import__(modname)
+        import imp
+        imp.reload(module)
         try:
             func = getattr(module, funcname)
             docstr = make_default_docstr(func)
             return docstr
         except Exception as ex1:
+            docstr = 'error ' + str(ex1)
             if utool.VERBOSE:
                 print('make_default_docstr is falling back')
             #print(ex)
@@ -96,6 +99,7 @@ def auto_docstr(modname, funcname, verbose=True):
                 return docstr
                 #print(execstr)
             except Exception as ex2:
+                docstr = 'error ' + str(ex2)
                 if verbose:
                     import utool
                     utool.printex(ex1, 'ex1')
@@ -115,6 +119,15 @@ def print_auto_docstr(modname, funcname):
 
 
 def parse_return_type(sourcecode):
+    r"""
+    import utool
+    sourcecode = utool.codeblock(r'''
+    def foo(tmp=False):
+        bar = True
+        return bar
+    ''')
+    """
+
     import utool
     import ast
     if utool.VERBOSE:
@@ -122,72 +135,133 @@ def parse_return_type(sourcecode):
     #source_lines = sourcecode.splitlines()
     sourcecode = 'from __future__ import print_function\n' + sourcecode
     pt = ast.parse(sourcecode)
-    def find_return_node(pt):
-        if isinstance(pt, ast.Module):
-            if utool.VERBOSE:
-                print('Parsing Module: %r' % (pt,))
-            node = pt.body[0]
-            if len(pt.body) > 1:
-                if utool.VERBOSE:
-                    print('warning len(pt.body) = %r' % (len(pt.body)))
-            if utool.VERBOSE:
-                print('  - node = %r' % (node,))
-            return find_return_node(node)
-        elif isinstance(pt, ast.FunctionDef):
-            if utool.VERBOSE:
-                print('Parsing FunctionDef: %r' % (pt,))
-            node = pt.body
-            if utool.VERBOSE:
-                print('  - node = %r' % (node,))
-            return find_return_node(node)
-        elif isinstance(pt, ast.Return):
-            node = pt
-            if utool.VERBOSE:
-                print('Found Return Type: ' + str(type(node)))
-            #returnnode = node
-            return node
-        elif isinstance(pt, ast.If):
-            node = pt
-            for subnode in node.body:
-                #print(subnode)
-                return find_return_node(subnode)
-        #if isinstance(pt)
-        elif isinstance(pt, list):
+
+    assert isinstance(pt, ast.Module), str(type(pt))
+
+    def find_function_nodes(pt):
+        function_nodes = []
+        for node in pt.body:
+            if isinstance(node, ast.FunctionDef):
+                function_nodes.append(node)
+        return function_nodes
+
+    function_nodes = find_function_nodes(pt)
+    assert len(function_nodes) == 1
+    func_node = function_nodes[0]
+
+    def find_return_node(node):
+        if isinstance(node, list):
             candidates = []
-            node_list = pt
+            node_list = node
             for node in node_list:
-                if utool.VERBOSE:
-                    print(type(node))
                 candidate = find_return_node(node)
                 if candidate is not None:
                     candidates.append(candidate)
             if len(candidates) > 0:
-                #if len(candidates) > 1:
-                #    print(candidates)
                 return candidates[0]
-
+        elif isinstance(node, (ast.Return, ast.Yield)):
+            return node
+        elif isinstance(node, (ast.If, ast.TryExcept)):
+            return find_return_node(node.body)
+        else:
+            pass
+            #print(type(node))
     if utool.VERBOSE:
         print('[utool] parsing return types')
-    returnnode = find_return_node(pt)
+    returnnode = find_return_node(func_node.body)
+    # Check return or yeild
+    if isinstance(returnnode, ast.Yield):
+        return_header = 'Yeilds'
+    elif isinstance(returnnode, ast.Return):
+        return_header = 'Returns'
+    else:
+        return_header = None
+    # Get more return info
     if returnnode is None:
         return_type = 'None'
     elif isinstance(returnnode.value, ast.Tuple):
         names = returnnode.value.elts
         tupleid = '(%s)' % (', '.join([str(name.id) for name in names]))
-        #print(returnnode.value.__dict__)
         return_type = 'tuple : ' + tupleid
     elif isinstance(returnnode.value, ast.Dict):
-        #print(returnnode.__dict__)
-        #print(returnnode.value.__dict__)
-        #dictid = '(%s)' % (returnnode.id)
         return_type = 'dict : '
     elif isinstance(returnnode.value, ast.Name):
-        #print(returnnode.value.__dict__)
         return_type = returnnode.value.id
-        pass
     else:
         return_type = str(type(returnnode.value))
-    return return_type
+    return return_type, return_header
+
+
+from . import util_regex
+
+
+def infer_arg_types_and_descriptions(argname_list, defaults):
+    """
+    Args:
+        argname_list (list):
+        defaults (?):
+
+    Returns:
+        tuple : (arg_types, argdesc_list)
+
+    Example:
+        >>> import utool
+        >>> argname_list = ['ibs', 'qaid', 'fdKfds']
+        >>> defaults = None
+        >>> arg_types, argdesc_list = utool.infer_arg_types_and_descriptions(argname_list, defaults)
+    """
+
+    # hacks for IBEIS
+    if is_developer():
+        # key = regex pattern
+        # val = hint=tuple(type_, desc_)
+        from collections import OrderedDict
+        registered_hints = OrderedDict([
+            ('ibs.*'   , ('IBEISController', None)),
+            ('qreq_'   , ('QueryRequest', 'hyper-parameters')),
+            ('qres.*'  , ('QueryResult', 'object of feature correspondences and scores')),
+            ('qparams*', ('QueryParams', 'hyper-parameters')),
+            ('K'       , ('int', None)),
+            ('Knorm'   , ('int', None)),
+            ('smk_alpha',  ('float', 'selectivity power')),
+            ('smk_thresh', ('float', 'selectivity threshold')),
+            ('query_sccw', ('float', 'query self-consistency-criterion')),
+            ('data_sccw', ('float', 'data self-consistency-criterion')),
+            ('invindex', ('InvertedIndex', 'object for fast vocab lookup')),
+            ('vecs'    , ('ndarray', None)),
+            ('maws'    , ('ndarray', None)),
+            ('words'   , ('ndarray', None)),
+            ('word'    , ('ndarray', None)),
+            ('rvecs'   , ('ndarray', None)),
+            ('wx2_'    , ('dict', None)),
+            ('qfx2_.*' , ('ndarray', None)),
+            ('.+2_.*'  , ('dict', None)),
+            ('.*_list' , ('list', None)),
+            ('.*_sublist' , ('list', None)),
+            ('qaid'    , ('int', 'query annotation id')),
+            ('qnid'    , ('int', 'query name id')),
+        ])
+
+    if defaults is None:
+        defaults = []
+    default_types = [type(val).__name__.replace('NoneType', 'None') for val in defaults]
+    arg_types = ['?'] * (len(argname_list) - len(defaults)) + default_types
+
+    argdesc_list = ['' for _ in range(len(argname_list))]
+
+    # use hints to build better docstrs
+    for argx in range(len(argname_list)):
+        if arg_types[argx] == '?' or arg_types[argx] == 'None':
+            argname = argname_list[argx]
+            for regex, hint in six.iteritems(registered_hints):
+                if util_regex.regex_matches(regex, argname):
+                    type_ = hint[0]
+                    desc_ = hint[1]
+                    if type_ is not None:
+                        arg_types[argx] = type_
+                    if desc_ is not None:
+                        argdesc_list[argx] = ' ' + desc_
+    return arg_types, argdesc_list
 
 
 def make_default_docstr(func):
@@ -197,64 +271,39 @@ def make_default_docstr(func):
     """
     import inspect
     import utool
-    #current_doc = inspect.getdoc(func)
+    current_doc = inspect.getdoc(func)
+    needs_surround = current_doc is None or len(current_doc) == 0
     argspec = inspect.getargspec(func)
     (argname_list, varargs, varkw, defaults) = argspec
-    #print('argspec: ')
-    #print(argspec)
 
-    if defaults is None:
-        defaults = []
-    default_types = [type(val).__name__.replace('NoneType', 'None') for val in defaults]
-    arg_types = ['?'] * (len(argname_list) - len(defaults)) + default_types
-    #print(arg_types)
-
-    argdesc_list = ['' for _ in range(len(argname_list))]
-
-    if True or utool.is_developer():
-        # hacks for IBEIS
-        for argx in range(len(argname_list)):
-            if arg_types[argx] == '?' or arg_types[argx] == 'None':
-                if argname_list[argx].startswith('ibs'):
-                    arg_types[argx] = 'IBEISController'
-                elif argname_list[argx].startswith('qreq_'):
-                    arg_types[argx] = 'QueryRequest'
-                    argdesc_list[argx] = ' hyper-parameters'
-                elif argname_list[argx].startswith('qres'):
-                    arg_types[argx] = 'QueryResult'
-                elif argname_list[argx] == 'K':
-                    arg_types[argx] = 'int'
-                elif argname_list[argx] == 'Knorm':
-                    arg_types[argx] = 'int'
-                elif argname_list[argx].startswith('qfx2_') > 0:
-                    arg_types[argx] = 'ndarray'
-                elif argname_list[argx].find('2_') > 0:
-                    arg_types[argx] = 'dict'
-                elif argname_list[argx].endswith('_list'):
-                    arg_types[argx] = 'list'
-                elif argname_list[argx] == 'qaid':
-                    arg_types[argx] = 'int'
-                    argdesc_list[argx] = ' query annotation id'
-                elif argname_list[argx] == 'qnid':
-                    arg_types[argx] = 'int'
-                    argdesc_list[argx] = ' query name id'
+    arg_types, argdesc_list = infer_arg_types_and_descriptions(argname_list, defaults)
 
     argdoc_list = [arg + ' (%s):%s' % (_type, desc)
                    for arg, _type, desc in zip(argname_list, arg_types, argdesc_list)]
 
-    default_docstr = ''
+    docstr_parts = []
 
     # Get args info
-    argsdoc = utool.indent('Args:' + utool.indentjoin(argdoc_list))
-    default_docstr += argsdoc
+    if len(argdoc_list) > 0:
+        arg_header = 'Args'
+        argsdoc = arg_header + ':' + utool.indentjoin(argdoc_list)
+        docstr_parts.append(argsdoc)
 
     # Get returns info
     sourcecode = inspect.getsource(func)
     if sourcecode is not None:
-        return_type = parse_return_type(sourcecode)
-        returndoc = utool.indent('Returns: \n' + '    %s' % return_type)
-        default_docstr += '\n\n' + returndoc
+        return_type, return_header = parse_return_type(sourcecode)
+        if return_header is not None:
+            returndoc = (return_header + ': \n' + '    %s' % return_type)
+            docstr_parts.append(returndoc)
 
+    if needs_surround:
+        docstr_parts = ['"""'] + ['\n\n'.join(docstr_parts)] + ['"""']
+        default_docstr = '\n'.join(docstr_parts)
+    else:
+        default_docstr = '\n\n'.join(docstr_parts)
+
+    default_docstr = utool.indent(default_docstr)
     return default_docstr
 
 
