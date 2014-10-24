@@ -75,6 +75,14 @@ utool.util_class module
     :undoc-members:
     :show-inheritance:
 
+utool.util_config module
+------------------------
+
+.. automodule:: utool.util_config
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 utool.util_cplat module
 -----------------------
 

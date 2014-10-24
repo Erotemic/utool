@@ -223,7 +223,14 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
     <span class="n">sample</span> <span class="o">=</span> <span class="p">[</span><span class="n">index</span> <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">samples_</span> <span class="k">if</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="n">max_</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">sample</span></div>
+    <span class="k">return</span> <span class="n">sample</span>
+
+</div>
+<div class="viewcode-block" id="make_incrementer"><a class="viewcode-back" href="../../utool.html#utool.util_numpy.make_incrementer">[docs]</a><span class="k">def</span> <span class="nf">make_incrementer</span><span class="p">():</span>
+    <span class="k">def</span> <span class="nf">incrementer</span><span class="p">(</span><span class="n">_mem</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">_mem</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">_mem</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">incrementer</span></div>
 </pre></div>
 
           </div>

@@ -196,8 +196,11 @@
             <span class="n">rawstr</span> <span class="o">=</span> <span class="n">from_module_str</span> <span class="o">+</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fromlist</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;,)&#39;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">rawstr</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-        <span class="n">packstr</span> <span class="o">=</span> <span class="n">util_str</span><span class="o">.</span><span class="n">pack_into</span><span class="p">(</span><span class="n">rawstr</span><span class="p">,</span> <span class="n">textwidth</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
-                                     <span class="n">newline_prefix</span><span class="o">=</span><span class="n">newline_prefix</span><span class="p">)</span>
+
+        <span class="c"># not sure why this isn&#39;t 76? &gt;= maybe?</span>
+        <span class="n">packstr</span> <span class="o">=</span> <span class="n">util_str</span><span class="o">.</span><span class="n">pack_into</span><span class="p">(</span><span class="n">rawstr</span><span class="p">,</span> <span class="n">textwidth</span><span class="o">=</span><span class="mi">75</span><span class="p">,</span>
+                                     <span class="n">newline_prefix</span><span class="o">=</span><span class="n">newline_prefix</span><span class="p">,</span>
+                                    <span class="n">break_words</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">packstr</span>
     <span class="n">from_str</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">_pack_fromimport</span><span class="p">,</span> <span class="n">FROM_IMPORTS</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">from_str</span>
@@ -222,6 +225,11 @@
 <span class="s">        rrr()</span>
 <span class="s">        {body}</span>
 <span class="s">        rrr()</span>
+<span class="s">        try:</span>
+<span class="s">            # For utool</span>
+<span class="s">            dev_reimport()</span>
+<span class="s">        except Exception:</span>
+<span class="s">            pass</span>
 <span class="s">    rrrr = reload_subs&#39;&#39;&#39;</span><span class="p">)</span>
     <span class="n">rrrdir_fmt</span>  <span class="o">=</span> <span class="s">&#39;    getattr(</span><span class="si">%s</span><span class="s">, </span><span class="se">\&#39;</span><span class="s">reload_subs</span><span class="se">\&#39;</span><span class="s">, lambda: None)()&#39;</span>
     <span class="n">rrrfile_fmt</span> <span class="o">=</span> <span class="s">&#39;    getattr(</span><span class="si">%s</span><span class="s">, </span><span class="se">\&#39;</span><span class="s">rrr</span><span class="se">\&#39;</span><span class="s">, lambda: None)()&#39;</span>

@@ -309,8 +309,10 @@
 <span class="sd">        Allows easy access to internal prefs</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c"># Names that start with underscore actually belong to the Pref object</span>
             <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">PrefNode</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__getitem__</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">9</span> <span class="ow">and</span> <span class="n">name</span><span class="p">[</span><span class="o">-</span><span class="mi">9</span><span class="p">:]</span> <span class="o">==</span> <span class="s">&#39;_internal&#39;</span><span class="p">:</span>
+            <span class="c"># internal names belong to the internal structure</span>
             <span class="n">attrx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">child_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">name</span><span class="p">[:</span><span class="o">-</span><span class="mi">9</span><span class="p">])</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">child_list</span><span class="p">[</span><span class="n">attrx</span><span class="p">]</span>
         <span class="c">#print(self._internal.name)</span>
@@ -333,16 +335,15 @@
                     <span class="c">#print(&#39;base_self3 = %r&#39; % (base_self3,))</span>
                     <span class="k">print</span><span class="p">(</span><span class="s">&#39;name = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,))</span>
                     <span class="k">raise</span>
-        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="k">raise</span>
-            <span class="c">#msg = &#39;\n&#39; + &#39;\n&#39;.join([</span>
-            <span class="c">#    &#39;[prefs!] !!! Attribute Error !!!&#39;,</span>
-            <span class="c">#    &#39;  * attribute: %s.%s not found&#39; % (self._intern.name, name),</span>
-            <span class="c">#    &#39;  * type(self) = %r&#39; % (type(self),),</span>
-            <span class="c">#    &#39;  * type(self._intern) = %r&#39; % (type(self._intern),),</span>
-            <span class="c">#])</span>
-            <span class="c">#print(msg)</span>
-            <span class="c">#raise AttributeError(msg)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s">&#39;trait_names&#39;</span><span class="p">:</span>
+                <span class="c"># HACK FOR IPYTHON</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">utool</span>
+                <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Pref object missing named attribute&#39;</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;self._intern.name&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">])</span>
+                <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s">&#39;Pref object is missing named attribute: name=</span><span class="si">%r</span><span class="s">&#39;</span>  <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+                <span class="c">#raise</span>
 </div>
 <div class="viewcode-block" id="Pref.iteritems"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.iteritems">[docs]</a>    <span class="k">def</span> <span class="nf">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
