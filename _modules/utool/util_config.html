@@ -1,0 +1,173 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>utool.util_config &mdash; utool 1.0.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html" />
+    <link rel="up" title="utool" href="../utool.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" accesskey="U">utool</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for utool.util_config</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">util_config</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+
+
+<span class="c">#import atexit</span>
+<span class="c">#import sys</span>
+<span class="c">#import inspect</span>
+<span class="c">#from six.moves import range</span>
+<span class="c">#from os.path import join, normpath</span>
+<span class="c">#import functools</span>
+<span class="c">#from itertools import chain</span>
+<span class="c">#from . import util_arg</span>
+<span class="c">#from . import util_hash</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_inject</span>
+<span class="c">#from . import util_path</span>
+<span class="c">#from . import util_io</span>
+<span class="c">#from . import util_str</span>
+<span class="c">#from . import util_cplat</span>
+<span class="c">#from ._internal.meta_util_six import get_funcname</span>
+<span class="c">#from ._internal.meta_util_constants import (global_cache_fname,</span>
+<span class="c">#                                            global_cache_dname,</span>
+<span class="c">#                                            default_appname)</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[config]&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="read_repo_config"><a class="viewcode-back" href="../../utool.html#utool.util_config.read_repo_config">[docs]</a><span class="k">def</span> <span class="nf">read_repo_config</span><span class="p">():</span>
+    <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="get_default_repo_config"><a class="viewcode-back" href="../../utool.html#utool.util_config.get_default_repo_config">[docs]</a><span class="k">def</span> <span class="nf">get_default_repo_config</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    import utool</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">REPO_CONFIG</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;project_name&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+        <span class="s">&#39;authors&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s">&#39;licence&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+        <span class="s">&#39;enable_cyth&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+        <span class="s">&#39;docstr_style&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">REPO_CONFIG</span>
+
+</div>
+<div class="viewcode-block" id="get_default_global_config"><a class="viewcode-back" href="../../utool.html#utool.util_config.get_default_global_config">[docs]</a><span class="k">def</span> <span class="nf">get_default_global_config</span><span class="p">():</span>
+    <span class="n">GLOBAL_CONFIG</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c"># Supplementary Info</span>
+        <span class="s">&#39;AUTHORS&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                         <span class="s">&#39;email&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> <span class="p">},</span>
+
+            <span class="s">&#39;kingarthur&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Arthur, King of the Britans&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;email&#39;</span><span class="p">:</span> <span class="s">&#39;kingarthur@camelot.com&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;permited repos&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;kotr&#39;</span><span class="p">],</span>
+                           <span class="s">&#39;aliases&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                           <span class="s">&#39;machines&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                           <span class="s">&#39;quest&#39;</span><span class="p">:</span> <span class="s">&#39;To seek the holy grail.&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;sa5ws5%lp&amp;30sjnk&#39;</span><span class="p">:</span> <span class="s">&#39;What to you mean? An African or European swallow?&#39;</span><span class="p">,</span> <span class="p">},</span>
+
+            <span class="s">&#39;joncrall&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Jon Crall&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;email&#39;</span><span class="p">:</span> <span class="s">&#39;erotemic@gmail.com&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;permited repos&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;ibeis&#39;</span><span class="p">,</span> <span class="s">&#39;utool&#39;</span><span class="p">,</span> <span class="s">&#39;hesaff&#39;</span><span class="p">,</span>
+                                            <span class="s">&#39;guitool&#39;</span><span class="p">,</span> <span class="s">&#39;plottool&#39;</span><span class="p">,</span> <span class="s">&#39;vtool&#39;</span><span class="p">],</span>
+                         <span class="s">&#39;aliases&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                         <span class="s">&#39;machines&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="p">},</span>
+
+        <span class="p">},</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">GLOBAL_CONFIG</span>
+
+</div>
+<div class="viewcode-block" id="write_default_repo_config"><a class="viewcode-back" href="../../utool.html#utool.util_config.write_default_repo_config">[docs]</a><span class="k">def</span> <span class="nf">write_default_repo_config</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">utool</span>
+    <span class="n">CONFIG_DICT</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_default_repo_config</span><span class="p">()</span>
+    <span class="n">config_str</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">CONFIG_DICT</span><span class="p">,</span> <span class="n">strvals</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                <span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">config_str</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" >utool</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

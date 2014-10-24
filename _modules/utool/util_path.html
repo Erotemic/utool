@@ -221,8 +221,8 @@
     <span class="k">return</span> <span class="n">flag</span>
 
 </div>
-<div class="viewcode-block" id="remove_file_list"><a class="viewcode-back" href="../../utool.html#utool.util_path.remove_file_list">[docs]</a><span class="k">def</span> <span class="nf">remove_file_list</span><span class="p">(</span><span class="n">fpath_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERYVERBOSE</span><span class="p">,</span> <span class="n">silent</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">silent</span><span class="p">:</span>
+<div class="viewcode-block" id="remove_file_list"><a class="viewcode-back" href="../../utool.html#utool.util_path.remove_file_list">[docs]</a><span class="k">def</span> <span class="nf">remove_file_list</span><span class="p">(</span><span class="n">fpath_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERYVERBOSE</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">quiet</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_path] Removing </span><span class="si">%d</span><span class="s"> files&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">fpath_list</span><span class="p">))</span>
     <span class="n">nRemoved</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">fpath_list</span><span class="p">:</span>
@@ -233,7 +233,7 @@
             <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
                 <span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Could not remove fpath = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fpath</span><span class="p">,),</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
             <span class="k">pass</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">silent</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">quiet</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_path] Removed </span><span class="si">%d</span><span class="s"> / </span><span class="si">%d</span><span class="s"> files&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nRemoved</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">fpath_list</span><span class="p">)))</span>
 
 </div>
@@ -579,6 +579,27 @@
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">module_dir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">module_dir</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">module_dir</span>
+
+</div>
+<div class="viewcode-block" id="get_absolute_import"><a class="viewcode-back" href="../../utool.html#utool.util_path.get_absolute_import">[docs]</a><span class="k">def</span> <span class="nf">get_absolute_import</span><span class="p">(</span><span class="n">module_fpath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_path import *</span>
+<span class="sd">        &gt;&gt;&gt; module_fpath = &#39;~/code/utool/util_path.py&#39;</span>
+<span class="sd">        &gt;&gt;&gt; module_fpath = &#39;~/code/utool/util_path.py&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">module_fpath</span> <span class="o">=</span> <span class="n">truepath</span><span class="p">(</span><span class="n">module_fpath</span><span class="p">)</span>
+    <span class="n">dpath</span><span class="p">,</span> <span class="n">fname_ext</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">module_fpath</span><span class="p">)</span>
+    <span class="n">fname</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">fname_ext</span><span class="p">)</span>
+    <span class="n">full_dpath</span> <span class="o">=</span> <span class="n">dpath</span>
+    <span class="n">dpath</span> <span class="o">=</span> <span class="n">full_dpath</span>
+    <span class="n">absolute_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">fname</span><span class="p">]</span>
+    <span class="k">while</span> <span class="n">is_module_dir</span><span class="p">(</span><span class="n">dpath</span><span class="p">):</span>
+        <span class="n">dpath</span><span class="p">,</span> <span class="n">dname</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">dpath</span><span class="p">)</span>
+        <span class="n">absolute_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dname</span><span class="p">)</span>
+    <span class="n">modname</span> <span class="o">=</span> <span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">absolute_list</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">modname</span> <span class="o">=</span> <span class="n">modname</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;.__init__&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">modname</span>
 
 </div>
 <div class="viewcode-block" id="tail"><a class="viewcode-back" href="../../utool.html#utool.util_path.tail">[docs]</a><span class="k">def</span> <span class="nf">tail</span><span class="p">(</span><span class="n">fpath</span><span class="p">):</span>

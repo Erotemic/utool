@@ -73,11 +73,17 @@
         <span class="k">return</span> <span class="n">ellapsed</span>
 
 </div>
-<div class="viewcode-block" id="get_timestamp"><a class="viewcode-back" href="../../utool.html#utool.util_time.get_timestamp">[docs]</a><span class="k">def</span> <span class="nf">get_timestamp</span><span class="p">(</span><span class="n">format_</span><span class="o">=</span><span class="s">&#39;filename&#39;</span><span class="p">,</span> <span class="n">use_second</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="get_timestamp"><a class="viewcode-back" href="../../utool.html#utool.util_time.get_timestamp">[docs]</a><span class="k">def</span> <span class="nf">get_timestamp</span><span class="p">(</span><span class="n">format_</span><span class="o">=</span><span class="s">&#39;filename&#39;</span><span class="p">,</span> <span class="n">use_second</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">delta_seconds</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">delta_seconds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">now</span> <span class="o">+=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="n">delta_seconds</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">format_</span> <span class="o">==</span> <span class="s">&#39;tag&#39;</span><span class="p">:</span>
         <span class="n">time_tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">now</span><span class="o">.</span><span class="n">year</span> <span class="o">-</span> <span class="mi">2000</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">day</span><span class="p">)</span>
         <span class="n">stamp</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%02d%02d%02d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">time_tup</span>
+    <span class="k">elif</span> <span class="n">format_</span> <span class="o">==</span> <span class="s">&#39;printable&#39;</span><span class="p">:</span>
+        <span class="n">time_tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">now</span><span class="o">.</span><span class="n">hour</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">minute</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">second</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">day</span><span class="p">)</span>
+        <span class="n">time_format</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%02d</span><span class="s">:</span><span class="si">%02d</span><span class="s">:</span><span class="si">%02d</span><span class="s"> </span><span class="si">%02d</span><span class="s">/</span><span class="si">%02d</span><span class="s">/</span><span class="si">%02d</span><span class="s">&#39;</span>
+        <span class="n">stamp</span> <span class="o">=</span> <span class="n">time_format</span> <span class="o">%</span> <span class="n">time_tup</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">use_second</span><span class="p">:</span>
             <span class="n">time_tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">now</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">day</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">hour</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">minute</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">second</span><span class="p">)</span>
@@ -193,6 +199,7 @@
 
 </div>
 <div class="viewcode-block" id="unixtime_to_timedelta"><a class="viewcode-back" href="../../utool.html#utool.util_time.unixtime_to_timedelta">[docs]</a><span class="k">def</span> <span class="nf">unixtime_to_timedelta</span><span class="p">(</span><span class="n">unixtime_diff</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; alias for get_unix_timedelta &quot;&quot;&quot;</span>
     <span class="n">timedelta</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="n">unixtime_diff</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">timedelta</span>
 
@@ -200,6 +207,47 @@
 <div class="viewcode-block" id="get_unix_timedelta"><a class="viewcode-back" href="../../utool.html#utool.util_time.get_unix_timedelta">[docs]</a><span class="k">def</span> <span class="nf">get_unix_timedelta</span><span class="p">(</span><span class="n">unixtime_diff</span><span class="p">):</span>
     <span class="n">timedelta</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="n">unixtime_diff</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">timedelta</span>
+
+</div>
+<div class="viewcode-block" id="get_unix_timedelta_str"><a class="viewcode-back" href="../../utool.html#utool.util_time.get_unix_timedelta_str">[docs]</a><span class="k">def</span> <span class="nf">get_unix_timedelta_str</span><span class="p">(</span><span class="n">unixtime_diff</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        unixtime_diff (int): number of seconds</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        timestr (str): formated time string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">timedelta</span> <span class="o">=</span> <span class="n">get_unix_timedelta</span><span class="p">(</span><span class="n">unixtime_diff</span><span class="p">)</span>
+    <span class="n">timestr</span> <span class="o">=</span> <span class="n">get_timedelta_str</span><span class="p">(</span><span class="n">timedelta</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">timestr</span>
+
+</div>
+<div class="viewcode-block" id="get_timedelta_str"><a class="viewcode-back" href="../../utool.html#utool.util_time.get_timedelta_str">[docs]</a><span class="k">def</span> <span class="nf">get_timedelta_str</span><span class="p">(</span><span class="n">timedelta</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        timestr (str): formated time string</span>
+<span class="sd">    References:</span>
+<span class="sd">        http://stackoverflow.com/questions/8906926/formatting-python-timedelta-objects</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">days</span> <span class="o">=</span> <span class="n">timedelta</span><span class="o">.</span><span class="n">days</span>
+    <span class="n">hours</span><span class="p">,</span> <span class="n">rem</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">timedelta</span><span class="o">.</span><span class="n">seconds</span><span class="p">,</span> <span class="mi">3600</span><span class="p">)</span>
+    <span class="n">minutes</span><span class="p">,</span> <span class="n">seconds</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">rem</span><span class="p">,</span> <span class="mi">60</span><span class="p">)</span>
+    <span class="n">fmtstr_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">fmtdict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">days</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">fmtstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;{days} days&#39;</span><span class="p">)</span>
+        <span class="n">fmtdict</span><span class="p">[</span><span class="s">&#39;days&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">days</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fmtstr_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">abs</span><span class="p">(</span><span class="n">hours</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">fmtstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;{hours} hours&#39;</span><span class="p">)</span>
+        <span class="n">fmtdict</span><span class="p">[</span><span class="s">&#39;hours&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hours</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fmtstr_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">abs</span><span class="p">(</span><span class="n">minutes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">fmtstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;{minutes} minutes&#39;</span><span class="p">)</span>
+        <span class="n">fmtdict</span><span class="p">[</span><span class="s">&#39;minutes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">minutes</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fmtstr_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">abs</span><span class="p">(</span><span class="n">seconds</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">fmtstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;{seconds} seconds&#39;</span><span class="p">)</span>
+        <span class="n">fmtdict</span><span class="p">[</span><span class="s">&#39;seconds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">seconds</span>
+    <span class="n">fmtstr</span> <span class="o">=</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fmtstr_list</span><span class="p">)</span>
+    <span class="n">timedelta_str</span> <span class="o">=</span> <span class="n">fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">fmtdict</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">timedelta_str</span>
 
 </div>
 <div class="viewcode-block" id="get_month"><a class="viewcode-back" href="../../utool.html#utool.util_time.get_month">[docs]</a><span class="k">def</span> <span class="nf">get_month</span><span class="p">():</span>
@@ -214,7 +262,7 @@
     <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">year</span>
 
 </div>
-<div class="viewcode-block" id="get_timestats_str"><a class="viewcode-back" href="../../utool.html#utool.util_time.get_timestats_str">[docs]</a><span class="k">def</span> <span class="nf">get_timestats_str</span><span class="p">(</span><span class="n">unixtime_list</span><span class="p">):</span>
+<div class="viewcode-block" id="get_timestats_str"><a class="viewcode-back" href="../../utool.html#utool.util_time.get_timestats_str">[docs]</a><span class="k">def</span> <span class="nf">get_timestats_str</span><span class="p">(</span><span class="n">unixtime_list</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">utool</span>
     <span class="n">unixtime_stats</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">unixtime_list</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;max&#39;</span><span class="p">,</span> <span class="s">&#39;min&#39;</span><span class="p">,</span> <span class="s">&#39;mean&#39;</span><span class="p">]:</span>
@@ -227,7 +275,7 @@
             <span class="n">unixtime_stats</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">unixtime_to_timedelta</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">unixtime_stats</span><span class="p">[</span><span class="n">key</span><span class="p">]))))</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="k">pass</span>
-    <span class="n">timestat_str</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">unixtime_stats</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">timestat_str</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">unixtime_stats</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="n">newlines</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">timestat_str</span></div>
 </pre></div>
 

@@ -121,11 +121,16 @@
     <span class="k">return</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
 
 </div>
+<div class="viewcode-block" id="codeblock"><a class="viewcode-back" href="../../utool.html#utool.util_str.codeblock">[docs]</a><span class="k">def</span> <span class="nf">codeblock</span><span class="p">(</span><span class="n">block_str</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">unindent</span><span class="p">(</span><span class="n">block_str</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+</div>
 <div class="viewcode-block" id="indent"><a class="viewcode-back" href="../../utool.html#utool.util_str.indent">[docs]</a><span class="k">def</span> <span class="nf">indent</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="s">&#39;    &#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Indents a block of text</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">indent</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">indent</span><span class="p">)</span>
+    <span class="n">indent_</span> <span class="o">=</span> <span class="n">indent</span>
+    <span class="k">return</span> <span class="n">indent_</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">indent_</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="indentjoin"><a class="viewcode-back" href="../../utool.html#utool.util_str.indentjoin">[docs]</a><span class="k">def</span> <span class="nf">indentjoin</span><span class="p">(</span><span class="n">strlist</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">    &#39;</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
@@ -134,7 +139,8 @@
 
 <span class="sd">    similar to &#39;\n    &#39;.join(strlist) but indent is also prefixed</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">indent</span> <span class="o">+</span> <span class="n">indent</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">str_</span><span class="p">)</span> <span class="o">+</span> <span class="n">suffix</span> <span class="k">for</span> <span class="n">str_</span> <span class="ow">in</span> <span class="n">strlist</span><span class="p">])</span>
+    <span class="n">indent_</span> <span class="o">=</span> <span class="n">indent</span>
+    <span class="k">return</span> <span class="n">indent_</span> <span class="o">+</span> <span class="n">indent_</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">str_</span><span class="p">)</span> <span class="o">+</span> <span class="n">suffix</span> <span class="k">for</span> <span class="n">str_</span> <span class="ow">in</span> <span class="n">strlist</span><span class="p">])</span>
 
 </div>
 <div class="viewcode-block" id="truncate_str"><a class="viewcode-back" href="../../utool.html#utool.util_str.truncate_str">[docs]</a><span class="k">def</span> <span class="nf">truncate_str</span><span class="p">(</span><span class="n">str_</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">110</span><span class="p">,</span> <span class="n">truncmsg</span><span class="o">=</span><span class="s">&#39; ~~~TRUNCATED~~~ &#39;</span><span class="p">):</span>
@@ -151,17 +157,10 @@
         <span class="k">return</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="pack_into"><a class="viewcode-back" href="../../utool.html#utool.util_str.pack_into">[docs]</a><span class="k">def</span> <span class="nf">pack_into</span><span class="p">(</span><span class="n">instr</span><span class="p">,</span> <span class="n">textwidth</span><span class="o">=</span><span class="mi">160</span><span class="p">,</span> <span class="n">breakchars</span><span class="o">=</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="n">break_words</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">newline_prefix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">__OLD_pack_into</span><span class="p">(</span><span class="n">instr</span><span class="p">,</span> <span class="n">textwidth</span><span class="o">=</span><span class="mi">160</span><span class="p">,</span> <span class="n">breakchars</span><span class="o">=</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="n">break_words</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                    <span class="n">newline_prefix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">wordsep</span><span class="o">=</span><span class="s">&#39; &#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Inserts newlines into a string enforcing a maximum textwidth.</span>
-<span class="sd">    Similar to vim&#39;s gq command in visual select mode.</span>
-
-<span class="sd">    breakchars is a string containing valid characters to insert a newline</span>
-<span class="sd">    before or after.</span>
-
-<span class="sd">    break_words is True if words are allowed to be split over multiple lines.</span>
-
-<span class="sd">    all inserted newlines are prefixed with newline_prefix</span>
+<span class="sd">    BROKEN DO NOT USE</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">textwidth_</span> <span class="o">=</span> <span class="n">textwidth</span>
     <span class="n">line_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">]</span>
@@ -174,8 +173,89 @@
             <span class="n">line_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">word</span><span class="p">[:</span><span class="n">textwidth_</span><span class="p">]</span>
             <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
             <span class="n">word</span> <span class="o">=</span> <span class="n">word</span><span class="p">[</span><span class="n">textwidth_</span><span class="p">:]</span>
-        <span class="n">line_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">word</span> <span class="o">+</span> <span class="s">&#39; &#39;</span>
+        <span class="n">line_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">word</span> <span class="o">+</span> <span class="n">wordsep</span>
     <span class="k">return</span> <span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">newline_prefix</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line_list</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="pack_into"><a class="viewcode-back" href="../../utool.html#utool.util_str.pack_into">[docs]</a><span class="k">def</span> <span class="nf">pack_into</span><span class="p">(</span><span class="n">instr</span><span class="p">,</span> <span class="n">textwidth</span><span class="o">=</span><span class="mi">160</span><span class="p">,</span> <span class="n">breakchars</span><span class="o">=</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="n">break_words</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+              <span class="n">newline_prefix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">wordsep</span><span class="o">=</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="n">remove_newlines</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Inserts newlines into a string enforcing a maximum textwidth.</span>
+<span class="sd">    Similar to vim&#39;s gq command in visual select mode.</span>
+
+<span class="sd">    breakchars is a string containing valid characters to insert a newline</span>
+<span class="sd">    before or after.</span>
+
+<span class="sd">    break_words is True if words are allowed to be split over multiple lines.</span>
+
+<span class="sd">    all inserted newlines are prefixed with newline_prefix</span>
+
+<span class="sd">    #FIXME:</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; instr = &quot;set_image_uris(ibs&lt;139684018194000&gt;, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], [u&#39;66ec193a-1619-b3b6-216d-1784b4833b61.jpg&#39;, u&#39;d8903434-942f-e0f5-d6c2-0dcbe3137bf7.jpg&#39;, u&#39;b73b72f4-4acb-c445-e72c-05ce02719d3d.jpg&#39;, u&#39;0cd05978-3d83-b2ee-2ac9-798dd571c3b3.jpg&#39;, u&#39;0a9bc03d-a75e-8d14-0153-e2949502aba7.jpg&#39;, u&#39;2deeff06-5546-c752-15dc-2bd0fdb1198a.jpg&#39;, u&#39;a9b70278-a936-c1dd-8a3b-bc1e9a998bf0.png&#39;, u&#39;42fdad98-369a-2cbc-67b1-983d6d6a3a60.jpg&#39;, u&#39;c459d381-fd74-1d99-6215-e42e3f432ea9.jpg&#39;, u&#39;33fd9813-3a2b-774b-3fcc-4360d1ae151b.jpg&#39;, u&#39;97e8ea74-873f-2092-b372-f928a7be30fa.jpg&#39;, u&#39;588bc218-83a5-d400-21aa-d499832632b0.jpg&#39;, u&#39;163a890c-36f2-981e-3529-c552b6d668a3.jpg&#39;], ) &quot;</span>
+<span class="sd">        &gt;&gt;&gt; textwidth = 160</span>
+<span class="sd">        &gt;&gt;&gt; breakchars = &#39; &#39;</span>
+<span class="sd">        &gt;&gt;&gt; break_words = True</span>
+<span class="sd">        &gt;&gt;&gt; newline_prefix = &#39;    &#39;</span>
+<span class="sd">        &gt;&gt;&gt; wordsep = &#39; &#39;</span>
+<span class="sd">        &gt;&gt;&gt; packstr1 = pack_into(instr, textwidth, breakchars, break_words, newline_prefix, wordsep)</span>
+<span class="sd">        &gt;&gt;&gt; break_words = False</span>
+<span class="sd">        &gt;&gt;&gt; packstr2 = pack_into(instr, textwidth, breakchars, break_words, newline_prefix, wordsep)</span>
+<span class="sd">        &gt;&gt;&gt; print(packstr1)</span>
+<span class="sd">        &gt;&gt;&gt; print(packstr2)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -c &quot;import utool&quot; --dump-utool-init</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#FIXME: messy code</span>
+    <span class="n">textwidth_</span> <span class="o">=</span> <span class="n">textwidth</span>
+    <span class="c"># Accumulate a list of lines</span>
+    <span class="n">line_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">]</span>
+    <span class="c"># Split text into list of words</span>
+    <span class="n">word_list</span> <span class="o">=</span> <span class="n">instr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">breakchars</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">remove_newlines</span><span class="p">:</span>
+        <span class="n">word_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">word</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">word_list</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">word_list</span><span class="p">:</span>
+        <span class="n">available</span> <span class="o">=</span> <span class="n">textwidth_</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">line_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="c"># Check to see if we need to make a new line</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">word</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">available</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">break_words</span><span class="p">:</span>
+                <span class="c"># If we are allowed to break words over multiple lines</span>
+                <span class="c"># Fill the rest of the available textwidth with part of the word</span>
+                <span class="n">line_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">word</span><span class="p">[:</span><span class="n">available</span><span class="p">]</span>
+                <span class="n">word</span> <span class="o">=</span> <span class="n">word</span><span class="p">[</span><span class="n">available</span><span class="p">:]</span>
+            <span class="c"># Append a new line to the list</span>
+            <span class="c"># Reset the avaiablable textwidth for new line</span>
+            <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">textwidth_</span> <span class="o">=</span> <span class="n">textwidth</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">newline_prefix</span><span class="p">)</span>
+            <span class="n">available</span> <span class="o">=</span> <span class="n">textwidth_</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">line_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">break_words</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="c"># Append the word and a separator to the current line.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c"># Weird if statement. Probably bug somewhere.</span>
+            <span class="n">textwidth_</span> <span class="o">=</span> <span class="n">textwidth</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">newline_prefix</span><span class="p">)</span>
+        <span class="n">line_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">word</span> <span class="o">+</span> <span class="n">wordsep</span>
+    <span class="n">packed_str</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">newline_prefix</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">packed_str</span>
+
+</div>
+<div class="viewcode-block" id="packstr"><a class="viewcode-back" href="../../utool.html#utool.util_str.packstr">[docs]</a><span class="k">def</span> <span class="nf">packstr</span><span class="p">(</span><span class="n">instr</span><span class="p">,</span> <span class="n">textwidth</span><span class="o">=</span><span class="mi">160</span><span class="p">,</span> <span class="n">breakchars</span><span class="o">=</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="n">break_words</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+            <span class="n">newline_prefix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">indentation</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">nlprefix</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">wordsep</span><span class="o">=</span><span class="s">&#39; &#39;</span><span class="p">,</span>
+            <span class="n">remove_newlines</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; alias for pack_into. has more up to date kwargs &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">instr</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+        <span class="n">instr</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">instr</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">nlprefix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">newline_prefix</span> <span class="o">=</span> <span class="n">nlprefix</span>
+    <span class="n">str_</span> <span class="o">=</span> <span class="n">pack_into</span><span class="p">(</span><span class="n">instr</span><span class="p">,</span> <span class="n">textwidth</span><span class="p">,</span> <span class="n">breakchars</span><span class="p">,</span> <span class="n">break_words</span><span class="p">,</span> <span class="n">newline_prefix</span><span class="p">,</span>
+                     <span class="n">wordsep</span><span class="p">,</span> <span class="n">remove_newlines</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">indentation</span> <span class="o">!=</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+        <span class="n">str_</span> <span class="o">=</span> <span class="n">indent</span><span class="p">(</span><span class="n">str_</span><span class="p">,</span> <span class="n">indentation</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">str_</span>
 
 </div>
 <div class="viewcode-block" id="newlined_list"><a class="viewcode-back" href="../../utool.html#utool.util_str.newlined_list">[docs]</a><span class="k">def</span> <span class="nf">newlined_list</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">joinstr</span><span class="o">=</span><span class="s">&#39;, &#39;</span><span class="p">,</span> <span class="n">textwidth</span><span class="o">=</span><span class="mi">160</span><span class="p">):</span>
@@ -206,6 +286,69 @@
     <span class="k">return</span> <span class="s">&#39;filesize(</span><span class="si">%r</span><span class="s">)=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">mb_str</span><span class="p">)</span>
 
 </div>
+<div class="viewcode-block" id="seconds_str"><a class="viewcode-back" href="../../utool.html#utool.util_str.seconds_str">[docs]</a><span class="k">def</span> <span class="nf">seconds_str</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        str</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; import utool</span>
+<span class="sd">        &gt;&gt;&gt; utool.util_str.rrr()</span>
+<span class="sd">        &gt;&gt;&gt; num_list = sorted([4.2 / (10.0 ** exp_) for exp_ in range(-13, 13, 4)])</span>
+<span class="sd">        &gt;&gt;&gt; secstr_list = [utool.util_str.seconds_str(num, prefix=None) for num in num_list]</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;, &#39;.join(secstr_list))</span>
+<span class="sd">        0.042 ns, 0.42 us, 4.2 ms, 0.042 ks, 0.42 Ms, 4.2 Gs, 42.0 Ts</span>
+
+<span class="sd">        #&gt;&gt;&gt; print(&#39;,\n&#39;.join(map(str, zip(secstr_list, num_list))))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">exponent_list</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">12</span><span class="p">,</span> <span class="o">-</span><span class="mi">9</span><span class="p">,</span> <span class="o">-</span><span class="mi">6</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">12</span><span class="p">]</span>
+    <span class="n">small_prefix_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;p&#39;</span><span class="p">,</span> <span class="s">&#39;n&#39;</span><span class="p">,</span> <span class="s">&#39;u&#39;</span><span class="p">,</span> <span class="s">&#39;m&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;k&#39;</span><span class="p">,</span> <span class="s">&#39;M&#39;</span><span class="p">,</span> <span class="s">&#39;G&#39;</span><span class="p">,</span> <span class="s">&#39;T&#39;</span><span class="p">]</span>
+    <span class="c">#large_prefix_list = [&#39;pico&#39;, &#39;nano&#39;, &#39;micro&#39;, &#39;mili&#39;, &#39;&#39;, &#39;kilo&#39;, &#39;mega&#39;, &#39;giga&#39;, &#39;tera&#39;]</span>
+    <span class="c">#large_suffix = &#39;second&#39;</span>
+    <span class="n">small_suffix</span> <span class="o">=</span> <span class="s">&#39;s&#39;</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="n">small_suffix</span>
+    <span class="n">prefix_list</span> <span class="o">=</span> <span class="n">small_prefix_list</span>
+    <span class="n">base</span> <span class="o">=</span> <span class="mf">10.0</span>
+    <span class="n">secstr</span> <span class="o">=</span> <span class="n">order_of_magnitude_str</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="n">prefix_list</span><span class="p">,</span> <span class="n">exponent_list</span><span class="p">,</span>
+                                    <span class="n">suffix</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">secstr</span>
+
+</div>
+<div class="viewcode-block" id="order_of_magnitude_str"><a class="viewcode-back" href="../../utool.html#utool.util_str.order_of_magnitude_str">[docs]</a><span class="k">def</span> <span class="nf">order_of_magnitude_str</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>
+                           <span class="n">prefix_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                           <span class="n">exponent_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                           <span class="n">suffix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    TODO: Rewrite byte_str to use this func</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">abs_num</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
+    <span class="c"># Find the right magnidue</span>
+    <span class="k">for</span> <span class="n">prefix_</span><span class="p">,</span> <span class="n">exponent</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">prefix_list</span><span class="p">,</span> <span class="n">exponent_list</span><span class="p">):</span>
+        <span class="c"># Let user request the prefix</span>
+        <span class="n">requested</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="n">prefix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">prefix</span> <span class="o">!=</span> <span class="n">prefix_</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">requested</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="c"># Otherwise find the best prefix</span>
+        <span class="n">magnitude</span> <span class="o">=</span> <span class="n">base</span> <span class="o">**</span> <span class="n">exponent</span>
+        <span class="c"># Be less than this threshold to use this unit</span>
+        <span class="n">thresh_mag</span> <span class="o">=</span> <span class="n">magnitude</span> <span class="o">*</span> <span class="n">base</span>
+        <span class="k">if</span> <span class="n">requested</span> <span class="ow">or</span> <span class="n">abs_num</span> <span class="o">&lt;=</span> <span class="n">thresh_mag</span><span class="p">:</span>
+            <span class="k">break</span>
+    <span class="n">unit_str</span> <span class="o">=</span> <span class="n">_magnitude_str</span><span class="p">(</span><span class="n">abs_num</span><span class="p">,</span> <span class="n">magnitude</span><span class="p">,</span> <span class="n">prefix_</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">unit_str</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_magnitude_str</span><span class="p">(</span><span class="n">abs_num</span><span class="p">,</span> <span class="n">magnitude</span><span class="p">,</span> <span class="n">prefix_</span><span class="p">,</span> <span class="n">suffix</span><span class="p">):</span>
+    <span class="n">scaled_num</span> <span class="o">=</span> <span class="n">abs_num</span> <span class="o">/</span> <span class="n">magnitude</span>
+    <span class="n">unit</span> <span class="o">=</span> <span class="n">prefix_</span> <span class="o">+</span> <span class="n">suffix</span>
+    <span class="n">unit_str</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;</span><span class="si">%.2f</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">scaled_num</span><span class="p">,</span> <span class="n">unit</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">unit_str</span>
+
+
 <div class="viewcode-block" id="byte_str2"><a class="viewcode-back" href="../../utool.html#utool.util_str.byte_str2">[docs]</a><span class="k">def</span> <span class="nf">byte_str2</span><span class="p">(</span><span class="n">nBytes</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Automatically chooses relevant unit (KB, MB, or GB) for displaying some</span>
@@ -214,11 +357,12 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">nBytes</span> <span class="o">&lt;</span> <span class="mf">2.0</span> <span class="o">**</span> <span class="mi">10</span><span class="p">:</span>
+    <span class="n">nAbsBytes</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">nBytes</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">nAbsBytes</span> <span class="o">&lt;</span> <span class="mf">2.0</span> <span class="o">**</span> <span class="mi">10</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">byte_str</span><span class="p">(</span><span class="n">nBytes</span><span class="p">,</span> <span class="s">&#39;KB&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">nBytes</span> <span class="o">&lt;</span> <span class="mf">2.0</span> <span class="o">**</span> <span class="mi">20</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">nAbsBytes</span> <span class="o">&lt;</span> <span class="mf">2.0</span> <span class="o">**</span> <span class="mi">20</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">byte_str</span><span class="p">(</span><span class="n">nBytes</span><span class="p">,</span> <span class="s">&#39;KB&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">nBytes</span> <span class="o">&lt;</span> <span class="mf">2.0</span> <span class="o">**</span> <span class="mi">30</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">nAbsBytes</span> <span class="o">&lt;</span> <span class="mf">2.0</span> <span class="o">**</span> <span class="mi">30</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">byte_str</span><span class="p">(</span><span class="n">nBytes</span><span class="p">,</span> <span class="s">&#39;MB&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">byte_str</span><span class="p">(</span><span class="n">nBytes</span><span class="p">,</span> <span class="s">&#39;GB&#39;</span><span class="p">)</span>
@@ -309,7 +453,8 @@
 <span class="c"># &lt;/Alias repr funcs&gt;</span>
 
 </div>
-<div class="viewcode-block" id="func_str"><a class="viewcode-back" href="../../utool.html#utool.util_str.func_str">[docs]</a><span class="k">def</span> <span class="nf">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[],</span> <span class="n">kwargs</span><span class="o">=</span><span class="p">{},</span> <span class="n">type_aliases</span><span class="o">=</span><span class="p">[]):</span>
+<div class="viewcode-block" id="func_str"><a class="viewcode-back" href="../../utool.html#utool.util_str.func_str">[docs]</a><span class="k">def</span> <span class="nf">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[],</span> <span class="n">kwargs</span><span class="o">=</span><span class="p">{},</span> <span class="n">type_aliases</span><span class="o">=</span><span class="p">[],</span> <span class="n">packed</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+             <span class="n">packkw</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    string representation of function definition</span>
 
@@ -319,17 +464,59 @@
     <span class="n">repr_list</span> <span class="o">=</span> <span class="n">list_aliased_repr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">type_aliases</span><span class="p">)</span> <span class="o">+</span> <span class="n">dict_aliased_repr</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">argskwargs_str</span> <span class="o">=</span> <span class="n">newlined_list</span><span class="p">(</span><span class="n">repr_list</span><span class="p">,</span> <span class="s">&#39;, &#39;</span><span class="p">,</span> <span class="n">textwidth</span><span class="o">=</span><span class="mi">80</span><span class="p">)</span>
     <span class="n">func_str</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">(</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">),</span> <span class="n">argskwargs_str</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">packed</span><span class="p">:</span>
+        <span class="n">packkw_</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">textwidth</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">nlprefix</span><span class="o">=</span><span class="s">&#39;    &#39;</span><span class="p">,</span> <span class="n">break_words</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">packkw</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">packkw_</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">packkw_</span><span class="p">)</span>
+        <span class="n">func_str</span> <span class="o">=</span> <span class="n">packstr</span><span class="p">(</span><span class="n">func_str</span><span class="p">,</span> <span class="o">**</span><span class="n">packkw_</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">func_str</span>
 
 </div>
-<div class="viewcode-block" id="dict_itemstr_list"><a class="viewcode-back" href="../../utool.html#utool.util_str.dict_itemstr_list">[docs]</a><span class="k">def</span> <span class="nf">dict_itemstr_list</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">strvals</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">sorted_</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="dict_itemstr_list"><a class="viewcode-back" href="../../utool.html#utool.util_str.dict_itemstr_list">[docs]</a><span class="k">def</span> <span class="nf">dict_itemstr_list</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">strvals</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">sorted_</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">indent_</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list: a list of human-readable dictionary items</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_str import dict_str, dict_itemstr_list</span>
+<span class="sd">        &gt;&gt;&gt; import utool</span>
+<span class="sd">        &gt;&gt;&gt; REPO_CONFIG = utool.get_default_repo_config()</span>
+<span class="sd">        &gt;&gt;&gt; GLOBAL_CONFIG = utool.get_default_global_config()</span>
+<span class="sd">        &gt;&gt;&gt; utool.rrrr()</span>
+<span class="sd">        &gt;&gt;&gt; utool.util_str.rrr()</span>
+<span class="sd">        &gt;&gt;&gt; repo_cfgstr   = dict_str(REPO_CONFIG, strvals=True)</span>
+<span class="sd">        &gt;&gt;&gt; global_cfgstr = dict_str(GLOBAL_CONFIG, strvals=True)</span>
+<span class="sd">        &gt;&gt;&gt; print(global_cfgstr)</span>
+<span class="sd">        &gt;&gt;&gt; print(repo_cfgstr)</span>
+
+<span class="sd">    Dev:</span>
+<span class="sd">        dict_ = CONFIG_DICT</span>
+<span class="sd">        strvals = False</span>
+<span class="sd">        sorted_ = False</span>
+<span class="sd">        newlines = True</span>
+<span class="sd">        recursive = True</span>
+<span class="sd">        indent_ = &#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">valfunc</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="c"># recursive call</span>
+            <span class="k">return</span> <span class="n">dict_str</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">strvals</span><span class="p">,</span> <span class="n">sorted_</span><span class="p">,</span> <span class="n">newlines</span><span class="p">,</span> <span class="n">recursive</span><span class="p">,</span> <span class="n">indent_</span> <span class="o">+</span> <span class="s">&#39;    &#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># base case</span>
+            <span class="k">return</span> <span class="n">val</span>
+
     <span class="n">iteritems</span> <span class="o">=</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span>
-    <span class="n">fmtstr</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%r</span><span class="s">: </span><span class="si">%r</span><span class="s">,&#39;</span>
     <span class="k">if</span> <span class="n">strvals</span><span class="p">:</span>
-        <span class="n">fmtstr</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">: </span><span class="si">%s</span><span class="s">,&#39;</span>
+        <span class="n">fmtstr</span> <span class="o">=</span> <span class="n">indent_</span> <span class="o">+</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">: </span><span class="si">%s</span><span class="s">,&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fmtstr</span> <span class="o">=</span> <span class="n">indent_</span> <span class="o">+</span> <span class="s">&#39;</span><span class="si">%r</span><span class="s">: </span><span class="si">%r</span><span class="s">,&#39;</span>
     <span class="k">if</span> <span class="n">sorted_</span><span class="p">:</span>
         <span class="n">iteritems</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">iter_</span><span class="p">:</span> <span class="nb">iter</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">iter_</span><span class="p">))</span>
-    <span class="n">itemstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">fmtstr</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">dict_</span><span class="p">)]</span>
+
+    <span class="k">if</span> <span class="n">recursive</span><span class="p">:</span>
+        <span class="n">itemstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">fmtstr</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">valfunc</span><span class="p">(</span><span class="n">val</span><span class="p">))</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">dict_</span><span class="p">)]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">itemstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">fmtstr</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">dict_</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">itemstr_list</span>
 
 </div>
@@ -337,14 +524,20 @@
     <span class="k">return</span> <span class="s">&#39;[</span><span class="si">%s</span><span class="se">\n</span><span class="s">]&#39;</span> <span class="o">%</span> <span class="n">indentjoin</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="dict_str"><a class="viewcode-back" href="../../utool.html#utool.util_str.dict_str">[docs]</a><span class="k">def</span> <span class="nf">dict_str</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">strvals</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">sorted_</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="dict_str"><a class="viewcode-back" href="../../utool.html#utool.util_str.dict_str">[docs]</a><span class="k">def</span> <span class="nf">dict_str</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">strvals</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">sorted_</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">indent_</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        str: a human-readable and execable string representation of a dictionary</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_str import dict_str, dict_itemstr_list</span>
+<span class="sd">        &gt;&gt;&gt; import utool</span>
+<span class="sd">        &gt;&gt;&gt; REPO_CONFIG = utool.get_default_repo_config()</span>
+<span class="sd">        &gt;&gt;&gt; repo_cfgstr   = dict_str(REPO_CONFIG, strvals=True)</span>
+<span class="sd">        &gt;&gt;&gt; print(repo_cfgstr)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">itemstr_list</span> <span class="o">=</span> <span class="n">dict_itemstr_list</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">strvals</span><span class="p">,</span> <span class="n">sorted_</span><span class="p">)</span>
+    <span class="n">itemstr_list</span> <span class="o">=</span> <span class="n">dict_itemstr_list</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">strvals</span><span class="p">,</span> <span class="n">sorted_</span><span class="p">,</span> <span class="n">newlines</span><span class="p">,</span> <span class="n">recursive</span><span class="p">,</span> <span class="n">indent_</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">newlines</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s">&#39;{</span><span class="si">%s</span><span class="se">\n</span><span class="s">}&#39;</span> <span class="o">%</span> <span class="n">indentjoin</span><span class="p">(</span><span class="n">itemstr_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s">&#39;{</span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">indent_</span> <span class="o">+</span> <span class="s">&#39;}&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="n">indentjoin</span><span class="p">(</span><span class="n">itemstr_list</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="s">&#39;{</span><span class="si">%s</span><span class="s">}&#39;</span> <span class="o">%</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">itemstr_list</span><span class="p">)</span>
 
@@ -503,6 +696,60 @@
 <div class="viewcode-block" id="get_freespace_str"><a class="viewcode-back" href="../../utool.html#utool.util_str.get_freespace_str">[docs]</a><span class="k">def</span> <span class="nf">get_freespace_str</span><span class="p">(</span><span class="n">dir_</span><span class="o">=</span><span class="s">&#39;.&#39;</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_cplat</span>
     <span class="k">return</span> <span class="n">byte_str2</span><span class="p">(</span><span class="n">util_cplat</span><span class="o">.</span><span class="n">get_free_diskbytes</span><span class="p">(</span><span class="n">dir_</span><span class="p">))</span>
+
+
+<span class="c"># FIXME: HASHLEN is a global var in util_hash</span></div>
+<div class="viewcode-block" id="long_fname_format"><a class="viewcode-back" href="../../utool.html#utool.util_str.long_fname_format">[docs]</a><span class="k">def</span> <span class="nf">long_fname_format</span><span class="p">(</span><span class="n">fmt_str</span><span class="p">,</span> <span class="n">fmt_dict</span><span class="p">,</span> <span class="n">hashable_keys</span><span class="o">=</span><span class="p">[],</span> <span class="n">max_len</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">hashlen</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">ABS_MAX_LEN</span><span class="o">=</span><span class="mi">255</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fmt_str (str): format of fname</span>
+<span class="sd">        fmt_dict (str): dict to format fname with</span>
+<span class="sd">        hashable_keys (list): list of dict keys you are willing to have hashed</span>
+<span class="sd">        max_len (int): tries to fit fname into this length</span>
+<span class="sd">        ABS_MAX_LEN (int): throws AssertionError if fname over this length</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; import utool</span>
+<span class="sd">        &gt;&gt;&gt; fmt_str = &#39;qaid={qaid}_res_{cfgstr}_quuid={quuid}&#39;</span>
+<span class="sd">        &gt;&gt;&gt; quuid_str = &#39;blahblahblahblahblahblah&#39;</span>
+<span class="sd">        &gt;&gt;&gt; cfgstr = &#39;big_long_string__________________________________&#39;</span>
+<span class="sd">        &gt;&gt;&gt; qaid = 5</span>
+<span class="sd">        &gt;&gt;&gt; fmt_dict = dict(cfgstr=cfgstr, qaid=qaid, quuid=quuid_str)</span>
+<span class="sd">        &gt;&gt;&gt; hashable_keys = [&#39;cfgstr&#39;, &#39;quuid&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; max_len = 64</span>
+<span class="sd">        &gt;&gt;&gt; hashlen = 8</span>
+<span class="sd">        &gt;&gt;&gt; fname0 = utool.long_fname_format(fmt_str, fmt_dict, max_len=None)</span>
+<span class="sd">        &gt;&gt;&gt; fname1 = utool.long_fname_format(fmt_str, fmt_dict, hashable_keys, max_len=64, hashlen=8)</span>
+<span class="sd">        &gt;&gt;&gt; fname2 = utool.long_fname_format(fmt_str, fmt_dict, hashable_keys, max_len=42, hashlen=8)</span>
+<span class="sd">        &gt;&gt;&gt; print(fname0)</span>
+<span class="sd">        qaid=5_res_big_long_string___________________________________quuid=blahblahblahblahblahblah</span>
+<span class="sd">        &gt;&gt;&gt; print(fname1)</span>
+<span class="sd">        qaid=5_res_kjrok785_quuid=blahblahblahblahblahblah</span>
+<span class="sd">        &gt;&gt;&gt; print(fname2)</span>
+<span class="sd">        qaid=5_res_du1&amp;i&amp;5l_quuid=euuaxoyi</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_hash</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="n">fmt_str</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">fmt_dict</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">max_len</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">fname</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_len</span><span class="p">:</span>
+        <span class="c"># Copy because we will overwrite fmt_dict values with hashed values</span>
+        <span class="n">fmt_dict_</span> <span class="o">=</span> <span class="n">fmt_dict</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">hashable_keys</span><span class="p">:</span>
+            <span class="n">fmt_dict_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">util_hash</span><span class="o">.</span><span class="n">hashstr</span><span class="p">(</span><span class="n">fmt_dict_</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">hashlen</span><span class="o">=</span><span class="n">hashlen</span><span class="p">)</span>
+            <span class="n">fname</span> <span class="o">=</span> <span class="n">fmt_str</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">fmt_dict_</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">max_len</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_len</span><span class="p">:</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="o">-</span> <span class="n">max_len</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Warning: Too big by </span><span class="si">%d</span><span class="s"> chars. Exausted all options to make fname fit into size. &#39;</span> <span class="o">%</span> <span class="n">diff</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;len(fname) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;fname = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fname</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ABS_MAX_LEN</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">ABS_MAX_LEN</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fname</span>
 
 
 <span class="c">#def parse_commas_wrt_groups(str_):</span>

@@ -257,13 +257,14 @@
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    autogen_sphinx_docs.py</span>
 
-<span class="sd">    C:\Python27\Scripts\autogen_sphinx_docs.py</span>
-<span class="sd">    pip uninstall sphinx</span>
-<span class="sd">    pip install sphinx</span>
-<span class="sd">    pip install sphinxcontrib-napoleon</span>
+<span class="sd">    Ignore:</span>
+<span class="sd">        C:\Python27\Scripts\autogen_sphinx_docs.py</span>
+<span class="sd">        pip uninstall sphinx</span>
+<span class="sd">        pip install sphinx</span>
+<span class="sd">        pip install sphinxcontrib-napoleon</span>
 
-<span class="sd">    cd C:\Python27\Scripts</span>
-<span class="sd">    ls C:\Python27\Scripts</span>
+<span class="sd">        cd C:\Python27\Scripts</span>
+<span class="sd">        ls C:\Python27\Scripts</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">utool</span>
     <span class="c"># TODO: assert sphinx-apidoc exe is found</span>
@@ -329,23 +330,50 @@
     <span class="c">#    [^\]]*</span>
     <span class="c">#    ]</span>
     <span class="c">#    &#39;&#39;&#39;)</span>
-    <span class="n">search_text</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">unindent</span><span class="p">(</span>
+    <span class="n">search_text</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
         <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        extensions = [</span>
 <span class="sd">            &#39;sphinx.ext.autodoc&#39;,</span>
 <span class="sd">            &#39;sphinx.ext.viewcode&#39;,</span>
-<span class="sd">        ]&#39;&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-    <span class="n">repl_text</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">unindent</span><span class="p">(</span>
+<span class="sd">        ]</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+    <span class="p">)</span>
+    <span class="c"># TODO: http://sphinx-doc.org/ext/math.html#module-sphinx.ext.pngmath</span>
+    <span class="c">#&#39;sphinx.ext.mathjax&#39;,</span>
+    <span class="n">repl_text</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
         <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        extensions = [</span>
 <span class="sd">            &#39;sphinx.ext.autodoc&#39;,</span>
 <span class="sd">            &#39;sphinx.ext.viewcode&#39;,</span>
-<span class="sd">            #&#39;sphinx.ext.napoleon&#39;,</span>
+<span class="sd">            # For LaTeX</span>
+<span class="sd">            &#39;sphinx.ext.pngmath&#39;,</span>
+<span class="sd">            # For Google Sytle Docstrs</span>
+<span class="sd">            # https://pypi.python.org/pypi/sphinxcontrib-napoleon</span>
 <span class="sd">            &#39;sphinxcontrib.napoleon&#39;,</span>
-<span class="sd">        ]&#39;&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<span class="sd">            #&#39;sphinx.ext.napoleon&#39;,</span>
+<span class="sd">        ]</span>
+<span class="sd">        autosummary_generate = True</span>
+
+<span class="sd">        modindex_common_prefix = [&#39;_&#39;]</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+    <span class="p">)</span>
+    <span class="n">head_text</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        from sphinx.ext.autodoc import between</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+    <span class="p">)</span>
+    <span class="n">tail_text</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        def setup(app):</span>
+<span class="sd">            # Register a sphinx.ext.autodoc.between listener to ignore everything</span>
+<span class="sd">            # between lines that contain the word IGNORE</span>
+<span class="sd">            app.connect(&#39;autodoc-process-docstring&#39;, between(&#39;^.*IGNORE.*$&#39;, exclude=True))</span>
+<span class="sd">            return app</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+    <span class="p">)</span>
     <span class="n">conf_fname</span> <span class="o">=</span> <span class="s">&#39;conf.py&#39;</span>
     <span class="n">conf_text</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="n">conf_fname</span><span class="p">)</span>
-    <span class="n">conf_text</span> <span class="o">=</span> <span class="n">conf_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">search_text</span><span class="p">,</span> <span class="n">repl_text</span><span class="p">)</span>
+    <span class="n">conf_text</span> <span class="o">=</span> <span class="n">head_text</span> <span class="o">+</span> <span class="n">conf_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">search_text</span><span class="p">,</span> <span class="n">repl_text</span><span class="p">)</span> <span class="o">+</span> <span class="n">tail_text</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="n">conf_fname</span><span class="p">,</span> <span class="n">conf_text</span><span class="p">)</span>
     <span class="c"># Make the documentation</span>
     <span class="c">#if utool.LINUX:</span>

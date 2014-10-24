@@ -54,6 +54,12 @@
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
 <span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
 <span class="kn">import</span> <span class="nn">six</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="n">HAS_NUMPY</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">HAS_NUMPY</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">pass</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[dict]&#39;</span><span class="p">)</span>
 
 
@@ -70,9 +76,29 @@
 
 </div>
 <div class="viewcode-block" id="all_dict_combinations_lbls"><a class="viewcode-back" href="../../utool.html#utool.util_dict.all_dict_combinations_lbls">[docs]</a><span class="k">def</span> <span class="nf">all_dict_combinations_lbls</span><span class="p">(</span><span class="n">varied_dict</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; returns what parameters are varied&quot;&quot;&quot;</span>
-    <span class="n">multitups_list</span> <span class="o">=</span> <span class="p">[[(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">val_list</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val_list</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">varied_dict</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
-    <span class="n">comb_lbls</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">iprod</span><span class="p">(</span><span class="o">*</span><span class="n">multitups_list</span><span class="p">)))</span>
+    <span class="sd">&quot;&quot;&quot; returns a label for each variation in a varydict.</span>
+<span class="sd">    It tries to not be oververbose and returns only what parameters are varied</span>
+<span class="sd">    in each label.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; import utool</span>
+<span class="sd">        &gt;&gt;&gt; varied_dict = {&#39;logdist_weight&#39;: [0.0, 1.0], &#39;pipeline_root&#39;: [&#39;vsmany&#39;], &#39;sv_on&#39;: [True, False, None]}</span>
+<span class="sd">        &gt;&gt;&gt; comb_lbls = utool.all_dict_combinations_lbls(varied_dict)</span>
+<span class="sd">        &gt;&gt;&gt; print(utool.list_str(comb_lbls))</span>
+<span class="sd">        [</span>
+<span class="sd">            ((&#39;sv_on&#39;, True), (&#39;logdist_weight&#39;, 0.0)),</span>
+<span class="sd">            ((&#39;sv_on&#39;, True), (&#39;logdist_weight&#39;, 1.0)),</span>
+<span class="sd">            ((&#39;sv_on&#39;, False), (&#39;logdist_weight&#39;, 0.0)),</span>
+<span class="sd">            ((&#39;sv_on&#39;, False), (&#39;logdist_weight&#39;, 1.0)),</span>
+<span class="sd">            ((&#39;sv_on&#39;, None), (&#39;logdist_weight&#39;, 0.0)),</span>
+<span class="sd">            ((&#39;sv_on&#39;, None), (&#39;logdist_weight&#39;, 1.0)),</span>
+<span class="sd">        ]</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">multitups_list</span> <span class="o">=</span> <span class="p">[[(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">val_list</span><span class="p">]</span>
+                      <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val_list</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">varied_dict</span><span class="p">)</span>
+                      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">comb_lbls</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">iprod</span><span class="p">(</span><span class="o">*</span><span class="n">multitups_list</span><span class="p">))))</span>
     <span class="k">return</span> <span class="n">comb_lbls</span>
 
 </div>
@@ -114,7 +140,33 @@
     <span class="sd">&quot;&quot;&quot; Like dict.update, but does not overwrite items &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">dict2</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dict_</span><span class="p">:</span>
-            <span class="n">dict_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span></div>
+            <span class="n">dict_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+</div>
+<div class="viewcode-block" id="is_dicteq"><a class="viewcode-back" href="../../utool.html#utool.util_dict.is_dicteq">[docs]</a><span class="k">def</span> <span class="nf">is_dicteq</span><span class="p">(</span><span class="n">dict1_</span><span class="p">,</span> <span class="n">dict2_</span><span class="p">,</span> <span class="n">almosteq_ok</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose_err</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Checks to see if dicts are the same. Performs recursion. Handles numpy &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_alg</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_dbg</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">dict1_</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">dict2_</span><span class="p">),</span> <span class="s">&#39;dicts are not of same length&#39;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">key1</span><span class="p">,</span> <span class="n">val1</span><span class="p">),</span> <span class="p">(</span><span class="n">key2</span><span class="p">,</span> <span class="n">val2</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dict1_</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">dict2_</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="k">assert</span> <span class="n">key1</span> <span class="o">==</span> <span class="n">key2</span><span class="p">,</span> <span class="s">&#39;key mismatch&#39;</span>
+            <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">val1</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">val2</span><span class="p">),</span> <span class="s">&#39;vals are not same type&#39;</span>
+            <span class="k">if</span> <span class="n">HAS_NUMPY</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">iterable</span><span class="p">(</span><span class="n">val1</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">almosteq_ok</span> <span class="ow">and</span> <span class="n">utool</span><span class="o">.</span><span class="n">is_float</span><span class="p">(</span><span class="n">val1</span><span class="p">):</span>
+                    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">util_alg</span><span class="o">.</span><span class="n">almost_eq</span><span class="p">(</span><span class="n">val1</span><span class="p">,</span> <span class="n">val2</span><span class="p">)),</span> <span class="s">&#39;float vals are not within thresh&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">x1</span> <span class="o">==</span> <span class="n">x2</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">val1</span><span class="p">,</span> <span class="n">val2</span><span class="p">)]),</span> <span class="s">&#39;np vals are different&#39;</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val1</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">is_dicteq</span><span class="p">(</span><span class="n">val1</span><span class="p">,</span> <span class="n">val2</span><span class="p">,</span> <span class="n">almosteq_ok</span><span class="o">=</span><span class="n">almosteq_ok</span><span class="p">,</span> <span class="n">verbose_err</span><span class="o">=</span><span class="n">verbose_err</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="n">val1</span> <span class="o">==</span> <span class="n">val2</span><span class="p">,</span> <span class="s">&#39;vals are different&#39;</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">verbose_err</span><span class="p">:</span>
+            <span class="n">util_dbg</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">False</span>
+    <span class="k">return</span> <span class="bp">True</span></div>
 </pre></div>
 
           </div>

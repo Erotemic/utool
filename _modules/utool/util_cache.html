@@ -52,6 +52,7 @@
 <span class="kn">import</span> <span class="nn">shelve</span>
 <span class="c">#import atexit</span>
 <span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">normpath</span>
 <span class="kn">import</span> <span class="nn">functools</span>
@@ -144,6 +145,7 @@
                  <span class="n">verbose</span><span class="o">=</span><span class="n">VERBOSE</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">cache_dir</span> <span class="o">==</span> <span class="s">&#39;default&#39;</span><span class="p">:</span>
             <span class="n">cache_dir</span> <span class="o">=</span> <span class="n">util_cplat</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="n">appname</span><span class="p">)</span>
+        <span class="n">util_path</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dpath</span> <span class="o">=</span> <span class="n">cache_dir</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="o">=</span> <span class="n">fname</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cfgstr</span> <span class="o">=</span> <span class="n">cfgstr</span>
@@ -180,23 +182,134 @@
         <span class="n">save_cache</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dpath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
 
 </div></div>
-<div class="viewcode-block" id="get_argname"><a class="viewcode-back" href="../../utool.html#utool.util_cache.get_argname">[docs]</a><span class="k">def</span> <span class="nf">get_argname</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-    <span class="c"># FINISHME</span>
-    <span class="k">return</span> <span class="p">(</span><span class="s">&#39;arg</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">x</span><span class="p">)</span>
+<div class="viewcode-block" id="get_kwdefaults"><a class="viewcode-back" href="../../utool.html#utool.util_cache.get_kwdefaults">[docs]</a><span class="k">def</span> <span class="nf">get_kwdefaults</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="n">argspec</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getargspec</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">argspec</span><span class="o">.</span><span class="n">keywords</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">argspec</span><span class="o">.</span><span class="n">defaults</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{}</span>
+    <span class="n">kwdefaults</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">argspec</span><span class="o">.</span><span class="n">keywords</span><span class="p">,</span> <span class="n">argspec</span><span class="o">.</span><span class="n">defaults</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">kwdefaults</span>
 
 </div>
-<div class="viewcode-block" id="get_cfgstr_from_args"><a class="viewcode-back" href="../../utool.html#utool.util_cache.get_cfgstr_from_args">[docs]</a><span class="k">def</span> <span class="nf">get_cfgstr_from_args</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">key_argx</span><span class="p">,</span> <span class="n">key_kwds</span><span class="p">):</span>
-    <span class="n">fmt_str</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">(</span><span class="si">%s</span><span class="s">)&#39;</span>
+<div class="viewcode-block" id="get_argnames"><a class="viewcode-back" href="../../utool.html#utool.util_cache.get_argnames">[docs]</a><span class="k">def</span> <span class="nf">get_argnames</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="n">argspec</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getargspec</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="n">argnames</span> <span class="o">=</span> <span class="n">argspec</span><span class="o">.</span><span class="n">args</span>
+    <span class="k">return</span> <span class="n">argnames</span>
+
+</div>
+<div class="viewcode-block" id="get_cfgstr_from_args"><a class="viewcode-back" href="../../utool.html#utool.util_cache.get_cfgstr_from_args">[docs]</a><span class="k">def</span> <span class="nf">get_cfgstr_from_args</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">key_argx</span><span class="p">,</span> <span class="n">key_kwds</span><span class="p">,</span> <span class="n">kwdefaults</span><span class="p">,</span> <span class="n">argnames</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Dev:</span>
+<span class="sd">        argx = [&#39;fdsf&#39;, &#39;432443432432&#39;, 43423432, &#39;fdsfsd&#39;, 3.2, True]</span>
+<span class="sd">        memlist = list(map(bytes_or_repr, argx))</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        argx = key_argx[0]</span>
+<span class="sd">        argval = args[argx]</span>
+<span class="sd">        val = argval</span>
+<span class="sd">        %timeit repr(argval)</span>
+<span class="sd">        %timeit any_repr(argval)</span>
+<span class="sd">        %timeit utool.hashstr(any_repr(argval))</span>
+<span class="sd">        %timeit memoryview(argval)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#try:</span>
+    <span class="c">#fmt_str = &#39;%s(%s)&#39;</span>
     <span class="n">hashstr</span> <span class="o">=</span> <span class="n">util_hash</span><span class="o">.</span><span class="n">hashstr</span>
     <span class="k">if</span> <span class="n">key_argx</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">key_argx</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+        <span class="n">key_argx</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)))</span>
     <span class="k">if</span> <span class="n">key_kwds</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">key_kwds</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
-    <span class="n">args_hash_iter</span> <span class="o">=</span> <span class="p">(</span><span class="n">fmt_str</span> <span class="o">%</span> <span class="p">(</span><span class="n">get_argname</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span> <span class="n">hashstr</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="n">x</span><span class="p">])))</span>
-                      <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">key_argx</span><span class="p">)</span>
-    <span class="n">kwds_hash_iter</span> <span class="o">=</span> <span class="p">(</span><span class="n">fmt_str</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">hashstr</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">])))</span>
-                      <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">key_kwds</span><span class="p">)</span>
-    <span class="n">cfgstr</span> <span class="o">=</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chain</span><span class="p">(</span><span class="n">args_hash_iter</span><span class="p">,</span> <span class="n">kwds_hash_iter</span><span class="p">))</span>
+        <span class="n">key_kwds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+    <span class="c"># TODO: Use bytes or memoryview instead of repr</span>
+    <span class="c"># Helper funcs</span>
+
+    <span class="k">def</span> <span class="nf">any_repr</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; hopefully json will be able to compute a string representation &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">json</span>
+        <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+        <span class="k">class</span> <span class="nc">NumPyArangeEncoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">):</span>
+            <span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>  <span class="c"># or map(int, obj)</span>
+                <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">cls</span><span class="o">=</span><span class="n">NumPyArangeEncoder</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="k">def</span> <span class="nf">bytes_or_repr</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">memview</span> <span class="o">=</span> <span class="n">memoryview</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">memview</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">any_repr</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+            <span class="c">#if isinstance(val, dict):</span>
+            <span class="c">#    dict_keys = list(val.keys())</span>
+            <span class="c">#    dict_values = list(val.values())</span>
+            <span class="c">#    dict_keys_repr = bytes_or_repr(dict_keys)</span>
+            <span class="c">#    dict_values_repr = bytes_or_repr(dict_values)</span>
+            <span class="c">#    return dict_keys_repr + dict_values_repr</span>
+            <span class="c">#elif isinstance(val, list):</span>
+            <span class="c">#    pass</span>
+            <span class="c">#else:</span>
+            <span class="c">#    return repr(val)</span>
+
+    <span class="k">def</span> <span class="nf">hashrepr</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">hashstr</span><span class="p">(</span><span class="n">bytes_or_repr</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">kwdval</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">kwdefaults</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">None</span><span class="p">))</span>
+
+    <span class="n">arg_hashfmtstr</span> <span class="o">=</span> <span class="p">[</span><span class="n">argnames</span><span class="p">[</span><span class="n">argx</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;(</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="k">for</span> <span class="n">argx</span> <span class="ow">in</span> <span class="n">key_argx</span><span class="p">]</span>
+    <span class="n">kwn_hashfmtstr</span> <span class="o">=</span> <span class="p">[</span><span class="n">kwdefaults</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s">&#39;???&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;(</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">key_kwds</span><span class="p">]</span>
+    <span class="n">cfgstr_fmt</span> <span class="o">=</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chain</span><span class="p">(</span><span class="n">arg_hashfmtstr</span><span class="p">,</span> <span class="n">kwn_hashfmtstr</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;cfgstr_fmt = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">cfgstr_fmt</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;hashing args&#39;</span><span class="p">)</span>
+    <span class="c">#import utool</span>
+    <span class="c">#with utool.Timer(&#39;time&#39;) as t:</span>
+    <span class="n">arg_hashiter</span> <span class="o">=</span> <span class="p">[</span><span class="n">hashrepr</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="n">argx</span><span class="p">])</span> <span class="k">for</span> <span class="n">argx</span> <span class="ow">in</span> <span class="n">key_argx</span><span class="p">]</span>
+    <span class="c">#try:</span>
+    <span class="c">#    if t.ellapsed &gt; 4:</span>
+    <span class="c">#        utool.embed()</span>
+    <span class="c">#except Exception as ex:</span>
+    <span class="c">#    utool.embed()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;hashing kwargs&#39;</span><span class="p">)</span>
+    <span class="n">kwn_hashiter</span> <span class="o">=</span> <span class="p">[</span><span class="n">hashrepr</span><span class="p">(</span><span class="n">kwdval</span><span class="p">(</span><span class="n">key</span><span class="p">))</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">key_kwds</span><span class="p">]</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;formating args and kwargs&#39;</span><span class="p">)</span>
+    <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">cfgstr_fmt</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">chain</span><span class="p">(</span><span class="n">arg_hashiter</span><span class="p">,</span> <span class="n">kwn_hashiter</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;made cfgstr = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">cfgstr</span><span class="p">)</span>
+
+    <span class="c">## Iter funcs</span>
+    <span class="c">#def argfmter(argx):</span>
+    <span class="c">#    try:</span>
+    <span class="c">#        return fmt_str % (argnames[argx], hashrepr(args[argx]))</span>
+    <span class="c">#    except Exception as ex:</span>
+    <span class="c">#        import utool</span>
+    <span class="c">#        msg = utool.unindent(&#39;&#39;&#39;</span>
+    <span class="c">#        [argfmter] argx=%r</span>
+    <span class="c">#        [argfmter] len(args)=%r</span>
+    <span class="c">#        [argfmter] map(type, args)) = %r</span>
+    <span class="c">#        [argfmter] %s</span>
+    <span class="c">#        &#39;&#39;&#39;) % (argx, len(args), map(type, args), utool.func_str(func),)</span>
+    <span class="c">#        utool.printex(ex, msg, separate=True)</span>
+    <span class="c">#        raise</span>
+    <span class="c">#def kwdfmter(key):</span>
+    <span class="c">#    return fmt_str % (key, hashrepr(kwdval(key)))</span>
+    <span class="c">#iterfun = list</span>
+    <span class="c">#iterfun = iter</span>
+    <span class="c">#args_hash_iter = [argfmter(argx) for argx in key_argx]</span>
+    <span class="c">#kwds_hash_iter = [kwdfmter(key) for key in key_kwds]</span>
+    <span class="c">#cfgstr = &#39;_&#39; + &#39;_&#39;.join(chain(args_hash_iter, kwds_hash_iter))</span>
+    <span class="c">#except Exception as ex:</span>
+    <span class="c">#    import utool</span>
+    <span class="c">#    try:</span>
+    <span class="c">#        dbg_args_hash_iter = [argfmter(argx) for argx in key_argx if argx &lt; len(args)]</span>
+    <span class="c">#        dbg_kwds_hash_iter = [kwdfmter(key) for key in key_kwds]</span>
+    <span class="c">#        dbg_cfgstr =  &#39;_&#39; + &#39;_&#39;.join(chain(dbg_args_hash_iter, dbg_kwds_hash_iter))</span>
+    <span class="c">#    except Exception:</span>
+    <span class="c">#        pass</span>
+    <span class="c">#    utool.printex(ex, keys=[&#39;key_argsx&#39;, &#39;key_kwds&#39;, &#39;kwdefaults&#39;,</span>
+    <span class="c">#                            dbg_cfgstr], separate=True)</span>
+    <span class="c">#    raise</span>
     <span class="k">return</span> <span class="n">cfgstr</span>
 
 </div>
@@ -204,27 +317,65 @@
                 <span class="n">key_kwds</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Wraps a function with a Cacher object</span>
+
+<span class="sd">    uses a hash of arguments as input</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; import utool</span>
+<span class="sd">        &gt;&gt;&gt; def costly_func(a, b, c=&#39;d&#39;, *args, **kwargs):</span>
+<span class="sd">        ...    return ([a] * b, c, args, kwargs)</span>
+<span class="sd">        &gt;&gt;&gt; ans0 = costly_func(41, 3)</span>
+<span class="sd">        &gt;&gt;&gt; ans1 = costly_func(42, 3)</span>
+<span class="sd">        &gt;&gt;&gt; closure_ = utool.cached_func(&#39;costly_func&#39;, appname=&#39;utool_test&#39;, key_argx=[0, 1])</span>
+<span class="sd">        &gt;&gt;&gt; efficient_func = closure_(costly_func)</span>
+<span class="sd">        &gt;&gt;&gt; ans2 = efficient_func(42, 3)</span>
+<span class="sd">        &gt;&gt;&gt; ans3 = efficient_func(42, 3)</span>
+<span class="sd">        &gt;&gt;&gt; ans4 = efficient_func(41, 3)</span>
+<span class="sd">        &gt;&gt;&gt; ans5 = efficient_func(41, 3)</span>
+<span class="sd">        &gt;&gt;&gt; assert ans1 == ans2</span>
+<span class="sd">        &gt;&gt;&gt; assert ans2 == ans3</span>
+<span class="sd">        &gt;&gt;&gt; assert ans5 == ans4</span>
+<span class="sd">        &gt;&gt;&gt; assert ans5 == ans0</span>
+<span class="sd">        &gt;&gt;&gt; assert ans1 != ans0</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">cached_closure</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
         <span class="n">fname_</span> <span class="o">=</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="k">if</span> <span class="n">fname</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">fname</span>
+        <span class="n">kwdefaults</span> <span class="o">=</span> <span class="n">get_kwdefaults</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="n">argnames</span>   <span class="o">=</span> <span class="n">get_argnames</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
         <span class="n">cacher</span> <span class="o">=</span> <span class="n">Cacher</span><span class="p">(</span><span class="n">fname_</span><span class="p">,</span> <span class="n">cache_dir</span><span class="o">=</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="n">appname</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">use_cache</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">use_cache_</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nocache-&#39;</span> <span class="o">+</span> <span class="n">fname</span><span class="p">)</span>
+        <span class="c">#_dbgdict = dict(fname_=fname_, key_kwds=key_kwds, appname=appname,</span>
+        <span class="c">#                key_argx=key_argx, use_cache_=use_cache_)</span>
         <span class="nd">@functools.wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">cached_wraper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-            <span class="c"># Implicitly adds use_cache to kwargs</span>
-            <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">get_cfgstr_from_args</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">key_argx</span><span class="p">,</span> <span class="n">key_kwds</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="n">cfgstr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;cfgstr cannot be None&#39;</span>
-            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_cache&#39;</span><span class="p">,</span> <span class="n">use_cache_</span><span class="p">):</span>
-                <span class="c"># Make cfgstr from specified input</span>
-                <span class="n">data</span> <span class="o">=</span> <span class="n">cacher</span><span class="o">.</span><span class="n">tryload</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">data</span>
-            <span class="c"># Cached missed compute function</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-            <span class="c"># Cache save</span>
-            <span class="n">cacher</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">data</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] computing cached function fname_=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fname_</span><span class="p">,))</span>
+                <span class="c"># Implicitly adds use_cache to kwargs</span>
+                <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">get_cfgstr_from_args</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">key_argx</span><span class="p">,</span>
+                                              <span class="n">key_kwds</span><span class="p">,</span> <span class="n">kwdefaults</span><span class="p">,</span> <span class="n">argnames</span><span class="p">)</span>
+                <span class="k">assert</span> <span class="n">cfgstr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;cfgstr=</span><span class="si">%r</span><span class="s"> cannot be None&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfgstr</span><span class="p">,)</span>
+                <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_cache&#39;</span><span class="p">,</span> <span class="n">use_cache_</span><span class="p">):</span>
+                    <span class="c"># Make cfgstr from specified input</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="n">cacher</span><span class="o">.</span><span class="n">tryload</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">data</span>
+                <span class="c"># Cached missed compute function</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="c"># Cache save</span>
+                <span class="n">cacher</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">data</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">utool</span>
+                <span class="n">_dbgdict2</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">key_argx</span><span class="o">=</span><span class="n">key_argx</span><span class="p">,</span> <span class="n">lenargs</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">),</span> <span class="n">lenkw</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">),)</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+                    <span class="s">&#39;+--- UTOOL --- ERROR IN CACHED FUNCTION&#39;</span><span class="p">,</span>
+                    <span class="c">#&#39;dbgdict = &#39; + utool.dict_str(_dbgdict),</span>
+                    <span class="s">&#39;dbgdict2 = &#39;</span> <span class="o">+</span> <span class="n">utool</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">_dbgdict2</span><span class="p">),</span>
+                <span class="p">])</span>
+                <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+                <span class="k">raise</span>
         <span class="c"># Give function a handle to the cacher object</span>
         <span class="n">cached_wraper</span><span class="o">.</span><span class="n">cacher</span> <span class="o">=</span> <span class="n">cacher</span>
         <span class="k">return</span> <span class="n">cached_wraper</span>

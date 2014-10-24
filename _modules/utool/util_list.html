@@ -50,6 +50,12 @@
   <h1>Source code for utool.util_list</h1><div class="highlight"><pre>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">operator</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="n">HAS_NUMPY</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">HAS_NUMPY</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span> <span class="n">zip_longest</span><span class="p">,</span> <span class="nb">range</span>
 <span class="kn">from</span> <span class="nn">.util_iter</span> <span class="kn">import</span> <span class="n">iflatten</span><span class="p">,</span> <span class="n">isiterable</span><span class="p">,</span> <span class="n">ifilter_Nones</span><span class="p">,</span> <span class="n">ifilter_items</span><span class="p">,</span> <span class="n">ifilterfalse_items</span>
 <span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
@@ -132,6 +138,12 @@
 <span class="sd">    Flattens ``list`` but remember how to reconstruct the unflat ``list``</span>
 <span class="sd">    Returns flat ``list`` and the unflat ``list`` with indexes into the flat</span>
 <span class="sd">    ``list``</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        unflat_list (list): list of nested lists that we will flatten.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple : (flat_list, reverse_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">nextnum</span><span class="p">(</span><span class="n">trick_</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
@@ -146,8 +158,118 @@
 </div>
 <div class="viewcode-block" id="unflatten"><a class="viewcode-back" href="../../utool.html#utool.util_list.unflatten">[docs]</a><span class="k">def</span> <span class="nf">unflatten</span><span class="p">(</span><span class="n">flat_list</span><span class="p">,</span> <span class="n">reverse_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Rebuilds unflat list from invertable_flatten</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        flat_list (list): the flattened list</span>
+<span class="sd">        reverse_list (list): the list which undoes flattenting</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        unflat_list2: original nested list</span>
+
+
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        invertable_flatten</span>
+<span class="sd">        invertable_flatten2</span>
+<span class="sd">        unflatten2</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">unflat_list2</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">([</span><span class="n">flat_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">tup</span><span class="p">])</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">reverse_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">unflat_list2</span>
+
+</div>
+<div class="viewcode-block" id="invertable_flatten2"><a class="viewcode-back" href="../../utool.html#utool.util_list.invertable_flatten2">[docs]</a><span class="k">def</span> <span class="nf">invertable_flatten2</span><span class="p">(</span><span class="n">unflat_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An alternative to invertable_flatten which uses cumsum</span>
+
+<span class="sd">    TODO: This flatten is faster fix it to be used everywhere</span>
+
+<span class="sd">    Flattens ``list`` but remember how to reconstruct the unflat ``list``</span>
+<span class="sd">    Returns flat ``list`` and the unflat ``list`` with indexes into the flat</span>
+<span class="sd">    ``list``</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_list import *</span>
+<span class="sd">        &gt;&gt;&gt; import utool</span>
+<span class="sd">        &gt;&gt;&gt; utool.util_list</span>
+<span class="sd">        &gt;&gt;&gt; unflat_list = [[5], [2, 3, 12, 3, 3], [9], [13, 3], [5]]</span>
+<span class="sd">        &gt;&gt;&gt; flat_list, cumlen_list = invertable_flatten2(unflat_list)</span>
+<span class="sd">        &gt;&gt;&gt; unflat_list2 = unflatten2(flat_list, cumlen_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert unflat_list2 == unflat_list</span>
+<span class="sd">        &gt;&gt;&gt; print((flat_list, cumlen_list))</span>
+<span class="sd">        ([5, 2, 3, 12, 3, 3, 9, 13, 3, 5], array([ 1,  6,  7,  9, 10]))</span>
+
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        invertable_flatten</span>
+<span class="sd">        unflatten</span>
+<span class="sd">        unflatten2</span>
+
+<span class="sd">    Timeits:</span>
+<span class="sd">        import utool</span>
+<span class="sd">        unflat_list = aids_list1</span>
+<span class="sd">        flat_aids1, reverse_list = utool.invertable_flatten(unflat_list)</span>
+<span class="sd">        flat_aids2, cumlen_list = utool.invertable_flatten2(unflat_list)</span>
+<span class="sd">        unflat_list1 = utool.unflatten(flat_aids1, reverse_list)</span>
+<span class="sd">        unflat_list2 = utool.unflatten2(flat_aids2, cumlen_list)</span>
+<span class="sd">        assert list(map(list, unflat_list1)) == unflat_list2</span>
+<span class="sd">        print(utool.get_object_size_str(unflat_list,  &#39;unflat_list  &#39;))</span>
+<span class="sd">        print(utool.get_object_size_str(flat_aids1,   &#39;flat_aids1   &#39;))</span>
+<span class="sd">        print(utool.get_object_size_str(flat_aids2,   &#39;flat_aids2   &#39;))</span>
+<span class="sd">        print(utool.get_object_size_str(reverse_list, &#39;reverse_list &#39;))</span>
+<span class="sd">        print(utool.get_object_size_str(cumlen_list,  &#39;cumlen_list  &#39;))</span>
+<span class="sd">        print(utool.get_object_size_str(unflat_list1, &#39;unflat_list1 &#39;))</span>
+<span class="sd">        print(utool.get_object_size_str(unflat_list2, &#39;unflat_list2 &#39;))</span>
+<span class="sd">        print(&#39;Timings 1:)</span>
+<span class="sd">        %timeit utool.invertable_flatten(unflat_list)</span>
+<span class="sd">        %timeit utool.unflatten(flat_aids1, reverse_list)</span>
+<span class="sd">        print(&#39;Timings 2:)</span>
+<span class="sd">        %timeit utool.invertable_flatten2(unflat_list)</span>
+<span class="sd">        %timeit utool.unflatten2(flat_aids2, cumlen_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sublen_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">unflat_list</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">HAS_NUMPY</span><span class="p">:</span>
+        <span class="n">cumlen_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">sublen_list</span><span class="p">)</span>
+        <span class="c"># Build an unflat list of flat indexes</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cumlen_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">accumulate</span><span class="p">(</span><span class="n">sublen_list</span><span class="p">))</span>
+    <span class="n">flat_list</span> <span class="o">=</span> <span class="n">flatten</span><span class="p">(</span><span class="n">unflat_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">flat_list</span><span class="p">,</span> <span class="n">cumlen_list</span>
+
+</div>
+<div class="viewcode-block" id="accumulate"><a class="viewcode-back" href="../../utool.html#utool.util_list.accumulate">[docs]</a><span class="k">def</span> <span class="nf">accumulate</span><span class="p">(</span><span class="n">iterator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; use itertools.accumulate in python &gt; 3.2 &quot;&quot;&quot;</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">iterator</span><span class="p">:</span>
+        <span class="n">total</span> <span class="o">+=</span> <span class="n">item</span>
+        <span class="k">yield</span> <span class="n">total</span>
+
+</div>
+<div class="viewcode-block" id="unflatten2"><a class="viewcode-back" href="../../utool.html#utool.util_list.unflatten2">[docs]</a><span class="k">def</span> <span class="nf">unflatten2</span><span class="p">(</span><span class="n">flat_list</span><span class="p">,</span> <span class="n">cumlen_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Rebuilds unflat list from invertable_flatten</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        flat_list (list): the flattened list</span>
+<span class="sd">        cumlen_list (list): the list which undoes flattenting</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        unflat_list2: original nested list</span>
+
+
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        invertable_flatten</span>
+<span class="sd">        invertable_flatten2</span>
+<span class="sd">        unflatten2</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_list import *</span>
+<span class="sd">        &gt;&gt;&gt; import utool</span>
+<span class="sd">        &gt;&gt;&gt; utool.util_list</span>
+<span class="sd">        &gt;&gt;&gt; flat_list = [5, 2, 3, 12, 3, 3, 9, 13, 3, 5]</span>
+<span class="sd">        &gt;&gt;&gt; cumlen_list = np.array([ 1,  6,  7,  9, 10])</span>
+<span class="sd">        &gt;&gt;&gt; unflat_list2 = unflatten2(flat_list, cumlen_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(unflat_list2)</span>
+<span class="sd">        [[5], [2, 3, 12, 3, 3], [9], [13, 3], [5]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">unflat_list2</span> <span class="o">=</span> <span class="p">[</span><span class="n">flat_list</span><span class="p">[</span><span class="n">low</span><span class="p">:</span><span class="n">high</span><span class="p">]</span> <span class="k">for</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="n">cumlen_list</span><span class="p">),</span> <span class="n">cumlen_list</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">unflat_list2</span>
 
 </div>
@@ -160,6 +282,8 @@
 </div>
 <div class="viewcode-block" id="flattenize"><a class="viewcode-back" href="../../utool.html#utool.util_list.flattenize">[docs]</a><span class="k">def</span> <span class="nf">flattenize</span><span class="p">(</span><span class="n">list_</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; maps flatten to a tuplized list</span>
+
+<span class="sd">    Weird function. DEPRICATE</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; list_ = [[1, 2, 3], [2, 3, [4, 2, 1]], [3, 2], [[1, 2], [3, 4]]]</span>
@@ -225,11 +349,22 @@
 
 </div>
 <div class="viewcode-block" id="list_allsame"><a class="viewcode-back" href="../../utool.html#utool.util_list.list_allsame">[docs]</a><span class="k">def</span> <span class="nf">list_allsame</span><span class="p">(</span><span class="n">list_</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; checks to see if list is equal everywhere &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    checks to see if list is equal everywhere</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        list_ (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        True if all items in the list are equal</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">True</span>
-    <span class="n">item0</span> <span class="o">=</span> <span class="n">list_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="k">return</span> <span class="nb">all</span><span class="p">([</span><span class="n">item</span> <span class="o">==</span> <span class="n">item0</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">list_</span><span class="p">])</span>
+    <span class="n">first_item</span> <span class="o">=</span> <span class="n">list_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">HAS_NUMPY</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">first_item</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">all</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">item</span> <span class="o">==</span> <span class="n">first_item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">list_</span><span class="p">])</span>
+    <span class="k">return</span> <span class="nb">all</span><span class="p">([</span><span class="n">item</span> <span class="o">==</span> <span class="n">first_item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">list_</span><span class="p">])</span>
 
 </div>
 <div class="viewcode-block" id="assert_all_not_None"><a class="viewcode-back" href="../../utool.html#utool.util_list.assert_all_not_None">[docs]</a><span class="k">def</span> <span class="nf">assert_all_not_None</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">list_name</span><span class="o">=</span><span class="s">&#39;some_list&#39;</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[]):</span>
@@ -266,7 +401,15 @@
 
 </div>
 <div class="viewcode-block" id="get_dirty_items"><a class="viewcode-back" href="../../utool.html#utool.util_list.get_dirty_items">[docs]</a><span class="k">def</span> <span class="nf">get_dirty_items</span><span class="p">(</span><span class="n">item_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Returns each item in item_list where not flag in flag_list</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns each item in item_list where not flag in flag_list</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        item_list (list):</span>
+<span class="sd">        flag_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dirty_items</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">item_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">flag_list</span><span class="p">)</span>
     <span class="n">dirty_items</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">flag</span><span class="p">)</span> <span class="ow">in</span>
@@ -281,6 +424,16 @@
 <div class="viewcode-block" id="filter_items"><a class="viewcode-back" href="../../utool.html#utool.util_list.filter_items">[docs]</a><span class="k">def</span> <span class="nf">filter_items</span><span class="p">(</span><span class="n">item_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns items in item list where the corresponding item in flag list is true</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        item_list (list):</span>
+<span class="sd">        flag_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        filtered_items</span>
+
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        ifilter_items</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">item_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">flag_list</span><span class="p">)</span>
@@ -291,16 +444,33 @@
 <div class="viewcode-block" id="filterfalse_items"><a class="viewcode-back" href="../../utool.html#utool.util_list.filterfalse_items">[docs]</a><span class="k">def</span> <span class="nf">filterfalse_items</span><span class="p">(</span><span class="n">item_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns items in item list where the corresponding item in flag list is true</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        item_list (list): list of items</span>
+<span class="sd">        flag_list (list): list of truthy values</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        filtered_items : items where the corresponding flag was truthy</span>
+
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        ifilterfalse_items</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">item_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">flag_list</span><span class="p">)</span>
     <span class="n">filtered_items</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ifilterfalse_items</span><span class="p">(</span><span class="n">item_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">filtered_items</span>
 
 </div>
-<div class="viewcode-block" id="filter_Nones"><a class="viewcode-back" href="../../utool.html#utool.util_list.filter_Nones">[docs]</a><span class="k">def</span> <span class="nf">filter_Nones</span><span class="p">(</span><span class="n">list_</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Removes any nones from the list</span>
+<div class="viewcode-block" id="filter_Nones"><a class="viewcode-back" href="../../utool.html#utool.util_list.filter_Nones">[docs]</a><span class="k">def</span> <span class="nf">filter_Nones</span><span class="p">(</span><span class="n">item_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Removes any nones from the list</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        item_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        sublist which does not contain Nones</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">ifilter_Nones</span><span class="p">(</span><span class="n">list_</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">ifilter_Nones</span><span class="p">(</span><span class="n">item_list</span><span class="p">))</span>
 
 
 <span class="c"># --- List combinations --- #</span>
@@ -320,6 +490,15 @@
 
 </div>
 <div class="viewcode-block" id="flag_unique_items"><a class="viewcode-back" href="../../utool.html#utool.util_list.flag_unique_items">[docs]</a><span class="k">def</span> <span class="nf">flag_unique_items</span><span class="p">(</span><span class="n">list_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a list of flags corresponding to the first time an item is seen</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        list_ (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        flag_list</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">unseen</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
@@ -331,7 +510,15 @@
 
 </div>
 <div class="viewcode-block" id="unique_keep_order2"><a class="viewcode-back" href="../../utool.html#utool.util_list.unique_keep_order2">[docs]</a><span class="k">def</span> <span class="nf">unique_keep_order2</span><span class="p">(</span><span class="n">list_</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; pure python version &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    pure python version of unique_keep_ordered</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        list_ (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        unique_list : unique list which maintains order</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">unseen</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
@@ -348,26 +535,30 @@
     <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">list_</span><span class="p">))</span>
 
 </div>
-<div class="viewcode-block" id="sortedby"><a class="viewcode-back" href="../../utool.html#utool.util_list.sortedby">[docs]</a><span class="k">def</span> <span class="nf">sortedby</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">sortable</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; sorts ``list_`` using sortable</span>
+<div class="viewcode-block" id="sortedby"><a class="viewcode-back" href="../../utool.html#utool.util_list.sortedby">[docs]</a><span class="k">def</span> <span class="nf">sortedby</span><span class="p">(</span><span class="n">item_list</span><span class="p">,</span> <span class="n">key_list</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; sorts ``item_list`` using key_list</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        list_ (list): list to sort</span>
-<span class="sd">        sortable (list): list to by</span>
+<span class="sd">        key_list (list): list to sort by</span>
+<span class="sd">        reverse (bool): sort order is descending if True else acscending</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        a ``list`` sorted by the values of another ``list``</span>
+<span class="sd">        list : ``list_`` sorted by the values of another ``list``. defaults to</span>
+<span class="sd">        ascending order</span>
 
 <span class="sd">    Examples:</span>
 <span class="sd">        &gt;&gt;&gt; import utool</span>
 <span class="sd">        &gt;&gt;&gt; list_    = [1, 2, 3, 4, 5]</span>
-<span class="sd">        &gt;&gt;&gt; sortable = [2, 5, 3, 1, 5]</span>
-<span class="sd">        &gt;&gt;&gt; utool.sortedby(list_, sortable, reverse=True)</span>
+<span class="sd">        &gt;&gt;&gt; key_list = [2, 5, 3, 1, 5]</span>
+<span class="sd">        &gt;&gt;&gt; utool.sortedby(list_, key_list, reverse=True)</span>
 <span class="sd">        [5, 2, 3, 1, 4]</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">sortable</span><span class="p">),</span> <span class="s">&#39;must be same len&#39;</span>
-    <span class="n">sorted_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">sortable</span><span class="p">,</span> <span class="n">list_</span><span class="p">)),</span> <span class="n">reverse</span><span class="o">=</span><span class="n">reverse</span><span class="p">)]</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">item_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">key_list</span><span class="p">),</span> <span class="s">&#39;Expected same length. Got: </span><span class="si">%r</span><span class="s"> != </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">item_list</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">key_list</span><span class="p">))</span>
+    <span class="n">sorted_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span> <span class="ow">in</span>
+                   <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">key_list</span><span class="p">,</span> <span class="n">item_list</span><span class="p">)),</span> <span class="n">reverse</span><span class="o">=</span><span class="n">reverse</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">sorted_list</span>
 
 </div>
@@ -415,6 +606,15 @@
 <span class="sd">    #...</span>
 <span class="sd">    #AssertionError: Overflow occured</span>
 
+<span class="sd">    Args:</span>
+<span class="sd">        items_list (list):</span>
+<span class="sd">        num_samples (?):</span>
+<span class="sd">        allow_overflow (bool):</span>
+<span class="sd">        per_bin (int):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple : (samples_list, overflow_samples)</span>
+
 <span class="sd">    Examples:</span>
 <span class="sd">        &gt;&gt;&gt; from utool import util_list</span>
 <span class="sd">        &gt;&gt;&gt; items_list = [[1, 2, 3, 4, 0], [5, 6, 7], [], [8, 9], [10]]</span>
@@ -454,6 +654,14 @@
 
 </div>
 <div class="viewcode-block" id="issorted"><a class="viewcode-back" href="../../utool.html#utool.util_list.issorted">[docs]</a><span class="k">def</span> <span class="nf">issorted</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">operator</span><span class="o">.</span><span class="n">le</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        list_ (list):</span>
+<span class="sd">        op (builtin_function_or_method):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bool : True if the list is sorted</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">op</span><span class="p">(</span><span class="n">list_</span><span class="p">[</span><span class="n">ix</span><span class="p">],</span> <span class="n">list_</span><span class="p">[</span><span class="n">ix</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
 
 </div>
@@ -527,7 +735,13 @@
 </div>
 <div class="viewcode-block" id="depth_profile"><a class="viewcode-back" href="../../utool.html#utool.util_list.depth_profile">[docs]</a><span class="k">def</span> <span class="nf">depth_profile</span><span class="p">(</span><span class="n">list_</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    &gt;&gt;&gt; from utool.util_list import *  # NOQA</span>
+<span class="sd">    Returns a nested list corresponding the shape of the nested structure</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_list import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; list_ = [[[[[1]]], [3, 4, 33]], [[1], [3]], [[1], [3]]]</span>
+<span class="sd">        &gt;&gt;&gt; print(depth_profile(list_))</span>
+<span class="sd">        [[[[1]], 3], [1, 1], [1, 1]]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">level_shape_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="c"># For a pure bottom level list return the length</span>

@@ -136,7 +136,388 @@
     <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">=============================&#39;</span><span class="p">)</span>
     <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="s">&#39;**&#39;</span> <span class="o">+</span> <span class="n">msg</span><span class="p">)</span>
     <span class="c">#if INTERACTIVE and wait:</span>
-    <span class="c"># raw_input(&#39;press enter to continue&#39;)</span></div>
+    <span class="c"># raw_input(&#39;press enter to continue&#39;)</span>
+
+</div>
+<div class="viewcode-block" id="tryimport"><a class="viewcode-back" href="../../utool.html#utool.util_tests.tryimport">[docs]</a><span class="k">def</span> <span class="nf">tryimport</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">pipiname</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; modname = &#39;pyfiglet&#39;</span>
+<span class="sd">        &gt;&gt;&gt; pipiname = &#39;git+https://github.com/pwaller/pyfiglet&#39;</span>
+<span class="sd">        &gt;&gt;&gt; pyfiglet = tryimport(modname, pipiname)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">module</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">module</span>
+    <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">utool</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">WIN32</span><span class="p">:</span>
+            <span class="n">pipcmd</span> <span class="o">=</span> <span class="s">&#39;sudo pip install </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">pipiname</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pipcmd</span> <span class="o">=</span> <span class="s">&#39;pip install </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">pipiname</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;unable to find module </span><span class="si">%r</span><span class="s">. Please install: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">pipcmd</span><span class="p">)</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="bubbletext"><a class="viewcode-back" href="../../utool.html#utool.util_tests.bubbletext">[docs]</a><span class="k">def</span> <span class="nf">bubbletext</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="s">&#39;cybermedium&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Other fonts include: cybersmall, cybermedium, and cyberlarge</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; import utool</span>
+<span class="sd">        &gt;&gt;&gt; text = &#39;RUN TESTS&#39;</span>
+<span class="sd">        &gt;&gt;&gt; font=&#39;cyberlarge&#39;</span>
+<span class="sd">        &gt;&gt;&gt; bubble_text = utool.bubbletext(text, font=&#39;cyberlarge&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; print(bubble_text)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pyfiglet</span> <span class="o">=</span> <span class="n">tryimport</span><span class="p">(</span><span class="s">&#39;pyfiglet&#39;</span><span class="p">,</span> <span class="s">&#39;git+https://github.com/pwaller/pyfiglet&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pyfiglet</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">text</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">bubble_text</span> <span class="o">=</span> <span class="n">pyfiglet</span><span class="o">.</span><span class="n">figlet_format</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">bubble_text</span>
+
+</div>
+<div class="viewcode-block" id="autogen_run_tests"><a class="viewcode-back" href="../../utool.html#utool.util_tests.autogen_run_tests">[docs]</a><span class="k">def</span> <span class="nf">autogen_run_tests</span><span class="p">(</span><span class="n">test_headers</span><span class="p">,</span> <span class="n">test_argvs</span><span class="p">,</span> <span class="n">quick_tests</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">repodir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                      <span class="n">exclude_list</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_tests import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool</span>
+<span class="sd">        &gt;&gt;&gt; testdirs = [&#39;~/code/ibeis/test_ibs*.py&#39;]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">relpath</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span>
+
+    <span class="n">exclude_list</span> <span class="o">+=</span> <span class="p">[</span><span class="s">&#39;__init__.py&#39;</span><span class="p">]</span>
+
+    <span class="c"># General format of the testing script</span>
+
+    <span class="n">script_fmtstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sd">r&#39;&#39;&#39;</span>
+<span class="sd">        #!/bin/bash</span>
+<span class="sd">        # Runs all tests</span>
+<span class="sd">        # Win32 path hacks</span>
+<span class="sd">        export CWD=$(pwd)</span>
+<span class="sd">        export PYMAJOR=&quot;$(python -c &quot;import sys; print(sys.version_info[0])&quot;)&quot;</span>
+
+<span class="sd">        # &lt;CORRECT_PYTHON&gt;</span>
+<span class="sd">        # GET CORRECT PYTHON ON ALL PLATFORMS</span>
+<span class="sd">        export SYSNAME=&quot;$(expr substr $(uname -s) 1 10)&quot;</span>
+<span class="sd">        if [ &quot;$SYSNAME&quot; = &quot;MINGW32_NT&quot; ]; then</span>
+<span class="sd">            export PYEXE=python</span>
+<span class="sd">        else</span>
+<span class="sd">            if [ &quot;$PYMAJOR&quot; = &quot;3&quot; ]; then</span>
+<span class="sd">                # virtual env?</span>
+<span class="sd">                export PYEXE=python</span>
+<span class="sd">            else</span>
+<span class="sd">                export PYEXE=python2.7</span>
+<span class="sd">            fi</span>
+<span class="sd">        fi</span>
+<span class="sd">        # &lt;/CORRECT_PYTHON&gt;</span>
+
+<span class="sd">        PRINT_DELIMETER()</span>
+<span class="sd">        {{</span>
+<span class="sd">            printf &quot;\n#\n#\n#&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; next_test\n\n&quot;</span>
+<span class="sd">        }}</span>
+
+<span class="sd">        export TEST_ARGV=&quot;{test_argvs} $@&quot;</span>
+
+<span class="sd">        {dirdef_block}</span>
+
+<span class="sd">        # Default tests to run</span>
+<span class="sd">        set_test_flags()</span>
+<span class="sd">        {{</span>
+<span class="sd">            export DEFAULT=$1</span>
+<span class="sd">        {testdefault_block}</span>
+<span class="sd">        }}</span>
+<span class="sd">        set_test_flags OFF</span>
+<span class="sd">        {testdefaulton_block}</span>
+
+<span class="sd">        # Parse for bash commandline args</span>
+<span class="sd">        for i in &quot;$@&quot;</span>
+<span class="sd">        do</span>
+<span class="sd">        case $i in --testall)</span>
+<span class="sd">            set_test_flags ON</span>
+<span class="sd">            ;;</span>
+<span class="sd">        esac</span>
+<span class="sd">        {testcmdline_block}</span>
+<span class="sd">        done</span>
+
+<span class="sd">        BEGIN_TESTS()</span>
+<span class="sd">        {{</span>
+<span class="sd">        cat &lt;&lt;EOF</span>
+<span class="sd">        {runtests_bubbletext}</span>
+<span class="sd">        EOF</span>
+<span class="sd">            echo &quot;BEGIN: TEST_ARGV=$TEST_ARGV&quot;</span>
+<span class="sd">            PRINT_DELIMETER</span>
+<span class="sd">            num_passed=0</span>
+<span class="sd">            num_ran=0</span>
+<span class="sd">            export FAILED_TESTS=&#39;&#39;</span>
+<span class="sd">        }}</span>
+
+<span class="sd">        RUN_TEST()</span>
+<span class="sd">        {{</span>
+<span class="sd">            echo &quot;RUN_TEST: $@&quot;</span>
+<span class="sd">            export TEST=&quot;$PYEXE $@ $TEST_ARGV&quot;</span>
+<span class="sd">            $TEST</span>
+<span class="sd">            export RETURN_CODE=$?</span>
+<span class="sd">            PRINT_DELIMETER</span>
+<span class="sd">            num_passed=$(($num_passed + (1 - $RETURN_CODE)))</span>
+<span class="sd">            num_ran=$(($num_ran + 1))</span>
+<span class="sd">            if [ &quot;$RETURN_CODE&quot; != &quot;0&quot; ] ; then</span>
+<span class="sd">                export FAILED_TESTS=&quot;$FAILED_TESTS\n$TEST&quot;</span>
+<span class="sd">            fi</span>
+<span class="sd">        }}</span>
+
+<span class="sd">        END_TESTS()</span>
+<span class="sd">        {{</span>
+<span class="sd">            echo &quot;RUN_TESTS: DONE&quot;</span>
+<span class="sd">            if [ &quot;$FAILED_TESTS&quot; != &quot;&quot; ] ; then</span>
+<span class="sd">                echo &quot;-----&quot;</span>
+<span class="sd">                printf &quot;Failed Tests:&quot;</span>
+<span class="sd">                printf &quot;$FAILED_TESTS\n&quot;</span>
+<span class="sd">                printf &quot;$FAILED_TESTS\n&quot; &gt;&gt; failed.txt</span>
+<span class="sd">                echo &quot;-----&quot;</span>
+<span class="sd">            fi</span>
+<span class="sd">            echo &quot;$num_passed / $num_ran tests passed&quot;</span>
+<span class="sd">        }}</span>
+
+<span class="sd">        #---------------------------------------------</span>
+<span class="sd">        # START TESTS</span>
+<span class="sd">        BEGIN_TESTS</span>
+
+<span class="sd">        {quicktest_block}</span>
+
+<span class="sd">        {test_block}</span>
+
+<span class="sd">        #---------------------------------------------</span>
+<span class="sd">        # END TESTING</span>
+<span class="sd">        END_TESTS</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">)</span>
+
+    <span class="n">testcmdline_fmtstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sd">r&#39;&#39;&#39;</span>
+<span class="sd">        case $i in --notest{header_lower})</span>
+<span class="sd">            export {testflag}=OFF</span>
+<span class="sd">            ;;</span>
+<span class="sd">        esac</span>
+<span class="sd">        case $i in --test{header_lower})</span>
+<span class="sd">            export {testflag}=ON</span>
+<span class="sd">            ;;</span>
+<span class="sd">        esac</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">)</span>
+
+    <span class="n">header_test_block_fmstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sd">r&#39;&#39;&#39;</span>
+
+<span class="sd">        #---------------------------------------------</span>
+<span class="sd">        #{header_text}</span>
+<span class="sd">        if [ &quot;${testflag}&quot; = &quot;ON&quot; ] ; then</span>
+<span class="sd">        cat &lt;&lt;EOF</span>
+<span class="sd">        {header_bubble_text}</span>
+<span class="sd">        EOF</span>
+<span class="sd">        {testlines_block}</span>
+<span class="sd">        fi</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">)</span>
+
+    <span class="c">#specialargv = &#39;--noshow&#39;</span>
+    <span class="n">specialargv</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="n">testline_fmtstr</span> <span class="o">=</span> <span class="s">&#39;RUN_TEST ${dirvar}/{fpath} {specialargv}&#39;</span>
+    <span class="n">testline_fmtstr2</span> <span class="o">=</span> <span class="s">&#39;RUN_TEST {fpath} {specialargv}&#39;</span>
+
+    <span class="k">def</span> <span class="nf">format_testline</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">dirvar</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">dirvar</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">testline_fmtstr2</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fpath</span><span class="o">=</span><span class="n">fpath</span><span class="p">,</span> <span class="n">specialargv</span><span class="o">=</span><span class="n">specialargv</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">testline_fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dirvar</span><span class="o">=</span><span class="n">dirvar</span><span class="p">,</span> <span class="n">fpath</span><span class="o">=</span><span class="n">fpath</span><span class="p">,</span> <span class="n">specialargv</span><span class="o">=</span><span class="n">specialargv</span><span class="p">)</span>
+
+    <span class="n">default_flag_line_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">defaulton_flag_line_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">testcmdline_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">dirdef_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">header_test_block_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">known_tests</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+
+    <span class="c"># Tests to always run</span>
+    <span class="k">if</span> <span class="n">quick_tests</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">quicktest_block</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span><span class="s">&#39;# Quick Tests (always run)&#39;</span><span class="p">]</span> <span class="o">+</span>
+            <span class="p">[</span><span class="s">&#39;RUN_TEST &#39;</span> <span class="o">+</span> <span class="n">testline</span> <span class="k">for</span> <span class="n">testline</span> <span class="ow">in</span> <span class="n">quick_tests</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">quicktest_block</span> <span class="o">=</span> <span class="s">&#39;# No quick tests&#39;</span>
+
+    <span class="c"># Loop over different test types</span>
+    <span class="k">for</span> <span class="n">header</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">modname</span><span class="p">,</span> <span class="n">dpath</span><span class="p">,</span> <span class="n">pats</span> <span class="ow">in</span> <span class="n">test_headers</span><span class="p">:</span>
+        <span class="c"># Build individual test type information</span>
+        <span class="n">header_upper</span> <span class="o">=</span>  <span class="n">header</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="n">header_lower</span> <span class="o">=</span> <span class="n">header</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">testflag</span> <span class="o">=</span> <span class="n">header_upper</span> <span class="o">+</span> <span class="s">&#39;_TEST&#39;</span>
+
+        <span class="k">if</span> <span class="n">modname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">dirvar</span> <span class="o">=</span> <span class="n">header_upper</span> <span class="o">+</span> <span class="s">&#39;_DIR&#39;</span>
+            <span class="n">dirdef</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+                <span class="s">&#39;export {dirvar}=$($PYEXE -c &quot;&#39;</span><span class="p">,</span>
+                <span class="s">&#39;import os, {modname};&#39;</span><span class="p">,</span>
+                <span class="s">&#39;print(str(os.path.dirname(os.path.dirname({modname}.__file__))))&#39;</span><span class="p">,</span>
+                <span class="s">&#39;&quot;)&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dirvar</span><span class="o">=</span><span class="n">dirvar</span><span class="p">,</span> <span class="n">modname</span><span class="o">=</span><span class="n">modname</span><span class="p">)</span>
+            <span class="n">dirdef_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dirdef</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dirvar</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="c"># Build test dir</span>
+        <span class="c">#dirvar = header_upper + &#39;_DIR&#39;</span>
+        <span class="c">#dirdef = &#39;export {dirvar}={dirname}&#39;.format(dirvar=dirvar, dirname=dirname)</span>
+        <span class="c">#dirdef_list.append(dirdef)</span>
+
+        <span class="c"># Build command line flags</span>
+        <span class="n">default_flag_line</span> <span class="o">=</span> <span class="s">&#39;export {testflag}=$DEFAULT&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">testflag</span><span class="o">=</span><span class="n">testflag</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">default</span><span class="p">:</span>
+            <span class="n">defaulton_flag_line</span> <span class="o">=</span> <span class="s">&#39;export {testflag}=ON&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">testflag</span><span class="o">=</span><span class="n">testflag</span><span class="p">)</span>
+            <span class="n">defaulton_flag_line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">defaulton_flag_line</span><span class="p">)</span>
+
+        <span class="n">testcmdline_fmtdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">header_lower</span><span class="o">=</span><span class="n">header_lower</span><span class="p">,</span>
+                                        <span class="n">testflag</span><span class="o">=</span><span class="n">testflag</span><span class="p">,)</span>
+        <span class="n">testcmdline</span> <span class="o">=</span> <span class="n">testcmdline_fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">testcmdline_fmtdict</span><span class="p">)</span>
+
+        <span class="c">#utool.ls(dpath)</span>
+
+        <span class="c"># VERY HACK BIT OF CODE</span>
+
+        <span class="c"># Get list of tests from patterns</span>
+        <span class="k">if</span> <span class="n">modname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">module</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span>
+            <span class="n">repo_path</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">__file__</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">repo_path</span> <span class="o">=</span> <span class="n">repodir</span>
+        <span class="c">#print(repo_path)</span>
+        <span class="n">dpath_</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">repo_path</span><span class="p">,</span> <span class="n">dpath</span><span class="p">))</span>
+        <span class="c">#print(dpath_)</span>
+        <span class="c">#print(pats)</span>
+
+        <span class="k">if</span> <span class="n">header_upper</span> <span class="o">==</span> <span class="s">&#39;OTHER&#39;</span><span class="p">:</span>
+            <span class="c"># Hacky way to grab any other tests not explicitly seen in this directory</span>
+            <span class="n">_testfpath_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">dpath_</span><span class="p">,</span> <span class="s">&#39;*.py&#39;</span><span class="p">))</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">known_tests</span><span class="p">[</span><span class="n">dpath_</span><span class="p">]))</span>
+            <span class="c">#_testfpath_list = utool.glob(dpath_, &#39;*.py&#39;)</span>
+            <span class="c">#set(known_tests[dpath_])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_testfpath_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span><span class="n">utool</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">dpath_</span><span class="p">,</span> <span class="n">pat</span><span class="p">)</span> <span class="k">for</span> <span class="n">pat</span> <span class="ow">in</span> <span class="n">pats</span><span class="p">])</span>
+
+        <span class="k">def</span> <span class="nf">not_excluded</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="k">return</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">exclude</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span> <span class="k">for</span> <span class="n">exclude</span> <span class="ow">in</span> <span class="n">exclude_list</span><span class="p">])</span>
+
+        <span class="n">_testfpath_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="n">not_excluded</span><span class="p">,</span> <span class="n">_testfpath_list</span><span class="p">))</span>
+
+        <span class="n">known_tests</span><span class="p">[</span><span class="n">dpath_</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_testfpath_list</span><span class="p">)</span>
+        <span class="c">#print(_testfpath_list)</span>
+        <span class="n">testfpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">join</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="n">relpath</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">dpath_</span><span class="p">))</span> <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">_testfpath_list</span><span class="p">]</span>
+
+        <span class="n">testline_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">format_testline</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">dirvar</span><span class="p">)</span> <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">testfpath_list</span><span class="p">]</span>
+        <span class="n">testlines_block</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="n">testline_list</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+        <span class="c"># Construct test block for this type</span>
+        <span class="n">header_text</span> <span class="o">=</span> <span class="n">header_upper</span> <span class="o">+</span> <span class="s">&#39; TESTS&#39;</span>
+        <span class="n">headerfont</span> <span class="o">=</span> <span class="s">&#39;cybermedium&#39;</span>
+        <span class="n">header_bubble_text</span> <span class="o">=</span>  <span class="n">utool</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">bubbletext</span><span class="p">(</span><span class="n">header_text</span><span class="p">,</span> <span class="n">headerfont</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+        <span class="n">header_test_block_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">testflag</span><span class="o">=</span><span class="n">testflag</span><span class="p">,</span>
+            <span class="n">header_text</span><span class="o">=</span><span class="n">header_text</span><span class="p">,</span>
+            <span class="n">testlines_block</span><span class="o">=</span><span class="n">testlines_block</span><span class="p">,</span>
+            <span class="n">header_bubble_text</span><span class="o">=</span><span class="n">header_bubble_text</span><span class="p">,)</span>
+        <span class="n">header_test_block</span> <span class="o">=</span> <span class="n">header_test_block_fmstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">header_test_block_dict</span><span class="p">)</span>
+
+        <span class="c"># Append to script lists</span>
+        <span class="n">header_test_block_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">header_test_block</span><span class="p">)</span>
+        <span class="n">default_flag_line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">default_flag_line</span><span class="p">)</span>
+        <span class="n">testcmdline_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">testcmdline</span><span class="p">)</span>
+
+    <span class="n">runtests_bubbletext</span> <span class="o">=</span> <span class="n">bubbletext</span><span class="p">(</span><span class="s">&#39;RUN TESTS&#39;</span><span class="p">,</span> <span class="s">&#39;cyberlarge&#39;</span><span class="p">)</span>
+
+    <span class="n">test_block</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">header_test_block_list</span><span class="p">)</span>
+    <span class="n">dirdef_block</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirdef_list</span><span class="p">)</span>
+    <span class="n">testdefault_block</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">default_flag_line_list</span><span class="p">))</span>
+    <span class="n">testdefaulton_block</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">defaulton_flag_line_list</span><span class="p">)</span>
+    <span class="n">testcmdline_block</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">testcmdline_list</span><span class="p">)</span>
+
+    <span class="n">script_fmtdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">quicktest_block</span><span class="o">=</span><span class="n">quicktest_block</span><span class="p">,</span>
+        <span class="n">runtests_bubbletext</span><span class="o">=</span><span class="n">runtests_bubbletext</span><span class="p">,</span>
+        <span class="n">test_argvs</span><span class="o">=</span><span class="n">test_argvs</span><span class="p">,</span> <span class="n">dirdef_block</span><span class="o">=</span><span class="n">dirdef_block</span><span class="p">,</span>
+        <span class="n">testdefault_block</span><span class="o">=</span><span class="n">testdefault_block</span><span class="p">,</span>
+        <span class="n">testdefaulton_block</span><span class="o">=</span><span class="n">testdefaulton_block</span><span class="p">,</span>
+        <span class="n">testcmdline_block</span><span class="o">=</span><span class="n">testcmdline_block</span><span class="p">,</span>
+        <span class="n">test_block</span><span class="o">=</span><span class="n">test_block</span><span class="p">,)</span>
+    <span class="n">script_text</span> <span class="o">=</span> <span class="n">script_fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">script_fmtdict</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">script_text</span>
+
+</div>
+<div class="viewcode-block" id="def_test"><a class="viewcode-back" href="../../utool.html#utool.util_tests.def_test">[docs]</a><span class="k">def</span> <span class="nf">def_test</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="n">pat</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dpath</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">modname</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; interface to make test tuple &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">modname</span><span class="p">,</span> <span class="n">dpath</span><span class="p">,</span> <span class="n">pat</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="autogen_ibeis_runtest"><a class="viewcode-back" href="../../utool.html#utool.util_tests.autogen_ibeis_runtest">[docs]</a><span class="k">def</span> <span class="nf">autogen_ibeis_runtest</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; special case to generate tests script for IBEIS</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; import utool</span>
+<span class="sd">        &gt;&gt;&gt; test_script = utool.autogen_ibeis_runtest()</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -c &quot;import utool; utool.autogen_ibeis_runtest()&quot;</span>
+<span class="sd">        python -c &quot;import utool; print(utool.autogen_ibeis_runtest())&quot;</span>
+
+<span class="sd">        python -c &quot;import utool; print(utool.autogen_ibeis_runtest())&quot; &gt; _run_tests2.sh</span>
+<span class="sd">        chmod +x _run_tests2.sh</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">quick_tests</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&#39;ibeis/tests/assert_modules.py&#39;</span>
+    <span class="p">]</span>
+
+    <span class="c">#test_repos = [</span>
+    <span class="c">#    &#39;~/code/ibeis&#39;</span>
+    <span class="c">#    &#39;~/code/vtool&#39;</span>
+    <span class="c">#    &#39;~/code/hesaff&#39;</span>
+    <span class="c">#    &#39;~/code/guitool&#39;</span>
+    <span class="c">#]</span>
+
+    <span class="c">#test_pattern = [</span>
+    <span class="c">#    &#39;~/code/ibeis/test_ibs*.py&#39;</span>
+    <span class="c">#]</span>
+
+    <span class="n">test_argvs</span> <span class="o">=</span> <span class="s">&#39;--quiet --noshow&#39;</span>
+
+    <span class="n">misc_pats</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&#39;test_utool_parallel.py&#39;</span><span class="p">,</span>
+        <span class="s">&#39;test_pil_hash.py&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="n">repodir</span> <span class="o">=</span> <span class="s">&#39;~/code/ibeis&#39;</span>
+    <span class="n">testdir</span> <span class="o">=</span> <span class="s">&#39;ibeis/tests&#39;</span>
+
+    <span class="n">exclude_list</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">]</span>
+
+    <span class="n">test_headers</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c"># title, default, module, testpattern</span>
+        <span class="n">def_test</span><span class="p">(</span><span class="s">&#39;VTOOL&#39;</span><span class="p">,</span>  <span class="n">dpath</span><span class="o">=</span><span class="s">&#39;vtool/tests&#39;</span><span class="p">,</span> <span class="n">pat</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;test*.py&#39;</span><span class="p">],</span> <span class="n">modname</span><span class="o">=</span><span class="s">&#39;vtool&#39;</span><span class="p">),</span>
+        <span class="n">def_test</span><span class="p">(</span><span class="s">&#39;GUI&#39;</span><span class="p">,</span>    <span class="n">dpath</span><span class="o">=</span><span class="n">testdir</span><span class="p">,</span> <span class="n">pat</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;test_gui*.py&#39;</span><span class="p">]),</span>
+        <span class="n">def_test</span><span class="p">(</span><span class="s">&#39;IBEIS&#39;</span><span class="p">,</span>  <span class="n">dpath</span><span class="o">=</span><span class="n">testdir</span><span class="p">,</span> <span class="n">pat</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;test_ibs*.py&#39;</span><span class="p">,</span> <span class="s">&#39;test_delete*.py&#39;</span><span class="p">],</span> <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+        <span class="n">def_test</span><span class="p">(</span><span class="s">&#39;SQL&#39;</span><span class="p">,</span>    <span class="n">dpath</span><span class="o">=</span><span class="n">testdir</span><span class="p">,</span> <span class="n">pat</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;test_sql*.py&#39;</span><span class="p">]),</span>
+        <span class="n">def_test</span><span class="p">(</span><span class="s">&#39;VIEW&#39;</span><span class="p">,</span>   <span class="n">dpath</span><span class="o">=</span><span class="n">testdir</span><span class="p">,</span> <span class="n">pat</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;test_view*.py&#39;</span><span class="p">]),</span>
+        <span class="n">def_test</span><span class="p">(</span><span class="s">&#39;MISC&#39;</span><span class="p">,</span>   <span class="n">dpath</span><span class="o">=</span><span class="n">testdir</span><span class="p">,</span> <span class="n">pat</span><span class="o">=</span><span class="n">misc_pats</span><span class="p">),</span>
+        <span class="n">def_test</span><span class="p">(</span><span class="s">&#39;OTHER&#39;</span><span class="p">,</span>  <span class="n">dpath</span><span class="o">=</span><span class="n">testdir</span><span class="p">,</span> <span class="n">pat</span><span class="o">=</span><span class="s">&#39;OTHER&#39;</span><span class="p">),</span>
+        <span class="n">def_test</span><span class="p">(</span><span class="s">&#39;HESAFF&#39;</span><span class="p">,</span> <span class="n">dpath</span><span class="o">=</span><span class="s">&#39;pyhesaff/tests&#39;</span><span class="p">,</span> <span class="n">pat</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;test_*.py&#39;</span><span class="p">],</span> <span class="n">modname</span><span class="o">=</span><span class="s">&#39;pyhesaff&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+    <span class="n">script_text</span> <span class="o">=</span> <span class="n">autogen_run_tests</span><span class="p">(</span><span class="n">test_headers</span><span class="p">,</span> <span class="n">test_argvs</span><span class="p">,</span> <span class="n">quick_tests</span><span class="p">,</span> <span class="n">repodir</span><span class="p">,</span> <span class="n">exclude_list</span><span class="p">)</span>
+    <span class="c">#print(script_text)</span>
+    <span class="k">return</span> <span class="n">script_text</span></div>
 </pre></div>
 
           </div>
