@@ -22,7 +22,9 @@ python -c "import utool" --update-utool-init
 
 
 def dev_reimport():
-    """ why rrrr doesnt do this I dont know """
+    """
+    why rrrr doesnt do this I dont know
+    """
     print('dev reimport')
     import utool
     # This still doesn't even work

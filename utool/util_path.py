@@ -531,6 +531,26 @@ def get_module_dir(module, *args):
     return module_dir
 
 
+def get_absolute_import(module_fpath):
+    """
+    Example:
+        >>> from utool.util_path import *
+        >>> module_fpath = '~/code/utool/util_path.py'
+        >>> module_fpath = '~/code/utool/util_path.py'
+    """
+    module_fpath = truepath(module_fpath)
+    dpath, fname_ext = split(module_fpath)
+    fname, ext = splitext(fname_ext)
+    full_dpath = dpath
+    dpath = full_dpath
+    absolute_list = [fname]
+    while is_module_dir(dpath):
+        dpath, dname = split(dpath)
+        absolute_list.append(dname)
+    modname = '.'.join(absolute_list[::-1])
+    return modname
+
+
 def tail(fpath):
     """ DEPRICATE USE os.path.basename """
     return split(fpath)[1]

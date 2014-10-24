@@ -52,7 +52,7 @@ def DEPRICATED(func):
 #    return varargs
 
 
-def auto_docstr(modname, funcname):
+def auto_docstr(modname, funcname, verbose=True):
     """
     Args:
         modname (str):
@@ -79,7 +79,8 @@ def auto_docstr(modname, funcname):
             docstr = make_default_docstr(func)
             return docstr
         except Exception as ex1:
-            print('make_default_docstr is falling back')
+            if utool.VERBOSE:
+                print('make_default_docstr is falling back')
             #print(ex)
             #print('modname = '  + modname)
             #print('funcname = ' + funcname)
@@ -95,10 +96,10 @@ def auto_docstr(modname, funcname):
                 return docstr
                 #print(execstr)
             except Exception as ex2:
-                pass
-                import utool
-                utool.printex(ex1, 'ex1')
-                utool.printex(ex2, 'ex2', tb=True)
+                if verbose:
+                    import utool
+                    utool.printex(ex1, 'ex1')
+                    utool.printex(ex2, 'ex2', tb=True)
     else:
         docstr = 'error'
     return docstr
@@ -127,7 +128,8 @@ def parse_return_type(sourcecode):
                 print('Parsing Module: %r' % (pt,))
             node = pt.body[0]
             if len(pt.body) > 1:
-                print('warning len(pt.body) = %r' % (len(pt.body)))
+                if utool.VERBOSE:
+                    print('warning len(pt.body) = %r' % (len(pt.body)))
             if utool.VERBOSE:
                 print('  - node = %r' % (node,))
             return find_return_node(node)
