@@ -240,7 +240,7 @@ else:
                             dict_update_newkeys, is_dicteq, 
                             items_sorted_by_value, keys_sorted_by_value, 
                             updateif_haskey,) 
-    from .util_func import (general_get, general_set, uinput_1to1,) 
+    from .util_func import (general_get, general_set, identity, uinput_1to1,) 
     from .util_grabdata import (BadZipfile, download_url, fix_dropbox_link, 
                                 grab_file_url, grab_zipped_url, 
                                 split_archive_ext, unarchive_file, untar_file, 

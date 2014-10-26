@@ -60,7 +60,7 @@ class ProgressIter(object):
         >>> assert results1 == results2
 
     """
-    def __init__(self, iterable, *args, **kwargs):
+    def __init__(self, iterable=None, *args, **kwargs):
         self.iterable = iterable
         if len(args) < 2 and 'nTotal' not in kwargs:
             try:
@@ -72,6 +72,10 @@ class ProgressIter(object):
         self.mark = mark
         self.end = end
         self.count = -1
+
+    def __call__(self, iterable):
+        self.iterable = iterable
+        return self
 
     def __iter__(self):
         mark = self.mark

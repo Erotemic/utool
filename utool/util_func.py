@@ -28,3 +28,8 @@ def general_set(setter, index, val, **kwargs):
         setter[index] = val
     else:
         setter(index, val, **kwargs)
+
+
+def identity(input_):
+    """ identity function """
+    return input_
