@@ -91,9 +91,9 @@ progiter = ProgressIter
 
 def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
                  start=True, repl=False, approx=False, disable=False,
-                 writefreq=1, with_totaltime=False, backspace=True,
+                 writefreq=1, with_time=False, backspace=True,
                  separate=False, wfreq=None, ffreq=None, freq=None, total=None,
-                 num=None, with_time=None):
+                 num=None, with_totaltime=None):
     """
     Returns two functions (mark_progress, end_progress) which will handle
     logging progress in a for loop.
@@ -160,8 +160,8 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
         flushfreq = ffreq
     if freq is not None:
         writefreq = flushfreq = freq
-    if with_time is not None:
-        with_totaltime = with_time
+    if with_totaltime is not None:
+        with_time = with_totaltime
     # flush frequency must be a multiple of write frequency
     flushfreq = max(int(round(flushfreq / writefreq)), 1) * writefreq
     if nTotal < startafter or disable:
@@ -199,14 +199,14 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
             write_fn('\n')
             flush_fn()
 
-        if with_totaltime:
+        if with_time:
             tt = util_time.tic(lbl)
 
         def end_progress(count_=nTotal, write_fn=write_fn, flush_fn=flush_fn):
             write_fn(fmt_str % (count_))
             write_fn('\n')
             flush_fn()
-            if with_totaltime:
+            if with_time:
                 util_time.toc(tt)
             if separate:
                 write_fn('\n\n')

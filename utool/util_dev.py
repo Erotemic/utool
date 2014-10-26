@@ -283,13 +283,13 @@ def make_default_docstr(func):
 
     docstr_parts = []
 
-    # Get args info
+    # Args part
     if len(argdoc_list) > 0:
         arg_header = 'Args'
         argsdoc = arg_header + ':' + utool.indentjoin(argdoc_list)
         docstr_parts.append(argsdoc)
 
-    # Get returns info
+    # Return / Yeild part
     sourcecode = inspect.getsource(func)
     if sourcecode is not None:
         return_type, return_header = parse_return_type(sourcecode)
@@ -297,6 +297,18 @@ def make_default_docstr(func):
             returndoc = (return_header + ': \n' + '    %s' % return_type)
             docstr_parts.append(returndoc)
 
+    # Example part
+    if sourcecode is not None:
+        exampleheader = 'Example'
+        exampleblock = utool.codeblock(
+            '''
+            from {modname} import *  # NOQA
+            '''
+        ).format(modname=func.__module__)
+        exampleblock = (exampleheader + ': \n' + utool.indent(exampleblock, '    >>> '))
+        docstr_parts.append(exampleblock)
+
+    # Enclosure / Indentation Parts
     if needs_surround:
         docstr_parts = ['"""'] + ['\n\n'.join(docstr_parts)] + ['"""']
         default_docstr = '\n'.join(docstr_parts)
@@ -431,7 +443,7 @@ def _disableable(func):
     def _wrp_disableable(self, *args, **kwargs):
         if self.disabled:
             return
-        return func(*args, **kwargs)
+        return func(self, *args, **kwargs)
     return _wrp_disableable
 
 
@@ -456,8 +468,8 @@ class MemoryTracker(object):
         >>> memtrack.report('[DELETE]')
         #>>> memtrack.report_largest()
     """
-    def __init__(self, lbl='Memtrack Init'):
-        self.disabled = True
+    def __init__(self, lbl='Memtrack Init', disable=True):
+        self.disabled = disable  # disable by default
         self.init_nBytes = self.get_available_memory()
         self.prev_nBytes = None
         self.weakref_dict = {}  # weakref.WeakValueDictionary()
@@ -1061,10 +1073,13 @@ def print_object_size_tree(obj):
     del seen
 
 
-def get_object_size_str(obj, lbl=''):
+def get_object_size_str(obj, lbl='', unit=None):
     from . import util_str
     nBytes = get_object_size(obj)
-    sizestr = lbl + util_str.byte_str2(nBytes)
+    if unit is None:
+        sizestr = lbl + util_str.byte_str2(nBytes)
+    else:
+        sizestr = lbl + util_str.byte_str(nBytes, unit)
     return sizestr
 
 
