@@ -88,7 +88,7 @@ class InteractiveIter(object):
             'enter {next_keys} to move to the next index',
             'enter {prev_keys} to move to the previous index',
             'enter {index_keys} to move to that index',
-            'enter {ipy_keys} to start IPython'
+            'enter {ipy_keys} to start IPython',
             'enter {quit_keys} to quit',
         ])), '\n | * ')
         msg = ''.join([' +-----------', msg, '\n L-----------\n'])

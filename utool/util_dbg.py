@@ -194,6 +194,9 @@ def execstr_src(func):
 
 
 def save_testdata(*args, **kwargs):
+    """
+    caches testdata
+    """
     uid = kwargs.get('uid', '')
     shelf_fname = 'test_data_%s.shelf' % uid
     shelf = shelve.open(shelf_fname)
@@ -205,6 +208,9 @@ def save_testdata(*args, **kwargs):
 
 
 def load_testdata(*args, **kwargs):
+    """
+    tries to load previously cached testdata
+    """
     uid = kwargs.get('uid', '')
     shelf_fname = 'test_data_%s.shelf' % uid
     shelf = shelve.open(shelf_fname)
@@ -261,6 +267,7 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
     #if exec_lines is not None:
     #    config_dict['exec_lines'] = exec_lines
     #IPython.embed(**config_dict)
+    print('set EXIT_NOW to True to hard exit on unembed')
     IPython.embed()
     # Exit python immediately if specifed
     if vars().get('EXIT_NOW', False):

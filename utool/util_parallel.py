@@ -111,13 +111,14 @@ def close_pool(terminate=False):
         __POOL__ = None
 
 
-def _process_serial(func, args_list, args_dict={}):
+def _process_serial(func, args_list, args_dict={}, nTasks=None):
     """
     Serial process map
     """
-    num_tasks = len(args_list)
+    if nTasks is None:
+        nTasks = len(args_list)
     result_list = []
-    mark_prog, end_prog = progress_func(max_val=num_tasks,
+    mark_prog, end_prog = progress_func(max_val=nTasks,
                                         lbl=get_funcname(func) + ': ')
     mark_prog(0)
     # Execute each task sequentially
@@ -129,14 +130,15 @@ def _process_serial(func, args_list, args_dict={}):
     return result_list
 
 
-def _process_parallel(func, args_list, args_dict={}):
+def _process_parallel(func, args_list, args_dict={}, nTasks=None):
     """
     Parallel process map
     """
     # Define progress observers
-    num_tasks = len(args_list)
+    if nTasks is None:
+        nTasks = len(args_list)
     num_tasks_returned_ptr = [0]
-    mark_prog, end_prog = progress_func(max_val=num_tasks,
+    mark_prog, end_prog = progress_func(max_val=nTasks,
                                         lbl=get_funcname(func) + ': ')
     def _callback(result):
         mark_prog(num_tasks_returned_ptr[0])
@@ -146,8 +148,8 @@ def _process_parallel(func, args_list, args_dict={}):
     apply_results = [__POOL__.apply_async(func, args, args_dict, _callback)
                      for args in args_list]
     # Wait until all tasks have been processed
-    while num_tasks_returned_ptr[0] < num_tasks:
-        #print('Waiting: ' + str(num_tasks_returned_ptr[0]) + '/' + str(num_tasks))
+    while num_tasks_returned_ptr[0] < nTasks:
+        #print('Waiting: ' + str(num_tasks_returned_ptr[0]) + '/' + str(nTasks))
         pass
     end_prog()
     # Get the results
@@ -156,19 +158,20 @@ def _process_parallel(func, args_list, args_dict={}):
 
 
 def _generate_parallel(func, args_list, ordered=True, chunksize=1,
-                       prog=True, verbose=True):
+                       prog=True, verbose=True, nTasks=None):
     """
     Parallel process generator
     """
     prog = prog and verbose
-    nTasks = len(args_list)
+    if nTasks is None:
+        nTasks = len(args_list)
     if chunksize is None:
         chunksize = max(1, nTasks // (__POOL__._processes ** 2))
     if verbose:
         print('[parallel] executing %d %s tasks using %d processes with chunksize=%r' %
                 (nTasks, get_funcname(func), __POOL__._processes, chunksize))
     if prog:
-        mark_prog, end_prog = progress_func(max_val=len(args_list), lbl=get_funcname(func) + ': ')
+        mark_prog, end_prog = progress_func(max_val=nTasks, lbl=get_funcname(func) + ': ')
     #assert isinstance(__POOL__, multiprocessing.Pool),\
     #        '%r __POOL__ = %r' % (type(__POOL__), __POOL__,)
     if ordered:
@@ -184,7 +187,8 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
         printex(ex, 'Parallel Generation Failed!', '[utool]')
         print('__SERIAL_FALLBACK__ = %r' % __SERIAL_FALLBACK__)
         if __SERIAL_FALLBACK__:
-            for result in _generate_serial(func, args_list, prog=prog, verbose=verbose):
+            for result in _generate_serial(func, args_list, prog=prog,
+                                           verbose=verbose, nTasks=nTasks):
                 yield result
         else:
             raise
@@ -193,14 +197,16 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
     #close_pool()
 
 
-def _generate_serial(func, args_list, prog=True, verbose=True):
+def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None):
     """ internal serial generator  """
+    if nTasks is None:
+        nTasks = len(args_list)
     if verbose:
         print('[parallel] executing %d %s tasks in serial' %
-                (len(args_list), get_funcname(func)))
+                (nTasks, get_funcname(func)))
     prog = prog and verbose
     if prog:
-        mark_prog, end_prog = progress_func(max_val=len(args_list), lbl=get_funcname(func) + ': ')
+        mark_prog, end_prog = progress_func(max_val=nTasks, lbl=get_funcname(func) + ': ')
     for count, args in enumerate(args_list):
         if prog:
             mark_prog(count)
@@ -220,20 +226,35 @@ def ensure_pool(warn=False):
 
 
 def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
-             chunksize=1, prog=True, verbose=True):
+             chunksize=1, prog=True, verbose=True, nTasks=None):
     """
-    Yeilds:
-        result of applying func to args in args_list
+
+    Args:
+        func (function): function to apply each argument to
+        args_list (list or iter): sequence of tuples which are args for each function call
+        ordered (bool):
+        force_serial (bool):
+        chunksize (int):
+        prog (bool):
+        verbose (bool):
+        nTasks (int): optional (must be specified if args_list is an iterator)
+
+    Returns:
+        generator which yeilds result of applying func to args in args_list
+
+    Example:
+        >>> from utool.util_parallel import *  # NOQA
     """
-    num_tasks = len(args_list)
-    if num_tasks == 0:
+    if nTasks is None:
+        nTasks = len(args_list)
+    if nTasks == 0:
         if verbose:
             print('[parallel] submitted 0 tasks')
         return []
     if VERBOSE and verbose:
         print('[parallel.generate] ordered=%r' % ordered)
         print('[parallel.generate] force_serial=%r' % force_serial)
-    force_serial_ = num_tasks == 1 or force_serial
+    force_serial_ = nTasks == 1 or force_serial
     if not force_serial_:
         ensure_pool()
     if __TIME__:
@@ -241,31 +262,44 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
     if force_serial_ or isinstance(__POOL__, int):
         if VERBOSE and verbose:
             print('[parallel.generate] generate_serial')
-        return _generate_serial(func, args_list, prog=prog)
+        return _generate_serial(func, args_list, prog=prog, nTasks=nTasks)
     else:
         if VERBOSE and verbose:
             print('[parallel.generate] generate_parallel')
         return _generate_parallel(func, args_list, ordered=ordered,
                                   chunksize=chunksize, prog=prog,
-                                  verbose=verbose)
+                                  verbose=verbose, nTasks=nTasks)
     if __TIME__:
         toc(tt)
 
 
-def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__):
+def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__,
+            nTasks=None):
     """
+
+    Args:
+        func (func):
+        args_list (list or iter):
+        args_dict (dict):
+        force_serial (bool):
+
     Returns:
         result of parallel map(func, args_list)
+
+    Example:
+        >>> from utool.util_parallel import *  # NOQA
     """
 
     ensure_pool()
+    if nTasks is None:
+        nTasks = len(args_list)
     if __POOL__ == 1 or force_serial:
         if not QUIET:
             print('[parallel] executing %d %s tasks in serial' %
-                  (len(args_list), get_funcname(func)))
-        result_list = _process_serial(func, args_list, args_dict)
+                  (nTasks, get_funcname(func)))
+        result_list = _process_serial(func, args_list, args_dict, nTasks=nTasks)
     else:
         print('[parallel] executing %d %s tasks using %d processes' %
-              (len(args_list), get_funcname(func), __POOL__._processes))
-        result_list = _process_parallel(func, args_list, args_dict)
+              (nTasks, get_funcname(func), __POOL__._processes))
+        result_list = _process_parallel(func, args_list, args_dict, nTasks=nTasks)
     return result_list
