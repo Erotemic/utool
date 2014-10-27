@@ -7,13 +7,22 @@ import gc
 import warnings
 import weakref
 from collections import OrderedDict
+from six.moves import input
+from utool import util_progress
 try:
     import numpy as np
+    HAS_NUMPY = True
 except ImportError as ex:
+    HAS_NUMPY = False
     pass
 from os.path import splitext, exists, join, split, relpath
 from . import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[dev]')
+
+if HAS_NUMPY:
+    INDEXABLE_TYPES = (list, tuple, np.ndarray)
+else:
+    INDEXABLE_TYPES = (list, tuple)
 
 
 def DEPRICATED(func):
@@ -31,13 +40,6 @@ def DEPRICATED(func):
     return __DEP_WRAPPER
 
 
-#try:
-#    import numpy as np
-#    REUSABLE_ITERABLE_TYPES = (list, tuple, np.ndarray)
-#except ImportError as ex:
-#    REUSABLE_ITERABLE_TYPES = (list, tuple)
-
-
 #def ensure_vararg_list(varargs):
 #    """
 #    It is useful to have a function take a list of objects to act upon.
@@ -47,9 +49,68 @@ def DEPRICATED(func):
 #    case we parse it out
 #    """
 #    if len(varargs) == 1:
-#        if isinstance(varargs[0], REUSABLE_ITERABLE_TYPES):
+#        if isinstance(varargs[0], INDEXABLE_TYPES):
 #            return varargs[0]
 #    return varargs
+
+
+class InteractiveIter(object):
+    """
+    Choose next value interactively
+    """
+    def __init__(self, iterable=None, enabled=True):
+        self.enabled = enabled
+        self.iterable = iterable
+        self.exit_requested = False
+        self.quit_keys = ['q', 'exit', 'quit']
+        self.next_keys = ['', 'n']
+        self.prev_keys = ['p']
+        pass
+
+    def __call__(self, iterable=None):
+        self.iterable = iterable
+
+    def format_msg(self, msg):
+        return msg.format(**self.__dict__)
+
+    def prompt(self):
+        import utool as ut
+        self.exit_requested = False
+        msg = ut.indentjoin(list(map(self.format_msg, [
+            'enter {next_keys} to move to the next index',
+            'enter {prev_keys} to move to the previous index',
+            'enter {quit_keys} to quit',
+        ])), '\n * ')
+        # TODO: timeout, index prompt, help message
+        ans = input(msg).strip()
+        offset = 0
+        if ans in self.quit_keys:
+            self.exit_requested = True
+        elif ans in self.prev_keys:
+            offset = -1
+        elif ans in self.next_keys:
+            offset = 1
+        return offset
+
+    def __iter__(self):
+        if not self.enabled:
+            raise StopIteration()
+        assert isinstance(self.iterable, INDEXABLE_TYPES)
+        index = 0
+        num_items = len(self.iterable)
+        print('Begin interactive iteration over %r items' % (num_items))
+        mark_, end_ = util_progress.log_progress(total=num_items, lbl='interaction: ', freq=1)
+        while not self.exit_requested:
+            item = self.iterable[index]
+            mark_(index)
+            print('')
+            yield item
+            offset = self.prompt()
+            index += offset
+            if index > num_items:
+                break
+        end_()
+        print('Ended interactive iteration')
 
 
 def auto_docstr(modname, funcname, verbose=True):
