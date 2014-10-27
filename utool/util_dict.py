@@ -117,3 +117,17 @@ def is_dicteq(dict1_, dict2_, almosteq_ok=True, verbose_err=True):
             util_dbg.printex(ex)
         return False
     return True
+
+
+def dict_take_gen(dict_, keys):
+    hasnumpy = 'np' in vars()
+    for key in keys:
+        if hasnumpy and isinstance(key, np.ndarray):
+            yield list(dict_take_gen(dict_, key))
+        else:
+            yield dict_[key]
+
+
+def dict_take_list(dict_, keys):
+    return list(dict_take_gen(dict_, keys))
+    #return [dict_[key] for key in keys]
