@@ -86,6 +86,16 @@ def almost_eq(a, b, thresh=1E-11, ret_error=False):
     return passed
 
 
+def euclidean_dist(vecs1, vec2, dtype=np.float32):
+    return np.sqrt(((vecs1.astype(dtype) - vec2.astype(dtype)) ** 2).sum(1))
+
+
+def negative_minclamp_inplace(arr):
+    arr[arr > 0] -= arr[arr > 0].min()
+    arr[arr <= 0] = arr[arr > 0].min()
+    return arr
+
+
 def xywh_to_tlbr(bbox, img_wh):
     """ converts xywh format to (tlx, tly, blx, bly) """
     (img_w, img_h) = img_wh

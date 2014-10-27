@@ -226,18 +226,17 @@ def import_testdata():
 
 
 def embed(parent_locals=None, parent_globals=None, exec_lines=None,
-          remove_pyqt_hook=True):
+          remove_pyqt_hook=True, N=0):
     """
     Starts interactive session. Similar to keyboard command in matlab.
     Wrapper around IPython.embed
     """
     if parent_globals is None:
-        parent_globals = get_parent_globals(N=0)
-        # not sure why N=1 works over N=0 here only for globals
-        parent_globals1 = get_parent_globals(N=1)
-        exec(execstr_dict(parent_globals1, 'parent_globals1'))
+        parent_globals = get_parent_globals(N=N)
+        #parent_globals1 = get_parent_globals(N=0)
+        #exec(execstr_dict(parent_globals1, 'parent_globals1'))
     if parent_locals is None:
-        parent_locals = get_parent_locals(N=0)
+        parent_locals = get_parent_locals(N=N)
 
     exec(execstr_dict(parent_globals, 'parent_globals'))
     exec(execstr_dict(parent_locals,  'parent_locals'))
@@ -418,8 +417,9 @@ def get_parent_locals(N=0):
 
 
 def get_parent_globals(N=0):
-    parent_frame = get_stack_frame(N=N + 1)
-    return parent_frame.f_globals
+    parent_frame = get_parent_frame(N=N + 1)
+    globals_ = parent_frame.f_globals
+    return globals_
 
 
 def get_caller_locals(N=0):

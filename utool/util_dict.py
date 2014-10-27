@@ -131,3 +131,10 @@ def dict_take_gen(dict_, keys):
 def dict_take_list(dict_, keys):
     return list(dict_take_gen(dict_, keys))
     #return [dict_[key] for key in keys]
+
+
+def dict_where_len0(dict_):
+    keys = np.array(dict_.keys())
+    flags = np.array(list(map(len, dict_.values()))) == 0
+    indices = np.where(flags)[0]
+    return keys[indices]

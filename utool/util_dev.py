@@ -61,54 +61,84 @@ class InteractiveIter(object):
     def __init__(self, iterable=None, enabled=True):
         self.enabled = enabled
         self.iterable = iterable
-        self.exit_requested = False
+        self.action_keys = {
+            'quit_keys': ['q', 'exit', 'quit'],
+            'next_keys': ['', 'n'],
+            'prev_keys': ['p'],
+            'index_keys': ['x', 'i', 'index'],
+            'ipy_keys': ['ipy', 'ipython', 'cmd'],
+        }
         self.quit_keys = ['q', 'exit', 'quit']
         self.next_keys = ['', 'n']
         self.prev_keys = ['p']
+        self.index_keys = ['x', 'i', 'index']
+        self.ipy_keys = ['ipy', 'ipython', 'cmd']
+        self.index = 0
         pass
 
     def __call__(self, iterable=None):
         self.iterable = iterable
 
     def format_msg(self, msg):
-        return msg.format(**self.__dict__)
+        return msg.format(**self.action_keys)
 
     def prompt(self):
         import utool as ut
-        self.exit_requested = False
         msg = ut.indentjoin(list(map(self.format_msg, [
             'enter {next_keys} to move to the next index',
             'enter {prev_keys} to move to the previous index',
+            'enter {index_keys} to move to that index',
+            'enter {ipy_keys} to start IPython'
             'enter {quit_keys} to quit',
-        ])), '\n * ')
-        # TODO: timeout, index prompt, help message
+        ])), '\n | * ')
+        msg = ''.join([' +-----------', msg, '\n L-----------\n'])
+        # TODO: timeout, help message
         ans = input(msg).strip()
-        offset = 0
-        if ans in self.quit_keys:
-            self.exit_requested = True
-        elif ans in self.prev_keys:
-            offset = -1
-        elif ans in self.next_keys:
-            offset = 1
-        return offset
+        return ans
+
+    def handle_ans(self, ans):
+        # Quit
+        if ans in self.action_keys['quit_keys']:
+            raise StopIteration()
+        # Prev
+        elif ans in self.action_keys['prev_keys']:
+            self.index -= 1
+        # Next
+        elif ans in self.action_keys['next_keys']:
+            self.index += 1
+        # Index
+        elif any([ans.startswith(index_key + ' ') for index_key in self.action_keys['index_keys']]):
+            try:
+                self.index = int(ans.split(' ')[1])
+            except ValueError:
+                print('Unknown ans=%r' % (ans,))
+        # IPython
+        elif ans in self.action_keys['ipy_keys']:
+            return 'IPython'
+        else:
+            print('Unknown ans=%r' % (ans,))
 
     def __iter__(self):
+        import utool as ut
         if not self.enabled:
             raise StopIteration()
         assert isinstance(self.iterable, INDEXABLE_TYPES)
-        index = 0
-        num_items = len(self.iterable)
-        print('Begin interactive iteration over %r items' % (num_items))
-        mark_, end_ = util_progress.log_progress(total=num_items, lbl='interaction: ', freq=1)
-        while not self.exit_requested:
-            item = self.iterable[index]
-            mark_(index)
+        self.index = 0
+        self.num_items = len(self.iterable)
+        print('Begin interactive iteration over %r items' % (self.num_items))
+        mark_, end_ = util_progress.log_progress(total=self.num_items, lbl='interaction: ', freq=1)
+        while True:
+            item = self.iterable[self.index]
+            mark_(self.index)
             print('')
             yield item
-            offset = self.prompt()
-            index += offset
-            if index > num_items:
-                break
+            ans = self.prompt()
+
+            action = self.handle_ans(ans)
+            if action is None:
+                pass
+            elif action == 'IPython':
+                ut.embed(N=1)
         end_()
         print('Ended interactive iteration')
 
