@@ -58,22 +58,24 @@ class InteractiveIter(object):
     """
     Choose next value interactively
     """
-    def __init__(self, iterable=None, enabled=True):
+    def __init__(self, iterable=None, enabled=True, startx=0):
         self.enabled = enabled
         self.iterable = iterable
         self.action_keys = {
             'quit_keys': ['q', 'exit', 'quit'],
             'next_keys': ['', 'n'],
             'prev_keys': ['p'],
+            'reload_keys': ['r'],
             'index_keys': ['x', 'i', 'index'],
             'ipy_keys': ['ipy', 'ipython', 'cmd'],
         }
-        self.quit_keys = ['q', 'exit', 'quit']
-        self.next_keys = ['', 'n']
-        self.prev_keys = ['p']
-        self.index_keys = ['x', 'i', 'index']
-        self.ipy_keys = ['ipy', 'ipython', 'cmd']
-        self.index = 0
+        #self.quit_keys = ['q', 'exit', 'quit']
+        #self.next_keys = ['', 'n']
+        #self.prev_keys = ['p']
+        #self.index_keys = ['x', 'i', 'index']
+        #self.reload_keys = ['r']
+        #self.ipy_keys = ['ipy', 'ipython', 'cmd']
+        self.index = startx
         pass
 
     def __call__(self, iterable=None):
@@ -87,6 +89,7 @@ class InteractiveIter(object):
         msg = ut.indentjoin(list(map(self.format_msg, [
             'enter {next_keys} to move to the next index',
             'enter {prev_keys} to move to the previous index',
+            'enter {reload_keys} to stay at the same index',
             'enter {index_keys} to move to that index',
             'enter {ipy_keys} to start IPython',
             'enter {quit_keys} to quit',
@@ -106,6 +109,9 @@ class InteractiveIter(object):
         # Next
         elif ans in self.action_keys['next_keys']:
             self.index += 1
+        # Reload
+        elif ans in self.action_keys['reload_keys']:
+            self.index += 0
         # Index
         elif any([ans.startswith(index_key + ' ') for index_key in self.action_keys['index_keys']]):
             try:
@@ -117,13 +123,14 @@ class InteractiveIter(object):
             return 'IPython'
         else:
             print('Unknown ans=%r' % (ans,))
+            return False
+        return True
 
     def __iter__(self):
         import utool as ut
         if not self.enabled:
             raise StopIteration()
         assert isinstance(self.iterable, INDEXABLE_TYPES)
-        self.index = 0
         self.num_items = len(self.iterable)
         print('Begin interactive iteration over %r items' % (self.num_items))
         mark_, end_ = util_progress.log_progress(total=self.num_items, lbl='interaction: ', freq=1)
@@ -133,11 +140,8 @@ class InteractiveIter(object):
             print('')
             yield item
             ans = self.prompt()
-
             action = self.handle_ans(ans)
-            if action is None:
-                pass
-            elif action == 'IPython':
+            if action == 'IPython':
                 ut.embed(N=1)
         end_()
         print('Ended interactive iteration')
