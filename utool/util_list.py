@@ -645,6 +645,39 @@ def debug_consec_list(list_):
     return missing_vals, missing_indicies, duplicate_items
 
 
+def find_nonconsec_indicies(unique_vals, consec_vals):
+    """
+    # TODO: rectify with above function
+
+    Args:
+        unique_vals (list):
+        consec_vals (list):
+
+    Returns:
+        missing_ixs
+
+    Example:
+        >>> from utool.util_list import *  # NOQA
+        >>> unique_vals = array([-2, -1,  1,  2, 10])
+        >>> max_ = unique_vals.max()
+        >>> min_ = unique_vals.min()
+        >>> range_ = max_ - min_
+        >>> consec_vals = np.linspace(min_, max_ + 1, range_ + 2)
+        >>> missing_ixs = find_nonconsec_indicies(unique_vals, consec_vals)
+        >>> print(consec_vals[missing_ixs])
+        array([ 0.,  3.,  4.,  5.,  6.,  7.,  8.,  9.])
+    """
+    missing_ixs = []
+    valx   = 0
+    consecx = 0
+    while valx < len(unique_vals) and consecx < len(consec_vals):
+        if unique_vals[valx] != consec_vals[consecx]:
+            missing_ixs.append(consecx)
+        else:
+            valx += 1
+        consecx += 1
+    return missing_ixs
+
 #get_non_consecutive_positions = debug_consec_list
 
 

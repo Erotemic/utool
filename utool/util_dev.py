@@ -186,6 +186,8 @@ def auto_docstr(modname, funcname, verbose=True):
                 execstr = utool.codeblock(
                     '''
                     import {modname}
+                    import imp
+                    imp.reload({modname})
                     import utool
                     docstr = utool.make_default_docstr({modname}.{funcname})
                     '''

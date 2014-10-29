@@ -1,5 +1,4 @@
 from __future__ import absolute_import, division, print_function
-# import decorator  # NOQA
 from six.moves import builtins
 import inspect
 import textwrap
@@ -20,8 +19,8 @@ from .util_inject import inject
 from utool._internal.meta_util_six import get_funcname
 (print, print_, printDBG, rrr, profile) = inject(__name__, '[decor]')
 
-SIG_PRESERVE = not util_arg.get_argflag('--nosigpreserve')
-SIG_PRESERVE = not util_arg.SAFE or util_arg.get_argflag('--sigpreserve')
+SIG_PRESERVE = util_arg.get_argflag('--sigpreserve')
+#SIG_PRESERVE = not util_arg.SAFE or util_arg.get_argflag('--sigpreserve')
 
 # do not ignore traceback when profiling
 PROFILING = hasattr(builtins, 'profile')
@@ -83,7 +82,6 @@ def ignores_exc_tb(func):
         return wrp_no_exectb
 
 
-#@decorator.decorator
 def on_exception_report_input(func):
     """
     If an error is thrown in the scope of this function's stack frame then the
@@ -113,7 +111,6 @@ def _indent_decor(lbl):
     """
     does the actual work of indent_func
     """
-    #@decorator.decorator
     def closure_indent(func):
         #printDBG('Indenting lbl=%r, func=%r' % (lbl, func))
         if util_arg.TRACE:
@@ -159,14 +156,7 @@ def indent_func(input_):
 
 #----------
 
-#try:
-#    import pandas as pd
-#    HAS_PANDAS = True
-#except Exception as ex:
-#    HAS_PANDAS = False
 
-
-#@decorator.decorator
 def accepts_scalar_input(func):
     """
     accepts_scalar_input is a decorator which expects to be used on class methods.
@@ -228,7 +218,6 @@ def accepts_scalar_input2(argx_list=[0]):
     if not isinstance(argx_list, (list, tuple)):
         raise AssertionError('accepts_scalar_input2 must be called with argument positions')
 
-    #@decorator.decorator
     def closure_si2(func):
         @ignores_exc_tb
         @wraps(func)
@@ -248,7 +237,6 @@ def accepts_scalar_input2(argx_list=[0]):
     return closure_si2
 
 
-#@decorator.decorator
 def accepts_scalar_input_vector_output(func):
     """
     DEPRICATE IN FAVOR OF accepts_scalar_input2
@@ -300,7 +288,6 @@ getter_1toM = accepts_scalar_input_vector_output
 #    return wrp_sivo
 
 
-#@decorator.decorator
 def accepts_numpy(func):
     """ Allows the first input to be a numpy array and get result in numpy form """
     #@ignores_exc_tb
@@ -345,7 +332,6 @@ def memorize(func):
     return _memorizer(func)
 
 
-#@decorator.decorator
 def interested(func):
     @indent_func
     #@ignores_exc_tb
@@ -359,7 +345,6 @@ def interested(func):
     return wrp_interested
 
 
-#@decorator.decorator
 def show_return_value(func):
     from .util_str import func_str
     @wraps(func)
@@ -371,7 +356,6 @@ def show_return_value(func):
     return wrp_show_return_value
 
 
-#@decorator.decorator
 def time_func(func):
     @wraps(func)
     def wrp_time(*args, **kwargs):
@@ -428,7 +412,6 @@ def time_func(func):
 #            raise
 
 
-#@decorator.decorator
 def lazyfunc(func):
     closuremem_ = [{}]
     def wrapper(*args, **kwargs):
