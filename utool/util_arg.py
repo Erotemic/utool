@@ -245,7 +245,7 @@ def __argv_flag_dec(func, default=False, quiet=QUIET):
         if get_argflag(flag, default) or get_argflag('--print-all'):
             indent_lbl = flag.replace('--', '').replace('print-', '')
             print('')
-            print('++' + indent_lbl)
+            print('\n+++ ' + indent_lbl + ' +++')
             with Indenter('[%s]' % indent_lbl):
                 return func(*args, **kwargs)
             print('')
