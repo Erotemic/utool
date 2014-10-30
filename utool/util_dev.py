@@ -147,6 +147,12 @@ class InteractiveIter(object):
         print('Ended interactive iteration')
 
 
+class Temp(object):
+    def foo():
+        print('hi')
+        pass
+
+
 def auto_docstr(modname, funcname, verbose=True):
     """
     Args:
@@ -171,36 +177,41 @@ def auto_docstr(modname, funcname, verbose=True):
         module = __import__(modname)
         import imp
         imp.reload(module)
+        #try:
+        #    func = getattr(module, funcname)
+        #    docstr = make_default_docstr(func)
+        #    return docstr
+        #except Exception as ex1:
+        #docstr = 'error ' + str(ex1)
+        #if utool.VERBOSE:
+        #    print('make_default_docstr is falling back')
+        #print(ex)
+        #print('modname = '  + modname)
+        #print('funcname = ' + funcname)
         try:
-            func = getattr(module, funcname)
-            docstr = make_default_docstr(func)
+            execstr = utool.codeblock(
+                '''
+                import {modname}
+                import imp
+                imp.reload({modname})
+                import utool
+                imp.reload(utool.util_dev)
+                docstr = utool.util_dev.make_default_docstr({modname}.{funcname})
+                '''
+            ).format(**locals())
+            exec(execstr)
+            #return 'BARFOOO' +  docstr
             return docstr
-        except Exception as ex1:
-            docstr = 'error ' + str(ex1)
-            if utool.VERBOSE:
-                print('make_default_docstr is falling back')
-            #print(ex)
-            #print('modname = '  + modname)
-            #print('funcname = ' + funcname)
-            try:
-                execstr = utool.codeblock(
-                    '''
-                    import {modname}
-                    import imp
-                    imp.reload({modname})
-                    import utool
-                    docstr = utool.make_default_docstr({modname}.{funcname})
-                    '''
-                ).format(**locals())
-                exec(execstr)
-                return docstr
-                #print(execstr)
-            except Exception as ex2:
-                docstr = 'error ' + str(ex2)
-                if verbose:
-                    import utool
-                    utool.printex(ex1, 'ex1')
-                    utool.printex(ex2, 'ex2', tb=True)
+            #print(execstr)
+        except Exception as ex2:
+            docstr = 'error ' + str(ex2)
+            if verbose:
+                import utool
+                #utool.printex(ex1, 'ex1')
+                utool.printex(ex2, 'ex2', tb=True)
+            error_str = utool.formatex(ex2, 'ex2', tb=True)
+            return error_str
+            #return docstr + '\n' + execstr
     else:
         docstr = 'error'
     return docstr
@@ -380,6 +391,15 @@ def make_default_docstr(func):
 
     docstr_parts = []
 
+    # Move source down to base indentation, but remember original indentation
+    sourcecode = inspect.getsource(func)
+    num_indent = utool.get_indentation(sourcecode)
+    indentation = ' ' * num_indent
+    sourcecode = utool.unindent(sourcecode)
+
+    # Header part
+    docstr_parts.append(func.func_name)
+
     # Args part
     if len(argdoc_list) > 0:
         arg_header = 'Args'
@@ -387,7 +407,6 @@ def make_default_docstr(func):
         docstr_parts.append(argsdoc)
 
     # Return / Yeild part
-    sourcecode = inspect.getsource(func)
     if sourcecode is not None:
         return_type, return_header = parse_return_type(sourcecode)
         if return_header is not None:
@@ -402,7 +421,8 @@ def make_default_docstr(func):
             from {modname} import *  # NOQA
             '''
         ).format(modname=func.__module__)
-        exampleblock = (exampleheader + ': \n' + utool.indent(exampleblock, '    >>> '))
+        docstrindent = '    >>> '
+        exampleblock = (exampleheader + ': \n' + utool.indent(exampleblock, docstrindent))
         docstr_parts.append(exampleblock)
 
     # Enclosure / Indentation Parts
@@ -412,7 +432,7 @@ def make_default_docstr(func):
     else:
         default_docstr = '\n\n'.join(docstr_parts)
 
-    default_docstr = utool.indent(default_docstr)
+    default_docstr = utool.indent(default_docstr, indentation + '    ')
     return default_docstr
 
 

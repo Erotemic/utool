@@ -170,14 +170,33 @@ def _inject_execstr(module_name, IMPORT_TUPLES):
     print, print_, printDBG, rrr, profile = {injecter}.inject(
         __name__, '[{module_name}]')
 
+
+    def reassign_submodule_attributes():
+        """
+        why reloading all the modules doesnt do this I don't know
+        """
+        import sys
+        if '--quiet' not in sys.argv:
+            print('dev reimport')
+        # Self import
+        import {module_name}
+        # Implicit reassignment.
+        for submodname, fromimports in IMPORT_TUPLES:
+            submod = getattr({module_name}, submodname)
+            for attr in dir(submod):
+                if attr.startswith('_'):
+                    continue
+                setattr({module_name}, attr, getattr(submod, attr))
+
+
     def reload_subs():
         """ Reloads {module_name} and submodules """
         rrr()
         {body}
         rrr()
         try:
-            # For utool
-            dev_reimport()
+            # hackish way of propogating up the new reloaded submodule attributes
+            reassign_submodule_attributes()
         except Exception:
             pass
     rrrr = reload_subs''')

@@ -21,26 +21,7 @@ python -c "import utool" --update-utool-init
 """
 
 
-def dev_reimport():
-    """
-    why rrrr doesnt do this I dont know
-    """
-    print('dev reimport')
-    import utool
-    # This seems to work
-    utool.list_depth = utool.util_list.list_depth
-    utool.make_default_docstr = utool.util_dev.make_default_docstr
-    utool.get_timestamp = utool.util_time.get_timestamp
-    # Implicit reassignment.
-    # TODO: have util_importer do this
-    for modname, fromimports in UTOOLS_LIST:
-        submod = getattr(utool, modname)
-        for attr in dir(submod):
-            if attr.startswith('_'):
-                continue
-            setattr(utool, attr, getattr(submod, attr))
-
-UTOOLS_LIST = [
+IMPORT_TUPLES = [
     ('_internal',      None),
     ('util_alg',       ['cartesian', 'almost_eq',]),
     ('util_aliases',   ['ddict' ,'odict']),
@@ -94,13 +75,12 @@ UTOOLS_LIST = [
 if __DYNAMIC__:
     # TODO: import all utool external prereqs. Then the imports will not import
     # anything that has already in a toplevel namespace
-    pass
     # COMMENTED OUT FOR FROZEN __INIT__
     # Dynamically import listed util libraries and their members.
     from ._internal import util_importer
     # FIXME: this might actually work with rrrr, but things arent being
     # reimported because they are already in the modules list
-    import_execstr = util_importer.dynamic_import(__name__, UTOOLS_LIST)
+    import_execstr = util_importer.dynamic_import(__name__, IMPORT_TUPLES)
     exec(import_execstr)
 else:
     # <AUTOGEN_INIT>
@@ -148,11 +128,11 @@ else:
 
     from .util_alg import (HAS_NUMPY, PHI, PHI_A, PHI_B, almost_eq,
                            build_reverse_mapping, cartesian, choose,
-                           defaultdict, find_std_inliers,
+                           defaultdict, euclidean_dist, find_std_inliers,
                            flatten_membership_mapping, get_nth_prime, get_phi,
                            get_phi_ratio1, group_items, iceil, iround,
-                           is_prime, norm_zero_one, normalize,
-                           unique_row_indexes, unpack_items_sorted,
+                           is_prime, negative_minclamp_inplace, norm_zero_one,
+                           normalize, unique_row_indexes, unpack_items_sorted,
                            unpack_items_sorted_by_lenvalue,
                            unpack_items_sorted_by_value, void_rowview_numpy,
                            xywh_to_tlbr,)
@@ -218,14 +198,15 @@ else:
                            quit, quitflag, save_testdata,
                            search_stack_for_localvar, search_stack_for_var,
                            split, super_print, truncate_str, varname_regex,)
-    from .util_dev import (DEPRICATED, MemoryTracker, auto_docstr,
-                           compile_cython, disable_garbage_collection,
+    from .util_dev import (DEPRICATED, INDEXABLE_TYPES, InteractiveIter,
+                           MemoryTracker, auto_docstr, compile_cython,
+                           disable_garbage_collection,
                            enable_garbage_collection, find_exe,
                            garbage_collect, get_cython_exe, get_object_base,
                            get_object_size, get_object_size_str, get_stats,
                            get_stats_str, infer_arg_types_and_descriptions,
-                           info, init_catch_ctrl_c, is_developer, listinfo,
-                           make_call_graph, make_default_docstr,
+                           info, init_catch_ctrl_c, input, is_developer,
+                           listinfo, make_call_graph, make_default_docstr,
                            make_object_graph, memory_dump, myprint, npArrInfo,
                            npinfo, numpy_list_num_bits, parse_return_type,
                            print_auto_docstr, print_object_size,
@@ -244,10 +225,10 @@ else:
     from .util_distances import (L1, L2, L2_sqrd, compute_distances, emd,
                                  hist_isect, nearest_point,)
     from .util_dict import (all_dict_combinations, all_dict_combinations_lbls,
-                            build_conflict_dict, dict_union, dict_union2,
-                            dict_update_newkeys, is_dicteq,
-                            items_sorted_by_value, keys_sorted_by_value,
-                            updateif_haskey,)
+                            build_conflict_dict, dict_take_gen, dict_take_list,
+                            dict_union, dict_union2, dict_update_newkeys,
+                            dict_where_len0, is_dicteq, items_sorted_by_value,
+                            keys_sorted_by_value, updateif_haskey,)
     from .util_func import (general_get, general_set, identity, uinput_1to1,)
     from .util_grabdata import (BadZipfile, download_url, fix_dropbox_link,
                                 grab_file_url, grab_zipped_url,
@@ -258,16 +239,17 @@ else:
                            get_repo_dname, gg_command, gitcmd, is_gitrepo,
                            isdir, pull_repos, repo_list, set_project_repos,
                            set_userid, setup_develop_repos, std_build_command,)
-    from .util_hash import (ALPHABET, ALPHABET_16, BIGBASE, HASH_LEN,
-                            augment_uuid, convert_hexstr_to_bigbase,
+    from .util_hash import (ALPHABET, ALPHABET_16, ALPHABET_27, BIGBASE,
+                            HASH_LEN, augment_uuid, convert_hexstr_to_bigbase,
                             deterministic_uuid, get_file_hash, get_file_uuid,
                             get_zero_uuid, hashable_to_uuid, hashstr,
                             hashstr_arr, hashstr_md5, hashstr_sha1, image_uuid,
                             random_nonce, random_uuid,)
     from .util_inject import (ARGV_DEBUG_FLAGS, DUMMYPROF_FUNC, KERNPROF_FUNC,
-                              PROF_FUNC_PAT_LIST, PROF_MOD_PAT_LIST, SILENT,
-                              TIMERPROF_FUNC, argv, get_injected_modules,
-                              inject, inject_all, inject_colored_exceptions,
+                              PRINT_INJECT_ORDER, PROF_FUNC_PAT_LIST,
+                              PROF_MOD_PAT_LIST, SILENT, TIMERPROF_FUNC, argv,
+                              get_injected_modules, inject, inject_all,
+                              inject_colored_exceptions,
                               inject_print_functions, inject_profile_function,
                               inject_reload_function, memprof,)
     from .util_io import (load_cPkl, read_from, save_cPkl, try_decode,
@@ -284,16 +266,16 @@ else:
                             assert_all_not_None, assert_unflat_level,
                             debug_consec_list, depth_profile, ensure_list_size,
                             filter_Nones, filter_items, filterfalse_items,
-                            flag_unique_items, flatten, flattenize,
-                            get_callable_name, get_dirty_items,
-                            get_list_column, intersect_ordered,
-                            invertable_flatten, invertable_flatten2, issorted,
-                            list_deep_types, list_depth, list_getat,
-                            list_replace, listfind, partial_imap_1to1,
-                            safe_listget, safe_slice, sample_zip,
-                            scalar_input_map, sortedby, tuplize, unflatten,
-                            unflatten2, unique_keep_order2, unique_ordered,
-                            unique_unordered,)
+                            find_nonconsec_indicies, flag_unique_items,
+                            flatten, flattenize, get_callable_name,
+                            get_dirty_items, get_list_column,
+                            intersect_ordered, invertable_flatten,
+                            invertable_flatten2, issorted, list_deep_types,
+                            list_depth, list_getat, list_replace, listfind,
+                            partial_imap_1to1, safe_listget, safe_slice,
+                            sample_zip, scalar_input_map, sortedby, tuplize,
+                            unflatten, unflatten2, unique_keep_order2,
+                            unique_ordered, unique_unordered,)
     from .util_num import (commas, fewest_digits_float_str, float_to_decimal,
                            format_, int_comma_str, num2_sigfig, num_fmt,
                            order_of_magnitude_ceil, sigfig_str,)
@@ -385,6 +367,25 @@ else:
     print, print_, printDBG, rrr, profile = util_inject.inject(
         __name__, '[utool]')
 
+
+    def reassign_submodule_attributes():
+        """
+        why reloading all the modules doesnt do this I don't know
+        """
+        import sys
+        if '--quiet' not in sys.argv:
+            print('dev reimport')
+        # Self import
+        import utool
+        # Implicit reassignment.
+        for submodname, fromimports in IMPORT_TUPLES:
+            submod = getattr(utool, submodname)
+            for attr in dir(submod):
+                if attr.startswith('_'):
+                    continue
+                setattr(utool, attr, getattr(submod, attr))
+
+
     def reload_subs():
         """ Reloads utool and submodules """
         rrr()
@@ -430,8 +431,8 @@ else:
         getattr(Preferences, 'rrr', lambda: None)()
         rrr()
         try:
-            # For utool
-            dev_reimport()
+            # hackish way of propogating up the new reloaded submodule attributes
+            reassign_submodule_attributes()
         except Exception:
             pass
     rrrr = reload_subs

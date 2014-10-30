@@ -305,6 +305,9 @@ def inject_profile_function(module_name=None, module_prefix='[???]', module=None
     return profile_withfuncname_filter
 
 
+PRINT_INJECT_ORDER = '--veryverbose' in sys.argv or '--print-inject-order' in sys.argv
+
+
 def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
     """
     Injects your module with utool magic
@@ -317,11 +320,25 @@ def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
     a no-op if not using kernprof.py, otherwise it is kernprof.py's profile
     decorator.
 
+    Args:
+        module_name (str): the __name__ varaible in your module
+        module_prefix (str): a user defined module prefix
+        DEBUG (bool):
+        module (None): the actual module (optional)
+
+    Returns:
+        tuple : (print, print_, printDBG, rrr, profile_)
+
     Example:
+        >>> from utool.util_inject import *  # NOQA
         >>> from __future__ import absolute_import, division, print_function
         >>> from util.util_inject import inject
         >>> print, print_, printDBG, rrr, profile = inject(__name__, '[mod]')
     """
+    if PRINT_INJECT_ORDER:
+        from ._internal import meta_util_dbg
+        callername = meta_util_dbg.get_caller_name(N=2)
+        builtins.print('[util_inject] {callername} is importing {modname}'.format(callername=callername, modname=module_name))
     module = _get_module(module_name, module)
     rrr         = inject_reload_function(None, module_prefix, module)
     profile_    = inject_profile_function(None, module_prefix, module)
