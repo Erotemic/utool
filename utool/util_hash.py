@@ -29,6 +29,10 @@ ALPHABET_41 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
                'u', 'v', 'w', 'x', 'y', 'z', '@', '!', '%', '&',
                '+']
 
+ALPHABET_27 = [
+    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
+    'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
+
 
 ALPHABET = ALPHABET_41
 BIGBASE = len(ALPHABET)
@@ -46,7 +50,7 @@ def hashstr_arr(arr, lbl='arr', **kwargs):
     return arr_uid
 
 
-def hashstr(data, hashlen=HASH_LEN):
+def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
     if isinstance(data, tuple):
         data = repr(data)
     if six.PY3:
@@ -56,7 +60,7 @@ def hashstr(data, hashlen=HASH_LEN):
     hashstr = hashlib.sha512(data).hexdigest()
     #if six.PY3:
     # Shorten length of string (by increasing base)
-    hashstr2 = convert_hexstr_to_bigbase(hashstr)
+    hashstr2 = convert_hexstr_to_bigbase(hashstr, alphabet, bigbase=len(alphabet))
     # Truncate
     hashstr = hashstr2[:hashlen]
     return hashstr
@@ -81,7 +85,7 @@ valid_filename_ascii_chars()
 """
 
 
-def convert_hexstr_to_bigbase(hexstr):
+def convert_hexstr_to_bigbase(hexstr, alphabet=ALPHABET, bigbase=BIGBASE):
     """ Packs a long hexstr into a shorter length string with a larger base
     """
     x = int(hexstr, 16)  # first convert to base 16
@@ -91,8 +95,8 @@ def convert_hexstr_to_bigbase(hexstr):
     x *= sign
     digits = []
     while x:
-        digits.append(ALPHABET[x % BIGBASE])
-        x //= BIGBASE
+        digits.append(alphabet[x % bigbase])
+        x //= bigbase
     if sign < 0:
         digits.append('-')
         digits.reverse()

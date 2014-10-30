@@ -1,8 +1,9 @@
 """
-FIXME: This class is very old, convoluted, and coupled.
-It really needs to be rewritten efficiently.
-the __setattr__ __getattr__ stuff needs to be redone, and
-DynStruct needs to go away.
+FIXME:
+    This class is very old, convoluted, and coupled.
+    It really needs to be rewritten efficiently.
+    the __setattr__ __getattr__ stuff needs to be redone, and
+    DynStruct probably needs to go away.
 """
 from __future__ import absolute_import, division, print_function
 import six
