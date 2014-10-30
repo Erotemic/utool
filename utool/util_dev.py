@@ -394,36 +394,56 @@ def make_default_docstr(func):
     # Move source down to base indentation, but remember original indentation
     sourcecode = inspect.getsource(func)
     num_indent = utool.get_indentation(sourcecode)
-    indentation = ' ' * num_indent
     sourcecode = utool.unindent(sourcecode)
 
     # Header part
     docstr_parts.append(func.func_name)
 
+    def docstr_block(header, block):
+        if isinstance(block, str):
+            indented_block = '\n' + utool.indent(block)
+        elif isinstance(block, list):
+            indented_block = utool.indentjoin(block)
+        else:
+            assert False, 'impossible state'
+        return ''.join([header, ':', indented_block])
+
     # Args part
     if len(argdoc_list) > 0:
         arg_header = 'Args'
-        argsdoc = arg_header + ':' + utool.indentjoin(argdoc_list)
-        docstr_parts.append(argsdoc)
+        argsblock = docstr_block(arg_header, argdoc_list)
+        docstr_parts.append(argsblock)
 
     # Return / Yeild part
     if sourcecode is not None:
         return_type, return_header = parse_return_type(sourcecode)
         if return_header is not None:
-            returndoc = (return_header + ': \n' + '    %s' % return_type)
-            docstr_parts.append(returndoc)
+            #returndoc = (return_header + ': \n' + '    %s' % return_type)
+            returnblock = docstr_block(return_header, return_type)
+            docstr_parts.append(returnblock)
 
     # Example part
     if sourcecode is not None:
         exampleheader = 'Example'
-        exampleblock = utool.codeblock(
+        exampleblock = utool.indent(utool.codeblock(
             '''
             from {modname} import *  # NOQA
             '''
-        ).format(modname=func.__module__)
-        docstrindent = '    >>> '
-        exampleblock = (exampleheader + ': \n' + utool.indent(exampleblock, docstrindent))
+        ), '>>> ').format(modname=func.__module__)
+        exampleblock = docstr_block(exampleheader, exampleblock)
         docstr_parts.append(exampleblock)
+
+    # DEBUG part
+    DEBUG_DOC = False
+    if DEBUG_DOC:
+        debugheader = 'Debug'
+        debugblock = utool.codeblock(
+            '''
+            num_indent = {num_indent}
+            '''
+        ).format(num_indent=num_indent)
+        debugblock = docstr_block(debugheader, debugblock)
+        docstr_parts.append(debugblock)
 
     # Enclosure / Indentation Parts
     if needs_surround:
@@ -432,7 +452,8 @@ def make_default_docstr(func):
     else:
         default_docstr = '\n\n'.join(docstr_parts)
 
-    default_docstr = utool.indent(default_docstr, indentation + '    ')
+    docstr_indent = ' ' * (num_indent + 4)
+    default_docstr = utool.indent(default_docstr, docstr_indent)
     return default_docstr
 
 
