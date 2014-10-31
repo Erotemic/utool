@@ -104,7 +104,7 @@ def intersect2d(A, B):
 
 
 def deterministic_shuffle(list_, seed=1):
-    rand_seed = int(np.random.rand() * np.uint(0 - 2) / 2)
+    rand_seed = np.uint32(np.random.rand() * np.uint(0 - 2) / 2)
     if not isinstance(list_, (np.ndarray, list)):
         list_ = list(list_)
     seed_ = len(list_) + seed
