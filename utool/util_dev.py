@@ -17,6 +17,7 @@ except ImportError as ex:
     pass
 from os.path import splitext, exists, join, split, relpath
 from . import util_inject
+from . import util_regex
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[dev]')
 
 if HAS_NUMPY:
@@ -54,103 +55,43 @@ def DEPRICATED(func):
 #    return varargs
 
 
-class InteractiveIter(object):
+def autofix_codeblock(codeblock, max_line_len=80,
+                      aggressive=True,
+                      very_aggressive=False,
+                      experimental=False):
+    r"""
+    Uses autopep8 to format a block of code
+
+    Example:
+        >>> import utool
+        >>> codeblock = utool.codeblock(
+            '''
+            def func( with , some = 'Problems' ):
+
+
+             syntax ='Ok'
+             but = 'Its very messy'
+             if None:
+                    # syntax might not be perfect due to being cut off
+                    ommiting_this_line_still_works=   True
+            ''')
+        >>> fixed_codeblock = utool.autofix_codeblock(codeblock)
+        >>> print(fixed_codeblock)
     """
-    Choose next value interactively
-    """
-    def __init__(self, iterable=None, enabled=True, startx=0):
-        self.enabled = enabled
-        self.iterable = iterable
-        self.action_keys = {
-            'quit_keys': ['q', 'exit', 'quit'],
-            'next_keys': ['', 'n'],
-            'prev_keys': ['p'],
-            'reload_keys': ['r'],
-            'index_keys': ['x', 'i', 'index'],
-            'ipy_keys': ['ipy', 'ipython', 'cmd'],
-        }
-        #self.quit_keys = ['q', 'exit', 'quit']
-        #self.next_keys = ['', 'n']
-        #self.prev_keys = ['p']
-        #self.index_keys = ['x', 'i', 'index']
-        #self.reload_keys = ['r']
-        #self.ipy_keys = ['ipy', 'ipython', 'cmd']
-        self.index = startx
-        pass
-
-    def __call__(self, iterable=None):
-        self.iterable = iterable
-
-    def format_msg(self, msg):
-        return msg.format(**self.action_keys)
-
-    def prompt(self):
-        import utool as ut
-        msg = ut.indentjoin(list(map(self.format_msg, [
-            'enter {next_keys} to move to the next index',
-            'enter {prev_keys} to move to the previous index',
-            'enter {reload_keys} to stay at the same index',
-            'enter {index_keys} to move to that index',
-            'enter {ipy_keys} to start IPython',
-            'enter {quit_keys} to quit',
-        ])), '\n | * ')
-        msg = ''.join([' +-----------', msg, '\n L-----------\n'])
-        # TODO: timeout, help message
-        ans = input(msg).strip()
-        return ans
-
-    def handle_ans(self, ans):
-        # Quit
-        if ans in self.action_keys['quit_keys']:
-            raise StopIteration()
-        # Prev
-        elif ans in self.action_keys['prev_keys']:
-            self.index -= 1
-        # Next
-        elif ans in self.action_keys['next_keys']:
-            self.index += 1
-        # Reload
-        elif ans in self.action_keys['reload_keys']:
-            self.index += 0
-        # Index
-        elif any([ans.startswith(index_key + ' ') for index_key in self.action_keys['index_keys']]):
-            try:
-                self.index = int(ans.split(' ')[1])
-            except ValueError:
-                print('Unknown ans=%r' % (ans,))
-        # IPython
-        elif ans in self.action_keys['ipy_keys']:
-            return 'IPython'
-        else:
-            print('Unknown ans=%r' % (ans,))
-            return False
-        return True
-
-    def __iter__(self):
-        import utool as ut
-        if not self.enabled:
-            raise StopIteration()
-        assert isinstance(self.iterable, INDEXABLE_TYPES)
-        self.num_items = len(self.iterable)
-        print('Begin interactive iteration over %r items' % (self.num_items))
-        mark_, end_ = util_progress.log_progress(total=self.num_items, lbl='interaction: ', freq=1)
-        while True:
-            item = self.iterable[self.index]
-            mark_(self.index)
-            print('')
-            yield item
-            ans = self.prompt()
-            action = self.handle_ans(ans)
-            if action == 'IPython':
-                ut.embed(N=1)
-        end_()
-        print('Ended interactive iteration')
-
-
-class Temp(object):
-    def foo():
-        print('hi')
-        pass
+    # FIXME idk how to remove the blank line following the function with
+    # autopep8. It seems to not be supported by them, but it looks bad.
+    import autopep8
+    arglist = ['--max-line-length', '80']
+    if aggressive:
+        arglist.extend(['-a'])
+    if very_aggressive:
+        arglist.extend(['-a', '-a'])
+    if experimental:
+        arglist.extend(['--experimental'])
+    arglist.extend([''])
+    autopep8_options = autopep8.parse_args(arglist)
+    fixed_codeblock = autopep8.fix_code(codeblock, options=autopep8_options)
+    return fixed_codeblock
 
 
 def auto_docstr(modname, funcname, verbose=True):
@@ -285,22 +226,23 @@ def parse_return_type(sourcecode):
     else:
         return_header = None
     # Get more return info
+    return_name = None
+    return_type = '?'
     if returnnode is None:
         return_type = 'None'
     elif isinstance(returnnode.value, ast.Tuple):
         names = returnnode.value.elts
         tupleid = '(%s)' % (', '.join([str(name.id) for name in names]))
-        return_type = 'tuple : ' + tupleid
+        return_type = 'tuple'
+        return_name = tupleid
     elif isinstance(returnnode.value, ast.Dict):
-        return_type = 'dict : '
+        return_type = 'dict'
+        return_name = None
     elif isinstance(returnnode.value, ast.Name):
-        return_type = returnnode.value.id
+        return_name = returnnode.value.id
     else:
         return_type = str(type(returnnode.value))
-    return return_type, return_header
-
-
-from . import util_regex
+    return return_type, return_name, return_header
 
 
 def infer_arg_types_and_descriptions(argname_list, defaults):
@@ -378,7 +320,7 @@ def make_default_docstr(func):
     can fill things in without typing too much
     """
     import inspect
-    import utool
+    import utool as ut
     current_doc = inspect.getdoc(func)
     needs_surround = current_doc is None or len(current_doc) == 0
     argspec = inspect.getargspec(func)
@@ -393,17 +335,18 @@ def make_default_docstr(func):
 
     # Move source down to base indentation, but remember original indentation
     sourcecode = inspect.getsource(func)
-    num_indent = utool.get_indentation(sourcecode)
-    sourcecode = utool.unindent(sourcecode)
+    num_indent = ut.get_indentation(sourcecode)
+    sourcecode = ut.unindent(sourcecode)
 
     # Header part
-    docstr_parts.append(func.func_name)
+    header_block = func.func_name
+    docstr_parts.append(header_block)
 
     def docstr_block(header, block):
         if isinstance(block, str):
-            indented_block = '\n' + utool.indent(block)
+            indented_block = '\n' + ut.indent(block)
         elif isinstance(block, list):
-            indented_block = utool.indentjoin(block)
+            indented_block = ut.indentjoin(block)
         else:
             assert False, 'impossible state'
         return ''.join([header, ':', indented_block])
@@ -416,28 +359,53 @@ def make_default_docstr(func):
 
     # Return / Yeild part
     if sourcecode is not None:
-        return_type, return_header = parse_return_type(sourcecode)
+        return_type, return_name, return_header = parse_return_type(sourcecode)
         if return_header is not None:
             #returndoc = (return_header + ': \n' + '    %s' % return_type)
-            returnblock = docstr_block(return_header, return_type)
+            return_doc = return_type + ': '
+            if return_name is not None:
+                return_doc += return_name
+            returnblock = docstr_block(return_header, return_doc)
             docstr_parts.append(returnblock)
 
     # Example part
     if sourcecode is not None:
+        # try to generate a simple and unit testable example
         exampleheader = 'Example'
-        exampleblock = utool.indent(utool.codeblock(
+        examplecode = ut.codeblock(
             '''
             from {modname} import *  # NOQA
             '''
-        ), '>>> ').format(modname=func.__module__)
-        exampleblock = docstr_block(exampleheader, exampleblock)
+            #import utool as ut
+        ).format(modname=func.__module__)
+        # Default example values
+        defaults_ = [] if defaults is None else defaults
+        default_vals = ['?'] * (len(argname_list) - len(defaults_)) + list(defaults_)
+        arg_val_iter = zip(argname_list, default_vals)
+        argdef_lines = ['%s = %r' % (argname, val) for argname, val in arg_val_iter]
+        examplecode += ut.indentjoin(argdef_lines, '\n')
+        # Default example result assignment
+        result_assign = ''
+        result_print = None
+        if 'return_name' in vars():
+            if return_type is not None:
+                if return_name is None:
+                    return_name = 'result'
+                result_assign = return_name + ' = '
+                result_print = 'print(' + return_name + ')'
+        # Default example call
+        example_call = func.func_name + '(' + ', '.join(argname_list) + ')'
+        examplecode += '\n' + result_assign + example_call
+        if result_print is not None:
+            examplecode += '\n' + result_print
+        exampleblock = docstr_block(exampleheader, ut.indent(examplecode, '>>> '))
         docstr_parts.append(exampleblock)
 
     # DEBUG part
     DEBUG_DOC = False
     if DEBUG_DOC:
         debugheader = 'Debug'
-        debugblock = utool.codeblock(
+        debugblock = ut.codeblock(
             '''
             num_indent = {num_indent}
             '''
@@ -453,7 +421,7 @@ def make_default_docstr(func):
         default_docstr = '\n\n'.join(docstr_parts)
 
     docstr_indent = ' ' * (num_indent + 4)
-    default_docstr = utool.indent(default_docstr, docstr_indent)
+    default_docstr = ut.indent(default_docstr, docstr_indent)
     return default_docstr
 
 
@@ -755,6 +723,99 @@ def report_memsize(obj, name=None, verbose=True):
         del referents
         del referers
         print('L____')
+
+
+class InteractiveIter(object):
+    """
+    Choose next value interactively
+    """
+    def __init__(self, iterable=None, enabled=True, startx=0):
+        self.enabled = enabled
+        self.iterable = iterable
+        self.action_keys = {
+            'quit_keys': ['q', 'exit', 'quit'],
+            'next_keys': ['', 'n'],
+            'prev_keys': ['p'],
+            'reload_keys': ['r'],
+            'index_keys': ['x', 'i', 'index'],
+            'ipy_keys': ['ipy', 'ipython', 'cmd'],
+        }
+        #self.quit_keys = ['q', 'exit', 'quit']
+        #self.next_keys = ['', 'n']
+        #self.prev_keys = ['p']
+        #self.index_keys = ['x', 'i', 'index']
+        #self.reload_keys = ['r']
+        #self.ipy_keys = ['ipy', 'ipython', 'cmd']
+        self.index = startx
+        pass
+
+    def __call__(self, iterable=None):
+        self.iterable = iterable
+
+    def format_msg(self, msg):
+        return msg.format(**self.action_keys)
+
+    def prompt(self):
+        import utool as ut
+        msg = ut.indentjoin(list(map(self.format_msg, [
+            'enter {next_keys} to move to the next index',
+            'enter {prev_keys} to move to the previous index',
+            'enter {reload_keys} to stay at the same index',
+            'enter {index_keys} to move to that index',
+            'enter {ipy_keys} to start IPython',
+            'enter {quit_keys} to quit',
+        ])), '\n | * ')
+        msg = ''.join([' +-----------', msg, '\n L-----------\n'])
+        # TODO: timeout, help message
+        ans = input(msg).strip()
+        return ans
+
+    def handle_ans(self, ans):
+        # Quit
+        if ans in self.action_keys['quit_keys']:
+            raise StopIteration()
+        # Prev
+        elif ans in self.action_keys['prev_keys']:
+            self.index -= 1
+        # Next
+        elif ans in self.action_keys['next_keys']:
+            self.index += 1
+        # Reload
+        elif ans in self.action_keys['reload_keys']:
+            self.index += 0
+        # Index
+        elif any([ans.startswith(index_key + ' ') for index_key in self.action_keys['index_keys']]):
+            try:
+                self.index = int(ans.split(' ')[1])
+            except ValueError:
+                print('Unknown ans=%r' % (ans,))
+        # IPython
+        elif ans in self.action_keys['ipy_keys']:
+            return 'IPython'
+        else:
+            print('Unknown ans=%r' % (ans,))
+            return False
+        return True
+
+    def __iter__(self):
+        import utool as ut
+        if not self.enabled:
+            raise StopIteration()
+        assert isinstance(self.iterable, INDEXABLE_TYPES)
+        self.num_items = len(self.iterable)
+        print('Begin interactive iteration over %r items' % (self.num_items))
+        mark_, end_ = util_progress.log_progress(total=self.num_items, lbl='interaction: ', freq=1)
+        while True:
+            item = self.iterable[self.index]
+            mark_(self.index)
+            print('')
+            yield item
+            ans = self.prompt()
+            action = self.handle_ans(ans)
+            if action == 'IPython':
+                ut.embed(N=1)
+        end_()
+        print('Ended interactive iteration')
 
 
 def tuples_to_unique_scalars(tup_list):

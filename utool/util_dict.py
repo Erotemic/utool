@@ -13,11 +13,31 @@ except ImportError:
 print, print_, printDBG, rrr, profile = inject(__name__, '[dict]')
 
 
+def invert_dict(dict_):
+    """
+    invert_dict
+
+    Args:
+        dict_ (dict_):
+
+    Returns:
+        ?: inverted_dict
+
+    Example:
+        >>> from utool.util_dict import *  # NOQA
+        >>> dict_ = {'a': 1, 'b': 2}
+        >>> inverted_dict = invert_dict(dict_)
+        {1: 'a', 2: 'b'}
+    """
+    inverted_dict = {val: key for key, val in six.iteritems(dict_)}
+    return inverted_dict
+
+
 def all_dict_combinations(varied_dict):
     """
     Input: a dict with lists of possible parameter settings
     Output: a list of dicts correpsonding to all combinations of params settings
-     """
+    """
 
     tups_list = [[(key, val) for val in val_list]
                  for (key, val_list) in six.iteritems(varied_dict)]

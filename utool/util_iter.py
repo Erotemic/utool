@@ -10,6 +10,13 @@ from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[iter]')
 
 
+def itertwo(iterable):
+    iter1 = iter(iterable)
+    iter2 = iter(iterable)
+    six.next(iter2)
+    return zip(iter1, iter2)
+
+
 def ensure_iterable(obj):
     if np.iterable(obj):
         return obj
@@ -61,12 +68,8 @@ def ichunks(list_, chunksize):
 def interleave(args):
     arg_iters = list(map(iter, args))
     cycle_iter = cycle(arg_iters)
-    if six.PY2:
-        for iter_ in cycle_iter:
-            yield iter_.next()
-    else:
-        for iter_ in cycle_iter:
-            yield next(iter_)
+    for iter_ in cycle_iter:
+        yield six.next(iter_)
 
 
 def interleave2(*iterables):

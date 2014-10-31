@@ -24,6 +24,25 @@ def toc(tt, return_msg=False, write_msg=True):
 
 
 def get_timestamp(format_='filename', use_second=False, delta_seconds=None):
+    """
+    get_timestamp
+
+    Args:
+        format_ (str):
+        use_second (bool):
+        delta_seconds (None):
+
+    Returns:
+        str: stamp
+
+    Example:
+        >>> from utool.util_time import *  # NOQA
+        >>> format_ = 'printable'
+        >>> use_second = False
+        >>> delta_seconds = None
+        >>> stamp = get_timestamp(format_, use_second, delta_seconds)
+        >>> print(stamp)
+    """
     now = datetime.datetime.now()
     if delta_seconds is not None:
         now += datetime.timedelta(seconds=delta_seconds)
@@ -173,10 +192,20 @@ def get_unix_timedelta_str(unixtime_diff):
 
 def get_timedelta_str(timedelta):
     """
+    get_timedelta_str
+
     Returns:
-        timestr (str): formated time string
+        str: timedelta_str, formated time string
+
     References:
         http://stackoverflow.com/questions/8906926/formatting-python-timedelta-objects
+
+    Example:
+        >>> from utool.util_time import *  # NOQA
+        >>> timedelta = get_unix_timedelta(10)
+        >>> timedelta_str = get_timedelta_str(timedelta)
+        >>> print(timedelta_str)
+        10 seconds
     """
     days = timedelta.days
     hours, rem = divmod(timedelta.seconds, 3600)

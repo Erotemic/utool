@@ -44,10 +44,57 @@ def repl_field(key):
 
 
 def regex_replace(regex, repl, text):
+    r"""
+    regex_replace
+
+    MULTILINE and DOTALL are on in all util_regex functions
+
+    Args:
+        regex (str): pattern to find
+        repl (str): replace pattern with this
+        text (str): text to modify
+
+    Returns:
+        str: modified text
+
+    Example:
+        >>> from utool.util_regex import *  # NOQA
+        >>> regex = r'\(.*\):'
+        >>> repl = '(*args)'
+        >>> text = '''def foo(param1,
+        ...                   param2,
+        ...                   param3):'''
+        >>> result = regex_replace(regex, repl, text)
+        >>> print(result)
+        def foo(*args)
+
+    """
     return re.sub(regex, repl, text, **RE_KWARGS)
 
 
 def named_field_regex(keypat_tups):
+    """
+    named_field_regex
+
+    Args:
+        keypat_tups (list): tuples of (name, pattern)
+
+    Returns:
+        str: regex
+
+    Example:
+        >>> from utool.util_regex import *  # NOQA
+        >>> keypat_tups = [
+        ...    ('name',  r'G\d+'),  # species and 2 numbers
+        ...    ('under', r'_'),     # 2 more numbers
+        ...    ('id',    r'\d+'),   # 2 more numbers
+        ...    ( None,   r'\.'),
+        ...    ('ext',   r'\w+'),
+        ... ]
+        >>> parse_dict = named_field_regex(keypat_tups)
+        >>> print(parse_dict)
+        (?P<name>G\d+)(?P<under>_)(?P<id>\d+)\.(?P<ext>\w+)
+    """
     named_fields = [named_field(key, pat) for key, pat in keypat_tups]
     regex = ''.join(named_fields)
     return regex
@@ -67,6 +114,29 @@ def regex_matches(regex, text, fromstart=True):
 
 
 def regex_parse(regex, text, fromstart=True):
+    r"""
+    regex_parse
+
+    Args:
+        regex (?):
+        text (?):
+        fromstart (bool):
+
+    Returns:
+        dict or None:
+
+    Example:
+        >>> from utool.util_regex import *  # NOQA
+        >>> regex = r'(?P<string>\'[^\']*\')'
+        >>> text = " 'just' 'a' sentance with 'strings' in it "
+        >>> fromstart = False
+        >>> result = regex_parse(regex, text, fromstart)['string']
+        >>> print(result)
+
+    Dev:
+
+        regex_replace(regex,
+    """
     match = regex_get_match(regex, text, fromstart=fromstart)
     if match is not None:
         parse_dict = match.groupdict()
