@@ -113,6 +113,51 @@ def regex_matches(regex, text, fromstart=True):
     return hasmatch
 
 
+def modify_quoted_strs(text, modify_func=None):
+    """
+
+    modify_quoted_strs
+
+    doesnt work with escaped quotes or multilines
+    single quotes only. no nesting.
+
+    Args:
+        text (?):
+        modify_func (None):
+
+    Example:
+        >>> from utool.util_regex import *  # NOQA
+        >>> text = "'just' 'a' sentance with 'strings' in it "
+        >>> def modify_func(quoted_str):
+        ...     return quoted_str.upper()
+        >>> result = modify_quoted_strs(text, modify_func)
+        >>> print(result)
+        'JUST' 'A' sentance with 'STRINGS'
+    """
+    if modify_func is None:
+        def idenfunc(quoted_str):
+            return quoted_str
+        modify_func = idenfunc
+    regex = r'(?P<quoted_str>\'[^\']*\')'
+    tmp_text = text[:]
+    new_text_list = []
+    while True:
+        result = regex_parse(regex, tmp_text, False)
+        if result is not None:
+            quoted_str = result['quoted_str']
+            len_ = len(quoted_str)
+            startpos = tmp_text.find(quoted_str)
+            endpos = len_ + startpos
+            new_text_list.append(tmp_text[0:startpos])
+            new_text_list.append(modify_func(quoted_str))
+            tmp_text = tmp_text[endpos:]
+        else:
+            new_text_list.append(tmp_text)
+            break
+    new_text = ''.join(new_text_list)
+    return new_text
+
+
 def regex_parse(regex, text, fromstart=True):
     r"""
     regex_parse
@@ -133,9 +178,6 @@ def regex_parse(regex, text, fromstart=True):
         >>> result = regex_parse(regex, text, fromstart)['string']
         >>> print(result)
 
-    Dev:
-
-        regex_replace(regex,
     """
     match = regex_get_match(regex, text, fromstart=fromstart)
     if match is not None:
