@@ -67,6 +67,9 @@ def get_timestamp(format_='filename', use_second=False, delta_seconds=None):
         stamp = time_formats[format_] % time_tup
     return stamp
 
+# alias
+timestamp = get_timestamp
+
 
 class Timer(object):
     """

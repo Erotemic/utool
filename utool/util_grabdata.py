@@ -4,6 +4,7 @@ import sys
 import zipfile
 import tarfile
 import urllib
+import functools
 import time
 from . import util_path
 from . import util_cplat
@@ -56,35 +57,62 @@ def _extract_archive(archive_fpath, archive_file, archive_namelist, output_dir, 
         archive_file.extract(member, path=output_dir)
 
 
-def download_url(url, filename, spoof=False):
+def open_url_in_browser(url):
+    """
+    open_url_in_browser
+
+    Args:
+        url (str): web url
+
+    Example:
+        >>> from utool.util_grabdata import *  # NOQA
+        >>> url = 'http://www.jrsoftware.org/isdl.php'
+        >>> open_url_in_browser(url)
+    """
+    import webbrowser
+    print('[utool] Opening url=%r in browser' % (url,))
+    return webbrowser.open(url)
+
+
+def download_url(url, filename=None, spoof=False):
     """ downloads a url to a filename.
+
+    download_url
 
     Args:
         url (str): url to download
-        filename (str): path to download to
+        filename (str): path to download to. Defaults to basename of url
         spoof (bool): if True pretends to by Firefox
 
     References:
         http://blog.moleculea.com/2012/10/04/urlretrieve-progres-indicator/
+
+    Example:
+        >>> from utool.util_grabdata import *  # NOQA
+        >>> url = 'http://www.jrsoftware.org/download.php/ispack.exe'
+        >>> fpath = download_url(url)
+        >>> print(fpath)
+        [utool] Downloading url='http://www.jrsoftware.org/download.php/ispack.exe' to filename='ispack.exe'
+        ...100%, 1 MB, 606 KB/s, 3 seconds passed
+        [utool] Finished downloading filename='ispack.exe'
+        ispack.exe
     """
-    start_time_ptr = [0]
-    def reporthook(count, block_size, total_size):
-        if count == 0:
-            start_time_ptr[0] = time.time()
-            return
-        duration = time.time() - start_time_ptr[0]
-        if duration == 0:
-            duration = 1E-9
-        progress_size = int(count * block_size)
-        speed = int(progress_size / (1024 * duration))
-        percent = int(count * block_size * 100 / total_size)
-        sys.stdout.write('\r...%d%%, %d MB, %d KB/s, %d seconds passed' %
-                         (percent, progress_size / (1024 * 1024), speed, duration))
+    if filename is None:
+        filename = basename(url)
+    def reporthook_(num_blocks, block_nBytes, total_nBytes, start_time=0):
+        total_seconds = time.time() - start_time + 1E-9
+        num_kb_down   = int(num_blocks * block_nBytes) / 1024
+        num_mb_down   = num_kb_down / 1024
+        percent_down  = int(num_blocks * block_nBytes * 100 / total_nBytes)
+        kb_per_second = int(num_kb_down / (total_seconds))
+        fmt_msg = '\r...%d%%, %d MB, %d KB/s, %d seconds passed'
+        msg = fmt_msg % (percent_down, num_mb_down, kb_per_second, total_seconds)
+        sys.stdout.write(msg)
         sys.stdout.flush()
+    reporthook = functools.partial(reporthook_, start_time=time.time())
     print('[utool] Downloading url=%r to filename=%r' % (url, filename))
-    if not spoof:
-        urllib.urlretrieve(url, filename=filename, reporthook=reporthook)
-    else:
+    if spoof:
+        # Different agents that can be used for spoofing
         user_agents = [
             'Mozilla/5.0 (Windows; U; Windows NT 5.1; it; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11',
             'Opera/9.25 (Windows NT 5.1; U; en)',
@@ -93,11 +121,16 @@ def download_url(url, filename, spoof=False):
             'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.0.12) Gecko/20070731 Ubuntu/dapper-security Firefox/1.5.0.12',
             'Lynx/2.8.5rel.1 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/1.2.9'
         ]
-
         class SpoofingOpener(urllib.FancyURLopener, object):
             version = user_agents[0]
-        myopener = SpoofingOpener()
-        myopener.retrieve(url, filename=filename, reporthook=reporthook)
+        spoofing_opener = SpoofingOpener()
+        spoofing_opener.retrieve(url, filename=filename, reporthook=reporthook)
+    else:
+        # no spoofing
+        urllib.urlretrieve(url, filename=filename, reporthook=reporthook)
+    print('')
+    print('[utool] Finished downloading filename=%r' % (filename,))
+    return filename
 
 
 def fix_dropbox_link(dropbox_url):

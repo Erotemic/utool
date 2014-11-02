@@ -119,6 +119,37 @@ def remove_dirs(dpath, dryrun=False, ignore_errors=True, **kwargs):
         return False
     return True
 
+#import os
+
+
+def touch(fname, times=None, verbose=True):
+    """
+    Args:
+        fname (?):
+        times (None):
+        verbose (bool):
+
+    Example:
+        >>> from utool.util_path import *  # NOQA
+        >>> fname = '?'
+        >>> times = None
+        >>> verbose = True
+        >>> result = touch(fname, times, verbose)
+        >>> print(result)
+
+    References:
+        'http://stackoverflow.com/questions/1158076/implement-touch-using-python'
+    """
+    try:
+        if verbose:
+            print('[path] touching %r' % fname)
+        with open(fname, 'a'):
+            os.utime(fname, times)
+    except Exception as ex:
+        import utool
+        utool.printex(ex, 'touch %s' % fname)
+        raise
+
 
 def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False, verbose=True,
                         dryrun=False, ignore_errors=False, **kwargs):
@@ -213,7 +244,7 @@ def checkpath(path_, verbose=VERYVERBOSE, n=None, info=VERYVERBOSE):
         #print_('[utool] checkpath(%r)' % (path_))
         pretty_path = path_ndir_split(path_, n)
         caller_name = get_caller_name()
-        print_('[%s] checkpath(%r)' % (caller_name, pretty_path))
+        print('[%s] checkpath(%r)' % (caller_name, pretty_path))
         if exists(path_):
             path_type = ''
             if isfile(path_):
@@ -225,13 +256,13 @@ def checkpath(path_, verbose=VERYVERBOSE, n=None, info=VERYVERBOSE):
             if ismount(path_):
                 path_type += 'mount'
             path_type = 'file' if isfile(path_) else 'directory'
-            print_('...(%s) exists\n' % (path_type,))
+            print('[%s] ...(%s) exists' % (caller_name, path_type,))
         else:
-            print_('... does not exist\n')
+            print('[%s] ... does not exist' % (caller_name))
             if info:
-                print_('[path] \n  ! Does not exist\n')
+                print('[path]  ! Does not exist')
                 _longest_path = longest_existing_path(path_)
-                print_('[path] ... The longest existing path is: %r\n' % _longest_path)
+                print('[path] ... The longest existing path is: %r' % _longest_path)
             return False
         return True
     else:
@@ -365,6 +396,10 @@ def copy_list(src_list, dst_list, lbl='Copying: ', ):
     success_list = [docopy(src, dst, count) for count, (src, dst) in enumerate(task_iter)]
     end_progress()
     return success_list
+
+
+def move(src, dst, lbl='Moving'):
+    return move_list([src], [dst], lbl)
 
 
 def move_list(src_list, dst_list, lbl='Moving'):
@@ -807,3 +842,105 @@ def existing_subpath(root_path, valid_subpaths, tiebreaker='first', verbose=VERY
                 return path
     raise AssertionError('none of the following subpaths exist: %r' %
                          (valid_subpaths,))
+
+
+#def find_executable(exename):
+#    import utool as ut
+#    search_dpaths = ut.get_install_dirs()
+#    pass
+
+
+def search_in_dirs(fname, search_dpaths=[], shortcircuit=True):
+    """
+    search_in_dirs
+
+    Args:
+        fname (?):
+        search_dpaths (list):
+        shortcircuit (bool):
+
+    Returns:
+        fpath: None
+
+    Example:
+        >>> import utool as ut
+        >>> fname = 'Inno Setup 5\ISCC.exe'
+        >>> search_dpaths = ut.get_install_dirs()
+        >>> shortcircuit = True
+        >>> fpath = ut.search_in_dirs(fname, search_dpaths, shortcircuit)
+        >>> print(fpath)
+    """
+    fpath_list = []
+    for dpath in search_dpaths:
+        fpath = join(dpath, fname)
+        if exists(fpath):
+            if shortcircuit:
+                return fpath
+            else:
+                fpath_list.append(fpath)
+    if shortcircuit:
+        return None
+    else:
+        return fpath_list
+
+
+def find_lib_fpath(libname, root_dir, recurse_down=True, verbose=False, debug=False):
+    """ Search for the library """
+
+    def get_lib_fname_list(libname):
+        """
+        input <libname>: library name (e.g. 'hesaff', not 'libhesaff')
+        returns <libnames>: list of plausible library file names
+        """
+        if sys.platform.startswith('win32'):
+            libnames = ['lib' + libname + '.dll', libname + '.dll']
+        elif sys.platform.startswith('darwin'):
+            libnames = ['lib' + libname + '.dylib']
+        elif sys.platform.startswith('linux'):
+            libnames = ['lib' + libname + '.so']
+        else:
+            raise Exception('Unknown operating system: %s' % sys.platform)
+        return libnames
+
+    def get_lib_dpath_list(root_dir):
+        """
+        input <root_dir>: deepest directory to look for a library (dll, so, dylib)
+        returns <libnames>: list of plausible directories to look.
+        """
+        'returns possible lib locations'
+        get_lib_dpath_list = [root_dir,
+                              join(root_dir, 'lib'),
+                              join(root_dir, 'build'),
+                              join(root_dir, 'build', 'lib')]
+        return get_lib_dpath_list
+
+    lib_fname_list = get_lib_fname_list(libname)
+    tried_fpaths = []
+    while root_dir is not None:
+        for lib_fname in lib_fname_list:
+            for lib_dpath in get_lib_dpath_list(root_dir):
+                lib_fpath = normpath(join(lib_dpath, lib_fname))
+                if exists(lib_fpath):
+                    if verbose:
+                        print('\n[c] Checked: '.join(tried_fpaths))
+                    if debug:
+                        print('using: %r' % lib_fpath)
+                    return lib_fpath
+                else:
+                    # Remember which candiate library fpaths did not exist
+                    tried_fpaths.append(lib_fpath)
+            _new_root = dirname(root_dir)
+            if _new_root == root_dir:
+                root_dir = None
+                break
+            else:
+                root_dir = _new_root
+        if not recurse_down:
+            break
+
+    msg = ('\n[C!] load_clib(libname=%r root_dir=%r, recurse_down=%r, verbose=%r)' %
+           (libname, root_dir, recurse_down, verbose) +
+           '\n[c!] Cannot FIND dynamic library')
+    print(msg)
+    print('\n[c!] Checked: '.join(tried_fpaths))
+    raise ImportError(msg)

@@ -10,7 +10,8 @@ __PRINT_WRITES__ = False or __PRINT_IO__
 __PRINT_READS__  = False or __PRINT_IO__
 
 
-def write_to(fpath, to_write, aslines=False, verbose=__PRINT_WRITES__):
+def write_to(fpath, to_write, aslines=False, verbose=__PRINT_WRITES__,
+                onlyifdiff=False):
     """ Writes text to a file
 
     Args:
@@ -18,7 +19,14 @@ def write_to(fpath, to_write, aslines=False, verbose=__PRINT_WRITES__):
         to_write (str): text to write
         aslines (bool): if True to_write is assumed to be a list of lines
         verbose (bool): verbosity flag
+        onlyifdiff (bool): only writes if needed!
+            checks hash of to_write vs the hash of the contents of fpath
     """
+    if onlyifdiff:
+        import utool as ut
+        if ut.hashstr(read_from(fpath)) == ut.hashstr(to_write):
+            print('[util_io] * no difference')
+            return
     if __PRINT_WRITES__:
         print('[util_io] * Writing to text file: %r ' % util_path.tail(fpath))
     with open(fpath, 'w') as file_:

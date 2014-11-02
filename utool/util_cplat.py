@@ -149,6 +149,13 @@ def get_user_name():
     return basename(truepath('~'))
 
 
+def get_install_dirs():
+    if WIN32:
+        return [r'C:\Program Files', r'C:\Program Files (x86)']
+    else:
+        return ['/usr/bin', '/usr/local/bin', '~/bin']
+
+
 def getroot():
     root = {
         'win32': 'C:\\',
@@ -321,47 +328,55 @@ def cmd(*args, **kwargs):
     # Should be able to configure detatchment, shell, and sudo.
 
     """
-    sys.stdout.flush()
-    # Parse the keyword arguments
-    verbose, detatch, shell, sudo, separate = __parse_cmd_kwargs(kwargs)
-    if separate:
-        print('\n+--------------')
-    args = __parse_cmd_args(args, sudo)
-    # Print what you are about to do
-    print('[cplat] RUNNING: %r' % (args,))
-    # Open a subprocess with a pipe
-    proc = subprocess.Popen(args,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT,
-                            shell=shell)
-    if detatch:
-        print('[cplat] PROCESS DETATCHING')
-        return None, None, 1
-    if verbose and not detatch:
-        print('[cplat] RUNNING WITH VERBOSE OUTPUT')
-        logged_out = []
-        for line in _run_process(proc):
-            if six.PY2:
-                sys.stdout.write(line)
-            elif six.PY3:
-                sys.stdout.write(line.decode('utf-8'))
-            sys.stdout.flush()
-            logged_out.append(line)
-        out = '\n'.join(logged_out)
-        (out_, err) = proc.communicate()
-        #print('[cplat] out: %s' % (out,))
-        print('[cplat] stdout: %s' % (out_,))
-        print('[cplat] stderr: %s' % (err,))
-    else:
-        # Surpress output
-        #print('[cplat] RUNNING WITH SUPRESSED OUTPUT')
-        (out, err) = proc.communicate()
-    # Make sure process if finished
-    ret = proc.wait()
-    print('[cplat] PROCESS FINISHED')
-    if separate:
-        print('L--------------\n')
-    return out, err, ret
+    try:
+        sys.stdout.flush()
+        # Parse the keyword arguments
+        verbose, detatch, shell, sudo, separate = __parse_cmd_kwargs(kwargs)
+        if separate:
+            print('\n+--------------')
+        args = __parse_cmd_args(args, sudo)
+        # Print what you are about to do
+        print('[cplat] RUNNING: %r' % (args,))
+        # Open a subprocess with a pipe
+        proc = subprocess.Popen(args,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT,
+                                shell=shell)
+        if detatch:
+            print('[cplat] PROCESS DETATCHING')
+            return None, None, 1
+        if verbose and not detatch:
+            print('[cplat] RUNNING WITH VERBOSE OUTPUT')
+            logged_out = []
+            for line in _run_process(proc):
+                if six.PY2:
+                    sys.stdout.write(line)
+                elif six.PY3:
+                    sys.stdout.write(line.decode('utf-8'))
+                sys.stdout.flush()
+                logged_out.append(line)
+            out = '\n'.join(logged_out)
+            (out_, err) = proc.communicate()
+            #print('[cplat] out: %s' % (out,))
+            print('[cplat] stdout: %s' % (out_,))
+            print('[cplat] stderr: %s' % (err,))
+        else:
+            # Surpress output
+            #print('[cplat] RUNNING WITH SUPRESSED OUTPUT')
+            (out, err) = proc.communicate()
+        # Make sure process if finished
+        ret = proc.wait()
+        print('[cplat] PROCESS FINISHED')
+        if separate:
+            print('L--------------\n')
+        return out, err, ret
+    except Exception as ex:
+        import utool as ut
+        if isinstance(args, tuple):
+            print(ut.unixpath[args[0]])
+        elif isinstance(args, six.string_types):
+            print(ut.unixpath(args))
+        ut.printex(ex)
 
 
 def get_flops():

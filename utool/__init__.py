@@ -82,7 +82,9 @@ if __DYNAMIC__:
     # reimported because they are already in the modules list
     import_execstr = util_importer.dynamic_import(__name__, IMPORT_TUPLES)
     exec(import_execstr)
-else:
+    DOELSE = True
+DOELSE = True
+if DOELSE:
     # <AUTOGEN_INIT>
 
     from . import _internal
