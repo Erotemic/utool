@@ -130,12 +130,34 @@ def is_valid_varname(varname):
     return isvalid
 
 
-def execstr_dict(dict_, local_name, exclude_list=None):
-    """ returns execable python code that declares variables using keys and values """
-    #if local_name is None:
-    #    local_name = dict_
-    #    exec(execstr_parent_locals())
-    #    exec('dict_ = local_name')
+def execstr_dict(dict_, local_name=None, exclude_list=None):
+    """ returns execable python code that declares variables using keys and values
+
+    execstr_dict
+
+    Args:
+        dict_ (dict):
+        local_name (str): optional: local name of dictionary. Specifying this is much safer
+        exclude_list (list):
+
+    Returns:
+        str: execstr --- the executable string that will put keys from dict
+            into local vars
+
+    Example:
+        >>> from utool.util_dbg import *  # NOQA
+        >>> my_dictionary = {'a': True, 'b':False}
+        >>> execstr = execstr_dict(my_dictionary)
+        >>> exec(execstr)
+        >>> assert 'a' in vars() and 'b' in vars(), 'execstr failed'
+        >>> assert b is False and a is True, 'execstr failed'
+        >>> print(execstr)
+        a = my_dictionary['a']
+        b = my_dictionary['b']
+    """
+    if local_name is None:
+        # Magic way of getting the local name of dict_
+        local_name = get_varname_from_locals(dict_, get_parent_locals())
     try:
         #if exclude_list is None:
         #    execstr = '\n'.join((key + ' = ' + local_name + '[' + repr(key) + ']'
@@ -729,7 +751,8 @@ def formatex(ex, msg='[!?] Caught exception',
 
 def get_varname_from_locals(val, locals_, default='varname-not-found',
                             strict=False):
-    """
+    """ Finds the string name which has where locals_[name] is val
+
     Check the varname is in the parent namespace
     This will only work with objects not primatives
 
