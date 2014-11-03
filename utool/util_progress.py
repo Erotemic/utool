@@ -69,6 +69,10 @@ class ProgressIter(object):
             except Exception:
                 pass
         mark, end = log_progress(*args, **kwargs)
+        if 'lbl' in kwargs:
+            self.lbl = kwargs['lbl']
+        else:
+            self.lbl = 'lbl'
         self.mark = mark
         self.end = end
         self.count = -1
@@ -85,6 +89,32 @@ class ProgressIter(object):
             mark(self.count)
             yield item
         self.end(self.count + 1)
+
+    def iter_rate(self):
+        # TODO Incorporate this better
+        import utool as ut
+        import time
+        starttime = time.time()
+        #mark = self.mark
+        # Wrap the for loop with a generator
+        self.count = -1
+        freq = 100
+        cumrate = 0
+        self.total = len(self.iterable)
+        fmt_msg = '\r' + self.lbl + ' %4d/' + str(self.total) + '... rate=%d iters per second.'
+        with ut.Timer(self.lbl):
+            for self.count, item in enumerate(self.iterable):
+                #mark(self.count)
+                yield item
+                if self.count % freq == 0:
+                    endtime = time.time()
+                    cumrate += (endtime - starttime)
+                    starttime = endtime
+                    rate = self.count / cumrate
+                    msg = fmt_msg % (self.count, rate)
+                    sys.stdout.write(msg)
+                    sys.stdout.flush()
+        #self.end(self.count + 1)
 
     def mark_current(self):
         self.mark(self.count)
@@ -349,10 +379,13 @@ def progress_str(max_val, lbl='Progress: ', repl=False, approx=False, backspace=
     if backspace:
         # put backspace characters into the progress string
         # (looks nice on normal terminals)
-        nBackspaces = len(_fmt_str) - len(dnumstr) + len(max_str)
-        backspaces = '\b' * nBackspaces
-        fmt_str = backspaces + _fmt_str
+        #nBackspaces = len(_fmt_str) - len(dnumstr) + len(max_str)
+        #backspaces = '\b' * nBackspaces
+        #fmt_str = backspaces + _fmt_str
+        # FIXME: USE CARAGE RETURN INSTEAD OF BACKSPACES
+        fmt_str = '\r' + _fmt_str
     else:
+        # FIXME: USE CARAGE RETURN INSTEAD OF BACKSPACES
         # this looks better on terminals without backspaces
         fmt_str = _fmt_str + '\n'
     return fmt_str

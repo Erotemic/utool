@@ -41,6 +41,51 @@ def DEPRICATED(func):
     return __DEP_WRAPPER
 
 
+def _get_testable_name(testable):
+    import utool
+    try:
+        testable_name = testable.func_name
+    except AttributeError as ex1:
+        try:
+            testable_name = testable.__name__
+        except AttributeError as ex2:
+            utool.printex(ex1, utool.list_str(dir(testable)))
+            utool.printex(ex2, utool.list_str(dir(testable)))
+            raise
+    return testable_name
+
+
+def doctest_funcs(testable_list, check_flags=True):
+    print('[utool] Running doctest funcs')
+    import utool
+    testable_name_list = []
+    wastested_list = []
+
+    for testable in testable_list:
+        # HACKy
+        testable_name = _get_testable_name(testable)
+        testable_name_list.append(testable_name)
+        flag1 = '--test-' + testable_name.replace('_', '-')
+        flag2 = '--test-' + testable_name
+        if not check_flags or utool.get_argflag((flag1, flag2)):
+            print('[utool] Doctest requested: %r' % testable_name)
+            examples = utool.get_doctest_examples(testable)
+            if len(examples) == 0:
+                print('WARNING: no examples for testable_name=%r' % testable_name)
+                wastested_list.append(False)
+            else:
+                print('+ --- EXEC SRC --- ')
+                print(examples[0])
+                print('L ___ EXEC SRC ___ ')
+                exec(examples[0])
+                wastested_list.append(True)
+        else:
+            wastested_list.append(False)
+    if not any(wastested_list):
+        print('No test flags sepcified. Please choose one of the following flags')
+        print('Valid test argflags: ' + utool.indentjoin(testable_name_list, '\n --test-'))
+
+
 #def ensure_vararg_list(varargs):
 #    """
 #    It is useful to have a function take a list of objects to act upon.
@@ -156,6 +201,45 @@ def auto_docstr(modname, funcname, verbose=True):
     else:
         docstr = 'error'
     return docstr
+
+
+def get_doctest_examples(func_or_class):
+    """
+    get_doctest_examples
+
+    Args:
+        func_or_class (function)
+
+    Example:
+        >>> from utool.util_dev import *  # NOQA
+        >>> func_or_class = get_doctest_examples
+        >>> result = get_doctest_examples(func_or_class)
+        >>> print(result)
+    """
+    import doctest
+    try:
+        docstr = func_or_class.func_doc
+    except AttributeError:
+        docstr = func_or_class.__doc__
+
+    comment_iter = doctest.DocTestParser().parse(docstr)
+    current_example_lines = []
+    example_list = []
+    def append_current_example():
+        # next example defined if any examples lines have been found
+        if len(current_example_lines) >= 1:
+            example_list.append(''.join(current_example_lines))
+    # Loop over doctest lines
+    for c in comment_iter:
+        if isinstance(c, doctest.Example):
+            current_example_lines.append(c.source)
+        elif c == '':
+            pass
+        else:
+            append_current_example()
+            current_example_lines = []
+    append_current_example()
+    return example_list
 
 
 def print_auto_docstr(modname, funcname):
