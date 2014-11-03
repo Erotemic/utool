@@ -83,10 +83,11 @@ if __DYNAMIC__:
     import_execstr = util_importer.dynamic_import(__name__, IMPORT_TUPLES)
     exec(import_execstr)
     DOELSE = True
+
+# Do the nonexec import anyway
 DOELSE = True
 if DOELSE:
     # <AUTOGEN_INIT>
-
     from . import _internal
     from . import util_alg
     from . import util_aliases

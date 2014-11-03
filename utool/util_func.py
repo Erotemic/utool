@@ -7,7 +7,7 @@ def uinput_1to1(func, input_):
     """ universal input (really just accept list or tuple as input to a list
     only function) """
     if isinstance(input_, (tuple, list)):
-        output_ = tuple(map(func, input_))
+        output_ = list(map(func, input_))
     else:
         output_ = func(input_)
     return output_

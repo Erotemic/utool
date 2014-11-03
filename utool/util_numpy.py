@@ -87,6 +87,26 @@ def intersect2d_numpy(A, B):
 
 
 def intersect2d(A, B):
+    """
+    intersect2d
+
+    intersect rows of 2d numpy arrays
+
+    Args:
+        A (ndarray[ndim=2]):
+        B (ndarray[ndim=2]):
+
+    Returns:
+        tuple: (C, Ax, Bx)
+
+    Example:
+        >>> from utool.util_numpy import *  # NOQA
+        >>> import utool as ut
+        >>> A = np.array([[1, 2, 3], [1, 1, 1]])
+        >>> B = np.array([[1, 2, 3], [1, 2, 14]])
+        >>> (C, Ax, Bx) = ut.intersect2d(A, B)
+        >>> print((C, Ax, Bx))
+    """
     # TODO: MOVE to numpy libs
     Cset  =  set(tuple(x) for x in A).intersection(set(tuple(x) for x in B))
     Ax = np.array([x for x, item in enumerate(A) if tuple(item) in Cset], dtype=np.int)

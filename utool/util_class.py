@@ -1,6 +1,8 @@
 from __future__ import absolute_import, division, print_function
 import sys
+import six
 import types
+import functools
 from collections import defaultdict
 from .util_inject import inject
 from ._internal.meta_util_six import get_funcname
@@ -8,22 +10,126 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[class]', DEBUG=False)
 
 
 # Registers which classes have which attributes
+# FIXME: this might cause memory leaks
 __CLASSTYPE_ATTRIBUTES__ = defaultdict(list)
+__CLASSTYPE_POSTINJECT_FUNCS__ = defaultdict(list)
+
+
+def inject_instance(self, classtype=None):
+    """
+    Injects an instance (self) of type (classtype)
+    with all functions registered to (classtype)
+
+    call this in the __init__ class function
+
+    Args:
+        self: the class instance
+
+    Example:
+        >>> DOCTEST = False
+        >>> utool.classmember(InvertedIndex)(smk_debug.invindex_dbgstr)
+        >>> utool.inject_instance(invindex)
+    """
+    if classtype is None:
+        import utool as ut
+        classtype = self.__class__
+        if classtype == 'ibeis.gui.models_and_views.IBEISTableView':
+            from guitool.__PYQT__ import QtGui
+            classtype = QtGui.QAbstractItemView
+        if len(__CLASSTYPE_ATTRIBUTES__[classtype]) == 0:
+            print('[utool] Warning: no classes of type %r are registered' % (classtype,))
+            print('[utool] type(self)=%r, self=%r' % (type(self), self)),
+            print('[utool] Checking to see if anybody else was registered...')
+            print('[utool] __CLASSTYPE_ATTRIBUTES__ = ' + ut.list_str(__CLASSTYPE_ATTRIBUTES__.keys()))
+            for classtype_, _ in six.iteritems(__CLASSTYPE_ATTRIBUTES__):
+                isinstance(self, classtype_)
+                classtype = classtype_
+                print('[utool] Warning: using subclass=%r' % (classtype_,))
+                break
+
+    for func in __CLASSTYPE_ATTRIBUTES__[classtype]:
+        inject_func_as_method(self, func)
+    for func in __CLASSTYPE_POSTINJECT_FUNCS__[classtype]:
+        func(self)
 
 
 def classmember(classtype):
-    """ classtype is some key, which should be a type """
-    def closure_classmember(func):
-        global __CLASSTYPE_ATTRIBUTES__
-        __CLASSTYPE_ATTRIBUTES__[classtype].append(func)
-        return func
+    """ register a class to be injectable
+    classtype is a key which should be a type
+
+    Args:
+        classtype : the class to be injected into
+            REMEMBER to call inject_instance in __init__
+
+    Returns:
+        closure_classmember (func): decorator for injectable methods
+
+    Example:
+        >>> import utool as ut
+        >>> class CheeseShop(object):
+        ...    def __init__(self):
+        ...        ut.inject_instance(self)
+        >>> cheeseshop_method = ut.classmember(CheeseShop)
+        >>> @cheeseshop_method
+        >>> def has_cheese(self):
+        >>>     return False
+        >>> shop = CheeseShop()
+        >>> print(shop.has_cheese())
+    """
+    import utool as ut
+    if ut.get_argflag('--verbclass') or ut.VERBOSE:
+        print('[util_class] register classmember=%r' % classmember)
+    closure_classmember = functools.partial(decorate_classmember, classtype=classtype)
     return closure_classmember
+
+
+make_register_class_method = classmember
+
+
+def classpostinject(classtype):
+    """
+    Args:
+        classtype : the class to be injected into
+
+    Returns:
+        closure_postinject (func): decorator for injectable methods
+
+    SeeAlso:
+        classmember
+    """
+    import utool as ut
+    if ut.get_argflag('--verbclass') or ut.VERBOSE:
+        print('[util_class] register class_postinject=%r' % classmember)
+    closure_postinject = functools.partial(decorate_postinject, classtype=classtype)
+    return closure_postinject
+
+
+def decorate_classmember(func, classtype=None):
+    """
+    Will inject all decorated function as methods of classtype
+    """
+    assert classtype is not None, 'must specify classtype'
+    global __CLASSTYPE_ATTRIBUTES__
+    __CLASSTYPE_ATTRIBUTES__[classtype].append(func)
+    return func
+
+
+def decorate_postinject(func, classtype=None):
+    """
+    Will perform func with argument self after inject_instance is called on classtype
+    """
+    assert classtype is not None, 'must specify classtype'
+    global __CLASSTYPE_POSTINJECT_FUNCS__
+    __CLASSTYPE_POSTINJECT_FUNCS__[classtype].append(func)
+    return func
 
 
 def inject_func_as_method(self, func, method_name=None, class_=None):
     """ Injects a function into an object as a method
 
     Wraps func as a bound method of self. Then injects func into self
+
+    It is preferable to use classmember and inject_instance
 
     Args:
        self (object): class instance
@@ -40,35 +146,6 @@ def inject_func_as_method(self, func, method_name=None, class_=None):
         del old_method
     setattr(self, method_name, method)
 
-
-def inject_instance(classtype, self):
-    """
-    Injects an instance (self) of type (classtype)
-    with all functions registered to (classtype)
-    """
-    for func in __CLASSTYPE_ATTRIBUTES__[classtype]:
-        inject_func_as_method(self, func)
-
-
-#def __instancemember(self, func):
-#    if isinstance(func, types.MethodType):
-#        return func
-#    else:
-#        return inject_func_as_method(self, func)
-
-
-#class ReloadableMetaclass(type):
-#    def __new__(meta, name, bases, attrs):
-#        #print('meta = %r' (str(meta),))
-#        #print('name = %r' (str(name),))
-#        #print('bases = %r' (str(bases),))
-#        #print('attrs = %r' (str(attrs),))
-#        return super(ReloadableMetaclass, meta).__new__(meta, name, bases, attrs)
-
-#    def __init__(self, name, bases, attrs):
-#        super(ReloadableMetaclass, self).__init__(name, bases, attrs)
-#        # classregistry.register(self, self.interfaces)
-#        print('Would register class %r now.' % (self,))
 
 def makeForwardingMetaclass(forwarding_dest_getter, whitelist, base_class=object):
     """
@@ -131,6 +208,7 @@ class ReloadingMetaclass(type):
 
 
 def get_comparison_methods():
+    """ makes methods for >, <, =, etc... """
     method_list = []
     def _register(func):
         method_list.append(func)
