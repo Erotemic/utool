@@ -235,7 +235,7 @@ if DOELSE:
                             dict_union, dict_union2, dict_update_newkeys, 
                             dict_where_len0, invert_dict, is_dicteq, 
                             items_sorted_by_value, keys_sorted_by_value, 
-                            updateif_haskey,) 
+                            reverse_dict, updateif_haskey,) 
     from .util_func import (general_get, general_set, identity, uinput_1to1,) 
     from .util_grabdata import (BadZipfile, download_url, fix_dropbox_link, 
                                 grab_file_url, grab_zipped_url, 
@@ -340,9 +340,9 @@ if DOELSE:
                            joins, list_aliased_repr, list_str, listinfo_str, 
                            long_fname_format, newlined_list, 
                            order_of_magnitude_str, packstr, padded_str_range, 
-                           remove_chars, seconds_str, str2, str_between, 
-                           theta_str, tupstr, unindent, var_aliased_repr, 
-                           verts_str,) 
+                           remove_chars, seconds_str, singular_string, str2, 
+                           str_between, theta_str, tupstr, unindent, 
+                           var_aliased_repr, verts_str,) 
     from .util_sysreq import (DEBUG, ensure_in_pythonpath, locate_path,) 
     from .util_setup import (NOOP, SETUP_PATTERNS, assert_in_setup_repo, 
                              autogen_sphinx_apidoc, build_pyo, clean, 

@@ -702,6 +702,10 @@ def long_fname_format(fmt_str, fmt_dict, hashable_keys=[], max_len=64, hashlen=1
     return fname
 
 
+def singular_string(str_, plural_suffix='s', singular_suffix=''):
+    return str_[:-1] if str_.endswith(plural_suffix) else str_
+
+
 #def parse_commas_wrt_groups(str_):
 #    """
 #    str_ = 'cdef np.ndarray[np.float64_t, cast=True] x, y, z'
