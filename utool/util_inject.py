@@ -160,13 +160,13 @@ def inject_reload_function(module_name=None, module_prefix='[???]', module=None)
     module = _get_module(module_name, module, register=False)
     if module_name is None:
         module_name = str(module.__name__)
-    def rrr():
+    def rrr(verbose=True):
         """ Dynamic module reloading """
         if not __RELOAD_OK__:
             raise Exception('Reloading has been forced off')
         try:
             import imp
-            if not QUIET:
+            if verbose and not QUIET:
                 builtins.print('RELOAD: ' + str(module_prefix) + ' __name__=' + module_name)
             imp.reload(module)
         except Exception as ex:

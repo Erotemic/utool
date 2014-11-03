@@ -171,12 +171,12 @@ def _inject_execstr(module_name, IMPORT_TUPLES):
         __name__, '[{module_name}]')
 
 
-    def reassign_submodule_attributes():
+    def reassign_submodule_attributes(verbose=True):
         """
         why reloading all the modules doesnt do this I don't know
         """
         import sys
-        if '--quiet' not in sys.argv:
+        if verbose and '--quiet' not in sys.argv:
             print('dev reimport')
         # Self import
         import {module_name}
@@ -189,19 +189,19 @@ def _inject_execstr(module_name, IMPORT_TUPLES):
                 setattr({module_name}, attr, getattr(submod, attr))
 
 
-    def reload_subs():
+    def reload_subs(verbose=True):
         """ Reloads {module_name} and submodules """
-        rrr()
+        rrr(verbose=verbose)
         {body}
-        rrr()
+        rrr(verbose=verbose)
         try:
             # hackish way of propogating up the new reloaded submodule attributes
-            reassign_submodule_attributes()
+            reassign_submodule_attributes(verbose=verbose)
         except Exception:
             pass
     rrrr = reload_subs''')
-    rrrdir_fmt  = '    getattr(%s, \'reload_subs\', lambda: None)()'
-    rrrfile_fmt = '    getattr(%s, \'rrr\', lambda: None)()'
+    rrrdir_fmt  = '    getattr(%s, \'reload_subs\', lambda verbose: None)(verbose=verbose)'
+    rrrfile_fmt = '    getattr(%s, \'rrr\', lambda verbose: None)(verbose=verbose)'
 
     def _reload_command(tup):
         if len(tup) > 2 and tup[2] is True:
