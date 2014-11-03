@@ -72,6 +72,9 @@ IMPORT_TUPLES = [
     ('Preferences',    ['Pref']),
     ]
 
+
+DOELSE = False
+
 if __DYNAMIC__:
     # TODO: import all utool external prereqs. Then the imports will not import
     # anything that has already in a toplevel namespace
@@ -82,10 +85,12 @@ if __DYNAMIC__:
     # reimported because they are already in the modules list
     import_execstr = util_importer.dynamic_import(__name__, IMPORT_TUPLES)
     exec(import_execstr)
+    DOELSE = False
+else:
+    # Do the nonexec import (can force it to happen no matter what if alwyas set
+    # to True)
     DOELSE = True
 
-# Do the nonexec import anyway
-DOELSE = True
 if DOELSE:
     # <AUTOGEN_INIT>
 
@@ -235,7 +240,7 @@ if DOELSE:
                             dict_union, dict_union2, dict_update_newkeys, 
                             dict_where_len0, invert_dict, is_dicteq, 
                             items_sorted_by_value, keys_sorted_by_value, 
-                            reverse_dict, updateif_haskey,) 
+                            updateif_haskey,) 
     from .util_func import (general_get, general_set, identity, uinput_1to1,) 
     from .util_grabdata import (BadZipfile, download_url, fix_dropbox_link, 
                                 grab_file_url, grab_zipped_url, 

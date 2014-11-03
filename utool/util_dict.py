@@ -33,10 +33,6 @@ def invert_dict(dict_):
     return inverted_dict
 
 
-# alias
-reverse_dict = invert_dict
-
-
 def all_dict_combinations(varied_dict):
     """
     Input: a dict with lists of possible parameter settings
