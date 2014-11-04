@@ -429,15 +429,50 @@ def filter_Nones(item_list):
 
 def intersect_ordered(list1, list2):
     """
-    returns list1 elements that are also in list2 preserves order of list1
+    returns list1 elements that are also in list2. preserves order of list1
+
+    intersect_ordered
+
+    Args:
+        list1 (list):
+        list2 (list):
+
+    Returns:
+        list: new_list
+
+    Example:
+        >>> from utool.util_list import *  # NOQA
+        >>> list1 = ['featweight_rowid', 'feature_rowid', 'config_rowid', 'featweight_forground_weight']
+        >>> list2 = [u'featweight_rowid']
+        >>> new_list = intersect_ordered(list1, list2)
+        >>> print(new_list)
+        ['featweight_rowid']
     """
-    set2 = set(list2)
-    new_list = [item for item in iter(list1) if item in set2]
-    #new_list =[]
-    #for item in iter(list1):
-    #    if item in set2:
-    #        new_list.append(item)
-    return new_list
+    return [item for item in list1 if item in set(list2)]
+
+
+def setdiff_ordered(list1, list2):
+    """
+    returns list1 elements that are not in list2. preserves order of list1
+
+    setdiff_ordered
+
+    Args:
+        list1 (list):
+        list2 (list):
+
+    Returns:
+        list: new_list
+
+    Example:
+        >>> from utool.util_list import *  # NOQA
+        >>> list1 = ['featweight_rowid', 'feature_rowid', 'config_rowid', 'featweight_forground_weight']
+        >>> list2 = [u'featweight_rowid']
+        >>> new_list = setdiff_ordered(list1, list2)
+        >>> print(new_list)
+        ['feature_rowid', 'config_rowid', 'featweight_forground_weight']
+    """
+    return [item for item in list1 if item not in set(list2)]
 
 
 def flag_unique_items(list_):

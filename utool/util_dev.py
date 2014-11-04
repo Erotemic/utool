@@ -101,7 +101,7 @@ def doctest_funcs(testable_list, check_flags=True):
 
 
 def autofix_codeblock(codeblock, max_line_len=80,
-                      aggressive=True,
+                      aggressive=False,
                       very_aggressive=False,
                       experimental=False):
     r"""
