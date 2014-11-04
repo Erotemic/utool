@@ -175,11 +175,13 @@ if DOELSE:
                              python_executable, run_realtime_process, 
                              set_process_title, shell, startfile, truepath, 
                              unixpath, vd, view_directory,) 
-    from .util_class import (ReloadingMetaclass, make_class_method_decorator, make_class_postinject_decorator, 
+    from .util_class import (ReloadingMetaclass, VERBOSE_CLASS, 
                              decorate_class_method, decorate_postinject, 
                              get_comparison_methods, inject_func_as_method, 
                              inject_instance, makeForwardingMetaclass, 
-                             make_register_class_method, reload_class_methods,) 
+                             make_class_method_decorator, 
+                             make_class_postinject_decorator, 
+                             reload_class_methods,) 
     from .util_csv import (is_float, is_int, is_list, is_str, make_csv_table, 
                            numpy_to_csv,) 
     from .util_config import (get_default_global_config, 
@@ -241,7 +243,9 @@ if DOELSE:
                             dict_where_len0, invert_dict, is_dicteq, 
                             items_sorted_by_value, keys_sorted_by_value, 
                             updateif_haskey,) 
-    from .util_func import (general_get, general_set, identity, uinput_1to1,) 
+    from .util_func import (general_get, general_set, get_funcdoc, 
+                            get_funcglobals, get_imfunc, identity, 
+                            uinput_1to1,) 
     from .util_grabdata import (BadZipfile, download_url, fix_dropbox_link, 
                                 grab_file_url, grab_zipped_url, 
                                 open_url_in_browser, split_archive_ext, 
@@ -345,9 +349,9 @@ if DOELSE:
                            joins, list_aliased_repr, list_str, listinfo_str, 
                            long_fname_format, newlined_list, 
                            order_of_magnitude_str, packstr, padded_str_range, 
-                           remove_chars, seconds_str, singular_string, str2, 
-                           str_between, theta_str, tupstr, unindent, 
-                           var_aliased_repr, verts_str,) 
+                           remove_chars, replace_nonquoted_text, seconds_str, 
+                           singular_string, str2, str_between, theta_str, 
+                           tupstr, unindent, var_aliased_repr, verts_str,) 
     from .util_sysreq import (DEBUG, ensure_in_pythonpath, locate_path,) 
     from .util_setup import (NOOP, SETUP_PATTERNS, assert_in_setup_repo, 
                              autogen_sphinx_apidoc, build_pyo, clean, 
