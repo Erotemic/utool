@@ -230,6 +230,13 @@ get_resource_dir = meta_util_cplat.get_resource_dir
 get_app_resource_dir = meta_util_cplat.get_app_resource_dir
 
 
+def ensure_app_resource_dir(*args):
+    import utool as ut
+    app_resource_dir = get_app_resource_dir(*args)
+    ut.ensuredir(app_resource_dir)
+    return app_resource_dir
+
+
 def shell(*args, **kwargs):
     """
     Dangerous. Take out of production code

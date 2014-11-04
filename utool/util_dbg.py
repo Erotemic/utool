@@ -672,7 +672,7 @@ def debug_exception(func):
 
 
 def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
-            locals_=None, iswarning=False, tb=False, separate=False, N=0,
+            locals_=None, iswarning=False, tb=False, separate=True, N=0,
             use_stdout=False, reraise=False, msg_=None, keys=None):
     """
     Prints (and/or logs) an exception with relevant info
@@ -717,11 +717,11 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
     else:
         print_func = print
     if separate:
-        print_func('\n\n\n')
+        print_func('\n+------\n')
     # print the execption
     print_func(exstr)
     if separate:
-        print_func('\n\n\n')
+        print_func('\nL______\n')
     # If you dont know where an error is coming from raise-all
     if (reraise and not iswarning) or RAISE_ALL:
         sys.stdout.flush()
