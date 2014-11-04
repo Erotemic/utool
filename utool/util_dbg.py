@@ -749,6 +749,10 @@ def formatex(ex, msg='[!?] Caught exception',
     return '\n'.join(errstr_list)
 
 
+def get_varname_from_stack(var, N=0):
+    return get_varname_from_locals(var, get_caller_locals(N=N))
+
+
 def get_varname_from_locals(val, locals_, default='varname-not-found',
                             strict=False):
     """ Finds the string name which has where locals_[name] is val

@@ -5,6 +5,7 @@ try:
     HAS_NUMPY = True
 except ImportError:
     HAS_NUMPY = False
+import six
 import itertools
 from six.moves import zip, map, zip_longest, range
 from .util_iter import iflatten, isiterable, ifilter_Nones, ifilter_items, ifilterfalse_items
@@ -679,6 +680,57 @@ def find_nonconsec_indicies(unique_vals, consec_vals):
     return missing_ixs
 
 #get_non_consecutive_positions = debug_consec_list
+
+
+def find_duplicate_items(items):
+    import utool as ut
+    # Build item histogram
+    duplicate_map = ut.ddict(list)
+    for count, item in enumerate(items):
+        duplicate_map[item].append(count)
+    # remove singleton items
+    singleton_keys = []
+    for key in six.iterkeys(duplicate_map):
+        if len(duplicate_map[key]) == 1:
+            singleton_keys.append(key)
+        pass
+    for key in singleton_keys:
+        del duplicate_map[key]
+    return duplicate_map
+
+
+def duplicates_exist(items):
+    """ returns if list has duplicates """
+    return len(items) - len(set(items)) != 0
+
+
+def print_duplicate_map(duplicate_map, *args):
+    # args are corresponding lists
+    import utool as ut
+    print('There are %d duplicates' % (len(duplicate_map)))
+    for key, index_list in six.iteritems(duplicate_map):
+        print('item=%s appears %d times at indicies: %r' % (key, len(index_list), index_list))
+        for argx, arg in enumerate(args):
+            #argname = 'arg%d' % (argx)
+            argname = ut.get_varname_from_stack(arg, N=2)
+            for index in index_list:
+                print(' * %s[%d] = %r' % (argname, index, arg[index]))
+    return duplicate_map
+
+
+def debug_duplicate_items(items, *args, **kwargs):
+    import utool as ut
+    separate = kwargs.get('separate', True)
+    if separate:
+        print('')
+    print('[util_list] +--- DEBUG DUPLICATE ITEMS  %r ---' % ut.get_varname_from_locals(items, ut.get_caller_locals()))
+    with ut.Indenter('[util_list] | '):
+        duplicate_map = ut.find_duplicate_items(items)
+        ut.print_duplicate_map(duplicate_map, *args)
+    print('[util_list] L--- FINISH DEBUG DUPLICATE ITEMS ---')
+    if separate:
+        print('')
+    return duplicate_map
 
 
 def list_depth(list_, func=max, _depth=0):
