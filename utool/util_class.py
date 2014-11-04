@@ -5,6 +5,7 @@ import types
 import functools
 from collections import defaultdict
 from .util_inject import inject
+from .util_set import oset
 from . import util_arg
 from ._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[class]', DEBUG=False)
@@ -12,8 +13,8 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[class]', DEBUG=False)
 
 # Registers which classes have which attributes
 # FIXME: this might cause memory leaks
-__CLASSTYPE_ATTRIBUTES__ = defaultdict(list)
-__CLASSTYPE_POSTINJECT_FUNCS__ = defaultdict(list)
+__CLASSTYPE_ATTRIBUTES__ = defaultdict(oset)
+__CLASSTYPE_POSTINJECT_FUNCS__ = defaultdict(oset)
 
 VERBOSE_CLASS = util_arg.get_argflag(('--verbose-class', '--verbclass'))
 
@@ -144,7 +145,6 @@ def inject_func_as_method(self, func, method_name=None, class_=None, allow_overr
     """ Injects a function into an object as a method
 
     Wraps func as a bound method of self. Then injects func into self
-
     It is preferable to use make_class_method_decorator and inject_instance
 
     Args:
@@ -215,8 +215,11 @@ class ReloadingMetaclass(type):
                 print('reloading ' + classname + ' from ' + modname)
                 module = sys.modules[modname]
                 if modname != '__main__':
+                    # Reload the parent module
                     module.rrr()
+                # Get new class definition
                 class_ = getattr(module, classname)
+                # TODO: handle injected definitions
                 reload_class_methods(self, class_)
             except Exception as ex:
                 import utool
@@ -227,6 +230,31 @@ class ReloadingMetaclass(type):
                     'self', ])
                 raise
         metaself.rrr = rrr
+
+
+def reload_class_methods(self, class_):
+    """
+    rebinds all class methods
+
+    Args:
+        self (object): class instance to reload
+        class_ (type): type to reload as
+
+    Example:
+        >>> from utool.util_class import *  # NOQA
+        >>> self = '?'
+        >>> class_ = '?'
+        >>> result = reload_class_methods(self, class_)
+        >>> print(result)
+    """
+    print('[util_class] Reloading self=%r as class_=%r' % (self, class_))
+    self.__class__ = class_
+    for key in dir(class_):
+        # Get unbound reloaded method
+        func = getattr(class_, key)
+        if isinstance(func, types.MethodType):
+            # inject it into the old instance
+            inject_func_as_method(self, func, class_=class_, allow_override=True)
 
 
 def get_comparison_methods():
@@ -262,14 +290,3 @@ def get_comparison_methods():
         return self.__hash__() >= (other.__hash__())
 
     return method_list
-
-
-def reload_class_methods(self, class_):
-    """
-    reloads all class methods
-    """
-    self.__class__ = class_
-    for key in dir(class_):
-        func = getattr(class_, key)
-        if isinstance(func, types.MethodType):
-            inject_func_as_method(self, func, class_=class_)
