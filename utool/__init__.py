@@ -175,8 +175,8 @@ if DOELSE:
                              python_executable, run_realtime_process, 
                              set_process_title, shell, startfile, truepath, 
                              unixpath, vd, view_directory,) 
-    from .util_class import (ReloadingMetaclass, classmember, classpostinject, 
-                             decorate_classmember, decorate_postinject, 
+    from .util_class import (ReloadingMetaclass, make_class_method_decorator, make_class_postinject_decorator, 
+                             decorate_class_method, decorate_postinject, 
                              get_comparison_methods, inject_func_as_method, 
                              inject_instance, makeForwardingMetaclass, 
                              make_register_class_method, reload_class_methods,) 

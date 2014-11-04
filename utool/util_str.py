@@ -733,6 +733,41 @@ def singular_string(str_, plural_suffix='s', singular_suffix=''):
     return str_[:-1] if str_.endswith(plural_suffix) else str_
 
 
+def replace_nonquoted_text(text, search_list, repl_list):
+    """
+    replace_nonquoted_text
+
+    WARNING: this function is not safely implemented. It can break of searching
+    for single characters or underscores. Depends on utool.modify_quoted_strs
+    which is also unsafely implemented
+
+    Args:
+        text (?):
+        search_list (list):
+        repl_list (list):
+
+    Example:
+        >>> from utool.util_str import *  # NOQA
+        >>> text = '?'
+        >>> search_list = '?'
+        >>> repl_list = '?'
+        >>> result = replace_nonquoted_text(text, search_list, repl_list)
+        >>> print(result)
+    """
+    # Hacky way to preserve quoted text
+    # this will not work if search_list uses underscores or single characters
+    def preserve_quoted_str(quoted_str):
+        return '\'' + '_'.join(list(quoted_str[1:-1])) + '\''
+    def unpreserve_quoted_str(quoted_str):
+        return '\'' + ''.join(list(quoted_str[1:-1])[::2]) + '\''
+    import utool as ut
+    text_ = ut.modify_quoted_strs(text, preserve_quoted_str)
+    for search, repl in zip(search_list, repl_list):
+        text_ = text_.replace(search, repl)
+    text_ = ut.modify_quoted_strs(text_, unpreserve_quoted_str)
+    return text_
+
+
 #def parse_commas_wrt_groups(str_):
 #    """
 #    str_ = 'cdef np.ndarray[np.float64_t, cast=True] x, y, z'

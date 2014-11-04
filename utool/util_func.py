@@ -1,6 +1,27 @@
 from __future__ import absolute_import, division, print_function
 from .util_inject import inject
+from ._internal import meta_util_six
 print, print_, printDBG, rrr, profile = inject(__name__, '[func]')
+
+
+def get_funcname(func):
+    return meta_util_six.get_funcname(func)
+
+
+def set_funcname(func, newname):
+    return meta_util_six.set_funcname(func, newname)
+
+
+def get_imfunc(func):
+    return meta_util_six.get_imfunc(func)
+
+
+def get_funcglobals(func):
+    return meta_util_six.get_funcglobals(func)
+
+
+def get_funcdoc(func):
+    return meta_util_six.get_funcdoc(func)
 
 
 def uinput_1to1(func, input_):

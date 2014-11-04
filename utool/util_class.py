@@ -5,6 +5,7 @@ import types
 import functools
 from collections import defaultdict
 from .util_inject import inject
+from . import util_arg
 from ._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[class]', DEBUG=False)
 
@@ -14,8 +15,10 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[class]', DEBUG=False)
 __CLASSTYPE_ATTRIBUTES__ = defaultdict(list)
 __CLASSTYPE_POSTINJECT_FUNCS__ = defaultdict(list)
 
+VERBOSE_CLASS = util_arg.get_argflag(('--verbose-class', '--verbclass'))
 
-def inject_instance(self, classtype=None):
+
+def inject_instance(self, classtype=None, allow_override=False, verbose=VERBOSE_CLASS or util_arg.VERBOSE):
     """
     Injects an instance (self) of type (classtype)
     with all functions registered to (classtype)
@@ -24,16 +27,22 @@ def inject_instance(self, classtype=None):
 
     Args:
         self: the class instance
+        classtype: key for a class, preferably the class type itself, but it
+            doesnt have to be
+
+    SeeAlso:
+        make_class_method_decorator
 
     Example:
         >>> DOCTEST = False
-        >>> utool.classmember(InvertedIndex)(smk_debug.invindex_dbgstr)
+        >>> utool.make_class_method_decorator(InvertedIndex)(smk_debug.invindex_dbgstr)
         >>> utool.inject_instance(invindex)
     """
     if classtype is None:
         import utool as ut
         classtype = self.__class__
         if classtype == 'ibeis.gui.models_and_views.IBEISTableView':
+            # HACK HACK HACK
             from guitool.__PYQT__ import QtGui
             classtype = QtGui.QAbstractItemView
         if len(__CLASSTYPE_ATTRIBUTES__[classtype]) == 0:
@@ -46,14 +55,25 @@ def inject_instance(self, classtype=None):
                 classtype = classtype_
                 print('[utool] Warning: using subclass=%r' % (classtype_,))
                 break
-
+    if verbose:
+        print('[util_class] injecting methods into %r' % (self,))
     for func in __CLASSTYPE_ATTRIBUTES__[classtype]:
-        inject_func_as_method(self, func)
+        if VERBOSE_CLASS or util_arg.VERBOSE:
+            print('[util_class] * injecting %r' % (func,))
+        method_name = None
+        # Allow user to register tuples for aliases
+        if isinstance(func, tuple):
+            func, method_name = func
+        inject_func_as_method(self, func, method_name=method_name, allow_override=allow_override)
+    if verbose:
+        print('[util_class] Running postinject functions on %r' % (self,))
     for func in __CLASSTYPE_POSTINJECT_FUNCS__[classtype]:
         func(self)
+    if verbose:
+        print('[util_class] Finished injecting instance self=%r' % (self,))
 
 
-def classmember(classtype):
+def make_class_method_decorator(classtype):
     """ register a class to be injectable
     classtype is a key which should be a type
 
@@ -62,49 +82,45 @@ def classmember(classtype):
             REMEMBER to call inject_instance in __init__
 
     Returns:
-        closure_classmember (func): decorator for injectable methods
+        closure_decorate_class_method (func): decorator for injectable methods
 
     Example:
         >>> import utool as ut
         >>> class CheeseShop(object):
         ...    def __init__(self):
         ...        ut.inject_instance(self)
-        >>> cheeseshop_method = ut.classmember(CheeseShop)
+        >>> cheeseshop_method = ut.make_class_method_decorator(CheeseShop)
         >>> @cheeseshop_method
         >>> def has_cheese(self):
         >>>     return False
         >>> shop = CheeseShop()
-        >>> print(shop.has_cheese())
+        >>> assert shop.has_cheese() is False
     """
     import utool as ut
     if ut.get_argflag('--verbclass') or ut.VERBOSE:
-        print('[util_class] register classmember=%r' % classmember)
-    closure_classmember = functools.partial(decorate_classmember, classtype=classtype)
-    return closure_classmember
+        print('[util_class] register make_class_method_decorator=%r' % make_class_method_decorator)
+    closure_decorate_class_method = functools.partial(decorate_class_method, classtype=classtype)
+    return closure_decorate_class_method
 
 
-make_register_class_method = classmember
-
-
-def classpostinject(classtype):
+def make_class_postinject_decorator(classtype):
     """
     Args:
         classtype : the class to be injected into
 
     Returns:
-        closure_postinject (func): decorator for injectable methods
+        closure_decorate_postinject (func): decorator for injectable methods
 
     SeeAlso:
-        classmember
+        make_class_method_decorator
     """
-    import utool as ut
-    if ut.get_argflag('--verbclass') or ut.VERBOSE:
-        print('[util_class] register class_postinject=%r' % classmember)
-    closure_postinject = functools.partial(decorate_postinject, classtype=classtype)
-    return closure_postinject
+    if VERBOSE_CLASS or util_arg.VERBOSE:
+        print('[util_class] register class_postinject=%r' % make_class_method_decorator)
+    closure_decorate_postinject = functools.partial(decorate_postinject, classtype=classtype)
+    return closure_decorate_postinject
 
 
-def decorate_classmember(func, classtype=None):
+def decorate_class_method(func, classtype=None):
     """
     Will inject all decorated function as methods of classtype
     """
@@ -124,12 +140,12 @@ def decorate_postinject(func, classtype=None):
     return func
 
 
-def inject_func_as_method(self, func, method_name=None, class_=None):
+def inject_func_as_method(self, func, method_name=None, class_=None, allow_override=False):
     """ Injects a function into an object as a method
 
     Wraps func as a bound method of self. Then injects func into self
 
-    It is preferable to use classmember and inject_instance
+    It is preferable to use make_class_method_decorator and inject_instance
 
     Args:
        self (object): class instance
@@ -143,6 +159,12 @@ def inject_func_as_method(self, func, method_name=None, class_=None):
     method = types.MethodType(func, self)
     old_method = getattr(self, method_name, None)
     if old_method:
+        if allow_override is False:
+            raise AssertionError('Overrides are not allowed. Already have method_name=%r' % (method_name))
+        elif allow_override == 'warn':
+            print('WARNING: Overrides are not allowed. Already have method_name=%r. Skipping' % (method_name))
+            return
+        # TODO: does this actually decrement the refcount enough?
         del old_method
     setattr(self, method_name, method)
 
