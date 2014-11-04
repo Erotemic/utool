@@ -609,7 +609,17 @@ def get_callable_name(func):
 def align(text, character='='):
     r""" Left justifies text on the left side of character
 
+    align
+
+    Args:
+        text (?):
+        character (str):
+
+    Returns:
+        ?: new_text
+
     Example:
+        >>> from utool.util_str import *  # NOQA
         >>> character = '='
         >>> text = 'a = b\none = two\nthree = fish\n'
         >>> print(align(text, '='))
@@ -624,7 +634,24 @@ def align(text, character='='):
 
 
 def align_lines(line_list, character='='):
-    """ Left justifies text on the left side of character"""
+    """ Left justifies text on the left side of character
+
+    align_lines
+
+    Args:
+        line_list (list):
+        character (str):
+
+    Returns:
+        ?: new_lines
+
+    Example:
+        >>> from utool.util_str import *  # NOQA
+        >>> line_list = '?'
+        >>> character = '='
+        >>> new_lines = align_lines(line_list, character)
+        >>> print(new_lines)
+    """
 
     tup_list = [line.split(character) for line in line_list]
     maxlen = 0

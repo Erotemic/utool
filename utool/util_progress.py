@@ -69,10 +69,9 @@ class ProgressIter(object):
             except Exception:
                 pass
         mark, end = log_progress(*args, **kwargs)
-        if 'lbl' in kwargs:
-            self.lbl = kwargs['lbl']
-        else:
-            self.lbl = 'lbl'
+        self.lbl = kwargs.get('lbl', 'lbl')
+        self.nTotal = kwargs.get('nTotal', 0)
+        self.freq = kwargs.get('freq', 4)
         self.mark = mark
         self.end = end
         self.count = -1
@@ -99,9 +98,9 @@ class ProgressIter(object):
         # Wrap the for loop with a generator
         self.count = -1
         freq = 100
-        cumrate = 0
-        self.total = len(self.iterable)
-        fmt_msg = '\r' + self.lbl + ' %4d/' + str(self.total) + '... rate=%d iters per second.'
+        cumrate = 1E-9
+        self.nTotal = len(self.iterable)
+        fmt_msg = '\r' + self.lbl + ' %4d/' + str(self.nTotal) + '... rate=%d iters per second.'
         with ut.Timer(self.lbl):
             for self.count, item in enumerate(self.iterable):
                 #mark(self.count)
