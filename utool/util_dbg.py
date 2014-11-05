@@ -42,9 +42,28 @@ except Exception as ex:
 '''
 
 
-def print_traceback():
+def print_traceback(with_colors=True):
+    """
+    prints current stack
+    """
     #traceback.print_tb()
-    traceback.print_stack()
+    import traceback
+    stack = traceback.extract_stack()
+    stack_lines = traceback.format_list(stack)
+    tbtext = ''.join(stack_lines)
+    if with_colors:
+        try:
+            from pygments import highlight
+            from pygments.lexers import get_lexer_by_name
+            from pygments.formatters import TerminalFormatter
+            lexer = get_lexer_by_name('pytb', stripall=True)
+            formatter = TerminalFormatter(bg='dark')
+            formatted_text = highlight(tbtext, lexer, formatter)
+            print(formatted_text)
+        except Exception:
+            print(tbtext)
+    else:
+        print(tbtext)
 
 
 def execstr_embed():
