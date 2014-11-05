@@ -768,6 +768,21 @@ def replace_nonquoted_text(text, search_list, repl_list):
     return text_
 
 
+def remove_vowels(str_):
+    for char_ in 'AEOIUaeiou':
+        str_ = str_.replace(char_, '')
+    return str_
+
+
+def clipstr(str_, maxlen):
+    if len(str_) > maxlen:
+        str2 = (str_[0] + remove_vowels(str_[1:])).replace('_', '')
+        if len(str2) > maxlen:
+            return str2[0:maxlen]
+        else:
+            return str_[0:maxlen]
+    else:
+        return str_
 #def parse_commas_wrt_groups(str_):
 #    """
 #    str_ = 'cdef np.ndarray[np.float64_t, cast=True] x, y, z'

@@ -40,7 +40,8 @@ BIGBASE = len(ALPHABET)
 
 def hashstr_arr(arr, lbl='arr', **kwargs):
     if isinstance(arr, list):
-        arr = tuple(arr)  # force arrays into a tuple
+        arr = tuple(arr)  # force arrays into a tuple for hashability
+        # TODO: maybe for into numpy array instead? tuples might have problems
     if isinstance(arr, tuple):
         arr_shape = '(' + str(len(arr)) + ')'
     else:

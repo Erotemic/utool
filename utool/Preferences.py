@@ -153,6 +153,8 @@ class Pref(PrefNode):
         return choice_obj.get_tuple()
 
     def __overwrite_child_attr(self, name, attr):
+        # FIXME: when setting string preference nodes to lists, it casts
+        # the list to a string!
         #printDBG( "overwrite_attr: %s.%s = %r" % (self._intern.name, name, attr))
         # get child node to "overwrite"
         row = self._tree.child_names.index(name)
@@ -387,7 +389,7 @@ class Pref(PrefNode):
             return ret
 
     def full_name(self):
-        'returns name all the way up the tree'
+        """ returns name all the way up the tree """
         if self._tree.parent is None:
             return self._intern.name
         return self._tree.parent.full_name() + '.' + self._intern.name
