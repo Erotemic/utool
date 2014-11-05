@@ -13,7 +13,7 @@ Examples:
 from __future__ import absolute_import, division, print_function
 import sys
 from .util_inject import inject
-from .util_arg import QUIET
+from .util_arg import QUIET, SILENT
 from . import util_time
 #get_argflag,
 #, VERBOSE
@@ -290,7 +290,7 @@ def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
     #print('STARTING PROGRESS: VERBOSE=%r QUIET=%r' % (VERBOSE, QUIET))
 
     # Tell the user we are about to make progress
-    if (QUIET and not override_quiet) or (progress_type in ['simple', 'fmtstr'] and max_val < mark_after):
+    if SILENT or (QUIET and not override_quiet) or (progress_type in ['simple', 'fmtstr'] and max_val < mark_after):
         return lambda count: None, lambda: None
     # none: nothing
     if progress_type == 'none':

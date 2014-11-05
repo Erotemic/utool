@@ -18,8 +18,13 @@ from .util_dbg import printex
 
 
 QUIET   = util_arg.QUIET
+SILENT   = util_arg.SILENT
 VERBOSE = util_arg.VERBOSE
 STRICT  = util_arg.STRICT
+
+if SILENT:
+    def print(msg):
+        pass
 
 __POOL__ = None
 __TIME__ = '--time' in sys.argv
@@ -299,7 +304,8 @@ def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__,
                   (nTasks, get_funcname(func)))
         result_list = _process_serial(func, args_list, args_dict, nTasks=nTasks)
     else:
-        print('[parallel] executing %d %s tasks using %d processes' %
-              (nTasks, get_funcname(func), __POOL__._processes))
+        if not QUIET:
+            print('[parallel] executing %d %s tasks using %d processes' %
+                  (nTasks, get_funcname(func), __POOL__._processes))
         result_list = _process_parallel(func, args_list, args_dict, nTasks=nTasks)
     return result_list

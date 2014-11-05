@@ -21,6 +21,7 @@ from utool._internal.meta_util_six import get_funcname
 
 SIG_PRESERVE = util_arg.get_argflag('--sigpreserve')
 #SIG_PRESERVE = not util_arg.SAFE or util_arg.get_argflag('--sigpreserve')
+IGNORE_TRACEBACK = '--smalltb' in sys.argv or '--ignoretb' in sys.argv
 
 # do not ignore traceback when profiling
 PROFILING = hasattr(builtins, 'profile')
@@ -47,7 +48,7 @@ def ignores_exc_tb(func):
     if IGNORE_EXC_TB is False then this decorator does nothing
     (and it should do nothing in production code!)
     """
-    if not util_arg.IGNORE_TRACEBACK:
+    if not IGNORE_TRACEBACK:
         return func
     else:
         @wraps(func)

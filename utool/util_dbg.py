@@ -42,6 +42,11 @@ except Exception as ex:
 '''
 
 
+def print_traceback():
+    #traceback.print_tb()
+    traceback.print_stack()
+
+
 def execstr_embed():
     return IPYTHON_EMBED_STR
 

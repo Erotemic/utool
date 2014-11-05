@@ -14,9 +14,9 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[arg]')
 
 #STRICT = '--nostrict' not in sys.argv
 DEBUG2 = '--debug2' in sys.argv
-IGNORE_TRACEBACK = '--smalltb' in sys.argv or '--ignoretb' in sys.argv
 NO_ASSERTS = ('--no-assert' in sys.argv)
 QUIET = '--quiet' in sys.argv
+SILENT = '--silent' in sys.argv
 SAFE = '--safe' in sys.argv
 STRICT = '--strict' not in sys.argv
 REPORT = '--report' not in sys.argv
