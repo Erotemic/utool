@@ -220,19 +220,38 @@
 <span class="s">    print, print_, printDBG, rrr, profile = {injecter}.inject(</span>
 <span class="s">        __name__, &#39;[{module_name}]&#39;)</span>
 
-<span class="s">    def reload_subs():</span>
+
+<span class="s">    def reassign_submodule_attributes(verbose=True):</span>
+<span class="s">        &quot;&quot;&quot;</span>
+<span class="s">        why reloading all the modules doesnt do this I don&#39;t know</span>
+<span class="s">        &quot;&quot;&quot;</span>
+<span class="s">        import sys</span>
+<span class="s">        if verbose and &#39;--quiet&#39; not in sys.argv:</span>
+<span class="s">            print(&#39;dev reimport&#39;)</span>
+<span class="s">        # Self import</span>
+<span class="s">        import {module_name}</span>
+<span class="s">        # Implicit reassignment.</span>
+<span class="s">        for submodname, fromimports in IMPORT_TUPLES:</span>
+<span class="s">            submod = getattr({module_name}, submodname)</span>
+<span class="s">            for attr in dir(submod):</span>
+<span class="s">                if attr.startswith(&#39;_&#39;):</span>
+<span class="s">                    continue</span>
+<span class="s">                setattr({module_name}, attr, getattr(submod, attr))</span>
+
+
+<span class="s">    def reload_subs(verbose=True):</span>
 <span class="s">        &quot;&quot;&quot; Reloads {module_name} and submodules &quot;&quot;&quot;</span>
-<span class="s">        rrr()</span>
+<span class="s">        rrr(verbose=verbose)</span>
 <span class="s">        {body}</span>
-<span class="s">        rrr()</span>
+<span class="s">        rrr(verbose=verbose)</span>
 <span class="s">        try:</span>
-<span class="s">            # For utool</span>
-<span class="s">            dev_reimport()</span>
+<span class="s">            # hackish way of propogating up the new reloaded submodule attributes</span>
+<span class="s">            reassign_submodule_attributes(verbose=verbose)</span>
 <span class="s">        except Exception:</span>
 <span class="s">            pass</span>
 <span class="s">    rrrr = reload_subs&#39;&#39;&#39;</span><span class="p">)</span>
-    <span class="n">rrrdir_fmt</span>  <span class="o">=</span> <span class="s">&#39;    getattr(</span><span class="si">%s</span><span class="s">, </span><span class="se">\&#39;</span><span class="s">reload_subs</span><span class="se">\&#39;</span><span class="s">, lambda: None)()&#39;</span>
-    <span class="n">rrrfile_fmt</span> <span class="o">=</span> <span class="s">&#39;    getattr(</span><span class="si">%s</span><span class="s">, </span><span class="se">\&#39;</span><span class="s">rrr</span><span class="se">\&#39;</span><span class="s">, lambda: None)()&#39;</span>
+    <span class="n">rrrdir_fmt</span>  <span class="o">=</span> <span class="s">&#39;    getattr(</span><span class="si">%s</span><span class="s">, </span><span class="se">\&#39;</span><span class="s">reload_subs</span><span class="se">\&#39;</span><span class="s">, lambda verbose: None)(verbose=verbose)&#39;</span>
+    <span class="n">rrrfile_fmt</span> <span class="o">=</span> <span class="s">&#39;    getattr(</span><span class="si">%s</span><span class="s">, </span><span class="se">\&#39;</span><span class="s">rrr</span><span class="se">\&#39;</span><span class="s">, lambda verbose: None)(verbose=verbose)&#39;</span>
 
     <span class="k">def</span> <span class="nf">_reload_command</span><span class="p">(</span><span class="n">tup</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">tup</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>

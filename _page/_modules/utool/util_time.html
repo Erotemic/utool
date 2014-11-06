@@ -74,6 +74,25 @@
 
 </div>
 <div class="viewcode-block" id="get_timestamp"><a class="viewcode-back" href="../../utool.html#utool.util_time.get_timestamp">[docs]</a><span class="k">def</span> <span class="nf">get_timestamp</span><span class="p">(</span><span class="n">format_</span><span class="o">=</span><span class="s">&#39;filename&#39;</span><span class="p">,</span> <span class="n">use_second</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">delta_seconds</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    get_timestamp</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        format_ (str):</span>
+<span class="sd">        use_second (bool):</span>
+<span class="sd">        delta_seconds (None):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: stamp</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_time import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; format_ = &#39;printable&#39;</span>
+<span class="sd">        &gt;&gt;&gt; use_second = False</span>
+<span class="sd">        &gt;&gt;&gt; delta_seconds = None</span>
+<span class="sd">        &gt;&gt;&gt; stamp = get_timestamp(format_, use_second, delta_seconds)</span>
+<span class="sd">        &gt;&gt;&gt; print(stamp)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">delta_seconds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">now</span> <span class="o">+=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="n">delta_seconds</span><span class="p">)</span>
@@ -98,7 +117,10 @@
         <span class="n">stamp</span> <span class="o">=</span> <span class="n">time_formats</span><span class="p">[</span><span class="n">format_</span><span class="p">]</span> <span class="o">%</span> <span class="n">time_tup</span>
     <span class="k">return</span> <span class="n">stamp</span>
 
-</div>
+<span class="c"># alias</span></div>
+<span class="n">timestamp</span> <span class="o">=</span> <span class="n">get_timestamp</span>
+
+
 <div class="viewcode-block" id="Timer"><a class="viewcode-back" href="../../utool.html#utool.util_time.Timer">[docs]</a><span class="k">class</span> <span class="nc">Timer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Timer with-statment context object.</span>
@@ -223,10 +245,20 @@
 </div>
 <div class="viewcode-block" id="get_timedelta_str"><a class="viewcode-back" href="../../utool.html#utool.util_time.get_timedelta_str">[docs]</a><span class="k">def</span> <span class="nf">get_timedelta_str</span><span class="p">(</span><span class="n">timedelta</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    get_timedelta_str</span>
+
 <span class="sd">    Returns:</span>
-<span class="sd">        timestr (str): formated time string</span>
+<span class="sd">        str: timedelta_str, formated time string</span>
+
 <span class="sd">    References:</span>
 <span class="sd">        http://stackoverflow.com/questions/8906926/formatting-python-timedelta-objects</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_time import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; timedelta = get_unix_timedelta(10)</span>
+<span class="sd">        &gt;&gt;&gt; timedelta_str = get_timedelta_str(timedelta)</span>
+<span class="sd">        &gt;&gt;&gt; print(timedelta_str)</span>
+<span class="sd">        10 seconds</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">days</span> <span class="o">=</span> <span class="n">timedelta</span><span class="o">.</span><span class="n">days</span>
     <span class="n">hours</span><span class="p">,</span> <span class="n">rem</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">timedelta</span><span class="o">.</span><span class="n">seconds</span><span class="p">,</span> <span class="mi">3600</span><span class="p">)</span>

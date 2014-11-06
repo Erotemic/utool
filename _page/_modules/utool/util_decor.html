@@ -49,7 +49,6 @@
             
   <h1>Source code for utool.util_decor</h1><div class="highlight"><pre>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="c"># import decorator  # NOQA</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">builtins</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
 <span class="kn">import</span> <span class="nn">textwrap</span>
@@ -70,8 +69,9 @@
 <span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[decor]&#39;</span><span class="p">)</span>
 
-<span class="n">SIG_PRESERVE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nosigpreserve&#39;</span><span class="p">)</span>
-<span class="n">SIG_PRESERVE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">SAFE</span> <span class="ow">or</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--sigpreserve&#39;</span><span class="p">)</span>
+<span class="n">SIG_PRESERVE</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--sigpreserve&#39;</span><span class="p">)</span>
+<span class="c">#SIG_PRESERVE = not util_arg.SAFE or util_arg.get_argflag(&#39;--sigpreserve&#39;)</span>
+<span class="n">IGNORE_TRACEBACK</span> <span class="o">=</span> <span class="s">&#39;--smalltb&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="ow">or</span> <span class="s">&#39;--ignoretb&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
 
 <span class="c"># do not ignore traceback when profiling</span>
 <span class="n">PROFILING</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">builtins</span><span class="p">,</span> <span class="s">&#39;profile&#39;</span><span class="p">)</span>
@@ -98,7 +98,7 @@
 <span class="sd">    if IGNORE_EXC_TB is False then this decorator does nothing</span>
 <span class="sd">    (and it should do nothing in production code!)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">IGNORE_TRACEBACK</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">IGNORE_TRACEBACK</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">func</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
@@ -132,8 +132,7 @@
         <span class="n">wrp_no_exectb</span> <span class="o">=</span> <span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_no_exectb</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">wrp_no_exectb</span>
 
-
-<span class="c">#@decorator.decorator</span></div>
+</div>
 <div class="viewcode-block" id="on_exception_report_input"><a class="viewcode-back" href="../../utool.html#utool.util_decor.on_exception_report_input">[docs]</a><span class="k">def</span> <span class="nf">on_exception_report_input</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    If an error is thrown in the scope of this function&#39;s stack frame then the</span>
@@ -163,7 +162,6 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    does the actual work of indent_func</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#@decorator.decorator</span>
     <span class="k">def</span> <span class="nf">closure_indent</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
         <span class="c">#printDBG(&#39;Indenting lbl=%r, func=%r&#39; % (lbl, func))</span>
         <span class="k">if</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">TRACE</span><span class="p">:</span>
@@ -209,14 +207,7 @@
 
 <span class="c">#----------</span>
 
-<span class="c">#try:</span>
-<span class="c">#    import pandas as pd</span>
-<span class="c">#    HAS_PANDAS = True</span>
-<span class="c">#except Exception as ex:</span>
-<span class="c">#    HAS_PANDAS = False</span>
-
-
-<span class="c">#@decorator.decorator</span></div>
+</div>
 <div class="viewcode-block" id="accepts_scalar_input"><a class="viewcode-back" href="../../utool.html#utool.util_decor.accepts_scalar_input">[docs]</a><span class="k">def</span> <span class="nf">accepts_scalar_input</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    accepts_scalar_input is a decorator which expects to be used on class methods.</span>
@@ -278,7 +269,6 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">argx_list</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
         <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;accepts_scalar_input2 must be called with argument positions&#39;</span><span class="p">)</span>
 
-    <span class="c">#@decorator.decorator</span>
     <span class="k">def</span> <span class="nf">closure_si2</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
         <span class="nd">@ignores_exc_tb</span>
         <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
@@ -297,8 +287,7 @@
         <span class="k">return</span> <span class="n">wrp_si2</span>
     <span class="k">return</span> <span class="n">closure_si2</span>
 
-
-<span class="c">#@decorator.decorator</span></div>
+</div>
 <div class="viewcode-block" id="accepts_scalar_input_vector_output"><a class="viewcode-back" href="../../utool.html#utool.util_decor.accepts_scalar_input_vector_output">[docs]</a><span class="k">def</span> <span class="nf">accepts_scalar_input_vector_output</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    DEPRICATE IN FAVOR OF accepts_scalar_input2</span>
@@ -350,7 +339,6 @@
 <span class="c">#    return wrp_sivo</span>
 
 
-<span class="c">#@decorator.decorator</span>
 <div class="viewcode-block" id="accepts_numpy"><a class="viewcode-back" href="../../utool.html#utool.util_decor.accepts_numpy">[docs]</a><span class="k">def</span> <span class="nf">accepts_numpy</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Allows the first input to be a numpy array and get result in numpy form &quot;&quot;&quot;</span>
     <span class="c">#@ignores_exc_tb</span>
@@ -394,8 +382,7 @@
             <span class="k">return</span> <span class="n">ret</span>
     <span class="k">return</span> <span class="n">_memorizer</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
 
-
-<span class="c">#@decorator.decorator</span></div>
+</div>
 <div class="viewcode-block" id="interested"><a class="viewcode-back" href="../../utool.html#utool.util_decor.interested">[docs]</a><span class="k">def</span> <span class="nf">interested</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="nd">@indent_func</span>
     <span class="c">#@ignores_exc_tb</span>
@@ -408,8 +395,7 @@
         <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">wrp_interested</span>
 
-
-<span class="c">#@decorator.decorator</span></div>
+</div>
 <div class="viewcode-block" id="show_return_value"><a class="viewcode-back" href="../../utool.html#utool.util_decor.show_return_value">[docs]</a><span class="k">def</span> <span class="nf">show_return_value</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">.util_str</span> <span class="kn">import</span> <span class="n">func_str</span>
     <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
@@ -420,8 +406,7 @@
         <span class="k">return</span> <span class="n">ret</span>
     <span class="k">return</span> <span class="n">wrp_show_return_value</span>
 
-
-<span class="c">#@decorator.decorator</span></div>
+</div>
 <div class="viewcode-block" id="time_func"><a class="viewcode-back" href="../../utool.html#utool.util_decor.time_func">[docs]</a><span class="k">def</span> <span class="nf">time_func</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">wrp_time</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -477,8 +462,7 @@
 <span class="c">#            util_dbg.printex(ex, &#39;error wrapping: %r&#39; % (tgt_func,))</span>
 <span class="c">#            raise</span>
 
-
-<span class="c">#@decorator.decorator</span></div>
+</div>
 <div class="viewcode-block" id="lazyfunc"><a class="viewcode-back" href="../../utool.html#utool.util_decor.lazyfunc">[docs]</a><span class="k">def</span> <span class="nf">lazyfunc</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="n">closuremem_</span> <span class="o">=</span> <span class="p">[{}]</span>
     <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>

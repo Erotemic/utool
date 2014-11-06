@@ -199,6 +199,13 @@
     <span class="k">return</span> <span class="n">basename</span><span class="p">(</span><span class="n">truepath</span><span class="p">(</span><span class="s">&#39;~&#39;</span><span class="p">))</span>
 
 </div>
+<div class="viewcode-block" id="get_install_dirs"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.get_install_dirs">[docs]</a><span class="k">def</span> <span class="nf">get_install_dirs</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">WIN32</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s">r&#39;C:\Program Files&#39;</span><span class="p">,</span> <span class="s">r&#39;C:\Program Files (x86)&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s">&#39;/usr/bin&#39;</span><span class="p">,</span> <span class="s">&#39;/usr/local/bin&#39;</span><span class="p">,</span> <span class="s">&#39;~/bin&#39;</span><span class="p">]</span>
+
+</div>
 <div class="viewcode-block" id="getroot"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.getroot">[docs]</a><span class="k">def</span> <span class="nf">getroot</span><span class="p">():</span>
     <span class="n">root</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s">&#39;win32&#39;</span><span class="p">:</span> <span class="s">&#39;C:</span><span class="se">\\</span><span class="s">&#39;</span><span class="p">,</span>
@@ -273,6 +280,13 @@
 <span class="n">get_app_resource_dir</span> <span class="o">=</span> <span class="n">meta_util_cplat</span><span class="o">.</span><span class="n">get_app_resource_dir</span>
 
 
+<div class="viewcode-block" id="ensure_app_resource_dir"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.ensure_app_resource_dir">[docs]</a><span class="k">def</span> <span class="nf">ensure_app_resource_dir</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">app_resource_dir</span> <span class="o">=</span> <span class="n">get_app_resource_dir</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">app_resource_dir</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">app_resource_dir</span>
+
+</div>
 <div class="viewcode-block" id="shell"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.shell">[docs]</a><span class="k">def</span> <span class="nf">shell</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Dangerous. Take out of production code</span>
@@ -371,47 +385,55 @@
 <span class="sd">    # Should be able to configure detatchment, shell, and sudo.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
-    <span class="c"># Parse the keyword arguments</span>
-    <span class="n">verbose</span><span class="p">,</span> <span class="n">detatch</span><span class="p">,</span> <span class="n">shell</span><span class="p">,</span> <span class="n">sudo</span><span class="p">,</span> <span class="n">separate</span> <span class="o">=</span> <span class="n">__parse_cmd_kwargs</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">separate</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">+--------------&#39;</span><span class="p">)</span>
-    <span class="n">args</span> <span class="o">=</span> <span class="n">__parse_cmd_args</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">sudo</span><span class="p">)</span>
-    <span class="c"># Print what you are about to do</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[cplat] RUNNING: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
-    <span class="c"># Open a subprocess with a pipe</span>
-    <span class="n">proc</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">args</span><span class="p">,</span>
-                            <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
-                            <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">,</span>
-                            <span class="n">shell</span><span class="o">=</span><span class="n">shell</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">detatch</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[cplat] PROCESS DETATCHING&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="mi">1</span>
-    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">detatch</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[cplat] RUNNING WITH VERBOSE OUTPUT&#39;</span><span class="p">)</span>
-        <span class="n">logged_out</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">_run_process</span><span class="p">(</span><span class="n">proc</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
-                <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">six</span><span class="o">.</span><span class="n">PY3</span><span class="p">:</span>
-                <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
-            <span class="n">logged_out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">logged_out</span><span class="p">)</span>
-        <span class="p">(</span><span class="n">out_</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
-        <span class="c">#print(&#39;[cplat] out: %s&#39; % (out,))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[cplat] stdout: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">out_</span><span class="p">,))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[cplat] stderr: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">err</span><span class="p">,))</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="c"># Surpress output</span>
-        <span class="c">#print(&#39;[cplat] RUNNING WITH SUPRESSED OUTPUT&#39;)</span>
-        <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
-    <span class="c"># Make sure process if finished</span>
-    <span class="n">ret</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[cplat] PROCESS FINISHED&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">separate</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;L--------------</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">out</span><span class="p">,</span> <span class="n">err</span><span class="p">,</span> <span class="n">ret</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="c"># Parse the keyword arguments</span>
+        <span class="n">verbose</span><span class="p">,</span> <span class="n">detatch</span><span class="p">,</span> <span class="n">shell</span><span class="p">,</span> <span class="n">sudo</span><span class="p">,</span> <span class="n">separate</span> <span class="o">=</span> <span class="n">__parse_cmd_kwargs</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">separate</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">+--------------&#39;</span><span class="p">)</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">__parse_cmd_args</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">sudo</span><span class="p">)</span>
+        <span class="c"># Print what you are about to do</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[cplat] RUNNING: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
+        <span class="c"># Open a subprocess with a pipe</span>
+        <span class="n">proc</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">args</span><span class="p">,</span>
+                                <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+                                <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">,</span>
+                                <span class="n">shell</span><span class="o">=</span><span class="n">shell</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">detatch</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[cplat] PROCESS DETATCHING&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">detatch</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[cplat] RUNNING WITH VERBOSE OUTPUT&#39;</span><span class="p">)</span>
+            <span class="n">logged_out</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">_run_process</span><span class="p">(</span><span class="n">proc</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">six</span><span class="o">.</span><span class="n">PY3</span><span class="p">:</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                <span class="n">logged_out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">logged_out</span><span class="p">)</span>
+            <span class="p">(</span><span class="n">out_</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
+            <span class="c">#print(&#39;[cplat] out: %s&#39; % (out,))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[cplat] stdout: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">out_</span><span class="p">,))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[cplat] stderr: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">err</span><span class="p">,))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># Surpress output</span>
+            <span class="c">#print(&#39;[cplat] RUNNING WITH SUPRESSED OUTPUT&#39;)</span>
+            <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
+        <span class="c"># Make sure process if finished</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[cplat] PROCESS FINISHED&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">separate</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;L--------------</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span><span class="p">,</span> <span class="n">err</span><span class="p">,</span> <span class="n">ret</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unixpath</span><span class="p">[</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unixpath</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="get_flops"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.get_flops">[docs]</a><span class="k">def</span> <span class="nf">get_flops</span><span class="p">():</span>

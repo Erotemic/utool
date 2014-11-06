@@ -44,6 +44,14 @@ utool._internal.meta_util_cplat module
     :undoc-members:
     :show-inheritance:
 
+utool._internal.meta_util_dbg module
+------------------------------------
+
+.. automodule:: utool._internal.meta_util_dbg
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 utool._internal.meta_util_git module
 ------------------------------------
 

@@ -210,13 +210,13 @@
     <span class="n">module</span> <span class="o">=</span> <span class="n">_get_module</span><span class="p">(</span><span class="n">module_name</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span> <span class="n">register</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">module_name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">module_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">rrr</span><span class="p">():</span>
+    <span class="k">def</span> <span class="nf">rrr</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Dynamic module reloading &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">__RELOAD_OK__</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;Reloading has been forced off&#39;</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">imp</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">QUIET</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">QUIET</span><span class="p">:</span>
                 <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="s">&#39;RELOAD: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">module_prefix</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; __name__=&#39;</span> <span class="o">+</span> <span class="n">module_name</span><span class="p">)</span>
             <span class="n">imp</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
@@ -355,6 +355,9 @@
     <span class="k">return</span> <span class="n">profile_withfuncname_filter</span>
 
 </div>
+<span class="n">PRINT_INJECT_ORDER</span> <span class="o">=</span> <span class="s">&#39;--veryverbose&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="ow">or</span> <span class="s">&#39;--print-inject-order&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+
+
 <div class="viewcode-block" id="inject"><a class="viewcode-back" href="../../utool.html#utool.util_inject.inject">[docs]</a><span class="k">def</span> <span class="nf">inject</span><span class="p">(</span><span class="n">module_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">module_prefix</span><span class="o">=</span><span class="s">&#39;[???]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">module</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Injects your module with utool magic</span>
@@ -367,11 +370,25 @@
 <span class="sd">    a no-op if not using kernprof.py, otherwise it is kernprof.py&#39;s profile</span>
 <span class="sd">    decorator.</span>
 
+<span class="sd">    Args:</span>
+<span class="sd">        module_name (str): the __name__ varaible in your module</span>
+<span class="sd">        module_prefix (str): a user defined module prefix</span>
+<span class="sd">        DEBUG (bool):</span>
+<span class="sd">        module (None): the actual module (optional)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple : (print, print_, printDBG, rrr, profile_)</span>
+
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_inject import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; from __future__ import absolute_import, division, print_function</span>
 <span class="sd">        &gt;&gt;&gt; from util.util_inject import inject</span>
 <span class="sd">        &gt;&gt;&gt; print, print_, printDBG, rrr, profile = inject(__name__, &#39;[mod]&#39;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">PRINT_INJECT_ORDER</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">._internal</span> <span class="kn">import</span> <span class="n">meta_util_dbg</span>
+        <span class="n">callername</span> <span class="o">=</span> <span class="n">meta_util_dbg</span><span class="o">.</span><span class="n">get_caller_name</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_inject] {callername} is importing {modname}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">callername</span><span class="o">=</span><span class="n">callername</span><span class="p">,</span> <span class="n">modname</span><span class="o">=</span><span class="n">module_name</span><span class="p">))</span>
     <span class="n">module</span> <span class="o">=</span> <span class="n">_get_module</span><span class="p">(</span><span class="n">module_name</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>
     <span class="n">rrr</span>         <span class="o">=</span> <span class="n">inject_reload_function</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">module_prefix</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>
     <span class="n">profile_</span>    <span class="o">=</span> <span class="n">inject_profile_function</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">module_prefix</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>
@@ -402,8 +419,11 @@
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;&lt;/!!!&gt;&#39;</span><span class="p">)</span>
             <span class="k">raise</span>
 
+</div>
+<span class="k">if</span> <span class="s">&#39;--inject-color&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+    <span class="n">inject_colored_exceptions</span><span class="p">()</span>
 
-<span class="c"># Inject this module with itself!</span></div>
+<span class="c"># Inject this module with itself!</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[inject]&#39;</span><span class="p">)</span>
 </pre></div>
 

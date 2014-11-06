@@ -60,7 +60,8 @@
 <span class="n">__PRINT_READS__</span>  <span class="o">=</span> <span class="bp">False</span> <span class="ow">or</span> <span class="n">__PRINT_IO__</span>
 
 
-<div class="viewcode-block" id="write_to"><a class="viewcode-back" href="../../utool.html#utool.util_io.write_to">[docs]</a><span class="k">def</span> <span class="nf">write_to</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">to_write</span><span class="p">,</span> <span class="n">aslines</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">__PRINT_WRITES__</span><span class="p">):</span>
+<div class="viewcode-block" id="write_to"><a class="viewcode-back" href="../../utool.html#utool.util_io.write_to">[docs]</a><span class="k">def</span> <span class="nf">write_to</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">to_write</span><span class="p">,</span> <span class="n">aslines</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">__PRINT_WRITES__</span><span class="p">,</span>
+                <span class="n">onlyifdiff</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Writes text to a file</span>
 
 <span class="sd">    Args:</span>
@@ -68,7 +69,14 @@
 <span class="sd">        to_write (str): text to write</span>
 <span class="sd">        aslines (bool): if True to_write is assumed to be a list of lines</span>
 <span class="sd">        verbose (bool): verbosity flag</span>
+<span class="sd">        onlyifdiff (bool): only writes if needed!</span>
+<span class="sd">            checks hash of to_write vs the hash of the contents of fpath</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">onlyifdiff</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr</span><span class="p">(</span><span class="n">read_from</span><span class="p">(</span><span class="n">fpath</span><span class="p">))</span> <span class="o">==</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr</span><span class="p">(</span><span class="n">to_write</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] * no difference&#39;</span><span class="p">)</span>
+            <span class="k">return</span>
     <span class="k">if</span> <span class="n">__PRINT_WRITES__</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] * Writing to text file: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">util_path</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">fpath</span><span class="p">))</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>

@@ -50,6 +50,7 @@
   <h1>Source code for utool.util_regex</h1><div class="highlight"><pre>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">split</span><span class="p">,</span> <span class="n">relpath</span>
 <span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
@@ -63,6 +64,24 @@
 <span class="n">REGEX_VARNAME</span> <span class="o">=</span> <span class="s">&#39;[A-Za-z_][A-Za-z0-9_]*&#39;</span>
 
 
+<div class="viewcode-block" id="extend_regex"><a class="viewcode-back" href="../../utool.html#utool.util_regex.extend_regex">[docs]</a><span class="k">def</span> <span class="nf">extend_regex</span><span class="p">(</span><span class="n">regexpr</span><span class="p">):</span>
+    <span class="n">regex_map</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">r&#39;\&lt;&#39;</span><span class="p">:</span> <span class="s">r&#39;\b(?=\w)&#39;</span><span class="p">,</span>
+        <span class="s">r&#39;\&gt;&#39;</span><span class="p">:</span> <span class="s">r&#39;\b(?!\w)&#39;</span><span class="p">,</span>
+        <span class="p">(</span><span class="s">&#39;UNSAFE&#39;</span><span class="p">,</span> <span class="s">r&#39;\x08&#39;</span><span class="p">):</span> <span class="s">r&#39;\b&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">repl</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">regex_map</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">search</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">search</span> <span class="o">=</span> <span class="n">key</span>
+        <span class="k">if</span> <span class="n">regexpr</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">search</span><span class="p">)</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING! Unsafe regex with: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+            <span class="n">regexpr</span> <span class="o">=</span> <span class="n">regexpr</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">search</span><span class="p">,</span> <span class="n">repl</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">regexpr</span>
+
+</div>
 <div class="viewcode-block" id="get_match_text"><a class="viewcode-back" href="../../utool.html#utool.util_regex.get_match_text">[docs]</a><span class="k">def</span> <span class="nf">get_match_text</span><span class="p">(</span><span class="n">match</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">start</span><span class="p">,</span> <span class="n">stop</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">start</span><span class="p">(),</span> <span class="n">match</span><span class="o">.</span><span class="n">end</span><span class="p">()</span>
@@ -94,10 +113,57 @@
 
 </div>
 <div class="viewcode-block" id="regex_replace"><a class="viewcode-back" href="../../utool.html#utool.util_regex.regex_replace">[docs]</a><span class="k">def</span> <span class="nf">regex_replace</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">repl</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    regex_replace</span>
+
+<span class="sd">    MULTILINE and DOTALL are on in all util_regex functions</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        regex (str): pattern to find</span>
+<span class="sd">        repl (str): replace pattern with this</span>
+<span class="sd">        text (str): text to modify</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: modified text</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_regex import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; regex = r&#39;\(.*\):&#39;</span>
+<span class="sd">        &gt;&gt;&gt; repl = &#39;(*args)&#39;</span>
+<span class="sd">        &gt;&gt;&gt; text = &#39;&#39;&#39;def foo(param1,</span>
+<span class="sd">        ...                   param2,</span>
+<span class="sd">        ...                   param3):&#39;&#39;&#39;</span>
+<span class="sd">        &gt;&gt;&gt; result = regex_replace(regex, repl, text)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        def foo(*args)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">repl</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="o">**</span><span class="n">RE_KWARGS</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="named_field_regex"><a class="viewcode-back" href="../../utool.html#utool.util_regex.named_field_regex">[docs]</a><span class="k">def</span> <span class="nf">named_field_regex</span><span class="p">(</span><span class="n">keypat_tups</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    named_field_regex</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        keypat_tups (list): tuples of (name, pattern)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: regex</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_regex import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; keypat_tups = [</span>
+<span class="sd">        ...    (&#39;name&#39;,  r&#39;G\d+&#39;),  # species and 2 numbers</span>
+<span class="sd">        ...    (&#39;under&#39;, r&#39;_&#39;),     # 2 more numbers</span>
+<span class="sd">        ...    (&#39;id&#39;,    r&#39;\d+&#39;),   # 2 more numbers</span>
+<span class="sd">        ...    ( None,   r&#39;\.&#39;),</span>
+<span class="sd">        ...    (&#39;ext&#39;,   r&#39;\w+&#39;),</span>
+<span class="sd">        ... ]</span>
+<span class="sd">        &gt;&gt;&gt; parse_dict = named_field_regex(keypat_tups)</span>
+<span class="sd">        &gt;&gt;&gt; print(parse_dict)</span>
+<span class="sd">        (?P&lt;name&gt;G\d+)(?P&lt;under&gt;_)(?P&lt;id&gt;\d+)\.(?P&lt;ext&gt;\w+)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">named_fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">named_field</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">pat</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">pat</span> <span class="ow">in</span> <span class="n">keypat_tups</span><span class="p">]</span>
     <span class="n">regex</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">named_fields</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">regex</span>
@@ -116,7 +182,72 @@
     <span class="k">return</span> <span class="n">hasmatch</span>
 
 </div>
+<div class="viewcode-block" id="modify_quoted_strs"><a class="viewcode-back" href="../../utool.html#utool.util_regex.modify_quoted_strs">[docs]</a><span class="k">def</span> <span class="nf">modify_quoted_strs</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">modify_func</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    modify_quoted_strs</span>
+
+<span class="sd">    doesnt work with escaped quotes or multilines</span>
+<span class="sd">    single quotes only. no nesting.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        text (?):</span>
+<span class="sd">        modify_func (None):</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_regex import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; text = &quot;&#39;just&#39; &#39;a&#39; sentance with &#39;strings&#39; in it &quot;</span>
+<span class="sd">        &gt;&gt;&gt; def modify_func(quoted_str):</span>
+<span class="sd">        ...     return quoted_str.upper()</span>
+<span class="sd">        &gt;&gt;&gt; result = modify_quoted_strs(text, modify_func)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &#39;JUST&#39; &#39;A&#39; sentance with &#39;STRINGS&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">modify_func</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">def</span> <span class="nf">idenfunc</span><span class="p">(</span><span class="n">quoted_str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">quoted_str</span>
+        <span class="n">modify_func</span> <span class="o">=</span> <span class="n">idenfunc</span>
+    <span class="n">regex</span> <span class="o">=</span> <span class="s">r&#39;(?P&lt;quoted_str&gt;</span><span class="se">\&#39;</span><span class="s">[^</span><span class="se">\&#39;</span><span class="s">]*</span><span class="se">\&#39;</span><span class="s">)&#39;</span>
+    <span class="n">tmp_text</span> <span class="o">=</span> <span class="n">text</span><span class="p">[:]</span>
+    <span class="n">new_text_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">regex_parse</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">tmp_text</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">quoted_str</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s">&#39;quoted_str&#39;</span><span class="p">]</span>
+            <span class="n">len_</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">quoted_str</span><span class="p">)</span>
+            <span class="n">startpos</span> <span class="o">=</span> <span class="n">tmp_text</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">quoted_str</span><span class="p">)</span>
+            <span class="n">endpos</span> <span class="o">=</span> <span class="n">len_</span> <span class="o">+</span> <span class="n">startpos</span>
+            <span class="n">new_text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp_text</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">startpos</span><span class="p">])</span>
+            <span class="n">new_text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">modify_func</span><span class="p">(</span><span class="n">quoted_str</span><span class="p">))</span>
+            <span class="n">tmp_text</span> <span class="o">=</span> <span class="n">tmp_text</span><span class="p">[</span><span class="n">endpos</span><span class="p">:]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp_text</span><span class="p">)</span>
+            <span class="k">break</span>
+    <span class="n">new_text</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">new_text_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_text</span>
+
+</div>
 <div class="viewcode-block" id="regex_parse"><a class="viewcode-back" href="../../utool.html#utool.util_regex.regex_parse">[docs]</a><span class="k">def</span> <span class="nf">regex_parse</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">fromstart</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    regex_parse</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        regex (?):</span>
+<span class="sd">        text (?):</span>
+<span class="sd">        fromstart (bool):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict or None:</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_regex import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; regex = r&#39;(?P&lt;string&gt;\&#39;[^\&#39;]*\&#39;)&#39;</span>
+<span class="sd">        &gt;&gt;&gt; text = &quot; &#39;just&#39; &#39;a&#39; sentance with &#39;strings&#39; in it &quot;</span>
+<span class="sd">        &gt;&gt;&gt; fromstart = False</span>
+<span class="sd">        &gt;&gt;&gt; result = regex_parse(regex, text, fromstart)[&#39;string&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">match</span> <span class="o">=</span> <span class="n">regex_get_match</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">fromstart</span><span class="o">=</span><span class="n">fromstart</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">parse_dict</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">groupdict</span><span class="p">()</span>
@@ -160,7 +291,7 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&#39; * regular expression : </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">regexpr</span><span class="p">,))</span>
 
     <span class="c"># Walk through each directory recursively</span>
-    <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">util_path</span><span class="o">.</span><span class="n">_matching_fnames</span><span class="p">(</span><span class="n">dpath_list</span><span class="p">,</span> <span class="n">include_patterns</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">util_path</span><span class="o">.</span><span class="n">matching_fnames</span><span class="p">(</span><span class="n">dpath_list</span><span class="p">,</span> <span class="n">include_patterns</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">):</span>
         <span class="n">sedfile</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">regexpr</span><span class="p">,</span> <span class="n">repl</span><span class="p">,</span> <span class="n">force</span><span class="p">)</span>
 
 </div>

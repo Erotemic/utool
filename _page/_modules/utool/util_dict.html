@@ -63,11 +63,31 @@
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[dict]&#39;</span><span class="p">)</span>
 
 
+<div class="viewcode-block" id="invert_dict"><a class="viewcode-back" href="../../utool.html#utool.util_dict.invert_dict">[docs]</a><span class="k">def</span> <span class="nf">invert_dict</span><span class="p">(</span><span class="n">dict_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    invert_dict</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dict_ (dict_):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ?: inverted_dict</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dict import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; dict_ = {&#39;a&#39;: 1, &#39;b&#39;: 2}</span>
+<span class="sd">        &gt;&gt;&gt; inverted_dict = invert_dict(dict_)</span>
+<span class="sd">        {1: &#39;a&#39;, 2: &#39;b&#39;}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">inverted_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">val</span><span class="p">:</span> <span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">dict_</span><span class="p">)}</span>
+    <span class="k">return</span> <span class="n">inverted_dict</span>
+
+</div>
 <div class="viewcode-block" id="all_dict_combinations"><a class="viewcode-back" href="../../utool.html#utool.util_dict.all_dict_combinations">[docs]</a><span class="k">def</span> <span class="nf">all_dict_combinations</span><span class="p">(</span><span class="n">varied_dict</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Input: a dict with lists of possible parameter settings</span>
 <span class="sd">    Output: a list of dicts correpsonding to all combinations of params settings</span>
-<span class="sd">     &quot;&quot;&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">tups_list</span> <span class="o">=</span> <span class="p">[[(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">val_list</span><span class="p">]</span>
                  <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val_list</span><span class="p">)</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">varied_dict</span><span class="p">)]</span>
@@ -166,7 +186,28 @@
         <span class="k">if</span> <span class="n">verbose_err</span><span class="p">:</span>
             <span class="n">util_dbg</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">False</span>
-    <span class="k">return</span> <span class="bp">True</span></div>
+    <span class="k">return</span> <span class="bp">True</span>
+
+</div>
+<div class="viewcode-block" id="dict_take_gen"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_take_gen">[docs]</a><span class="k">def</span> <span class="nf">dict_take_gen</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">):</span>
+    <span class="n">hasnumpy</span> <span class="o">=</span> <span class="s">&#39;np&#39;</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">hasnumpy</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="nb">list</span><span class="p">(</span><span class="n">dict_take_gen</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">key</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">dict_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="dict_take_list"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_take_list">[docs]</a><span class="k">def</span> <span class="nf">dict_take_list</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">dict_take_gen</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">))</span>
+    <span class="c">#return [dict_[key] for key in keys]</span>
+
+</div>
+<div class="viewcode-block" id="dict_where_len0"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_where_len0">[docs]</a><span class="k">def</span> <span class="nf">dict_where_len0</span><span class="p">(</span><span class="n">dict_</span><span class="p">):</span>
+    <span class="n">keys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dict_</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">flags</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">dict_</span><span class="o">.</span><span class="n">values</span><span class="p">())))</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">flags</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">keys</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span></div>
 </pre></div>
 
           </div>
