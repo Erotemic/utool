@@ -136,6 +136,16 @@
     <span class="k">return</span> <span class="n">passed</span>
 
 </div>
+<div class="viewcode-block" id="euclidean_dist"><a class="viewcode-back" href="../../utool.html#utool.util_alg.euclidean_dist">[docs]</a><span class="k">def</span> <span class="nf">euclidean_dist</span><span class="p">(</span><span class="n">vecs1</span><span class="p">,</span> <span class="n">vec2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(((</span><span class="n">vecs1</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span> <span class="o">-</span> <span class="n">vec2</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="negative_minclamp_inplace"><a class="viewcode-back" href="../../utool.html#utool.util_alg.negative_minclamp_inplace">[docs]</a><span class="k">def</span> <span class="nf">negative_minclamp_inplace</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+    <span class="n">arr</span><span class="p">[</span><span class="n">arr</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-=</span> <span class="n">arr</span><span class="p">[</span><span class="n">arr</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    <span class="n">arr</span><span class="p">[</span><span class="n">arr</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">arr</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">arr</span>
+
+</div>
 <div class="viewcode-block" id="xywh_to_tlbr"><a class="viewcode-back" href="../../utool.html#utool.util_alg.xywh_to_tlbr">[docs]</a><span class="k">def</span> <span class="nf">xywh_to_tlbr</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="n">img_wh</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; converts xywh format to (tlx, tly, blx, bly) &quot;&quot;&quot;</span>
     <span class="p">(</span><span class="n">img_w</span><span class="p">,</span> <span class="n">img_h</span><span class="p">)</span> <span class="o">=</span> <span class="n">img_wh</span>

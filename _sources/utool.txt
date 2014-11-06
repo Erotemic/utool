@@ -291,6 +291,14 @@ utool.util_resources module
     :undoc-members:
     :show-inheritance:
 
+utool.util_set module
+---------------------
+
+.. automodule:: utool.util_set
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 utool.util_setup module
 -----------------------
 

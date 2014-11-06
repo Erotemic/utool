@@ -57,7 +57,7 @@
     <span class="sd">&quot;&quot;&quot; universal input (really just accept list or tuple as input to a list</span>
 <span class="sd">    only function) &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
-        <span class="n">output_</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">input_</span><span class="p">))</span>
+        <span class="n">output_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">input_</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">output_</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">input_</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">output_</span>
@@ -77,7 +77,12 @@
     <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">setter</span><span class="p">,</span> <span class="s">&#39;__setitem__&#39;</span><span class="p">):</span>
         <span class="n">setter</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">setter</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+        <span class="n">setter</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="identity"><a class="viewcode-back" href="../../utool.html#utool.util_func.identity">[docs]</a><span class="k">def</span> <span class="nf">identity</span><span class="p">(</span><span class="n">input_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; identity function &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">input_</span></div>
 </pre></div>
 
           </div>

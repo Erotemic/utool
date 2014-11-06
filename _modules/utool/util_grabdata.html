@@ -54,6 +54,7 @@
 <span class="kn">import</span> <span class="nn">zipfile</span>
 <span class="kn">import</span> <span class="nn">tarfile</span>
 <span class="kn">import</span> <span class="nn">urllib</span>
+<span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_path</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_cplat</span>
@@ -106,35 +107,62 @@
         <span class="n">archive_file</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">output_dir</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="download_url"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.download_url">[docs]</a><span class="k">def</span> <span class="nf">download_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">spoof</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="open_url_in_browser"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.open_url_in_browser">[docs]</a><span class="k">def</span> <span class="nf">open_url_in_browser</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    open_url_in_browser</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        url (str): web url</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_grabdata import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; url = &#39;http://www.jrsoftware.org/isdl.php&#39;</span>
+<span class="sd">        &gt;&gt;&gt; open_url_in_browser(url)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">webbrowser</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Opening url=</span><span class="si">%r</span><span class="s"> in browser&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,))</span>
+    <span class="k">return</span> <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="download_url"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.download_url">[docs]</a><span class="k">def</span> <span class="nf">download_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">spoof</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; downloads a url to a filename.</span>
+
+<span class="sd">    download_url</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        url (str): url to download</span>
-<span class="sd">        filename (str): path to download to</span>
+<span class="sd">        filename (str): path to download to. Defaults to basename of url</span>
 <span class="sd">        spoof (bool): if True pretends to by Firefox</span>
 
 <span class="sd">    References:</span>
 <span class="sd">        http://blog.moleculea.com/2012/10/04/urlretrieve-progres-indicator/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_grabdata import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; url = &#39;http://www.jrsoftware.org/download.php/ispack.exe&#39;</span>
+<span class="sd">        &gt;&gt;&gt; fpath = download_url(url)</span>
+<span class="sd">        &gt;&gt;&gt; print(fpath)</span>
+<span class="sd">        [utool] Downloading url=&#39;http://www.jrsoftware.org/download.php/ispack.exe&#39; to filename=&#39;ispack.exe&#39;</span>
+<span class="sd">        ...100%, 1 MB, 606 KB/s, 3 seconds passed</span>
+<span class="sd">        [utool] Finished downloading filename=&#39;ispack.exe&#39;</span>
+<span class="sd">        ispack.exe</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">start_time_ptr</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="k">def</span> <span class="nf">reporthook</span><span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="n">block_size</span><span class="p">,</span> <span class="n">total_size</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">start_time_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-            <span class="k">return</span>
-        <span class="n">duration</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">duration</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">duration</span> <span class="o">=</span> <span class="mf">1E-9</span>
-        <span class="n">progress_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">count</span> <span class="o">*</span> <span class="n">block_size</span><span class="p">)</span>
-        <span class="n">speed</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">progress_size</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">*</span> <span class="n">duration</span><span class="p">))</span>
-        <span class="n">percent</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">count</span> <span class="o">*</span> <span class="n">block_size</span> <span class="o">*</span> <span class="mi">100</span> <span class="o">/</span> <span class="n">total_size</span><span class="p">)</span>
-        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\r</span><span class="s">...</span><span class="si">%d%%</span><span class="s">, </span><span class="si">%d</span><span class="s"> MB, </span><span class="si">%d</span><span class="s"> KB/s, </span><span class="si">%d</span><span class="s"> seconds passed&#39;</span> <span class="o">%</span>
-                         <span class="p">(</span><span class="n">percent</span><span class="p">,</span> <span class="n">progress_size</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">),</span> <span class="n">speed</span><span class="p">,</span> <span class="n">duration</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">reporthook_</span><span class="p">(</span><span class="n">num_blocks</span><span class="p">,</span> <span class="n">block_nBytes</span><span class="p">,</span> <span class="n">total_nBytes</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="n">total_seconds</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span> <span class="o">+</span> <span class="mf">1E-9</span>
+        <span class="n">num_kb_down</span>   <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_blocks</span> <span class="o">*</span> <span class="n">block_nBytes</span><span class="p">)</span> <span class="o">/</span> <span class="mi">1024</span>
+        <span class="n">num_mb_down</span>   <span class="o">=</span> <span class="n">num_kb_down</span> <span class="o">/</span> <span class="mi">1024</span>
+        <span class="n">percent_down</span>  <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_blocks</span> <span class="o">*</span> <span class="n">block_nBytes</span> <span class="o">*</span> <span class="mi">100</span> <span class="o">/</span> <span class="n">total_nBytes</span><span class="p">)</span>
+        <span class="n">kb_per_second</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_kb_down</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_seconds</span><span class="p">))</span>
+        <span class="n">fmt_msg</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\r</span><span class="s">...</span><span class="si">%d%%</span><span class="s">, </span><span class="si">%d</span><span class="s"> MB, </span><span class="si">%d</span><span class="s"> KB/s, </span><span class="si">%d</span><span class="s"> seconds passed&#39;</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">fmt_msg</span> <span class="o">%</span> <span class="p">(</span><span class="n">percent_down</span><span class="p">,</span> <span class="n">num_mb_down</span><span class="p">,</span> <span class="n">kb_per_second</span><span class="p">,</span> <span class="n">total_seconds</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+    <span class="n">reporthook</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">reporthook_</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Downloading url=</span><span class="si">%r</span><span class="s"> to filename=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">filename</span><span class="p">))</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">spoof</span><span class="p">:</span>
-        <span class="n">urllib</span><span class="o">.</span><span class="n">urlretrieve</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">reporthook</span><span class="o">=</span><span class="n">reporthook</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">spoof</span><span class="p">:</span>
+        <span class="c"># Different agents that can be used for spoofing</span>
         <span class="n">user_agents</span> <span class="o">=</span> <span class="p">[</span>
             <span class="s">&#39;Mozilla/5.0 (Windows; U; Windows NT 5.1; it; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11&#39;</span><span class="p">,</span>
             <span class="s">&#39;Opera/9.25 (Windows NT 5.1; U; en)&#39;</span><span class="p">,</span>
@@ -143,11 +171,16 @@
             <span class="s">&#39;Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.0.12) Gecko/20070731 Ubuntu/dapper-security Firefox/1.5.0.12&#39;</span><span class="p">,</span>
             <span class="s">&#39;Lynx/2.8.5rel.1 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/1.2.9&#39;</span>
         <span class="p">]</span>
-
         <span class="k">class</span> <span class="nc">SpoofingOpener</span><span class="p">(</span><span class="n">urllib</span><span class="o">.</span><span class="n">FancyURLopener</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
             <span class="n">version</span> <span class="o">=</span> <span class="n">user_agents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">myopener</span> <span class="o">=</span> <span class="n">SpoofingOpener</span><span class="p">()</span>
-        <span class="n">myopener</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">reporthook</span><span class="o">=</span><span class="n">reporthook</span><span class="p">)</span>
+        <span class="n">spoofing_opener</span> <span class="o">=</span> <span class="n">SpoofingOpener</span><span class="p">()</span>
+        <span class="n">spoofing_opener</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">reporthook</span><span class="o">=</span><span class="n">reporthook</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># no spoofing</span>
+        <span class="n">urllib</span><span class="o">.</span><span class="n">urlretrieve</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">reporthook</span><span class="o">=</span><span class="n">reporthook</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Finished downloading filename=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filename</span><span class="p">,))</span>
+    <span class="k">return</span> <span class="n">filename</span>
 
 </div>
 <div class="viewcode-block" id="fix_dropbox_link"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.fix_dropbox_link">[docs]</a><span class="k">def</span> <span class="nf">fix_dropbox_link</span><span class="p">(</span><span class="n">dropbox_url</span><span class="p">):</span>

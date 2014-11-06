@@ -57,13 +57,23 @@
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">weakref</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">input</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_progress</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="n">HAS_NUMPY</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+    <span class="n">HAS_NUMPY</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="k">pass</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">relpath</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_inject</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_regex</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[dev]&#39;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">HAS_NUMPY</span><span class="p">:</span>
+    <span class="n">INDEXABLE_TYPES</span> <span class="o">=</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">INDEXABLE_TYPES</span> <span class="o">=</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="DEPRICATED"><a class="viewcode-back" href="../../utool.html#utool.util_dev.DEPRICATED">[docs]</a><span class="k">def</span> <span class="nf">DEPRICATED</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
@@ -80,12 +90,50 @@
     <span class="n">__DEP_WRAPPER</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">__dict__</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">__DEP_WRAPPER</span>
 
+</div>
+<span class="k">def</span> <span class="nf">_get_testable_name</span><span class="p">(</span><span class="n">testable</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">utool</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">testable_name</span> <span class="o">=</span> <span class="n">testable</span><span class="o">.</span><span class="n">func_name</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">ex1</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">testable_name</span> <span class="o">=</span> <span class="n">testable</span><span class="o">.</span><span class="n">__name__</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">ex2</span><span class="p">:</span>
+            <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex1</span><span class="p">,</span> <span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="nb">dir</span><span class="p">(</span><span class="n">testable</span><span class="p">)))</span>
+            <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex2</span><span class="p">,</span> <span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="nb">dir</span><span class="p">(</span><span class="n">testable</span><span class="p">)))</span>
+            <span class="k">raise</span>
+    <span class="k">return</span> <span class="n">testable_name</span>
 
-<span class="c">#try:</span>
-<span class="c">#    import numpy as np</span>
-<span class="c">#    REUSABLE_ITERABLE_TYPES = (list, tuple, np.ndarray)</span>
-<span class="c">#except ImportError as ex:</span>
-<span class="c">#    REUSABLE_ITERABLE_TYPES = (list, tuple)</span>
+
+<div class="viewcode-block" id="doctest_funcs"><a class="viewcode-back" href="../../utool.html#utool.util_dev.doctest_funcs">[docs]</a><span class="k">def</span> <span class="nf">doctest_funcs</span><span class="p">(</span><span class="n">testable_list</span><span class="p">,</span> <span class="n">check_flags</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Running doctest funcs&#39;</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">utool</span>
+    <span class="n">testable_name_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">wastested_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">testable</span> <span class="ow">in</span> <span class="n">testable_list</span><span class="p">:</span>
+        <span class="c"># HACKy</span>
+        <span class="n">testable_name</span> <span class="o">=</span> <span class="n">_get_testable_name</span><span class="p">(</span><span class="n">testable</span><span class="p">)</span>
+        <span class="n">testable_name_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">testable_name</span><span class="p">)</span>
+        <span class="n">flag1</span> <span class="o">=</span> <span class="s">&#39;--test-&#39;</span> <span class="o">+</span> <span class="n">testable_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="s">&#39;-&#39;</span><span class="p">)</span>
+        <span class="n">flag2</span> <span class="o">=</span> <span class="s">&#39;--test-&#39;</span> <span class="o">+</span> <span class="n">testable_name</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">check_flags</span> <span class="ow">or</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="n">flag1</span><span class="p">,</span> <span class="n">flag2</span><span class="p">)):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Doctest requested: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">testable_name</span><span class="p">)</span>
+            <span class="n">examples</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_doctest_examples</span><span class="p">(</span><span class="n">testable</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">examples</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: no examples for testable_name=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">testable_name</span><span class="p">)</span>
+                <span class="n">wastested_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;+ --- EXEC SRC --- &#39;</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="n">examples</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;L ___ EXEC SRC ___ &#39;</span><span class="p">)</span>
+                <span class="k">exec</span><span class="p">(</span><span class="n">examples</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">wastested_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">wastested_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">wastested_list</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;No test flags sepcified. Please choose one of the following flags&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Valid test argflags: &#39;</span> <span class="o">+</span> <span class="n">utool</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="n">testable_name_list</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s"> --test-&#39;</span><span class="p">))</span>
 
 
 <span class="c">#def ensure_vararg_list(varargs):</span>
@@ -97,9 +145,48 @@
 <span class="c">#    case we parse it out</span>
 <span class="c">#    &quot;&quot;&quot;</span>
 <span class="c">#    if len(varargs) == 1:</span>
-<span class="c">#        if isinstance(varargs[0], REUSABLE_ITERABLE_TYPES):</span>
+<span class="c">#        if isinstance(varargs[0], INDEXABLE_TYPES):</span>
 <span class="c">#            return varargs[0]</span>
 <span class="c">#    return varargs</span>
+
+</div>
+<div class="viewcode-block" id="autofix_codeblock"><a class="viewcode-back" href="../../utool.html#utool.util_dev.autofix_codeblock">[docs]</a><span class="k">def</span> <span class="nf">autofix_codeblock</span><span class="p">(</span><span class="n">codeblock</span><span class="p">,</span> <span class="n">max_line_len</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
+                      <span class="n">aggressive</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                      <span class="n">very_aggressive</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                      <span class="n">experimental</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Uses autopep8 to format a block of code</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; import utool</span>
+<span class="sd">        &gt;&gt;&gt; codeblock = utool.codeblock(</span>
+<span class="sd">            &#39;&#39;&#39;</span>
+<span class="sd">            def func( with , some = &#39;Problems&#39; ):</span>
+
+
+<span class="sd">             syntax =&#39;Ok&#39;</span>
+<span class="sd">             but = &#39;Its very messy&#39;</span>
+<span class="sd">             if None:</span>
+<span class="sd">                    # syntax might not be perfect due to being cut off</span>
+<span class="sd">                    ommiting_this_line_still_works=   True</span>
+<span class="sd">            &#39;&#39;&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; fixed_codeblock = utool.autofix_codeblock(codeblock)</span>
+<span class="sd">        &gt;&gt;&gt; print(fixed_codeblock)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># FIXME idk how to remove the blank line following the function with</span>
+    <span class="c"># autopep8. It seems to not be supported by them, but it looks bad.</span>
+    <span class="kn">import</span> <span class="nn">autopep8</span>
+    <span class="n">arglist</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;--max-line-length&#39;</span><span class="p">,</span> <span class="s">&#39;80&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">aggressive</span><span class="p">:</span>
+        <span class="n">arglist</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s">&#39;-a&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">very_aggressive</span><span class="p">:</span>
+        <span class="n">arglist</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s">&#39;-a&#39;</span><span class="p">,</span> <span class="s">&#39;-a&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">experimental</span><span class="p">:</span>
+        <span class="n">arglist</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s">&#39;--experimental&#39;</span><span class="p">])</span>
+    <span class="n">arglist</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s">&#39;&#39;</span><span class="p">])</span>
+    <span class="n">autopep8_options</span> <span class="o">=</span> <span class="n">autopep8</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">arglist</span><span class="p">)</span>
+    <span class="n">fixed_codeblock</span> <span class="o">=</span> <span class="n">autopep8</span><span class="o">.</span><span class="n">fix_code</span><span class="p">(</span><span class="n">codeblock</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">autopep8_options</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fixed_codeblock</span>
 
 </div>
 <div class="viewcode-block" id="auto_docstr"><a class="viewcode-back" href="../../utool.html#utool.util_dev.auto_docstr">[docs]</a><span class="k">def</span> <span class="nf">auto_docstr</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">funcname</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
@@ -126,37 +213,83 @@
         <span class="n">module</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span>
         <span class="kn">import</span> <span class="nn">imp</span>
         <span class="n">imp</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+        <span class="c">#try:</span>
+        <span class="c">#    func = getattr(module, funcname)</span>
+        <span class="c">#    docstr = make_default_docstr(func)</span>
+        <span class="c">#    return docstr</span>
+        <span class="c">#except Exception as ex1:</span>
+        <span class="c">#docstr = &#39;error &#39; + str(ex1)</span>
+        <span class="c">#if utool.VERBOSE:</span>
+        <span class="c">#    print(&#39;make_default_docstr is falling back&#39;)</span>
+        <span class="c">#print(ex)</span>
+        <span class="c">#print(&#39;modname = &#39;  + modname)</span>
+        <span class="c">#print(&#39;funcname = &#39; + funcname)</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">funcname</span><span class="p">)</span>
-            <span class="n">docstr</span> <span class="o">=</span> <span class="n">make_default_docstr</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+            <span class="n">execstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+                <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">                import {modname}</span>
+<span class="sd">                import imp</span>
+<span class="sd">                imp.reload({modname})</span>
+<span class="sd">                import utool</span>
+<span class="sd">                imp.reload(utool.util_dev)</span>
+<span class="sd">                docstr = utool.util_dev.make_default_docstr({modname}.{funcname})</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+            <span class="k">exec</span><span class="p">(</span><span class="n">execstr</span><span class="p">)</span>
+            <span class="c">#return &#39;BARFOOO&#39; +  docstr</span>
             <span class="k">return</span> <span class="n">docstr</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex1</span><span class="p">:</span>
-            <span class="n">docstr</span> <span class="o">=</span> <span class="s">&#39;error &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ex1</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;make_default_docstr is falling back&#39;</span><span class="p">)</span>
-            <span class="c">#print(ex)</span>
-            <span class="c">#print(&#39;modname = &#39;  + modname)</span>
-            <span class="c">#print(&#39;funcname = &#39; + funcname)</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">execstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-                    <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">                    import {modname}</span>
-<span class="sd">                    import utool</span>
-<span class="sd">                    docstr = utool.make_default_docstr({modname}.{funcname})</span>
-<span class="sd">                    &#39;&#39;&#39;</span>
-                <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
-                <span class="k">exec</span><span class="p">(</span><span class="n">execstr</span><span class="p">)</span>
-                <span class="k">return</span> <span class="n">docstr</span>
-                <span class="c">#print(execstr)</span>
-            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex2</span><span class="p">:</span>
-                <span class="n">docstr</span> <span class="o">=</span> <span class="s">&#39;error &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ex2</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                    <span class="kn">import</span> <span class="nn">utool</span>
-                    <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex1</span><span class="p">,</span> <span class="s">&#39;ex1&#39;</span><span class="p">)</span>
-                    <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex2</span><span class="p">,</span> <span class="s">&#39;ex2&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="c">#print(execstr)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex2</span><span class="p">:</span>
+            <span class="n">docstr</span> <span class="o">=</span> <span class="s">&#39;error &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ex2</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">utool</span>
+                <span class="c">#utool.printex(ex1, &#39;ex1&#39;)</span>
+                <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex2</span><span class="p">,</span> <span class="s">&#39;ex2&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">error_str</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">formatex</span><span class="p">(</span><span class="n">ex2</span><span class="p">,</span> <span class="s">&#39;ex2&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">error_str</span>
+            <span class="c">#return docstr + &#39;\n&#39; + execstr</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">docstr</span> <span class="o">=</span> <span class="s">&#39;error&#39;</span>
     <span class="k">return</span> <span class="n">docstr</span>
+
+</div>
+<div class="viewcode-block" id="get_doctest_examples"><a class="viewcode-back" href="../../utool.html#utool.util_dev.get_doctest_examples">[docs]</a><span class="k">def</span> <span class="nf">get_doctest_examples</span><span class="p">(</span><span class="n">func_or_class</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    get_doctest_examples</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        func_or_class (function)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dev import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; func_or_class = get_doctest_examples</span>
+<span class="sd">        &gt;&gt;&gt; result = get_doctest_examples(func_or_class)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">doctest</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">docstr</span> <span class="o">=</span> <span class="n">func_or_class</span><span class="o">.</span><span class="n">func_doc</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="n">docstr</span> <span class="o">=</span> <span class="n">func_or_class</span><span class="o">.</span><span class="n">__doc__</span>
+
+    <span class="n">comment_iter</span> <span class="o">=</span> <span class="n">doctest</span><span class="o">.</span><span class="n">DocTestParser</span><span class="p">()</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">docstr</span><span class="p">)</span>
+    <span class="n">current_example_lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">example_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">def</span> <span class="nf">append_current_example</span><span class="p">():</span>
+        <span class="c"># next example defined if any examples lines have been found</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_example_lines</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">example_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current_example_lines</span><span class="p">))</span>
+    <span class="c"># Loop over doctest lines</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">comment_iter</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">doctest</span><span class="o">.</span><span class="n">Example</span><span class="p">):</span>
+            <span class="n">current_example_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">c</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">append_current_example</span><span class="p">()</span>
+            <span class="n">current_example_lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">append_current_example</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">example_list</span>
 
 </div>
 <div class="viewcode-block" id="print_auto_docstr"><a class="viewcode-back" href="../../utool.html#utool.util_dev.print_auto_docstr">[docs]</a><span class="k">def</span> <span class="nf">print_auto_docstr</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">funcname</span><span class="p">):</span>
@@ -227,24 +360,25 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">return_header</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="c"># Get more return info</span>
+    <span class="n">return_name</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">return_type</span> <span class="o">=</span> <span class="s">&#39;?&#39;</span>
     <span class="k">if</span> <span class="n">returnnode</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">return_type</span> <span class="o">=</span> <span class="s">&#39;None&#39;</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">returnnode</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Tuple</span><span class="p">):</span>
         <span class="n">names</span> <span class="o">=</span> <span class="n">returnnode</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">elts</span>
         <span class="n">tupleid</span> <span class="o">=</span> <span class="s">&#39;(</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">]))</span>
-        <span class="n">return_type</span> <span class="o">=</span> <span class="s">&#39;tuple : &#39;</span> <span class="o">+</span> <span class="n">tupleid</span>
+        <span class="n">return_type</span> <span class="o">=</span> <span class="s">&#39;tuple&#39;</span>
+        <span class="n">return_name</span> <span class="o">=</span> <span class="n">tupleid</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">returnnode</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Dict</span><span class="p">):</span>
-        <span class="n">return_type</span> <span class="o">=</span> <span class="s">&#39;dict : &#39;</span>
+        <span class="n">return_type</span> <span class="o">=</span> <span class="s">&#39;dict&#39;</span>
+        <span class="n">return_name</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">returnnode</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Name</span><span class="p">):</span>
-        <span class="n">return_type</span> <span class="o">=</span> <span class="n">returnnode</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">id</span>
+        <span class="n">return_name</span> <span class="o">=</span> <span class="n">returnnode</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">id</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">return_type</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">returnnode</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">return_type</span><span class="p">,</span> <span class="n">return_header</span>
+    <span class="k">return</span> <span class="n">return_type</span><span class="p">,</span> <span class="n">return_name</span><span class="p">,</span> <span class="n">return_header</span>
 
 </div>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_regex</span>
-
-
 <div class="viewcode-block" id="infer_arg_types_and_descriptions"><a class="viewcode-back" href="../../utool.html#utool.util_dev.infer_arg_types_and_descriptions">[docs]</a><span class="k">def</span> <span class="nf">infer_arg_types_and_descriptions</span><span class="p">(</span><span class="n">argname_list</span><span class="p">,</span> <span class="n">defaults</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
@@ -320,7 +454,7 @@
 <span class="sd">    can fill things in without typing too much</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">inspect</span>
-    <span class="kn">import</span> <span class="nn">utool</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
     <span class="n">current_doc</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getdoc</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="n">needs_surround</span> <span class="o">=</span> <span class="n">current_doc</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_doc</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
     <span class="n">argspec</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getargspec</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
@@ -333,27 +467,95 @@
 
     <span class="n">docstr_parts</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="c"># Get args info</span>
+    <span class="c"># Move source down to base indentation, but remember original indentation</span>
+    <span class="n">sourcecode</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getsource</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="n">num_indent</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_indentation</span><span class="p">(</span><span class="n">sourcecode</span><span class="p">)</span>
+    <span class="n">sourcecode</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unindent</span><span class="p">(</span><span class="n">sourcecode</span><span class="p">)</span>
+
+    <span class="c"># Header part</span>
+    <span class="n">header_block</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">func_name</span>
+    <span class="n">docstr_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">header_block</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">docstr_block</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="n">block</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">block</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">indented_block</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">block</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">indented_block</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;impossible state&#39;</span>
+        <span class="k">return</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">header</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">,</span> <span class="n">indented_block</span><span class="p">])</span>
+
+    <span class="c"># Args part</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">argdoc_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">arg_header</span> <span class="o">=</span> <span class="s">&#39;Args&#39;</span>
-        <span class="n">argsdoc</span> <span class="o">=</span> <span class="n">arg_header</span> <span class="o">+</span> <span class="s">&#39;:&#39;</span> <span class="o">+</span> <span class="n">utool</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="n">argdoc_list</span><span class="p">)</span>
-        <span class="n">docstr_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">argsdoc</span><span class="p">)</span>
+        <span class="n">argsblock</span> <span class="o">=</span> <span class="n">docstr_block</span><span class="p">(</span><span class="n">arg_header</span><span class="p">,</span> <span class="n">argdoc_list</span><span class="p">)</span>
+        <span class="n">docstr_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">argsblock</span><span class="p">)</span>
 
-    <span class="c"># Get returns info</span>
-    <span class="n">sourcecode</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getsource</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="c"># Return / Yeild part</span>
     <span class="k">if</span> <span class="n">sourcecode</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">return_type</span><span class="p">,</span> <span class="n">return_header</span> <span class="o">=</span> <span class="n">parse_return_type</span><span class="p">(</span><span class="n">sourcecode</span><span class="p">)</span>
+        <span class="n">return_type</span><span class="p">,</span> <span class="n">return_name</span><span class="p">,</span> <span class="n">return_header</span> <span class="o">=</span> <span class="n">parse_return_type</span><span class="p">(</span><span class="n">sourcecode</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">return_header</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">returndoc</span> <span class="o">=</span> <span class="p">(</span><span class="n">return_header</span> <span class="o">+</span> <span class="s">&#39;: </span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="s">&#39;    </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">return_type</span><span class="p">)</span>
-            <span class="n">docstr_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">returndoc</span><span class="p">)</span>
+            <span class="c">#returndoc = (return_header + &#39;: \n&#39; + &#39;    %s&#39; % return_type)</span>
+            <span class="n">return_doc</span> <span class="o">=</span> <span class="n">return_type</span> <span class="o">+</span> <span class="s">&#39;: &#39;</span>
+            <span class="k">if</span> <span class="n">return_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">return_doc</span> <span class="o">+=</span> <span class="n">return_name</span>
+            <span class="n">returnblock</span> <span class="o">=</span> <span class="n">docstr_block</span><span class="p">(</span><span class="n">return_header</span><span class="p">,</span> <span class="n">return_doc</span><span class="p">)</span>
+            <span class="n">docstr_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">returnblock</span><span class="p">)</span>
 
+    <span class="c"># Example part</span>
+    <span class="k">if</span> <span class="n">sourcecode</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c"># try to generate a simple and unit testable example</span>
+        <span class="n">exampleheader</span> <span class="o">=</span> <span class="s">&#39;Example&#39;</span>
+        <span class="n">examplecode</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            from {modname} import *  # NOQA</span>
+<span class="sd">            &#39;&#39;&#39;</span>
+            <span class="c">#import utool as ut</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">modname</span><span class="o">=</span><span class="n">func</span><span class="o">.</span><span class="n">__module__</span><span class="p">)</span>
+        <span class="c"># Default example values</span>
+        <span class="n">defaults_</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">defaults</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">defaults</span>
+        <span class="n">default_vals</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;?&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">argname_list</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">defaults_</span><span class="p">))</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">defaults_</span><span class="p">)</span>
+        <span class="n">arg_val_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">argname_list</span><span class="p">,</span> <span class="n">default_vals</span><span class="p">)</span>
+        <span class="n">argdef_lines</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">argname</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">argname</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">arg_val_iter</span><span class="p">]</span>
+        <span class="n">examplecode</span> <span class="o">+=</span> <span class="n">ut</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="n">argdef_lines</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="c"># Default example result assignment</span>
+        <span class="n">result_assign</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="n">result_print</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="s">&#39;return_name&#39;</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">return_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">return_name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">return_name</span> <span class="o">=</span> <span class="s">&#39;result&#39;</span>
+                <span class="n">result_assign</span> <span class="o">=</span> <span class="n">return_name</span> <span class="o">+</span> <span class="s">&#39; = &#39;</span>
+                <span class="n">result_print</span> <span class="o">=</span> <span class="s">&#39;print(&#39;</span> <span class="o">+</span> <span class="n">return_name</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span>
+        <span class="c"># Default example call</span>
+        <span class="n">example_call</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">func_name</span> <span class="o">+</span> <span class="s">&#39;(&#39;</span> <span class="o">+</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">argname_list</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span>
+        <span class="n">examplecode</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">result_assign</span> <span class="o">+</span> <span class="n">example_call</span>
+        <span class="k">if</span> <span class="n">result_print</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">examplecode</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">result_print</span>
+        <span class="n">exampleblock</span> <span class="o">=</span> <span class="n">docstr_block</span><span class="p">(</span><span class="n">exampleheader</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">examplecode</span><span class="p">,</span> <span class="s">&#39;&gt;&gt;&gt; &#39;</span><span class="p">))</span>
+        <span class="n">docstr_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">exampleblock</span><span class="p">)</span>
+
+    <span class="c"># DEBUG part</span>
+    <span class="n">DEBUG_DOC</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">if</span> <span class="n">DEBUG_DOC</span><span class="p">:</span>
+        <span class="n">debugheader</span> <span class="o">=</span> <span class="s">&#39;Debug&#39;</span>
+        <span class="n">debugblock</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            num_indent = {num_indent}</span>
+<span class="sd">            &#39;&#39;&#39;</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">num_indent</span><span class="o">=</span><span class="n">num_indent</span><span class="p">)</span>
+        <span class="n">debugblock</span> <span class="o">=</span> <span class="n">docstr_block</span><span class="p">(</span><span class="n">debugheader</span><span class="p">,</span> <span class="n">debugblock</span><span class="p">)</span>
+        <span class="n">docstr_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">debugblock</span><span class="p">)</span>
+
+    <span class="c"># Enclosure / Indentation Parts</span>
     <span class="k">if</span> <span class="n">needs_surround</span><span class="p">:</span>
         <span class="n">docstr_parts</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&quot;&quot;&quot;&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">docstr_parts</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span><span class="s">&#39;&quot;&quot;&quot;&#39;</span><span class="p">]</span>
         <span class="n">default_docstr</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">docstr_parts</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">default_docstr</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">docstr_parts</span><span class="p">)</span>
 
-    <span class="n">default_docstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">default_docstr</span><span class="p">)</span>
+    <span class="n">docstr_indent</span> <span class="o">=</span> <span class="s">&#39; &#39;</span> <span class="o">*</span> <span class="p">(</span><span class="n">num_indent</span> <span class="o">+</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="n">default_docstr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">default_docstr</span><span class="p">,</span> <span class="n">docstr_indent</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">default_docstr</span>
 
 </div>
@@ -481,7 +683,7 @@
     <span class="k">def</span> <span class="nf">_wrp_disableable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">disabled</span><span class="p">:</span>
             <span class="k">return</span>
-        <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">_wrp_disableable</span>
 
 
@@ -506,8 +708,8 @@
 <span class="sd">        &gt;&gt;&gt; memtrack.report(&#39;[DELETE]&#39;)</span>
 <span class="sd">        #&gt;&gt;&gt; memtrack.report_largest()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;Memtrack Init&#39;</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">disabled</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;Memtrack Init&#39;</span><span class="p">,</span> <span class="n">disable</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disabled</span> <span class="o">=</span> <span class="n">disable</span>  <span class="c"># disable by default</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">init_nBytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_available_memory</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">prev_nBytes</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">weakref_dict</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c"># weakref.WeakValueDictionary()</span>
@@ -655,6 +857,99 @@
         <span class="k">del</span> <span class="n">referents</span>
         <span class="k">del</span> <span class="n">referers</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;L____&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="InteractiveIter"><a class="viewcode-back" href="../../utool.html#utool.util_dev.InteractiveIter">[docs]</a><span class="k">class</span> <span class="nc">InteractiveIter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Choose next value interactively</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iterable</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">startx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="n">enabled</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iterable</span> <span class="o">=</span> <span class="n">iterable</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_keys</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;quit_keys&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;q&#39;</span><span class="p">,</span> <span class="s">&#39;exit&#39;</span><span class="p">,</span> <span class="s">&#39;quit&#39;</span><span class="p">],</span>
+            <span class="s">&#39;next_keys&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;n&#39;</span><span class="p">],</span>
+            <span class="s">&#39;prev_keys&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;p&#39;</span><span class="p">],</span>
+            <span class="s">&#39;reload_keys&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;r&#39;</span><span class="p">],</span>
+            <span class="s">&#39;index_keys&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="s">&#39;i&#39;</span><span class="p">,</span> <span class="s">&#39;index&#39;</span><span class="p">],</span>
+            <span class="s">&#39;ipy_keys&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;ipy&#39;</span><span class="p">,</span> <span class="s">&#39;ipython&#39;</span><span class="p">,</span> <span class="s">&#39;cmd&#39;</span><span class="p">],</span>
+        <span class="p">}</span>
+        <span class="c">#self.quit_keys = [&#39;q&#39;, &#39;exit&#39;, &#39;quit&#39;]</span>
+        <span class="c">#self.next_keys = [&#39;&#39;, &#39;n&#39;]</span>
+        <span class="c">#self.prev_keys = [&#39;p&#39;]</span>
+        <span class="c">#self.index_keys = [&#39;x&#39;, &#39;i&#39;, &#39;index&#39;]</span>
+        <span class="c">#self.reload_keys = [&#39;r&#39;]</span>
+        <span class="c">#self.ipy_keys = [&#39;ipy&#39;, &#39;ipython&#39;, &#39;cmd&#39;]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">startx</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iterable</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iterable</span> <span class="o">=</span> <span class="n">iterable</span>
+
+<div class="viewcode-block" id="InteractiveIter.format_msg"><a class="viewcode-back" href="../../utool.html#utool.util_dev.InteractiveIter.format_msg">[docs]</a>    <span class="k">def</span> <span class="nf">format_msg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">msg</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">action_keys</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="InteractiveIter.prompt"><a class="viewcode-back" href="../../utool.html#utool.util_dev.InteractiveIter.prompt">[docs]</a>    <span class="k">def</span> <span class="nf">prompt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">format_msg</span><span class="p">,</span> <span class="p">[</span>
+            <span class="s">&#39;enter {next_keys} to move to the next index&#39;</span><span class="p">,</span>
+            <span class="s">&#39;enter {prev_keys} to move to the previous index&#39;</span><span class="p">,</span>
+            <span class="s">&#39;enter {reload_keys} to stay at the same index&#39;</span><span class="p">,</span>
+            <span class="s">&#39;enter {index_keys} to move to that index&#39;</span><span class="p">,</span>
+            <span class="s">&#39;enter {ipy_keys} to start IPython&#39;</span><span class="p">,</span>
+            <span class="s">&#39;enter {quit_keys} to quit&#39;</span><span class="p">,</span>
+        <span class="p">])),</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s"> | * &#39;</span><span class="p">)</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39; +-----------&#39;</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s"> L-----------</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">])</span>
+        <span class="c"># TODO: timeout, help message</span>
+        <span class="n">ans</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">ans</span>
+</div>
+<div class="viewcode-block" id="InteractiveIter.handle_ans"><a class="viewcode-back" href="../../utool.html#utool.util_dev.InteractiveIter.handle_ans">[docs]</a>    <span class="k">def</span> <span class="nf">handle_ans</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ans</span><span class="p">):</span>
+        <span class="c"># Quit</span>
+        <span class="k">if</span> <span class="n">ans</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_keys</span><span class="p">[</span><span class="s">&#39;quit_keys&#39;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">StopIteration</span><span class="p">()</span>
+        <span class="c"># Prev</span>
+        <span class="k">elif</span> <span class="n">ans</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_keys</span><span class="p">[</span><span class="s">&#39;prev_keys&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="c"># Next</span>
+        <span class="k">elif</span> <span class="n">ans</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_keys</span><span class="p">[</span><span class="s">&#39;next_keys&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="c"># Reload</span>
+        <span class="k">elif</span> <span class="n">ans</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_keys</span><span class="p">[</span><span class="s">&#39;reload_keys&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">+=</span> <span class="mi">0</span>
+        <span class="c"># Index</span>
+        <span class="k">elif</span> <span class="nb">any</span><span class="p">([</span><span class="n">ans</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">index_key</span> <span class="o">+</span> <span class="s">&#39; &#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">index_key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_keys</span><span class="p">[</span><span class="s">&#39;index_keys&#39;</span><span class="p">]]):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ans</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;Unknown ans=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ans</span><span class="p">,))</span>
+        <span class="c"># IPython</span>
+        <span class="k">elif</span> <span class="n">ans</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_keys</span><span class="p">[</span><span class="s">&#39;ipy_keys&#39;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="s">&#39;IPython&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Unknown ans=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ans</span><span class="p">,))</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</div>
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">StopIteration</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iterable</span><span class="p">,</span> <span class="n">INDEXABLE_TYPES</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_items</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iterable</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Begin interactive iteration over </span><span class="si">%r</span><span class="s"> items&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_items</span><span class="p">))</span>
+        <span class="n">mark_</span><span class="p">,</span> <span class="n">end_</span> <span class="o">=</span> <span class="n">util_progress</span><span class="o">.</span><span class="n">log_progress</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_items</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;interaction: &#39;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterable</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">mark_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">item</span>
+            <span class="n">ans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prompt</span><span class="p">()</span>
+            <span class="n">action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_ans</span><span class="p">(</span><span class="n">ans</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="s">&#39;IPython&#39;</span><span class="p">:</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">embed</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">end_</span><span class="p">()</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Ended interactive iteration&#39;</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="tuples_to_unique_scalars"><a class="viewcode-back" href="../../utool.html#utool.util_dev.tuples_to_unique_scalars">[docs]</a><span class="k">def</span> <span class="nf">tuples_to_unique_scalars</span><span class="p">(</span><span class="n">tup_list</span><span class="p">):</span>
@@ -1111,10 +1406,13 @@
     <span class="k">del</span> <span class="n">seen</span>
 
 </div>
-<div class="viewcode-block" id="get_object_size_str"><a class="viewcode-back" href="../../utool.html#utool.util_dev.get_object_size_str">[docs]</a><span class="k">def</span> <span class="nf">get_object_size_str</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="get_object_size_str"><a class="viewcode-back" href="../../utool.html#utool.util_dev.get_object_size_str">[docs]</a><span class="k">def</span> <span class="nf">get_object_size_str</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_str</span>
     <span class="n">nBytes</span> <span class="o">=</span> <span class="n">get_object_size</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
-    <span class="n">sizestr</span> <span class="o">=</span> <span class="n">lbl</span> <span class="o">+</span> <span class="n">util_str</span><span class="o">.</span><span class="n">byte_str2</span><span class="p">(</span><span class="n">nBytes</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">sizestr</span> <span class="o">=</span> <span class="n">lbl</span> <span class="o">+</span> <span class="n">util_str</span><span class="o">.</span><span class="n">byte_str2</span><span class="p">(</span><span class="n">nBytes</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sizestr</span> <span class="o">=</span> <span class="n">lbl</span> <span class="o">+</span> <span class="n">util_str</span><span class="o">.</span><span class="n">byte_str</span><span class="p">(</span><span class="n">nBytes</span><span class="p">,</span> <span class="n">unit</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">sizestr</span>
 
 </div>

@@ -659,7 +659,17 @@
 <div class="viewcode-block" id="align"><a class="viewcode-back" href="../../utool.html#utool.util_str.align">[docs]</a><span class="k">def</span> <span class="nf">align</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">character</span><span class="o">=</span><span class="s">&#39;=&#39;</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot; Left justifies text on the left side of character</span>
 
+<span class="sd">    align</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        text (?):</span>
+<span class="sd">        character (str):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ?: new_text</span>
+
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_str import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; character = &#39;=&#39;</span>
 <span class="sd">        &gt;&gt;&gt; text = &#39;a = b\none = two\nthree = fish\n&#39;</span>
 <span class="sd">        &gt;&gt;&gt; print(align(text, &#39;=&#39;))</span>
@@ -674,7 +684,24 @@
 
 </div>
 <div class="viewcode-block" id="align_lines"><a class="viewcode-back" href="../../utool.html#utool.util_str.align_lines">[docs]</a><span class="k">def</span> <span class="nf">align_lines</span><span class="p">(</span><span class="n">line_list</span><span class="p">,</span> <span class="n">character</span><span class="o">=</span><span class="s">&#39;=&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Left justifies text on the left side of character&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Left justifies text on the left side of character</span>
+
+<span class="sd">    align_lines</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        line_list (list):</span>
+<span class="sd">        character (str):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ?: new_lines</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_str import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; line_list = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; character = &#39;=&#39;</span>
+<span class="sd">        &gt;&gt;&gt; new_lines = align_lines(line_list, character)</span>
+<span class="sd">        &gt;&gt;&gt; print(new_lines)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">tup_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">character</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">line_list</span><span class="p">]</span>
     <span class="n">maxlen</span> <span class="o">=</span> <span class="mi">0</span>
@@ -751,7 +778,61 @@
                 <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">fname</span>
 
+</div>
+<div class="viewcode-block" id="singular_string"><a class="viewcode-back" href="../../utool.html#utool.util_str.singular_string">[docs]</a><span class="k">def</span> <span class="nf">singular_string</span><span class="p">(</span><span class="n">str_</span><span class="p">,</span> <span class="n">plural_suffix</span><span class="o">=</span><span class="s">&#39;s&#39;</span><span class="p">,</span> <span class="n">singular_suffix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">str_</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">str_</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">plural_suffix</span><span class="p">)</span> <span class="k">else</span> <span class="n">str_</span>
 
+</div>
+<div class="viewcode-block" id="replace_nonquoted_text"><a class="viewcode-back" href="../../utool.html#utool.util_str.replace_nonquoted_text">[docs]</a><span class="k">def</span> <span class="nf">replace_nonquoted_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">search_list</span><span class="p">,</span> <span class="n">repl_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    replace_nonquoted_text</span>
+
+<span class="sd">    WARNING: this function is not safely implemented. It can break of searching</span>
+<span class="sd">    for single characters or underscores. Depends on utool.modify_quoted_strs</span>
+<span class="sd">    which is also unsafely implemented</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        text (?):</span>
+<span class="sd">        search_list (list):</span>
+<span class="sd">        repl_list (list):</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_str import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; text = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; search_list = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; repl_list = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; result = replace_nonquoted_text(text, search_list, repl_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Hacky way to preserve quoted text</span>
+    <span class="c"># this will not work if search_list uses underscores or single characters</span>
+    <span class="k">def</span> <span class="nf">preserve_quoted_str</span><span class="p">(</span><span class="n">quoted_str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">quoted_str</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span>
+    <span class="k">def</span> <span class="nf">unpreserve_quoted_str</span><span class="p">(</span><span class="n">quoted_str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span> <span class="o">+</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">quoted_str</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])[::</span><span class="mi">2</span><span class="p">])</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">text_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">modify_quoted_strs</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">preserve_quoted_str</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">search</span><span class="p">,</span> <span class="n">repl</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">search_list</span><span class="p">,</span> <span class="n">repl_list</span><span class="p">):</span>
+        <span class="n">text_</span> <span class="o">=</span> <span class="n">text_</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">search</span><span class="p">,</span> <span class="n">repl</span><span class="p">)</span>
+    <span class="n">text_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">modify_quoted_strs</span><span class="p">(</span><span class="n">text_</span><span class="p">,</span> <span class="n">unpreserve_quoted_str</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">text_</span>
+
+</div>
+<div class="viewcode-block" id="remove_vowels"><a class="viewcode-back" href="../../utool.html#utool.util_str.remove_vowels">[docs]</a><span class="k">def</span> <span class="nf">remove_vowels</span><span class="p">(</span><span class="n">str_</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">char_</span> <span class="ow">in</span> <span class="s">&#39;AEOIUaeiou&#39;</span><span class="p">:</span>
+        <span class="n">str_</span> <span class="o">=</span> <span class="n">str_</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">char_</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">str_</span>
+
+</div>
+<div class="viewcode-block" id="clipstr"><a class="viewcode-back" href="../../utool.html#utool.util_str.clipstr">[docs]</a><span class="k">def</span> <span class="nf">clipstr</span><span class="p">(</span><span class="n">str_</span><span class="p">,</span> <span class="n">maxlen</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">str_</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">maxlen</span><span class="p">:</span>
+        <span class="n">str2</span> <span class="o">=</span> <span class="p">(</span><span class="n">str_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">remove_vowels</span><span class="p">(</span><span class="n">str_</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">str2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">maxlen</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">str2</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">maxlen</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">str_</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">maxlen</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">str_</span>
 <span class="c">#def parse_commas_wrt_groups(str_):</span>
 <span class="c">#    &quot;&quot;&quot;</span>
 <span class="c">#    str_ = &#39;cdef np.ndarray[np.float64_t, cast=True] x, y, z&#39;</span>

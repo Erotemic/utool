@@ -49,10 +49,11 @@
             
   <h1>Source code for utool.Preferences</h1><div class="highlight"><pre>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">FIXME: This class is very old, convoluted, and coupled.</span>
-<span class="sd">It really needs to be rewritten efficiently.</span>
-<span class="sd">the __setattr__ __getattr__ stuff needs to be redone, and</span>
-<span class="sd">DynStruct needs to go away.</span>
+<span class="sd">FIXME:</span>
+<span class="sd">    This class is very old, convoluted, and coupled.</span>
+<span class="sd">    It really needs to be rewritten efficiently.</span>
+<span class="sd">    the __setattr__ __getattr__ stuff needs to be redone, and</span>
+<span class="sd">    DynStruct probably needs to go away.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">six</span>
@@ -202,6 +203,8 @@
         <span class="k">return</span> <span class="n">choice_obj</span><span class="o">.</span><span class="n">get_tuple</span><span class="p">()</span>
 </div>
     <span class="k">def</span> <span class="nf">__overwrite_child_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+        <span class="c"># FIXME: when setting string preference nodes to lists, it casts</span>
+        <span class="c"># the list to a string!</span>
         <span class="c">#printDBG( &quot;overwrite_attr: %s.%s = %r&quot; % (self._intern.name, name, attr))</span>
         <span class="c"># get child node to &quot;overwrite&quot;</span>
         <span class="n">row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">child_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
@@ -436,7 +439,7 @@
             <span class="k">return</span> <span class="n">ret</span>
 
 <div class="viewcode-block" id="Pref.full_name"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.full_name">[docs]</a>    <span class="k">def</span> <span class="nf">full_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="s">&#39;returns name all the way up the tree&#39;</span>
+        <span class="sd">&quot;&quot;&quot; returns name all the way up the tree &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">name</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">full_name</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">name</span>
