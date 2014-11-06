@@ -10,10 +10,12 @@ import six
 from os.path import (join, basename, relpath, normpath, split, isdir, isfile,
                      exists, islink, ismount, dirname, splitext, realpath)
 import os
+import re
 import sys
 import shutil
 import fnmatch
 import warnings
+from .util_regex import extend_regex
 from .util_dbg import get_caller_name, printex
 from .util_progress import progress_func
 from ._internal import meta_util_path
@@ -734,22 +736,43 @@ def assert_exists(path):
     assert exists(path), 'path=%r does not exist!' % path
 
 
-def _regex_grepfile(fpath, regexpr, verbose=True):
-    import re
+def grepfile(fpath, regexpr_list):
+    """
+    grepfile - greps a specific file
+
+    Args:
+        fpath (str):
+        regexpr_list (list or str): pattern or list of patterns
+
+    Returns:
+        tuple (list, list): list of lines and list of line numbers
+
+    Example:
+        >>> import utool as ut
+        >>> fpath = ut.truepath('~/code/ibeis/ibeis/model/hots/smk/smk_match.py')
+        >>> regexpr_list = ['get_argflag', 'get_argval']
+        >>> result = ut.grepfile(fpath, regexpr_list)
+        >>> print(result)
+    """
     found_lines = []
     found_lxs = []
-    with open(fpath, 'r') as file:
-        lines = file.readlines()
-        # Search each line for the desired regexpr
-        for lx, line in enumerate(lines):
-            match_object = re.search(regexpr, line)
-            if match_object is not None:
-                found_lines.append(line)
-                found_lxs.append(lx)
+    # Ensure a list
+    islist = isinstance(regexpr_list, (list, tuple))
+    regexpr_list_ = regexpr_list if islist else [regexpr_list]
+    # Open file and search lines
+    with open(fpath, 'r') as file_:
+        line_list = file_.readlines()
+        # Search each line for each pattern
+        for lx, line in enumerate(line_list):
+            for regexpr_ in regexpr_list_:
+                match_object = re.search(regexpr_, line)
+                if match_object is not None:
+                    found_lines.append(line)
+                    found_lxs.append(lx)
     return found_lines, found_lxs
 
 
-def _matching_fnames(dpath_list, include_patterns, exclude_dirs=None, recursive=True):
+def matching_fnames(dpath_list, include_patterns, exclude_dirs=None, recursive=True):
     if isinstance(dpath_list, (str)):
         dpath_list = [dpath_list]
     for dpath in dpath_list:
@@ -772,55 +795,57 @@ def _matching_fnames(dpath_list, include_patterns, exclude_dirs=None, recursive=
     #return fname_list
 
 
-def extend_regex(regexpr):
-    regex_map = {
-        r'\<': r'\b(?=\w)',
-        r'\>': r'\b(?!\w)',
-        ('UNSAFE', r'\x08'): r'\b',
-    }
-    for key, repl in six.iteritems(regex_map):
-        if isinstance(key, tuple):
-            search = key[1]
-        else:
-            search = key
-        if regexpr.find(search) != -1:
-            if isinstance(key, tuple):
-                print('WARNING! Unsafe regex with: %r' % (key,))
-            regexpr = regexpr.replace(search, repl)
-    return regexpr
-
-
-def grep(tofind_list, recursive=True, dpath_list=None):
+def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
+         exclude_dirs=[], verbose=VERBOSE):
     """
     Python implementation of grep. NOT FINISHED
 
     greps for patterns
 
     Args:
-        tofind_list (str, list): one or more patterns to find
+        regex_list (str or list): one or more patterns to find
         recursive (bool):
         dpath_list (list): directories to search (defaults to cwd)
+        include_patterns (list) : defaults to standard file extensions
+
+    Returns:
+        tuple (list, list, list): (found_filestr_list, found_lines_list, found_lxs_list)
+
+    Example:
+        >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
+        >>> dpath_list = [ut.truepath('~/code/ibeis/ibeis')]
+        >>> include_patterns = ['*.py']
+        >>> exclude_dirs = []
+        >>> regex_list = ['get_argflag', 'get_argval']
+        >>> verbose = False
+        >>> recursive = True
+        >>> result = ut.grep(regex_list, recursive, dpath_list, include_patterns, exclude_dirs)
+        >>> (found_filestr_list, found_lines_list, found_lxs_list) = result
+        >>> print(result)
+
     """
-    include_patterns = ['*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c',
-                        '*.h', '*.vim']  # , '*.txt']
-    exclude_dirs = []
+    if include_patterns is None:
+        include_patterns = ['*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c',
+                            '*.h', '*.vim']  # , '*.txt']
     # ensure list input
     if isinstance(include_patterns, str):
         include_patterns = [include_patterns]
     if dpath_list is None:
         dpath_list = [os.getcwd()]
-    #recursive_stat_str = ['flat', 'recursive'][recursive]
-    #print('Greping (%s) %r for %r' % (recursive_stat_str, dpath_list, tofind_list))
+    if verbose:
+        recursive_stat_str = ['flat', 'recursive'][recursive]
+        print('[util_path] Greping (%s) %r for %r' % (recursive_stat_str, dpath_list, regex_list))
     found_filestr_list = []
     found_lines_list = []
     found_lxs_list = []
     # Walk through each directory recursively
-    for fpath in _matching_fnames(dpath_list, include_patterns, exclude_dirs,
-                                  recursive=recursive):
-        if len(tofind_list) > 1:
-            print('[util_path] WARNING IN GREP')
-        regexpr = extend_regex(tofind_list[0])
-        found_lines, found_lxs = _regex_grepfile(fpath, regexpr)
+    fpath_generator = matching_fnames(dpath_list, include_patterns, exclude_dirs, recursive=recursive)
+    extended_regex_list = list(map(extend_regex, regex_list))
+    # For each matching filepath
+    for fpath in fpath_generator:
+        # For each search pattern
+        found_lines, found_lxs = grepfile(fpath, extended_regex_list)
         if len(found_lines) > 0:
             found_filestr_list.append(fpath)  # regular matching
             found_lines_list.append(found_lines)

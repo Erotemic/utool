@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import re
+import six
 import os
 from os.path import split, relpath
 from .util_inject import inject
@@ -11,6 +12,24 @@ RE_KWARGS = {'flags': RE_FLAGS}
 
 
 REGEX_VARNAME = '[A-Za-z_][A-Za-z0-9_]*'
+
+
+def extend_regex(regexpr):
+    regex_map = {
+        r'\<': r'\b(?=\w)',
+        r'\>': r'\b(?!\w)',
+        ('UNSAFE', r'\x08'): r'\b',
+    }
+    for key, repl in six.iteritems(regex_map):
+        if isinstance(key, tuple):
+            search = key[1]
+        else:
+            search = key
+        if regexpr.find(search) != -1:
+            if isinstance(key, tuple):
+                print('WARNING! Unsafe regex with: %r' % (key,))
+            regexpr = regexpr.replace(search, repl)
+    return regexpr
 
 
 def get_match_text(match):
@@ -222,7 +241,7 @@ def sed(regexpr, repl, force=False, recursive=False, dpath_list=None):
         print(' * regular expression : %r' % (regexpr,))
 
     # Walk through each directory recursively
-    for fpath in util_path._matching_fnames(dpath_list, include_patterns, recursive=recursive):
+    for fpath in util_path.matching_fnames(dpath_list, include_patterns, recursive=recursive):
         sedfile(fpath, regexpr, repl, force)
 
 

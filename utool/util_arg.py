@@ -189,6 +189,74 @@ class ArgumentParser2(object):
         return ArgumentParser2(self.parser.add_argument_group(*args, **kwargs))
 
 
+def autogen_argparse2(dpath_list):
+    """
+
+    FUNCTION IS NOT FULLY IMPLEMENTED CURRENTLY ONLY RETURNS
+    LIST OF FLAGS THAT THE PROGRAM SILENTLY TAKES
+
+    Example:
+        >>> from utool.util_arg import *  # NOQA
+        >>> import utool as ut
+        >>> dpath_list = [
+        ...     ut.truepath('~/code/utool/utool'),
+        ...     ut.truepath('~/code/ibeis/ibeis'),
+        ...     ut.truepath('~/code/guitool/guitool'),
+        ...     ut.truepath('~/code/vtool/vtool'),
+        ...     ut.truepath('~/code/plottool/plottool'),
+        ... ]
+        >>> flagtups_list = autogen_argparse2(dpath_list)
+        >>> flagtup_list_ = [ut.regex_replace('[)(\']','',tupstr) for tupstr in ut.flatten(flagtups_list)]
+        >>> flagtup_list = ut.flatten([tupstr.split(',') for tupstr in flagtup_list_])
+        >>> flagtup_set = set([tupstr.strip() for tupstr in flagtup_list if tupstr.find('=') == -1])
+    """
+    import utool as ut
+    import parse
+    include_patterns = ['*.py']
+    regex_list = ['get_argflag', 'get_argval']
+    recursive = True
+    result = ut.grep(regex_list, recursive, dpath_list, include_patterns, verbose=True)
+    (found_filestr_list, found_lines_list, found_lxs_list) = result
+    # TODO: Check to see if in a comment block
+    flagtups_list = []
+    for found_lines in found_lines_list:
+        flagtups = []
+        for line in found_lines:
+            line_ = ut.regex_replace('#.*', '', line)
+
+            argval_parse_list = [
+                'get_argval({flagtup}, type={type}, default={default})',
+                'get_argval({flagtup}, {type}, default={default})',
+                'get_argval({flagtup}, {type}, {default})',
+                'get_argval({flagtup})',
+            ]
+            argflag_parse_list = [
+                'get_argflag({flagtup})',
+            ]
+            def parse_pattern_list(parse_list, line):
+                #result_list = []
+                result = None
+                for pattern in parse_list:
+                    result = parse.parse('{_prefix}' + pattern, line_)
+                    if result is not None:
+                        break
+                        #if len(result_list) > 1:
+                        #    print('warning')
+                        #result_list.append(result)
+                return result
+            val_result  = parse_pattern_list(argval_parse_list, line)
+            flag_result = parse_pattern_list(argflag_parse_list, line)
+            if flag_result is None and val_result is None:
+                print('warning1')
+            elif flag_result is not None and val_result is not None:
+                print('warning2')
+            else:
+                result = flag_result if val_result is None else val_result
+                flagtups.append(result['flagtup'])
+        flagtups_list.append(flagtups)
+    return flagtups_list
+
+
 def make_argparse2(prog='Program', description='', *args, **kwargs):
     formatter_classes = [
         argparse.RawDescriptionHelpFormatter,
