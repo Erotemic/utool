@@ -370,5 +370,8 @@ def inject_all(DEBUG=False):
             raise
 
 
+if '--inject-color' in sys.argv:
+    inject_colored_exceptions()
+
 # Inject this module with itself!
 print, print_, printDBG, rrr, profile = inject(__name__, '[inject]')

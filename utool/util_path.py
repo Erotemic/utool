@@ -568,10 +568,23 @@ def get_module_dir(module, *args):
 
 def get_absolute_import(module_fpath):
     """
+    returns importable name from file path
+
+    get_absolute_import
+
+    Args:
+        module_fpath (str): module filepath
+
+    Returns:
+        ?: modname
+
     Example:
-        >>> from utool.util_path import *
-        >>> module_fpath = '~/code/utool/util_path.py'
-        >>> module_fpath = '~/code/utool/util_path.py'
+        >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
+        >>> module_fpath = ut.util_path.__file__
+        >>> modname = ut.get_absolute_import(module_fpath)
+        >>> print(modname)
+        utool.util_path
     """
     module_fpath = truepath(module_fpath)
     dpath, fname_ext = split(module_fpath)
@@ -659,6 +672,19 @@ def is_private_module(path):
 
 
 def is_module_dir(path):
+    """
+    Args:
+        path (str)
+
+    Returns:
+        flag: True if path contains an __init__ file
+
+    Example:
+        >>> from utool.util_path import *  # NOQA
+        >>> path = truepath('~/code/utool/utool')
+        >>> flag = is_module_dir(path)
+        >>> print(flag)
+    """
     return exists(join(path, '__init__.py'))
 
 

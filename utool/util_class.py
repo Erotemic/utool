@@ -164,6 +164,8 @@ def inject_func_as_method(self, func, method_name=None, class_=None, allow_overr
         elif allow_override == 'warn':
             print('WARNING: Overrides are not allowed. Already have method_name=%r. Skipping' % (method_name))
             return
+        elif allow_override == 'override+warn':
+            print('WARNING: Overrides are allowed, but dangerous. Already have method_name=%r.' % (method_name))
         # TODO: does this actually decrement the refcount enough?
         del old_method
     setattr(self, method_name, method)
