@@ -480,7 +480,7 @@ def flag_unique_items(list_):
     Returns a list of flags corresponding to the first time an item is seen
 
     Args:
-        list_ (list):
+        list_ (list): list of items
 
     Returns:
         flag_list

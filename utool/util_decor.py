@@ -477,8 +477,17 @@ def preserve_sig(wrapper, orig_func, force=False):
         # Set an internal sig variable that we may use
         #_wrp_preserve.__sig__ = defsig
         _wrp_preserve._dbgsrc = src
-        return _wrp_preserve
     else:
         # signature preservation is turned off. just preserve the name.
         # Does not use any exec or eval statments.
-        return update_wrapper(wrapper, orig_func)
+        import utool as ut
+        orig_func_argspec = ut.get_func_argspec(orig_func)
+        _wrp_preserve = update_wrapper(wrapper, orig_func)
+        # Just do something to preserve signature
+        docstr_orig = ut.get_funcdoc(_wrp_preserve)
+        if docstr_orig is None:
+            docstr_orig = ''
+        docstr_append = 'orig_func_argspec = %r' % (orig_func_argspec,)
+        newdoc = docstr_orig + '\n' + docstr_append
+        ut.set_funcdoc(_wrp_preserve, newdoc)
+    return _wrp_preserve

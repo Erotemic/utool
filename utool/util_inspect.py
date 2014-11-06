@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 from . import util_inject
 from ._internal import meta_util_six
+import inspect
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
 
 
@@ -61,3 +62,12 @@ def get_funcglobals(func):
 
 def get_funcdoc(func):
     return meta_util_six.get_funcdoc(func)
+
+
+def set_funcdoc(func, newdoc):
+    return meta_util_six.set_funcdoc(func, newdoc)
+
+
+def get_func_argspec(func):
+    argspec = inspect.getargspec(func)
+    return argspec

@@ -6,6 +6,7 @@ import os
 import gc
 import warnings
 import weakref
+import inspect
 from collections import OrderedDict
 from six.moves import input
 from utool import util_progress
@@ -403,7 +404,6 @@ def make_default_docstr(func):
     Tries to make a sensible default docstr so the user
     can fill things in without typing too much
     """
-    import inspect
     import utool as ut
     current_doc = inspect.getdoc(func)
     needs_surround = current_doc is None or len(current_doc) == 0

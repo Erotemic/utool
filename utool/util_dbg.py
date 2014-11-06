@@ -107,7 +107,7 @@ def ipython_execstr():
     return textwrap.dedent(r'''
     import sys
     embedded = False
-    if '-w' in sys.argv or '--wait' in sys.argv:
+    if '-w' in sys.argv or '--wait' in sys.argv or '--wshow' in sys.argv:
         print('waiting')
         in_ = raw_input('press enter')
     if '--cmd' in sys.argv or locals().get('in_', '') == 'cmd':

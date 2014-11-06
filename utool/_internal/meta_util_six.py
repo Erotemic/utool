@@ -7,10 +7,15 @@ if six.PY2:
         return getattr(func, 'func_name')
     def set_funcname(func, newname):
         return setattr(func, 'func_name', newname)
+    #
     def get_funcglobals(func):
         return getattr(func, 'func_globals')
+    #
     def get_funcdoc(func):
         return getattr(func, 'func_doc')
+    def set_funcdoc(func, newdoc):
+        return setattr(func, 'func_doc', newdoc)
+    #
     def get_imfunc(func):
         return getattr(func, 'im_func')
     IntType  = types.IntType
@@ -26,10 +31,15 @@ elif six.PY3:
         return getattr(func, '__name__')
     def set_funcname(func, newname):
         return setattr(func, '__name__', newname)
+    #
     def get_funcglobals(func):
         return getattr(func, '__globals__')
+    #
     def get_funcdoc(func):
         return getattr(func, '__doc__')
+    def set_funcdoc(func, newdoc):
+        return setattr(func, '__doc__', newdoc)
+    #
     def get_imfunc(func):
         return getattr(func, '__func__')
 else:
