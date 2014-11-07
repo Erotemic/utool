@@ -133,10 +133,33 @@ def build_reverse_mapping(uid_list, cluster_list):
 
 
 def group_items(item_list, groupid_list):
+    """
+    group_items
+
+    Args:
+        item_list (list):
+        groupid_list (list):
+
+    Returns:
+        dict: groupid2_items mapping groupids to a list of items
+
+    SeeAlso:
+        vtool.group_indicies - much faster numpy grouping algorithm
+        vtool.apply_gropuing - second part to faster numpy grouping algorithm
+
+    Example:
+        >>> import utool as ut
+        >>> item_list    = [ 'ham',      'jam',    'spam',     'eggs', 'cheese', 'bannana']
+        >>> groupid_list = ['protein', 'fruit', 'protein',  'protein',  'dairy',   'fruit']
+        >>> groupid2_items = ut.group_items(item_list, groupid_list)
+        >>> print(ut.dict_str(groupid2_items, newlines=False))
+        {'protein': ['eggs', 'ham', 'spam'], 'fruit': ['bannana', 'jam'], 'dairy': ['cheese'],}
+    """
     # Sort by groupid for cache efficiency
     sorted_pairs = sorted(list(zip(groupid_list, item_list)))
     # Initialize dict of lists
     groupid2_items = defaultdict(list)
+    # Insert each item into the correct group
     for groupid, item in sorted_pairs:
         groupid2_items[groupid].append(item)
     return groupid2_items

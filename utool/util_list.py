@@ -139,7 +139,7 @@ def invertable_flatten2(unflat_list):
     ``list``
 
     Example:
-        >>> from utool.util_list import *
+        >>> from utool.util_list import *  # NOQA
         >>> import utool
         >>> utool.util_list
         >>> unflat_list = [[5], [2, 3, 12, 3, 3], [9], [13, 3], [5]]
@@ -187,7 +187,10 @@ def invertable_flatten2(unflat_list):
 
 
 def accumulate(iterator):
-    """ use itertools.accumulate in python > 3.2 """
+    """
+    Notice:
+        use itertools.accumulate in python > 3.2
+    """
     total = 0
     for item in iterator:
         total += item
@@ -211,7 +214,7 @@ def unflatten2(flat_list, cumlen_list):
         unflatten2
 
     Example:
-        >>> from utool.util_list import *
+        >>> from utool.util_list import *  # NOQA
         >>> import utool
         >>> utool.util_list
         >>> flat_list = [5, 2, 3, 12, 3, 3, 9, 13, 3, 5]
