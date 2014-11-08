@@ -58,7 +58,9 @@ def remove_chars(instr, illegals_chars):
 
 
 def get_indentation(line_):
-    """ returns the number of preceding spaces """
+    """
+    returns the number of preceding spaces
+    """
     return len(line_) - len(line_.lstrip())
 
 
@@ -72,6 +74,10 @@ def unindent(string):
 
 
 def codeblock(block_str):
+    """
+    Convinience function for defining code strings. Esspecially useful for
+    templated code.
+    """
     return unindent(block_str).strip('\n')
 
 
@@ -426,6 +432,7 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True, recurs
     """
     Returns:
         list: a list of human-readable dictionary items
+
     Example:
         >>> from utool.util_str import dict_str, dict_itemstr_list
         >>> import utool
@@ -607,16 +614,17 @@ def get_callable_name(func):
 
 
 def align(text, character='='):
-    r""" Left justifies text on the left side of character
+    r"""
+    Left justifies text on the left side of character
 
     align
 
     Args:
-        text (?):
+        text (str): text to align
         character (str):
 
     Returns:
-        ?: new_text
+        str: new_text
 
     Example:
         >>> from utool.util_str import *  # NOQA
@@ -634,16 +642,17 @@ def align(text, character='='):
 
 
 def align_lines(line_list, character='='):
-    """ Left justifies text on the left side of character
+    """
+    Left justifies text on the left side of character
 
     align_lines
 
     Args:
-        line_list (list):
+        line_list (list of strs):
         character (str):
 
     Returns:
-        ?: new_lines
+        list: new_lines
 
     Example:
         >>> from utool.util_str import *  # NOQA
@@ -729,10 +738,6 @@ def long_fname_format(fmt_str, fmt_dict, hashable_keys=[], max_len=64, hashlen=1
     return fname
 
 
-def singular_string(str_, plural_suffix='s', singular_suffix=''):
-    return str_[:-1] if str_.endswith(plural_suffix) else str_
-
-
 def replace_nonquoted_text(text, search_list, repl_list):
     """
     replace_nonquoted_text
@@ -766,6 +771,10 @@ def replace_nonquoted_text(text, search_list, repl_list):
         text_ = text_.replace(search, repl)
     text_ = ut.modify_quoted_strs(text_, unpreserve_quoted_str)
     return text_
+
+
+def singular_string(str_, plural_suffix='s', singular_suffix=''):
+    return str_[:-1] if str_.endswith(plural_suffix) else str_
 
 
 def remove_vowels(str_):

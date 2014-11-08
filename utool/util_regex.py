@@ -147,6 +147,8 @@ def modify_quoted_strs(text, modify_func=None):
     Example:
         >>> from utool.util_regex import *  # NOQA
         >>> text = "'just' 'a' sentance with 'strings' in it "
+        >>> text2 = "'this' 'text' wont work 'because \'of \"the\"\' \"nesting\"'"
+        >>> text3 = " ''' god \"help\" you ''' if you use 'triple quotes'  "
         >>> def modify_func(quoted_str):
         ...     return quoted_str.upper()
         >>> result = modify_quoted_strs(text, modify_func)
@@ -157,6 +159,7 @@ def modify_quoted_strs(text, modify_func=None):
         def idenfunc(quoted_str):
             return quoted_str
         modify_func = idenfunc
+    # regex to find a string sequence without any escaped strings in it
     regex = r'(?P<quoted_str>\'[^\']*\')'
     tmp_text = text[:]
     new_text_list = []
