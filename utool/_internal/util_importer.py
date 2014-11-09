@@ -30,7 +30,8 @@ def __execute_fromimport(module, modname, IMPORT_TUPLES):
         print('[UTIL_IMPORT] EXECUTING FROM STAR')
     FROM_IMPORTS = __get_from_imports(IMPORT_TUPLES)
     for name, fromlist in FROM_IMPORTS:
-        tmp = __import__(modname + '.' + name, globals(), locals(), fromlist=fromlist, level=0)
+        full_modname = '.'.join((modname, name))
+        tmp = __import__(full_modname, globals(), locals(), fromlist=fromlist, level=0)
         for attrname in fromlist:
             setattr(module, attrname, getattr(tmp, attrname))
     return FROM_IMPORTS
@@ -169,7 +170,8 @@ def _inject_execstr(modname, IMPORT_TUPLES):
         # Normal case implicit import of util_inject
         injecter_import = 'import utool'
         injecter = 'utool'
-    injectstr_fmt = textwrap.dedent('''
+    injectstr_fmt = textwrap.dedent(r'''
+    # STARTBLOCK
     {injecter_import}
     print, print_, printDBG, rrr, profile = {injecter}.inject(
         __name__, '[{modname}]')
@@ -203,7 +205,9 @@ def _inject_execstr(modname, IMPORT_TUPLES):
             reassign_submodule_attributes(verbose=verbose)
         except Exception:
             pass
-    rrrr = reload_subs''')
+    rrrr = reload_subs
+    # ENDBLOCK
+    ''')
     rrrdir_fmt  = '    getattr(%s, \'reload_subs\', lambda verbose: None)(verbose=verbose)'
     rrrfile_fmt = '    getattr(%s, \'rrr\', lambda verbose: None)(verbose=verbose)'
 
