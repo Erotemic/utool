@@ -284,6 +284,7 @@ def run_test(func, *args, **kwargs):
                 import utool as ut
                 print(ut.msgblock('FAILED DOCTEST IN %s' % (key,), src))
             print(SAD_FACE)
+            raise
             if util_arg.STRICT:
                 # Remove this function from stack strace
                 exc_type, exc_value, exc_traceback = sys.exc_info()

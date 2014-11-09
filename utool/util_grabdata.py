@@ -8,11 +8,12 @@ import functools
 import time
 from . import util_path
 from . import util_cplat
+from . import util_arg
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[grabdata]')
 
 
-QUIET = '--quiet' in sys.argv
+QUIET = util_arg.QUIET
 BadZipfile = zipfile.BadZipfile
 
 
