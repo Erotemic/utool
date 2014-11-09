@@ -799,3 +799,12 @@ def clipstr(str_, maxlen):
 #    nLParen = 0
 #    nLBracket = 0
 #    pass
+
+
+def msgblock(key, text):
+    blocked_text = ''.join(
+        [' + --- ', key, ' ---\n'] +
+        [' | ' + line + '\n' for line in text.split('\n')] +
+        [' L --- ', key, ' ---\n']
+    )
+    return blocked_text

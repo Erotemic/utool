@@ -290,6 +290,11 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
     if parent_locals is None:
         parent_locals = get_parent_locals(N=N)
 
+    stackdepth = N  # NOQA
+    import utool as ut
+    from functools import partial
+    getframe = partial(ut.get_caller_stack_frame, N=N)  # NOQA
+
     exec(execstr_dict(parent_globals, 'parent_globals'))
     exec(execstr_dict(parent_locals,  'parent_locals'))
     print('')
@@ -447,6 +452,10 @@ def get_stack_frame(N=0):
             raise AssertionError('Frame level %r is root' % _ix)
         frame_cur = frame_next
     return frame_cur
+
+
+def get_caller_stack_frame(N=0):
+    return get_stack_frame(N=N + 2)
 
 
 def get_parent_frame(N=0):
