@@ -31,18 +31,19 @@ def untar_file(targz_fpath, force_commonprefix=True):
     tar_file = tarfile.open(targz_fpath, 'r:gz')
     output_dir = dirname(targz_fpath)
     archive_namelist = [mem.path for mem in tar_file.getmembers()]
-    _extract_archive(targz_fpath, tar_file, archive_namelist, output_dir, force_commonprefix)
+    return _extract_archive(targz_fpath, tar_file, archive_namelist, output_dir, force_commonprefix)
 
 
 def unzip_file(zip_fpath, force_commonprefix=True):
     zip_file = zipfile.ZipFile(zip_fpath)
     output_dir  = dirname(zip_fpath)
     archive_namelist = zip_file.namelist()
-    _extract_archive(zip_fpath, zip_file, archive_namelist, output_dir, force_commonprefix)
+    return _extract_archive(zip_fpath, zip_file, archive_namelist, output_dir, force_commonprefix)
 
 
 def _extract_archive(archive_fpath, archive_file, archive_namelist, output_dir, force_commonprefix=True):
     # force extracted components into a subdirectory if force_commonprefix is on
+    return_path = output_dir
     if force_commonprefix and commonprefix(archive_namelist) == '':
         # use the archivename as the default common prefix
         archive_basename, ext = split_archive_ext(basename(archive_fpath))
@@ -56,6 +57,7 @@ def _extract_archive(archive_fpath, archive_file, archive_namelist, output_dir, 
         if not QUIET:
             print('[utool] Unarchive ' + fname + ' in ' + dpath)
         archive_file.extract(member, path=output_dir)
+    return output_dir
 
 
 def open_url_in_browser(url):
