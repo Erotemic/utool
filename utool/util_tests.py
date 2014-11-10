@@ -8,6 +8,7 @@ import sys
 from . import util_print
 from . import util_dbg
 from . import util_arg
+from . import util_path
 from . import util_time
 from .util_inject import inject
 from utool._internal.meta_util_six import get_funcname
@@ -125,8 +126,8 @@ def iter_module_funcs(module):
                 print('Unknown if testable %r' % type(val))
 
 
-def doctest_funcs(testable_list=[], check_flags=True, module=None, testall=None,
-                  needs_enable=False):
+def doctest_funcs(testable_list=[], check_flags=True, module=None, allexamples=None,
+                  needs_enable=None):
     """
     entry point into utools main module doctest harness
 
@@ -135,11 +136,16 @@ def doctest_funcs(testable_list=[], check_flags=True, module=None, testall=None,
 
     """
     import multiprocessing
-    multiprocessing.freeze_support()
-
-    print('[utool] Running doctest funcs')
     import utool
     import utool as ut
+    multiprocessing.freeze_support()
+    if needs_enable is None:
+        needs_enable = not ut.get_argflag('--enableall')
+    else:
+        needs_enable = True
+    TEST_ALL_EXAMPLES = allexamples or ut.get_argflag(('--allexamples', '--test-all-examples', '--testall', '--test-all'))
+
+    print('[utool] Running doctest funcs')
 
     testable_name_list = []
 
@@ -162,9 +168,9 @@ def doctest_funcs(testable_list=[], check_flags=True, module=None, testall=None,
             print(frame.f_globals)
             ut.printex(ex, keys=['frame', 'module'])
             raise
-        testall = False
+        allexamples = False
     else:
-        testall = True
+        allexamples = True
 
     try:
         #source = inspect.getsource(module)
@@ -202,7 +208,6 @@ def doctest_funcs(testable_list=[], check_flags=True, module=None, testall=None,
     sorted_testnames = []
     sorted_testable = sorted(list(set(testable_list)), key=_get_testable_name)
 
-    TEST_ALL = testall or ut.get_argflag(('--testall', '--test-all'))
     nPass = 0
     nTotal = 0
     for testable in sorted_testable:
@@ -211,7 +216,8 @@ def doctest_funcs(testable_list=[], check_flags=True, module=None, testall=None,
         sorted_testnames.append(key)
         flag1 = '--test-' + key.replace('_', '-')
         flag2 = '--test-' + key
-        if TEST_ALL or not check_flags or utool.get_argflag((flag1, flag2)):
+        specific_test_flag = utool.get_argflag((flag1, flag2))
+        if TEST_ALL_EXAMPLES or not check_flags or specific_test_flag:
             print('[utool] Doctest requested: %r' % key)
             examples = get_doctest_examples(testable)
             if len(examples) == 0:
@@ -234,7 +240,7 @@ def doctest_funcs(testable_list=[], check_flags=True, module=None, testall=None,
             wastested_list.append(False)
     if not any(wastested_list):
         print('No test flags sepcified. Please choose one of the following flags')
-        print('Valid test argflags:\n' + '    --test-all' + utool.indentjoin(sorted_testnames, '\n    --test-'))
+        print('Valid test argflags:\n' + '    --allexamples' + utool.indentjoin(sorted_testnames, '\n    --test-'))
     print('+-------')
     print('| finished testing fpath=%r' % (frame_fpath,))
     print('| passed %d / %d' % (nPass, nTotal))
@@ -565,7 +571,7 @@ def autogen_run_tests(test_headers, test_argvs, quick_tests=None, repodir=None,
         else:
             repo_path = repodir
         #print(repo_path)
-        dpath_ = utool.truepath(join(repo_path, dpath))
+        dpath_ = utool.unixpath(util_path.unixjoin(repo_path, dpath))
         #print(dpath_)
         #print(pats)
 
@@ -584,7 +590,7 @@ def autogen_run_tests(test_headers, test_argvs, quick_tests=None, repodir=None,
 
         known_tests[dpath_].extend(_testfpath_list)
         #print(_testfpath_list)
-        testfpath_list = [join(dpath, relpath(fpath, dpath_)) for fpath in _testfpath_list]
+        testfpath_list = [util_path.unixjoin(dpath, relpath(fpath, dpath_)) for fpath in _testfpath_list]
 
         testline_list = [format_testline(fpath, dirvar) for fpath in testfpath_list]
         testlines_block = utool.indentjoin(testline_list).strip('\n')
@@ -631,74 +637,12 @@ def def_test(header, pat=None, dpath=None, modname=None, default=False):
     return (header, default, modname, dpath, pat)
 
 
-def autogen_ibeis_runtest():
-    """ special case to generate tests script for IBEIS
-
-    Example:
-        >>> import utool
-        >>> test_script = utool.autogen_ibeis_runtest()
-
-    CommandLine:
-        python -c "import utool; utool.autogen_ibeis_runtest()"
-        python -c "import utool; print(utool.autogen_ibeis_runtest())"
-
-        python -c "import utool; print(utool.autogen_ibeis_runtest())" > _run_tests2.sh
-        chmod +x _run_tests2.sh
-
-    """
-
-    quick_tests = [
-        'ibeis/tests/assert_modules.py'
-    ]
-
-    #test_repos = [
-    #    '~/code/ibeis'
-    #    '~/code/vtool'
-    #    '~/code/hesaff'
-    #    '~/code/guitool'
-    #]
-
-    #test_pattern = [
-    #    '~/code/ibeis/test_ibs*.py'
-    #]
-
-    test_argvs = '--quiet --noshow'
-
-    misc_pats = [
-        'test_utool_parallel.py',
-        'test_pil_hash.py',
-    ]
-
-    repodir = '~/code/ibeis'
-    testdir = 'ibeis/tests'
-
-    exclude_list = [
-    ]
-
-    test_headers = [
-        # title, default, module, testpattern
-        def_test('VTOOL',  dpath='vtool/tests', pat=['test*.py'], modname='vtool'),
-        def_test('GUI',    dpath=testdir, pat=['test_gui*.py']),
-        def_test('IBEIS',  dpath=testdir, pat=['test_ibs*.py', 'test_delete*.py'], default=True),
-        def_test('SQL',    dpath=testdir, pat=['test_sql*.py']),
-        def_test('VIEW',   dpath=testdir, pat=['test_view*.py']),
-        def_test('MISC',   dpath=testdir, pat=misc_pats),
-        def_test('OTHER',  dpath=testdir, pat='OTHER'),
-        def_test('HESAFF', dpath='pyhesaff/tests', pat=['test_*.py'], modname='pyhesaff'),
-    ]
-
-    script_text = autogen_run_tests(test_headers, test_argvs, quick_tests, repodir, exclude_list)
-    #print(script_text)
-    return script_text
-
-
 if __name__ == '__main__':
     """
     python utool/util_tests.py
     python -c "import utool; utool.doctest_funcs(module=utool.util_tests, needs_enable=False)"
-    /model/preproc/preproc_chip.py --testall
+    /model/preproc/preproc_chip.py --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()
-    import utool as ut
-    ut.doctest_funcs()
+    doctest_funcs()

@@ -742,6 +742,10 @@ def duplicates_exist(items):
     return len(items) - len(set(items)) != 0
 
 
+def isunique(items):
+    return not duplicates_exist(items)
+
+
 def print_duplicate_map(duplicate_map, *args):
     # args are corresponding lists
     import utool as ut

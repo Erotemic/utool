@@ -86,9 +86,11 @@ def make_class_method_decorator(classtype):
         closure_decorate_class_method (func): decorator for injectable methods
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> import utool as ut
         >>> class CheeseShop(object):
         ...    def __init__(self):
+        ...        import utool as ut
         ...        ut.inject_instance(self)
         >>> cheeseshop_method = ut.make_class_method_decorator(CheeseShop)
         >>> @cheeseshop_method
@@ -292,3 +294,14 @@ def get_comparison_methods():
         return self.__hash__() >= (other.__hash__())
 
     return method_list
+
+
+if __name__ == '__main__':
+    """
+    python -c "import utool; utool.doctest_funcs(utool.util_class, allexamples=True)"
+    python utool/util_class.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()
+    import utool as ut
+    ut.doctest_funcs()
