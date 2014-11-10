@@ -53,19 +53,71 @@ def iflatten_scalars(list_):
     [item for item in list_]
 
 
-def ichunks(list_, chunksize):
+def ichunks(iterable, chunksize):
     """
-    generates successive n-sized chunks from ``list_``.
+    generates successive n-sized chunks from ``iterable``.
 
     Args:
-        list_ (list): input to iterate over
+        iterable (list): input to iterate over
         chunksize (int): size of sublist to return
+
+    References:
+        http://stackoverflow.com/questions/434287/what-is-the-most-pythonic-way-to-iterate-over-a-list-in-chunks
+
+    Timeit:
+        >>> import utool as ut
+        >>> setup = ut.codeblock('''
+                from utool.util_iter import *  # NOQA
+                iterable = list(range(100))
+                chunksize = 8
+                ''')
+        >>> stmt_list = [
+        ...     'list(ichunks(iterable, chunksize))',
+        ...     'list(ichunks_list(iterable, chunksize))'
+        ... ]
+        >>> ut.timeit_compare(stmt_list, setup)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_iter import *  # NOQA
+        >>> iterable = [1, 2, 3, 4, 5, 6, 7]
+        >>> chunksize = 3
+        >>> result = ichunks(iterable, chunksize)
+        >>> print(list(result))
+        [[1, 2, 3], [4, 5, 6], [7]]
     """
-    for ix in range(0, len(list_), chunksize):
-        yield list_[ix: ix + chunksize]
+    from itertools import izip_longest
+    # feed the same iter to izip_longest multiple times, this causes it to
+    # consume successive values of the same sequence rather than striped values
+    return izip_longest(*[iter(iterable)] * chunksize, fillvalue=None)
+
+
+def ichunks_list(list_, chunksize):
+    """ input must be a list. SeeAlso ichunks
+
+    References:
+        http://stackoverflow.com/questions/434287/what-is-the-most-pythonic-way-to-iterate-over-a-list-in-chunks
+    """
+    return (list_[ix:ix + chunksize] for ix in range(0, len(list_), chunksize))
+    #for ix in range(0, len(list_), chunksize):
+    #    yield list_[ix: ix + chunksize]
 
 
 def interleave(args):
+    """
+    interleave
+
+    Args:
+        args (tuple):
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_iter import *  # NOQA
+        >>> args = ([1, 2, 3, 4, 5], ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+        >>> result = interleave(args)
+        >>> print(list(result))
+        [1, 'A', 2, 'B', 3, 'C', 4, 'D', 5, 'E']
+    """
     arg_iters = list(map(iter, args))
     cycle_iter = cycle(arg_iters)
     for iter_ in cycle_iter:
@@ -73,11 +125,13 @@ def interleave(args):
 
 
 def interleave2(*iterables):
+    raise NotImplementedError('not sure if this implementation is correct')
     return chain.from_iterable(zip(*iterables))
 
 
 def interleave3(*args):
     cycle_iter = zip(*args)
+    raise NotImplementedError('not sure if this implementation is correct')
     if six.PY2:
         for iter_ in cycle_iter:
             yield iter_.next()
@@ -88,6 +142,7 @@ def interleave3(*args):
 
 def roundrobin(*iterables):
     """roundrobin('ABC', 'D', 'EF') --> A D E B F C"""
+    raise NotImplementedError('not sure if this implementation is correct')
     # http://stackoverflow.com/questions/11125212/interleaving-lists-in-python
     #sentinel = object()
     #return (x for x in chain(*zip_longest(fillvalue=sentinel, *iterables)) if x is not sentinel)

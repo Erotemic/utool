@@ -568,11 +568,11 @@ def get_module_dir(module, *args):
     return module_dir
 
 
-def get_absolute_import(module_fpath):
+def get_modname_from_modpath(module_fpath):
     """
     returns importable name from file path
 
-    get_absolute_import
+    get_modname_from_modpath
 
     Args:
         module_fpath (str): module filepath
@@ -584,7 +584,7 @@ def get_absolute_import(module_fpath):
         >>> from utool.util_path import *  # NOQA
         >>> import utool as ut
         >>> module_fpath = ut.util_path.__file__
-        >>> modname = ut.get_absolute_import(module_fpath)
+        >>> modname = ut.get_modname_from_modpath(module_fpath)
         >>> print(modname)
         utool.util_path
     """

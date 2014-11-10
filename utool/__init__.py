@@ -340,7 +340,7 @@ if DOELSE:
                                  extend_regex, file_bytes, file_megabytes, 
                                  find_lib_fpath, fixwin32_shortname, 
                                  fnames_to_fpaths, fpaths_to_fnames, 
-                                 get_absolute_import, get_basename_noext_list, 
+                                 get_modname_from_modpath, get_basename_noext_list, 
                                  get_basepath_list, get_ext_list, 
                                  get_module_dir, glob, grep, grepfile, iglob, 
                                  is_module_dir, is_private_module, isfile, 
