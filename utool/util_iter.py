@@ -75,7 +75,7 @@ def ichunks(iterable, chunksize):
         ...     'list(ichunks(iterable, chunksize))',
         ...     'list(ichunks_list(iterable, chunksize))'
         ... ]
-        >>> ut.timeit_compare(stmt_list, setup)
+        >>> (passed, time_list, result_list) = ut.timeit_compare(stmt_list, setup)
 
     Example:
         >>> # ENABLE_DOCTEST
