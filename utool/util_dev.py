@@ -431,6 +431,19 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
     Compares several statments by timing them and also
     checks that they have the same return value
 
+    Args:
+        stmt_list (list) : list of statments to compare
+        setup (str) :
+        iterations (int) :
+        verbose (bool) :
+        strict (bool) :
+
+    Returns:
+        tuple (bool, list, list) : (passed, time_list, result_list)
+            passed (bool): True if all results are the same
+            time_list (list): list of times for each statment
+            result_list (list): list of results values for each statment
+
     Example:
         >>> import utool
         >>> setup = utool.unindent(
@@ -477,11 +490,11 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
     time_list   = [timeit.timeit(stmt, setup=setup, number=iterations)
                    for stmt in stmt_list]
 
+    passed = utool.util_list.list_allsame(result_list)
     if verbose:
         print('| Output:')
-        valid_results = utool.util_list.list_allsame(result_list)
-        if not valid_results:
-            print('|    * RESULTS ARE NOT VALID!!!')
+        if not passed:
+            print('|    * FAILED: results differ between some statements')
             print('| Results:')
             for result in result_list:
                 for count, result in enumerate(result_list):
@@ -491,7 +504,8 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
             if strict:
                 raise AssertionError('Results are not valid')
         else:
-            print('|    * each statement produced the same result')
+            print('|    * PASSED: each statement produced the same result')
+            passed = True
         #print('|    +-----------------------------------')
         print('|    | num | total time | per loop | stmt')
         for count, tup in enumerate(zip(stmt_list, time_list)):
@@ -500,7 +514,9 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
                   (count, utool.seconds_str(time),
                    utool.seconds_str(time / iterations), stmt))
         #print('|    L___________________________________')
-        print('L_________________')
+        if verbose:
+            print('L_________________')
+        return (passed, time_list, result_list)
 
 
 def testit(stmt, setup):

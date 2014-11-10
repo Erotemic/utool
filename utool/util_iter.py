@@ -5,7 +5,7 @@ except ImportError as ex:
     pass
 import six
 from six.moves import zip, range
-from itertools import chain, cycle, islice
+from itertools import chain, cycle, islice, izip_longest
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[iter]')
 
@@ -86,10 +86,13 @@ def ichunks(iterable, chunksize):
         >>> print(list(result))
         [[1, 2, 3], [4, 5, 6], [7]]
     """
-    from itertools import izip_longest
     # feed the same iter to izip_longest multiple times, this causes it to
     # consume successive values of the same sequence rather than striped values
-    return izip_longest(*[iter(iterable)] * chunksize, fillvalue=None)
+    sentinal = object()
+    chunks_with_sentinals = izip_longest(*[iter(iterable)] * chunksize, fillvalue=sentinal)
+    # Yeild smaller chunks without sentinals
+    for chunk in chunks_with_sentinals:
+        yield [item for item in chunk if item is not sentinal]
 
 
 def ichunks_list(list_, chunksize):
