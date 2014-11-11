@@ -16,10 +16,10 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[class]', DEBUG=False)
 __CLASSTYPE_ATTRIBUTES__ = defaultdict(oset)
 __CLASSTYPE_POSTINJECT_FUNCS__ = defaultdict(oset)
 
-VERBOSE_CLASS = util_arg.get_argflag(('--verbose-class', '--verbclass'))
+VERBOSE_CLASS = util_arg.get_argflag(('--verbose-class', '--verbclass')) or util_arg.VERYVERBOSE
 
 
-def inject_instance(self, classtype=None, allow_override=False, verbose=VERBOSE_CLASS or util_arg.VERBOSE):
+def inject_instance(self, classtype=None, allow_override=False, verbose=VERBOSE_CLASS):
     """
     Injects an instance (self) of type (classtype)
     with all functions registered to (classtype)
@@ -59,7 +59,7 @@ def inject_instance(self, classtype=None, allow_override=False, verbose=VERBOSE_
     if verbose:
         print('[util_class] injecting methods into %r' % (self,))
     for func in __CLASSTYPE_ATTRIBUTES__[classtype]:
-        if VERBOSE_CLASS or util_arg.VERBOSE:
+        if VERBOSE_CLASS:
             print('[util_class] * injecting %r' % (func,))
         method_name = None
         # Allow user to register tuples for aliases
@@ -99,8 +99,7 @@ def make_class_method_decorator(classtype):
         >>> shop = CheeseShop()
         >>> assert shop.has_cheese() is False
     """
-    import utool as ut
-    if ut.get_argflag('--verbclass') or ut.VERBOSE:
+    if VERBOSE_CLASS:
         print('[util_class] register make_class_method_decorator=%r' % make_class_method_decorator)
     closure_decorate_class_method = functools.partial(decorate_class_method, classtype=classtype)
     return closure_decorate_class_method
@@ -117,7 +116,7 @@ def make_class_postinject_decorator(classtype):
     SeeAlso:
         make_class_method_decorator
     """
-    if VERBOSE_CLASS or util_arg.VERBOSE:
+    if VERBOSE_CLASS:
         print('[util_class] register class_postinject=%r' % make_class_method_decorator)
     closure_decorate_postinject = functools.partial(decorate_postinject, classtype=classtype)
     return closure_decorate_postinject

@@ -99,7 +99,10 @@ def on_exception_report_input(func):
             #    print('[IN EXCPRPT] kwargs=%r' % (kwargs,))
             return func(*args, **kwargs)
         except Exception as ex:
-            msg = ('ERROR: funcname=%r,\n * args=%r,\n * kwargs=%r\n' % (get_funcname(func), args, kwargs))
+            import utool as ut
+            arg_strs = list(map(ut.truncate_str, map(str, args)))
+            arg_strs = list(map(ut.truncate_str, map(str, ('%s=%r' % (key, val) for key, val in six.iteritems(kwargs)))))
+            msg = ('ERROR: funcname=%r,\n * args=%s,\n * kwargs=%r\n' % (get_funcname(func), arg_strs, kwargs))
             msg += ' * len(args) = %r\n' % len(args)
             msg += ' * len(kwlargs) = %r\n' % len(kwargs)
             util_dbg.printex(ex, msg, separate=True)

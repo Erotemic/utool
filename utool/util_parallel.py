@@ -10,7 +10,7 @@ import atexit
 import sys
 import signal
 from ._internal.meta_util_six import get_funcname
-from .util_progress import progress_func
+from .util_progress import progress_func, ProgressIter
 from .util_time import tic, toc
 from . import util_arg
 #from .util_cplat import WIN32
@@ -175,8 +175,6 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
     if verbose:
         print('[parallel] executing %d %s tasks using %d processes with chunksize=%r' %
                 (nTasks, get_funcname(func), __POOL__._processes, chunksize))
-    if prog:
-        mark_prog, end_prog = progress_func(max_val=nTasks, lbl=get_funcname(func) + ': ')
     #assert isinstance(__POOL__, multiprocessing.Pool),\
     #        '%r __POOL__ = %r' % (type(__POOL__), __POOL__,)
     if ordered:
@@ -184,10 +182,23 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
     else:
         generator = __POOL__.imap_unordered(func, args_list, chunksize)
     try:
-        for count, result in enumerate(generator):
-            if prog:
+        use_new_prog = True
+        if prog and use_new_prog:
+            # New way of doing progress
+            prog_generator = ProgressIter(generator, nTotal=nTasks, lbl=get_funcname(func) + ': ')
+            for result in prog_generator:
+                yield result
+        elif prog:
+            # Old way of doing progress
+            mark_prog, end_prog = progress_func(max_val=nTasks, lbl=get_funcname(func) + ': ')
+            for count, result in enumerate(generator):
                 mark_prog(count)
-            yield result
+                yield result
+            end_prog()
+        else:
+            # No Progress
+            for result in generator:
+                yield result
     except Exception as ex:
         printex(ex, 'Parallel Generation Failed!', '[utool]')
         print('__SERIAL_FALLBACK__ = %r' % __SERIAL_FALLBACK__)
@@ -197,8 +208,6 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
                 yield result
         else:
             raise
-    if prog:
-        end_prog()
     #close_pool()
 
 
@@ -210,15 +219,33 @@ def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None):
         print('[parallel] executing %d %s tasks in serial' %
                 (nTasks, get_funcname(func)))
     prog = prog and verbose
-    if prog:
+    use_new_prog = True
+    if prog and use_new_prog:
+        # New way of doing progress
+        prog_generator = ProgressIter(args_list, nTotal=nTasks, lbl=get_funcname(func) + ': ')
+        for args in prog_generator:
+            result = func(args)
+            yield result
+    elif prog:
+        # Old way of doing progress
         mark_prog, end_prog = progress_func(max_val=nTasks, lbl=get_funcname(func) + ': ')
-    for count, args in enumerate(args_list):
-        if prog:
+        for count, args in enumerate(args_list):
             mark_prog(count)
-        result = func(args)
-        yield result
-    if prog:
+            result = func(args)
+            yield result
         end_prog()
+    else:
+        # No Progress
+        for args in args_list:
+            result = func(args)
+            yield result
+    #for count, args in enumerate(args_list):
+    #    if prog:
+    #        mark_prog(count)
+    #    result = func(args)
+    #    yield result
+    #if prog:
+    #    end_prog()
 
 
 def ensure_pool(warn=False):

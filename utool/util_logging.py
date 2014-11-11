@@ -22,7 +22,8 @@ __UTOOL_ROOT_LOGGER__ = None
 
 PRINT_ALL_CALLERS = '--print-all-callers' in sys.argv
 VERBOSE = '--verbose' in sys.argv
-VERYVERBOSE = '--veryverbose' in sys.argv
+VERYVERBOSE = '--very-verbose' in sys.argv or '--veryverbose' in sys.argv
+LOGGING_VERBOSE = VERYVERBOSE or '--verb-logging' in sys.argv
 
 # Remeber original python values
 __PYTHON_STDOUT__ = sys.stdout
@@ -34,6 +35,8 @@ __PYTHON_FLUSH__  = __PYTHON_STDOUT__.flush
 __UTOOL_STDOUT__    = __PYTHON_STDOUT__
 __UTOOL_PRINT__     = __PYTHON_PRINT__
 __UTOOL_PRINTDBG__  = __PYTHON_PRINT__
+
+# TODO: Allow write and flush to have a logging equivalent
 __UTOOL_WRITE__     = __PYTHON_WRITE__
 __UTOOL_FLUSH__     = __PYTHON_FLUSH__
 __UTOOL_WRITE_BUFFER__ = []
@@ -114,17 +117,17 @@ def start_logging(log_fpath=None, mode='a', appname='default'):
     global __UTOOL_PRINTDBG__
     global __UTOOL_WRITE__
     global __UTOOL_FLUSH__
-    if VERYVERBOSE:
+    if LOGGING_VERBOSE:
         print('[utool] start_logging()')
     # FIXME: The test for doctest may not work
     if __UTOOL_ROOT_LOGGER__ is None and __IN_MAIN_PROCESS__ and not __inside_doctest():
-        if VERYVERBOSE:
+        if LOGGING_VERBOSE:
             print('[utool] start_logging()... rootcheck OK')
         #logging.config.dictConfig(LOGGING)
         if log_fpath is None:
             log_fpath = get_log_fpath(num='next', appname=appname)
         # Print what is about to happen
-        if VERBOSE:
+        if VERBOSE or LOGGING_VERBOSE:
             startmsg = ('logging to log_fpath=%r' % log_fpath)
             __UTOOL_PRINT__(startmsg)
         # Create root logger
@@ -173,7 +176,7 @@ def start_logging(log_fpath=None, mode='a', appname='default'):
         __UTOOL_PRINT__    = utool_print
         __UTOOL_PRINTDBG__ = utool_printdbg
         # Test out our shiney new logger
-        if VERBOSE:
+        if VERBOSE or LOGGING_VERBOSE:
             __UTOOL_PRINT__('<__LOG_START__>')
             __UTOOL_PRINT__(startmsg)
 
@@ -188,7 +191,7 @@ def stop_logging():
     global __UTOOL_WRITE__
     global __UTOOL_FLUSH__
     if __UTOOL_ROOT_LOGGER__ is not None:
-        if VERBOSE:
+        if VERBOSE or LOGGING_VERBOSE:
             __UTOOL_PRINT__('<__LOG_STOP__>')
         # Remove handlers
         for h in __UTOOL_ROOT_LOGGER__.handlers:

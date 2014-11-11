@@ -11,7 +11,9 @@ Examples:
     python -c "import utool, doctest; help(doctest.testmod)"
 """
 from __future__ import absolute_import, division, print_function
+import time
 import sys
+from utool import util_logging
 from .util_inject import inject
 from .util_arg import QUIET, SILENT
 from . import util_time
@@ -25,6 +27,13 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[progress]')
 VALID_PROGRESS_TYPES = ['none', 'dots', 'fmtstr', 'simple']
 AGGROFLUSH = '--aggroflush' in sys.argv
 PROGGRESS_BACKSPACE = ('--screen' not in sys.argv and '--progress-backspace' not in sys.argv)
+
+
+#PROGRESS_WRITE = sys.stdout.write
+#PROGRESS_FLUSH = sys.stdout.flush
+
+PROGRESS_WRITE = util_logging.__UTOOL_WRITE__
+PROGRESS_FLUSH = util_logging.__UTOOL_FLUSH__
 
 
 class ProgressIter(object):
@@ -68,9 +77,11 @@ class ProgressIter(object):
                 kwargs['nTotal'] = nTotal
             except Exception:
                 pass
+        self.use_rate = kwargs.pop('use_rate', True)
         mark, end = log_progress(*args, **kwargs)
         self.lbl = kwargs.get('lbl', 'lbl')
         self.nTotal = kwargs.get('nTotal', 0)
+        self.backspace = kwargs.get('backspace', True)
         self.freq = kwargs.get('freq', 4)
         self.mark = mark
         self.end = end
@@ -81,6 +92,12 @@ class ProgressIter(object):
         return self
 
     def __iter__(self):
+        if self.use_rate:
+            return self.iter_rate()
+        else:
+            return self.iter_without_rate()
+
+    def iter_without_rate(self):
         mark = self.mark
         # Wrap the for loop with a generator
         self.count = -1
@@ -92,27 +109,54 @@ class ProgressIter(object):
     def iter_rate(self):
         # TODO Incorporate this better
         import utool as ut
-        import time
         starttime = time.time()
+        last_time = starttime
         #mark = self.mark
         # Wrap the for loop with a generator
         self.count = -1
-        freq = 100
-        cumrate = 1E-9
-        self.nTotal = len(self.iterable)
-        fmt_msg = '\r' + self.lbl + ' %4d/' + str(self.nTotal) + '... rate=%d iters per second.'
+        freq = self.freq
+        #cumrate = 1E-9
+        between_count = 0
+        last_count = -1
+        #self.nTotal = len(self.iterable)
+        nTotal = self.nTotal
+        fmt_msg = ''.join(('\r', self.lbl,
+                           ' %4d/', str(nTotal),
+                           '...  rate=%4.1f iters per second.',
+                           ' est_min_left=%4.2f              '))
+
+        if not self.backspace:
+            fmt_msg += '\n'
+
         with ut.Timer(self.lbl):
             for self.count, item in enumerate(self.iterable):
                 #mark(self.count)
                 yield item
                 if self.count % freq == 0:
-                    endtime = time.time()
-                    cumrate += (endtime - starttime)
-                    starttime = endtime
-                    rate = self.count / cumrate
-                    msg = fmt_msg % (self.count, rate)
-                    sys.stdout.write(msg)
-                    sys.stdout.flush()
+                    between_count = self.count - last_count
+                    now_time = time.time()
+                    between_time = (now_time - last_time)
+                    iters_per_second = between_count / float(between_time)
+                    #cumrate += between_time
+                    #rate = (self.count + 1.0) / float(cumrate)
+                    iters_left = nTotal - self.count
+                    est_seconds_left = iters_left / (iters_per_second + 1E-9)
+                    est_min_left = est_seconds_left / 60.0
+                    msg = fmt_msg % (self.count, iters_per_second, est_min_left)
+                    if False and __debug__:
+                        print('<!!!!!!!!!!!!!>')
+                        print('iters_left = %r' % iters_left)
+                        print('between_time = %r' % between_time)
+                        print('between_count = %r' % between_count)
+                        print('est_seconds_left = %r' % est_seconds_left)
+                        print('iters_per_second = %r' % iters_per_second)
+                        print('</!!!!!!!!!!!!!>')
+                    PROGRESS_WRITE(msg)
+                    PROGRESS_FLUSH()
+                    last_count = self.count
+                    last_time = now_time
+        PROGRESS_WRITE('\n')
+        PROGRESS_FLUSH()
         #self.end(self.count + 1)
 
     def mark_current(self):
@@ -205,8 +249,8 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
             pass
         return mark_progress, end_progress
     else:
-        write_fn = sys.stdout.write
-        flush_fn = sys.stdout.flush
+        write_fn = PROGRESS_WRITE
+        flush_fn = PROGRESS_FLUSH
         # build format string for displaying progress
         fmt_str = progress_str(nTotal, lbl=lbl, repl=repl, approx=approx,
                                backspace=backspace)
@@ -255,7 +299,7 @@ def simple_progres_func(verbosity, msg, progchar='.'):
         pass
 
     def mark_progress1(*args):
-        sys.stdout.write(progchar)
+        PROGRESS_WRITE(progchar)
 
     def mark_progress2(*args):
         print(msg % args)
@@ -285,7 +329,7 @@ def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
         parameter. Prints if max_val > mark_at. Prints dots if max_val not
         specified or simple=True
     """
-    write_fn = sys.stdout.write
+    write_fn = PROGRESS_WRITE
     #write_fn = print_
     #print('STARTING PROGRESS: VERBOSE=%r QUIET=%r' % (VERBOSE, QUIET))
 
@@ -312,12 +356,12 @@ def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
                 count_ = count + 1
                 if (count_) % newline_len == 0:
                     write_fn('\n' + indent_)
-                    sys.stdout.flush()
+                    PROGRESS_FLUSH()
                 elif (count_) % spacing == 0:
                     write_fn(' ')
-                    sys.stdout.flush()
+                    PROGRESS_FLUSH()
                 elif (count_) % flush_after == 0:
-                    sys.stdout.flush()
+                    PROGRESS_FLUSH()
             mark_progress = mark_progress_sdot
         else:
             # No spacing
@@ -328,9 +372,9 @@ def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
                 count_ = count + 1
                 if (count_) % newline_len == 0:
                     write_fn('\n' + indent_)
-                    sys.stdout.flush()
+                    PROGRESS_FLUSH()
                 elif (count_) % flush_after == 0:
-                    sys.stdout.flush()
+                    PROGRESS_FLUSH()
             mark_progress = mark_progress_dot
     # fmtstr: formated string progress
     if progress_type == 'fmtstr':
@@ -340,18 +384,18 @@ def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
             count_ = count + 1
             write_fn(fmt_str % (count_))
             if (count_) % flush_after == 0:
-                sys.stdout.flush()
+                PROGRESS_FLUSH()
         mark_progress = mark_progress_fmtstr
     # FIXME idk why argparse2.ARGS_ is none here.
     if '--aggroflush' in sys.argv:
         def mark_progress_agressive(count):
             mark_progress(count)
-            sys.stdout.flush()
+            PROGRESS_FLUSH()
         return mark_progress_agressive
 
     def end_progress():
         write_fn('\n')
-        sys.stdout.flush()
+        PROGRESS_FLUSH()
     #mark_progress(0)
     if mark_start:
         mark_progress(-1)

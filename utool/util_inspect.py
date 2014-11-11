@@ -1,8 +1,35 @@
 from __future__ import absolute_import, division, print_function
+import inspect
+import types
+import six
 from . import util_inject
 from ._internal import meta_util_six
-import inspect
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
+
+
+def iter_module_funcs(module):
+    r"""
+    Example:
+        >>> import utool
+        >>> func_names = utool.get_list_column(list(iter_module_funcs(utool.util_tests)), 0)
+        >>> print('\n'.join(func_names))
+    """
+    valid_func_types = (types.FunctionType, types.MethodType,
+                        types.BuiltinFunctionType, types.BuiltinMethodType,
+                        types.ClassType)
+    for key, val in six.iteritems(module.__dict__):
+        if isinstance(val, valid_func_types):
+            yield key, val
+        elif isinstance(val, types.InstanceType):
+            pass
+        elif isinstance(val, types.ModuleType):
+            pass
+        elif isinstance(val, six.string_types):
+            pass
+        else:
+            import utool as ut
+            if ut.VERBOSE:
+                print('Unknown if testable %r' % type(val))
 
 
 def list_class_funcnames(fname, blank_pats=['    #']):

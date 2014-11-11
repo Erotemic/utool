@@ -15,6 +15,8 @@ from utool._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[tests]')
 
 
+VERBOSE_TEST = '--verb-test' in sys.argv or '--verbose-test' in sys.argv
+
 HAPPY_FACE = r'''
                .-""""""-.
              .'          '.
@@ -68,6 +70,8 @@ def get_doctest_examples(func_or_class):
         >>> result = get_doctest_examples(func_or_class)
         >>> print(result)
     """
+    if VERBOSE_TEST:
+        print('[util_test] parsing %r for doctest' % (func_or_class))
     import doctest
     try:
         docstr = func_or_class.func_doc
@@ -101,35 +105,10 @@ def get_doctest_examples(func_or_class):
     return example_list
 
 
-def iter_module_funcs(module):
-    r"""
-    Example:
-        >>> import utool
-        >>> func_names = utool.get_list_column(list(iter_module_funcs(utool.util_tests)), 0)
-        >>> print('\n'.join(func_names))
-    """
-    valid_func_types = (types.FunctionType, types.MethodType,
-                        types.BuiltinFunctionType, types.BuiltinMethodType,
-                        types.ClassType)
-    for key, val in six.iteritems(module.__dict__):
-        if isinstance(val, valid_func_types):
-            yield key, val
-        elif isinstance(val, types.InstanceType):
-            pass
-        elif isinstance(val, types.ModuleType):
-            pass
-        elif isinstance(val, six.string_types):
-            pass
-        else:
-            import utool as ut
-            if ut.VERBOSE:
-                print('Unknown if testable %r' % type(val))
-
-
 def doctest_funcs(testable_list=[], check_flags=True, module=None, allexamples=None,
                   needs_enable=None):
     """
-    entry point into utools main module doctest harness
+    Main entry point into utools main module doctest harness
 
     CommandLine:
         python -c "import utool; utool.doctest_funcs(module=utool.util_tests, needs_enable=False)"
@@ -173,8 +152,11 @@ def doctest_funcs(testable_list=[], check_flags=True, module=None, allexamples=N
         allexamples = True
 
     try:
+        if VERBOSE_TEST:
+            print('[util_test] Iterating over module funcs')
+
         #source = inspect.getsource(module)
-        for key, val in iter_module_funcs(module):
+        for key, val in ut.iter_module_funcs(module):
             docstr = inspect.getdoc(val)
             test_sentinals = [
                 'ENABLE_DOCTEST',
@@ -210,6 +192,8 @@ def doctest_funcs(testable_list=[], check_flags=True, module=None, allexamples=N
 
     nPass = 0
     nTotal = 0
+
+    subx = ut.get_argval('--subx', type_=int, default=None, help_='Only tests the subxth example')
     for testable in sorted_testable:
         # HACKy
         key = _get_testable_name(testable)
@@ -220,19 +204,23 @@ def doctest_funcs(testable_list=[], check_flags=True, module=None, allexamples=N
         if TEST_ALL_EXAMPLES or not check_flags or specific_test_flag:
             print('[utool] Doctest requested: %r' % key)
             examples = get_doctest_examples(testable)
-            if len(examples) == 0:
+            nExamples = len(examples)
+            if nExamples == 0:
                 print('WARNING: no examples for key=%r' % key)
                 wastested_list.append(False)
             else:
                 print('\n\n ---- TEST ' + key.upper() + '---')
                 #with ut.Indenter('[TEST.%s]' % key):
-                nTotal += len(examples)
+                if subx is not None:
+                    examples = examples[subx:subx + 1]
+                nTotal += nExamples
                 for testno , src in enumerate(examples):
                     src = ut.regex_replace('from __future__ import.*$', '', src)
                     print('\n Test #%d' % testno)
                     print(ut.msgblock('EXEC SRC', src))
                     # --- EXEC STATMENT ---
-                    test_locals = ut.run_test((key,  src), globals=module.__dict__)
+                    test_globals = module.__dict__.copy()
+                    test_locals = ut.run_test((key,  src), globals=test_globals)
                     nPass += (test_locals is not False)
                     #exec(src)
                 wastested_list.append(True)
@@ -264,14 +252,15 @@ def run_test(func, *args, **kwargs):
     upper_funcname = funcname.upper()
     with util_print.Indenter('[' + upper_funcname + ']'):
         try:
-            import utool
-            if utool.VERBOSE:
+            import utool as ut
+            if ut.VERBOSE:
                 printTEST('[TEST.BEGIN] %s ' % (sys.executable))
                 printTEST('[TEST.BEGIN] %s ' % (funcname,))
             with util_time.Timer(upper_funcname) as timer:
                 if func_is_text:
                     test_locals = {}
-                    exec(src, kwargs.get('globals', {}), test_locals)
+                    test_globals = kwargs.get('globals', {})
+                    exec(src, test_globals, test_locals)
                 else:
                     test_locals = func(*args, **kwargs)
                 # Write timings
@@ -296,7 +285,6 @@ def run_test(func, *args, **kwargs):
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 exc_traceback = exc_traceback.tb_next
                 # Python 2*3=6
-                import six
                 six.reraise(exc_type, exc_value, exc_traceback)
                 # PYTHON 2.7 DEPRICATED:
                 #raise exc_type, exc_value, exc_traceback.tb_next
