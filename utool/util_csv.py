@@ -3,8 +3,8 @@ try:
     import numpy as np
 except ImportError as ex:
     pass
-from .util_type import is_list, is_int, is_str, is_float
-from .util_inject import inject
+from utool.util_type import is_list, is_int, is_str, is_float
+from utool.util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[csv]')
 
 
@@ -14,10 +14,20 @@ def numpy_to_csv(arr, col_lbls=None, header='', col_type=None):
 
 
 def make_csv_table(column_list=[], column_lbls=None, header='',
-                   column_type=None):
+                   column_type=None, row_lbls=None, transpose=False):
     """
     Creates a csv table with aligned columns
     """
+    if transpose:
+        column_lbls, row_lbls = row_lbls, column_lbls
+        column_list = list(map(list, zip(*column_list)))
+        import utool as ut
+        #ut.embed()
+        #column_lbls = row_lbls[0]
+        #row_list =
+    if row_lbls is not None:
+        column_list = [row_lbls] + column_list
+        column_lbls = [''] + list(map(str, column_lbls))
     if len(column_list) == 0:
         print('[csv] No columns')
         return header

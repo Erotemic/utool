@@ -219,6 +219,8 @@ def doctest_funcs(testable_list=[], check_flags=True, module=None, allexamples=N
                     print('\n Test #%d' % testno)
                     print(ut.msgblock('EXEC SRC', src))
                     # --- EXEC STATMENT ---
+                    # TODO: Instead add it to a testable list to be executed
+                    # by a less coupled function
                     test_globals = module.__dict__.copy()
                     test_locals = ut.run_test((key,  src), globals=test_globals)
                     nPass += (test_locals is not False)

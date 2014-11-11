@@ -6,9 +6,9 @@ import os
 import re
 #import six
 import argparse
-from .util_type import try_cast
-from .util_inject import inject
-from .util_print import Indenter
+from utool.util_type import try_cast
+from utool.util_inject import inject
+from utool.util_print import Indenter
 from utool._internal.meta_util_six import get_funcname, set_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[arg]')
 
@@ -190,7 +190,7 @@ class ArgumentParser2(object):
 
 
 def autogen_argparse2(dpath_list):
-    """
+    r"""
 
     FUNCTION IS NOT FULLY IMPLEMENTED CURRENTLY ONLY RETURNS
     LIST OF FLAGS THAT THE PROGRAM SILENTLY TAKES
@@ -209,6 +209,7 @@ def autogen_argparse2(dpath_list):
         >>> flagtup_list_ = [ut.regex_replace('[)(\']','',tupstr) for tupstr in ut.flatten(flagtups_list)]
         >>> flagtup_list = ut.flatten([tupstr.split(',') for tupstr in flagtup_list_])
         >>> flagtup_set = set([tupstr.strip() for tupstr in flagtup_list if tupstr.find('=') == -1])
+        >>> print('\n'.join(flagtup_set))
     """
     import utool as ut
     import parse
@@ -225,6 +226,7 @@ def autogen_argparse2(dpath_list):
             line_ = ut.regex_replace('#.*', '', line)
 
             argval_parse_list = [
+                '\'{flag}\' in sys.argv',
                 'get_argval({flagtup}, type={type}, default={default})',
                 'get_argval({flagtup}, {type}, default={default})',
                 'get_argval({flagtup}, {type}, {default})',
@@ -322,3 +324,12 @@ def __argv_flag_dec(func, default=False, quiet=QUIET):
                 print('\n~~~ %s ~~~' % flag)
     set_funcname(GaurdWrapper, get_funcname(func))
     return GaurdWrapper
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python utool/util_arg.py --test-autogen_argparse2
+    """
+    from utool import util_tests
+    util_tests.doctest_funcs([autogen_argparse2])
