@@ -365,7 +365,7 @@ def autogen_run_tests(test_headers, test_argvs, quick_tests=None, repodir=None,
         >>> testdirs = ['~/code/ibeis/test_ibs*.py']
     """
     import utool
-    from os.path import relpath, join, dirname
+    from os.path import relpath, join, dirname  # NOQA
 
     exclude_list += ['__init__.py']
 
