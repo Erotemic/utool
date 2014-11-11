@@ -21,7 +21,7 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
     if transpose:
         column_lbls, row_lbls = row_lbls, column_lbls
         column_list = list(map(list, zip(*column_list)))
-        import utool as ut
+        #import utool as ut
         #ut.embed()
         #column_lbls = row_lbls[0]
         #row_list =
