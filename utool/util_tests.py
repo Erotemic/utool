@@ -265,6 +265,7 @@ def run_test(func, *args, **kwargs):
                     exec(src, test_globals, test_locals)
                 else:
                     test_locals = func(*args, **kwargs)
+                print('')
                 # Write timings
             printTEST('[TEST.FINISH] %s -- SUCCESS' % (funcname,))
             print(HAPPY_FACE)

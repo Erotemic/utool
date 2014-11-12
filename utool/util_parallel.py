@@ -82,9 +82,9 @@ def init_pool(num_procs=None, maxtasksperchild=None):
         # Get number of cpu cores
         num_procs = get_default_numprocs()
     if not QUIET:
-        print('[parallel] initializing pool with %d processes' % num_procs)
+        print('[util_parallel] initializing pool with %d processes' % num_procs)
     if num_procs == 1:
-        print('[parallel] num_procs=1, Will process in serial')
+        print('[util_parallel] num_procs=1, Will process in serial')
         __POOL__ = 1
         return
     if STRICT:
@@ -104,9 +104,9 @@ def close_pool(terminate=False):
     if __POOL__ is not None:
         if not QUIET:
             if terminate:
-                print('[parallel] terminating pool')
+                print('[util_parallel] terminating pool')
             else:
-                print('[parallel] closing pool')
+                print('[util_parallel] closing pool')
         if not isinstance(__POOL__, int):
             # Must join after close to avoid runtime errors
             if terminate:
@@ -173,7 +173,7 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
     if chunksize is None:
         chunksize = max(1, nTasks // (__POOL__._processes ** 2))
     if verbose:
-        print('[parallel] executing %d %s tasks using %d processes with chunksize=%r' %
+        print('[util_parallel] executing %d %s tasks using %d processes with chunksize=%r' %
                 (nTasks, get_funcname(func), __POOL__._processes, chunksize))
     #assert isinstance(__POOL__, multiprocessing.Pool),\
     #        '%r __POOL__ = %r' % (type(__POOL__), __POOL__,)
@@ -216,7 +216,7 @@ def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None):
     if nTasks is None:
         nTasks = len(args_list)
     if verbose:
-        print('[parallel] executing %d %s tasks in serial' %
+        print('[util_parallel] executing %d %s tasks in serial' %
                 (nTasks, get_funcname(func)))
     prog = prog and verbose
     use_new_prog = True
@@ -281,11 +281,11 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
         nTasks = len(args_list)
     if nTasks == 0:
         if verbose:
-            print('[parallel] submitted 0 tasks')
+            print('[util_parallel] submitted 0 tasks')
         return []
     if VERBOSE and verbose:
-        print('[parallel.generate] ordered=%r' % ordered)
-        print('[parallel.generate] force_serial=%r' % force_serial)
+        print('[util_parallel.generate] ordered=%r' % ordered)
+        print('[util_parallel.generate] force_serial=%r' % force_serial)
     force_serial_ = nTasks == 1 or force_serial
     if not force_serial_:
         ensure_pool()
@@ -293,11 +293,11 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
         tt = tic(get_funcname(func))
     if force_serial_ or isinstance(__POOL__, int):
         if VERBOSE and verbose:
-            print('[parallel.generate] generate_serial')
+            print('[util_parallel.generate] generate_serial')
         return _generate_serial(func, args_list, prog=prog, nTasks=nTasks)
     else:
         if VERBOSE and verbose:
-            print('[parallel.generate] generate_parallel')
+            print('[util_parallel.generate] generate_parallel')
         return _generate_parallel(func, args_list, ordered=ordered,
                                   chunksize=chunksize, prog=prog,
                                   verbose=verbose, nTasks=nTasks)
@@ -327,12 +327,12 @@ def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__,
         nTasks = len(args_list)
     if __POOL__ == 1 or force_serial:
         if not QUIET:
-            print('[parallel] executing %d %s tasks in serial' %
+            print('[util_parallel] executing %d %s tasks in serial' %
                   (nTasks, get_funcname(func)))
         result_list = _process_serial(func, args_list, args_dict, nTasks=nTasks)
     else:
         if not QUIET:
-            print('[parallel] executing %d %s tasks using %d processes' %
+            print('[util_parallel] executing %d %s tasks using %d processes' %
                   (nTasks, get_funcname(func), __POOL__._processes))
         result_list = _process_parallel(func, args_list, args_dict, nTasks=nTasks)
     return result_list

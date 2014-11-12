@@ -20,13 +20,8 @@ from .util_dbg import get_caller_name, printex
 from .util_progress import progress_func
 from ._internal import meta_util_path
 from . import util_inject
-from .util_arg import NO_ASSERTS
+from .util_arg import NO_ASSERTS, VERBOSE, VERYVERBOSE, QUIET
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[path]')
-
-
-VERBOSE     = '--verbose' in sys.argv
-VERYVERBOSE = '--veryverbose' in sys.argv
-QUIET       = '--quiet' in sys.argv
 
 
 __IMG_EXTS = ['.jpg', '.jpeg', '.png', '.tif', '.tiff', '.ppm']
@@ -153,7 +148,7 @@ def touch(fname, times=None, verbose=True):
         raise
 
 
-def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False, verbose=True,
+def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False, verbose=VERBOSE,
                         dryrun=False, ignore_errors=False, **kwargs):
     """ Removes files matching a pattern from a directory """
     if isinstance(fname_pattern_list, six.string_types):
@@ -185,7 +180,7 @@ def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False, verbose=
     return True
 
 
-def delete(path, dryrun=False, recursive=True, verbose=True, print_exists=True, ignore_errors=True, **kwargs):
+def delete(path, dryrun=False, recursive=True, verbose=VERBOSE, print_exists=True, ignore_errors=True, **kwargs):
     """ Removes a file or directory """
     #if verbose:
     print('[path] Deleting path=%r' % path)
