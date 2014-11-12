@@ -136,7 +136,7 @@ class ProgressIter(object):
                     between_count = self.count - last_count
                     now_time = time.time()
                     between_time = (now_time - last_time)
-                    iters_per_second = between_count / float(between_time)
+                    iters_per_second = between_count / (float(between_time) + 1E-9)
                     #cumrate += between_time
                     #rate = (self.count + 1.0) / float(cumrate)
                     iters_left = nTotal - self.count
