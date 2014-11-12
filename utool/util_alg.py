@@ -165,6 +165,22 @@ def group_items(item_list, groupid_list):
     return groupid2_items
 
 
+def search_utool(pat):
+    import utool as ut
+    found_list = [name for name in dir(ut) if name.find(pat) >= 0]
+    return found_list
+
+
+def item_hist(list_):
+    dict_hist = {}
+    # Insert each item into the correct group
+    for item in list_:
+        if item not in dict_hist:
+            dict_hist[item] = 0
+        dict_hist[item] += 1
+    return dict_hist
+
+
 def unpack_items_sorted(dict_, sortfn, reverse=True):
     """ Unpacks and sorts the dictionary by sortfn
     """

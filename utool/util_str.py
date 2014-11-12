@@ -468,7 +468,7 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True, recurs
     else:
         fmtstr = indent_ + '%r: %r,'
     if sorted_:
-        iteritems = lambda iter_: iter(sorted(iter_))
+        iteritems = lambda iter_: iter(sorted(six.iteritems(iter_)))
 
     if recursive:
         itemstr_list = [fmtstr % (key, valfunc(val)) for (key, val) in iteritems(dict_)]

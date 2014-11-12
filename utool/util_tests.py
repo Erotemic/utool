@@ -273,13 +273,23 @@ def run_test(func, *args, **kwargs):
                 file_.write(msg)
             return test_locals
         except Exception as ex:
+            import utool as ut
+            import traceback
+            exc_type, exc_value, tb = sys.exc_info()
             # Get locals in the wrapped function
             util_dbg.printex(ex, tb=True)
-            exc_type, exc_value, tb = sys.exc_info()
             printTEST('[TEST.FINISH] %s -- FAILED: %s %s' % (funcname, type(ex), ex))
             if func_is_text:
-                import utool as ut
+                #ut.embed()
                 print(ut.msgblock('FAILED DOCTEST IN %s' % (key,), src))
+                failed_execline = traceback.format_tb(tb)[-1]
+                parse_str = 'File {fname}, line {lineno}, in {modname}'
+                import parse
+                parse_dict = parse.parse('{prefix_}' + parse_str + '{suffix_}', failed_execline)
+                if parse_dict['fname'] == '<string>':
+                    lineno = int(parse_dict['lineno'])
+                    failed_line = src.splitlines()[lineno - 1]
+                    print('Failed on line: %s' % failed_line)
             print(SAD_FACE)
             raise
             if util_arg.STRICT:
