@@ -14,9 +14,9 @@ from __future__ import absolute_import, division, print_function
 import time
 import sys
 from utool import util_logging
-from .util_inject import inject
-from .util_arg import QUIET, SILENT
-from . import util_time
+from utool.util_inject import inject
+from utool.util_arg import QUIET, SILENT
+from utool import util_time
 #get_argflag,
 #, VERBOSE
 print, print_, printDBG, rrr, profile = inject(__name__, '[progress]')
@@ -36,9 +36,65 @@ PROGRESS_WRITE = util_logging.__UTOOL_WRITE__
 PROGRESS_FLUSH = util_logging.__UTOOL_FLUSH__
 
 
+def test_progress():
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> test_progress()
+    """
+    import utool as ut
+    import time
+    ut.rrrr()
+
+    print('_________________')
+
+    numiter = 1000
+    rate = .01
+
+    with ut.Timer():
+        for x in ut.ProgressIter(range(0, numiter), freq=4):
+            time.sleep(rate)
+
+    print('_________________')
+    print('No frequncy run:')
+
+    with ut.Timer():
+        for x in range(0, numiter):
+            time.sleep(rate)
+
+    print('_________________')
+
+    numiter = 100000
+    rate = .000008
+
+    with ut.Timer():
+        for x in ut.ProgressIter(range(0, numiter), freq=4):
+            time.sleep(rate)
+
+    print('_________________')
+
+    with ut.Timer():
+        for x in ut.ProgressIter(range(0, numiter), freq=100):
+            time.sleep(rate)
+
+    print('_________________')
+    print('No frequncy run:')
+
+    with ut.Timer():
+        for x in range(0, numiter):
+            time.sleep(rate)
+
+    print('_________________')
+
+
 class ProgressIter(object):
     """
     Wraps a for loop with progress reporting
+
+    lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1, start=True,
+    repl=False, approx=False, disable=False, writefreq=1, with_time=False,
+    backspace=True, separate=False, wfreq=None, ffreq=None, freq=None,
+    total=None, num=None, with_totaltime=None
 
     Args:
         iterable (): iterable normally passed to for loop
@@ -69,6 +125,10 @@ class ProgressIter(object):
         >>> assert results1 == results2
 
     """
+    def new_init(self, iterable=None, lbl='ProgIter', nTotal=None, freq=4,
+                 newlines=False):
+        pass
+
     def __init__(self, iterable=None, *args, **kwargs):
         self.iterable = iterable
         if len(args) < 2 and 'nTotal' not in kwargs:
@@ -77,14 +137,12 @@ class ProgressIter(object):
                 kwargs['nTotal'] = nTotal
             except Exception:
                 pass
-        self.use_rate = kwargs.pop('use_rate', True)
-        mark, end = log_progress(*args, **kwargs)
-        self.lbl = kwargs.get('lbl', 'lbl')
-        self.nTotal = kwargs.get('nTotal', 0)
+        self.use_rate  = kwargs.pop('use_rate', True)
+        self.lbl       = kwargs.get('lbl', 'lbl')
+        self.nTotal    = kwargs.get('nTotal', 0)
         self.backspace = kwargs.get('backspace', True)
-        self.freq = kwargs.get('freq', 4)
-        self.mark = mark
-        self.end = end
+        self.freq      = kwargs.get('freq', 4)
+        self.mark, self.end = log_progress(*args, **kwargs)
         self.count = -1
 
     def __call__(self, iterable):
@@ -128,14 +186,47 @@ class ProgressIter(object):
         if not self.backspace:
             fmt_msg += '\n'
 
+        # how long iterations should be before a flush
+        if self.nTotal > 1E5:
+            time_thresh = 4.0
+        elif self.nTotal > 1E4:
+            time_thresh = 2.0
+        elif self.nTotal > 1E3:
+            time_thresh = 1.0
+        else:
+            time_thresh = 0.5
+        #time_thresh = 0.5
+
         with ut.Timer(self.lbl):
-            for self.count, item in enumerate(self.iterable):
+            import six
+            # yeild first element
+            enumiter = enumerate(self.iterable)
+            yield six.next(enumiter)[1]
+
+            for self.count, item in enumiter:
                 #mark(self.count)
                 yield item
-                if self.count % freq == 0:
+                if (self.count) % freq == 0:
                     between_count = self.count - last_count
                     now_time = time.time()
                     between_time = (now_time - last_time)
+                    # Adjust frequency if printing too quickly
+                    # so progress doesnt slow down actual function
+                    # TODO: better adjust algorithm
+                    if between_time < time_thresh:
+                        print('')
+                        print('[prog] Adusting frequency from: %r' % freq)
+                        print('between_count = %r' % between_count)
+                        print('between_time = %r' % between_time)
+                        # There has to be a standard way to do this.
+                        # Refer to: https://github.com/verigak/progress/blob/master/progress/__init__.py
+                        freq = max(int(1.3 * between_count * time_thresh / between_time), 1)
+                        #freq = max(int((between_count * between_time) / time_thresh), 1)
+                        #freq = max(int((between_count) / time_thresh), 1)
+                        #freq = max(int((between_time) / time_thresh), 1)
+                        #freq = max(int(time_thresh / between_count), 1)
+                        print('[prog] Adusting frequency to: %r' % freq)
+                        print('')
                     iters_per_second = between_count / (float(between_time) + 1E-9)
                     #cumrate += between_time
                     #rate = (self.count + 1.0) / float(cumrate)
@@ -143,20 +234,21 @@ class ProgressIter(object):
                     est_seconds_left = iters_left / (iters_per_second + 1E-9)
                     est_min_left = est_seconds_left / 60.0
                     msg = fmt_msg % (self.count, iters_per_second, est_min_left)
-                    if False and __debug__:
-                        print('<!!!!!!!!!!!!!>')
-                        print('iters_left = %r' % iters_left)
-                        print('between_time = %r' % between_time)
-                        print('between_count = %r' % between_count)
-                        print('est_seconds_left = %r' % est_seconds_left)
-                        print('iters_per_second = %r' % iters_per_second)
-                        print('</!!!!!!!!!!!!!>')
+                    #if False and __debug__:
+                    #    print('<!!!!!!!!!!!!!>')
+                    #    print('iters_left = %r' % iters_left)
+                    #    print('between_time = %r' % between_time)
+                    #    print('between_count = %r' % between_count)
+                    #    print('est_seconds_left = %r' % est_seconds_left)
+                    #    print('iters_per_second = %r' % iters_per_second)
+                    #    print('</!!!!!!!!!!!!!>')
                     PROGRESS_WRITE(msg)
                     PROGRESS_FLUSH()
                     last_count = self.count
                     last_time = now_time
-        PROGRESS_WRITE('\n')
-        PROGRESS_FLUSH()
+            #print('freq = %r' % freq)
+            PROGRESS_WRITE('\n')
+            PROGRESS_FLUSH()
         #self.end(self.count + 1)
 
     def mark_current(self):
@@ -164,6 +256,41 @@ class ProgressIter(object):
 
 
 progiter = ProgressIter
+
+
+def progress_str(max_val, lbl='Progress: ', repl=False, approx=False, backspace=PROGGRESS_BACKSPACE):
+    r""" makes format string that prints progress: %Xd/MAX_VAL with backspaces
+
+    NOTE: \r can be used instead of backspaces. This function is not very
+    relevant because of that.
+
+    """
+    # string that displays max value
+    max_str = str(max_val)
+    if approx:
+        # denote approximate maximum
+        max_str = '~' + max_str
+    dnumstr = str(len(max_str))
+    # string that displays current progress
+    cur_str = '%' + dnumstr + 'd'
+    # If user passed in the label
+    if repl:
+        _fmt_str = lbl.replace('<cur_str>', cur_str).replace('<max_str>', max_str)
+    else:
+        _fmt_str = lbl + cur_str + '/' + max_str
+    if backspace:
+        # put backspace characters into the progress string
+        # (looks nice on normal terminals)
+        #nBackspaces = len(_fmt_str) - len(dnumstr) + len(max_str)
+        #backspaces = '\b' * nBackspaces
+        #fmt_str = backspaces + _fmt_str
+        # FIXME: USE CARAGE RETURN INSTEAD OF BACKSPACES
+        fmt_str = '\r' + _fmt_str
+    else:
+        # FIXME: USE CARAGE RETURN INSTEAD OF BACKSPACES
+        # this looks better on terminals without backspaces
+        fmt_str = _fmt_str + '\n'
+    return fmt_str
 
 
 def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
@@ -403,32 +530,10 @@ def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
     raise Exception('unkown progress type = %r' % progress_type)
 
 
-def progress_str(max_val, lbl='Progress: ', repl=False, approx=False, backspace=PROGGRESS_BACKSPACE):
-    """ makes format string that prints progress: %Xd/MAX_VAL with backspaces
+if __name__ == '__main__':
     """
-    # string that displays max value
-    max_str = str(max_val)
-    if approx:
-        # denote approximate maximum
-        max_str = '~' + max_str
-    dnumstr = str(len(max_str))
-    # string that displays current progress
-    cur_str = '%' + dnumstr + 'd'
-    # If user passed in the label
-    if repl:
-        _fmt_str = lbl.replace('<cur_str>', cur_str).replace('<max_str>', max_str)
-    else:
-        _fmt_str = lbl + cur_str + '/' + max_str
-    if backspace:
-        # put backspace characters into the progress string
-        # (looks nice on normal terminals)
-        #nBackspaces = len(_fmt_str) - len(dnumstr) + len(max_str)
-        #backspaces = '\b' * nBackspaces
-        #fmt_str = backspaces + _fmt_str
-        # FIXME: USE CARAGE RETURN INSTEAD OF BACKSPACES
-        fmt_str = '\r' + _fmt_str
-    else:
-        # FIXME: USE CARAGE RETURN INSTEAD OF BACKSPACES
-        # this looks better on terminals without backspaces
-        fmt_str = _fmt_str + '\n'
-    return fmt_str
+    CommandLine:
+        python utool/util_progress.py --test-test-progress
+    """
+    from utool.util_tests import doctest_funcs
+    doctest_funcs()
