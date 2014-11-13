@@ -10,6 +10,10 @@ import platform
 import site
 
 if __name__ == '__main__':
+    """
+    CommandLine:
+        python utool/util_scripts/local_info.py
+    """
 
     for name in filter(lambda x: not x.startswith('_'), dir(platform)):
         attr = getattr(platform, name)

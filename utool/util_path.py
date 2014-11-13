@@ -45,8 +45,8 @@ unixjoin = meta_util_path.unixjoin
 def truepath_relative(path, otherpath=None):
     """ Normalizes and returns absolute path with so specs  """
     if otherpath is None:
-        otherpath = os.getcwd()
-    return normpath(relpath(path, truepath(otherpath)))
+        otherpath = truepath(os.getcwd())
+    return normpath(relpath(path, otherpath))
 
 
 def path_ndir_split(path_, n, force_unix=True):
@@ -287,6 +287,10 @@ def assertpath(path_, **kwargs):
     """ Asserts that a patha exists """
     if NO_ASSERTS:
         return
+    if path_ is None:
+        raise AssertionError('Asserted path is None')
+    if path_ == '':
+        raise AssertionError('Asserted path is the empty string')
     if not checkpath(path_, **kwargs):
         raise AssertionError('Asserted path does not exist: ' + path_)
 
@@ -950,11 +954,21 @@ def fixwin32_shortname(path1):
 
 
 def platform_path(path):
-    path1 = truepath_relative(path)
-    if sys.platform == 'win32':
-        path2 = fixwin32_shortname(path1)
-    else:
-        path2 = path1
+    """
+    Returns platform specific path for pyinstaller usage
+    """
+    try:
+        if path == '':
+            raise ValueError('path cannot be the empty string')
+        path1 = truepath_relative(path)
+        if sys.platform.startswith('win32'):
+            path2 = fixwin32_shortname(path1)
+        else:
+            path2 = path1
+    except Exception as ex:
+        import utool as ut
+        ut.printex(ex, keys=['path', 'path1', 'path2'])
+        raise
     return path2
 
 
@@ -979,7 +993,8 @@ def existing_subpath(root_path, valid_subpaths, tiebreaker='first', verbose=VERY
 #    pass
 
 
-def search_in_dirs(fname, search_dpaths=[], shortcircuit=True):
+def search_in_dirs(fname, search_dpaths=[], shortcircuit=True,
+                   return_tried=False, strict=False):
     """
     search_in_dirs
 
@@ -987,6 +1002,7 @@ def search_in_dirs(fname, search_dpaths=[], shortcircuit=True):
         fname (?):
         search_dpaths (list):
         shortcircuit (bool):
+        return_tried(bool): return tried paths
 
     Returns:
         fpath: None
@@ -1000,16 +1016,31 @@ def search_in_dirs(fname, search_dpaths=[], shortcircuit=True):
         >>> print(fpath)
     """
     fpath_list = []
+    tried_list = []
     for dpath in search_dpaths:
         fpath = join(dpath, fname)
+        if return_tried:
+            tried_list.append(fpath)
         if exists(fpath):
             if shortcircuit:
+                if return_tried:
+                    return fpath, tried_list
                 return fpath
             else:
                 fpath_list.append(fpath)
+    if strict and len(fpath_list) == 0:
+        msg = ('Cannot find: fname=%r\n'  % (fname,))
+        if return_tried:
+            msg += 'Tried: \n    ' + '\n    '.join(tried_list)
+        raise Exception(msg)
+
     if shortcircuit:
+        if return_tried:
+            return None, tried_list
         return None
     else:
+        if return_tried:
+            return fpath_list, tried_list
         return fpath_list
 
 
