@@ -137,6 +137,7 @@ class ProgressIter(object):
                 kwargs['nTotal'] = nTotal
             except Exception:
                 pass
+        self.time_thresh = kwargs.pop('time_thresh', None)
         self.use_rate  = kwargs.pop('use_rate', True)
         self.lbl       = kwargs.get('lbl', 'lbl')
         self.nTotal    = kwargs.get('nTotal', 0)
@@ -187,15 +188,20 @@ class ProgressIter(object):
             fmt_msg += '\n'
 
         # how long iterations should be before a flush
-        if self.nTotal > 1E5:
-            time_thresh = 4.0
-        elif self.nTotal > 1E4:
-            time_thresh = 2.0
-        elif self.nTotal > 1E3:
-            time_thresh = 1.0
+        if self.time_thresh is None:
+            if self.nTotal > 1E5:
+                time_thresh = 4.0
+            elif self.nTotal > 1E4:
+                time_thresh = 2.0
+            elif self.nTotal > 1E3:
+                time_thresh = 1.0
+            else:
+                time_thresh = 0.5
         else:
-            time_thresh = 0.5
+            time_thresh = self.time_thresh
         #time_thresh = 0.5
+        max_between_time = -1
+        max_between_count = -1  # why is this different? # becuase frequency varies
 
         with ut.Timer(self.lbl):
             import six
@@ -214,19 +220,22 @@ class ProgressIter(object):
                     # so progress doesnt slow down actual function
                     # TODO: better adjust algorithm
                     if between_time < time_thresh:
-                        print('')
-                        print('[prog] Adusting frequency from: %r' % freq)
-                        print('between_count = %r' % between_count)
-                        print('between_time = %r' % between_time)
+                        #print('')
+                        #print('[prog] Adusting frequency from: %r' % freq)
+                        #print('between_count = %r' % between_count)
+                        #print('between_time = %r' % between_time)
                         # There has to be a standard way to do this.
                         # Refer to: https://github.com/verigak/progress/blob/master/progress/__init__.py
-                        freq = max(int(1.3 * between_count * time_thresh / between_time), 1)
+                        max_between_time = max(max_between_time, between_time)
+                        max_between_count = max(max_between_count, between_count)
+                        #freq = max(int(1.3 * between_count * time_thresh / between_time), 1)
+                        freq = max(int(1.3 * max_between_count * time_thresh / max_between_time), 1)
                         #freq = max(int((between_count * between_time) / time_thresh), 1)
                         #freq = max(int((between_count) / time_thresh), 1)
                         #freq = max(int((between_time) / time_thresh), 1)
                         #freq = max(int(time_thresh / between_count), 1)
-                        print('[prog] Adusting frequency to: %r' % freq)
-                        print('')
+                        #print('[prog] Adusting frequency to: %r' % freq)
+                        #print('')
                     iters_per_second = between_count / (float(between_time) + 1E-9)
                     #cumrate += between_time
                     #rate = (self.count + 1.0) / float(cumrate)

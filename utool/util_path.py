@@ -328,16 +328,25 @@ def copy_task(cp_list, test=False, nooverwrite=False, print_tasks=True):
         print('[path]... In test mode. Nothing was copied.')
 
 
-def copy(src, dst):
+def copy(src, dst, overwrite=True):
     """
+    Args:
+        src (str): file or directory to copy
+        dst (str): directory or new file to copy to
+
     Copies src file or folder to dst.
 
     If src is a folder this copy is recursive.
     """
     if exists(src):
         if exists(dst):
-            prefix = 'C+O'
-            print('[path] [Copying + Overwrite]:')
+            if overwrite:
+                prefix = 'C+O'
+                print('[path] [Copying + Overwrite]:')
+            else:
+                prefix = 'Skip'
+                print('[%s] ->%s' % (prefix, dst))
+                return
         else:
             prefix = 'C'
             print('[path] [Copying]: ')
