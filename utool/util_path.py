@@ -15,12 +15,12 @@ import sys
 import shutil
 import fnmatch
 import warnings
-from .util_regex import extend_regex
-from .util_dbg import get_caller_name, printex
-from .util_progress import progress_func
-from ._internal import meta_util_path
-from . import util_inject
-from .util_arg import NO_ASSERTS, VERBOSE, VERYVERBOSE, QUIET
+from utool.util_regex import extend_regex
+from utool.util_dbg import get_caller_name, printex
+from utool.util_progress import progress_func
+from utool._internal import meta_util_path
+from utool import util_inject
+from utool.util_arg import NO_ASSERTS, VERBOSE, VERYVERBOSE, QUIET
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[path]')
 
 
@@ -42,9 +42,11 @@ truepath = meta_util_path.truepath
 unixjoin = meta_util_path.unixjoin
 
 
-def truepath_relative(path):
+def truepath_relative(path, otherpath=None):
     """ Normalizes and returns absolute path with so specs  """
-    return normpath(relpath(path, truepath(os.getcwd())))
+    if otherpath is None:
+        otherpath = os.getcwd()
+    return normpath(relpath(path, truepath(otherpath)))
 
 
 def path_ndir_split(path_, n, force_unix=True):
@@ -52,13 +54,14 @@ def path_ndir_split(path_, n, force_unix=True):
     Shows only a little bit of the path. Up to the n bottom-level directories
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> import utool
         >>> paths = [r'/usr/bin/local/foo/bar',
         ...          r'C:/',
         ...          r'C:\Program Files (x86)/foobar/bin',]
-        >>> output = '\n'.join(['n=%r: %r' % (n, utool.path_ndir_split(path, n))
+        >>> result = '\n'.join(['n=%r: %r' % (n, utool.path_ndir_split(path, n))
         ...                     for path, n in utool.iprod(paths, range(1, 3))])
-        >>> print(output)
+        >>> print(result)
         n=1: 'bar'
         n=2: 'foo/bar'
         n=1: 'C:'
@@ -328,7 +331,7 @@ def copy_task(cp_list, test=False, nooverwrite=False, print_tasks=True):
         print('[path]... In test mode. Nothing was copied.')
 
 
-def copy(src, dst, overwrite=True):
+def copy(src, dst, overwrite=True, verbose=True):
     """
     Args:
         src (str): file or directory to copy
@@ -339,28 +342,36 @@ def copy(src, dst, overwrite=True):
     If src is a folder this copy is recursive.
     """
     if exists(src):
+        if not isdir(src) and isdir(dst):
+            # copying file to directory
+            dst = join(dst, basename(src))
         if exists(dst):
             if overwrite:
                 prefix = 'C+O'
-                print('[path] [Copying + Overwrite]:')
+                if verbose:
+                    print('[path] [Copying + Overwrite]:')
             else:
                 prefix = 'Skip'
-                print('[%s] ->%s' % (prefix, dst))
+                if verbose:
+                    print('[%s] ->%s' % (prefix, dst))
                 return
         else:
             prefix = 'C'
-            print('[path] [Copying]: ')
-        print('[%s] | %s' % (prefix, src))
-        print('[%s] ->%s' % (prefix, dst))
+            if verbose:
+                print('[path] [Copying]: ')
+        if verbose:
+            print('[%s] | %s' % (prefix, src))
+            print('[%s] ->%s' % (prefix, dst))
         if isdir(src):
             shutil.copytree(src, dst)
         else:
             shutil.copy2(src, dst)
     else:
         prefix = 'Miss'
-        print('[path] [Cannot Copy]: ')
-        print('[%s] src=%s does not exist!' % (prefix, src))
-        print('[%s] dst=%s' % (prefix, dst))
+        if verbose:
+            print('[path] [Cannot Copy]: ')
+            print('[%s] src=%s does not exist!' % (prefix, src))
+            print('[%s] dst=%s' % (prefix, dst))
 
 
 def copy_all(src_dir, dest_dir, glob_str_list, recursive=False):
@@ -467,18 +478,27 @@ def symlink(source, link_name, noraise=False):
 
 
 def file_bytes(fpath):
-    """ returns size of file in bytes (int) """
+    """
+    returns size of file in bytes (int)
+    """
     return os.stat(fpath).st_size
 
 
 def file_megabytes(fpath):
-    """ returns size of file in megabytes (float) """
+    """
+    returns size of file in megabytes (float)
+    """
     return os.stat(fpath).st_size / (2.0 ** 20)
 
 
 def glob(dirname, pattern, recursive=False, with_files=True, with_dirs=True,  maxdepth=None,
          **kwargs):
-    """ Globs directory for pattern """
+    """
+    Globs directory for pattern
+
+    SeeAlso:
+        iglob
+    """
     gen = iglob(dirname, pattern, recursive=recursive,
                 with_files=with_files, with_dirs=with_dirs, maxdepth=maxdepth,
                 **kwargs)
@@ -488,7 +508,9 @@ def glob(dirname, pattern, recursive=False, with_files=True, with_dirs=True,  ma
 
 def iglob(dirname, pattern, recursive=False, with_files=True, with_dirs=True,
           maxdepth=None, **kwargs):
-    """ Iteratively globs directory for pattern """
+    """
+    Iteratively globs directory for pattern
+    """
     if kwargs.get('verbose', False):  # log what i'm going to do
         print('[util_path] glob(dirname=%r)' % truepath(dirname,))
     nFiles = 0
@@ -530,7 +552,9 @@ def iglob(dirname, pattern, recursive=False, with_files=True, with_dirs=True,
 # --- Images ----
 
 def num_images_in_dir(path):
-    """returns the number of images in a directory"""
+    """
+    returns the number of images in a directory
+    """
     num_imgs = 0
     for root, dirs, files in os.walk(path):
         for fname in files:
@@ -572,6 +596,62 @@ def get_module_dir(module, *args):
     return module_dir
 
 
+def get_relative_modpath(module_fpath):
+    """
+    Returns path to module relative to the package root
+
+    Args:
+        module_fpath (str): module filepath
+
+    Returns:
+        str: modname
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
+        >>> module_fpath = ut.util_path.__file__
+        >>> rel_modpath = ut.get_relative_modpath(module_fpath)
+        >>> result = rel_modpath
+        >>> print(result)
+        utool/util_path.py
+    """
+    modsubdir_list = get_module_subdir_list(module_fpath)
+    _, ext = splitext(module_fpath)
+    rel_modpath = join(*modsubdir_list) + ext
+    return rel_modpath
+
+
+def get_module_subdir_list(module_fpath):
+    """
+    get_module_subdir_list
+
+    Args:
+        module_fpath (str):
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
+        >>> module_fpath = ut.util_path.__file__
+        >>> modsubdir_list = get_module_subdir_list(module_fpath)
+        >>> result = modsubdir_list
+        >>> print(result)
+        ['utool', 'util_path']
+    """
+    module_fpath = truepath(module_fpath)
+    dpath, fname_ext = split(module_fpath)
+    fname, ext = splitext(fname_ext)
+    full_dpath = dpath
+    dpath = full_dpath
+    _modsubdir_list = [fname]
+    while is_module_dir(dpath):
+        dpath, dname = split(dpath)
+        _modsubdir_list.append(dname)
+    modsubdir_list = _modsubdir_list[::-1]
+    return modsubdir_list
+
+
 def get_modname_from_modpath(module_fpath):
     """
     returns importable name from file path
@@ -582,26 +662,20 @@ def get_modname_from_modpath(module_fpath):
         module_fpath (str): module filepath
 
     Returns:
-        ?: modname
+        str: modname
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_path import *  # NOQA
         >>> import utool as ut
         >>> module_fpath = ut.util_path.__file__
         >>> modname = ut.get_modname_from_modpath(module_fpath)
-        >>> print(modname)
+        >>> result = modname
+        >>> print(result)
         utool.util_path
     """
-    module_fpath = truepath(module_fpath)
-    dpath, fname_ext = split(module_fpath)
-    fname, ext = splitext(fname_ext)
-    full_dpath = dpath
-    dpath = full_dpath
-    absolute_list = [fname]
-    while is_module_dir(dpath):
-        dpath, dname = split(dpath)
-        absolute_list.append(dname)
-    modname = '.'.join(absolute_list[::-1])
+    modsubdir_list = get_module_subdir_list(module_fpath)
+    modname = '.'.join(modsubdir_list)
     modname = modname.replace('.__init__', '').strip()
     return modname
 
@@ -999,3 +1073,15 @@ def find_lib_fpath(libname, root_dir, recurse_down=True, verbose=False, debug=Fa
     print(msg)
     print('\n[c!] Checked: '.join(tried_fpaths))
     raise ImportError(msg)
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, utool.util_path; utool.doctest_funcs(utool.util_path, allexamples=True)"
+        python -c "import utool, utool.util_path; utool.doctest_funcs(utool.util_path)"
+        python utool/util_path.py
+        python utool/util_path.py --allexamples
+    """
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

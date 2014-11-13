@@ -64,45 +64,64 @@ def get_doctest_examples(func_or_class):
     Args:
         func_or_class (function)
 
+    Returns:
+        tuple (list, list): example_list, want_list
+
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_tests import *  # NOQA
         >>> func_or_class = get_doctest_examples
-        >>> result = get_doctest_examples(func_or_class)
+        >>> example_list, want_list = get_doctest_examples(func_or_class)
+        >>> result = str(len(example_list) + len(want_list))
         >>> print(result)
+        2
     """
     if VERBOSE_TEST:
         print('[util_test] parsing %r for doctest' % (func_or_class))
     import doctest
+    import textwrap
+    # Get the docstring
     try:
         docstr = func_or_class.func_doc
     except AttributeError:
         docstr = func_or_class.__doc__
-    import textwrap
     docstr = textwrap.dedent(docstr)
 
     try:
-        comment_iter = doctest.DocTestParser().parse(docstr)
+        doctest_parser = doctest.DocTestParser()
+        comment_iter = doctest_parser.parse(docstr)
+        comment_iter = doctest_parser.get_examples(docstr)
     except Exception as ex:
         import utool as ut
         ut.printex(ex, 'error parsing:\n%s\nin function %r' % (docstr, func_or_class))
         raise
-    current_example_lines = []
+    # Output lists
     example_list = []
+    want_list = []
+    # Accumulator lists
+    current_example_lines = []
+    current_want_lines = []
     def append_current_example():
         # next example defined if any examples lines have been found
         if len(current_example_lines) >= 1:
             example_list.append(''.join(current_example_lines))
+            want_list.append(''.join(current_want_lines))
     # Loop over doctest lines
     for c in comment_iter:
         if isinstance(c, doctest.Example):
+            # Append a docline or a wantline
             current_example_lines.append(c.source)
+            current_want_lines.append(c.want)
         elif c == '':
             pass
         else:
+            # Append current accumulators to output and reset
+            # accumulators.
             append_current_example()
             current_example_lines = []
+            current_want_lines = []
     append_current_example()
-    return example_list
+    return example_list, want_list
 
 
 def doctest_funcs(testable_list=[], check_flags=True, module=None, allexamples=None,
@@ -120,8 +139,7 @@ def doctest_funcs(testable_list=[], check_flags=True, module=None, allexamples=N
     multiprocessing.freeze_support()
     if needs_enable is None:
         needs_enable = not ut.get_argflag('--enableall')
-    else:
-        needs_enable = True
+        #needs_enable = True
     TEST_ALL_EXAMPLES = allexamples or ut.get_argflag(('--allexamples', '--test-all-examples', '--testall', '--test-all'))
 
     print('[utool] Running doctest funcs')
@@ -192,6 +210,7 @@ def doctest_funcs(testable_list=[], check_flags=True, module=None, allexamples=N
 
     nPass = 0
     nTotal = 0
+    nFail = 0
 
     subx = ut.get_argval('--subx', type_=int, default=None, help_='Only tests the subxth example')
     for testable in sorted_testable:
@@ -203,7 +222,7 @@ def doctest_funcs(testable_list=[], check_flags=True, module=None, allexamples=N
         specific_test_flag = utool.get_argflag((flag1, flag2))
         if TEST_ALL_EXAMPLES or not check_flags or specific_test_flag:
             print('[utool] Doctest requested: %r' % key)
-            examples = get_doctest_examples(testable)
+            examples, wants = get_doctest_examples(testable)
             nExamples = len(examples)
             if nExamples == 0:
                 print('WARNING: no examples for key=%r' % key)
@@ -214,7 +233,8 @@ def doctest_funcs(testable_list=[], check_flags=True, module=None, allexamples=N
                 if subx is not None:
                     examples = examples[subx:subx + 1]
                 nTotal += nExamples
-                for testno , src in enumerate(examples):
+                for testno , srcwant_tup in enumerate(zip(examples, wants)):
+                    src, want = srcwant_tup
                     src = ut.regex_replace('from __future__ import.*$', '', src)
                     print('\n Test #%d' % testno)
                     print(ut.msgblock('EXEC SRC', src))
@@ -222,8 +242,12 @@ def doctest_funcs(testable_list=[], check_flags=True, module=None, allexamples=N
                     # TODO: Instead add it to a testable list to be executed
                     # by a less coupled function
                     test_globals = module.__dict__.copy()
-                    test_locals = ut.run_test((key,  src), globals=test_globals)
-                    nPass += (test_locals is not False)
+                    try:
+                        test_locals = ut.run_test((key,  src), globals=test_globals, want=want)
+                        nPass += (test_locals is not False)
+                    except Exception as ex:
+                        nFail += 1
+                        pass
                     #exec(src)
                 wastested_list.append(True)
         else:
@@ -262,7 +286,24 @@ def run_test(func, *args, **kwargs):
                 if func_is_text:
                     test_locals = {}
                     test_globals = kwargs.get('globals', {})
-                    exec(src, test_globals, test_locals)
+                    want = kwargs.get('want', None)
+                    #test_globals['print'] = doctest_print
+                    six.exec_(src, test_globals, test_locals)
+                    if want is None or want == '':
+                        print('warning test does not want anything')
+                    else:
+                        if want.endswith('\n'):
+                            want = want[:-1]
+                        result = str(test_locals.get('result', 'NO VARIABLE NAMED result'))
+                        #print('!! RESULT LINES: ')
+                        #print(result)
+                        if result != want:
+                            errmsg1 = ''
+                            errmsg1 += ('GOT: result=%r\n' % (result))
+                            errmsg1 += ('EXPECTED: want=%r\n' % (want))
+                            raise AssertionError('result != want\n' + errmsg1)
+                        #assert result == want, 'result is not the same as want'
+                    #print('\n'.join(output_lines))
                 else:
                     test_locals = func(*args, **kwargs)
                 print('')
@@ -318,6 +359,7 @@ def printTEST(msg, wait=False):
 def tryimport(modname, pipiname):
     """
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_tests import *   # NOQA
         >>> modname = 'pyfiglet'
         >>> pipiname = 'git+https://github.com/pwaller/pyfiglet'
@@ -343,6 +385,7 @@ def bubbletext(text, font='cybermedium'):
     Other fonts include: cybersmall, cybermedium, and cyberlarge
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> import utool
         >>> bubble_text1 = utool.bubbletext('TESTING', font='cyberlarge')
         >>> bubble_text2 = utool.bubbletext('BUBBLE', font='cybermedium')
