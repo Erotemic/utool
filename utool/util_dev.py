@@ -56,6 +56,60 @@ def DEPRICATED(func):
 #    return varargs
 
 
+def input_timeout(msg='Waiting for input...', timeout=30):
+    """Function does not work quite right yet.
+
+    Args:
+        msg (str):
+        timeout (int):
+
+    Returns:
+        ?: ans
+
+    References:
+        http://stackoverflow.com/questions/1335507/keyboard-input-with-timeout-in-python
+        http://home.wlu.edu/~levys/software/kbhit.py
+        http://stackoverflow.com/questions/3471461/raw-input-and-timeout/3911560#3911560
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dev import *  # NOQA
+        >>> msg = 'Waiting for input...'
+        >>> timeout = 30
+        >>> ans = input_timeout(msg, timeout)
+        >>> print(ans)
+    """
+    import sys
+    import select
+    import time
+    ans = None
+    print('You have %d seconds to answer!' % timeout)
+    print(msg)
+    if sys.platform.startswith('win32'):
+        import msvcrt
+        start_time = time.time()
+        instr = ''
+        while True:
+            if msvcrt.kbhit():
+                chr_ = msvcrt.getche()
+                if ord(chr_) == 13:  # enter_key
+                    # Accept input
+                    ans = instr
+                    break
+                elif ord(chr_) >= 32:  # space_char
+                    # Append to input
+                    instr += chr_
+            ellapsed = time.time() - start_time
+            if ellapsed > timeout:
+                ans = None
+        print('')  # needed to move to next line
+    else:
+        rlist, o, e = select.select([sys.stdin], [], [], timeout)
+        if rlist:
+            ans = sys.stdin.readline().strip()
+    return ans
+
+
 def autofix_codeblock(codeblock, max_line_len=80,
                       aggressive=False,
                       very_aggressive=False,

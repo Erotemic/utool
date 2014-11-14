@@ -200,8 +200,8 @@ class ProgressIter(object):
         else:
             time_thresh = self.time_thresh
         #time_thresh = 0.5
-        max_between_time = -1
-        max_between_count = -1  # why is this different? # becuase frequency varies
+        max_between_time = -1.0
+        max_between_count = -1.0  # why is this different? # becuase frequency varies
 
         with ut.Timer(self.lbl):
             import six
@@ -226,7 +226,7 @@ class ProgressIter(object):
                         #print('between_time = %r' % between_time)
                         # There has to be a standard way to do this.
                         # Refer to: https://github.com/verigak/progress/blob/master/progress/__init__.py
-                        max_between_time = max(max_between_time, between_time)
+                        max_between_time = max(max(max_between_time, between_time), 1E-9)
                         max_between_count = max(max_between_count, between_count)
                         #freq = max(int(1.3 * between_count * time_thresh / between_time), 1)
                         freq = max(int(1.3 * max_between_count * time_thresh / max_between_time), 1)
