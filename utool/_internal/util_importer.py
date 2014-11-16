@@ -48,7 +48,10 @@ def __execute_fromimport_star(module, modname, IMPORT_TUPLES):
                      'map', 'range', 'list', 'zip_longest', 'filter', 'filterfalse',
                      'dirname', 'realpath', 'join', 'exists', 'normpath',
                      'splitext', 'expanduser', 'relpath', 'isabs',
-                     'commonprefix', 'basename' ])
+                     'commonprefix', 'basename',
+                     #'OrderedDict',
+                     #'product',
+                     ])
                      #'isdir', 'isfile', '
     for name, fromlist in IMPORT_TUPLES:
         #absname = modname + '.' + name

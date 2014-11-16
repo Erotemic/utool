@@ -64,9 +64,10 @@ def repl_field(key):
 
 def regex_replace(regex, repl, text):
     r"""
+    thin wrapper around re.sub
     regex_replace
 
-    MULTILINE and DOTALL are on in all util_regex functions
+    MULTILINE and DOTALL are on by default in all util_regex functions
 
     Args:
         regex (str): pattern to find
@@ -130,6 +131,27 @@ def regex_get_match(regex, text, fromstart=False):
 def regex_matches(regex, text, fromstart=True):
     hasmatch = regex_get_match(regex, text, fromstart=fromstart) is not None
     return hasmatch
+
+
+def parse_docblock(func_code):
+    """
+    #TODO: Finish me
+
+    References:
+        http://pyparsing.wikispaces.com/share/view/1264103
+        http://code.activestate.com/recipes/576704-python-code-minifier/
+
+    Example:
+        >>> import utool as ut
+        >>> import inspect
+        >>> func_code = inspect.getsource(ut.modify_quoted_strs)
+        >>> func_code =
+    """
+    import pyparsing
+    doublequote_comment = pyparsing.QuotedString(quoteChar='"""', escChar='\\', multiline=True)
+    singlequote_comment = pyparsing.QuotedString(quoteChar='\'\'\'', escChar='\\', multiline=True)
+    docblock_parser  = doublequote_comment | singlequote_comment
+    docblock_parser.parseString(func_code)
 
 
 def modify_quoted_strs(text, modify_func=None):

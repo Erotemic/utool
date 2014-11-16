@@ -65,6 +65,7 @@ if __name__ == '__main__':
             'utool/util_scripts/grabzippedurl.py',
             'utool/util_scripts/autogen_sphinx_docs.py',
             'utool/util_scripts/permit_gitrepo.py',
+            'utool/util_scripts/viewdir.py',
         ],
         classifiers=[],
     )

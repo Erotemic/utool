@@ -213,6 +213,16 @@ def auto_docstr(modname, funcname, verbose=True):
     return docstr
 
 
+def strip_line_comments(code_text, comment_char='#'):
+    import utool as ut
+    comment_regex = comment_char + ' .[^\n]*$'
+    # full line comments
+    code_text = ut.regex_replace('^ *' + comment_regex + '\n', '', code_text)
+    # inline comments
+    code_text = ut.regex_replace('  ' + comment_regex, '', code_text)
+    return code_text
+
+
 def print_auto_docstr(modname, funcname):
     """
     python -c "import utool; utool.print_auto_docstr('ibeis.model.hots.smk.smk_index', 'compute_negentropy_names')"

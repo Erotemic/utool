@@ -4,13 +4,15 @@ import six
 from six.moves import builtins
 import inspect
 import types
+import parse  # NOQA
+import traceback  # NOQA
 import sys
-from . import util_print
-from . import util_dbg
-from . import util_arg
-from . import util_path
-from . import util_time
-from .util_inject import inject
+from utool import util_print
+from utool import util_dbg
+from utool import util_arg
+from utool import util_path
+from utool import util_time
+from utool.util_inject import inject
 from utool._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[tests]')
 
@@ -57,6 +59,62 @@ def _get_testable_name(testable):
     return testable_name
 
 
+def parse_docblocks_from_docstr(docstr):
+    # FIXME Requires tags to be separated by two spaces
+    import parse   # NOQA
+    import utool as ut  # NOQA
+    initial_docblocks = docstr.split('\n\n')
+    docstr_blocks = []
+    for docblock in initial_docblocks:
+        indent = ' ' * ut.get_indentation(docblock)
+        parse_result = parse.parse(indent + '{tag}:\n{rest}', docblock)
+        if parse_result is not None:
+            header = parse_result['tag']
+        else:
+            header = ''
+        docstr_blocks.append((header, docblock))
+    return docstr_blocks
+
+
+def parse_doctest_from_docstr(docstr):
+    """
+    because doctest itself doesnt do what I want it to do
+    """
+    import utool as ut
+    docstr_blocks = parse_docblocks_from_docstr(docstr)
+    example_docblocks = []
+    for header, docblock in docstr_blocks:
+        if header.startswith('Example'):
+            example_docblocks.append((header, docblock))
+
+    testheader_list = []
+    testsrc_list    = []
+    testwant_list   = []
+    for header, docblock in example_docblocks:
+        nonheader_src = ut.unindent('\n'.join(docblock.splitlines()[1:]))
+        nonheader_lines = nonheader_src.splitlines()
+        reversed_src_lines = []
+        reversed_want_lines = []
+        finished_want = False
+
+        for line in reversed(nonheader_lines):
+            if not finished_want:
+                if line.startswith('>>> '):
+                    finished_want = True
+                else:
+                    reversed_want_lines.append(line)
+                    continue
+            reversed_src_lines.append(line[4:])
+        test_src = '\n'.join(reversed_src_lines[::-1])
+        test_want = '\n'.join(reversed_want_lines[::-1])
+        testheader_list.append(header)
+        testsrc_list.append(test_src)
+        testwant_list.append(test_want)
+        #print('Parsed header=%r' % header)
+        #print('Parsed src=%r' % test_src)
+    return testheader_list, testsrc_list, testwant_list
+
+
 def get_doctest_examples(func_or_class):
     """
     get_doctest_examples
@@ -76,21 +134,29 @@ def get_doctest_examples(func_or_class):
         >>> print(result)
         2
     """
+    import textwrap
     if VERBOSE_TEST:
         print('[util_test] parsing %r for doctest' % (func_or_class))
-    import doctest
-    import textwrap
+
     # Get the docstring
     try:
         docstr = func_or_class.func_doc
     except AttributeError:
         docstr = func_or_class.__doc__
+
     docstr = textwrap.dedent(docstr)
 
+    testheader_list, testsrc_list, testwant_list = parse_doctest_from_docstr(docstr)
+
+    return testsrc_list, testwant_list
+    # doctest doesnt do what i want. so I wrote my own primative but effective
+    # parser.
+    '''
+    import doctest
     try:
         doctest_parser = doctest.DocTestParser()
         comment_iter = doctest_parser.parse(docstr)
-        comment_iter = doctest_parser.get_examples(docstr)
+        #comment_iter = doctest_parser.get_examples(docstr)
     except Exception as ex:
         import utool as ut
         ut.printex(ex, 'error parsing:\n%s\nin function %r' % (docstr, func_or_class))
@@ -121,7 +187,10 @@ def get_doctest_examples(func_or_class):
             current_example_lines = []
             current_want_lines = []
     append_current_example()
+    import utool as ut
+    ut.embed()
     return example_list, want_list
+    '''
 
 
 def doctest_funcs(testable_list=[], check_flags=True, module=None, allexamples=None,
@@ -129,31 +198,50 @@ def doctest_funcs(testable_list=[], check_flags=True, module=None, allexamples=N
     """
     Main entry point into utools main module doctest harness
 
+    Args:
+        testable_list (list):
+        check_flags (bool):
+        module (None):
+        allexamples (None):
+        needs_enable (None):
+
+    Returns:
+        tuple: (nPass, nTotal)
+
     CommandLine:
         python -c "import utool; utool.doctest_funcs(module=utool.util_tests, needs_enable=False)"
+        python ibeis/model/preproc/preproc_chip.py --all-examples
 
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_tests import *  # NOQA
+        >>> testable_list = []
+        >>> check_flags = True
+        >>> module = None
+        >>> allexamples = None
+        >>> needs_enable = None
+        >>> # careful might infinitely recurse
+        >>> (nPass, nTotal) = doctest_funcs(testable_list, check_flags, module, allexamples, needs_enable)
+        >>> print((nPass, nTotal))
     """
     import multiprocessing
-    import utool
-    import utool as ut
-    multiprocessing.freeze_support()
+    import utool as ut  # NOQA
+    multiprocessing.freeze_support()  # just in case
     if needs_enable is None:
         needs_enable = not ut.get_argflag('--enableall')
         #needs_enable = True
-    TEST_ALL_EXAMPLES = allexamples or ut.get_argflag(('--allexamples', '--test-all-examples', '--testall', '--test-all'))
-
+    all_example_flags = ('--allexamples', '--all-examples', '--test-all-examples', '--testall', '--test-all')
+    TEST_ALL_EXAMPLES = allexamples or ut.get_argflag(all_example_flags)
     print('[utool] Running doctest funcs')
-
     testable_name_list = []
-
     if isinstance(testable_list, types.ModuleType):
         module = testable_list
         testable_list = []
-
-    frame_fpath = '???' if module is None else str(module)
-
-    # Inspect module for testable names
+    # ----------------------------------------
+    # Inspect caller module for testable names
+    # ----------------------------------------
     if module is None:
+        frame_fpath = '???'
         try:
             frame = ut.get_caller_stack_frame(N=0)
             main_modname = '__main__'
@@ -167,98 +255,118 @@ def doctest_funcs(testable_list=[], check_flags=True, module=None, allexamples=N
             raise
         allexamples = False
     else:
+        frame_fpath = module.__file__
         allexamples = True
-
+    # ----------------------------------------
+    # Get testable functions
+    # ----------------------------------------
     try:
         if VERBOSE_TEST:
             print('[util_test] Iterating over module funcs')
 
-        #source = inspect.getsource(module)
         for key, val in ut.iter_module_funcs(module):
             docstr = inspect.getdoc(val)
-            test_sentinals = [
-                'ENABLE_DOCTEST',
-                #'ENABLE_TEST',
-                #'ENABLE_DOCTEST',
-                #'ENABLE_UTOOL_DOCTEST',
-                #'UTOOL_TEST',
-                #'UTOOLTEST'
-            ]
-            if docstr is not None:
-                #print('Inspect func ' + key)
-                #print(key)
-                docstr_upper = docstr.upper()
-                test_enabled = any([docstr_upper.find(s) >= 0 for s in test_sentinals])
-                if test_enabled or (not needs_enable):
-                    testable_name_list.append(key)
-                    testable_list.append(val)
-                else:
-                    if docstr.find('Example') >= 0:
-                        print('[util_dev] DOCTEST DISABLED: %s' % key)
-                        #print(docstr)
+            if docstr is not None and docstr.find('Example') >= 0:
+                testable_name_list.append(key)
+                testable_list.append(val)
+                #else:
+                #    if docstr.find('Example') >= 0:
+                #        pass
+                #        #print('[util_dev] DOCTEST DISABLED: %s' % key)
     except Exception as ex:
         ut.printex(ex, keys=['frame'])
         raise
-
     for val in testable_list:
         print('[util_dev] DOCTEST ENABLED: %s' % val)
-
-    #ut.embed()
-    wastested_list = []
-    sorted_testnames = []
+    # ----------------------------------------
+    # Get testable function examples
+    # ----------------------------------------
+    test_sentinals = [
+        'ENABLE_DOCTEST',
+        #'ENABLE_TEST',
+        #'ENABLE_DOCTEST',
+        #'ENABLE_UTOOL_DOCTEST',
+        #'UTOOL_TEST',
+        #'UTOOLTEST'
+    ]
     sorted_testable = sorted(list(set(testable_list)), key=_get_testable_name)
-
-    nPass = 0
-    nTotal = 0
-    nFail = 0
-
-    subx = ut.get_argval('--subx', type_=int, default=None, help_='Only tests the subxth example')
+    testtup_list = []
+    # Append each testable example
     for testable in sorted_testable:
-        # HACKy
-        key = _get_testable_name(testable)
-        sorted_testnames.append(key)
-        flag1 = '--test-' + key.replace('_', '-')
-        flag2 = '--test-' + key
-        specific_test_flag = utool.get_argflag((flag1, flag2))
-        if TEST_ALL_EXAMPLES or not check_flags or specific_test_flag:
-            print('[utool] Doctest requested: %r' % key)
-            examples, wants = get_doctest_examples(testable)
-            nExamples = len(examples)
-            if nExamples == 0:
-                print('WARNING: no examples for key=%r' % key)
-                wastested_list.append(False)
-            else:
-                print('\n\n ---- TEST ' + key.upper() + '---')
-                #with ut.Indenter('[TEST.%s]' % key):
-                if subx is not None:
-                    examples = examples[subx:subx + 1]
-                nTotal += nExamples
-                for testno , srcwant_tup in enumerate(zip(examples, wants)):
-                    src, want = srcwant_tup
-                    src = ut.regex_replace('from __future__ import.*$', '', src)
-                    print('\n Test #%d' % testno)
-                    print(ut.msgblock('EXEC SRC', src))
-                    # --- EXEC STATMENT ---
-                    # TODO: Instead add it to a testable list to be executed
-                    # by a less coupled function
-                    test_globals = module.__dict__.copy()
-                    try:
-                        test_locals = ut.run_test((key,  src), globals=test_globals, want=want)
-                        nPass += (test_locals is not False)
-                    except Exception as ex:
-                        nFail += 1
-                        pass
-                    #exec(src)
-                wastested_list.append(True)
+        testname = _get_testable_name(testable)
+        examples, wants = get_doctest_examples(testable)
+        if len(examples) > 0:
+            for testno , srcwant_tup in enumerate(zip(examples, wants)):
+                src, want = srcwant_tup
+                src_ = ut.regex_replace('from __future__ import.*$', '', src)
+                test_disabled = not any([src_.find(s) >= 0 for s in test_sentinals])
+                if needs_enable and test_disabled:
+                    #print('skipping: %r' % testname)
+                    #print(src)
+                    continue
+                #ut.embed()
+                testtup = (testname, testno, src_, want)
+                testtup_list.append(testtup)
         else:
-            wastested_list.append(False)
-    if not any(wastested_list):
+            print('WARNING: no examples for key=%r' % key)
+    # ----------------------------------------
+    # Get enabled (requested) examples
+    # ----------------------------------------
+    all_testflags = []
+    enabled_testtup_list = []
+    distabled_testflags  = []
+    subx = ut.get_argval('--subx', type_=int, default=None, help_='Only tests the subxth example')
+    for testtup in testtup_list:
+        name, num, src, want = testtup
+        prefix = '--test-'
+        flag1 = prefix + name + ':' + str(num)
+        flag2 = prefix + name
+        flag3 = prefix + name.replace('_', '-') + ':' + str(num)
+        flag4 = prefix + name.replace('_', '-')
+        testflag = ut.get_argflag((flag1, flag2, flag3, flag4))
+        testenabled = TEST_ALL_EXAMPLES  or not check_flags or testflag
+        if subx is not None and subx != num:
+            continue
+        all_testflags.append(flag4)
+        if testenabled:
+            new_testtup = (name, num, src, want, flag1)
+            enabled_testtup_list.append(new_testtup)
+        else:
+            distabled_testflags.append(flag1)
+    # ----------------------------------------
+    # Run enabled examles
+    # ----------------------------------------
+    nTotal = len(enabled_testtup_list)
+    nPass = 0
+    nFail = 0
+    failed_flag_list = []
+    for testtup in enabled_testtup_list:
+        name, num, src, want, flag = testtup
+        print('\n\n ---- TEST ' + name.upper() + ':' + str(num) + '---')
+        print(ut.msgblock('EXEC SRC', src))
+        # --- EXEC STATMENT ---
+        test_globals = module.__dict__.copy()
+        try:
+            test_locals = ut.run_test((key,  src), globals=test_globals, want=want)
+            nPass += (test_locals is not False)
+        except Exception as ex:
+            nFail += 1
+            failed_flag_list.append(flag)
+            pass
+    # -------
+    # Print Results
+    if nTotal == 0:
         print('No test flags sepcified. Please choose one of the following flags')
-        print('Valid test argflags:\n' + '    --allexamples' + utool.indentjoin(sorted_testnames, '\n    --test-'))
+        print('Valid test argflags:\n' + '    --allexamples' + ut.indentjoin(all_testflags, '\n    '))
     print('+-------')
     print('| finished testing fpath=%r' % (frame_fpath,))
     print('| passed %d / %d' % (nPass, nTotal))
     print('L-------')
+    if nFail > 0:
+        failed_cmd_list = ['python %s %s' % (frame_fpath, flag_)
+                            for flag_ in failed_flag_list]
+        print('Failed Tests:')
+        print('\n'.join(failed_cmd_list))
     return (nPass, nTotal)
 
 
@@ -276,7 +384,7 @@ def run_test(func, *args, **kwargs):
     else:
         funcname = get_funcname(func)
     upper_funcname = funcname.upper()
-    with util_print.Indenter('[' + upper_funcname + ']'):
+    with util_print.Indenter('[' + funcname + ']'):
         try:
             import utool as ut
             if ut.VERBOSE:
@@ -316,7 +424,6 @@ def run_test(func, *args, **kwargs):
             return test_locals
         except Exception as ex:
             import utool as ut
-            import traceback
             exc_type, exc_value, tb = sys.exc_info()
             # Get locals in the wrapped function
             util_dbg.printex(ex, tb=True)
@@ -324,14 +431,13 @@ def run_test(func, *args, **kwargs):
             if func_is_text:
                 #ut.embed()
                 print(ut.msgblock('FAILED DOCTEST IN %s' % (key,), src))
-                failed_execline = traceback.format_tb(tb)[-1]
-                parse_str = 'File {fname}, line {lineno}, in {modname}'
-                import parse
-                parse_dict = parse.parse('{prefix_}' + parse_str + '{suffix_}', failed_execline)
-                if parse_dict['fname'] == '<string>':
-                    lineno = int(parse_dict['lineno'])
-                    failed_line = src.splitlines()[lineno - 1]
-                    print('Failed on line: %s' % failed_line)
+                #failed_execline = traceback.format_tb(tb)[-1]
+                #parse_str = 'File {fname}, line {lineno}, in {modname}'
+                #parse_dict = parse.parse('{prefix_}' + parse_str + '{suffix_}', failed_execline)
+                #if parse_dict['fname'] == '<string>':
+                #    lineno = int(parse_dict['lineno'])
+                #    failed_line = src.splitlines()[lineno - 1]
+                #    print('Failed on line: %s' % failed_line)
             print(SAD_FACE)
             raise
             if util_arg.STRICT:
@@ -381,7 +487,7 @@ def tryimport(modname, pipiname):
 
 
 def bubbletext(text, font='cybermedium'):
-    """
+    r"""
     Other fonts include: cybersmall, cybermedium, and cyberlarge
 
     Example:
