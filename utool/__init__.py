@@ -428,11 +428,12 @@ if DOELSE:
                                  is_tuple, is_type, is_valid_floattype, 
                                  smart_cast, type_str,) 
     from utool.util_tests import (HAPPY_FACE, SAD_FACE, VERBOSE_TEST, 
-                                  autogen_run_tests, bubbletext, def_test, 
-                                  doctest_funcs, doctest_modules, 
-                                  get_doctest_examples, 
+                                  bubbletext, def_test, doctest_funcs, 
+                                  doctest_modules, find_doctestable_modnames, 
+                                  find_untested_modpaths, get_doctest_examples, 
                                   get_doctest_testtup_list, 
                                   get_module_testlines, 
+                                  make_run_tests_script_text, 
                                   parse_docblocks_from_docstr, 
                                   parse_doctest_from_docstr, printTEST, 
                                   run_test, tryimport,) 
