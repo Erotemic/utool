@@ -183,13 +183,52 @@
 
 </div>
 <div class="viewcode-block" id="group_items"><a class="viewcode-back" href="../../utool.html#utool.util_alg.group_items">[docs]</a><span class="k">def</span> <span class="nf">group_items</span><span class="p">(</span><span class="n">item_list</span><span class="p">,</span> <span class="n">groupid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    group_items</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        item_list (list):</span>
+<span class="sd">        groupid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: groupid2_items mapping groupids to a list of items</span>
+
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        vtool.group_indicies - much faster numpy grouping algorithm</span>
+<span class="sd">        vtool.apply_gropuing - second part to faster numpy grouping algorithm</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; item_list    = [ &#39;ham&#39;,      &#39;jam&#39;,    &#39;spam&#39;,     &#39;eggs&#39;, &#39;cheese&#39;, &#39;bannana&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; groupid_list = [&#39;protein&#39;, &#39;fruit&#39;, &#39;protein&#39;,  &#39;protein&#39;,  &#39;dairy&#39;,   &#39;fruit&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; groupid2_items = ut.group_items(item_list, groupid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.dict_str(groupid2_items, newlines=False))</span>
+<span class="sd">        {&#39;protein&#39;: [&#39;eggs&#39;, &#39;ham&#39;, &#39;spam&#39;], &#39;fruit&#39;: [&#39;bannana&#39;, &#39;jam&#39;], &#39;dairy&#39;: [&#39;cheese&#39;],}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Sort by groupid for cache efficiency</span>
     <span class="n">sorted_pairs</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">groupid_list</span><span class="p">,</span> <span class="n">item_list</span><span class="p">)))</span>
     <span class="c"># Initialize dict of lists</span>
     <span class="n">groupid2_items</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="c"># Insert each item into the correct group</span>
     <span class="k">for</span> <span class="n">groupid</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">sorted_pairs</span><span class="p">:</span>
         <span class="n">groupid2_items</span><span class="p">[</span><span class="n">groupid</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">groupid2_items</span>
+
+</div>
+<div class="viewcode-block" id="search_utool"><a class="viewcode-back" href="../../utool.html#utool.util_alg.search_utool">[docs]</a><span class="k">def</span> <span class="nf">search_utool</span><span class="p">(</span><span class="n">pat</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">found_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">ut</span><span class="p">)</span> <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">pat</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">found_list</span>
+
+</div>
+<div class="viewcode-block" id="item_hist"><a class="viewcode-back" href="../../utool.html#utool.util_alg.item_hist">[docs]</a><span class="k">def</span> <span class="nf">item_hist</span><span class="p">(</span><span class="n">list_</span><span class="p">):</span>
+    <span class="n">dict_hist</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c"># Insert each item into the correct group</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">list_</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">item</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dict_hist</span><span class="p">:</span>
+            <span class="n">dict_hist</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">dict_hist</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">dict_hist</span>
 
 </div>
 <div class="viewcode-block" id="unpack_items_sorted"><a class="viewcode-back" href="../../utool.html#utool.util_alg.unpack_items_sorted">[docs]</a><span class="k">def</span> <span class="nf">unpack_items_sorted</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">sortfn</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>

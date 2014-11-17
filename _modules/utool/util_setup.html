@@ -298,6 +298,7 @@
              <span class="o">%</span> <span class="p">(</span><span class="n">packages</span><span class="p">,))</span>
     <span class="n">pkgdir</span> <span class="o">=</span> <span class="n">packages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">version</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">parse_package_for_version</span><span class="p">(</span><span class="n">pkgdir</span><span class="p">)</span>
+    <span class="n">modpath</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="n">pkgdir</span><span class="p">))</span>
 
     <span class="n">apidoc_fmtdict</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s">&#39;author&#39;</span><span class="p">:</span> <span class="n">author</span><span class="p">,</span>
@@ -330,18 +331,18 @@
     <span class="c">#    [^\]]*</span>
     <span class="c">#    ]</span>
     <span class="c">#    &#39;&#39;&#39;)</span>
-    <span class="n">search_text</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-        <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        extensions = [</span>
-<span class="sd">            &#39;sphinx.ext.autodoc&#39;,</span>
-<span class="sd">            &#39;sphinx.ext.viewcode&#39;,</span>
-<span class="sd">        ]</span>
-<span class="sd">        &#39;&#39;&#39;</span>
-    <span class="p">)</span>
+    <span class="n">search_text</span> <span class="o">=</span> <span class="s">r&#39;extensions = \[[^/]*\]&#39;</span>
     <span class="c"># TODO: http://sphinx-doc.org/ext/math.html#module-sphinx.ext.pngmath</span>
     <span class="c">#&#39;sphinx.ext.mathjax&#39;,</span>
+    <span class="n">exclude_modules</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># [&#39;ibeis.all_imports&#39;]</span>
     <span class="n">repl_text</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
         <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        MOCK_MODULES = {exclude_modules}</span>
+<span class="sd">        if len(MOCK_MODULES) &gt; 0:</span>
+<span class="sd">            import mock</span>
+<span class="sd">            for mod_name in MOCK_MODULES:</span>
+<span class="sd">                sys.modules[mod_name] = mock.Mock()</span>
+
 <span class="sd">        extensions = [</span>
 <span class="sd">            &#39;sphinx.ext.autodoc&#39;,</span>
 <span class="sd">            &#39;sphinx.ext.viewcode&#39;,</span>
@@ -352,16 +353,25 @@
 <span class="sd">            &#39;sphinxcontrib.napoleon&#39;,</span>
 <span class="sd">            #&#39;sphinx.ext.napoleon&#39;,</span>
 <span class="sd">        ]</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">exclude_modules</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">exclude_modules</span><span class="p">))</span>
+    <span class="n">head_text</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        from sphinx.ext.autodoc import between</span>
+<span class="sd">        import sys</span>
+<span class="sd">        import os</span>
+
+<span class="sd">        # Dont parse IBEIS args</span>
+<span class="sd">        os.environ[&#39;IBIES_PARSE_ARGS&#39;] = &#39;OFF&#39;</span>
+
+<span class="sd">        sys.path.append(&#39;{modpath}&#39;)</span>
+<span class="sd">        sys.path.append(sys.path.insert(0, os.path.abspath(&quot;../&quot;)))</span>
+
 <span class="sd">        autosummary_generate = True</span>
 
 <span class="sd">        modindex_common_prefix = [&#39;_&#39;]</span>
 <span class="sd">        &#39;&#39;&#39;</span>
-    <span class="p">)</span>
-    <span class="n">head_text</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-        <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        from sphinx.ext.autodoc import between</span>
-<span class="sd">        &#39;&#39;&#39;</span>
-    <span class="p">)</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">modpath</span><span class="o">=</span><span class="n">utool</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="n">modpath</span><span class="p">))</span>
     <span class="n">tail_text</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
         <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        def setup(app):</span>
@@ -373,12 +383,16 @@
     <span class="p">)</span>
     <span class="n">conf_fname</span> <span class="o">=</span> <span class="s">&#39;conf.py&#39;</span>
     <span class="n">conf_text</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="n">conf_fname</span><span class="p">)</span>
-    <span class="n">conf_text</span> <span class="o">=</span> <span class="n">head_text</span> <span class="o">+</span> <span class="n">conf_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">search_text</span><span class="p">,</span> <span class="n">repl_text</span><span class="p">)</span> <span class="o">+</span> <span class="n">tail_text</span>
+    <span class="n">conf_text</span> <span class="o">=</span> <span class="n">conf_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;import sys&#39;</span><span class="p">,</span> <span class="s">&#39;import sys  # NOQA&#39;</span><span class="p">)</span>
+    <span class="n">conf_text</span> <span class="o">=</span> <span class="n">conf_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;import os&#39;</span><span class="p">,</span> <span class="s">&#39;import os  # NOQA&#39;</span><span class="p">)</span>
+    <span class="n">conf_text</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">regex_replace</span><span class="p">(</span><span class="n">search_text</span><span class="p">,</span> <span class="n">repl_text</span><span class="p">,</span> <span class="n">conf_text</span><span class="p">)</span>
+    <span class="n">conf_text</span> <span class="o">=</span> <span class="n">head_text</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">conf_text</span> <span class="o">+</span> <span class="n">tail_text</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="n">conf_fname</span><span class="p">,</span> <span class="n">conf_text</span><span class="p">)</span>
     <span class="c"># Make the documentation</span>
     <span class="c">#if utool.LINUX:</span>
     <span class="c">#    utool.cmd(&#39;make html&#39;, shell=True)</span>
     <span class="c">#if utool.WIN32:</span>
+    <span class="c">#raw_input(&#39;waiting&#39;)</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="s">&#39;make&#39;</span><span class="p">,</span> <span class="s">&#39;html&#39;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
 </div>

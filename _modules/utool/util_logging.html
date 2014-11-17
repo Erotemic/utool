@@ -72,7 +72,8 @@
 
 <span class="n">PRINT_ALL_CALLERS</span> <span class="o">=</span> <span class="s">&#39;--print-all-callers&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
 <span class="n">VERBOSE</span> <span class="o">=</span> <span class="s">&#39;--verbose&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
-<span class="n">VERYVERBOSE</span> <span class="o">=</span> <span class="s">&#39;--veryverbose&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<span class="n">VERYVERBOSE</span> <span class="o">=</span> <span class="s">&#39;--very-verbose&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="ow">or</span> <span class="s">&#39;--veryverbose&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<span class="n">LOGGING_VERBOSE</span> <span class="o">=</span> <span class="n">VERYVERBOSE</span> <span class="ow">or</span> <span class="s">&#39;--verb-logging&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
 
 <span class="c"># Remeber original python values</span>
 <span class="n">__PYTHON_STDOUT__</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
@@ -84,6 +85,8 @@
 <span class="n">__UTOOL_STDOUT__</span>    <span class="o">=</span> <span class="n">__PYTHON_STDOUT__</span>
 <span class="n">__UTOOL_PRINT__</span>     <span class="o">=</span> <span class="n">__PYTHON_PRINT__</span>
 <span class="n">__UTOOL_PRINTDBG__</span>  <span class="o">=</span> <span class="n">__PYTHON_PRINT__</span>
+
+<span class="c"># TODO: Allow write and flush to have a logging equivalent</span>
 <span class="n">__UTOOL_WRITE__</span>     <span class="o">=</span> <span class="n">__PYTHON_WRITE__</span>
 <span class="n">__UTOOL_FLUSH__</span>     <span class="o">=</span> <span class="n">__PYTHON_FLUSH__</span>
 <span class="n">__UTOOL_WRITE_BUFFER__</span> <span class="o">=</span> <span class="p">[]</span>
@@ -164,17 +167,17 @@
     <span class="k">global</span> <span class="n">__UTOOL_PRINTDBG__</span>
     <span class="k">global</span> <span class="n">__UTOOL_WRITE__</span>
     <span class="k">global</span> <span class="n">__UTOOL_FLUSH__</span>
-    <span class="k">if</span> <span class="n">VERYVERBOSE</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">LOGGING_VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] start_logging()&#39;</span><span class="p">)</span>
     <span class="c"># FIXME: The test for doctest may not work</span>
     <span class="k">if</span> <span class="n">__UTOOL_ROOT_LOGGER__</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">__IN_MAIN_PROCESS__</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">__inside_doctest</span><span class="p">():</span>
-        <span class="k">if</span> <span class="n">VERYVERBOSE</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">LOGGING_VERBOSE</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] start_logging()... rootcheck OK&#39;</span><span class="p">)</span>
         <span class="c">#logging.config.dictConfig(LOGGING)</span>
         <span class="k">if</span> <span class="n">log_fpath</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">log_fpath</span> <span class="o">=</span> <span class="n">get_log_fpath</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="s">&#39;next&#39;</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="n">appname</span><span class="p">)</span>
         <span class="c"># Print what is about to happen</span>
-        <span class="k">if</span> <span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">LOGGING_VERBOSE</span><span class="p">:</span>
             <span class="n">startmsg</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;logging to log_fpath=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">log_fpath</span><span class="p">)</span>
             <span class="n">__UTOOL_PRINT__</span><span class="p">(</span><span class="n">startmsg</span><span class="p">)</span>
         <span class="c"># Create root logger</span>
@@ -223,7 +226,7 @@
         <span class="n">__UTOOL_PRINT__</span>    <span class="o">=</span> <span class="n">utool_print</span>
         <span class="n">__UTOOL_PRINTDBG__</span> <span class="o">=</span> <span class="n">utool_printdbg</span>
         <span class="c"># Test out our shiney new logger</span>
-        <span class="k">if</span> <span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">LOGGING_VERBOSE</span><span class="p">:</span>
             <span class="n">__UTOOL_PRINT__</span><span class="p">(</span><span class="s">&#39;&lt;__LOG_START__&gt;&#39;</span><span class="p">)</span>
             <span class="n">__UTOOL_PRINT__</span><span class="p">(</span><span class="n">startmsg</span><span class="p">)</span>
 
@@ -238,7 +241,7 @@
     <span class="k">global</span> <span class="n">__UTOOL_WRITE__</span>
     <span class="k">global</span> <span class="n">__UTOOL_FLUSH__</span>
     <span class="k">if</span> <span class="n">__UTOOL_ROOT_LOGGER__</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">LOGGING_VERBOSE</span><span class="p">:</span>
             <span class="n">__UTOOL_PRINT__</span><span class="p">(</span><span class="s">&#39;&lt;__LOG_STOP__&gt;&#39;</span><span class="p">)</span>
         <span class="c"># Remove handlers</span>
         <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">__UTOOL_ROOT_LOGGER__</span><span class="o">.</span><span class="n">handlers</span><span class="p">:</span>

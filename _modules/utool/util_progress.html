@@ -61,10 +61,12 @@
 <span class="sd">    python -c &quot;import utool, doctest; help(doctest.testmod)&quot;</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
-<span class="kn">from</span> <span class="nn">.util_arg</span> <span class="kn">import</span> <span class="n">QUIET</span><span class="p">,</span> <span class="n">SILENT</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_time</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_logging</span>
+<span class="kn">from</span> <span class="nn">utool.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="kn">from</span> <span class="nn">utool.util_arg</span> <span class="kn">import</span> <span class="n">QUIET</span><span class="p">,</span> <span class="n">SILENT</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_time</span>
 <span class="c">#get_argflag,</span>
 <span class="c">#, VERBOSE</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[progress]&#39;</span><span class="p">)</span>
@@ -77,9 +79,72 @@
 <span class="n">PROGGRESS_BACKSPACE</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;--screen&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="ow">and</span> <span class="s">&#39;--progress-backspace&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
 
 
+<span class="c">#PROGRESS_WRITE = sys.stdout.write</span>
+<span class="c">#PROGRESS_FLUSH = sys.stdout.flush</span>
+
+<span class="n">PROGRESS_WRITE</span> <span class="o">=</span> <span class="n">util_logging</span><span class="o">.</span><span class="n">__UTOOL_WRITE__</span>
+<span class="n">PROGRESS_FLUSH</span> <span class="o">=</span> <span class="n">util_logging</span><span class="o">.</span><span class="n">__UTOOL_FLUSH__</span>
+
+
+<div class="viewcode-block" id="test_progress"><a class="viewcode-back" href="../../utool.html#utool.util_progress.test_progress">[docs]</a><span class="k">def</span> <span class="nf">test_progress</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; test_progress()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="kn">import</span> <span class="nn">time</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">rrrr</span><span class="p">()</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;_________________&#39;</span><span class="p">)</span>
+
+    <span class="n">numiter</span> <span class="o">=</span> <span class="mi">1000</span>
+    <span class="n">rate</span> <span class="o">=</span> <span class="o">.</span><span class="mo">01</span>
+
+    <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numiter</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">rate</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;_________________&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;No frequncy run:&#39;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numiter</span><span class="p">):</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">rate</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;_________________&#39;</span><span class="p">)</span>
+
+    <span class="n">numiter</span> <span class="o">=</span> <span class="mi">100000</span>
+    <span class="n">rate</span> <span class="o">=</span> <span class="o">.</span><span class="mo">00000</span><span class="mi">8</span>
+
+    <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numiter</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">rate</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;_________________&#39;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numiter</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">rate</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;_________________&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;No frequncy run:&#39;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numiter</span><span class="p">):</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">rate</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;_________________&#39;</span><span class="p">)</span>
+
+</div>
 <div class="viewcode-block" id="ProgressIter"><a class="viewcode-back" href="../../utool.html#utool.util_progress.ProgressIter">[docs]</a><span class="k">class</span> <span class="nc">ProgressIter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Wraps a for loop with progress reporting</span>
+
+<span class="sd">    lbl=&#39;Progress: &#39;, nTotal=0, flushfreq=4, startafter=-1, start=True,</span>
+<span class="sd">    repl=False, approx=False, disable=False, writefreq=1, with_time=False,</span>
+<span class="sd">    backspace=True, separate=False, wfreq=None, ffreq=None, freq=None,</span>
+<span class="sd">    total=None, num=None, with_totaltime=None</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        iterable (): iterable normally passed to for loop</span>
@@ -110,6 +175,10 @@
 <span class="sd">        &gt;&gt;&gt; assert results1 == results2</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ProgressIter.new_init"><a class="viewcode-back" href="../../utool.html#utool.util_progress.ProgressIter.new_init">[docs]</a>    <span class="k">def</span> <span class="nf">new_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iterable</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;ProgIter&#39;</span><span class="p">,</span> <span class="n">nTotal</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                 <span class="n">newlines</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">pass</span>
+</div>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iterable</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">iterable</span> <span class="o">=</span> <span class="n">iterable</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">and</span> <span class="s">&#39;nTotal&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
@@ -118,12 +187,13 @@
                 <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;nTotal&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nTotal</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="k">pass</span>
-        <span class="n">mark</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">log_progress</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">lbl</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;lbl&#39;</span><span class="p">,</span> <span class="s">&#39;lbl&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">nTotal</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;nTotal&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">freq</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;freq&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">mark</span> <span class="o">=</span> <span class="n">mark</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">=</span> <span class="n">end</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_thresh</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;time_thresh&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_rate</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;use_rate&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lbl</span>       <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;lbl&#39;</span><span class="p">,</span> <span class="s">&#39;lbl&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nTotal</span>    <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;nTotal&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backspace</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;backspace&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">freq</span>      <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;freq&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">=</span> <span class="n">log_progress</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
 
     <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iterable</span><span class="p">):</span>
@@ -131,6 +201,12 @@
         <span class="k">return</span> <span class="bp">self</span>
 
     <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_rate</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_rate</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_without_rate</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ProgressIter.iter_without_rate"><a class="viewcode-back" href="../../utool.html#utool.util_progress.ProgressIter.iter_without_rate">[docs]</a>    <span class="k">def</span> <span class="nf">iter_without_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mark</span>
         <span class="c"># Wrap the for loop with a generator</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
@@ -138,31 +214,100 @@
             <span class="n">mark</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="p">)</span>
             <span class="k">yield</span> <span class="n">item</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-
+</div>
 <div class="viewcode-block" id="ProgressIter.iter_rate"><a class="viewcode-back" href="../../utool.html#utool.util_progress.ProgressIter.iter_rate">[docs]</a>    <span class="k">def</span> <span class="nf">iter_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c"># TODO Incorporate this better</span>
         <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-        <span class="kn">import</span> <span class="nn">time</span>
         <span class="n">starttime</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">last_time</span> <span class="o">=</span> <span class="n">starttime</span>
         <span class="c">#mark = self.mark</span>
         <span class="c"># Wrap the for loop with a generator</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-        <span class="n">freq</span> <span class="o">=</span> <span class="mi">100</span>
-        <span class="n">cumrate</span> <span class="o">=</span> <span class="mf">1E-9</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">nTotal</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iterable</span><span class="p">)</span>
-        <span class="n">fmt_msg</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\r</span><span class="s">&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">lbl</span> <span class="o">+</span> <span class="s">&#39; </span><span class="si">%4d</span><span class="s">/&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nTotal</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;... rate=</span><span class="si">%d</span><span class="s"> iters per second.&#39;</span>
+        <span class="n">freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">freq</span>
+        <span class="c">#cumrate = 1E-9</span>
+        <span class="n">between_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">last_count</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="c">#self.nTotal = len(self.iterable)</span>
+        <span class="n">nTotal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nTotal</span>
+        <span class="n">fmt_msg</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="s">&#39;</span><span class="se">\r</span><span class="s">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lbl</span><span class="p">,</span>
+                           <span class="s">&#39; </span><span class="si">%4d</span><span class="s">/&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">nTotal</span><span class="p">),</span>
+                           <span class="s">&#39;...  rate=</span><span class="si">%4.1f</span><span class="s"> iters per second.&#39;</span><span class="p">,</span>
+                           <span class="s">&#39; est_min_left=</span><span class="si">%4.2f</span><span class="s">              &#39;</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">backspace</span><span class="p">:</span>
+            <span class="n">fmt_msg</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+
+        <span class="c"># how long iterations should be before a flush</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_thresh</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nTotal</span> <span class="o">&gt;</span> <span class="mf">1E5</span><span class="p">:</span>
+                <span class="n">time_thresh</span> <span class="o">=</span> <span class="mf">4.0</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">nTotal</span> <span class="o">&gt;</span> <span class="mf">1E4</span><span class="p">:</span>
+                <span class="n">time_thresh</span> <span class="o">=</span> <span class="mf">2.0</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">nTotal</span> <span class="o">&gt;</span> <span class="mf">1E3</span><span class="p">:</span>
+                <span class="n">time_thresh</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">time_thresh</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">time_thresh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_thresh</span>
+        <span class="c">#time_thresh = 0.5</span>
+        <span class="n">max_between_time</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+        <span class="n">max_between_count</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>  <span class="c"># why is this different? # becuase frequency varies</span>
+
         <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lbl</span><span class="p">):</span>
-            <span class="k">for</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iterable</span><span class="p">):</span>
+            <span class="kn">import</span> <span class="nn">six</span>
+            <span class="c"># yeild first element</span>
+            <span class="n">enumiter</span> <span class="o">=</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iterable</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">six</span><span class="o">.</span><span class="n">next</span><span class="p">(</span><span class="n">enumiter</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="k">for</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">enumiter</span><span class="p">:</span>
                 <span class="c">#mark(self.count)</span>
                 <span class="k">yield</span> <span class="n">item</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">%</span> <span class="n">freq</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">endtime</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-                    <span class="n">cumrate</span> <span class="o">+=</span> <span class="p">(</span><span class="n">endtime</span> <span class="o">-</span> <span class="n">starttime</span><span class="p">)</span>
-                    <span class="n">starttime</span> <span class="o">=</span> <span class="n">endtime</span>
-                    <span class="n">rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">/</span> <span class="n">cumrate</span>
-                    <span class="n">msg</span> <span class="o">=</span> <span class="n">fmt_msg</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="p">,</span> <span class="n">rate</span><span class="p">)</span>
-                    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-                    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="p">)</span> <span class="o">%</span> <span class="n">freq</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">between_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">-</span> <span class="n">last_count</span>
+                    <span class="n">now_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+                    <span class="n">between_time</span> <span class="o">=</span> <span class="p">(</span><span class="n">now_time</span> <span class="o">-</span> <span class="n">last_time</span><span class="p">)</span>
+                    <span class="c"># Adjust frequency if printing too quickly</span>
+                    <span class="c"># so progress doesnt slow down actual function</span>
+                    <span class="c"># TODO: better adjust algorithm</span>
+                    <span class="k">if</span> <span class="n">between_time</span> <span class="o">&lt;</span> <span class="n">time_thresh</span><span class="p">:</span>
+                        <span class="c">#print(&#39;&#39;)</span>
+                        <span class="c">#print(&#39;[prog] Adusting frequency from: %r&#39; % freq)</span>
+                        <span class="c">#print(&#39;between_count = %r&#39; % between_count)</span>
+                        <span class="c">#print(&#39;between_time = %r&#39; % between_time)</span>
+                        <span class="c"># There has to be a standard way to do this.</span>
+                        <span class="c"># Refer to: https://github.com/verigak/progress/blob/master/progress/__init__.py</span>
+                        <span class="n">max_between_time</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">max_between_time</span><span class="p">,</span> <span class="n">between_time</span><span class="p">),</span> <span class="mf">1E-9</span><span class="p">)</span>
+                        <span class="n">max_between_count</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_between_count</span><span class="p">,</span> <span class="n">between_count</span><span class="p">)</span>
+                        <span class="c">#freq = max(int(1.3 * between_count * time_thresh / between_time), 1)</span>
+                        <span class="n">freq</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="mf">1.3</span> <span class="o">*</span> <span class="n">max_between_count</span> <span class="o">*</span> <span class="n">time_thresh</span> <span class="o">/</span> <span class="n">max_between_time</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="c">#freq = max(int((between_count * between_time) / time_thresh), 1)</span>
+                        <span class="c">#freq = max(int((between_count) / time_thresh), 1)</span>
+                        <span class="c">#freq = max(int((between_time) / time_thresh), 1)</span>
+                        <span class="c">#freq = max(int(time_thresh / between_count), 1)</span>
+                        <span class="c">#print(&#39;[prog] Adusting frequency to: %r&#39; % freq)</span>
+                        <span class="c">#print(&#39;&#39;)</span>
+                    <span class="n">iters_per_second</span> <span class="o">=</span> <span class="n">between_count</span> <span class="o">/</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">between_time</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1E-9</span><span class="p">)</span>
+                    <span class="c">#cumrate += between_time</span>
+                    <span class="c">#rate = (self.count + 1.0) / float(cumrate)</span>
+                    <span class="n">iters_left</span> <span class="o">=</span> <span class="n">nTotal</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span>
+                    <span class="n">est_seconds_left</span> <span class="o">=</span> <span class="n">iters_left</span> <span class="o">/</span> <span class="p">(</span><span class="n">iters_per_second</span> <span class="o">+</span> <span class="mf">1E-9</span><span class="p">)</span>
+                    <span class="n">est_min_left</span> <span class="o">=</span> <span class="n">est_seconds_left</span> <span class="o">/</span> <span class="mf">60.0</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="n">fmt_msg</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="p">,</span> <span class="n">iters_per_second</span><span class="p">,</span> <span class="n">est_min_left</span><span class="p">)</span>
+                    <span class="c">#if False and __debug__:</span>
+                    <span class="c">#    print(&#39;&lt;!!!!!!!!!!!!!&gt;&#39;)</span>
+                    <span class="c">#    print(&#39;iters_left = %r&#39; % iters_left)</span>
+                    <span class="c">#    print(&#39;between_time = %r&#39; % between_time)</span>
+                    <span class="c">#    print(&#39;between_count = %r&#39; % between_count)</span>
+                    <span class="c">#    print(&#39;est_seconds_left = %r&#39; % est_seconds_left)</span>
+                    <span class="c">#    print(&#39;iters_per_second = %r&#39; % iters_per_second)</span>
+                    <span class="c">#    print(&#39;&lt;/!!!!!!!!!!!!!&gt;&#39;)</span>
+                    <span class="n">PROGRESS_WRITE</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                    <span class="n">PROGRESS_FLUSH</span><span class="p">()</span>
+                    <span class="n">last_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span>
+                    <span class="n">last_time</span> <span class="o">=</span> <span class="n">now_time</span>
+            <span class="c">#print(&#39;freq = %r&#39; % freq)</span>
+            <span class="n">PROGRESS_WRITE</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="n">PROGRESS_FLUSH</span><span class="p">()</span>
         <span class="c">#self.end(self.count + 1)</span>
 </div>
 <div class="viewcode-block" id="ProgressIter.mark_current"><a class="viewcode-back" href="../../utool.html#utool.util_progress.ProgressIter.mark_current">[docs]</a>    <span class="k">def</span> <span class="nf">mark_current</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -172,6 +317,41 @@
 <span class="n">progiter</span> <span class="o">=</span> <span class="n">ProgressIter</span>
 
 
+<div class="viewcode-block" id="progress_str"><a class="viewcode-back" href="../../utool.html#utool.util_progress.progress_str">[docs]</a><span class="k">def</span> <span class="nf">progress_str</span><span class="p">(</span><span class="n">max_val</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;Progress: &#39;</span><span class="p">,</span> <span class="n">repl</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">approx</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">backspace</span><span class="o">=</span><span class="n">PROGGRESS_BACKSPACE</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot; makes format string that prints progress: %Xd/MAX_VAL with backspaces</span>
+
+<span class="sd">    NOTE: \r can be used instead of backspaces. This function is not very</span>
+<span class="sd">    relevant because of that.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># string that displays max value</span>
+    <span class="n">max_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">max_val</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">approx</span><span class="p">:</span>
+        <span class="c"># denote approximate maximum</span>
+        <span class="n">max_str</span> <span class="o">=</span> <span class="s">&#39;~&#39;</span> <span class="o">+</span> <span class="n">max_str</span>
+    <span class="n">dnumstr</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">max_str</span><span class="p">))</span>
+    <span class="c"># string that displays current progress</span>
+    <span class="n">cur_str</span> <span class="o">=</span> <span class="s">&#39;%&#39;</span> <span class="o">+</span> <span class="n">dnumstr</span> <span class="o">+</span> <span class="s">&#39;d&#39;</span>
+    <span class="c"># If user passed in the label</span>
+    <span class="k">if</span> <span class="n">repl</span><span class="p">:</span>
+        <span class="n">_fmt_str</span> <span class="o">=</span> <span class="n">lbl</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&lt;cur_str&gt;&#39;</span><span class="p">,</span> <span class="n">cur_str</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&lt;max_str&gt;&#39;</span><span class="p">,</span> <span class="n">max_str</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_fmt_str</span> <span class="o">=</span> <span class="n">lbl</span> <span class="o">+</span> <span class="n">cur_str</span> <span class="o">+</span> <span class="s">&#39;/&#39;</span> <span class="o">+</span> <span class="n">max_str</span>
+    <span class="k">if</span> <span class="n">backspace</span><span class="p">:</span>
+        <span class="c"># put backspace characters into the progress string</span>
+        <span class="c"># (looks nice on normal terminals)</span>
+        <span class="c">#nBackspaces = len(_fmt_str) - len(dnumstr) + len(max_str)</span>
+        <span class="c">#backspaces = &#39;\b&#39; * nBackspaces</span>
+        <span class="c">#fmt_str = backspaces + _fmt_str</span>
+        <span class="c"># FIXME: USE CARAGE RETURN INSTEAD OF BACKSPACES</span>
+        <span class="n">fmt_str</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\r</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">_fmt_str</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># FIXME: USE CARAGE RETURN INSTEAD OF BACKSPACES</span>
+        <span class="c"># this looks better on terminals without backspaces</span>
+        <span class="n">fmt_str</span> <span class="o">=</span> <span class="n">_fmt_str</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="k">return</span> <span class="n">fmt_str</span>
+
+</div>
 <div class="viewcode-block" id="log_progress"><a class="viewcode-back" href="../../utool.html#utool.util_progress.log_progress">[docs]</a><span class="k">def</span> <span class="nf">log_progress</span><span class="p">(</span><span class="n">lbl</span><span class="o">=</span><span class="s">&#39;Progress: &#39;</span><span class="p">,</span> <span class="n">nTotal</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">flushfreq</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">startafter</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
                  <span class="n">start</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">repl</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">approx</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">disable</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
                  <span class="n">writefreq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">with_time</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">backspace</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
@@ -255,8 +435,8 @@
             <span class="k">pass</span>
         <span class="k">return</span> <span class="n">mark_progress</span><span class="p">,</span> <span class="n">end_progress</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">write_fn</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span>
-        <span class="n">flush_fn</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span>
+        <span class="n">write_fn</span> <span class="o">=</span> <span class="n">PROGRESS_WRITE</span>
+        <span class="n">flush_fn</span> <span class="o">=</span> <span class="n">PROGRESS_FLUSH</span>
         <span class="c"># build format string for displaying progress</span>
         <span class="n">fmt_str</span> <span class="o">=</span> <span class="n">progress_str</span><span class="p">(</span><span class="n">nTotal</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">lbl</span><span class="p">,</span> <span class="n">repl</span><span class="o">=</span><span class="n">repl</span><span class="p">,</span> <span class="n">approx</span><span class="o">=</span><span class="n">approx</span><span class="p">,</span>
                                <span class="n">backspace</span><span class="o">=</span><span class="n">backspace</span><span class="p">)</span>
@@ -305,7 +485,7 @@
         <span class="k">pass</span>
 
     <span class="k">def</span> <span class="nf">mark_progress1</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
-        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">progchar</span><span class="p">)</span>
+        <span class="n">PROGRESS_WRITE</span><span class="p">(</span><span class="n">progchar</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">mark_progress2</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
         <span class="k">print</span><span class="p">(</span><span class="n">msg</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
@@ -335,7 +515,7 @@
 <span class="sd">        parameter. Prints if max_val &gt; mark_at. Prints dots if max_val not</span>
 <span class="sd">        specified or simple=True</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">write_fn</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span>
+    <span class="n">write_fn</span> <span class="o">=</span> <span class="n">PROGRESS_WRITE</span>
     <span class="c">#write_fn = print_</span>
     <span class="c">#print(&#39;STARTING PROGRESS: VERBOSE=%r QUIET=%r&#39; % (VERBOSE, QUIET))</span>
 
@@ -362,12 +542,12 @@
                 <span class="n">count_</span> <span class="o">=</span> <span class="n">count</span> <span class="o">+</span> <span class="mi">1</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">count_</span><span class="p">)</span> <span class="o">%</span> <span class="n">newline_len</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">write_fn</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">indent_</span><span class="p">)</span>
-                    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                    <span class="n">PROGRESS_FLUSH</span><span class="p">()</span>
                 <span class="k">elif</span> <span class="p">(</span><span class="n">count_</span><span class="p">)</span> <span class="o">%</span> <span class="n">spacing</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">write_fn</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)</span>
-                    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                    <span class="n">PROGRESS_FLUSH</span><span class="p">()</span>
                 <span class="k">elif</span> <span class="p">(</span><span class="n">count_</span><span class="p">)</span> <span class="o">%</span> <span class="n">flush_after</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                    <span class="n">PROGRESS_FLUSH</span><span class="p">()</span>
             <span class="n">mark_progress</span> <span class="o">=</span> <span class="n">mark_progress_sdot</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c"># No spacing</span>
@@ -378,9 +558,9 @@
                 <span class="n">count_</span> <span class="o">=</span> <span class="n">count</span> <span class="o">+</span> <span class="mi">1</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">count_</span><span class="p">)</span> <span class="o">%</span> <span class="n">newline_len</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">write_fn</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">indent_</span><span class="p">)</span>
-                    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                    <span class="n">PROGRESS_FLUSH</span><span class="p">()</span>
                 <span class="k">elif</span> <span class="p">(</span><span class="n">count_</span><span class="p">)</span> <span class="o">%</span> <span class="n">flush_after</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                    <span class="n">PROGRESS_FLUSH</span><span class="p">()</span>
             <span class="n">mark_progress</span> <span class="o">=</span> <span class="n">mark_progress_dot</span>
     <span class="c"># fmtstr: formated string progress</span>
     <span class="k">if</span> <span class="n">progress_type</span> <span class="o">==</span> <span class="s">&#39;fmtstr&#39;</span><span class="p">:</span>
@@ -390,18 +570,18 @@
             <span class="n">count_</span> <span class="o">=</span> <span class="n">count</span> <span class="o">+</span> <span class="mi">1</span>
             <span class="n">write_fn</span><span class="p">(</span><span class="n">fmt_str</span> <span class="o">%</span> <span class="p">(</span><span class="n">count_</span><span class="p">))</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">count_</span><span class="p">)</span> <span class="o">%</span> <span class="n">flush_after</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                <span class="n">PROGRESS_FLUSH</span><span class="p">()</span>
         <span class="n">mark_progress</span> <span class="o">=</span> <span class="n">mark_progress_fmtstr</span>
     <span class="c"># FIXME idk why argparse2.ARGS_ is none here.</span>
     <span class="k">if</span> <span class="s">&#39;--aggroflush&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
         <span class="k">def</span> <span class="nf">mark_progress_agressive</span><span class="p">(</span><span class="n">count</span><span class="p">):</span>
             <span class="n">mark_progress</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+            <span class="n">PROGRESS_FLUSH</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">mark_progress_agressive</span>
 
     <span class="k">def</span> <span class="nf">end_progress</span><span class="p">():</span>
         <span class="n">write_fn</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
-        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="n">PROGRESS_FLUSH</span><span class="p">()</span>
     <span class="c">#mark_progress(0)</span>
     <span class="k">if</span> <span class="n">mark_start</span><span class="p">:</span>
         <span class="n">mark_progress</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
@@ -409,35 +589,13 @@
     <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;unkown progress type = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">progress_type</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="progress_str"><a class="viewcode-back" href="../../utool.html#utool.util_progress.progress_str">[docs]</a><span class="k">def</span> <span class="nf">progress_str</span><span class="p">(</span><span class="n">max_val</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;Progress: &#39;</span><span class="p">,</span> <span class="n">repl</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">approx</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">backspace</span><span class="o">=</span><span class="n">PROGGRESS_BACKSPACE</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; makes format string that prints progress: %Xd/MAX_VAL with backspaces</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python utool/util_progress.py --test-test-progress</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># string that displays max value</span>
-    <span class="n">max_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">max_val</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">approx</span><span class="p">:</span>
-        <span class="c"># denote approximate maximum</span>
-        <span class="n">max_str</span> <span class="o">=</span> <span class="s">&#39;~&#39;</span> <span class="o">+</span> <span class="n">max_str</span>
-    <span class="n">dnumstr</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">max_str</span><span class="p">))</span>
-    <span class="c"># string that displays current progress</span>
-    <span class="n">cur_str</span> <span class="o">=</span> <span class="s">&#39;%&#39;</span> <span class="o">+</span> <span class="n">dnumstr</span> <span class="o">+</span> <span class="s">&#39;d&#39;</span>
-    <span class="c"># If user passed in the label</span>
-    <span class="k">if</span> <span class="n">repl</span><span class="p">:</span>
-        <span class="n">_fmt_str</span> <span class="o">=</span> <span class="n">lbl</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&lt;cur_str&gt;&#39;</span><span class="p">,</span> <span class="n">cur_str</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&lt;max_str&gt;&#39;</span><span class="p">,</span> <span class="n">max_str</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">_fmt_str</span> <span class="o">=</span> <span class="n">lbl</span> <span class="o">+</span> <span class="n">cur_str</span> <span class="o">+</span> <span class="s">&#39;/&#39;</span> <span class="o">+</span> <span class="n">max_str</span>
-    <span class="k">if</span> <span class="n">backspace</span><span class="p">:</span>
-        <span class="c"># put backspace characters into the progress string</span>
-        <span class="c"># (looks nice on normal terminals)</span>
-        <span class="c">#nBackspaces = len(_fmt_str) - len(dnumstr) + len(max_str)</span>
-        <span class="c">#backspaces = &#39;\b&#39; * nBackspaces</span>
-        <span class="c">#fmt_str = backspaces + _fmt_str</span>
-        <span class="c"># FIXME: USE CARAGE RETURN INSTEAD OF BACKSPACES</span>
-        <span class="n">fmt_str</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\r</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">_fmt_str</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="c"># FIXME: USE CARAGE RETURN INSTEAD OF BACKSPACES</span>
-        <span class="c"># this looks better on terminals without backspaces</span>
-        <span class="n">fmt_str</span> <span class="o">=</span> <span class="n">_fmt_str</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
-    <span class="k">return</span> <span class="n">fmt_str</span></div>
+    <span class="kn">from</span> <span class="nn">utool.util_tests</span> <span class="kn">import</span> <span class="n">doctest_funcs</span>
+    <span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

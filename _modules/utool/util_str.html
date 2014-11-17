@@ -108,7 +108,9 @@
 
 </div>
 <div class="viewcode-block" id="get_indentation"><a class="viewcode-back" href="../../utool.html#utool.util_str.get_indentation">[docs]</a><span class="k">def</span> <span class="nf">get_indentation</span><span class="p">(</span><span class="n">line_</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; returns the number of preceding spaces &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    returns the number of preceding spaces</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">line_</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">line_</span><span class="o">.</span><span class="n">lstrip</span><span class="p">())</span>
 
 </div>
@@ -122,6 +124,10 @@
 
 </div>
 <div class="viewcode-block" id="codeblock"><a class="viewcode-back" href="../../utool.html#utool.util_str.codeblock">[docs]</a><span class="k">def</span> <span class="nf">codeblock</span><span class="p">(</span><span class="n">block_str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convinience function for defining code strings. Esspecially useful for</span>
+<span class="sd">    templated code.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">unindent</span><span class="p">(</span><span class="n">block_str</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
 
 </div>
@@ -476,6 +482,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        list: a list of human-readable dictionary items</span>
+
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_str import dict_str, dict_itemstr_list</span>
 <span class="sd">        &gt;&gt;&gt; import utool</span>
@@ -511,7 +518,7 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">fmtstr</span> <span class="o">=</span> <span class="n">indent_</span> <span class="o">+</span> <span class="s">&#39;</span><span class="si">%r</span><span class="s">: </span><span class="si">%r</span><span class="s">,&#39;</span>
     <span class="k">if</span> <span class="n">sorted_</span><span class="p">:</span>
-        <span class="n">iteritems</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">iter_</span><span class="p">:</span> <span class="nb">iter</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">iter_</span><span class="p">))</span>
+        <span class="n">iteritems</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">iter_</span><span class="p">:</span> <span class="nb">iter</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">iter_</span><span class="p">)))</span>
 
     <span class="k">if</span> <span class="n">recursive</span><span class="p">:</span>
         <span class="n">itemstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">fmtstr</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">valfunc</span><span class="p">(</span><span class="n">val</span><span class="p">))</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">dict_</span><span class="p">)]</span>
@@ -657,16 +664,17 @@
 
 </div>
 <div class="viewcode-block" id="align"><a class="viewcode-back" href="../../utool.html#utool.util_str.align">[docs]</a><span class="k">def</span> <span class="nf">align</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">character</span><span class="o">=</span><span class="s">&#39;=&#39;</span><span class="p">):</span>
-    <span class="sd">r&quot;&quot;&quot; Left justifies text on the left side of character</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Left justifies text on the left side of character</span>
 
 <span class="sd">    align</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        text (?):</span>
+<span class="sd">        text (str): text to align</span>
 <span class="sd">        character (str):</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        ?: new_text</span>
+<span class="sd">        str: new_text</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_str import *  # NOQA</span>
@@ -684,16 +692,17 @@
 
 </div>
 <div class="viewcode-block" id="align_lines"><a class="viewcode-back" href="../../utool.html#utool.util_str.align_lines">[docs]</a><span class="k">def</span> <span class="nf">align_lines</span><span class="p">(</span><span class="n">line_list</span><span class="p">,</span> <span class="n">character</span><span class="o">=</span><span class="s">&#39;=&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Left justifies text on the left side of character</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Left justifies text on the left side of character</span>
 
 <span class="sd">    align_lines</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        line_list (list):</span>
+<span class="sd">        line_list (list of strs):</span>
 <span class="sd">        character (str):</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        ?: new_lines</span>
+<span class="sd">        list: new_lines</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_str import *  # NOQA</span>
@@ -779,10 +788,6 @@
     <span class="k">return</span> <span class="n">fname</span>
 
 </div>
-<div class="viewcode-block" id="singular_string"><a class="viewcode-back" href="../../utool.html#utool.util_str.singular_string">[docs]</a><span class="k">def</span> <span class="nf">singular_string</span><span class="p">(</span><span class="n">str_</span><span class="p">,</span> <span class="n">plural_suffix</span><span class="o">=</span><span class="s">&#39;s&#39;</span><span class="p">,</span> <span class="n">singular_suffix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">str_</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">str_</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">plural_suffix</span><span class="p">)</span> <span class="k">else</span> <span class="n">str_</span>
-
-</div>
 <div class="viewcode-block" id="replace_nonquoted_text"><a class="viewcode-back" href="../../utool.html#utool.util_str.replace_nonquoted_text">[docs]</a><span class="k">def</span> <span class="nf">replace_nonquoted_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">search_list</span><span class="p">,</span> <span class="n">repl_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    replace_nonquoted_text</span>
@@ -818,6 +823,10 @@
     <span class="k">return</span> <span class="n">text_</span>
 
 </div>
+<div class="viewcode-block" id="singular_string"><a class="viewcode-back" href="../../utool.html#utool.util_str.singular_string">[docs]</a><span class="k">def</span> <span class="nf">singular_string</span><span class="p">(</span><span class="n">str_</span><span class="p">,</span> <span class="n">plural_suffix</span><span class="o">=</span><span class="s">&#39;s&#39;</span><span class="p">,</span> <span class="n">singular_suffix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">str_</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">str_</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">plural_suffix</span><span class="p">)</span> <span class="k">else</span> <span class="n">str_</span>
+
+</div>
 <div class="viewcode-block" id="remove_vowels"><a class="viewcode-back" href="../../utool.html#utool.util_str.remove_vowels">[docs]</a><span class="k">def</span> <span class="nf">remove_vowels</span><span class="p">(</span><span class="n">str_</span><span class="p">):</span>
     <span class="k">for</span> <span class="n">char_</span> <span class="ow">in</span> <span class="s">&#39;AEOIUaeiou&#39;</span><span class="p">:</span>
         <span class="n">str_</span> <span class="o">=</span> <span class="n">str_</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">char_</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
@@ -839,7 +848,16 @@
 <span class="c">#    &quot;&quot;&quot;</span>
 <span class="c">#    nLParen = 0</span>
 <span class="c">#    nLBracket = 0</span>
-<span class="c">#    pass</span></div>
+<span class="c">#    pass</span>
+
+</div>
+<div class="viewcode-block" id="msgblock"><a class="viewcode-back" href="../../utool.html#utool.util_str.msgblock">[docs]</a><span class="k">def</span> <span class="nf">msgblock</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+    <span class="n">blocked_text</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="p">[</span><span class="s">&#39; + --- &#39;</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="s">&#39; ---</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">]</span> <span class="o">+</span>
+        <span class="p">[</span><span class="s">&#39; | &#39;</span> <span class="o">+</span> <span class="n">line</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)]</span> <span class="o">+</span>
+        <span class="p">[</span><span class="s">&#39; L --- &#39;</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="s">&#39; ---</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">blocked_text</span></div>
 </pre></div>
 
           </div>

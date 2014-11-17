@@ -483,7 +483,31 @@ cartesian products formed of input arrays</p>
 <dl class="function">
 <dt id="utool.util_alg.group_items">
 <tt class="descclassname">utool.util_alg.</tt><tt class="descname">group_items</tt><big>(</big><em>item_list</em>, <em>groupid_list</em><big>)</big><a class="reference internal" href="_modules/utool/util_alg.html#group_items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_alg.group_items" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">groupid2_items mapping groupids to a list of items</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>SeeAlso:</dt>
+<dd>vtool.group_indicies - much faster numpy grouping algorithm
+vtool.apply_gropuing - second part to faster numpy grouping algorithm</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item_list</span>    <span class="o">=</span> <span class="p">[</span> <span class="s">&#39;ham&#39;</span><span class="p">,</span>      <span class="s">&#39;jam&#39;</span><span class="p">,</span>    <span class="s">&#39;spam&#39;</span><span class="p">,</span>     <span class="s">&#39;eggs&#39;</span><span class="p">,</span> <span class="s">&#39;cheese&#39;</span><span class="p">,</span> <span class="s">&#39;bannana&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">groupid_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;protein&#39;</span><span class="p">,</span> <span class="s">&#39;fruit&#39;</span><span class="p">,</span> <span class="s">&#39;protein&#39;</span><span class="p">,</span>  <span class="s">&#39;protein&#39;</span><span class="p">,</span>  <span class="s">&#39;dairy&#39;</span><span class="p">,</span>   <span class="s">&#39;fruit&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">groupid2_items</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">item_list</span><span class="p">,</span> <span class="n">groupid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">groupid2_items</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+<span class="go">{&#39;protein&#39;: [&#39;eggs&#39;, &#39;ham&#39;, &#39;spam&#39;], &#39;fruit&#39;: [&#39;bannana&#39;, &#39;jam&#39;], &#39;dairy&#39;: [&#39;cheese&#39;],}</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="function">
 <dt id="utool.util_alg.iceil">
@@ -504,6 +528,11 @@ cartesian products formed of input arrays</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="utool.util_alg.item_hist">
+<tt class="descclassname">utool.util_alg.</tt><tt class="descname">item_hist</tt><big>(</big><em>list_</em><big>)</big><a class="reference internal" href="_modules/utool/util_alg.html#item_hist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_alg.item_hist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="utool.util_alg.negative_minclamp_inplace">
 <tt class="descclassname">utool.util_alg.</tt><tt class="descname">negative_minclamp_inplace</tt><big>(</big><em>arr</em><big>)</big><a class="reference internal" href="_modules/utool/util_alg.html#negative_minclamp_inplace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_alg.negative_minclamp_inplace" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -517,6 +546,11 @@ cartesian products formed of input arrays</p>
 <dl class="function">
 <dt id="utool.util_alg.normalize">
 <tt class="descclassname">utool.util_alg.</tt><tt class="descname">normalize</tt><big>(</big><em>array</em>, <em>dim=0</em><big>)</big><a class="reference internal" href="_modules/utool/util_alg.html#normalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_alg.normalize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="utool.util_alg.search_utool">
+<tt class="descclassname">utool.util_alg.</tt><tt class="descname">search_utool</tt><big>(</big><em>pat</em><big>)</big><a class="reference internal" href="_modules/utool/util_alg.html#search_utool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_alg.search_utool" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -653,9 +687,10 @@ LIST OF FLAGS THAT THE PROGRAM SILENTLY TAKES</p>
 <span class="gp">... </span>    <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="s">&#39;~/code/plottool/plottool&#39;</span><span class="p">),</span>
 <span class="gp">... </span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">flagtups_list</span> <span class="o">=</span> <span class="n">autogen_argparse2</span><span class="p">(</span><span class="n">dpath_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">flagtup_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">regex_replace</span><span class="p">(</span><span class="s">&#39;[)(&#39;</span><span class="p">]</span><span class="s">&#39;,&#39;&#39;,tupstr) for tupstr in ut.flatten(flagtups_list)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">flagtup_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">regex_replace</span><span class="p">(</span><span class="s">&#39;[)(</span><span class="se">\&#39;</span><span class="s">]&#39;</span><span class="p">,</span><span class="s">&#39;&#39;</span><span class="p">,</span><span class="n">tupstr</span><span class="p">)</span> <span class="k">for</span> <span class="n">tupstr</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">flagtups_list</span><span class="p">)]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">flagtup_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span><span class="n">tupstr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">tupstr</span> <span class="ow">in</span> <span class="n">flagtup_list_</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">flagtup_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">tupstr</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">tupstr</span> <span class="ow">in</span> <span class="n">flagtup_list</span> <span class="k">if</span> <span class="n">tupstr</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">flagtup_set</span><span class="p">))</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -900,6 +935,7 @@ syntax. And the SyntaxError did not seem to be excepted.</p>
 <dt id="utool.util_class.decorate_class_method">
 <tt class="descclassname">utool.util_class.</tt><tt class="descname">decorate_class_method</tt><big>(</big><em>func</em>, <em>classtype=None</em><big>)</big><a class="reference internal" href="_modules/utool/util_class.html#decorate_class_method"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_class.decorate_class_method" title="Permalink to this definition">¶</a></dt>
 <dd><p>Will inject all decorated function as methods of classtype</p>
+<p>func can also be a tuple</p>
 </dd></dl>
 
 <dl class="function">
@@ -994,9 +1030,11 @@ decorator for injectable methods</td>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">CheeseShop</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="gp">... </span>   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>       <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="gp">... </span>       <span class="n">ut</span><span class="o">.</span><span class="n">inject_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cheeseshop_method</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_class_method_decorator</span><span class="p">(</span><span class="n">CheeseShop</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nd">@cheeseshop_method</span>
@@ -1247,7 +1285,7 @@ folder/drive free space (in bytes)</p>
 <span id="utool-util-csv-module"></span><h2>utool.util_csv module<a class="headerlink" href="#module-utool.util_csv" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="utool.util_csv.make_csv_table">
-<tt class="descclassname">utool.util_csv.</tt><tt class="descname">make_csv_table</tt><big>(</big><em>column_list=[]</em>, <em>column_lbls=None</em>, <em>header=''</em>, <em>column_type=None</em><big>)</big><a class="reference internal" href="_modules/utool/util_csv.html#make_csv_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_csv.make_csv_table" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utool.util_csv.</tt><tt class="descname">make_csv_table</tt><big>(</big><em>column_list=[]</em>, <em>column_lbls=None</em>, <em>header=''</em>, <em>column_type=None</em>, <em>row_lbls=None</em>, <em>transpose=False</em><big>)</big><a class="reference internal" href="_modules/utool/util_csv.html#make_csv_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_csv.make_csv_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a csv table with aligned columns</p>
 </dd></dl>
 
@@ -1426,6 +1464,11 @@ alias for get_parent_locals</p>
 <dl class="function">
 <dt id="utool.util_dbg.get_caller_prefix">
 <tt class="descclassname">utool.util_dbg.</tt><tt class="descname">get_caller_prefix</tt><big>(</big><em>N=0</em>, <em>aserror=False</em><big>)</big><a class="reference internal" href="_modules/utool/util_dbg.html#get_caller_prefix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_dbg.get_caller_prefix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="utool.util_dbg.get_caller_stack_frame">
+<tt class="descclassname">utool.util_dbg.</tt><tt class="descname">get_caller_stack_frame</tt><big>(</big><em>N=0</em><big>)</big><a class="reference internal" href="_modules/utool/util_dbg.html#get_caller_stack_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_dbg.get_caller_stack_frame" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -2031,11 +2074,6 @@ C:MinGWbingcc.exe -mdll -O -Wall ^
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="utool.util_dev.doctest_funcs">
-<tt class="descclassname">utool.util_dev.</tt><tt class="descname">doctest_funcs</tt><big>(</big><em>testable_list</em>, <em>check_flags=True</em><big>)</big><a class="reference internal" href="_modules/utool/util_dev.html#doctest_funcs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_dev.doctest_funcs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
 <dt id="utool.util_dev.enable_garbage_collection">
 <tt class="descclassname">utool.util_dev.</tt><tt class="descname">enable_garbage_collection</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/utool/util_dev.html#enable_garbage_collection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_dev.enable_garbage_collection" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -2054,18 +2092,6 @@ C:MinGWbingcc.exe -mdll -O -Wall ^
 <dt id="utool.util_dev.get_cython_exe">
 <tt class="descclassname">utool.util_dev.</tt><tt class="descname">get_cython_exe</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/utool/util_dev.html#get_cython_exe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_dev.get_cython_exe" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="function">
-<dt id="utool.util_dev.get_doctest_examples">
-<tt class="descclassname">utool.util_dev.</tt><tt class="descname">get_doctest_examples</tt><big>(</big><em>func_or_class</em><big>)</big><a class="reference internal" href="_modules/utool/util_dev.html#get_doctest_examples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_dev.get_doctest_examples" title="Permalink to this definition">¶</a></dt>
-<dd><p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_dev</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">func_or_class</span> <span class="o">=</span> <span class="n">get_doctest_examples</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">get_doctest_examples</span><span class="p">(</span><span class="n">func_or_class</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
 
 <dl class="function">
 <dt id="utool.util_dev.get_object_base">
@@ -2161,6 +2187,33 @@ get_stats</dd>
 <dt id="utool.util_dev.init_catch_ctrl_c">
 <tt class="descclassname">utool.util_dev.</tt><tt class="descname">init_catch_ctrl_c</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/utool/util_dev.html#init_catch_ctrl_c"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_dev.init_catch_ctrl_c" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="function">
+<dt id="utool.util_dev.input_timeout">
+<tt class="descclassname">utool.util_dev.</tt><tt class="descname">input_timeout</tt><big>(</big><em>msg='Waiting for input...'</em>, <em>timeout=30</em><big>)</big><a class="reference internal" href="_modules/utool/util_dev.html#input_timeout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_dev.input_timeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function does not work quite right yet.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">?: ans</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">References</p>
+<p><a class="reference external" href="http://stackoverflow.com/questions/1335507/keyboard-input-with-timeout-in-python">http://stackoverflow.com/questions/1335507/keyboard-input-with-timeout-in-python</a>
+<a class="reference external" href="http://home.wlu.edu/~levys/software/kbhit.py">http://home.wlu.edu/~levys/software/kbhit.py</a>
+<a class="reference external" href="http://stackoverflow.com/questions/3471461/raw-input-and-timeout/3911560#3911560">http://stackoverflow.com/questions/3471461/raw-input-and-timeout/3911560#3911560</a></p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_dev</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;Waiting for input...&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">timeout</span> <span class="o">=</span> <span class="mi">30</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ans</span> <span class="o">=</span> <span class="n">input_timeout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">timeout</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">ans</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="function">
 <dt id="utool.util_dev.is_developer">
@@ -2314,6 +2367,11 @@ Can also pass in a Printable parent object</p>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="utool.util_dev.strip_line_comments">
+<tt class="descclassname">utool.util_dev.</tt><tt class="descname">strip_line_comments</tt><big>(</big><em>code_text</em>, <em>comment_char='#'</em><big>)</big><a class="reference internal" href="_modules/utool/util_dev.html#strip_line_comments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_dev.strip_line_comments" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="utool.util_dev.testit">
 <tt class="descclassname">utool.util_dev.</tt><tt class="descname">testit</tt><big>(</big><em>stmt</em>, <em>setup</em><big>)</big><a class="reference internal" href="_modules/utool/util_dev.html#testit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_dev.testit" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -2323,6 +2381,23 @@ Can also pass in a Printable parent object</p>
 <tt class="descclassname">utool.util_dev.</tt><tt class="descname">timeit_compare</tt><big>(</big><em>stmt_list</em>, <em>setup=''</em>, <em>iterations=100000</em>, <em>verbose=True</em>, <em>strict=False</em><big>)</big><a class="reference internal" href="_modules/utool/util_dev.html#timeit_compare"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_dev.timeit_compare" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compares several statments by timing them and also
 checks that they have the same return value</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>stmt_list</strong> (<em>list</em>) &#8211; list of statments to compare</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>tuple</strong> &#8211;
+(passed, time_list, result_list)<blockquote>
+<div>passed (bool): True if all results are the same
+time_list (list): list of times for each statment
+result_list (list): list of results values for each statment</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool, list, list</td>
+</tr>
+</tbody>
+</table>
 <p class="rubric">Example</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">setup</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">unindent</span><span class="p">(</span>
@@ -2414,6 +2489,11 @@ in each label.</p>
 <dl class="function">
 <dt id="utool.util_dict.dict_where_len0">
 <tt class="descclassname">utool.util_dict.</tt><tt class="descname">dict_where_len0</tt><big>(</big><em>dict_</em><big>)</big><a class="reference internal" href="_modules/utool/util_dict.html#dict_where_len0"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_dict.dict_where_len0" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="utool.util_dict.dictinfo">
+<tt class="descclassname">utool.util_dict.</tt><tt class="descname">dictinfo</tt><big>(</big><em>dict_</em><big>)</big><a class="reference internal" href="_modules/utool/util_dict.html#dictinfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_dict.dictinfo" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -2924,6 +3004,11 @@ loaded modules</p>
 <div class="section" id="module-utool.util_inspect">
 <span id="utool-util-inspect-module"></span><h2>utool.util_inspect module<a class="headerlink" href="#module-utool.util_inspect" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
+<dt id="utool.util_inspect.get_func_argspec">
+<tt class="descclassname">utool.util_inspect.</tt><tt class="descname">get_func_argspec</tt><big>(</big><em>func</em><big>)</big><a class="reference internal" href="_modules/utool/util_inspect.html#get_func_argspec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_inspect.get_func_argspec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="utool.util_inspect.get_funcdoc">
 <tt class="descclassname">utool.util_inspect.</tt><tt class="descname">get_funcdoc</tt><big>(</big><em>func</em><big>)</big><a class="reference internal" href="_modules/utool/util_inspect.html#get_funcdoc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_inspect.get_funcdoc" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -2942,6 +3027,17 @@ loaded modules</p>
 <dt id="utool.util_inspect.get_imfunc">
 <tt class="descclassname">utool.util_inspect.</tt><tt class="descname">get_imfunc</tt><big>(</big><em>func</em><big>)</big><a class="reference internal" href="_modules/utool/util_inspect.html#get_imfunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_inspect.get_imfunc" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="function">
+<dt id="utool.util_inspect.iter_module_funcs">
+<tt class="descclassname">utool.util_inspect.</tt><tt class="descname">iter_module_funcs</tt><big>(</big><em>module</em><big>)</big><a class="reference internal" href="_modules/utool/util_inspect.html#iter_module_funcs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_inspect.iter_module_funcs" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func_names</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">iter_module_funcs</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">util_tests</span><span class="p">)),</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">func_names</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="function">
 <dt id="utool.util_inspect.list_class_funcnames">
@@ -2973,6 +3069,11 @@ loaded modules</p>
 </pre></div>
 </div>
 </dd></dl>
+
+<dl class="function">
+<dt id="utool.util_inspect.set_funcdoc">
+<tt class="descclassname">utool.util_inspect.</tt><tt class="descname">set_funcdoc</tt><big>(</big><em>func</em>, <em>newdoc</em><big>)</big><a class="reference internal" href="_modules/utool/util_inspect.html#set_funcdoc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_inspect.set_funcdoc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="utool.util_inspect.set_funcname">
@@ -3051,20 +3152,57 @@ checks hash of to_write vs the hash of the contents of fpath</li>
 
 <dl class="function">
 <dt id="utool.util_iter.ichunks">
-<tt class="descclassname">utool.util_iter.</tt><tt class="descname">ichunks</tt><big>(</big><em>list_</em>, <em>chunksize</em><big>)</big><a class="reference internal" href="_modules/utool/util_iter.html#ichunks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_iter.ichunks" title="Permalink to this definition">¶</a></dt>
-<dd><p>generates successive n-sized chunks from <tt class="docutils literal"><span class="pre">list_</span></tt>.</p>
+<tt class="descclassname">utool.util_iter.</tt><tt class="descname">ichunks</tt><big>(</big><em>iterable</em>, <em>chunksize</em><big>)</big><a class="reference internal" href="_modules/utool/util_iter.html#ichunks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_iter.ichunks" title="Permalink to this definition">¶</a></dt>
+<dd><p>generates successive n-sized chunks from <tt class="docutils literal"><span class="pre">iterable</span></tt>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>list</strong> (<em>list</em>) &#8211; input to iterate over</li>
+<li><strong>iterable</strong> (<em>list</em>) &#8211; input to iterate over</li>
 <li><strong>chunksize</strong> (<em>int</em>) &#8211; size of sublist to return</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
+<p class="rubric">References</p>
+<p><a class="reference external" href="http://stackoverflow.com/questions/434287/what-is-the-most-pythonic-way-to-iterate-over-a-list-in-chunks">http://stackoverflow.com/questions/434287/what-is-the-most-pythonic-way-to-iterate-over-a-list-in-chunks</a></p>
+<dl class="docutils">
+<dt>Timeit:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">setup</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
+<span class="go">        from utool.util_iter import *  # NOQA</span>
+<span class="go">        iterable = list(range(100))</span>
+<span class="go">        chunksize = 8</span>
+<span class="go">        &#39;&#39;&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stmt_list</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>    <span class="s">&#39;list(ichunks(iterable, chunksize))&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s">&#39;list(ichunks_list(iterable, chunksize))&#39;</span>
+<span class="gp">... </span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">passed</span><span class="p">,</span> <span class="n">time_list</span><span class="p">,</span> <span class="n">result_list</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">timeit_compare</span><span class="p">(</span><span class="n">stmt_list</span><span class="p">,</span> <span class="n">setup</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_iter</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">iterable</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chunksize</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ichunks</span><span class="p">(</span><span class="n">iterable</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="p">))</span>
+<span class="go">[[1, 2, 3], [4, 5, 6], [7]]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="utool.util_iter.ichunks_list">
+<tt class="descclassname">utool.util_iter.</tt><tt class="descname">ichunks_list</tt><big>(</big><em>list_</em>, <em>chunksize</em><big>)</big><a class="reference internal" href="_modules/utool/util_iter.html#ichunks_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_iter.ichunks_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>input must be a list. SeeAlso ichunks</p>
+<p class="rubric">References</p>
+<p><a class="reference external" href="http://stackoverflow.com/questions/434287/what-is-the-most-pythonic-way-to-iterate-over-a-list-in-chunks">http://stackoverflow.com/questions/434287/what-is-the-most-pythonic-way-to-iterate-over-a-list-in-chunks</a></p>
 </dd></dl>
 
 <dl class="function">
@@ -3097,7 +3235,22 @@ checks hash of to_write vs the hash of the contents of fpath</li>
 <dl class="function">
 <dt id="utool.util_iter.interleave">
 <tt class="descclassname">utool.util_iter.</tt><tt class="descname">interleave</tt><big>(</big><em>args</em><big>)</big><a class="reference internal" href="_modules/utool/util_iter.html#interleave"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_iter.interleave" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_iter</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">args</span> <span class="o">=</span> <span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;A&#39;</span><span class="p">,</span> <span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">,</span> <span class="s">&#39;D&#39;</span><span class="p">,</span> <span class="s">&#39;E&#39;</span><span class="p">,</span> <span class="s">&#39;F&#39;</span><span class="p">,</span> <span class="s">&#39;G&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">interleave</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="p">))</span>
+<span class="go">[1, &#39;A&#39;, 2, &#39;B&#39;, 3, &#39;C&#39;, 4, &#39;D&#39;, 5, &#39;E&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="function">
 <dt id="utool.util_iter.interleave2">
@@ -3216,7 +3369,10 @@ checks hash of to_write vs the hash of the contents of fpath</li>
 <dl class="function">
 <dt id="utool.util_list.accumulate">
 <tt class="descclassname">utool.util_list.</tt><tt class="descname">accumulate</tt><big>(</big><em>iterator</em><big>)</big><a class="reference internal" href="_modules/utool/util_list.html#accumulate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_list.accumulate" title="Permalink to this definition">¶</a></dt>
-<dd><p>use itertools.accumulate in python &gt; 3.2</p>
+<dd><dl class="docutils">
+<dt>Notice:</dt>
+<dd>use itertools.accumulate in python &gt; 3.2</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -3396,7 +3552,9 @@ checks hash of to_write vs the hash of the contents of fpath</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">flag_list</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>list</strong> (<em>list</em>) &#8211; list of items</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">flag_list</td>
 </tr>
 </tbody>
 </table>
@@ -3516,7 +3674,7 @@ Returns flat <tt class="docutils literal"><span class="pre">list</span></tt> and
 Returns flat <tt class="docutils literal"><span class="pre">list</span></tt> and the unflat <tt class="docutils literal"><span class="pre">list</span></tt> with indexes into the flat
 <tt class="docutils literal"><span class="pre">list</span></tt></p>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_list</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_list</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">utool</span><span class="o">.</span><span class="n">util_list</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">unflat_list</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">],</span> <span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">]]</span>
@@ -3572,6 +3730,11 @@ print(&#8216;Timings 2:)
 </dd></dl>
 
 <dl class="function">
+<dt id="utool.util_list.isunique">
+<tt class="descclassname">utool.util_list.</tt><tt class="descname">isunique</tt><big>(</big><em>items</em><big>)</big><a class="reference internal" href="_modules/utool/util_list.html#isunique"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_list.isunique" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="utool.util_list.list_allsame">
 <tt class="descclassname">utool.util_list.</tt><tt class="descname">list_allsame</tt><big>(</big><em>list_</em><big>)</big><a class="reference internal" href="_modules/utool/util_list.html#list_allsame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_list.list_allsame" title="Permalink to this definition">¶</a></dt>
 <dd><p>checks to see if list is equal everywhere</p>
@@ -3583,6 +3746,12 @@ print(&#8216;Timings 2:)
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="function">
+<dt id="utool.util_list.list_argsort">
+<tt class="descclassname">utool.util_list.</tt><tt class="descname">list_argsort</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/utool/util_list.html#list_argsort"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_list.list_argsort" title="Permalink to this definition">¶</a></dt>
+<dd><p>like np.argsort but for lists</p>
 </dd></dl>
 
 <dl class="function">
@@ -3624,6 +3793,12 @@ print(&#8216;Timings 2:)
 <dt id="utool.util_list.list_replace">
 <tt class="descclassname">utool.util_list.</tt><tt class="descname">list_replace</tt><big>(</big><em>instr</em>, <em>search_list=[]</em>, <em>repl_list=None</em><big>)</big><a class="reference internal" href="_modules/utool/util_list.html#list_replace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_list.list_replace" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="function">
+<dt id="utool.util_list.list_take">
+<tt class="descclassname">utool.util_list.</tt><tt class="descname">list_take</tt><big>(</big><em>list_</em>, <em>index_list</em><big>)</big><a class="reference internal" href="_modules/utool/util_list.html#list_take"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_list.list_take" title="Permalink to this definition">¶</a></dt>
+<dd><p>like np.take but for lists</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="utool.util_list.listfind">
@@ -3773,6 +3948,46 @@ ascending order</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="utool.util_list.sortedby2">
+<tt class="descclassname">utool.util_list.</tt><tt class="descname">sortedby2</tt><big>(</big><em>item_list</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/utool/util_list.html#sortedby2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_list.sortedby2" title="Permalink to this definition">¶</a></dt>
+<dd><p>sorts <tt class="docutils literal"><span class="pre">item_list</span></tt> using key_list</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>item_list</strong> (<em>list</em>) &#8211; list to sort</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Kwargs:</dt>
+<dd>reverse (bool): sort order is descending if True else acscending</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">list_</span></tt> sorted by the values of another <tt class="docutils literal"><span class="pre">list</span></tt>. defaults to
+ascending order</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">key_list1</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">key_list2</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">key_list1</span><span class="p">,</span> <span class="n">key_list2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">utool</span><span class="o">.</span><span class="n">sortedby2</span><span class="p">(</span><span class="n">item_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="go">[5, 2, 3, 1, 4]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="utool.util_list.tuplize">
 <tt class="descclassname">utool.util_list.</tt><tt class="descname">tuplize</tt><big>(</big><em>list_</em><big>)</big><a class="reference internal" href="_modules/utool/util_list.html#tuplize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_list.tuplize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Converts each scalar item in a list to a dimension-1 tuple</p>
@@ -3837,7 +4052,7 @@ invertable_flatten2
 unflatten2</dd>
 </dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_list</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_list</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">utool</span><span class="o">.</span><span class="n">util_list</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">flat_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
@@ -4275,8 +4490,20 @@ if name_list is a path_list the basepath is stripped away</p>
 
 <dl class="function">
 <dt id="utool.util_path.copy">
-<tt class="descclassname">utool.util_path.</tt><tt class="descname">copy</tt><big>(</big><em>src</em>, <em>dst</em><big>)</big><a class="reference internal" href="_modules/utool/util_path.html#copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_path.copy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Copies src file or folder to dst.</p>
+<tt class="descclassname">utool.util_path.</tt><tt class="descname">copy</tt><big>(</big><em>src</em>, <em>dst</em>, <em>overwrite=True</em>, <em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/utool/util_path.html#copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_path.copy" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>src</strong> (<em>str</em>) &#8211; file or directory to copy</li>
+<li><strong>dst</strong> (<em>str</em>) &#8211; directory or new file to copy to</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Copies src file or folder to dst.</p>
 <p>If src is a folder this copy is recursive.</p>
 </dd></dl>
 
@@ -4307,7 +4534,7 @@ if name_list is a path_list the basepath is stripped away</p>
 
 <dl class="function">
 <dt id="utool.util_path.delete">
-<tt class="descclassname">utool.util_path.</tt><tt class="descname">delete</tt><big>(</big><em>path</em>, <em>dryrun=False</em>, <em>recursive=True</em>, <em>verbose=True</em>, <em>print_exists=True</em>, <em>ignore_errors=True</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/utool/util_path.html#delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_path.delete" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utool.util_path.</tt><tt class="descname">delete</tt><big>(</big><em>path</em>, <em>dryrun=False</em>, <em>recursive=True</em>, <em>verbose=False</em>, <em>print_exists=True</em>, <em>ignore_errors=True</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/utool/util_path.html#delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_path.delete" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes a file or directory</p>
 </dd></dl>
 
@@ -4382,32 +4609,6 @@ list of file-names</td>
 </dd></dl>
 
 <dl class="function">
-<dt id="utool.util_path.get_absolute_import">
-<tt class="descclassname">utool.util_path.</tt><tt class="descname">get_absolute_import</tt><big>(</big><em>module_fpath</em><big>)</big><a class="reference internal" href="_modules/utool/util_path.html#get_absolute_import"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_path.get_absolute_import" title="Permalink to this definition">¶</a></dt>
-<dd><p>returns importable name from file path</p>
-<p>get_absolute_import</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>module_fpath</strong> (<em>str</em>) &#8211; module filepath</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">?: modname</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_path</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">module_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_path</span><span class="o">.</span><span class="n">__file__</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">modname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_absolute_import</span><span class="p">(</span><span class="n">module_fpath</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span>
-<span class="go">utool.util_path</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
 <dt id="utool.util_path.get_basename_noext_list">
 <tt class="descclassname">utool.util_path.</tt><tt class="descname">get_basename_noext_list</tt><big>(</big><em>path_list</em><big>)</big><a class="reference internal" href="_modules/utool/util_path.html#get_basename_noext_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_path.get_basename_noext_list" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -4423,19 +4624,104 @@ list of file-names</td>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="utool.util_path.get_modname_from_modpath">
+<tt class="descclassname">utool.util_path.</tt><tt class="descname">get_modname_from_modpath</tt><big>(</big><em>module_fpath</em><big>)</big><a class="reference internal" href="_modules/utool/util_path.html#get_modname_from_modpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_path.get_modname_from_modpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns importable name from file path</p>
+<p>get_modname_from_modpath</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>module_fpath</strong> (<em>str</em>) &#8211; module filepath</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">modname</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_path</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">module_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_path</span><span class="o">.</span><span class="n">__file__</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">modname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_modname_from_modpath</span><span class="p">(</span><span class="n">module_fpath</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">modname</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">utool.util_path</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="utool.util_path.get_module_dir">
 <tt class="descclassname">utool.util_path.</tt><tt class="descname">get_module_dir</tt><big>(</big><em>module</em>, <em>*args</em><big>)</big><a class="reference internal" href="_modules/utool/util_path.html#get_module_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_path.get_module_dir" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="utool.util_path.get_module_subdir_list">
+<tt class="descclassname">utool.util_path.</tt><tt class="descname">get_module_subdir_list</tt><big>(</big><em>module_fpath</em><big>)</big><a class="reference internal" href="_modules/utool/util_path.html#get_module_subdir_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_path.get_module_subdir_list" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_path</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">module_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_path</span><span class="o">.</span><span class="n">__file__</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">modsubdir_list</span> <span class="o">=</span> <span class="n">get_module_subdir_list</span><span class="p">(</span><span class="n">module_fpath</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">modsubdir_list</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">[&#39;utool&#39;, &#39;util_path&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="utool.util_path.get_relative_modpath">
+<tt class="descclassname">utool.util_path.</tt><tt class="descname">get_relative_modpath</tt><big>(</big><em>module_fpath</em><big>)</big><a class="reference internal" href="_modules/utool/util_path.html#get_relative_modpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_path.get_relative_modpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns path to module relative to the package root</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>module_fpath</strong> (<em>str</em>) &#8211; module filepath</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">modname</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_path</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">module_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_path</span><span class="o">.</span><span class="n">__file__</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rel_modpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_relative_modpath</span><span class="p">(</span><span class="n">module_fpath</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">rel_modpath</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">utool/util_path.py</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="utool.util_path.glob">
 <tt class="descclassname">utool.util_path.</tt><tt class="descname">glob</tt><big>(</big><em>dirname</em>, <em>pattern</em>, <em>recursive=False</em>, <em>with_files=True</em>, <em>with_dirs=True</em>, <em>maxdepth=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/utool/util_path.html#glob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_path.glob" title="Permalink to this definition">¶</a></dt>
 <dd><p>Globs directory for pattern</p>
+<dl class="docutils">
+<dt>SeeAlso:</dt>
+<dd>iglob</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="utool.util_path.grep">
-<tt class="descclassname">utool.util_path.</tt><tt class="descname">grep</tt><big>(</big><em>regex_list</em>, <em>recursive=True</em>, <em>dpath_list=None</em>, <em>include_patterns=None</em>, <em>exclude_dirs=[]</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/utool/util_path.html#grep"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_path.grep" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utool.util_path.</tt><tt class="descname">grep</tt><big>(</big><em>regex_list</em>, <em>recursive=True</em>, <em>dpath_list=None</em>, <em>include_patterns=None</em>, <em>exclude_dirs=[]</em>, <em>inverse=False</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/utool/util_path.html#grep"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_path.grep" title="Permalink to this definition">¶</a></dt>
 <dd><p>Python implementation of grep. NOT FINISHED</p>
 <p>greps for patterns</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -4606,13 +4892,14 @@ TODO: Change all instances of fullpath to full</p>
 <tt class="descclassname">utool.util_path.</tt><tt class="descname">path_ndir_split</tt><big>(</big><em>path_</em>, <em>n</em>, <em>force_unix=True</em><big>)</big><a class="reference internal" href="_modules/utool/util_path.html#path_ndir_split"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_path.path_ndir_split" title="Permalink to this definition">¶</a></dt>
 <dd><p>Shows only a little bit of the path. Up to the n bottom-level directories</p>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">paths</span> <span class="o">=</span> <span class="p">[</span><span class="s">r&#39;/usr/bin/local/foo/bar&#39;</span><span class="p">,</span>
 <span class="gp">... </span>         <span class="s">r&#39;C:/&#39;</span><span class="p">,</span>
 <span class="gp">... </span>         <span class="s">r&#39;C:\Program Files (x86)/foobar/bin&#39;</span><span class="p">,]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;n=</span><span class="si">%r</span><span class="s">: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">utool</span><span class="o">.</span><span class="n">path_ndir_split</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;n=</span><span class="si">%r</span><span class="s">: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">utool</span><span class="o">.</span><span class="n">path_ndir_split</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
 <span class="gp">... </span>                    <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">utool</span><span class="o">.</span><span class="n">iprod</span><span class="p">(</span><span class="n">paths</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">n=1: &#39;bar&#39;</span>
 <span class="go">n=2: &#39;foo/bar&#39;</span>
 <span class="go">n=1: &#39;C:&#39;</span>
@@ -4626,7 +4913,8 @@ TODO: Change all instances of fullpath to full</p>
 <dl class="function">
 <dt id="utool.util_path.platform_path">
 <tt class="descclassname">utool.util_path.</tt><tt class="descname">platform_path</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="_modules/utool/util_path.html#platform_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_path.platform_path" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Returns platform specific path for pyinstaller usage</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="utool.util_path.remove_dirs">
@@ -4647,20 +4935,22 @@ TODO: Change all instances of fullpath to full</p>
 
 <dl class="function">
 <dt id="utool.util_path.remove_files_in_dir">
-<tt class="descclassname">utool.util_path.</tt><tt class="descname">remove_files_in_dir</tt><big>(</big><em>dpath</em>, <em>fname_pattern_list='*'</em>, <em>recursive=False</em>, <em>verbose=True</em>, <em>dryrun=False</em>, <em>ignore_errors=False</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/utool/util_path.html#remove_files_in_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_path.remove_files_in_dir" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utool.util_path.</tt><tt class="descname">remove_files_in_dir</tt><big>(</big><em>dpath</em>, <em>fname_pattern_list='*'</em>, <em>recursive=False</em>, <em>verbose=False</em>, <em>dryrun=False</em>, <em>ignore_errors=False</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/utool/util_path.html#remove_files_in_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_path.remove_files_in_dir" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes files matching a pattern from a directory</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="utool.util_path.search_in_dirs">
-<tt class="descclassname">utool.util_path.</tt><tt class="descname">search_in_dirs</tt><big>(</big><em>fname</em>, <em>search_dpaths=[]</em>, <em>shortcircuit=True</em><big>)</big><a class="reference internal" href="_modules/utool/util_path.html#search_in_dirs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_path.search_in_dirs" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utool.util_path.</tt><tt class="descname">search_in_dirs</tt><big>(</big><em>fname</em>, <em>search_dpaths=[]</em>, <em>shortcircuit=True</em>, <em>return_tried=False</em>, <em>strict=False</em><big>)</big><a class="reference internal" href="_modules/utool/util_path.html#search_in_dirs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_path.search_in_dirs" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>return_tried</strong> (<em>bool</em>) &#8211; return tried paths</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">fpath</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">fpath</td>
 </tr>
 </tbody>
 </table>
@@ -4712,7 +5002,7 @@ TODO: TEST / FIXME</p>
 
 <dl class="function">
 <dt id="utool.util_path.truepath_relative">
-<tt class="descclassname">utool.util_path.</tt><tt class="descname">truepath_relative</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="_modules/utool/util_path.html#truepath_relative"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_path.truepath_relative" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utool.util_path.</tt><tt class="descname">truepath_relative</tt><big>(</big><em>path</em>, <em>otherpath=None</em><big>)</big><a class="reference internal" href="_modules/utool/util_path.html#truepath_relative"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_path.truepath_relative" title="Permalink to this definition">¶</a></dt>
 <dd><p>Normalizes and returns absolute path with so specs</p>
 </dd></dl>
 
@@ -4805,11 +5095,29 @@ python -c &#8220;import utool, doctest; doctest.testmod(utool.util_progress, ver
 python -c &#8220;import utool, doctest; doctest.testmod(utool.util_progress)&#8221; -v
 python -c &#8220;import utool, doctest; doctest.testmod(utool.util_progress)&#8221;
 python -c &#8220;import utool, doctest; help(doctest.testmod)&#8221;</p>
+<dl class="function">
+<dt id="utool.util_progress.PROGRESS_FLUSH">
+<tt class="descclassname">utool.util_progress.</tt><tt class="descname">PROGRESS_FLUSH</tt><big>(</big><big>)</big><a class="headerlink" href="#utool.util_progress.PROGRESS_FLUSH" title="Permalink to this definition">¶</a></dt>
+<dd><p>flush() -&gt; None.  Flush the internal I/O buffer.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utool.util_progress.PROGRESS_WRITE">
+<tt class="descclassname">utool.util_progress.</tt><tt class="descname">PROGRESS_WRITE</tt><big>(</big><big>)</big><a class="headerlink" href="#utool.util_progress.PROGRESS_WRITE" title="Permalink to this definition">¶</a></dt>
+<dd><p>write(str) -&gt; None.  Write string str to file.</p>
+<p>Note that due to buffering, flush() or close() may be needed before
+the file on disk reflects the data written.</p>
+</dd></dl>
+
 <dl class="class">
 <dt id="utool.util_progress.ProgressIter">
 <em class="property">class </em><tt class="descclassname">utool.util_progress.</tt><tt class="descname">ProgressIter</tt><big>(</big><em>iterable=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/utool/util_progress.html#ProgressIter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_progress.ProgressIter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Wraps a for loop with progress reporting</p>
+<p>lbl=&#8217;Progress: &#8216;, nTotal=0, flushfreq=4, startafter=-1, start=True,
+repl=False, approx=False, disable=False, writefreq=1, with_time=False,
+backspace=True, separate=False, wfreq=None, ffreq=None, freq=None,
+total=None, num=None, with_totaltime=None</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -4841,8 +5149,18 @@ python -c &#8220;import utool, doctest; help(doctest.testmod)&#8221;</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="utool.util_progress.ProgressIter.iter_without_rate">
+<tt class="descname">iter_without_rate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/utool/util_progress.html#ProgressIter.iter_without_rate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_progress.ProgressIter.iter_without_rate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="utool.util_progress.ProgressIter.mark_current">
 <tt class="descname">mark_current</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/utool/util_progress.html#ProgressIter.mark_current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_progress.ProgressIter.mark_current" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="utool.util_progress.ProgressIter.new_init">
+<tt class="descname">new_init</tt><big>(</big><em>iterable=None</em>, <em>lbl='ProgIter'</em>, <em>nTotal=None</em>, <em>freq=4</em>, <em>newlines=False</em><big>)</big><a class="reference internal" href="_modules/utool/util_progress.html#ProgressIter.new_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_progress.ProgressIter.new_init" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -4922,6 +5240,8 @@ specified or simple=True</td>
 <dt id="utool.util_progress.progress_str">
 <tt class="descclassname">utool.util_progress.</tt><tt class="descname">progress_str</tt><big>(</big><em>max_val</em>, <em>lbl='Progress: '</em>, <em>repl=False</em>, <em>approx=False</em>, <em>backspace=True</em><big>)</big><a class="reference internal" href="_modules/utool/util_progress.html#progress_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_progress.progress_str" title="Permalink to this definition">¶</a></dt>
 <dd><p>makes format string that prints progress: %Xd/MAX_VAL with backspaces</p>
+<p>NOTE: r can be used instead of backspaces. This function is not very
+relevant because of that.</p>
 </dd></dl>
 
 <dl class="function">
@@ -4929,9 +5249,20 @@ specified or simple=True</td>
 <tt class="descclassname">utool.util_progress.</tt><tt class="descname">simple_progres_func</tt><big>(</big><em>verbosity</em>, <em>msg</em>, <em>progchar='.'</em><big>)</big><a class="reference internal" href="_modules/utool/util_progress.html#simple_progres_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_progress.simple_progres_func" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="function">
+<dt id="utool.util_progress.test_progress">
+<tt class="descclassname">utool.util_progress.</tt><tt class="descname">test_progress</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/utool/util_progress.html#test_progress"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_progress.test_progress" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_progress</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </div>
 <div class="section" id="module-utool.util_regex">
 <span id="utool-util-regex-module"></span><h2>utool.util_regex module<a class="headerlink" href="#module-utool.util_regex" title="Permalink to this headline">¶</a></h2>
+<p>Change to util_parse?</p>
 <dl class="function">
 <dt id="utool.util_regex.extend_regex">
 <tt class="descclassname">utool.util_regex.</tt><tt class="descname">extend_regex</tt><big>(</big><em>regexpr</em><big>)</big><a class="reference internal" href="_modules/utool/util_regex.html#extend_regex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_regex.extend_regex" title="Permalink to this definition">¶</a></dt>
@@ -4956,6 +5287,8 @@ single quotes only. no nesting.</p>
 <p class="rubric">Example</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_regex</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">text</span> <span class="o">=</span> <span class="s">&quot;&#39;just&#39; &#39;a&#39; sentance with &#39;strings&#39; in it &quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">text2</span> <span class="o">=</span> <span class="s">&quot;&#39;this&#39; &#39;text&#39; wont work &#39;because &#39;of &quot;</span><span class="n">the</span><span class="s">&quot;&#39; &quot;</span><span class="n">nesting</span><span class="s">&quot;&#39;&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">text3</span> <span class="o">=</span> <span class="s">&quot; &#39;&#39;&#39; god &quot;</span><span class="n">help</span><span class="s">&quot; you &#39;&#39;&#39; if you use &#39;triple quotes&#39;  &quot;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">modify_func</span><span class="p">(</span><span class="n">quoted_str</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="k">return</span> <span class="n">quoted_str</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">modify_quoted_strs</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">modify_func</span><span class="p">)</span>
@@ -5002,6 +5335,27 @@ single quotes only. no nesting.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="utool.util_regex.padded_parse">
+<tt class="descclassname">utool.util_regex.</tt><tt class="descname">padded_parse</tt><big>(</big><em>pattern</em>, <em>text</em><big>)</big><a class="reference internal" href="_modules/utool/util_regex.html#padded_parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_regex.padded_parse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="utool.util_regex.parse_docblock">
+<tt class="descclassname">utool.util_regex.</tt><tt class="descname">parse_docblock</tt><big>(</big><em>func_code</em><big>)</big><a class="reference internal" href="_modules/utool/util_regex.html#parse_docblock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_regex.parse_docblock" title="Permalink to this definition">¶</a></dt>
+<dd><p>#TODO: Finish me</p>
+<p class="rubric">References</p>
+<p><a class="reference external" href="http://pyparsing.wikispaces.com/share/view/1264103">http://pyparsing.wikispaces.com/share/view/1264103</a>
+<a class="reference external" href="http://code.activestate.com/recipes/576704-python-code-minifier/">http://code.activestate.com/recipes/576704-python-code-minifier/</a></p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">inspect</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func_code</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getsource</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">modify_quoted_strs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func_code</span> <span class="o">=</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="utool.util_regex.regex_get_match">
 <tt class="descclassname">utool.util_regex.</tt><tt class="descname">regex_get_match</tt><big>(</big><em>regex</em>, <em>text</em>, <em>fromstart=False</em><big>)</big><a class="reference internal" href="_modules/utool/util_regex.html#regex_get_match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_regex.regex_get_match" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -5036,7 +5390,9 @@ single quotes only. no nesting.</p>
 <dl class="function">
 <dt id="utool.util_regex.regex_replace">
 <tt class="descclassname">utool.util_regex.</tt><tt class="descname">regex_replace</tt><big>(</big><em>regex</em>, <em>repl</em>, <em>text</em><big>)</big><a class="reference internal" href="_modules/utool/util_regex.html#regex_replace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_regex.regex_replace" title="Permalink to this definition">¶</a></dt>
-<dd><p>MULTILINE and DOTALL are on in all util_regex functions</p>
+<dd><p>thin wrapper around re.sub
+regex_replace</p>
+<p>MULTILINE and DOTALL are on by default in all util_regex functions</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -5411,7 +5767,11 @@ license            short string     (&#39;license for the package&#39;)
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">?: new_text</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>text</strong> (<em>str</em>) &#8211; text to align</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">new_text</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
 </tr>
 </tbody>
 </table>
@@ -5436,7 +5796,9 @@ license            short string     (&#39;license for the package&#39;)
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">?: new_lines</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">new_lines</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
 </tr>
 </tbody>
 </table>
@@ -5493,7 +5855,9 @@ number of bytes.</p>
 <dl class="function">
 <dt id="utool.util_str.codeblock">
 <tt class="descclassname">utool.util_str.</tt><tt class="descname">codeblock</tt><big>(</big><em>block_str</em><big>)</big><a class="reference internal" href="_modules/utool/util_str.html#codeblock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_str.codeblock" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Convinience function for defining code strings. Esspecially useful for
+templated code.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="utool.util_str.dict_aliased_repr">
@@ -5776,6 +6140,11 @@ is all the way to the right of any previous items.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="utool.util_str.msgblock">
+<tt class="descclassname">utool.util_str.</tt><tt class="descname">msgblock</tt><big>(</big><em>key</em>, <em>text</em><big>)</big><a class="reference internal" href="_modules/utool/util_str.html#msgblock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_str.msgblock" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="utool.util_str.newlined_list">
 <tt class="descclassname">utool.util_str.</tt><tt class="descname">newlined_list</tt><big>(</big><em>list_</em>, <em>joinstr='</em>, <em>'</em>, <em>textwidth=160</em><big>)</big><a class="reference internal" href="_modules/utool/util_str.html#newlined_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_str.newlined_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>Converts a list to a string but inserts a new line after textwidth chars</p>
@@ -5970,28 +6339,117 @@ which is also unsafely implemented</p>
 <span id="utool-util-tests-module"></span><h2>utool.util_tests module<a class="headerlink" href="#module-utool.util_tests" title="Permalink to this headline">¶</a></h2>
 <p>Helpers for tests</p>
 <dl class="function">
-<dt id="utool.util_tests.autogen_ibeis_runtest">
-<tt class="descclassname">utool.util_tests.</tt><tt class="descname">autogen_ibeis_runtest</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/utool/util_tests.html#autogen_ibeis_runtest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_tests.autogen_ibeis_runtest" title="Permalink to this definition">¶</a></dt>
-<dd><p>special case to generate tests script for IBEIS</p>
+<dt id="utool.util_tests.bubbletext">
+<tt class="descclassname">utool.util_tests.</tt><tt class="descname">bubbletext</tt><big>(</big><em>text</em>, <em>font='cybermedium'</em><big>)</big><a class="reference internal" href="_modules/utool/util_tests.html#bubbletext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_tests.bubbletext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Other fonts include: cybersmall, cybermedium, and cyberlarge</p>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">test_script</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">autogen_ibeis_runtest</span><span class="p">()</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bubble_text1</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">bubbletext</span><span class="p">(</span><span class="s">&#39;TESTING&#39;</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="s">&#39;cyberlarge&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bubble_text2</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">bubbletext</span><span class="p">(</span><span class="s">&#39;BUBBLE&#39;</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="s">&#39;cybermedium&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bubble_text3</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">bubbletext</span><span class="p">(</span><span class="s">&#39;TEXT&#39;</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="s">&#39;cyberlarge&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">bubble_text1</span><span class="p">,</span> <span class="n">bubble_text2</span><span class="p">,</span> <span class="n">bubble_text3</span><span class="p">]))</span>
 </pre></div>
 </div>
-<dl class="docutils">
-<dt>CommandLine:</dt>
-<dd><p class="first">python -c &#8220;import utool; utool.autogen_ibeis_runtest()&#8221;
-python -c &#8220;import utool; print(utool.autogen_ibeis_runtest())&#8221;</p>
-<p class="last">python -c &#8220;import utool; print(utool.autogen_ibeis_runtest())&#8221; &gt; _run_tests2.sh
-chmod +x _run_tests2.sh</p>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="function">
-<dt id="utool.util_tests.autogen_run_tests">
-<tt class="descclassname">utool.util_tests.</tt><tt class="descname">autogen_run_tests</tt><big>(</big><em>test_headers</em>, <em>test_argvs</em>, <em>quick_tests=None</em>, <em>repodir=None</em>, <em>exclude_list=[]</em><big>)</big><a class="reference internal" href="_modules/utool/util_tests.html#autogen_run_tests"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_tests.autogen_run_tests" title="Permalink to this definition">¶</a></dt>
-<dd><p class="rubric">Examples</p>
+<dt id="utool.util_tests.def_test">
+<tt class="descclassname">utool.util_tests.</tt><tt class="descname">def_test</tt><big>(</big><em>header</em>, <em>pat=None</em>, <em>dpath=None</em>, <em>modname=None</em>, <em>default=False</em>, <em>testcmds=None</em><big>)</big><a class="reference internal" href="_modules/utool/util_tests.html#def_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_tests.def_test" title="Permalink to this definition">¶</a></dt>
+<dd><p>interface to make test tuple</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utool.util_tests.doctest_funcs">
+<tt class="descclassname">utool.util_tests.</tt><tt class="descname">doctest_funcs</tt><big>(</big><em>testable_list=None</em>, <em>check_flags=True</em>, <em>module=None</em>, <em>allexamples=None</em>, <em>needs_enable=None</em>, <em>strict=True</em>, <em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/utool/util_tests.html#doctest_funcs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_tests.doctest_funcs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main entry point into utools main module doctest harness</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">(nPass, nTotal)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -c &#8220;import utool; utool.doctest_funcs(module=utool.util_tests, needs_enable=False)&#8221;
+python ibeis/model/preproc/preproc_chip.py &#8211;all-examples</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_tests</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">testable_list</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">check_flags</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">module</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">allexamples</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">needs_enable</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># careful might infinitely recurse</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">nPass</span><span class="p">,</span> <span class="n">nTotal</span><span class="p">)</span> <span class="o">=</span> <span class="n">doctest_funcs</span><span class="p">(</span><span class="n">testable_list</span><span class="p">,</span> <span class="n">check_flags</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span> <span class="n">allexamples</span><span class="p">,</span> <span class="n">needs_enable</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">((</span><span class="n">nPass</span><span class="p">,</span> <span class="n">nTotal</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="utool.util_tests.doctest_modules">
+<tt class="descclassname">utool.util_tests.</tt><tt class="descname">doctest_modules</tt><big>(</big><em>module_list</em><big>)</big><a class="reference internal" href="_modules/utool/util_tests.html#doctest_modules"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_tests.doctest_modules" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="utool.util_tests.find_doctestable_modnames">
+<tt class="descclassname">utool.util_tests.</tt><tt class="descname">find_doctestable_modnames</tt><big>(</big><em>dpath_list=None</em>, <em>exclude_doctests_fnames=[]</em>, <em>exclude_dirs=[]</em><big>)</big><a class="reference internal" href="_modules/utool/util_tests.html#find_doctestable_modnames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_tests.find_doctestable_modnames" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="utool.util_tests.find_untested_modpaths">
+<tt class="descclassname">utool.util_tests.</tt><tt class="descname">find_untested_modpaths</tt><big>(</big><em>dpath_list=None</em>, <em>exclude_doctests_fnames=[]</em>, <em>exclude_dirs=[]</em><big>)</big><a class="reference internal" href="_modules/utool/util_tests.html#find_untested_modpaths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_tests.find_untested_modpaths" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="utool.util_tests.get_doctest_examples">
+<tt class="descclassname">utool.util_tests.</tt><tt class="descname">get_doctest_examples</tt><big>(</big><em>func_or_class</em><big>)</big><a class="reference internal" href="_modules/utool/util_tests.html#get_doctest_examples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_tests.get_doctest_examples" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>tuple</strong> &#8211;
+example_list, want_list</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list, list</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_tests</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func_or_class</span> <span class="o">=</span> <span class="n">get_doctest_examples</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">testsrc_list</span><span class="p">,</span> <span class="n">testwant_list</span><span class="p">,</span> <span class="n">docstr</span> <span class="o">=</span> <span class="n">get_doctest_examples</span><span class="p">(</span><span class="n">func_or_class</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">example_list</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">want_list</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">2</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="utool.util_tests.get_doctest_testtup_list">
+<tt class="descclassname">utool.util_tests.</tt><tt class="descname">get_doctest_testtup_list</tt><big>(</big><em>testable_list=None</em>, <em>check_flags=True</em>, <em>module=None</em>, <em>allexamples=None</em>, <em>needs_enable=None</em>, <em>N=0</em>, <em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/utool/util_tests.html#get_doctest_testtup_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_tests.get_doctest_testtup_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="utool.util_tests.get_module_testlines">
+<tt class="descclassname">utool.util_tests.</tt><tt class="descname">get_module_testlines</tt><big>(</big><em>module_list</em>, <em>remove_pyc=True</em>, <em>verbose=True</em>, <em>pythoncmd='python'</em><big>)</big><a class="reference internal" href="_modules/utool/util_tests.html#get_module_testlines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_tests.get_module_testlines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds test commands for autogen tests</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utool.util_tests.make_run_tests_script_text">
+<tt class="descclassname">utool.util_tests.</tt><tt class="descname">make_run_tests_script_text</tt><big>(</big><em>test_headers</em>, <em>test_argvs</em>, <em>quick_tests=None</em>, <em>repodir=None</em>, <em>exclude_list=[]</em><big>)</big><a class="reference internal" href="_modules/utool/util_tests.html#make_run_tests_script_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_tests.make_run_tests_script_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Autogeneration function</p>
+<p class="rubric">Examples</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_tests</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">testdirs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;~/code/ibeis/test_ibs*.py&#39;</span><span class="p">]</span>
@@ -6000,23 +6458,14 @@ chmod +x _run_tests2.sh</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utool.util_tests.bubbletext">
-<tt class="descclassname">utool.util_tests.</tt><tt class="descname">bubbletext</tt><big>(</big><em>text</em>, <em>font='cybermedium'</em><big>)</big><a class="reference internal" href="_modules/utool/util_tests.html#bubbletext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_tests.bubbletext" title="Permalink to this definition">¶</a></dt>
-<dd><p>Other fonts include: cybersmall, cybermedium, and cyberlarge</p>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">text</span> <span class="o">=</span> <span class="s">&#39;RUN TESTS&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">font</span><span class="o">=</span><span class="s">&#39;cyberlarge&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">bubble_text</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">bubbletext</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="s">&#39;cyberlarge&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">bubble_text</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
+<dt id="utool.util_tests.parse_docblocks_from_docstr">
+<tt class="descclassname">utool.util_tests.</tt><tt class="descname">parse_docblocks_from_docstr</tt><big>(</big><em>docstr</em><big>)</big><a class="reference internal" href="_modules/utool/util_tests.html#parse_docblocks_from_docstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_tests.parse_docblocks_from_docstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
-<dt id="utool.util_tests.def_test">
-<tt class="descclassname">utool.util_tests.</tt><tt class="descname">def_test</tt><big>(</big><em>header</em>, <em>pat=None</em>, <em>dpath=None</em>, <em>modname=None</em>, <em>default=False</em><big>)</big><a class="reference internal" href="_modules/utool/util_tests.html#def_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_tests.def_test" title="Permalink to this definition">¶</a></dt>
-<dd><p>interface to make test tuple</p>
+<dt id="utool.util_tests.parse_doctest_from_docstr">
+<tt class="descclassname">utool.util_tests.</tt><tt class="descname">parse_doctest_from_docstr</tt><big>(</big><em>docstr</em><big>)</big><a class="reference internal" href="_modules/utool/util_tests.html#parse_doctest_from_docstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_tests.parse_doctest_from_docstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>because doctest itself doesnt do what I want it to do</p>
 </dd></dl>
 
 <dl class="function">
@@ -6038,9 +6487,12 @@ chmod +x _run_tests2.sh</p>
 <dt id="utool.util_tests.tryimport">
 <tt class="descclassname">utool.util_tests.</tt><tt class="descname">tryimport</tt><big>(</big><em>modname</em>, <em>pipiname</em><big>)</big><a class="reference internal" href="_modules/utool/util_tests.html#tryimport"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_tests.tryimport" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">modname</span> <span class="o">=</span> <span class="s">&#39;pyfiglet&#39;</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_tests</span> <span class="kn">import</span> <span class="o">*</span>   <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">modname</span> <span class="o">=</span> <span class="s">&#39;pyfiglet&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pipiname</span> <span class="o">=</span> <span class="s">&#39;git+https://github.com/pwaller/pyfiglet&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pyfiglet</span> <span class="o">=</span> <span class="n">tryimport</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">pipiname</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pyfiglet</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pyfiglet</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -6335,6 +6787,20 @@ formated time string</td>
 <dd>Your friendly neighborhood utility tools</dd>
 </dl>
 <p>TODO: INSERT APACHE LICENCE</p>
+<dl class="function">
+<dt id="utool.PROGRESS_FLUSH">
+<tt class="descclassname">utool.</tt><tt class="descname">PROGRESS_FLUSH</tt><big>(</big><big>)</big><a class="headerlink" href="#utool.PROGRESS_FLUSH" title="Permalink to this definition">¶</a></dt>
+<dd><p>flush() -&gt; None.  Flush the internal I/O buffer.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utool.PROGRESS_WRITE">
+<tt class="descclassname">utool.</tt><tt class="descname">PROGRESS_WRITE</tt><big>(</big><big>)</big><a class="headerlink" href="#utool.PROGRESS_WRITE" title="Permalink to this definition">¶</a></dt>
+<dd><p>write(str) -&gt; None.  Write string str to file.</p>
+<p>Note that due to buffering, flush() or close() may be needed before
+the file on disk reflects the data written.</p>
+</dd></dl>
+
 <dl class="function">
 <dt id="utool.reassign_submodule_attributes">
 <tt class="descclassname">utool.</tt><tt class="descname">reassign_submodule_attributes</tt><big>(</big><em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/utool.html#reassign_submodule_attributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.reassign_submodule_attributes" title="Permalink to this definition">¶</a></dt>
