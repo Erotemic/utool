@@ -861,11 +861,12 @@ def matching_fnames(dpath_list, include_patterns, exclude_dirs=None, recursive=T
         for root, dname_list, fname_list in os.walk(dpath):
             # Look at all subdirs
             subdirs = relpath(root, dpath).split('/')
+            # HACK:
             greater_exclude_dirs = ['lib.linux-x86_64-2.7']
             if any([dir_ in greater_exclude_dirs for dir_ in subdirs]):
                 continue
             # Look at one subdir
-            if split(root)[1] in exclude_dirs:
+            if basename(root) in exclude_dirs:
                 continue
             for name in fname_list:
                 # For the filesnames which match the patterns
@@ -878,7 +879,8 @@ def matching_fnames(dpath_list, include_patterns, exclude_dirs=None, recursive=T
 
 
 def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
-         exclude_dirs=[], verbose=VERBOSE):
+         exclude_dirs=[],
+         inverse=False, verbose=VERBOSE):
     """
     Python implementation of grep. NOT FINISHED
 
@@ -911,13 +913,15 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
         include_patterns = ['*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c',
                             '*.h', '*.vim']  # , '*.txt']
     # ensure list input
-    if isinstance(include_patterns, str):
+    if isinstance(include_patterns, six.string_types):
         include_patterns = [include_patterns]
     if dpath_list is None:
         dpath_list = [os.getcwd()]
     if verbose:
         recursive_stat_str = ['flat', 'recursive'][recursive]
         print('[util_path] Greping (%s) %r for %r' % (recursive_stat_str, dpath_list, regex_list))
+    if isinstance(regex_list, six.string_types):
+        regex_list = [regex_list]
     found_filestr_list = []
     found_lines_list = []
     found_lxs_list = []
@@ -928,7 +932,13 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
     for fpath in fpath_generator:
         # For each search pattern
         found_lines, found_lxs = grepfile(fpath, extended_regex_list)
-        if len(found_lines) > 0:
+        if inverse:
+            if len(found_lines) == 0:
+                # Append files that the pattern was not found in
+                found_filestr_list.append(fpath)
+                found_lines_list.append([])
+                found_lxs_list.append([])
+        elif len(found_lines) > 0:
             found_filestr_list.append(fpath)  # regular matching
             found_lines_list.append(found_lines)
             found_lxs_list.append(found_lxs)

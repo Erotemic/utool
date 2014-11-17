@@ -551,6 +551,51 @@ def sortedby(item_list, key_list, reverse=False):
     return sorted_list
 
 
+def sortedby2(item_list, *args, **kwargs):
+    """ sorts ``item_list`` using key_list
+
+    Args:
+        item_list (list): list to sort
+        *args (list): multiple lists to sort by
+
+    Kwargs:
+        reverse (bool): sort order is descending if True else acscending
+
+    Returns:
+        list : ``list_`` sorted by the values of another ``list``. defaults to
+        ascending order
+
+    Examples:
+        >>> import utool
+        >>> item_list = [1, 2, 3, 4, 5]
+        >>> key_list1 = [1, 1, 2, 3, 4]
+        >>> key_list2 = [2, 1, 4, 1, 1]
+        >>> args = (key_list1, key_list2)
+        >>> kwargs = {}
+        >>> utool.sortedby2(item_list, *args, **kwargs)
+        [5, 2, 3, 1, 4]
+    """
+    import operator
+    assert all([len(item_list) == len_ for len_ in map(len, args)])
+    reverse = kwargs.get('reverse', False)
+    key = operator.itemgetter(*range(1, len(args) + 1))
+    tup_list = list(zip(item_list, *args))
+    sorted_tups = sorted(tup_list, key=key, reverse=reverse)
+    sorted_list = [tup[0] for tup in sorted_tups]
+    return sorted_list
+
+
+def list_argsort(*args, **kwargs):
+    """ like np.argsort but for lists """
+    index_list = list(range(len(args[0])))
+    return sortedby2(index_list, *args, **kwargs)
+
+
+def list_take(list_, index_list):
+    """ like np.take but for lists """
+    return [list_[ix] for ix in index_list]
+
+
 def scalar_input_map(func, input_):
     """
     Map like function

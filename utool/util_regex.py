@@ -1,7 +1,11 @@
+"""
+Change to util_parse?
+"""
 from __future__ import absolute_import, division, print_function
 import re
 import six
 import os
+import parse
 from os.path import split, relpath
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[str]')
@@ -200,6 +204,12 @@ def modify_quoted_strs(text, modify_func=None):
             break
     new_text = ''.join(new_text_list)
     return new_text
+
+
+def padded_parse(pattern, text):
+    padded_pattern = '{_prefix}' + pattern + '{_suffix}'
+    parse_result = parse.parse(padded_pattern, text)
+    return parse_result
 
 
 def regex_parse(regex, text, fromstart=True):

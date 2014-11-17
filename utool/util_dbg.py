@@ -318,10 +318,10 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
     #if exec_lines is not None:
     #    config_dict['exec_lines'] = exec_lines
     #IPython.embed(**config_dict)
-    print('set EXIT_NOW to True to hard exit on unembed')
+    print('set EXIT_NOW or qqq to True to hard exit on unembed')
     IPython.embed()
     # Exit python immediately if specifed
-    if vars().get('EXIT_NOW', False):
+    if vars().get('EXIT_NOW', False) or vars().get('qqq', False):
         print('[utool.embed] EXIT_NOW specified')
         sys.exit(1)
 

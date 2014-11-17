@@ -190,11 +190,18 @@ def _inject_execstr(modname, IMPORT_TUPLES):
         # Self import
         import {modname}
         # Implicit reassignment.
+        seen_ = set([])
         for submodname, fromimports in IMPORT_TUPLES:
             submod = getattr({modname}, submodname)
             for attr in dir(submod):
                 if attr.startswith('_'):
                     continue
+                if attr in seen_:
+                    # This just holds off bad behavior
+                    # but it does mimic normal util_import behavior
+                    # which is good
+                    continue
+                seen_.add(attr)
                 setattr({modname}, attr, getattr(submod, attr))
 
 
@@ -206,8 +213,8 @@ def _inject_execstr(modname, IMPORT_TUPLES):
         try:
             # hackish way of propogating up the new reloaded submodule attributes
             reassign_submodule_attributes(verbose=verbose)
-        except Exception:
-            pass
+        except Exception as ex:
+            print(ex)
     rrrr = reload_subs
     # ENDBLOCK
     ''')

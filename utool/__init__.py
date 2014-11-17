@@ -142,8 +142,9 @@ if DOELSE:
                                 defaultdict, euclidean_dist, find_std_inliers, 
                                 flatten_membership_mapping, get_nth_prime, 
                                 get_phi, get_phi_ratio1, group_items, iceil, 
-                                iround, is_prime, negative_minclamp_inplace, 
-                                norm_zero_one, normalize, unique_row_indexes, 
+                                iround, is_prime, item_hist, 
+                                negative_minclamp_inplace, norm_zero_one, 
+                                normalize, search_utool, unique_row_indexes, 
                                 unpack_items_sorted, 
                                 unpack_items_sorted_by_lenvalue, 
                                 unpack_items_sorted_by_value, 
@@ -232,15 +233,17 @@ if DOELSE:
                                 get_object_base, get_object_size, 
                                 get_object_size_str, get_stats, get_stats_str, 
                                 infer_arg_types_and_descriptions, info, 
-                                init_catch_ctrl_c, input, is_developer, 
-                                listinfo, make_call_graph, make_default_docstr, 
-                                make_object_graph, memory_dump, myprint, 
-                                npArrInfo, npinfo, numpy_list_num_bits, 
-                                parse_return_type, print_auto_docstr, 
-                                print_object_size, print_object_size_tree, 
-                                print_stats, printableType, printableVal, 
-                                report_memsize, reset_catch_ctrl_c, testit, 
-                                timeit_compare, tuples_to_unique_scalars,) 
+                                init_catch_ctrl_c, input, input_timeout, 
+                                is_developer, listinfo, make_call_graph, 
+                                make_default_docstr, make_object_graph, 
+                                memory_dump, myprint, npArrInfo, npinfo, 
+                                numpy_list_num_bits, parse_return_type, 
+                                print_auto_docstr, print_object_size, 
+                                print_object_size_tree, print_stats, 
+                                printableType, printableVal, report_memsize, 
+                                reset_catch_ctrl_c, strip_line_comments, 
+                                testit, timeit_compare, 
+                                tuples_to_unique_scalars,) 
     from utool.util_decor import (IGNORE_TRACEBACK, NOINDENT_DECOR, PROFILING, 
                                   SIG_PRESERVE, UNIQUE_NUMPY, accepts_numpy, 
                                   accepts_scalar_input, accepts_scalar_input2, 
@@ -291,19 +294,20 @@ if DOELSE:
                                    inject_reload_function, memprof,) 
     from utool.util_io import (load_cPkl, read_from, save_cPkl, try_decode, 
                                write_to,) 
-    from utool.util_iter import (cycle, ensure_iterable, ichunks, 
+    from utool.util_iter import (cycle, ensure_iterable, ichunks, ichunks_list, 
                                  ifilter_Nones, ifilter_items, 
                                  ifilterfalse_items, iflatten, 
                                  iflatten_scalars, interleave, interleave2, 
                                  interleave3, isiterable, islice, itertwo, 
-                                 roundrobin,) 
+                                 izip_longest, roundrobin,) 
     from utool.util_inspect import (get_func_argspec, get_funcdoc, 
                                     get_funcglobals, get_imfunc, 
-                                    list_class_funcnames, set_funcdoc,) 
-    from utool.util_logging import (PRINT_ALL_CALLERS, add_logging_handler, 
-                                    get_log_fpath, get_logging_dir, 
-                                    logdir_cacheid, start_logging, 
-                                    stop_logging,) 
+                                    iter_module_funcs, list_class_funcnames, 
+                                    set_funcdoc,) 
+    from utool.util_logging import (LOGGING_VERBOSE, PRINT_ALL_CALLERS, 
+                                    add_logging_handler, get_log_fpath, 
+                                    get_logging_dir, logdir_cacheid, 
+                                    start_logging, stop_logging,) 
     from utool.util_list import (accumulate, alloc_lists, alloc_nones, 
                                  assert_all_not_None, assert_unflat_level, 
                                  debug_consec_list, debug_duplicate_items, 
@@ -314,12 +318,13 @@ if DOELSE:
                                  flatten, flattenize, get_callable_name, 
                                  get_dirty_items, get_list_column, 
                                  intersect_ordered, invertable_flatten, 
-                                 invertable_flatten2, issorted, 
-                                 list_deep_types, list_depth, list_getat, 
-                                 list_replace, listfind, partial_imap_1to1, 
-                                 print_duplicate_map, safe_listget, safe_slice, 
-                                 sample_zip, scalar_input_map, setdiff_ordered, 
-                                 sortedby, tuplize, unflatten, unflatten2, 
+                                 invertable_flatten2, issorted, isunique, 
+                                 list_argsort, list_deep_types, list_depth, 
+                                 list_getat, list_replace, list_take, listfind, 
+                                 partial_imap_1to1, print_duplicate_map, 
+                                 safe_listget, safe_slice, sample_zip, 
+                                 scalar_input_map, setdiff_ordered, sortedby, 
+                                 sortedby2, tuplize, unflatten, unflatten2, 
                                  unique_keep_order2, unique_ordered, 
                                  unique_unordered,) 
     from utool.util_num import (commas, fewest_digits_float_str, 
@@ -340,11 +345,12 @@ if DOELSE:
                                  extend_regex, file_bytes, file_megabytes, 
                                  find_lib_fpath, fixwin32_shortname, 
                                  fnames_to_fpaths, fpaths_to_fnames, 
-                                 get_modname_from_modpath, get_basename_noext_list, 
-                                 get_basepath_list, get_ext_list, 
-                                 get_module_dir, glob, grep, grepfile, iglob, 
-                                 is_module_dir, is_private_module, isfile, 
-                                 islink, ismount, list_images, 
+                                 get_basename_noext_list, get_basepath_list, 
+                                 get_ext_list, get_modname_from_modpath, 
+                                 get_module_dir, get_module_subdir_list, 
+                                 get_relative_modpath, glob, grep, grepfile, 
+                                 iglob, is_module_dir, is_private_module, 
+                                 isfile, islink, ismount, list_images, 
                                  longest_existing_path, ls, ls_dirs, 
                                  ls_moduledirs, ls_modulefiles, matches_image, 
                                  matching_fnames, move, move_list, newcd, 
@@ -360,10 +366,11 @@ if DOELSE:
                                   print_filesize, print_locals, printif, 
                                   printshape,) 
     from utool.util_progress import (AGGROFLUSH, PROGGRESS_BACKSPACE, 
+                                     PROGRESS_FLUSH, PROGRESS_WRITE, 
                                      ProgressIter, VALID_PROGRESS_TYPES, 
                                      log_progress, prog_func, progiter, 
                                      progress_func, progress_str, 
-                                     simple_progres_func,) 
+                                     simple_progres_func, test_progress,) 
     from utool.util_parallel import (BACKEND, close_pool, ensure_pool, 
                                      generate, get_default_numprocs, 
                                      in_main_process, init_pool, init_worker, 
@@ -402,11 +409,11 @@ if DOELSE:
     from utool.util_set import (OrderedSet, proxy,) 
     from utool.util_regex import (REGEX_VARNAME, RE_FLAGS, RE_KWARGS, 
                                   get_match_text, modify_quoted_strs, 
-                                  named_field, named_field_regex, 
-                                  regex_get_match, regex_matches, regex_parse, 
-                                  regex_replace, regex_replace_lines, 
-                                  regex_search, regex_split, repl_field, sed, 
-                                  sedfile,) 
+                                  named_field, named_field_regex, padded_parse, 
+                                  parse_docblock, regex_get_match, 
+                                  regex_matches, regex_parse, regex_replace, 
+                                  regex_replace_lines, regex_search, 
+                                  regex_split, repl_field, sed, sedfile,) 
     from utool.util_time import (Timer, exiftime_to_unixtime, get_day, 
                                  get_month, get_timedelta_str, get_timestamp, 
                                  get_timestats_str, get_year, tic, timestamp, 
@@ -420,14 +427,20 @@ if DOELSE:
                                  is_func_or_method_or_partial, is_funclike, 
                                  is_tuple, is_type, is_valid_floattype, 
                                  smart_cast, type_str,) 
-    from utool.util_tests import (HAPPY_FACE, SAD_FACE, autogen_ibeis_runtest, 
+    from utool.util_tests import (HAPPY_FACE, SAD_FACE, VERBOSE_TEST, 
                                   autogen_run_tests, bubbletext, def_test, 
-                                  doctest_funcs, get_doctest_examples, 
-                                  iter_module_funcs, printTEST, run_test, 
-                                  tryimport,) 
+                                  doctest_funcs, doctest_modules, 
+                                  get_doctest_examples, 
+                                  get_doctest_testtup_list, 
+                                  get_module_testlines, 
+                                  parse_docblocks_from_docstr, 
+                                  parse_doctest_from_docstr, printTEST, 
+                                  run_test, tryimport,) 
     from utool.DynamicStruct import (AbstractPrintable, DynStruct,) 
     from utool.Preferences import (Pref, PrefChoice, PrefInternal, PrefNode, 
                                    PrefTree,) 
+    # STARTBLOCK
+    
     print, print_, printDBG, rrr, profile = util_inject.inject(
         __name__, '[utool]')
     
@@ -442,11 +455,18 @@ if DOELSE:
         # Self import
         import utool
         # Implicit reassignment.
+        seen_ = set([])
         for submodname, fromimports in IMPORT_TUPLES:
             submod = getattr(utool, submodname)
             for attr in dir(submod):
                 if attr.startswith('_'):
                     continue
+                if attr in seen_:
+                    # This just holds off bad behavior
+                    # but it does mimic normal util_import behavior
+                    # which is good
+                    continue
+                seen_.add(attr)
                 setattr(utool, attr, getattr(submod, attr))
     
     
@@ -498,7 +518,8 @@ if DOELSE:
         try:
             # hackish way of propogating up the new reloaded submodule attributes
             reassign_submodule_attributes(verbose=verbose)
-        except Exception:
-            pass
+        except Exception as ex:
+            print(ex)
     rrrr = reload_subs
+    # ENDBLOCK
     # </AUTOGEN_INIT>

@@ -43,6 +43,8 @@ def _try_cast(val, type_):
     return newval
 
 
+# FIXME: on a rrrr this get_argval is taken
+# instead of the correct one from util_arg
 def get_argval(argstr, type_=None, default=None):
     """ Returns a value of an argument specified on the command line after some flag
 

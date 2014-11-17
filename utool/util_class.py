@@ -125,6 +125,8 @@ def make_class_postinject_decorator(classtype):
 def decorate_class_method(func, classtype=None):
     """
     Will inject all decorated function as methods of classtype
+
+    func can also be a tuple
     """
     assert classtype is not None, 'must specify classtype'
     global __CLASSTYPE_ATTRIBUTES__
@@ -157,19 +159,25 @@ def inject_func_as_method(self, func, method_name=None, class_=None, allow_overr
     if method_name is None:
         method_name = get_funcname(func)
     #printDBG('Injecting method_name=%r' % method_name)
-    method = types.MethodType(func, self)
+    new_method = types.MethodType(func, self)
     old_method = getattr(self, method_name, None)
-    if old_method:
+    if old_method is not None:
+        #if old_method is new_method or old_method.im_func is new_method.im_func:
+        #    print('WARNING: Injecting the same function twice: %r' % new_method)
         if allow_override is False:
             raise AssertionError('Overrides are not allowed. Already have method_name=%r' % (method_name))
         elif allow_override == 'warn':
             print('WARNING: Overrides are not allowed. Already have method_name=%r. Skipping' % (method_name))
             return
         elif allow_override == 'override+warn':
+            #import utool as ut
+            #ut.embed()
             print('WARNING: Overrides are allowed, but dangerous. Already have method_name=%r.' % (method_name))
+            print('old_method = %r, im_func=%s' % (old_method, str(old_method.im_func)))
+            print('new_method = %r, im_func=%s' % (new_method, str(new_method.im_func)))
         # TODO: does this actually decrement the refcount enough?
         del old_method
-    setattr(self, method_name, method)
+    setattr(self, method_name, new_method)
 
 
 def makeForwardingMetaclass(forwarding_dest_getter, whitelist, base_class=object):

@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 import inspect
 import types
 import six
+import functools
 from . import util_inject
 from ._internal import meta_util_six
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
@@ -16,20 +17,28 @@ def iter_module_funcs(module):
     """
     valid_func_types = (types.FunctionType, types.MethodType,
                         types.BuiltinFunctionType, types.BuiltinMethodType,
-                        types.ClassType)
+                        types.ClassType, types.TypeType)
     for key, val in six.iteritems(module.__dict__):
         if isinstance(val, valid_func_types):
             yield key, val
+        elif val is None:
+            pass
+        elif isinstance(val, (dict, list, tuple, bool, float, int)):
+            pass
         elif isinstance(val, types.InstanceType):
+            pass
+        elif isinstance(val, functools.partial):
             pass
         elif isinstance(val, types.ModuleType):
             pass
         elif isinstance(val, six.string_types):
             pass
         else:
-            import utool as ut
-            if ut.VERBOSE:
-                print('Unknown if testable %r' % type(val))
+            #import utool as ut
+            #if ut.VERBOSE:
+            print('[util_inspect] WARNING:')
+            print(' * Unknown if testable val=%r' % (val))
+            print(' * Unknown if testable type(val)=%r' % type(val))
 
 
 def list_class_funcnames(fname, blank_pats=['    #']):
