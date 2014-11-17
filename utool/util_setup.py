@@ -248,6 +248,7 @@ def autogen_sphinx_apidoc():
              % (packages,))
     pkgdir = packages[0]
     version = utool.parse_package_for_version(pkgdir)
+    modpath = dirname(utool.truepath(pkgdir))
 
     apidoc_fmtdict = {
         'author': author,
@@ -280,18 +281,18 @@ def autogen_sphinx_apidoc():
     #    [^\]]*
     #    ]
     #    ''')
-    search_text = utool.codeblock(
-        '''
-        extensions = [
-            'sphinx.ext.autodoc',
-            'sphinx.ext.viewcode',
-        ]
-        '''
-    )
+    search_text = r'extensions = \[[^/]*\]'
     # TODO: http://sphinx-doc.org/ext/math.html#module-sphinx.ext.pngmath
     #'sphinx.ext.mathjax',
+    exclude_modules = []  # ['ibeis.all_imports']
     repl_text = utool.codeblock(
         '''
+        MOCK_MODULES = {exclude_modules}
+        if len(MOCK_MODULES) > 0:
+            import mock
+            for mod_name in MOCK_MODULES:
+                sys.modules[mod_name] = mock.Mock()
+
         extensions = [
             'sphinx.ext.autodoc',
             'sphinx.ext.viewcode',
@@ -302,16 +303,25 @@ def autogen_sphinx_apidoc():
             'sphinxcontrib.napoleon',
             #'sphinx.ext.napoleon',
         ]
+        '''
+    ).format(exclude_modules=str(exclude_modules))
+    head_text = utool.codeblock(
+        '''
+        from sphinx.ext.autodoc import between
+        import sys
+        import os
+
+        # Dont parse IBEIS args
+        os.environ['IBIES_PARSE_ARGS'] = 'OFF'
+
+        sys.path.append('{modpath}')
+        sys.path.append(sys.path.insert(0, os.path.abspath("../")))
+
         autosummary_generate = True
 
         modindex_common_prefix = ['_']
         '''
-    )
-    head_text = utool.codeblock(
-        '''
-        from sphinx.ext.autodoc import between
-        '''
-    )
+    ).format(modpath=utool.truepath(modpath))
     tail_text = utool.codeblock(
         '''
         def setup(app):
@@ -323,12 +333,16 @@ def autogen_sphinx_apidoc():
     )
     conf_fname = 'conf.py'
     conf_text = utool.read_from(conf_fname)
-    conf_text = head_text + conf_text.replace(search_text, repl_text) + tail_text
+    conf_text = conf_text.replace('import sys', 'import sys  # NOQA')
+    conf_text = conf_text.replace('import os', 'import os  # NOQA')
+    conf_text = utool.regex_replace(search_text, repl_text, conf_text)
+    conf_text = head_text + '\n' + conf_text + tail_text
     utool.write_to(conf_fname, conf_text)
     # Make the documentation
     #if utool.LINUX:
     #    utool.cmd('make html', shell=True)
     #if utool.WIN32:
+    #raw_input('waiting')
     utool.cmd('make', 'html', shell=True)
 
 
