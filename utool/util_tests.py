@@ -99,7 +99,7 @@ def parse_doctest_from_docstr(docstr):
 
         for line in reversed(nonheader_lines):
             if not finished_want:
-                if line.startswith('>>> '):
+                if line.startswith('>>> ') or line.startswith('... '):
                     finished_want = True
                 else:
                     reversed_want_lines.append(line)
@@ -134,7 +134,7 @@ def get_doctest_examples(func_or_class):
         >>> print(result)
         2
     """
-    import textwrap
+    import utool as ut
     if VERBOSE_TEST:
         print('[util_test] parsing %r for doctest' % (func_or_class))
 
@@ -144,9 +144,14 @@ def get_doctest_examples(func_or_class):
     except AttributeError:
         docstr = func_or_class.__doc__
 
-    docstr = textwrap.dedent(docstr)
-
-    testheader_list, testsrc_list, testwant_list = parse_doctest_from_docstr(docstr)
+    # Cache because my janky parser is slow
+    docstr = ut.unindent(docstr)
+    with ut.GlobalShelfContext('utool') as shelf:
+        if False and docstr in shelf:
+            testsrc_list, testwant_list = shelf[docstr]
+        else:
+            testheader_list, testsrc_list, testwant_list = parse_doctest_from_docstr(docstr)
+            shelf[docstr] = testsrc_list, testwant_list
 
     return testsrc_list, testwant_list
     # doctest doesnt do what i want. so I wrote my own primative but effective
@@ -308,7 +313,7 @@ def doctest_funcs(testable_list=[], check_flags=True, module=None, allexamples=N
                 testtup = (testname, testno, src_, want)
                 testtup_list.append(testtup)
         else:
-            print('WARNING: no examples for key=%r' % key)
+            print('WARNING: no examples for testname=%r' % testname)
     # ----------------------------------------
     # Get enabled (requested) examples
     # ----------------------------------------
