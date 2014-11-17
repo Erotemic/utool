@@ -189,7 +189,7 @@
 <span class="sd">    ``list``</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; from utool.util_list import *</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_list import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import utool</span>
 <span class="sd">        &gt;&gt;&gt; utool.util_list</span>
 <span class="sd">        &gt;&gt;&gt; unflat_list = [[5], [2, 3, 12, 3, 3], [9], [13, 3], [5]]</span>
@@ -237,7 +237,10 @@
 
 </div>
 <div class="viewcode-block" id="accumulate"><a class="viewcode-back" href="../../utool.html#utool.util_list.accumulate">[docs]</a><span class="k">def</span> <span class="nf">accumulate</span><span class="p">(</span><span class="n">iterator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; use itertools.accumulate in python &gt; 3.2 &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Notice:</span>
+<span class="sd">        use itertools.accumulate in python &gt; 3.2</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">iterator</span><span class="p">:</span>
         <span class="n">total</span> <span class="o">+=</span> <span class="n">item</span>
@@ -261,7 +264,7 @@
 <span class="sd">        unflatten2</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; from utool.util_list import *</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_list import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import utool</span>
 <span class="sd">        &gt;&gt;&gt; utool.util_list</span>
 <span class="sd">        &gt;&gt;&gt; flat_list = [5, 2, 3, 12, 3, 3, 9, 13, 3, 5]</span>
@@ -530,7 +533,7 @@
 <span class="sd">    Returns a list of flags corresponding to the first time an item is seen</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        list_ (list):</span>
+<span class="sd">        list_ (list): list of items</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        flag_list</span>
@@ -596,6 +599,51 @@
     <span class="n">sorted_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span> <span class="ow">in</span>
                    <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">key_list</span><span class="p">,</span> <span class="n">item_list</span><span class="p">)),</span> <span class="n">reverse</span><span class="o">=</span><span class="n">reverse</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">sorted_list</span>
+
+</div>
+<div class="viewcode-block" id="sortedby2"><a class="viewcode-back" href="../../utool.html#utool.util_list.sortedby2">[docs]</a><span class="k">def</span> <span class="nf">sortedby2</span><span class="p">(</span><span class="n">item_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; sorts ``item_list`` using key_list</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        item_list (list): list to sort</span>
+<span class="sd">        *args (list): multiple lists to sort by</span>
+
+<span class="sd">    Kwargs:</span>
+<span class="sd">        reverse (bool): sort order is descending if True else acscending</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list : ``list_`` sorted by the values of another ``list``. defaults to</span>
+<span class="sd">        ascending order</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; import utool</span>
+<span class="sd">        &gt;&gt;&gt; item_list = [1, 2, 3, 4, 5]</span>
+<span class="sd">        &gt;&gt;&gt; key_list1 = [1, 1, 2, 3, 4]</span>
+<span class="sd">        &gt;&gt;&gt; key_list2 = [2, 1, 4, 1, 1]</span>
+<span class="sd">        &gt;&gt;&gt; args = (key_list1, key_list2)</span>
+<span class="sd">        &gt;&gt;&gt; kwargs = {}</span>
+<span class="sd">        &gt;&gt;&gt; utool.sortedby2(item_list, *args, **kwargs)</span>
+<span class="sd">        [5, 2, 3, 1, 4]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">operator</span>
+    <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">item_list</span><span class="p">)</span> <span class="o">==</span> <span class="n">len_</span> <span class="k">for</span> <span class="n">len_</span> <span class="ow">in</span> <span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">args</span><span class="p">)])</span>
+    <span class="n">reverse</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;reverse&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">itemgetter</span><span class="p">(</span><span class="o">*</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">tup_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">item_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">))</span>
+    <span class="n">sorted_tups</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">tup_list</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="n">reverse</span><span class="p">)</span>
+    <span class="n">sorted_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">sorted_tups</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">sorted_list</span>
+
+</div>
+<div class="viewcode-block" id="list_argsort"><a class="viewcode-back" href="../../utool.html#utool.util_list.list_argsort">[docs]</a><span class="k">def</span> <span class="nf">list_argsort</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; like np.argsort but for lists &quot;&quot;&quot;</span>
+    <span class="n">index_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span>
+    <span class="k">return</span> <span class="n">sortedby2</span><span class="p">(</span><span class="n">index_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="list_take"><a class="viewcode-back" href="../../utool.html#utool.util_list.list_take">[docs]</a><span class="k">def</span> <span class="nf">list_take</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">index_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; like np.take but for lists &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">list_</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="n">index_list</span><span class="p">]</span>
 
 </div>
 <div class="viewcode-block" id="scalar_input_map"><a class="viewcode-back" href="../../utool.html#utool.util_list.scalar_input_map">[docs]</a><span class="k">def</span> <span class="nf">scalar_input_map</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">input_</span><span class="p">):</span>
@@ -787,6 +835,10 @@
 <div class="viewcode-block" id="duplicates_exist"><a class="viewcode-back" href="../../utool.html#utool.util_list.duplicates_exist">[docs]</a><span class="k">def</span> <span class="nf">duplicates_exist</span><span class="p">(</span><span class="n">items</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; returns if list has duplicates &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">items</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">0</span>
+
+</div>
+<div class="viewcode-block" id="isunique"><a class="viewcode-back" href="../../utool.html#utool.util_list.isunique">[docs]</a><span class="k">def</span> <span class="nf">isunique</span><span class="p">(</span><span class="n">items</span><span class="p">):</span>
+    <span class="k">return</span> <span class="ow">not</span> <span class="n">duplicates_exist</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="print_duplicate_map"><a class="viewcode-back" href="../../utool.html#utool.util_list.print_duplicate_map">[docs]</a><span class="k">def</span> <span class="nf">print_duplicate_map</span><span class="p">(</span><span class="n">duplicate_map</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>

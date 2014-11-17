@@ -60,7 +60,7 @@
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">signal</span>
 <span class="kn">from</span> <span class="nn">._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
-<span class="kn">from</span> <span class="nn">.util_progress</span> <span class="kn">import</span> <span class="n">progress_func</span>
+<span class="kn">from</span> <span class="nn">.util_progress</span> <span class="kn">import</span> <span class="n">progress_func</span><span class="p">,</span> <span class="n">ProgressIter</span>
 <span class="kn">from</span> <span class="nn">.util_time</span> <span class="kn">import</span> <span class="n">tic</span><span class="p">,</span> <span class="n">toc</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_arg</span>
 <span class="c">#from .util_cplat import WIN32</span>
@@ -80,7 +80,7 @@
 <span class="n">__TIME__</span> <span class="o">=</span> <span class="s">&#39;--time&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
 <span class="n">__SERIAL_FALLBACK__</span> <span class="o">=</span> <span class="s">&#39;--noserial-fallback&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
 <span class="n">__NUM_PROCS__</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--num-procs&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
-<span class="n">__FORCE_SERIAL__</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--utool-force-serial&#39;</span><span class="p">)</span>
+<span class="n">__FORCE_SERIAL__</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--utool-force-serial&#39;</span><span class="p">,</span> <span class="s">&#39;--force-serial&#39;</span><span class="p">,</span> <span class="s">&#39;--serial&#39;</span><span class="p">))</span>
 
 
 <span class="n">BACKEND</span> <span class="o">=</span> <span class="s">&#39;multiprocessing&#39;</span>
@@ -132,9 +132,9 @@
         <span class="c"># Get number of cpu cores</span>
         <span class="n">num_procs</span> <span class="o">=</span> <span class="n">get_default_numprocs</span><span class="p">()</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel] initializing pool with </span><span class="si">%d</span><span class="s"> processes&#39;</span> <span class="o">%</span> <span class="n">num_procs</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_parallel] initializing pool with </span><span class="si">%d</span><span class="s"> processes&#39;</span> <span class="o">%</span> <span class="n">num_procs</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">num_procs</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel] num_procs=1, Will process in serial&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_parallel] num_procs=1, Will process in serial&#39;</span><span class="p">)</span>
         <span class="n">__POOL__</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="k">return</span>
     <span class="k">if</span> <span class="n">STRICT</span><span class="p">:</span>
@@ -154,9 +154,9 @@
     <span class="k">if</span> <span class="n">__POOL__</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">QUIET</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">terminate</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel] terminating pool&#39;</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_parallel] terminating pool&#39;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel] closing pool&#39;</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_parallel] closing pool&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">__POOL__</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
             <span class="c"># Must join after close to avoid runtime errors</span>
             <span class="k">if</span> <span class="n">terminate</span><span class="p">:</span>
@@ -223,10 +223,8 @@
     <span class="k">if</span> <span class="n">chunksize</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">chunksize</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nTasks</span> <span class="o">//</span> <span class="p">(</span><span class="n">__POOL__</span><span class="o">.</span><span class="n">_processes</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel] executing </span><span class="si">%d</span><span class="s"> </span><span class="si">%s</span><span class="s"> tasks using </span><span class="si">%d</span><span class="s"> processes with chunksize=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_parallel] executing </span><span class="si">%d</span><span class="s"> </span><span class="si">%s</span><span class="s"> tasks using </span><span class="si">%d</span><span class="s"> processes with chunksize=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
                 <span class="p">(</span><span class="n">nTasks</span><span class="p">,</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">),</span> <span class="n">__POOL__</span><span class="o">.</span><span class="n">_processes</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">prog</span><span class="p">:</span>
-        <span class="n">mark_prog</span><span class="p">,</span> <span class="n">end_prog</span> <span class="o">=</span> <span class="n">progress_func</span><span class="p">(</span><span class="n">max_val</span><span class="o">=</span><span class="n">nTasks</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;: &#39;</span><span class="p">)</span>
     <span class="c">#assert isinstance(__POOL__, multiprocessing.Pool),\</span>
     <span class="c">#        &#39;%r __POOL__ = %r&#39; % (type(__POOL__), __POOL__,)</span>
     <span class="k">if</span> <span class="n">ordered</span><span class="p">:</span>
@@ -234,10 +232,23 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">generator</span> <span class="o">=</span> <span class="n">__POOL__</span><span class="o">.</span><span class="n">imap_unordered</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">generator</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">prog</span><span class="p">:</span>
+        <span class="n">use_new_prog</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="n">prog</span> <span class="ow">and</span> <span class="n">use_new_prog</span><span class="p">:</span>
+            <span class="c"># New way of doing progress</span>
+            <span class="n">prog_generator</span> <span class="o">=</span> <span class="n">ProgressIter</span><span class="p">(</span><span class="n">generator</span><span class="p">,</span> <span class="n">nTotal</span><span class="o">=</span><span class="n">nTasks</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;: &#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">prog_generator</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">result</span>
+        <span class="k">elif</span> <span class="n">prog</span><span class="p">:</span>
+            <span class="c"># Old way of doing progress</span>
+            <span class="n">mark_prog</span><span class="p">,</span> <span class="n">end_prog</span> <span class="o">=</span> <span class="n">progress_func</span><span class="p">(</span><span class="n">max_val</span><span class="o">=</span><span class="n">nTasks</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;: &#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">generator</span><span class="p">):</span>
                 <span class="n">mark_prog</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
-            <span class="k">yield</span> <span class="n">result</span>
+                <span class="k">yield</span> <span class="n">result</span>
+            <span class="n">end_prog</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># No Progress</span>
+            <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">generator</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">result</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Parallel Generation Failed!&#39;</span><span class="p">,</span> <span class="s">&#39;[utool]&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;__SERIAL_FALLBACK__ = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">__SERIAL_FALLBACK__</span><span class="p">)</span>
@@ -247,8 +258,6 @@
                 <span class="k">yield</span> <span class="n">result</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span>
-    <span class="k">if</span> <span class="n">prog</span><span class="p">:</span>
-        <span class="n">end_prog</span><span class="p">()</span>
     <span class="c">#close_pool()</span>
 
 
@@ -257,18 +266,36 @@
     <span class="k">if</span> <span class="n">nTasks</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">nTasks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">args_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel] executing </span><span class="si">%d</span><span class="s"> </span><span class="si">%s</span><span class="s"> tasks in serial&#39;</span> <span class="o">%</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_parallel] executing </span><span class="si">%d</span><span class="s"> </span><span class="si">%s</span><span class="s"> tasks in serial&#39;</span> <span class="o">%</span>
                 <span class="p">(</span><span class="n">nTasks</span><span class="p">,</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)))</span>
     <span class="n">prog</span> <span class="o">=</span> <span class="n">prog</span> <span class="ow">and</span> <span class="n">verbose</span>
-    <span class="k">if</span> <span class="n">prog</span><span class="p">:</span>
+    <span class="n">use_new_prog</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">if</span> <span class="n">prog</span> <span class="ow">and</span> <span class="n">use_new_prog</span><span class="p">:</span>
+        <span class="c"># New way of doing progress</span>
+        <span class="n">prog_generator</span> <span class="o">=</span> <span class="n">ProgressIter</span><span class="p">(</span><span class="n">args_list</span><span class="p">,</span> <span class="n">nTotal</span><span class="o">=</span><span class="n">nTasks</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;: &#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">args</span> <span class="ow">in</span> <span class="n">prog_generator</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">result</span>
+    <span class="k">elif</span> <span class="n">prog</span><span class="p">:</span>
+        <span class="c"># Old way of doing progress</span>
         <span class="n">mark_prog</span><span class="p">,</span> <span class="n">end_prog</span> <span class="o">=</span> <span class="n">progress_func</span><span class="p">(</span><span class="n">max_val</span><span class="o">=</span><span class="n">nTasks</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;: &#39;</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">args</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">args_list</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">prog</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">args</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">args_list</span><span class="p">):</span>
             <span class="n">mark_prog</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-        <span class="k">yield</span> <span class="n">result</span>
-    <span class="k">if</span> <span class="n">prog</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">result</span>
         <span class="n">end_prog</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># No Progress</span>
+        <span class="k">for</span> <span class="n">args</span> <span class="ow">in</span> <span class="n">args_list</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">result</span>
+    <span class="c">#for count, args in enumerate(args_list):</span>
+    <span class="c">#    if prog:</span>
+    <span class="c">#        mark_prog(count)</span>
+    <span class="c">#    result = func(args)</span>
+    <span class="c">#    yield result</span>
+    <span class="c">#if prog:</span>
+    <span class="c">#    end_prog()</span>
 
 
 <div class="viewcode-block" id="ensure_pool"><a class="viewcode-back" href="../../utool.html#utool.util_parallel.ensure_pool">[docs]</a><span class="k">def</span> <span class="nf">ensure_pool</span><span class="p">(</span><span class="n">warn</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
@@ -304,11 +331,11 @@
         <span class="n">nTasks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">args_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">nTasks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel] submitted 0 tasks&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_parallel] submitted 0 tasks&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">VERBOSE</span> <span class="ow">and</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel.generate] ordered=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">ordered</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel.generate] force_serial=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">force_serial</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_parallel.generate] ordered=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">ordered</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_parallel.generate] force_serial=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">force_serial</span><span class="p">)</span>
     <span class="n">force_serial_</span> <span class="o">=</span> <span class="n">nTasks</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">force_serial</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">force_serial_</span><span class="p">:</span>
         <span class="n">ensure_pool</span><span class="p">()</span>
@@ -316,11 +343,11 @@
         <span class="n">tt</span> <span class="o">=</span> <span class="n">tic</span><span class="p">(</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">force_serial_</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">__POOL__</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">VERBOSE</span> <span class="ow">and</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel.generate] generate_serial&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_parallel.generate] generate_serial&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">_generate_serial</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">prog</span><span class="o">=</span><span class="n">prog</span><span class="p">,</span> <span class="n">nTasks</span><span class="o">=</span><span class="n">nTasks</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">VERBOSE</span> <span class="ow">and</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel.generate] generate_parallel&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_parallel.generate] generate_parallel&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">_generate_parallel</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="n">ordered</span><span class="p">,</span>
                                   <span class="n">chunksize</span><span class="o">=</span><span class="n">chunksize</span><span class="p">,</span> <span class="n">prog</span><span class="o">=</span><span class="n">prog</span><span class="p">,</span>
                                   <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">nTasks</span><span class="o">=</span><span class="n">nTasks</span><span class="p">)</span>
@@ -350,12 +377,12 @@
         <span class="n">nTasks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">args_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">__POOL__</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">force_serial</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">QUIET</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel] executing </span><span class="si">%d</span><span class="s"> </span><span class="si">%s</span><span class="s"> tasks in serial&#39;</span> <span class="o">%</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_parallel] executing </span><span class="si">%d</span><span class="s"> </span><span class="si">%s</span><span class="s"> tasks in serial&#39;</span> <span class="o">%</span>
                   <span class="p">(</span><span class="n">nTasks</span><span class="p">,</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)))</span>
         <span class="n">result_list</span> <span class="o">=</span> <span class="n">_process_serial</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">args_dict</span><span class="p">,</span> <span class="n">nTasks</span><span class="o">=</span><span class="n">nTasks</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">QUIET</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[parallel] executing </span><span class="si">%d</span><span class="s"> </span><span class="si">%s</span><span class="s"> tasks using </span><span class="si">%d</span><span class="s"> processes&#39;</span> <span class="o">%</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_parallel] executing </span><span class="si">%d</span><span class="s"> </span><span class="si">%s</span><span class="s"> tasks using </span><span class="si">%d</span><span class="s"> processes&#39;</span> <span class="o">%</span>
                   <span class="p">(</span><span class="n">nTasks</span><span class="p">,</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">),</span> <span class="n">__POOL__</span><span class="o">.</span><span class="n">_processes</span><span class="p">))</span>
         <span class="n">result_list</span> <span class="o">=</span> <span class="n">_process_parallel</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">args_dict</span><span class="p">,</span> <span class="n">nTasks</span><span class="o">=</span><span class="n">nTasks</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">result_list</span></div>

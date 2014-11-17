@@ -55,7 +55,7 @@
     <span class="k">pass</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span>
-<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span><span class="p">,</span> <span class="n">cycle</span><span class="p">,</span> <span class="n">islice</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span><span class="p">,</span> <span class="n">cycle</span><span class="p">,</span> <span class="n">islice</span><span class="p">,</span> <span class="n">izip_longest</span>
 <span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[iter]&#39;</span><span class="p">)</span>
 
@@ -103,19 +103,74 @@
     <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">list_</span><span class="p">]</span>
 
 </div>
-<div class="viewcode-block" id="ichunks"><a class="viewcode-back" href="../../utool.html#utool.util_iter.ichunks">[docs]</a><span class="k">def</span> <span class="nf">ichunks</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">):</span>
+<div class="viewcode-block" id="ichunks"><a class="viewcode-back" href="../../utool.html#utool.util_iter.ichunks">[docs]</a><span class="k">def</span> <span class="nf">ichunks</span><span class="p">(</span><span class="n">iterable</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    generates successive n-sized chunks from ``list_``.</span>
+<span class="sd">    generates successive n-sized chunks from ``iterable``.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        list_ (list): input to iterate over</span>
+<span class="sd">        iterable (list): input to iterate over</span>
 <span class="sd">        chunksize (int): size of sublist to return</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://stackoverflow.com/questions/434287/what-is-the-most-pythonic-way-to-iterate-over-a-list-in-chunks</span>
+
+<span class="sd">    Timeit:</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; setup = ut.codeblock(&#39;&#39;&#39;</span>
+<span class="sd">                from utool.util_iter import *  # NOQA</span>
+<span class="sd">                iterable = list(range(100))</span>
+<span class="sd">                chunksize = 8</span>
+<span class="sd">                &#39;&#39;&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; stmt_list = [</span>
+<span class="sd">        ...     &#39;list(ichunks(iterable, chunksize))&#39;,</span>
+<span class="sd">        ...     &#39;list(ichunks_list(iterable, chunksize))&#39;</span>
+<span class="sd">        ... ]</span>
+<span class="sd">        &gt;&gt;&gt; (passed, time_list, result_list) = ut.timeit_compare(stmt_list, setup)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_iter import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; iterable = [1, 2, 3, 4, 5, 6, 7]</span>
+<span class="sd">        &gt;&gt;&gt; chunksize = 3</span>
+<span class="sd">        &gt;&gt;&gt; result = ichunks(iterable, chunksize)</span>
+<span class="sd">        &gt;&gt;&gt; print(list(result))</span>
+<span class="sd">        [[1, 2, 3], [4, 5, 6], [7]]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_</span><span class="p">),</span> <span class="n">chunksize</span><span class="p">):</span>
-        <span class="k">yield</span> <span class="n">list_</span><span class="p">[</span><span class="n">ix</span><span class="p">:</span> <span class="n">ix</span> <span class="o">+</span> <span class="n">chunksize</span><span class="p">]</span>
+    <span class="c"># feed the same iter to izip_longest multiple times, this causes it to</span>
+    <span class="c"># consume successive values of the same sequence rather than striped values</span>
+    <span class="n">sentinal</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
+    <span class="n">chunks_with_sentinals</span> <span class="o">=</span> <span class="n">izip_longest</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="nb">iter</span><span class="p">(</span><span class="n">iterable</span><span class="p">)]</span> <span class="o">*</span> <span class="n">chunksize</span><span class="p">,</span> <span class="n">fillvalue</span><span class="o">=</span><span class="n">sentinal</span><span class="p">)</span>
+    <span class="c"># Yeild smaller chunks without sentinals</span>
+    <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">chunks_with_sentinals</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">chunk</span> <span class="k">if</span> <span class="n">item</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">sentinal</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="ichunks_list"><a class="viewcode-back" href="../../utool.html#utool.util_iter.ichunks_list">[docs]</a><span class="k">def</span> <span class="nf">ichunks_list</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; input must be a list. SeeAlso ichunks</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://stackoverflow.com/questions/434287/what-is-the-most-pythonic-way-to-iterate-over-a-list-in-chunks</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">list_</span><span class="p">[</span><span class="n">ix</span><span class="p">:</span><span class="n">ix</span> <span class="o">+</span> <span class="n">chunksize</span><span class="p">]</span> <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_</span><span class="p">),</span> <span class="n">chunksize</span><span class="p">))</span>
+    <span class="c">#for ix in range(0, len(list_), chunksize):</span>
+    <span class="c">#    yield list_[ix: ix + chunksize]</span>
 
 </div>
 <div class="viewcode-block" id="interleave"><a class="viewcode-back" href="../../utool.html#utool.util_iter.interleave">[docs]</a><span class="k">def</span> <span class="nf">interleave</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    interleave</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        args (tuple):</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_iter import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; args = ([1, 2, 3, 4, 5], [&#39;A&#39;, &#39;B&#39;, &#39;C&#39;, &#39;D&#39;, &#39;E&#39;, &#39;F&#39;, &#39;G&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; result = interleave(args)</span>
+<span class="sd">        &gt;&gt;&gt; print(list(result))</span>
+<span class="sd">        [1, &#39;A&#39;, 2, &#39;B&#39;, 3, &#39;C&#39;, 4, &#39;D&#39;, 5, &#39;E&#39;]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">arg_iters</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">iter</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
     <span class="n">cycle_iter</span> <span class="o">=</span> <span class="n">cycle</span><span class="p">(</span><span class="n">arg_iters</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">iter_</span> <span class="ow">in</span> <span class="n">cycle_iter</span><span class="p">:</span>
@@ -123,11 +178,13 @@
 
 </div>
 <div class="viewcode-block" id="interleave2"><a class="viewcode-back" href="../../utool.html#utool.util_iter.interleave2">[docs]</a><span class="k">def</span> <span class="nf">interleave2</span><span class="p">(</span><span class="o">*</span><span class="n">iterables</span><span class="p">):</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;not sure if this implementation is correct&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">iterables</span><span class="p">))</span>
 
 </div>
 <div class="viewcode-block" id="interleave3"><a class="viewcode-back" href="../../utool.html#utool.util_iter.interleave3">[docs]</a><span class="k">def</span> <span class="nf">interleave3</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
     <span class="n">cycle_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;not sure if this implementation is correct&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">iter_</span> <span class="ow">in</span> <span class="n">cycle_iter</span><span class="p">:</span>
             <span class="k">yield</span> <span class="n">iter_</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
@@ -138,6 +195,7 @@
 </div>
 <div class="viewcode-block" id="roundrobin"><a class="viewcode-back" href="../../utool.html#utool.util_iter.roundrobin">[docs]</a><span class="k">def</span> <span class="nf">roundrobin</span><span class="p">(</span><span class="o">*</span><span class="n">iterables</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;roundrobin(&#39;ABC&#39;, &#39;D&#39;, &#39;EF&#39;) --&gt; A D E B F C&quot;&quot;&quot;</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;not sure if this implementation is correct&#39;</span><span class="p">)</span>
     <span class="c"># http://stackoverflow.com/questions/11125212/interleaving-lists-in-python</span>
     <span class="c">#sentinel = object()</span>
     <span class="c">#return (x for x in chain(*zip_longest(fillvalue=sentinel, *iterables)) if x is not sentinel)</span>

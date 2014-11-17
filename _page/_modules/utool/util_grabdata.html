@@ -58,11 +58,12 @@
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_path</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_cplat</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_arg</span>
 <span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[grabdata]&#39;</span><span class="p">)</span>
 
 
-<span class="n">QUIET</span> <span class="o">=</span> <span class="s">&#39;--quiet&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<span class="n">QUIET</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">QUIET</span>
 <span class="n">BadZipfile</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">BadZipfile</span>
 
 
@@ -80,18 +81,19 @@
     <span class="n">tar_file</span> <span class="o">=</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">targz_fpath</span><span class="p">,</span> <span class="s">&#39;r:gz&#39;</span><span class="p">)</span>
     <span class="n">output_dir</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">targz_fpath</span><span class="p">)</span>
     <span class="n">archive_namelist</span> <span class="o">=</span> <span class="p">[</span><span class="n">mem</span><span class="o">.</span><span class="n">path</span> <span class="k">for</span> <span class="n">mem</span> <span class="ow">in</span> <span class="n">tar_file</span><span class="o">.</span><span class="n">getmembers</span><span class="p">()]</span>
-    <span class="n">_extract_archive</span><span class="p">(</span><span class="n">targz_fpath</span><span class="p">,</span> <span class="n">tar_file</span><span class="p">,</span> <span class="n">archive_namelist</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">force_commonprefix</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_extract_archive</span><span class="p">(</span><span class="n">targz_fpath</span><span class="p">,</span> <span class="n">tar_file</span><span class="p">,</span> <span class="n">archive_namelist</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">force_commonprefix</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="unzip_file"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.unzip_file">[docs]</a><span class="k">def</span> <span class="nf">unzip_file</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">,</span> <span class="n">force_commonprefix</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="n">zip_file</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">)</span>
     <span class="n">output_dir</span>  <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">)</span>
     <span class="n">archive_namelist</span> <span class="o">=</span> <span class="n">zip_file</span><span class="o">.</span><span class="n">namelist</span><span class="p">()</span>
-    <span class="n">_extract_archive</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">,</span> <span class="n">zip_file</span><span class="p">,</span> <span class="n">archive_namelist</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">force_commonprefix</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_extract_archive</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">,</span> <span class="n">zip_file</span><span class="p">,</span> <span class="n">archive_namelist</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">force_commonprefix</span><span class="p">)</span>
 
 </div>
 <span class="k">def</span> <span class="nf">_extract_archive</span><span class="p">(</span><span class="n">archive_fpath</span><span class="p">,</span> <span class="n">archive_file</span><span class="p">,</span> <span class="n">archive_namelist</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">force_commonprefix</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="c"># force extracted components into a subdirectory if force_commonprefix is on</span>
+    <span class="n">return_path</span> <span class="o">=</span> <span class="n">output_dir</span>
     <span class="k">if</span> <span class="n">force_commonprefix</span> <span class="ow">and</span> <span class="n">commonprefix</span><span class="p">(</span><span class="n">archive_namelist</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
         <span class="c"># use the archivename as the default common prefix</span>
         <span class="n">archive_basename</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">split_archive_ext</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">archive_fpath</span><span class="p">))</span>
@@ -105,6 +107,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">QUIET</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Unarchive &#39;</span> <span class="o">+</span> <span class="n">fname</span> <span class="o">+</span> <span class="s">&#39; in &#39;</span> <span class="o">+</span> <span class="n">dpath</span><span class="p">)</span>
         <span class="n">archive_file</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">output_dir</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">output_dir</span>
 
 
 <div class="viewcode-block" id="open_url_in_browser"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.open_url_in_browser">[docs]</a><span class="k">def</span> <span class="nf">open_url_in_browser</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>

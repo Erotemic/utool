@@ -56,6 +56,7 @@
 <span class="kn">import</span> <span class="nn">gc</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">weakref</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">input</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_progress</span>
@@ -90,51 +91,6 @@
     <span class="n">__DEP_WRAPPER</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">__dict__</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">__DEP_WRAPPER</span>
 
-</div>
-<span class="k">def</span> <span class="nf">_get_testable_name</span><span class="p">(</span><span class="n">testable</span><span class="p">):</span>
-    <span class="kn">import</span> <span class="nn">utool</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">testable_name</span> <span class="o">=</span> <span class="n">testable</span><span class="o">.</span><span class="n">func_name</span>
-    <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">ex1</span><span class="p">:</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">testable_name</span> <span class="o">=</span> <span class="n">testable</span><span class="o">.</span><span class="n">__name__</span>
-        <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">ex2</span><span class="p">:</span>
-            <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex1</span><span class="p">,</span> <span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="nb">dir</span><span class="p">(</span><span class="n">testable</span><span class="p">)))</span>
-            <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex2</span><span class="p">,</span> <span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="nb">dir</span><span class="p">(</span><span class="n">testable</span><span class="p">)))</span>
-            <span class="k">raise</span>
-    <span class="k">return</span> <span class="n">testable_name</span>
-
-
-<div class="viewcode-block" id="doctest_funcs"><a class="viewcode-back" href="../../utool.html#utool.util_dev.doctest_funcs">[docs]</a><span class="k">def</span> <span class="nf">doctest_funcs</span><span class="p">(</span><span class="n">testable_list</span><span class="p">,</span> <span class="n">check_flags</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Running doctest funcs&#39;</span><span class="p">)</span>
-    <span class="kn">import</span> <span class="nn">utool</span>
-    <span class="n">testable_name_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">wastested_list</span> <span class="o">=</span> <span class="p">[]</span>
-
-    <span class="k">for</span> <span class="n">testable</span> <span class="ow">in</span> <span class="n">testable_list</span><span class="p">:</span>
-        <span class="c"># HACKy</span>
-        <span class="n">testable_name</span> <span class="o">=</span> <span class="n">_get_testable_name</span><span class="p">(</span><span class="n">testable</span><span class="p">)</span>
-        <span class="n">testable_name_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">testable_name</span><span class="p">)</span>
-        <span class="n">flag1</span> <span class="o">=</span> <span class="s">&#39;--test-&#39;</span> <span class="o">+</span> <span class="n">testable_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="s">&#39;-&#39;</span><span class="p">)</span>
-        <span class="n">flag2</span> <span class="o">=</span> <span class="s">&#39;--test-&#39;</span> <span class="o">+</span> <span class="n">testable_name</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">check_flags</span> <span class="ow">or</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="n">flag1</span><span class="p">,</span> <span class="n">flag2</span><span class="p">)):</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Doctest requested: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">testable_name</span><span class="p">)</span>
-            <span class="n">examples</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_doctest_examples</span><span class="p">(</span><span class="n">testable</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">examples</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: no examples for testable_name=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">testable_name</span><span class="p">)</span>
-                <span class="n">wastested_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;+ --- EXEC SRC --- &#39;</span><span class="p">)</span>
-                <span class="k">print</span><span class="p">(</span><span class="n">examples</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;L ___ EXEC SRC ___ &#39;</span><span class="p">)</span>
-                <span class="k">exec</span><span class="p">(</span><span class="n">examples</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                <span class="n">wastested_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">wastested_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">wastested_list</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;No test flags sepcified. Please choose one of the following flags&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Valid test argflags: &#39;</span> <span class="o">+</span> <span class="n">utool</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="n">testable_name_list</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s"> --test-&#39;</span><span class="p">))</span>
-
 
 <span class="c">#def ensure_vararg_list(varargs):</span>
 <span class="c">#    &quot;&quot;&quot;</span>
@@ -148,6 +104,60 @@
 <span class="c">#        if isinstance(varargs[0], INDEXABLE_TYPES):</span>
 <span class="c">#            return varargs[0]</span>
 <span class="c">#    return varargs</span>
+
+</div>
+<div class="viewcode-block" id="input_timeout"><a class="viewcode-back" href="../../utool.html#utool.util_dev.input_timeout">[docs]</a><span class="k">def</span> <span class="nf">input_timeout</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="s">&#39;Waiting for input...&#39;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function does not work quite right yet.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        msg (str):</span>
+<span class="sd">        timeout (int):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ?: ans</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://stackoverflow.com/questions/1335507/keyboard-input-with-timeout-in-python</span>
+<span class="sd">        http://home.wlu.edu/~levys/software/kbhit.py</span>
+<span class="sd">        http://stackoverflow.com/questions/3471461/raw-input-and-timeout/3911560#3911560</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dev import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; msg = &#39;Waiting for input...&#39;</span>
+<span class="sd">        &gt;&gt;&gt; timeout = 30</span>
+<span class="sd">        &gt;&gt;&gt; ans = input_timeout(msg, timeout)</span>
+<span class="sd">        &gt;&gt;&gt; print(ans)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">sys</span>
+    <span class="kn">import</span> <span class="nn">select</span>
+    <span class="kn">import</span> <span class="nn">time</span>
+    <span class="n">ans</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;You have </span><span class="si">%d</span><span class="s"> seconds to answer!&#39;</span> <span class="o">%</span> <span class="n">timeout</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;win32&#39;</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">msvcrt</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">instr</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">msvcrt</span><span class="o">.</span><span class="n">kbhit</span><span class="p">():</span>
+                <span class="n">chr_</span> <span class="o">=</span> <span class="n">msvcrt</span><span class="o">.</span><span class="n">getche</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">ord</span><span class="p">(</span><span class="n">chr_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">13</span><span class="p">:</span>  <span class="c"># enter_key</span>
+                    <span class="c"># Accept input</span>
+                    <span class="n">ans</span> <span class="o">=</span> <span class="n">instr</span>
+                    <span class="k">break</span>
+                <span class="k">elif</span> <span class="nb">ord</span><span class="p">(</span><span class="n">chr_</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">32</span><span class="p">:</span>  <span class="c"># space_char</span>
+                    <span class="c"># Append to input</span>
+                    <span class="n">instr</span> <span class="o">+=</span> <span class="n">chr_</span>
+            <span class="n">ellapsed</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+            <span class="k">if</span> <span class="n">ellapsed</span> <span class="o">&gt;</span> <span class="n">timeout</span><span class="p">:</span>
+                <span class="n">ans</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>  <span class="c"># needed to move to next line</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rlist</span><span class="p">,</span> <span class="n">o</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="n">select</span><span class="o">.</span><span class="n">select</span><span class="p">([</span><span class="n">sys</span><span class="o">.</span><span class="n">stdin</span><span class="p">],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="n">timeout</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">rlist</span><span class="p">:</span>
+            <span class="n">ans</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdin</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">ans</span>
 
 </div>
 <div class="viewcode-block" id="autofix_codeblock"><a class="viewcode-back" href="../../utool.html#utool.util_dev.autofix_codeblock">[docs]</a><span class="k">def</span> <span class="nf">autofix_codeblock</span><span class="p">(</span><span class="n">codeblock</span><span class="p">,</span> <span class="n">max_line_len</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
@@ -253,43 +263,14 @@
     <span class="k">return</span> <span class="n">docstr</span>
 
 </div>
-<div class="viewcode-block" id="get_doctest_examples"><a class="viewcode-back" href="../../utool.html#utool.util_dev.get_doctest_examples">[docs]</a><span class="k">def</span> <span class="nf">get_doctest_examples</span><span class="p">(</span><span class="n">func_or_class</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    get_doctest_examples</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        func_or_class (function)</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; from utool.util_dev import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; func_or_class = get_doctest_examples</span>
-<span class="sd">        &gt;&gt;&gt; result = get_doctest_examples(func_or_class)</span>
-<span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">doctest</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">docstr</span> <span class="o">=</span> <span class="n">func_or_class</span><span class="o">.</span><span class="n">func_doc</span>
-    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-        <span class="n">docstr</span> <span class="o">=</span> <span class="n">func_or_class</span><span class="o">.</span><span class="n">__doc__</span>
-
-    <span class="n">comment_iter</span> <span class="o">=</span> <span class="n">doctest</span><span class="o">.</span><span class="n">DocTestParser</span><span class="p">()</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">docstr</span><span class="p">)</span>
-    <span class="n">current_example_lines</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">example_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">def</span> <span class="nf">append_current_example</span><span class="p">():</span>
-        <span class="c"># next example defined if any examples lines have been found</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_example_lines</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">example_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current_example_lines</span><span class="p">))</span>
-    <span class="c"># Loop over doctest lines</span>
-    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">comment_iter</span><span class="p">:</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">doctest</span><span class="o">.</span><span class="n">Example</span><span class="p">):</span>
-            <span class="n">current_example_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">c</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
-            <span class="k">pass</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">append_current_example</span><span class="p">()</span>
-            <span class="n">current_example_lines</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">append_current_example</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">example_list</span>
+<div class="viewcode-block" id="strip_line_comments"><a class="viewcode-back" href="../../utool.html#utool.util_dev.strip_line_comments">[docs]</a><span class="k">def</span> <span class="nf">strip_line_comments</span><span class="p">(</span><span class="n">code_text</span><span class="p">,</span> <span class="n">comment_char</span><span class="o">=</span><span class="s">&#39;#&#39;</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">comment_regex</span> <span class="o">=</span> <span class="n">comment_char</span> <span class="o">+</span> <span class="s">&#39; .[^</span><span class="se">\n</span><span class="s">]*$&#39;</span>
+    <span class="c"># full line comments</span>
+    <span class="n">code_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">regex_replace</span><span class="p">(</span><span class="s">&#39;^ *&#39;</span> <span class="o">+</span> <span class="n">comment_regex</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">code_text</span><span class="p">)</span>
+    <span class="c"># inline comments</span>
+    <span class="n">code_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">regex_replace</span><span class="p">(</span><span class="s">&#39;  &#39;</span> <span class="o">+</span> <span class="n">comment_regex</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">code_text</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">code_text</span>
 
 </div>
 <div class="viewcode-block" id="print_auto_docstr"><a class="viewcode-back" href="../../utool.html#utool.util_dev.print_auto_docstr">[docs]</a><span class="k">def</span> <span class="nf">print_auto_docstr</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">funcname</span><span class="p">):</span>
@@ -453,7 +434,6 @@
 <span class="sd">    Tries to make a sensible default docstr so the user</span>
 <span class="sd">    can fill things in without typing too much</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">inspect</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
     <span class="n">current_doc</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getdoc</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="n">needs_surround</span> <span class="o">=</span> <span class="n">current_doc</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_doc</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
@@ -565,6 +545,19 @@
 <span class="sd">    Compares several statments by timing them and also</span>
 <span class="sd">    checks that they have the same return value</span>
 
+<span class="sd">    Args:</span>
+<span class="sd">        stmt_list (list) : list of statments to compare</span>
+<span class="sd">        setup (str) :</span>
+<span class="sd">        iterations (int) :</span>
+<span class="sd">        verbose (bool) :</span>
+<span class="sd">        strict (bool) :</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple (bool, list, list) : (passed, time_list, result_list)</span>
+<span class="sd">            passed (bool): True if all results are the same</span>
+<span class="sd">            time_list (list): list of times for each statment</span>
+<span class="sd">            result_list (list): list of results values for each statment</span>
+
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; import utool</span>
 <span class="sd">        &gt;&gt;&gt; setup = utool.unindent(</span>
@@ -611,11 +604,11 @@
     <span class="n">time_list</span>   <span class="o">=</span> <span class="p">[</span><span class="n">timeit</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="n">stmt</span><span class="p">,</span> <span class="n">setup</span><span class="o">=</span><span class="n">setup</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="n">iterations</span><span class="p">)</span>
                    <span class="k">for</span> <span class="n">stmt</span> <span class="ow">in</span> <span class="n">stmt_list</span><span class="p">]</span>
 
+    <span class="n">passed</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">util_list</span><span class="o">.</span><span class="n">list_allsame</span><span class="p">(</span><span class="n">result_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;| Output:&#39;</span><span class="p">)</span>
-        <span class="n">valid_results</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">util_list</span><span class="o">.</span><span class="n">list_allsame</span><span class="p">(</span><span class="n">result_list</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">valid_results</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;|    * RESULTS ARE NOT VALID!!!&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">passed</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;|    * FAILED: results differ between some statements&#39;</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;| Results:&#39;</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">result_list</span><span class="p">):</span>
@@ -625,7 +618,8 @@
             <span class="k">if</span> <span class="n">strict</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;Results are not valid&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;|    * each statement produced the same result&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;|    * PASSED: each statement produced the same result&#39;</span><span class="p">)</span>
+            <span class="n">passed</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="c">#print(&#39;|    +-----------------------------------&#39;)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;|    | num | total time | per loop | stmt&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">tup</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">stmt_list</span><span class="p">,</span> <span class="n">time_list</span><span class="p">)):</span>
@@ -634,7 +628,9 @@
                   <span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="n">utool</span><span class="o">.</span><span class="n">seconds_str</span><span class="p">(</span><span class="n">time</span><span class="p">),</span>
                    <span class="n">utool</span><span class="o">.</span><span class="n">seconds_str</span><span class="p">(</span><span class="n">time</span> <span class="o">/</span> <span class="n">iterations</span><span class="p">),</span> <span class="n">stmt</span><span class="p">))</span>
         <span class="c">#print(&#39;|    L___________________________________&#39;)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;L_________________&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;L_________________&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">passed</span><span class="p">,</span> <span class="n">time_list</span><span class="p">,</span> <span class="n">result_list</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="testit"><a class="viewcode-back" href="../../utool.html#utool.util_dev.testit">[docs]</a><span class="k">def</span> <span class="nf">testit</span><span class="p">(</span><span class="n">stmt</span><span class="p">,</span> <span class="n">setup</span><span class="p">):</span>

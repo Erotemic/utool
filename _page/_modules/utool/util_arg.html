@@ -56,9 +56,9 @@
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="c">#import six</span>
 <span class="kn">import</span> <span class="nn">argparse</span>
-<span class="kn">from</span> <span class="nn">.util_type</span> <span class="kn">import</span> <span class="n">try_cast</span>
-<span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
-<span class="kn">from</span> <span class="nn">.util_print</span> <span class="kn">import</span> <span class="n">Indenter</span>
+<span class="kn">from</span> <span class="nn">utool.util_type</span> <span class="kn">import</span> <span class="n">try_cast</span>
+<span class="kn">from</span> <span class="nn">utool.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="kn">from</span> <span class="nn">utool.util_print</span> <span class="kn">import</span> <span class="n">Indenter</span>
 <span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span><span class="p">,</span> <span class="n">set_funcname</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[arg]&#39;</span><span class="p">)</span>
 
@@ -240,7 +240,7 @@
 
 </div></div>
 <div class="viewcode-block" id="autogen_argparse2"><a class="viewcode-back" href="../../utool.html#utool.util_arg.autogen_argparse2">[docs]</a><span class="k">def</span> <span class="nf">autogen_argparse2</span><span class="p">(</span><span class="n">dpath_list</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
 
 <span class="sd">    FUNCTION IS NOT FULLY IMPLEMENTED CURRENTLY ONLY RETURNS</span>
 <span class="sd">    LIST OF FLAGS THAT THE PROGRAM SILENTLY TAKES</span>
@@ -259,6 +259,7 @@
 <span class="sd">        &gt;&gt;&gt; flagtup_list_ = [ut.regex_replace(&#39;[)(\&#39;]&#39;,&#39;&#39;,tupstr) for tupstr in ut.flatten(flagtups_list)]</span>
 <span class="sd">        &gt;&gt;&gt; flagtup_list = ut.flatten([tupstr.split(&#39;,&#39;) for tupstr in flagtup_list_])</span>
 <span class="sd">        &gt;&gt;&gt; flagtup_set = set([tupstr.strip() for tupstr in flagtup_list if tupstr.find(&#39;=&#39;) == -1])</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;\n&#39;.join(flagtup_set))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
     <span class="kn">import</span> <span class="nn">parse</span>
@@ -275,6 +276,7 @@
             <span class="n">line_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">regex_replace</span><span class="p">(</span><span class="s">&#39;#.*&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
 
             <span class="n">argval_parse_list</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">{flag}</span><span class="se">\&#39;</span><span class="s"> in sys.argv&#39;</span><span class="p">,</span>
                 <span class="s">&#39;get_argval({flagtup}, type={type}, default={default})&#39;</span><span class="p">,</span>
                 <span class="s">&#39;get_argval({flagtup}, {type}, default={default})&#39;</span><span class="p">,</span>
                 <span class="s">&#39;get_argval({flagtup}, {type}, {default})&#39;</span><span class="p">,</span>
@@ -372,6 +374,15 @@
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">~~~ </span><span class="si">%s</span><span class="s"> ~~~&#39;</span> <span class="o">%</span> <span class="n">flag</span><span class="p">)</span>
     <span class="n">set_funcname</span><span class="p">(</span><span class="n">GaurdWrapper</span><span class="p">,</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">GaurdWrapper</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python utool/util_arg.py --test-autogen_argparse2</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_tests</span>
+    <span class="n">util_tests</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">([</span><span class="n">autogen_argparse2</span><span class="p">])</span>
 </pre></div>
 
           </div>

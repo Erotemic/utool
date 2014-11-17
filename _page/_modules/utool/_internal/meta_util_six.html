@@ -57,10 +57,15 @@
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s">&#39;func_name&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">set_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">newname</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">setattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s">&#39;func_name&#39;</span><span class="p">,</span> <span class="n">newname</span><span class="p">)</span>
+    <span class="c">#</span>
     <span class="k">def</span> <span class="nf">get_funcglobals</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s">&#39;func_globals&#39;</span><span class="p">)</span>
+    <span class="c">#</span>
     <span class="k">def</span> <span class="nf">get_funcdoc</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s">&#39;func_doc&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">set_funcdoc</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">newdoc</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">setattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s">&#39;func_doc&#39;</span><span class="p">,</span> <span class="n">newdoc</span><span class="p">)</span>
+    <span class="c">#</span>
     <span class="k">def</span> <span class="nf">get_imfunc</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s">&#39;im_func&#39;</span><span class="p">)</span>
     <span class="n">IntType</span>  <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">IntType</span>
@@ -75,11 +80,16 @@
 <div class="viewcode-block" id="get_funcname"><a class="viewcode-back" href="../../../utool._internal.html#utool._internal.meta_util_six.get_funcname">[docs]</a>    <span class="k">def</span> <span class="nf">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s">&#39;__name__&#39;</span><span class="p">)</span></div>
 <div class="viewcode-block" id="set_funcname"><a class="viewcode-back" href="../../../utool._internal.html#utool._internal.meta_util_six.set_funcname">[docs]</a>    <span class="k">def</span> <span class="nf">set_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">newname</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">setattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s">&#39;__name__&#39;</span><span class="p">,</span> <span class="n">newname</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="nb">setattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s">&#39;__name__&#39;</span><span class="p">,</span> <span class="n">newname</span><span class="p">)</span>
+    <span class="c">#</span></div>
 <div class="viewcode-block" id="get_funcglobals"><a class="viewcode-back" href="../../../utool._internal.html#utool._internal.meta_util_six.get_funcglobals">[docs]</a>    <span class="k">def</span> <span class="nf">get_funcglobals</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s">&#39;__globals__&#39;</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s">&#39;__globals__&#39;</span><span class="p">)</span>
+    <span class="c">#</span></div>
 <div class="viewcode-block" id="get_funcdoc"><a class="viewcode-back" href="../../../utool._internal.html#utool._internal.meta_util_six.get_funcdoc">[docs]</a>    <span class="k">def</span> <span class="nf">get_funcdoc</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s">&#39;__doc__&#39;</span><span class="p">)</span></div>
+<div class="viewcode-block" id="set_funcdoc"><a class="viewcode-back" href="../../../utool._internal.html#utool._internal.meta_util_six.set_funcdoc">[docs]</a>    <span class="k">def</span> <span class="nf">set_funcdoc</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">newdoc</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">setattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s">&#39;__doc__&#39;</span><span class="p">,</span> <span class="n">newdoc</span><span class="p">)</span>
+    <span class="c">#</span></div>
 <div class="viewcode-block" id="get_imfunc"><a class="viewcode-back" href="../../../utool._internal.html#utool._internal.meta_util_six.get_imfunc">[docs]</a>    <span class="k">def</span> <span class="nf">get_imfunc</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s">&#39;__func__&#39;</span><span class="p">)</span></div>
 <span class="k">else</span><span class="p">:</span>
