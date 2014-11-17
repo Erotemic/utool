@@ -37,7 +37,8 @@ def __execute_fromimport(module, modname, IMPORT_TUPLES):
     return FROM_IMPORTS
 
 
-def __execute_fromimport_star(module, modname, IMPORT_TUPLES):
+def __execute_fromimport_star(module, modname, IMPORT_TUPLES, ignore_list=[],
+                              ignore_startswith=[], ignore_endswith=[]):
     """ Effectively import * statements """
     if DEBUG_IMPORTS:
         print('[UTIL_IMPORT] EXECUTE FROMIMPORT STAR.')
@@ -51,7 +52,7 @@ def __execute_fromimport_star(module, modname, IMPORT_TUPLES):
                      'commonprefix', 'basename',
                      #'OrderedDict',
                      #'product',
-                     ])
+                     ] + ignore_list)
                      #'isdir', 'isfile', '
     for name, fromlist in IMPORT_TUPLES:
         #absname = modname + '.' + name
@@ -62,12 +63,16 @@ def __execute_fromimport_star(module, modname, IMPORT_TUPLES):
             """
             Guess if the attrname is valid based on its name
             """
+            is_forced  = attrname in fromset
             is_private = attrname.startswith('_')
             is_conflit = attrname in varset
             is_module  = attrname in sys.modules  # Isn't fool proof (next step is)
-            is_forced  = attrname in fromset
-            is_ignore  = attrname in ignoreset
-            return (is_forced or not (is_ignore or is_private or is_conflit or is_module))
+            is_ignore1 = attrname in ignoreset
+            is_ignore2 = any([attrname.startswith(prefix) for prefix in ignore_startswith])
+            is_ignore3 = any([attrname.endswith(suffix) for suffix in ignore_endswith])
+            is_ignore  = any((is_ignore1, is_ignore2, is_ignore3))
+            is_valid = not any((is_ignore, is_private, is_conflit, is_module))
+            return (is_forced or is_valid)
         fromlist_ = [attrname for attrname in dir(other_module) if valid_attrname(attrname)]
         valid_fromlist_ = []
         for attrname in fromlist_:
@@ -240,7 +245,8 @@ def _inject_execstr(modname, IMPORT_TUPLES):
 # PUBLIC FUNCTIONS
 #----------
 
-def dynamic_import(modname, IMPORT_TUPLES, developing=True, dump=False):
+def dynamic_import(modname, IMPORT_TUPLES, developing=True, ignore_froms=[],
+                   dump=False, ignore_startswith=[], ignore_endswith=[]):
     """
     Dynamically import listed util libraries and their attributes.
     Create reload_subs function.
@@ -259,7 +265,9 @@ def dynamic_import(modname, IMPORT_TUPLES, developing=True, dump=False):
     __excecute_imports(module, modname, IMPORTS)
     # If developing do explicit import stars
     if developing:
-        FROM_IMPORTS = __execute_fromimport_star(module, modname, IMPORT_TUPLES)
+        FROM_IMPORTS = __execute_fromimport_star(module, modname, IMPORT_TUPLES,
+                                                 ignore_startswith=ignore_startswith,
+                                                 ignore_endswith=ignore_endswith)
     else:
         FROM_IMPORTS = __execute_fromimport(module, modname, IMPORT_TUPLES)
 
