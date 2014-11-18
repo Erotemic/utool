@@ -4,10 +4,10 @@ import six
 import types
 import functools
 from collections import defaultdict
-from .util_inject import inject
-from .util_set import oset
-from . import util_arg
-from ._internal.meta_util_six import get_funcname
+from utool.util_inject import inject
+from utool.util_set import oset
+from utool import util_arg
+from utool._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[class]', DEBUG=False)
 
 
@@ -216,29 +216,71 @@ def makeForwardingMetaclass(forwarding_dest_getter, whitelist, base_class=object
 
 
 class ReloadingMetaclass(type):
+    """
+    __init__
+
+    Args:
+        metaself (?):
+        name (?):
+        bases (?):
+        dct (?):
+
+    Example:
+        >>> # DIABLE_DOCTEST
+        >>> from utool.util_class import *  # NOQA
+        >>> import utool as ut
+        >>> @six.add_metaclass(ut.ReloadingMetaclass)
+        >>> class Foo():
+        ...     def __init__(self):
+        ...        pass
+        >>> # You can edit foo on disk and call rrr in ipython
+        >>> # if you add a new function to it
+        >>> foo = Foo()
+        >>> # This will not work as a doctests because
+        >>> # Foo's parent module will be __main__ but
+        >>> # there will be no easy way to write to it.
+        >>> # This does work when you run from ipython
+        >>> @six.add_metaclass(ut.ReloadingMetaclass)
+        >>> class Foo():
+        ...     def __init__(self):
+        ...        pass
+        ...     def bar(self):
+        ...        return "spam"
+        >>> foo.rrr()
+        >>> result = foo.bar()
+        >>> print(result)
+        spam
+    """
     def __init__(metaself, name, bases, dct):
         super(ReloadingMetaclass, metaself).__init__(name, bases, dct)
 
-        def rrr(self):
+        def rrr(self, verbose=True):
             classname = self.__class__.__name__
             try:
                 modname = self.__class__.__module__
-                print('reloading ' + classname + ' from ' + modname)
+                if verbose:
+                    print('reloading ' + classname + ' from ' + modname)
                 module = sys.modules[modname]
                 if modname != '__main__':
                     # Reload the parent module
-                    module.rrr()
+                    if hasattr(module, 'rrr'):
+                        module.rrr()
+                    else:
+                        import imp
+                        imp.reload(module)
                 # Get new class definition
                 class_ = getattr(module, classname)
                 # TODO: handle injected definitions
                 reload_class_methods(self, class_)
             except Exception as ex:
-                import utool
-                utool.printex(ex, keys=[
+                import utool as ut
+                ut.printex(ex, 'Error Reloading Class', keys=[
                     'modname',
                     'module',
                     'class_',
                     'self', ])
+                #ut.embed()
+                #print(ut.dict_str(module.__dict__))
                 raise
         metaself.rrr = rrr
 
