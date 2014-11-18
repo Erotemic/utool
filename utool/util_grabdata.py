@@ -6,10 +6,10 @@ import tarfile
 import urllib
 import functools
 import time
-from . import util_path
-from . import util_cplat
-from . import util_arg
-from .util_inject import inject
+from utool import util_path
+from utool import util_cplat
+from utool import util_arg
+from utool.util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[grabdata]')
 
 
@@ -43,7 +43,7 @@ def unzip_file(zip_fpath, force_commonprefix=True):
 
 def _extract_archive(archive_fpath, archive_file, archive_namelist, output_dir, force_commonprefix=True):
     # force extracted components into a subdirectory if force_commonprefix is on
-    return_path = output_dir
+    #return_path = output_diG
     if force_commonprefix and commonprefix(archive_namelist) == '':
         # use the archivename as the default common prefix
         archive_basename, ext = split_archive_ext(basename(archive_fpath))
@@ -153,9 +153,46 @@ def split_archive_ext(path):
 
 
 def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
-                  delay=None, spoof=False):
+                  delay=None, spoof=False, fname=None):
+    """
+    grab_file_url
+
+    Args:
+        file_url (str):
+        ensure (bool):
+        appname (str):
+        download_dir (None):
+        delay (None):
+        spoof (bool):
+        fname (None):
+
+    Returns:
+        str: fpath
+
+    CommandLine:
+        sh -c "python ~/code/utool/utool/util_grabdata.py --all-examples"
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_grabdata import *  # NOQA
+        >>> import utool as ut  # NOQA
+        >>> from os.path import basename
+        >>> file_url = 'http://i.imgur.com/JGrqMnV.png'
+        >>> ensure = True
+        >>> appname = 'utool'
+        >>> download_dir = None
+        >>> delay = None
+        >>> spoof = False
+        >>> fname ='lena.png'
+        >>> lena_fpath = grab_file_url(file_url, ensure, appname, download_dir, delay, spoof, fname)
+        >>> result = basename(lena_fpath)
+        >>> print(result)
+        lena.png
+
+    """
     file_url = fix_dropbox_link(file_url)
-    fname = split(file_url)[1]
+    if fname is None:
+        fname = basename(file_url)
     # Download zipfile to
     if download_dir is None:
         download_dir = util_cplat.get_app_resource_dir(appname)
@@ -208,3 +245,18 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool', download_dir=None,
     if cleanup:
         util_path.assert_exists(data_dir)
     return util_path.unixpath(data_dir)
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        sh -c "python ~/code/utool/utool/util_grabdata.py --all-examples"
+        python -c "import utool, utool.util_grabdata; utool.doctest_funcs(utool.util_grabdata, allexamples=True)"
+        python -c "import utool, utool.util_grabdata; utool.doctest_funcs(utool.util_grabdata)"
+        python utool\util_grabdata.py
+        python utool\util_grabdata.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
