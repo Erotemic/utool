@@ -3,29 +3,28 @@ from __future__ import absolute_import, division, print_function
 from setuptools import setup
 
 
-INSTALL_REQUIRES = [
-    'six',
-    'psutil',
-    #'decorator',
-]
+def utool_setup():
+    INSTALL_REQUIRES = [
+        'six',
+        'psutil',
+        'parse',
+        #'decorator',
+    ]
 
-INSTALL_OPTIONAL = [
-    'numpy >= 1.8.0',  # TODO REMOVE DEPENDENCY
-    'astor',
-    'objgraph',
-    'sphinx',
-    'sphinxcontrib-napoleon',
-    'guppy',
-]
+    INSTALL_OPTIONAL = [
+        'numpy >= 1.8.0',  # TODO REMOVE DEPENDENCY
+        'astor',
+        'objgraph',
+        'sphinx',
+        'sphinxcontrib-napoleon',
+        'guppy',
+    ]
 
-INSTALL_REQUIRES += INSTALL_OPTIONAL
+    INSTALL_REQUIRES += INSTALL_OPTIONAL
 
-# HACK: Please remove someday
-from utool import util_setup
-ext_modules = util_setup.find_ext_modules()
-
-
-if __name__ == '__main__':
+    # HACK: Please remove someday
+    from utool import util_setup
+    ext_modules = util_setup.find_ext_modules()
     import sys
     for arg in iter(sys.argv[:]):
         # Clean clutter files
@@ -69,3 +68,7 @@ if __name__ == '__main__':
         ],
         classifiers=[],
     )
+
+
+if __name__ == '__main__':
+    utool_setup()
