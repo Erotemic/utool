@@ -17,7 +17,7 @@ class AbstractPrintable(__BASE_CLASS__):
         self._printable_exclude = ['_printable_exclude'] + child_print_exclude
 
     def __str__(self):
-        from .util_dev import printableType
+        from utool.util_dev import printableType
         head = printableType(self)
         body = self.get_printable(type_bit=True)
         body = re.sub('\n *\n *\n', '\n\n', body)
@@ -48,8 +48,8 @@ class AbstractPrintable(__BASE_CLASS__):
                       val_bit=True,
                       max_valstr=MAX_VALSTR,
                       justlength=False):
-        from .util_dev import printableVal, printableType
-        from .util_str import truncate_str
+        from utool.util_dev import printableVal, printableType
+        from utool.util_str import truncate_str
         body = ''
         attri_list = []
         exclude_key_list = list(self._printable_exclude) + list(print_exclude_aug)

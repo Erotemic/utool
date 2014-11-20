@@ -18,6 +18,59 @@ from . import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
 
 
+def estimate_pdf(data, gridsize=1024):
+    """
+    estimate_pdf
+
+    References;
+        http://statsmodels.sourceforge.net/devel/generated/statsmodels.nonparametric.kde.KDEUnivariate.html
+        https://jakevdp.github.io/blog/2013/12/01/kernel-density-estimation/
+
+    Args:
+        data (?):
+        bw_factor (?):
+
+    Returns:
+        ?: data_pdf
+
+    Example:
+        >>> from utool.util_alg import *  # NOQA
+        >>> import plottool as pt
+        >>> data = '?'
+        >>> bw_factor = '?'
+        >>> data_pdf = estimate_pdf(data, bw_factor)
+        >>> pt.plot(data_pdf.cdf)
+        >>> print(data_pdf)
+    """
+    import utool as ut
+    #import scipy.stats as spstats
+    #import statsmodels
+    import numpy as np
+    import statsmodels.nonparametric.kde
+    try:
+        data_pdf = statsmodels.nonparametric.kde.KDEUnivariate(data)
+        bw_choices = ['scott', 'silverman', 'normal_reference']
+        bw = bw_choices[1]
+        fitkw = dict(kernel='gau',
+                     bw=bw,
+                     fft=True,
+                     weights=None,
+                     adjust=1,
+                     cut=3,
+                     gridsize=gridsize,
+                     clip=(-np.inf, np.inf),)
+        data_pdf.fit(**fitkw)
+        #density = data_pdf.density
+    #try:
+    #    data_pdf = spstats.gaussian_kde(data, bw_factor)
+    #    data_pdf.covariance_factor = bw_factor
+    except Exception as ex:
+        ut.printex(ex, '! Exception while estimating kernel density',
+                   keys=['data'])
+        raise
+    return data_pdf
+
+
 def normalize(array, dim=0):
     return norm_zero_one(array, dim)
 

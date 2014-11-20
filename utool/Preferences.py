@@ -12,11 +12,11 @@ try:
     import numpy as np
 except ImportError as ex:
     pass
-from .DynamicStruct import DynStruct
-from .util_dbg import printex
-from .util_type import is_str, is_dict, try_cast
-from . import util_inject
-from . import util_type
+from utool.DynamicStruct import DynStruct
+from utool.util_dbg import printex
+from utool.util_type import is_str, is_dict, try_cast
+from utool import util_inject
+from utool import util_type
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[pref]')
 
 # ---

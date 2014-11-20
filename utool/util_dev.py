@@ -17,8 +17,8 @@ except ImportError as ex:
     HAS_NUMPY = False
     pass
 from os.path import splitext, exists, join, split, relpath
-from . import util_inject
-from . import util_regex
+from utool import util_inject
+from utool import util_regex
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[dev]')
 
 if HAS_NUMPY:
@@ -963,7 +963,7 @@ def get_stats(list_, axis=None):
 # --- Info Strings ---
 
 
-def get_stats_str(list_, newlines=False):
+def get_stats_str(list_, newlines=False, exclude_keys=[]):
     """
     Returns the string version of get_stats
 
@@ -971,9 +971,16 @@ def get_stats_str(list_, newlines=False):
         print_stats
         get_stats
     """
-    from .util_str import dict_str
+    from utool.util_str import dict_str
+    import utool as ut
     stat_dict = get_stats(list_)
+    for key in exclude_keys:
+        del stat_dict[key]
     stat_str  = dict_str(stat_dict, strvals=True, newlines=newlines)
+    FIND_LABEL = True
+    if FIND_LABEL:
+        lbl = ut.get_varname_from_stack(list_, N=1)
+        stat_str = 'stats(' + lbl + ') = ' + stat_str
     #stat_strs = ['%r: %s' % (key, val) for key, val in six.iteritems(stat_dict)]
     #if newlines:
     #    indent = '    '
