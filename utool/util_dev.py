@@ -963,7 +963,7 @@ def get_stats(list_, axis=None):
 # --- Info Strings ---
 
 
-def get_stats_str(list_, newlines=False, exclude_keys=[]):
+def get_stats_str(list_, newlines=False, exclude_keys=[], lbl=None):
     """
     Returns the string version of get_stats
 
@@ -977,8 +977,7 @@ def get_stats_str(list_, newlines=False, exclude_keys=[]):
     for key in exclude_keys:
         del stat_dict[key]
     stat_str  = dict_str(stat_dict, strvals=True, newlines=newlines)
-    FIND_LABEL = True
-    if FIND_LABEL:
+    if lbl is True:
         lbl = ut.get_varname_from_stack(list_, N=1)
         stat_str = 'stats(' + lbl + ') = ' + stat_str
     #stat_strs = ['%r: %s' % (key, val) for key, val in six.iteritems(stat_dict)]
