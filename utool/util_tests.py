@@ -562,6 +562,11 @@ def bubbletext(text, font='cybermedium'):
     r"""
     Other fonts include: cybersmall, cybermedium, and cyberlarge
 
+    import pyfiglet
+
+    References:
+        http://www.figlet.org/
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> import utool
