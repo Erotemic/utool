@@ -280,13 +280,19 @@ def sed(regexpr, repl, force=False, recursive=False, dpath_list=None):
         sedfile(fpath, regexpr, repl, force)
 
 
-def sedfile(fpath, regexpr, repl, force=False, verbose=True):
+def sedfile(fpath, regexpr, repl, force=False, verbose=True, veryverbose=False):
     """
     Executes sed on a specific file
     """
     # TODO: move to util_edit
     path, name = split(fpath)
     new_file_lines = []
+
+    if veryverbose:
+        print('[sedfile] fpath=%r' % fpath)
+        print('[sedfile] regexpr=%r' % regexpr)
+        print('[sedfile] repl=%r' % repl)
+        print('[sedfile] force=%r' % force)
     with open(fpath, 'r') as file:
         file_lines = file.readlines()
         # Search each line for the desired regexpr
@@ -318,4 +324,6 @@ def sedfile(fpath, regexpr, repl, force=False, verbose=True):
             with open(fpath, 'w') as file:
                 file.write(new_file)
         return changed_lines
+    elif verbose:
+        print('Nothing changed')
     return None

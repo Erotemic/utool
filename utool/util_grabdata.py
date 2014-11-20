@@ -44,6 +44,7 @@ def unzip_file(zip_fpath, force_commonprefix=True):
 def _extract_archive(archive_fpath, archive_file, archive_namelist, output_dir, force_commonprefix=True):
     # force extracted components into a subdirectory if force_commonprefix is on
     #return_path = output_diG
+    # FIXME doesn't work right
     if force_commonprefix and commonprefix(archive_namelist) == '':
         # use the archivename as the default common prefix
         archive_basename, ext = split_archive_ext(basename(archive_fpath))
@@ -212,7 +213,7 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
 
 
 def grab_zipped_url(zipped_url, ensure=True, appname='utool', download_dir=None,
-                    force_commonprefix=True, cleanup=True):
+                    force_commonprefix=True, cleanup=False):
     """
     downloads and unzips the url
 
@@ -238,6 +239,10 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool', download_dir=None,
             # Download and unzip testdata
             zip_fpath = realpath(join(download_dir, zip_fname))
             print('[utool] Downloading archive %s' % zip_fpath)
+            #true_zipped_fpath = grab_file_url(zipped_url,
+            #                                  download_dir=download_dir,
+            #                                  appname=appname)
+            #data_dir = unarchive_file(true_zipped_fpath, force_commonprefix)
             download_url(zipped_url, zip_fpath)
             unarchive_file(zip_fpath, force_commonprefix)
             if cleanup:
