@@ -626,6 +626,34 @@ def get_relative_modpath(module_fpath):
     return rel_modpath
 
 
+def get_modname_from_modpath(module_fpath):
+    """
+    returns importable name from file path
+
+    get_modname_from_modpath
+
+    Args:
+        module_fpath (str): module filepath
+
+    Returns:
+        str: modname
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
+        >>> module_fpath = ut.util_path.__file__
+        >>> modname = ut.get_modname_from_modpath(module_fpath)
+        >>> result = modname
+        >>> print(result)
+        utool.util_path
+    """
+    modsubdir_list = get_module_subdir_list(module_fpath)
+    modname = '.'.join(modsubdir_list)
+    modname = modname.replace('.__init__', '').strip()
+    return modname
+
+
 def get_module_subdir_list(module_fpath):
     """
     get_module_subdir_list
@@ -654,34 +682,6 @@ def get_module_subdir_list(module_fpath):
         _modsubdir_list.append(dname)
     modsubdir_list = _modsubdir_list[::-1]
     return modsubdir_list
-
-
-def get_modname_from_modpath(module_fpath):
-    """
-    returns importable name from file path
-
-    get_modname_from_modpath
-
-    Args:
-        module_fpath (str): module filepath
-
-    Returns:
-        str: modname
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from utool.util_path import *  # NOQA
-        >>> import utool as ut
-        >>> module_fpath = ut.util_path.__file__
-        >>> modname = ut.get_modname_from_modpath(module_fpath)
-        >>> result = modname
-        >>> print(result)
-        utool.util_path
-    """
-    modsubdir_list = get_module_subdir_list(module_fpath)
-    modname = '.'.join(modsubdir_list)
-    modname = modname.replace('.__init__', '').strip()
-    return modname
 
 
 def tail(fpath):

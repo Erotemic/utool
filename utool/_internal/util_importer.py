@@ -223,6 +223,8 @@ def _inject_execstr(modname, IMPORT_TUPLES):
     rrrr = reload_subs
     # ENDBLOCK
     ''')
+    injectstr_fmt = injectstr_fmt.replace('# STARTBLOCK', '')
+    injectstr_fmt = injectstr_fmt.replace('# ENDBLOCK', '')
     rrrdir_fmt  = '    getattr(%s, \'reload_subs\', lambda verbose: None)(verbose=verbose)'
     rrrfile_fmt = '    getattr(%s, \'rrr\', lambda verbose: None)(verbose=verbose)'
 
@@ -328,12 +330,16 @@ def make_initstr(modname, IMPORT_TUPLES):
     return _initstr(modname, IMPORTS, FROM_IMPORTS, inject_execstr)
 
 
-def make_import_tuples(module_path):
+def make_import_tuples(module_path, exclude_modnames=[]):
     """ Infer the IMPORT_TUPLES from a module_path """
     from utool import util_path
     kwargs = dict(private=False, full=False)
-    module_list = util_path.ls_modulefiles(module_path, noext=True, **kwargs)
+    module_list  = util_path.ls_modulefiles(module_path, noext=True, **kwargs)
     package_list = util_path.ls_moduledirs(module_path, **kwargs)
-    IMPORT_TUPLES = ([(modname, None, False) for modname in module_list] +
-                     [(modname, None, True)  for modname in package_list])
+    exclude_set = set(exclude_modnames)
+    module_import_tuples = [(modname, None, False) for modname in module_list
+                            if modname not in exclude_set]
+    package_import_tuples = [(modname, None, True)  for modname in package_list
+                            if modname not in exclude_set]
+    IMPORT_TUPLES = (module_import_tuples + package_import_tuples)
     return IMPORT_TUPLES

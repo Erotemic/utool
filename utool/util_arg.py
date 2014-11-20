@@ -62,6 +62,7 @@ def get_argval(argstr_, type_=None, default=None, help_=None):
         if isinstance(argstr_, six.string_types):
             argstr_list = (argstr_,)
         else:
+            # HACK FOR LIST. TODO INTEGRATE
             argstr_list = argstr_
         for argx, item in enumerate(sys.argv):
             for argstr in argstr_list:
@@ -69,14 +70,33 @@ def get_argval(argstr_, type_=None, default=None, help_=None):
                     if argx < len(sys.argv):
                         if type_ is bool:
                             arg_after = True
+                        elif type_ is list:
+                            # HACK FOR LIST. TODO INTEGRATE
+                            arg_after = parse_arglist_hack(argx)
                         else:
                             arg_after = try_cast(sys.argv[argx + 1], type_)
+
                 if item.startswith(argstr + '='):
                     val_after = ''.join(item.split('=')[1:])
-                    arg_after = try_cast(val_after, type_)
+                    if type_ is list:
+                        # HACK FOR LIST. TODO INTEGRATE
+                        arg_after = val_after.split(',')
+                    else:
+                        arg_after = try_cast(val_after, type_)
     except Exception:
         pass
     return arg_after
+
+
+def parse_arglist_hack(argx):
+    arglist = []
+    for argx2 in range(argx + 1, len(sys.argv)):
+        listarg = sys.argv[argx2]
+        if listarg.startswith('-'):
+            break
+        else:
+            arglist.append(listarg)
+    return arglist
 
 
 def get_argflag(arg, default=False, help_='', **kwargs):
