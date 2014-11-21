@@ -142,14 +142,13 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=1):
         return -1
     except ValueError as ex:
         from utool.util_arg import STRICT
-        if isinstance(datetime_str_, six.string_types):
-            if datetime_str_.find('No EXIF Data') == 0:
+        if isinstance(datetime_str, six.string_types):
+            if datetime_str.find('No EXIF Data') == 0:
                 return -1
-            if datetime_str_.find('Invalid') == 0:
+            if datetime_str.find('Invalid') == 0:
                 return -1
-            if datetime_str_ == '0000:00:00 00:00:00':
+            if datetime_str == '0000:00:00 00:00:00':
                 return -1
-
         print('<!!! ValueError !!!>')
         print('[util_time] Caught Error: ' + repr(ex))
         print('[util_time] type(datetime_str)  = %r' % type(datetime_str))
