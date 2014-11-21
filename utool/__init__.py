@@ -139,13 +139,13 @@ if DOELSE:
      
     from utool.util_alg import (HAS_NUMPY, PHI, PHI_A, PHI_B, almost_eq, 
                                 build_reverse_mapping, cartesian, choose, 
-                                defaultdict, euclidean_dist, find_std_inliers, 
-                                flatten_membership_mapping, get_nth_prime, 
-                                get_phi, get_phi_ratio1, group_items, iceil, 
-                                iround, is_prime, item_hist, 
-                                negative_minclamp_inplace, norm_zero_one, 
-                                normalize, search_utool, unique_row_indexes, 
-                                unpack_items_sorted, 
+                                defaultdict, estimate_pdf, euclidean_dist, 
+                                find_std_inliers, flatten_membership_mapping, 
+                                get_nth_prime, get_phi, get_phi_ratio1, 
+                                group_items, iceil, iround, is_prime, 
+                                item_hist, negative_minclamp_inplace, 
+                                norm_zero_one, normalize, search_utool, 
+                                unique_row_indexes, unpack_items_sorted, 
                                 unpack_items_sorted_by_lenvalue, 
                                 unpack_items_sorted_by_value, 
                                 void_rowview_numpy, xywh_to_tlbr,) 
@@ -157,8 +157,8 @@ if DOELSE:
                                 argv_flag_dec_true, autogen_argparse2, 
                                 fuzzy_int, get_arg, get_argflag, get_argval, 
                                 get_flag, get_fpath_args, get_funcname, inject, 
-                                make_argparse2, set_funcname, switch_sanataize, 
-                                try_cast,) 
+                                make_argparse2, parse_arglist_hack, 
+                                set_funcname, switch_sanataize, try_cast,) 
     from utool.util_cache import (Cacher, GlobalShelfContext, cached_func, 
                                   chain, default_appname, delete_global_cache, 
                                   get_argnames, get_cfgstr_from_args, 
@@ -440,8 +440,6 @@ if DOELSE:
     from utool.DynamicStruct import (AbstractPrintable, DynStruct,) 
     from utool.Preferences import (Pref, PrefChoice, PrefInternal, PrefNode, 
                                    PrefTree,) 
-    # STARTBLOCK
-    
     print, print_, printDBG, rrr, profile = util_inject.inject(
         __name__, '[utool]')
     
@@ -522,5 +520,4 @@ if DOELSE:
         except Exception as ex:
             print(ex)
     rrrr = reload_subs
-    # ENDBLOCK
     # </AUTOGEN_INIT>
