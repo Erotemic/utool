@@ -480,6 +480,9 @@ def run_test(func, *args, **kwargs):
                             errmsg1 = ''
                             errmsg1 += ('GOT: result=\n%s\n' % (result))
                             errmsg1 += ('EXPECTED: want=\n%s\n' % (want))
+                            errmsg1 += ''
+                            errmsg1 += ('GOT: result=\n%r\n' % (result))
+                            errmsg1 += ('EXPECTED: want=\n%r\n' % (want))
                             raise AssertionError('result != want\n' + errmsg1)
                         #assert result == want, 'result is not the same as want'
                     #print('\n'.join(output_lines))

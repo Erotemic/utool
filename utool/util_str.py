@@ -509,7 +509,8 @@ def horiz_string(*args):
     Prints a list of objects ensuring that the next item in the list
     is all the way to the right of any previous items.
 
-    Example:
+    Example1:
+        >>> # ENABLE_DOCTEST
         >>> # Pretty printing of matrices demo / test
         >>> import utool
         >>> import numpy as np
@@ -518,15 +519,19 @@ def horiz_string(*args):
         >>> C = np.array(((5, 6), (7, 8)))
         >>> A = B.dot(C)
         >>> # Eg 1:
-        >>> str_list = ['A = ', str(B), ' * ', str(C)]
-        >>> horizstr = (utool.horiz_string(*str_list))
-        >>> print(horizstr)
-        A = [[1 2]  * [[5 6]
-             [3 4]]    [7 8]]
-        >>> # Eg 2:
-        >>> print(utool.hz_str('A = ', A, ' = ', B, ' * ', C))
+        >>> result = (utool.hz_str('A = ', A, ' = ', B, ' * ', C))
+        >>> print(result)
         A = [[19 22]  = [[1 2]  * [[5 6]
              [43 50]]    [3 4]]    [7 8]]
+
+    Exam2:
+        >>> # Eg 2:
+        >>> str_list = ['A = ', str(B), ' * ', str(C)]
+        >>> horizstr = (utool.horiz_string(*str_list))
+        >>> result = (horizstr)
+        >>> print(result)
+        A = [[1 2]  * [[5 6]
+             [3 4]]    [7 8]]
     """
 
     if len(args) == 1 and not isinstance(args[0], str):
@@ -551,6 +556,7 @@ def horiz_string(*args):
             hpos_diff = hpos - len(all_lines[lx])
             if hpos_diff > 0:
                 all_lines[lx] += ' ' * hpos_diff
+    all_lines = [line.rstrip(' ') for line in all_lines]
     ret = '\n'.join(all_lines)
     return ret
 

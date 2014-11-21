@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 from itertools import product as iprod
 from six.moves import zip
 from collections import defaultdict
-from .util_inject import inject
+from utool.util_inject import inject
 import six
 try:
     import numpy as np
@@ -21,12 +21,15 @@ def invert_dict(dict_):
         dict_ (dict_):
 
     Returns:
-        ?: inverted_dict
+        dict: inverted_dict
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
         >>> dict_ = {'a': 1, 'b': 2}
         >>> inverted_dict = invert_dict(dict_)
+        >>> result = inverted_dict
+        >>> print(result)
         {1: 'a', 2: 'b'}
     """
     inverted_dict = {val: key for key, val in six.iteritems(dict_)}
@@ -51,10 +54,12 @@ def all_dict_combinations_lbls(varied_dict):
     in each label.
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> import utool
         >>> varied_dict = {'logdist_weight': [0.0, 1.0], 'pipeline_root': ['vsmany'], 'sv_on': [True, False, None]}
         >>> comb_lbls = utool.all_dict_combinations_lbls(varied_dict)
-        >>> print(utool.list_str(comb_lbls))
+        >>> result = (utool.list_str(comb_lbls))
+        >>> print(result)
         [
             (('sv_on', True), ('logdist_weight', 0.0)),
             (('sv_on', True), ('logdist_weight', 1.0)),
@@ -161,6 +166,23 @@ def dict_where_len0(dict_):
 
 
 def dictinfo(dict_):
+    """
+    dictinfo
+
+    In depth debugging info
+
+    Args:
+        dict_ (dict):
+
+    Returns:
+        str
+
+    Example:
+        >>> from utool.util_dict import *  # NOQA
+        >>> dict_ = {}
+        >>> result = dictinfo(dict_)
+        >>> print(result)
+    """
     import utool as ut
     if not isinstance(dict_, dict):
         return 'expected dict got %r' % type(dict_)
@@ -213,3 +235,17 @@ def dictinfo(dict_):
 
     fmtstr = fmtstr_.format(**locals())
     return ut.indent(fmtstr)
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, utool.util_dict; utool.doctest_funcs(utool.util_dict, allexamples=True)"
+        python -c "import utool, utool.util_dict; utool.doctest_funcs(utool.util_dict)"
+        python utool/util_dict.py
+        python utool/util_dict.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

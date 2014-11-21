@@ -128,6 +128,8 @@ EOF
     RUN_TEST utool/util_list.py --test-sortedby:0
     RUN_TEST utool/util_list.py --test-sortedby2:0
     RUN_TEST utool/util_list.py --test-unflatten2:0
+    RUN_TEST utool/util_dict.py --test-all_dict_combinations_lbls:0
+    RUN_TEST utool/util_dict.py --test-invert_dict:0
     RUN_TEST utool/util_time.py --test-Timer:0
     RUN_TEST utool/util_time.py --test-get_timedelta_str:0
     RUN_TEST utool/util_time.py --test-get_timestamp:0
@@ -138,10 +140,12 @@ EOF
     RUN_TEST utool/util_iter.py --test-interleave:0
     RUN_TEST utool/util_parallel.py --test-ProgressIter:0
     RUN_TEST utool/util_str.py --test-align:0
+    RUN_TEST utool/util_str.py --test-horiz_string:0
     RUN_TEST utool/util_str.py --test-seconds_str:0
     RUN_TEST utool/util_numpy.py --test-intersect2d:0
     RUN_TEST utool/util_numpy.py --test-sample_domain:0
     RUN_TEST utool/util_dbg.py --test-execstr_dict:0
+    RUN_TEST utool/util_dbg.py --test-horiz_string:0
     RUN_TEST utool/util_grabdata.py --test-grab_file_url:0
     RUN_TEST utool/util_path.py --test-get_modname_from_modpath:0
     RUN_TEST utool/util_path.py --test-get_module_subdir_list:0
