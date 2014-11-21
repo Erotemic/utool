@@ -90,10 +90,10 @@
 <div class="viewcode-block" id="get_free_diskbytes"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.get_free_diskbytes">[docs]</a><span class="k">def</span> <span class="nf">get_free_diskbytes</span><span class="p">(</span><span class="n">dir_</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
-<span class="sd">    folder/drive free space (in bytes)</span>
+<span class="sd">        folder/drive free space (in bytes)</span>
 
 <span class="sd">    References::</span>
-<span class="sd">    http://stackoverflow.com/questions/51658/cross-platform-space-remaining-on-volume-using-python</span>
+<span class="sd">        http://stackoverflow.com/questions/51658/cross-platform-space-remaining-on-volume-using-python</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">WIN32</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">ctypes</span>
@@ -110,7 +110,10 @@
 
 </div>
 <div class="viewcode-block" id="get_disk_space"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.get_disk_space">[docs]</a><span class="k">def</span> <span class="nf">get_disk_space</span><span class="p">(</span><span class="n">start_path</span><span class="o">=</span><span class="s">&#39;.&#39;</span><span class="p">):</span>
-    <span class="c"># http://stackoverflow.com/questions/1392413/calculating-a-directory-size-using-python</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    References:</span>
+<span class="sd">        # http://stackoverflow.com/questions/1392413/calculating-a-directory-size-using-python</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">total_size</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">dirpath</span><span class="p">,</span> <span class="n">dirnames</span><span class="p">,</span> <span class="n">filenames</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">start_path</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">:</span>
@@ -156,8 +159,8 @@
 
 </div>
 <div class="viewcode-block" id="ls_libs"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.ls_libs">[docs]</a><span class="k">def</span> <span class="nf">ls_libs</span><span class="p">(</span><span class="n">dpath</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_list</span>
-    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_path</span>
+    <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_list</span>
+    <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_path</span>
     <span class="n">lib_patterns</span> <span class="o">=</span> <span class="n">get_dynamic_lib_globstrs</span><span class="p">()</span>
     <span class="n">libpaths_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">util_path</span><span class="o">.</span><span class="n">ls</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="n">pat</span><span class="p">)</span> <span class="k">for</span> <span class="n">pat</span> <span class="ow">in</span> <span class="n">lib_patterns</span><span class="p">]</span>
     <span class="n">libpath_list</span> <span class="o">=</span> <span class="n">util_list</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">libpaths_list</span><span class="p">)</span>
@@ -255,7 +258,20 @@
 
 </div>
 <div class="viewcode-block" id="view_directory"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.view_directory">[docs]</a><span class="k">def</span> <span class="nf">view_directory</span><span class="p">(</span><span class="n">dname</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; view directory &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    view directory</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dname (str): directory name</span>
+<span class="sd">        verbose (bool):</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DOCTEST_DISABLE</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_cplat import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; dname = None</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; view_directory(dname, verbose)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">.util_arg</span> <span class="kn">import</span> <span class="n">STRICT</span>
     <span class="kn">from</span> <span class="nn">.util_path</span> <span class="kn">import</span> <span class="n">checkpath</span>
 
@@ -493,6 +509,18 @@
 <div class="viewcode-block" id="get_python_dynlib"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.get_python_dynlib">[docs]</a><span class="k">def</span> <span class="nf">get_python_dynlib</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    python -c &quot;import utool; print(utool.get_python_dynlib())&quot;</span>
+
+<span class="sd">    get_python_dynlib</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ?: dynlib</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DOCTEST_DISABLE</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_cplat import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; dynlib = get_python_dynlib()</span>
+<span class="sd">        &gt;&gt;&gt; print(dynlib)</span>
+<span class="sd">        /usr/lib/x86_64-linux-gnu/libpython2.7.so</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">sysconfig</span>
     <span class="n">cfgvars</span> <span class="o">=</span> <span class="n">sysconfig</span><span class="o">.</span><span class="n">get_config_vars</span><span class="p">()</span>
@@ -510,7 +538,20 @@
 <span class="c">#        if &quot;.&quot;+name+&quot;\t(&quot; in var:</span>
 <span class="c">#                print name+&quot; is running&quot;</span>
 <span class="c">#        else:</span>
-<span class="c">#                print name+&quot; is not running&quot;</span></div>
+<span class="c">#                print name+&quot; is not running&quot;</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -c &quot;import utool, utool.util_cplat; utool.doctest_funcs(utool.util_cplat, allexamples=True)&quot;</span>
+<span class="sd">        python -c &quot;import utool, utool.util_cplat; utool.doctest_funcs(utool.util_cplat)&quot;</span>
+<span class="sd">        python utool/util_cplat.py</span>
+<span class="sd">        python utool/util_cplat.py --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

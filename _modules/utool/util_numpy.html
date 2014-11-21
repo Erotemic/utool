@@ -53,7 +53,7 @@
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
     <span class="k">pass</span>
-<span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="kn">from</span> <span class="nn">utool.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[numpy]&#39;</span><span class="p">)</span>
 
 
@@ -93,9 +93,10 @@
 
 </div>
 <div class="viewcode-block" id="spaced_indexes"><a class="viewcode-back" href="../../utool.html#utool.util_numpy.spaced_indexes">[docs]</a><span class="k">def</span> <span class="nf">spaced_indexes</span><span class="p">(</span><span class="n">len_</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">trunc</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Returns n evenly spaced indexes.</span>
-<span class="sd">        Returns as many as possible if trunc is true</span>
-<span class="sd">     &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns n evenly spaced indexes.</span>
+<span class="sd">    Returns as many as possible if trunc is true</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">n</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">len_</span><span class="p">)</span>
@@ -120,8 +121,10 @@
 
 </div>
 <div class="viewcode-block" id="intersect2d_numpy"><a class="viewcode-back" href="../../utool.html#utool.util_numpy.intersect2d_numpy">[docs]</a><span class="k">def</span> <span class="nf">intersect2d_numpy</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span>
-    <span class="c">#http://stackoverflow.com/questions/8317022/</span>
-    <span class="c">#get-intersecting-rows-across-two-2d-numpy-arrays/8317155#8317155</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    References::</span>
+<span class="sd">        http://stackoverflow.com/questions/8317022/get-intersecting-rows-across-two-2d-numpy-arrays/8317155#8317155</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># TODO: MOVE to numpy libs</span>
     <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span>
     <span class="c"># HACK to get consistent dtypes</span>
@@ -150,6 +153,7 @@
 <span class="sd">        tuple: (C, Ax, Bx)</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_numpy import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import utool as ut</span>
 <span class="sd">        &gt;&gt;&gt; A = np.array([[1, 2, 3], [1, 1, 1]])</span>
@@ -225,12 +229,14 @@
 </div>
 <div class="viewcode-block" id="sample_domain"><a class="viewcode-back" href="../../utool.html#utool.util_numpy.sample_domain">[docs]</a><span class="k">def</span> <span class="nf">sample_domain</span><span class="p">(</span><span class="n">min_</span><span class="p">,</span> <span class="n">max_</span><span class="p">,</span> <span class="n">nSamp</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;linear&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    &gt;&gt;&gt; import utool</span>
-<span class="sd">    &gt;&gt;&gt; min_ = 10</span>
-<span class="sd">    &gt;&gt;&gt; max_ = 1000</span>
-<span class="sd">    &gt;&gt;&gt; nSamp  = 7</span>
-<span class="sd">    &gt;&gt;&gt; utool.sample_domain(min_, max_, nSamp)</span>
-<span class="sd">    [10, 151, 293, 434, 576, 717, 859]</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; import utool</span>
+<span class="sd">        &gt;&gt;&gt; min_ = 10</span>
+<span class="sd">        &gt;&gt;&gt; max_ = 1000</span>
+<span class="sd">        &gt;&gt;&gt; nSamp  = 7</span>
+<span class="sd">        &gt;&gt;&gt; result = utool.sample_domain(min_, max_, nSamp)</span>
+<span class="sd">        [10, 151, 293, 434, 576, 717, 859]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s">&#39;linear&#39;</span><span class="p">:</span>
         <span class="n">samples_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">min_</span><span class="p">,</span> <span class="n">max_</span><span class="p">,</span> <span class="n">nSamp</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
@@ -249,7 +255,21 @@
     <span class="k">def</span> <span class="nf">incrementer</span><span class="p">(</span><span class="n">_mem</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
         <span class="n">_mem</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="k">return</span> <span class="n">_mem</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">incrementer</span></div>
+    <span class="k">return</span> <span class="n">incrementer</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -c &quot;import utool, utool.util_numpy; utool.doctest_funcs(utool.util_numpy, allexamples=True)&quot;</span>
+<span class="sd">        python -c &quot;import utool, utool.util_numpy; utool.doctest_funcs(utool.util_numpy)&quot;</span>
+<span class="sd">        python utool/util_numpy.py</span>
+<span class="sd">        python utool/util_numpy.py --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

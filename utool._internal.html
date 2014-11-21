@@ -540,7 +540,7 @@ Corrects fundamental problems with windows paths.~</p>
 <p>NEEDS CLEANUP SO IT EITHER DOES THE IMPORTS OR GENERATES THE FILE</p>
 <dl class="function">
 <dt id="utool._internal.util_importer.dynamic_import">
-<tt class="descclassname">utool._internal.util_importer.</tt><tt class="descname">dynamic_import</tt><big>(</big><em>modname</em>, <em>IMPORT_TUPLES</em>, <em>developing=True</em>, <em>dump=False</em><big>)</big><a class="reference internal" href="_modules/utool/_internal/util_importer.html#dynamic_import"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool._internal.util_importer.dynamic_import" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utool._internal.util_importer.</tt><tt class="descname">dynamic_import</tt><big>(</big><em>modname</em>, <em>IMPORT_TUPLES</em>, <em>developing=True</em>, <em>ignore_froms=[]</em>, <em>dump=False</em>, <em>ignore_startswith=[]</em>, <em>ignore_endswith=[]</em><big>)</big><a class="reference internal" href="_modules/utool/_internal/util_importer.html#dynamic_import"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool._internal.util_importer.dynamic_import" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dynamically import listed util libraries and their attributes.
 Create reload_subs function.</p>
 <p>Using __import__ like this is typically not considered good style However,
@@ -550,7 +550,7 @@ can be used when the module is &#8220;frozen&#8221;</p>
 
 <dl class="function">
 <dt id="utool._internal.util_importer.make_import_tuples">
-<tt class="descclassname">utool._internal.util_importer.</tt><tt class="descname">make_import_tuples</tt><big>(</big><em>module_path</em><big>)</big><a class="reference internal" href="_modules/utool/_internal/util_importer.html#make_import_tuples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool._internal.util_importer.make_import_tuples" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utool._internal.util_importer.</tt><tt class="descname">make_import_tuples</tt><big>(</big><em>module_path</em>, <em>exclude_modnames=[]</em><big>)</big><a class="reference internal" href="_modules/utool/_internal/util_importer.html#make_import_tuples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool._internal.util_importer.make_import_tuples" title="Permalink to this definition">¶</a></dt>
 <dd><p>Infer the IMPORT_TUPLES from a module_path</p>
 </dd></dl>
 

@@ -58,12 +58,12 @@
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span> <span class="n">zip_longest</span><span class="p">,</span> <span class="nb">range</span>
-<span class="kn">from</span> <span class="nn">.util_iter</span> <span class="kn">import</span> <span class="n">iflatten</span><span class="p">,</span> <span class="n">isiterable</span><span class="p">,</span> <span class="n">ifilter_Nones</span><span class="p">,</span> <span class="n">ifilter_items</span><span class="p">,</span> <span class="n">ifilterfalse_items</span>
-<span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
-<span class="kn">from</span> <span class="nn">.util_str</span> <span class="kn">import</span> <span class="n">get_callable_name</span>
-<span class="kn">from</span> <span class="nn">.util_arg</span> <span class="kn">import</span> <span class="n">NO_ASSERTS</span>
-<span class="kn">from</span> <span class="nn">.util_type</span> <span class="kn">import</span> <span class="n">is_listlike</span>
-<span class="kn">from</span> <span class="nn">._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span><span class="p">,</span> <span class="n">set_funcname</span>
+<span class="kn">from</span> <span class="nn">utool.util_iter</span> <span class="kn">import</span> <span class="n">iflatten</span><span class="p">,</span> <span class="n">isiterable</span><span class="p">,</span> <span class="n">ifilter_Nones</span><span class="p">,</span> <span class="n">ifilter_items</span><span class="p">,</span> <span class="n">ifilterfalse_items</span>
+<span class="kn">from</span> <span class="nn">utool.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="kn">from</span> <span class="nn">utool.util_str</span> <span class="kn">import</span> <span class="n">get_callable_name</span>
+<span class="kn">from</span> <span class="nn">utool.util_arg</span> <span class="kn">import</span> <span class="n">NO_ASSERTS</span>
+<span class="kn">from</span> <span class="nn">utool.util_type</span> <span class="kn">import</span> <span class="n">is_listlike</span>
+<span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span><span class="p">,</span> <span class="n">set_funcname</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[list]&#39;</span><span class="p">)</span>
 
 
@@ -189,6 +189,7 @@
 <span class="sd">    ``list``</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_list import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import utool</span>
 <span class="sd">        &gt;&gt;&gt; utool.util_list</span>
@@ -196,8 +197,9 @@
 <span class="sd">        &gt;&gt;&gt; flat_list, cumlen_list = invertable_flatten2(unflat_list)</span>
 <span class="sd">        &gt;&gt;&gt; unflat_list2 = unflatten2(flat_list, cumlen_list)</span>
 <span class="sd">        &gt;&gt;&gt; assert unflat_list2 == unflat_list</span>
-<span class="sd">        &gt;&gt;&gt; print((flat_list, cumlen_list))</span>
-<span class="sd">        ([5, 2, 3, 12, 3, 3, 9, 13, 3, 5], array([ 1,  6,  7,  9, 10]))</span>
+<span class="sd">        &gt;&gt;&gt; result = ((flat_list, cumlen_list))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        ([5, 2, 3, 12, 3, 3, 9, 13, 3, 5], [1, 6, 7, 9, 10])</span>
 
 <span class="sd">    SeeAlso:</span>
 <span class="sd">        invertable_flatten</span>
@@ -264,13 +266,16 @@
 <span class="sd">        unflatten2</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_list import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">        &gt;&gt;&gt; import utool</span>
 <span class="sd">        &gt;&gt;&gt; utool.util_list</span>
 <span class="sd">        &gt;&gt;&gt; flat_list = [5, 2, 3, 12, 3, 3, 9, 13, 3, 5]</span>
 <span class="sd">        &gt;&gt;&gt; cumlen_list = np.array([ 1,  6,  7,  9, 10])</span>
 <span class="sd">        &gt;&gt;&gt; unflat_list2 = unflatten2(flat_list, cumlen_list)</span>
-<span class="sd">        &gt;&gt;&gt; print(unflat_list2)</span>
+<span class="sd">        &gt;&gt;&gt; result = (unflat_list2)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        [[5], [2, 3, 12, 3, 3], [9], [13, 3], [5]]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">unflat_list2</span> <span class="o">=</span> <span class="p">[</span><span class="n">flat_list</span><span class="p">[</span><span class="n">low</span><span class="p">:</span><span class="n">high</span><span class="p">]</span> <span class="k">for</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="n">cumlen_list</span><span class="p">),</span> <span class="n">cumlen_list</span><span class="p">)]</span>
@@ -379,7 +384,7 @@
             <span class="c">#if any([item is None for count, item in enumerate(list_)]):</span>
             <span class="k">assert</span> <span class="n">item</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;a list element is None&#39;</span>
     <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">.util_dbg</span> <span class="kn">import</span> <span class="n">printex</span>
+        <span class="kn">from</span> <span class="nn">utool.util_dbg</span> <span class="kn">import</span> <span class="n">printex</span>
         <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="n">list_name</span> <span class="o">+</span> <span class="s">&#39;[</span><span class="si">%d</span><span class="s">] = </span><span class="si">%r</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
         <span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="n">key_list</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">raise</span> <span class="n">ex</span>
@@ -497,8 +502,8 @@
 <span class="sd">        &gt;&gt;&gt; from utool.util_list import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; list1 = [&#39;featweight_rowid&#39;, &#39;feature_rowid&#39;, &#39;config_rowid&#39;, &#39;featweight_forground_weight&#39;]</span>
 <span class="sd">        &gt;&gt;&gt; list2 = [u&#39;featweight_rowid&#39;]</span>
-<span class="sd">        &gt;&gt;&gt; new_list = intersect_ordered(list1, list2)</span>
-<span class="sd">        &gt;&gt;&gt; print(new_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = intersect_ordered(list1, list2)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        [&#39;featweight_rowid&#39;]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">list1</span> <span class="k">if</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">list2</span><span class="p">)]</span>
@@ -518,11 +523,13 @@
 <span class="sd">        list: new_list</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_list import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; list1 = [&#39;featweight_rowid&#39;, &#39;feature_rowid&#39;, &#39;config_rowid&#39;, &#39;featweight_forground_weight&#39;]</span>
 <span class="sd">        &gt;&gt;&gt; list2 = [u&#39;featweight_rowid&#39;]</span>
 <span class="sd">        &gt;&gt;&gt; new_list = setdiff_ordered(list1, list2)</span>
-<span class="sd">        &gt;&gt;&gt; print(new_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = new_list</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        [&#39;feature_rowid&#39;, &#39;config_rowid&#39;, &#39;featweight_forground_weight&#39;]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">list1</span> <span class="k">if</span> <span class="n">item</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">list2</span><span class="p">)]</span>
@@ -587,10 +594,11 @@
 <span class="sd">        ascending order</span>
 
 <span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; import utool</span>
 <span class="sd">        &gt;&gt;&gt; list_    = [1, 2, 3, 4, 5]</span>
 <span class="sd">        &gt;&gt;&gt; key_list = [2, 5, 3, 1, 5]</span>
-<span class="sd">        &gt;&gt;&gt; utool.sortedby(list_, key_list, reverse=True)</span>
+<span class="sd">        &gt;&gt;&gt; result = utool.sortedby(list_, key_list, reverse=True)</span>
 <span class="sd">        [5, 2, 3, 1, 4]</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -616,20 +624,24 @@
 <span class="sd">        ascending order</span>
 
 <span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; import utool</span>
 <span class="sd">        &gt;&gt;&gt; item_list = [1, 2, 3, 4, 5]</span>
 <span class="sd">        &gt;&gt;&gt; key_list1 = [1, 1, 2, 3, 4]</span>
 <span class="sd">        &gt;&gt;&gt; key_list2 = [2, 1, 4, 1, 1]</span>
 <span class="sd">        &gt;&gt;&gt; args = (key_list1, key_list2)</span>
-<span class="sd">        &gt;&gt;&gt; kwargs = {}</span>
-<span class="sd">        &gt;&gt;&gt; utool.sortedby2(item_list, *args, **kwargs)</span>
-<span class="sd">        [5, 2, 3, 1, 4]</span>
+<span class="sd">        &gt;&gt;&gt; kwargs = dict(reverse=False)</span>
+<span class="sd">        &gt;&gt;&gt; result = utool.sortedby2(item_list, *args, **kwargs)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [2, 1, 3, 4, 5]</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">operator</span>
     <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">item_list</span><span class="p">)</span> <span class="o">==</span> <span class="n">len_</span> <span class="k">for</span> <span class="n">len_</span> <span class="ow">in</span> <span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">args</span><span class="p">)])</span>
     <span class="n">reverse</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;reverse&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
     <span class="n">key</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">itemgetter</span><span class="p">(</span><span class="o">*</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
     <span class="n">tup_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">item_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">tup_list</span><span class="p">)</span>
     <span class="n">sorted_tups</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">tup_list</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="n">reverse</span><span class="p">)</span>
     <span class="n">sorted_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">sorted_tups</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">sorted_list</span>
@@ -791,15 +803,17 @@
 <span class="sd">        missing_ixs</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_list import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; unique_vals = array([-2, -1,  1,  2, 10])</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; unique_vals = np.array([-2, -1,  1,  2, 10])</span>
 <span class="sd">        &gt;&gt;&gt; max_ = unique_vals.max()</span>
 <span class="sd">        &gt;&gt;&gt; min_ = unique_vals.min()</span>
 <span class="sd">        &gt;&gt;&gt; range_ = max_ - min_</span>
 <span class="sd">        &gt;&gt;&gt; consec_vals = np.linspace(min_, max_ + 1, range_ + 2)</span>
 <span class="sd">        &gt;&gt;&gt; missing_ixs = find_nonconsec_indicies(unique_vals, consec_vals)</span>
-<span class="sd">        &gt;&gt;&gt; print(consec_vals[missing_ixs])</span>
-<span class="sd">        array([ 0.,  3.,  4.,  5.,  6.,  7.,  8.,  9.])</span>
+<span class="sd">        &gt;&gt;&gt; result = (consec_vals[missing_ixs])</span>
+<span class="sd">        [ 0.  3.  4.  5.  6.  7.  8.  9.]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">missing_ixs</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">valx</span>   <span class="o">=</span> <span class="mi">0</span>
@@ -880,8 +894,10 @@
 <span class="sd">       _depth : internal var</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; list_ = [[[[[1]]], [3]], [[1], [3]], [[1], [3]]]</span>
-<span class="sd">        &gt;&gt;&gt; print(list_depth(list_, _depth=0))</span>
+<span class="sd">        &gt;&gt;&gt; result = (list_depth(list_, _depth=0))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">depth_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">list_depth</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="n">func</span><span class="p">,</span> <span class="n">_depth</span><span class="o">=</span><span class="n">_depth</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
@@ -910,9 +926,11 @@
 <span class="sd">    Returns a nested list corresponding the shape of the nested structure</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_list import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; list_ = [[[[[1]]], [3, 4, 33]], [[1], [3]], [[1], [3]]]</span>
-<span class="sd">        &gt;&gt;&gt; print(depth_profile(list_))</span>
+<span class="sd">        &gt;&gt;&gt; result = (depth_profile(list_))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        [[[[1]], 3], [1, 1], [1, 1]]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">level_shape_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -922,7 +940,21 @@
     <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">list_</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">is_listlike</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
             <span class="n">level_shape_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">depth_profile</span><span class="p">(</span><span class="n">item</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">level_shape_list</span></div>
+    <span class="k">return</span> <span class="n">level_shape_list</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -c &quot;import utool, utool.util_list; utool.doctest_funcs(utool.util_list, allexamples=True)&quot;</span>
+<span class="sd">        python -c &quot;import utool, utool.util_list; utool.doctest_funcs(utool.util_list)&quot;</span>
+<span class="sd">        python utool/util_list.py</span>
+<span class="sd">        python utool/util_list.py --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

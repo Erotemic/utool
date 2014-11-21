@@ -67,7 +67,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_printable_exclude</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;_printable_exclude&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">child_print_exclude</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">.util_dev</span> <span class="kn">import</span> <span class="n">printableType</span>
+        <span class="kn">from</span> <span class="nn">utool.util_dev</span> <span class="kn">import</span> <span class="n">printableType</span>
         <span class="n">head</span> <span class="o">=</span> <span class="n">printableType</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">body</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_printable</span><span class="p">(</span><span class="n">type_bit</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">body</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s"> *</span><span class="se">\n</span><span class="s"> *</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
@@ -98,8 +98,8 @@
                       <span class="n">val_bit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                       <span class="n">max_valstr</span><span class="o">=</span><span class="n">MAX_VALSTR</span><span class="p">,</span>
                       <span class="n">justlength</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">.util_dev</span> <span class="kn">import</span> <span class="n">printableVal</span><span class="p">,</span> <span class="n">printableType</span>
-        <span class="kn">from</span> <span class="nn">.util_str</span> <span class="kn">import</span> <span class="n">truncate_str</span>
+        <span class="kn">from</span> <span class="nn">utool.util_dev</span> <span class="kn">import</span> <span class="n">printableVal</span><span class="p">,</span> <span class="n">printableType</span>
+        <span class="kn">from</span> <span class="nn">utool.util_str</span> <span class="kn">import</span> <span class="n">truncate_str</span>
         <span class="n">body</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
         <span class="n">attri_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">exclude_key_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_printable_exclude</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">print_exclude_aug</span><span class="p">)</span>

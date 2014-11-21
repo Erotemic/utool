@@ -57,17 +57,17 @@
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">normpath</span>
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_arg</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_hash</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_inject</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_path</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_io</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_str</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_cplat</span>
-<span class="kn">from</span> <span class="nn">._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
-<span class="kn">from</span> <span class="nn">._internal.meta_util_constants</span> <span class="kn">import</span> <span class="p">(</span><span class="n">global_cache_fname</span><span class="p">,</span>
-                                            <span class="n">global_cache_dname</span><span class="p">,</span>
-                                            <span class="n">default_appname</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_arg</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_hash</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_path</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_io</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_str</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_cplat</span>
+<span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
+<span class="kn">from</span> <span class="nn">utool._internal.meta_util_constants</span> <span class="kn">import</span> <span class="p">(</span><span class="n">global_cache_fname</span><span class="p">,</span>
+                                                 <span class="n">global_cache_dname</span><span class="p">,</span>
+                                                 <span class="n">default_appname</span><span class="p">)</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[cache]&#39;</span><span class="p">)</span>
 
 
@@ -321,6 +321,7 @@
 <span class="sd">    uses a hash of arguments as input</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; import utool</span>
 <span class="sd">        &gt;&gt;&gt; def costly_func(a, b, c=&#39;d&#39;, *args, **kwargs):</span>
 <span class="sd">        ...    return ([a] * b, c, args, kwargs)</span>
@@ -416,7 +417,7 @@
 <span class="c">#            print(shelf_fpath)</span>
 <span class="c">#            __SHELF__ = shelve.open(shelf_fpath)</span>
 <span class="c">#        except Exception as ex:</span>
-<span class="c">#            from . import util_dbg</span>
+<span class="c">#            from utool import util_dbg</span>
 <span class="c">#            util_dbg.printex(ex, &#39;Failed opening shelf_fpath&#39;,</span>
 <span class="c">#                             key_list=[&#39;shelf_fpath&#39;])</span>
 <span class="c">#            raise</span>
@@ -446,7 +447,7 @@
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;[cache] open: &#39;</span> <span class="o">+</span> <span class="n">shelf_fpath</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">shelf</span> <span class="o">=</span> <span class="n">shelve</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">shelf_fpath</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_dbg</span>
+            <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_dbg</span>
             <span class="n">util_dbg</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Failed opening shelf_fpath&#39;</span><span class="p">,</span>
                              <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;shelf_fpath&#39;</span><span class="p">])</span>
             <span class="k">raise</span>
@@ -485,7 +486,20 @@
     <span class="sd">&quot;&quot;&quot; Reads cache files to a safe place in each operating system &quot;&quot;&quot;</span>
     <span class="c">#close_global_shelf(appname)</span>
     <span class="n">shelf_fpath</span> <span class="o">=</span> <span class="n">get_global_shelf_fpath</span><span class="p">(</span><span class="n">appname</span><span class="p">)</span>
-    <span class="n">util_path</span><span class="o">.</span><span class="n">remove_file</span><span class="p">(</span><span class="n">shelf_fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span></div>
+    <span class="n">util_path</span><span class="o">.</span><span class="n">remove_file</span><span class="p">(</span><span class="n">shelf_fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -c &quot;import utool, utool.util_cache; utool.doctest_funcs(utool.util_cache, allexamples=True)&quot;</span>
+<span class="sd">        python -c &quot;import utool, utool.util_cache; utool.doctest_funcs(utool.util_cache)&quot;</span>
+<span class="sd">        python utool/util_cache.py</span>
+<span class="sd">        python utool/util_cache.py --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

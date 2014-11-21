@@ -115,14 +115,20 @@
 <div class="viewcode-block" id="emd"><a class="viewcode-back" href="../../utool.html#utool.util_distances.emd">[docs]</a><span class="k">def</span> <span class="nf">emd</span><span class="p">(</span><span class="n">hist1</span><span class="p">,</span> <span class="n">hist2</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    earth mover&#39;s distance by robjects(lpSovle::lp.transport)</span>
-<span class="sd">    import numpy as np</span>
-<span class="sd">    hist1 = np.random.rand(128)</span>
-<span class="sd">    hist2 = np.random.rand(128)</span>
 <span class="sd">    require: lpsolve55-5.5.0.9.win32-py2.7.exe</span>
-<span class="sd">    https://github.com/andreasjansson/python-emd</span>
-<span class="sd">    http://stackoverflow.com/questions/15706339/how-to-compute-emd-for-2-numpy-arrays-i-e-histogram-using-opencv</span>
-<span class="sd">    http://www.cs.huji.ac.il/~ofirpele/FastEMD/code/</span>
-<span class="sd">    http://www.cs.huji.ac.il/~ofirpele/publications/ECCV2008.pdf</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_distances import *   # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; hist1 = np.random.rand(128)</span>
+<span class="sd">        &gt;&gt;&gt; hist2 = np.random.rand(128)</span>
+<span class="sd">        &gt;&gt;&gt; result = emd(hist1, hist2)</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        https://github.com/andreasjansson/python-emd</span>
+<span class="sd">        http://stackoverflow.com/questions/15706339/how-to-compute-emd-for-2-numpy-arrays-i-e-histogram-using-opencv</span>
+<span class="sd">        http://www.cs.huji.ac.il/~ofirpele/FastEMD/code/</span>
+<span class="sd">        http://www.cs.huji.ac.il/~ofirpele/publications/ECCV2008.pdf</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">cv2</span> <span class="kn">import</span> <span class="n">cv</span>
@@ -156,7 +162,21 @@
         <span class="n">ab_list</span>   <span class="o">=</span> <span class="p">[(</span><span class="n">add_weight</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="n">add_weight</span><span class="p">(</span><span class="n">b</span><span class="p">))</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">hist1</span><span class="p">,</span> <span class="n">hist2</span><span class="p">)]</span>
         <span class="n">ab32_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">convertCV32</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="n">convertCV32</span><span class="p">(</span><span class="n">b</span><span class="p">))</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">ab_list</span><span class="p">]</span>
         <span class="n">emd_dists</span> <span class="o">=</span> <span class="p">[</span><span class="n">emd_</span><span class="p">(</span><span class="n">a32</span><span class="p">,</span> <span class="n">b32</span><span class="p">)</span> <span class="k">for</span> <span class="n">a32</span><span class="p">,</span> <span class="n">b32</span><span class="p">,</span> <span class="ow">in</span> <span class="n">ab32_list</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">emd_dists</span></div>
+        <span class="k">return</span> <span class="n">emd_dists</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -c &quot;import utool, utool.util_distances; utool.doctest_funcs(utool.util_distances, allexamples=True)&quot;</span>
+<span class="sd">        python -c &quot;import utool, utool.util_distances; utool.doctest_funcs(utool.util_distances)&quot;</span>
+<span class="sd">        python utool/util_distances.py</span>
+<span class="sd">        python utool/util_distances.py --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

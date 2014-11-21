@@ -666,7 +666,7 @@
 <span class="sd">        &gt;&gt;&gt; import utool as ut</span>
 <span class="sd">        &gt;&gt;&gt; module_fpath = ut.util_path.__file__</span>
 <span class="sd">        &gt;&gt;&gt; rel_modpath = ut.get_relative_modpath(module_fpath)</span>
-<span class="sd">        &gt;&gt;&gt; result = rel_modpath</span>
+<span class="sd">        &gt;&gt;&gt; result = rel_modpath.replace(&#39;.pyc&#39;, &#39;.py&#39;)  # allow pyc or py</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        utool/util_path.py</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -674,6 +674,34 @@
     <span class="n">_</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">module_fpath</span><span class="p">)</span>
     <span class="n">rel_modpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">modsubdir_list</span><span class="p">)</span> <span class="o">+</span> <span class="n">ext</span>
     <span class="k">return</span> <span class="n">rel_modpath</span>
+
+</div>
+<div class="viewcode-block" id="get_modname_from_modpath"><a class="viewcode-back" href="../../utool.html#utool.util_path.get_modname_from_modpath">[docs]</a><span class="k">def</span> <span class="nf">get_modname_from_modpath</span><span class="p">(</span><span class="n">module_fpath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    returns importable name from file path</span>
+
+<span class="sd">    get_modname_from_modpath</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        module_fpath (str): module filepath</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: modname</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_path import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; module_fpath = ut.util_path.__file__</span>
+<span class="sd">        &gt;&gt;&gt; modname = ut.get_modname_from_modpath(module_fpath)</span>
+<span class="sd">        &gt;&gt;&gt; result = modname</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        utool.util_path</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">modsubdir_list</span> <span class="o">=</span> <span class="n">get_module_subdir_list</span><span class="p">(</span><span class="n">module_fpath</span><span class="p">)</span>
+    <span class="n">modname</span> <span class="o">=</span> <span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">modsubdir_list</span><span class="p">)</span>
+    <span class="n">modname</span> <span class="o">=</span> <span class="n">modname</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;.__init__&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">modname</span>
 
 </div>
 <div class="viewcode-block" id="get_module_subdir_list"><a class="viewcode-back" href="../../utool.html#utool.util_path.get_module_subdir_list">[docs]</a><span class="k">def</span> <span class="nf">get_module_subdir_list</span><span class="p">(</span><span class="n">module_fpath</span><span class="p">):</span>
@@ -704,34 +732,6 @@
         <span class="n">_modsubdir_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dname</span><span class="p">)</span>
     <span class="n">modsubdir_list</span> <span class="o">=</span> <span class="n">_modsubdir_list</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">modsubdir_list</span>
-
-</div>
-<div class="viewcode-block" id="get_modname_from_modpath"><a class="viewcode-back" href="../../utool.html#utool.util_path.get_modname_from_modpath">[docs]</a><span class="k">def</span> <span class="nf">get_modname_from_modpath</span><span class="p">(</span><span class="n">module_fpath</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    returns importable name from file path</span>
-
-<span class="sd">    get_modname_from_modpath</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        module_fpath (str): module filepath</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        str: modname</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from utool.util_path import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
-<span class="sd">        &gt;&gt;&gt; module_fpath = ut.util_path.__file__</span>
-<span class="sd">        &gt;&gt;&gt; modname = ut.get_modname_from_modpath(module_fpath)</span>
-<span class="sd">        &gt;&gt;&gt; result = modname</span>
-<span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        utool.util_path</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">modsubdir_list</span> <span class="o">=</span> <span class="n">get_module_subdir_list</span><span class="p">(</span><span class="n">module_fpath</span><span class="p">)</span>
-    <span class="n">modname</span> <span class="o">=</span> <span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">modsubdir_list</span><span class="p">)</span>
-    <span class="n">modname</span> <span class="o">=</span> <span class="n">modname</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;.__init__&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">modname</span>
 
 </div>
 <div class="viewcode-block" id="tail"><a class="viewcode-back" href="../../utool.html#utool.util_path.tail">[docs]</a><span class="k">def</span> <span class="nf">tail</span><span class="p">(</span><span class="n">fpath</span><span class="p">):</span>
@@ -814,10 +814,12 @@
 <span class="sd">        flag: True if path contains an __init__ file</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_path import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; path = truepath(&#39;~/code/utool/utool&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; flag = is_module_dir(path)</span>
-<span class="sd">        &gt;&gt;&gt; print(flag)</span>
+<span class="sd">        &gt;&gt;&gt; result = (flag)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">exists</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;__init__.py&#39;</span><span class="p">))</span>
 

@@ -67,8 +67,8 @@
     <span class="n">HAS_NUMPY</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="k">pass</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">relpath</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_inject</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_regex</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_regex</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[dev]&#39;</span><span class="p">)</span>
 
 <span class="k">if</span> <span class="n">HAS_NUMPY</span><span class="p">:</span>
@@ -1013,7 +1013,7 @@
 <span class="c"># --- Info Strings ---</span>
 
 </div>
-<div class="viewcode-block" id="get_stats_str"><a class="viewcode-back" href="../../utool.html#utool.util_dev.get_stats_str">[docs]</a><span class="k">def</span> <span class="nf">get_stats_str</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="get_stats_str"><a class="viewcode-back" href="../../utool.html#utool.util_dev.get_stats_str">[docs]</a><span class="k">def</span> <span class="nf">get_stats_str</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">exclude_keys</span><span class="o">=</span><span class="p">[],</span> <span class="n">lbl</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the string version of get_stats</span>
 
@@ -1021,9 +1021,15 @@
 <span class="sd">        print_stats</span>
 <span class="sd">        get_stats</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">.util_str</span> <span class="kn">import</span> <span class="n">dict_str</span>
+    <span class="kn">from</span> <span class="nn">utool.util_str</span> <span class="kn">import</span> <span class="n">dict_str</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
     <span class="n">stat_dict</span> <span class="o">=</span> <span class="n">get_stats</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">exclude_keys</span><span class="p">:</span>
+        <span class="k">del</span> <span class="n">stat_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
     <span class="n">stat_str</span>  <span class="o">=</span> <span class="n">dict_str</span><span class="p">(</span><span class="n">stat_dict</span><span class="p">,</span> <span class="n">strvals</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="n">newlines</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">lbl</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">lbl</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_varname_from_stack</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">stat_str</span> <span class="o">=</span> <span class="s">&#39;stats(&#39;</span> <span class="o">+</span> <span class="n">lbl</span> <span class="o">+</span> <span class="s">&#39;) = &#39;</span> <span class="o">+</span> <span class="n">stat_str</span>
     <span class="c">#stat_strs = [&#39;%r: %s&#39; % (key, val) for key, val in six.iteritems(stat_dict)]</span>
     <span class="c">#if newlines:</span>
     <span class="c">#    indent = &#39;    &#39;</span>
@@ -1109,7 +1115,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Very old way of doing pretty printing. Need to update and refactor.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_dev</span>
+    <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_dev</span>
     <span class="c"># Move to util_dev</span>
     <span class="c"># NUMPY ARRAY</span>
     <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
@@ -1403,7 +1409,7 @@
 
 </div>
 <div class="viewcode-block" id="get_object_size_str"><a class="viewcode-back" href="../../utool.html#utool.util_dev.get_object_size_str">[docs]</a><span class="k">def</span> <span class="nf">get_object_size_str</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_str</span>
+    <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_str</span>
     <span class="n">nBytes</span> <span class="o">=</span> <span class="n">get_object_size</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">sizestr</span> <span class="o">=</span> <span class="n">lbl</span> <span class="o">+</span> <span class="n">util_str</span><span class="o">.</span><span class="n">byte_str2</span><span class="p">(</span><span class="n">nBytes</span><span class="p">)</span>
@@ -1428,7 +1434,7 @@
 
 </div>
 <div class="viewcode-block" id="get_cython_exe"><a class="viewcode-back" href="../../utool.html#utool.util_dev.get_cython_exe">[docs]</a><span class="k">def</span> <span class="nf">get_cython_exe</span><span class="p">():</span>
-    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_cplat</span>
+    <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_cplat</span>
     <span class="k">if</span> <span class="n">util_cplat</span><span class="o">.</span><span class="n">WIN32</span><span class="p">:</span>
         <span class="n">cython_exe</span> <span class="o">=</span> <span class="s">r&#39;C:\Python27\Scripts\cython.exe&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">cython_exe</span><span class="p">):</span>
@@ -1466,8 +1472,8 @@
 <span class="sd">        -o build\lib.win32-2.7\vtool\linalg_cython.pyd</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_cplat</span>
-    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_path</span>
+    <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_cplat</span>
+    <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_path</span>
     <span class="kn">import</span> <span class="nn">utool</span>
 
     <span class="c"># Get autogenerated filenames</span>
@@ -1601,7 +1607,7 @@
 
 </div>
 <div class="viewcode-block" id="find_exe"><a class="viewcode-back" href="../../utool.html#utool.util_dev.find_exe">[docs]</a><span class="k">def</span> <span class="nf">find_exe</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">path_hints</span><span class="o">=</span><span class="p">[],</span> <span class="n">required</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_cplat</span>
+    <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_cplat</span>
     <span class="k">if</span> <span class="n">util_cplat</span><span class="o">.</span><span class="n">WIN32</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.exe&#39;</span><span class="p">):</span>
         <span class="n">name</span> <span class="o">+=</span> <span class="s">&#39;.exe&#39;</span>
 

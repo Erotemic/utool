@@ -64,10 +64,63 @@
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
 <span class="c">#import six</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_inject</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[alg]&#39;</span><span class="p">)</span>
 
 
+<div class="viewcode-block" id="estimate_pdf"><a class="viewcode-back" href="../../utool.html#utool.util_alg.estimate_pdf">[docs]</a><span class="k">def</span> <span class="nf">estimate_pdf</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">gridsize</span><span class="o">=</span><span class="mi">1024</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    estimate_pdf</span>
+
+<span class="sd">    References;</span>
+<span class="sd">        http://statsmodels.sourceforge.net/devel/generated/statsmodels.nonparametric.kde.KDEUnivariate.html</span>
+<span class="sd">        https://jakevdp.github.io/blog/2013/12/01/kernel-density-estimation/</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data (?):</span>
+<span class="sd">        bw_factor (?):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ?: data_pdf</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_alg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; data = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; bw_factor = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; data_pdf = estimate_pdf(data, bw_factor)</span>
+<span class="sd">        &gt;&gt;&gt; pt.plot(data_pdf.cdf)</span>
+<span class="sd">        &gt;&gt;&gt; print(data_pdf)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="c">#import scipy.stats as spstats</span>
+    <span class="c">#import statsmodels</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="kn">import</span> <span class="nn">statsmodels.nonparametric.kde</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">data_pdf</span> <span class="o">=</span> <span class="n">statsmodels</span><span class="o">.</span><span class="n">nonparametric</span><span class="o">.</span><span class="n">kde</span><span class="o">.</span><span class="n">KDEUnivariate</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">bw_choices</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;scott&#39;</span><span class="p">,</span> <span class="s">&#39;silverman&#39;</span><span class="p">,</span> <span class="s">&#39;normal_reference&#39;</span><span class="p">]</span>
+        <span class="n">bw</span> <span class="o">=</span> <span class="n">bw_choices</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">fitkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">kernel</span><span class="o">=</span><span class="s">&#39;gau&#39;</span><span class="p">,</span>
+                     <span class="n">bw</span><span class="o">=</span><span class="n">bw</span><span class="p">,</span>
+                     <span class="n">fft</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                     <span class="n">weights</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                     <span class="n">adjust</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                     <span class="n">cut</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                     <span class="n">gridsize</span><span class="o">=</span><span class="n">gridsize</span><span class="p">,</span>
+                     <span class="n">clip</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">),)</span>
+        <span class="n">data_pdf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="o">**</span><span class="n">fitkw</span><span class="p">)</span>
+        <span class="c">#density = data_pdf.density</span>
+    <span class="c">#try:</span>
+    <span class="c">#    data_pdf = spstats.gaussian_kde(data, bw_factor)</span>
+    <span class="c">#    data_pdf.covariance_factor = bw_factor</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;! Exception while estimating kernel density&#39;</span><span class="p">,</span>
+                   <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;data&#39;</span><span class="p">])</span>
+        <span class="k">raise</span>
+    <span class="k">return</span> <span class="n">data_pdf</span>
+
+</div>
 <div class="viewcode-block" id="normalize"><a class="viewcode-back" href="../../utool.html#utool.util_alg.normalize">[docs]</a><span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">norm_zero_one</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
 
@@ -104,11 +157,17 @@
 <span class="sd">        out (ndarray): cartesian products formed of input arrays</span>
 <span class="sd">            2-D array of shape (M, len(arrays))</span>
 
-<span class="sd">    #Example:</span>
-<span class="sd">    #    &gt;&gt;&gt; cartesian(([1, 2, 3], [4, 5], [6, 7]))</span>
-<span class="sd">    #    array([[1, 4, 6], [1, 4, 7], [1, 5, 6], [1, 5, 7],</span>
-<span class="sd">    #           [2, 4, 6], [2, 4, 7], [2, 5, 6], [2, 5, 7],</span>
-<span class="sd">    #           [3, 4, 6], [3, 4, 7], [3, 5, 6], [3, 5, 7]])</span>
+<span class="sd">    References:</span>
+<span class="sd">        https://gist.github.com/hernamesbarbara/68d073f551565de02ac5</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; arrays = ([1, 2, 3], [4, 5], [6, 7])</span>
+<span class="sd">        &gt;&gt;&gt; out = cartesian(arrays)</span>
+<span class="sd">        &gt;&gt;&gt; result = repr(out.T)</span>
+<span class="sd">        array([[1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3],</span>
+<span class="sd">               [4, 4, 5, 5, 4, 4, 5, 5, 4, 4, 5, 5],</span>
+<span class="sd">               [6, 7, 6, 7, 6, 7, 6, 7, 6, 7, 6, 7]])</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">arrays</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">arrays</span><span class="p">]</span>
@@ -198,11 +257,13 @@
 <span class="sd">        vtool.apply_gropuing - second part to faster numpy grouping algorithm</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; import utool as ut</span>
 <span class="sd">        &gt;&gt;&gt; item_list    = [ &#39;ham&#39;,      &#39;jam&#39;,    &#39;spam&#39;,     &#39;eggs&#39;, &#39;cheese&#39;, &#39;bannana&#39;]</span>
 <span class="sd">        &gt;&gt;&gt; groupid_list = [&#39;protein&#39;, &#39;fruit&#39;, &#39;protein&#39;,  &#39;protein&#39;,  &#39;dairy&#39;,   &#39;fruit&#39;]</span>
 <span class="sd">        &gt;&gt;&gt; groupid2_items = ut.group_items(item_list, groupid_list)</span>
-<span class="sd">        &gt;&gt;&gt; print(ut.dict_str(groupid2_items, newlines=False))</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.dict_str(groupid2_items, newlines=False)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        {&#39;protein&#39;: [&#39;eggs&#39;, &#39;ham&#39;, &#39;spam&#39;], &#39;fruit&#39;: [&#39;bannana&#39;, &#39;jam&#39;], &#39;dairy&#39;: [&#39;cheese&#39;],}</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Sort by groupid for cache efficiency</span>
@@ -336,7 +397,20 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">primes</span> <span class="o">=</span> <span class="p">[</span><span class="n">num</span> <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_prime</span><span class="p">)</span> <span class="k">if</span> <span class="n">is_prime</span><span class="p">(</span><span class="n">num</span><span class="p">)]</span>
         <span class="n">nth_prime</span> <span class="o">=</span> <span class="n">primes</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">nth_prime</span></div>
+    <span class="k">return</span> <span class="n">nth_prime</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -c &quot;import utool, utool.util_alg; utool.doctest_funcs(utool.util_alg, allexamples=True)&quot;</span>
+<span class="sd">        python -c &quot;import utool, utool.util_alg; utool.doctest_funcs(utool.util_alg)&quot;</span>
+<span class="sd">        python utool/util_alg.py</span>
+<span class="sd">        python utool/util_alg.py --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
