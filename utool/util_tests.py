@@ -135,7 +135,7 @@ def get_doctest_examples(func_or_class):
         >>> from utool.util_tests import *  # NOQA
         >>> func_or_class = get_doctest_examples
         >>> testsrc_list, testwant_list, docstr = get_doctest_examples(func_or_class)
-        >>> result = str(len(example_list) + len(want_list))
+        >>> result = str(len(testsrc_list) + len(testwant_list))
         >>> print(result)
         2
     """
@@ -478,8 +478,8 @@ def run_test(func, *args, **kwargs):
                         #print(result)
                         if result != want:
                             errmsg1 = ''
-                            errmsg1 += ('GOT: result=%r\n' % (result))
-                            errmsg1 += ('EXPECTED: want=%r\n' % (want))
+                            errmsg1 += ('GOT: result=\n%s\n' % (result))
+                            errmsg1 += ('EXPECTED: want=\n%s\n' % (want))
                             raise AssertionError('result != want\n' + errmsg1)
                         #assert result == want, 'result is not the same as want'
                     #print('\n'.join(output_lines))
@@ -669,9 +669,12 @@ def make_run_tests_script_text(test_headers, test_argvs, quick_tests=None,
             export TEST="$PYEXE $@ $TEST_ARGV"
             $TEST
             export RETURN_CODE=$?
+            echo "RETURN_CODE=$RETURN_CODE"
             PRINT_DELIMETER
-            num_passed=$(($num_passed + (1 - $RETURN_CODE)))
             num_ran=$(($num_ran + 1))
+            if [ "$RETURN_CODE" == "0" ] ; then
+                num_passed=$(($num_passed + 1))
+            fi
             if [ "$RETURN_CODE" != "0" ] ; then
                 export FAILED_TESTS="$FAILED_TESTS\n$TEST"
             fi
@@ -902,10 +905,17 @@ def def_test(header, pat=None, dpath=None, modname=None, default=False, testcmds
 
 if __name__ == '__main__':
     """
-    python utool/util_tests.py
-    python -c "import utool; utool.doctest_funcs(module=utool.util_tests, needs_enable=False)"
-    /model/preproc/preproc_chip.py --allexamples
+    CommandLine:
+        python -c "import utool, utool.util_tests; utool.doctest_funcs(utool.util_tests, allexamples=True)"
+        python -c "import utool, utool.util_tests; utool.doctest_funcs(utool.util_tests)"
+        python utool/util_tests.py
+        python utool/util_tests.py --allexamples
+        python utool/util_tests.py
+        python -c "import utool; utool.doctest_funcs(module=utool.util_tests, needs_enable=False)"
+        /model/preproc/preproc_chip.py --allexamples
     """
     import multiprocessing
+    import utool as ut  # NOQA
     multiprocessing.freeze_support()
-    doctest_funcs()
+    #doctest_funcs()
+    ut.doctest_funcs()

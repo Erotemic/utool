@@ -3,7 +3,7 @@ try:
     import numpy as np
 except ImportError as ex:
     pass
-from .util_inject import inject
+from utool.util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[numpy]')
 
 
@@ -43,9 +43,10 @@ def index_of(item, array):
 
 
 def spaced_indexes(len_, n, trunc=False):
-    """ Returns n evenly spaced indexes.
-        Returns as many as possible if trunc is true
-     """
+    """
+    Returns n evenly spaced indexes.
+    Returns as many as possible if trunc is true
+    """
 
     if n is None:
         return np.arange(len_)
@@ -70,8 +71,10 @@ def inbounds(arr, low, high):
 
 
 def intersect2d_numpy(A, B):
-    #http://stackoverflow.com/questions/8317022/
-    #get-intersecting-rows-across-two-2d-numpy-arrays/8317155#8317155
+    """
+    References::
+        http://stackoverflow.com/questions/8317022/get-intersecting-rows-across-two-2d-numpy-arrays/8317155#8317155
+    """
     # TODO: MOVE to numpy libs
     nrows, ncols = A.shape
     # HACK to get consistent dtypes
@@ -100,6 +103,7 @@ def intersect2d(A, B):
         tuple: (C, Ax, Bx)
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_numpy import *  # NOQA
         >>> import utool as ut
         >>> A = np.array([[1, 2, 3], [1, 1, 1]])
@@ -175,12 +179,14 @@ def spaced_items(list_, n, **kwargs):
 
 def sample_domain(min_, max_, nSamp, mode='linear'):
     """
-    >>> import utool
-    >>> min_ = 10
-    >>> max_ = 1000
-    >>> nSamp  = 7
-    >>> utool.sample_domain(min_, max_, nSamp)
-    [10, 151, 293, 434, 576, 717, 859]
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import utool
+        >>> min_ = 10
+        >>> max_ = 1000
+        >>> nSamp  = 7
+        >>> result = utool.sample_domain(min_, max_, nSamp)
+        [10, 151, 293, 434, 576, 717, 859]
     """
     if mode == 'linear':
         samples_ = np.rint(np.linspace(min_, max_, nSamp + 1)).astype(np.int64)
@@ -200,3 +206,17 @@ def make_incrementer():
         _mem[0] += 1
         return _mem[0]
     return incrementer
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, utool.util_numpy; utool.doctest_funcs(utool.util_numpy, allexamples=True)"
+        python -c "import utool, utool.util_numpy; utool.doctest_funcs(utool.util_numpy)"
+        python utool/util_numpy.py
+        python utool/util_numpy.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

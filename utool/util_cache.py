@@ -7,17 +7,17 @@ from six.moves import range
 from os.path import join, normpath
 import functools
 from itertools import chain
-from . import util_arg
-from . import util_hash
-from . import util_inject
-from . import util_path
-from . import util_io
-from . import util_str
-from . import util_cplat
-from ._internal.meta_util_six import get_funcname
-from ._internal.meta_util_constants import (global_cache_fname,
-                                            global_cache_dname,
-                                            default_appname)
+from utool import util_arg
+from utool import util_hash
+from utool import util_inject
+from utool import util_path
+from utool import util_io
+from utool import util_str
+from utool import util_cplat
+from utool._internal.meta_util_six import get_funcname
+from utool._internal.meta_util_constants import (global_cache_fname,
+                                                 global_cache_dname,
+                                                 default_appname)
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[cache]')
 
 
@@ -271,6 +271,7 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
     uses a hash of arguments as input
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> import utool
         >>> def costly_func(a, b, c='d', *args, **kwargs):
         ...    return ([a] * b, c, args, kwargs)
@@ -366,7 +367,7 @@ def get_global_shelf_fpath(appname='default', ensure=False):
 #            print(shelf_fpath)
 #            __SHELF__ = shelve.open(shelf_fpath)
 #        except Exception as ex:
-#            from . import util_dbg
+#            from utool import util_dbg
 #            util_dbg.printex(ex, 'Failed opening shelf_fpath',
 #                             key_list=['shelf_fpath'])
 #            raise
@@ -396,7 +397,7 @@ class GlobalShelfContext(object):
                 print('[cache] open: ' + shelf_fpath)
             self.shelf = shelve.open(shelf_fpath)
         except Exception as ex:
-            from . import util_dbg
+            from utool import util_dbg
             util_dbg.printex(ex, 'Failed opening shelf_fpath',
                              key_list=['shelf_fpath'])
             raise
@@ -436,3 +437,16 @@ def delete_global_cache(appname='default'):
     #close_global_shelf(appname)
     shelf_fpath = get_global_shelf_fpath(appname)
     util_path.remove_file(shelf_fpath, verbose=True, dryrun=False)
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, utool.util_cache; utool.doctest_funcs(utool.util_cache, allexamples=True)"
+        python -c "import utool, utool.util_cache; utool.doctest_funcs(utool.util_cache)"
+        python utool/util_cache.py
+        python utool/util_cache.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

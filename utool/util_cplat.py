@@ -40,10 +40,10 @@ PYLIB_DICT = {
 def get_free_diskbytes(dir_):
     """
     Returns:
-    folder/drive free space (in bytes)
+        folder/drive free space (in bytes)
 
     References::
-    http://stackoverflow.com/questions/51658/cross-platform-space-remaining-on-volume-using-python
+        http://stackoverflow.com/questions/51658/cross-platform-space-remaining-on-volume-using-python
     """
     if WIN32:
         import ctypes
@@ -60,7 +60,10 @@ def get_free_diskbytes(dir_):
 
 
 def get_disk_space(start_path='.'):
-    # http://stackoverflow.com/questions/1392413/calculating-a-directory-size-using-python
+    """
+    References:
+        # http://stackoverflow.com/questions/1392413/calculating-a-directory-size-using-python
+    """
     total_size = 0
     for dirpath, dirnames, filenames in os.walk(start_path):
         for f in filenames:
@@ -106,8 +109,8 @@ def python_executable():
 
 
 def ls_libs(dpath):
-    from . import util_list
-    from . import util_path
+    from utool import util_list
+    from utool import util_path
     lib_patterns = get_dynamic_lib_globstrs()
     libpaths_list = [util_path.ls(dpath, pat) for pat in lib_patterns]
     libpath_list = util_list.flatten(libpaths_list)
@@ -205,7 +208,20 @@ def editfile(fpath):
 
 
 def view_directory(dname=None, verbose=True):
-    """ view directory """
+    """
+    view directory
+
+    Args:
+        dname (str): directory name
+        verbose (bool):
+
+    Example:
+        >>> # DOCTEST_DISABLE
+        >>> from utool.util_cplat import *  # NOQA
+        >>> dname = None
+        >>> verbose = True
+        >>> view_directory(dname, verbose)
+    """
     from .util_arg import STRICT
     from .util_path import checkpath
 
@@ -443,6 +459,18 @@ def is64bit_python():
 def get_python_dynlib():
     """
     python -c "import utool; print(utool.get_python_dynlib())"
+
+    get_python_dynlib
+
+    Returns:
+        ?: dynlib
+
+    Example:
+        >>> # DOCTEST_DISABLE
+        >>> from utool.util_cplat import *  # NOQA
+        >>> dynlib = get_python_dynlib()
+        >>> print(dynlib)
+        /usr/lib/x86_64-linux-gnu/libpython2.7.so
     """
     import sysconfig
     cfgvars = sysconfig.get_config_vars()
@@ -461,3 +489,16 @@ def get_python_dynlib():
 #                print name+" is running"
 #        else:
 #                print name+" is not running"
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, utool.util_cplat; utool.doctest_funcs(utool.util_cplat, allexamples=True)"
+        python -c "import utool, utool.util_cplat; utool.doctest_funcs(utool.util_cplat)"
+        python utool/util_cplat.py
+        python utool/util_cplat.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

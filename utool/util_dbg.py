@@ -17,13 +17,13 @@ import re
 import types
 import functools
 from os.path import splitext, split
-from . import util_inject
-from .util_arg import get_argflag
-from .util_inject import inject
-from .util_list import list_allsame
-from .util_print import Indenter
-from .util_str import pack_into, truncate_str, horiz_string, indent
-from .util_type import is_listlike, get_type
+from utool import util_inject
+from utool.util_arg import get_argflag
+from utool.util_inject import inject
+from utool.util_list import list_allsame
+from utool.util_print import Indenter
+from utool.util_str import pack_into, truncate_str, horiz_string, indent
+from utool.util_type import is_listlike, get_type
 from utool._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[dbg]')
 
@@ -169,13 +169,15 @@ def execstr_dict(dict_, local_name=None, exclude_list=None):
             into local vars
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_dbg import *  # NOQA
         >>> my_dictionary = {'a': True, 'b':False}
         >>> execstr = execstr_dict(my_dictionary)
         >>> exec(execstr)
         >>> assert 'a' in vars() and 'b' in vars(), 'execstr failed'
         >>> assert b is False and a is True, 'execstr failed'
-        >>> print(execstr)
+        >>> result = execstr
+        >>> print(result)
         a = my_dictionary['a']
         b = my_dictionary['b']
     """
@@ -873,7 +875,7 @@ def print_keys(key_list, locals_=None):
 
 def parse_locals_keylist(locals_, key_list, strlist_=None, prefix=''):
     """ For each key in keylist, puts its value in locals into a stringlist """
-    #from .util_str import get_callable_name
+    #from utool.util_str import get_callable_name
     from utool.util_str import get_callable_name
     if strlist_ is None:
         strlist_ = []
@@ -1055,3 +1057,16 @@ class EmbedOnException(object):
             execstr_trace = utool.execstr_dict(trace_locals, 'trace_locals')
             exec(execstr_trace)
             utool.embed()
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, utool.util_dbg; utool.doctest_funcs(utool.util_dbg, allexamples=True)"
+        python -c "import utool, utool.util_dbg; utool.doctest_funcs(utool.util_dbg)"
+        python utool/util_dbg.py
+        python utool/util_dbg.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

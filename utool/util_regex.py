@@ -7,7 +7,7 @@ import six
 import os
 import parse
 from os.path import split, relpath
-from .util_inject import inject
+from utool.util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[str]')
 
 
@@ -82,6 +82,7 @@ def regex_replace(regex, repl, text):
         str: modified text
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_regex import *  # NOQA
         >>> regex = r'\(.*\):'
         >>> repl = '(*args)'
@@ -107,6 +108,7 @@ def named_field_regex(keypat_tups):
         str: regex
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_regex import *  # NOQA
         >>> keypat_tups = [
         ...    ('name',  r'G\d+'),  # species and 2 numbers
@@ -116,7 +118,8 @@ def named_field_regex(keypat_tups):
         ...    ('ext',   r'\w+'),
         ... ]
         >>> parse_dict = named_field_regex(keypat_tups)
-        >>> print(parse_dict)
+        >>> result = (parse_dict)
+        >>> print(result)
         (?P<name>G\d+)(?P<under>_)(?P<id>\d+)\.(?P<ext>\w+)
     """
     named_fields = [named_field(key, pat) for key, pat in keypat_tups]
@@ -258,7 +261,7 @@ def sed(regexpr, repl, force=False, recursive=False, dpath_list=None):
         recursive (bool):
         dpath_list (list): directories to search (defaults to cwd)
     """
-    from . import util_path
+    from utool import util_path
     #_grep(r, [repl], dpath_list=dpath_list, recursive=recursive)
     include_patterns = ['*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h']
     if dpath_list is None:
@@ -327,3 +330,17 @@ def sedfile(fpath, regexpr, repl, force=False, verbose=True, veryverbose=False):
     elif verbose:
         print('Nothing changed')
     return None
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, utool.util_regex; utool.doctest_funcs(utool.util_regex, allexamples=True)"
+        python -c "import utool, utool.util_regex; utool.doctest_funcs(utool.util_regex)"
+        python utool/util_regex.py
+        python utool/util_regex.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

@@ -10,11 +10,11 @@ try:
     HAS_NUMPY = True
 except ImportError:
     HAS_NUMPY = False
-from . import util_print
-from . import util_time
-from . import util_iter
-from . import util_dbg
-from . import util_arg
+from utool import util_print
+from utool import util_time
+from utool import util_iter
+from utool import util_dbg
+from utool import util_arg
 from .util_inject import inject
 from utool._internal.meta_util_six import get_funcname
 (print, print_, printDBG, rrr, profile) = inject(__name__, '[decor]')
@@ -494,3 +494,17 @@ def preserve_sig(wrapper, orig_func, force=False):
         newdoc = docstr_orig + '\n' + docstr_append
         ut.set_funcdoc(_wrp_preserve, newdoc)
     return _wrp_preserve
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, utool.util_decor; utool.doctest_funcs(utool.util_decor, allexamples=True)"
+        python -c "import utool, utool.util_decor; utool.doctest_funcs(utool.util_decor)"
+        python utool/util_decor.py
+        python utool/util_decor.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

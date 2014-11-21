@@ -14,7 +14,7 @@ except ImportError:
 from collections import defaultdict
 #import six
 from six.moves import zip, range
-from . import util_inject
+from utool import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
 
 
@@ -107,11 +107,17 @@ def cartesian(arrays, out=None):
         out (ndarray): cartesian products formed of input arrays
             2-D array of shape (M, len(arrays))
 
-    #Example:
-    #    >>> cartesian(([1, 2, 3], [4, 5], [6, 7]))
-    #    array([[1, 4, 6], [1, 4, 7], [1, 5, 6], [1, 5, 7],
-    #           [2, 4, 6], [2, 4, 7], [2, 5, 6], [2, 5, 7],
-    #           [3, 4, 6], [3, 4, 7], [3, 5, 6], [3, 5, 7]])
+    References:
+        https://gist.github.com/hernamesbarbara/68d073f551565de02ac5
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> arrays = ([1, 2, 3], [4, 5], [6, 7])
+        >>> out = cartesian(arrays)
+        >>> result = repr(out.T)
+        array([[1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3],
+               [4, 4, 5, 5, 4, 4, 5, 5, 4, 4, 5, 5],
+               [6, 7, 6, 7, 6, 7, 6, 7, 6, 7, 6, 7]])
 
     """
     arrays = [np.asarray(x) for x in arrays]
@@ -201,11 +207,13 @@ def group_items(item_list, groupid_list):
         vtool.apply_gropuing - second part to faster numpy grouping algorithm
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> import utool as ut
         >>> item_list    = [ 'ham',      'jam',    'spam',     'eggs', 'cheese', 'bannana']
         >>> groupid_list = ['protein', 'fruit', 'protein',  'protein',  'dairy',   'fruit']
         >>> groupid2_items = ut.group_items(item_list, groupid_list)
-        >>> print(ut.dict_str(groupid2_items, newlines=False))
+        >>> result = ut.dict_str(groupid2_items, newlines=False)
+        >>> print(result)
         {'protein': ['eggs', 'ham', 'spam'], 'fruit': ['bannana', 'jam'], 'dairy': ['cheese'],}
     """
     # Sort by groupid for cache efficiency
@@ -340,3 +348,16 @@ def get_nth_prime(n, max_prime=4100):
         primes = [num for num in range(2, max_prime) if is_prime(num)]
         nth_prime = primes[n]
     return nth_prime
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, utool.util_alg; utool.doctest_funcs(utool.util_alg, allexamples=True)"
+        python -c "import utool, utool.util_alg; utool.doctest_funcs(utool.util_alg)"
+        python utool/util_alg.py
+        python utool/util_alg.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

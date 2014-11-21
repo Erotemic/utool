@@ -4,11 +4,11 @@ import sys
 import textwrap
 from os.path import exists, join, dirname, split, splitext
 import os
-from . import util_cplat
-from . import util_path
-from . import util_io
-from . import util_str
-#from . import util_dev
+from utool import util_cplat
+from utool import util_path
+from utool import util_io
+from utool import util_str
+#from utool import util_dev
 from .util_dbg import printex
 
 VERBOSE = '--verbose' in sys.argv

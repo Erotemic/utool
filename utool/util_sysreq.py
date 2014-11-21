@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import sys
 from os.path import split, exists, join, dirname
 import os
-from .util_inject import inject
+from utool.util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[sysreq]')
 
 

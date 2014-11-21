@@ -3,7 +3,7 @@ import sys
 import six
 import time
 import datetime
-from .util_inject import inject
+from utool.util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[time]')
 
 
@@ -36,6 +36,7 @@ def get_timestamp(format_='filename', use_second=False, delta_seconds=None):
         str: stamp
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_time import *  # NOQA
         >>> format_ = 'printable'
         >>> use_second = False
@@ -76,9 +77,10 @@ class Timer(object):
     Timer with-statment context object.
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> import utool
         >>> with utool.Timer('Timer test!'):
-        >>>     prime = utool.get_nth_prime(4000)
+        >>>     prime = utool.get_nth_prime(400)
     """
     def __init__(self, msg='', verbose=True, newline=True):
         self.msg = msg
@@ -139,7 +141,7 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=1):
             #return -1
         return -1
     except ValueError as ex:
-        from .util_arg import STRICT
+        from utool.util_arg import STRICT
         if isinstance(datetime_str_, six.string_types):
             if datetime_str_.find('No EXIF Data') == 0:
                 return -1
@@ -204,10 +206,12 @@ def get_timedelta_str(timedelta):
         http://stackoverflow.com/questions/8906926/formatting-python-timedelta-objects
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_time import *  # NOQA
         >>> timedelta = get_unix_timedelta(10)
         >>> timedelta_str = get_timedelta_str(timedelta)
-        >>> print(timedelta_str)
+        >>> result = (timedelta_str)
+        >>> print(result)
         10 seconds
     """
     days = timedelta.days
@@ -259,3 +263,17 @@ def get_timestats_str(unixtime_list, newlines=False):
             pass
     timestat_str = utool.dict_str(unixtime_stats, newlines=newlines)
     return timestat_str
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, utool.util_time; utool.doctest_funcs(utool.util_time, allexamples=True)"
+        python -c "import utool, utool.util_time; utool.doctest_funcs(utool.util_time)"
+        python utool/util_time.py
+        python utool/util_time.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

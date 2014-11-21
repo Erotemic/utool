@@ -48,8 +48,8 @@ def test_progress():
 
     print('_________________')
 
-    numiter = 1000
-    rate = .01
+    numiter = 100
+    rate = .001
 
     with ut.Timer():
         for x in ut.ProgressIter(range(0, numiter), freq=4):
@@ -64,8 +64,8 @@ def test_progress():
 
     print('_________________')
 
-    numiter = 100000
-    rate = .000008
+    numiter = 10000
+    rate = .0000008
 
     with ut.Timer():
         for x in ut.ProgressIter(range(0, numiter), freq=4):
@@ -116,6 +116,7 @@ class ProgressIter(object):
         num (None):   alias for nTotal
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> import utool
         >>> from six.moves import range
         >>> results1 = [x for x in utool.ProgressIter(range(10000), wfreq=10)]
@@ -542,7 +543,12 @@ def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
 if __name__ == '__main__':
     """
     CommandLine:
-        python utool/util_progress.py --test-test-progress
+        python -c "import utool, utool.util_progress; utool.doctest_funcs(utool.util_progress, allexamples=True)"
+        python -c "import utool, utool.util_progress; utool.doctest_funcs(utool.util_progress)"
+        python utool/util_progress.py
+        python utool/util_progress.py --allexamples
     """
-    from utool.util_tests import doctest_funcs
-    doctest_funcs()
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

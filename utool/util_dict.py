@@ -116,8 +116,8 @@ def dict_update_newkeys(dict_, dict2):
 def is_dicteq(dict1_, dict2_, almosteq_ok=True, verbose_err=True):
     """ Checks to see if dicts are the same. Performs recursion. Handles numpy """
     import utool
-    from . import util_alg
-    from . import util_dbg
+    from utool import util_alg
+    from utool import util_dbg
     assert len(dict1_) == len(dict2_), 'dicts are not of same length'
     try:
         for (key1, val1), (key2, val2) in zip(dict1_.items(), dict2_.items()):

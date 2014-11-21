@@ -8,12 +8,12 @@ except ImportError:
 import six
 import itertools
 from six.moves import zip, map, zip_longest, range
-from .util_iter import iflatten, isiterable, ifilter_Nones, ifilter_items, ifilterfalse_items
-from .util_inject import inject
-from .util_str import get_callable_name
-from .util_arg import NO_ASSERTS
-from .util_type import is_listlike
-from ._internal.meta_util_six import get_funcname, set_funcname
+from utool.util_iter import iflatten, isiterable, ifilter_Nones, ifilter_items, ifilterfalse_items
+from utool.util_inject import inject
+from utool.util_str import get_callable_name
+from utool.util_arg import NO_ASSERTS
+from utool.util_type import is_listlike
+from utool._internal.meta_util_six import get_funcname, set_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[list]')
 
 
@@ -139,6 +139,7 @@ def invertable_flatten2(unflat_list):
     ``list``
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> import utool
         >>> utool.util_list
@@ -146,8 +147,9 @@ def invertable_flatten2(unflat_list):
         >>> flat_list, cumlen_list = invertable_flatten2(unflat_list)
         >>> unflat_list2 = unflatten2(flat_list, cumlen_list)
         >>> assert unflat_list2 == unflat_list
-        >>> print((flat_list, cumlen_list))
-        ([5, 2, 3, 12, 3, 3, 9, 13, 3, 5], array([ 1,  6,  7,  9, 10]))
+        >>> result = ((flat_list, cumlen_list))
+        >>> print(result)
+        ([5, 2, 3, 12, 3, 3, 9, 13, 3, 5], [1, 6, 7, 9, 10])
 
     SeeAlso:
         invertable_flatten
@@ -214,13 +216,16 @@ def unflatten2(flat_list, cumlen_list):
         unflatten2
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
+        >>> import numpy as np
         >>> import utool
         >>> utool.util_list
         >>> flat_list = [5, 2, 3, 12, 3, 3, 9, 13, 3, 5]
         >>> cumlen_list = np.array([ 1,  6,  7,  9, 10])
         >>> unflat_list2 = unflatten2(flat_list, cumlen_list)
-        >>> print(unflat_list2)
+        >>> result = (unflat_list2)
+        >>> print(result)
         [[5], [2, 3, 12, 3, 3], [9], [13, 3], [5]]
     """
     unflat_list2 = [flat_list[low:high] for low, high in zip(itertools.chain([0], cumlen_list), cumlen_list)]
@@ -329,7 +334,7 @@ def assert_all_not_None(list_, list_name='some_list', key_list=[]):
             #if any([item is None for count, item in enumerate(list_)]):
             assert item is not None, 'a list element is None'
     except AssertionError as ex:
-        from .util_dbg import printex
+        from utool.util_dbg import printex
         msg = (list_name + '[%d] = %r') % (count, item)
         printex(ex, msg, key_list=key_list, N=1)
         raise ex
@@ -447,8 +452,8 @@ def intersect_ordered(list1, list2):
         >>> from utool.util_list import *  # NOQA
         >>> list1 = ['featweight_rowid', 'feature_rowid', 'config_rowid', 'featweight_forground_weight']
         >>> list2 = [u'featweight_rowid']
-        >>> new_list = intersect_ordered(list1, list2)
-        >>> print(new_list)
+        >>> result = intersect_ordered(list1, list2)
+        >>> print(result)
         ['featweight_rowid']
     """
     return [item for item in list1 if item in set(list2)]
@@ -468,11 +473,13 @@ def setdiff_ordered(list1, list2):
         list: new_list
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> list1 = ['featweight_rowid', 'feature_rowid', 'config_rowid', 'featweight_forground_weight']
         >>> list2 = [u'featweight_rowid']
         >>> new_list = setdiff_ordered(list1, list2)
-        >>> print(new_list)
+        >>> result = new_list
+        >>> print(result)
         ['feature_rowid', 'config_rowid', 'featweight_forground_weight']
     """
     return [item for item in list1 if item not in set(list2)]
@@ -537,10 +544,11 @@ def sortedby(item_list, key_list, reverse=False):
         ascending order
 
     Examples:
+        >>> # ENABLE_DOCTEST
         >>> import utool
         >>> list_    = [1, 2, 3, 4, 5]
         >>> key_list = [2, 5, 3, 1, 5]
-        >>> utool.sortedby(list_, key_list, reverse=True)
+        >>> result = utool.sortedby(list_, key_list, reverse=True)
         [5, 2, 3, 1, 4]
 
     """
@@ -566,20 +574,24 @@ def sortedby2(item_list, *args, **kwargs):
         ascending order
 
     Examples:
+        >>> # ENABLE_DOCTEST
         >>> import utool
         >>> item_list = [1, 2, 3, 4, 5]
         >>> key_list1 = [1, 1, 2, 3, 4]
         >>> key_list2 = [2, 1, 4, 1, 1]
         >>> args = (key_list1, key_list2)
-        >>> kwargs = {}
-        >>> utool.sortedby2(item_list, *args, **kwargs)
-        [5, 2, 3, 1, 4]
+        >>> kwargs = dict(reverse=False)
+        >>> result = utool.sortedby2(item_list, *args, **kwargs)
+        >>> print(result)
+        [2, 1, 3, 4, 5]
+
     """
     import operator
     assert all([len(item_list) == len_ for len_ in map(len, args)])
     reverse = kwargs.get('reverse', False)
     key = operator.itemgetter(*range(1, len(args) + 1))
     tup_list = list(zip(item_list, *args))
+    print(tup_list)
     sorted_tups = sorted(tup_list, key=key, reverse=reverse)
     sorted_list = [tup[0] for tup in sorted_tups]
     return sorted_list
@@ -741,15 +753,17 @@ def find_nonconsec_indicies(unique_vals, consec_vals):
         missing_ixs
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
-        >>> unique_vals = array([-2, -1,  1,  2, 10])
+        >>> import numpy as np
+        >>> unique_vals = np.array([-2, -1,  1,  2, 10])
         >>> max_ = unique_vals.max()
         >>> min_ = unique_vals.min()
         >>> range_ = max_ - min_
         >>> consec_vals = np.linspace(min_, max_ + 1, range_ + 2)
         >>> missing_ixs = find_nonconsec_indicies(unique_vals, consec_vals)
-        >>> print(consec_vals[missing_ixs])
-        array([ 0.,  3.,  4.,  5.,  6.,  7.,  8.,  9.])
+        >>> result = (consec_vals[missing_ixs])
+        [ 0.  3.  4.  5.  6.  7.  8.  9.]
     """
     missing_ixs = []
     valx   = 0
@@ -830,8 +844,10 @@ def list_depth(list_, func=max, _depth=0):
        _depth : internal var
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> list_ = [[[[[1]]], [3]], [[1], [3]], [[1], [3]]]
-        >>> print(list_depth(list_, _depth=0))
+        >>> result = (list_depth(list_, _depth=0))
+        >>> print(result)
 
     """
     depth_list = [list_depth(item, func=func, _depth=_depth + 1)
@@ -860,9 +876,11 @@ def depth_profile(list_):
     Returns a nested list corresponding the shape of the nested structure
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> list_ = [[[[[1]]], [3, 4, 33]], [[1], [3]], [[1], [3]]]
-        >>> print(depth_profile(list_))
+        >>> result = (depth_profile(list_))
+        >>> print(result)
         [[[[1]], 3], [1, 1], [1, 1]]
     """
     level_shape_list = []
@@ -873,3 +891,17 @@ def depth_profile(list_):
         if is_listlike(item):
             level_shape_list.append(depth_profile(item))
     return level_shape_list
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, utool.util_list; utool.doctest_funcs(utool.util_list, allexamples=True)"
+        python -c "import utool, utool.util_list; utool.doctest_funcs(utool.util_list)"
+        python utool/util_list.py
+        python utool/util_list.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

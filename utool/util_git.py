@@ -6,7 +6,7 @@ from six.moves import zip
 from os.path import exists, join, dirname, split, isdir
 from ._internal import meta_util_git as mu  # NOQA
 from ._internal.meta_util_git import get_repo_dirs, get_repo_dname  # NOQA
-from . import util_inject
+from utool import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[git]')
 
 repo_list = mu.repo_list

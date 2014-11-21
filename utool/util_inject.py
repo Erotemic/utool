@@ -3,7 +3,7 @@ from six.moves import builtins
 #import builtins
 import sys
 from functools import wraps
-from . import util_logging
+from utool import util_logging
 from ._internal.meta_util_six import get_funcname
 from ._internal.meta_util_arg import get_argval
 

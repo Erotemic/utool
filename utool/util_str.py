@@ -8,9 +8,9 @@ import textwrap
 from six.moves import map, range
 import math
 from os.path import split
-from .util_inject import inject
-from .util_time import get_unix_timedelta
-from ._internal.meta_util_six import get_funcname
+from utool.util_inject import inject
+from utool.util_time import get_unix_timedelta
+from utool._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[str]')
 
 
@@ -248,14 +248,17 @@ def seconds_str(num, prefix=None):
         str
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> import utool
         >>> utool.util_str.rrr()
         >>> num_list = sorted([4.2 / (10.0 ** exp_) for exp_ in range(-13, 13, 4)])
         >>> secstr_list = [utool.util_str.seconds_str(num, prefix=None) for num in num_list]
-        >>> print(', '.join(secstr_list))
-        0.042 ns, 0.42 us, 4.2 ms, 0.042 ks, 0.42 Ms, 4.2 Gs, 42.0 Ts
+        >>> result = (', '.join(secstr_list))
+        >>> print(result)
+        0.04 ns, 0.42 us, 4.20 ms, 0.04 ks, 0.42 Ms, 4.20 Gs, 42.00 Ts
 
-        #>>> print(',\n'.join(map(str, zip(secstr_list, num_list))))
+    0.042 ns, 0.42 us, 4.2 ms, 0.042 ks, 0.42 Ms, 4.2 Gs, 42.0 Ts
+    #>>> print(',\n'.join(map(str, zip(secstr_list, num_list))))
     """
     exponent_list = [-12, -9, -6, -3, 0, 3, 6, 9, 12]
     small_prefix_list = ['p', 'n', 'u', 'm', '', 'k', 'M', 'G', 'T']
@@ -345,7 +348,7 @@ def byte_str(nBytes, unit='bytes'):
 
 
 def file_megabytes_str(fpath):
-    from . import util_path
+    from utool import util_path
     return ('%.2f MB' % util_path.file_megabytes(fpath))
 
 
@@ -627,10 +630,12 @@ def align(text, character='='):
         str: new_text
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_str import *  # NOQA
         >>> character = '='
         >>> text = 'a = b\none = two\nthree = fish\n'
-        >>> print(align(text, '='))
+        >>> result = (align(text, '='))
+        >>> print(result)
         a     = b
         one   = two
         three = fish
@@ -680,7 +685,7 @@ def align_lines(line_list, character='='):
 
 
 def get_freespace_str(dir_='.'):
-    from . import util_cplat
+    from utool import util_cplat
     return byte_str2(util_cplat.get_free_diskbytes(dir_))
 
 
@@ -715,7 +720,7 @@ def long_fname_format(fmt_str, fmt_dict, hashable_keys=[], max_len=64, hashlen=1
         >>> print(fname2)
         qaid=5_res_du1&i&5l_quuid=euuaxoyi
     """
-    from . import util_hash
+    from utool import util_hash
     fname = fmt_str.format(**fmt_dict)
     if max_len is None:
         return fname
@@ -808,3 +813,17 @@ def msgblock(key, text):
         [' L --- ', key, ' ---\n']
     )
     return blocked_text
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, utool.util_str; utool.doctest_funcs(utool.util_str, allexamples=True)"
+        python -c "import utool, utool.util_str; utool.doctest_funcs(utool.util_str)"
+        python utool/util_str.py
+        python utool/util_str.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

@@ -9,12 +9,12 @@ import multiprocessing
 import atexit
 import sys
 import signal
-from ._internal.meta_util_six import get_funcname
-from .util_progress import progress_func, ProgressIter
-from .util_time import tic, toc
-from . import util_arg
-#from .util_cplat import WIN32
-from .util_dbg import printex
+from utool._internal.meta_util_six import get_funcname
+from utool.util_progress import progress_func, ProgressIter
+from utool.util_time import tic, toc
+from utool import util_arg
+#from utool.util_cplat import WIN32
+from utool.util_dbg import printex
 
 
 QUIET   = util_arg.QUIET
@@ -336,3 +336,17 @@ def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__,
                   (nTasks, get_funcname(func), __POOL__._processes))
         result_list = _process_parallel(func, args_list, args_dict, nTasks=nTasks)
     return result_list
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, utool.util_parallel; utool.doctest_funcs(utool.util_parallel, allexamples=True)"
+        python -c "import utool, utool.util_parallel; utool.doctest_funcs(utool.util_parallel)"
+        python utool/util_parallel.py
+        python utool/util_parallel.py --allexamples
+    """
+    #import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

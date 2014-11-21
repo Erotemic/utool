@@ -10,8 +10,8 @@ except ImportError:
     # TODO remove numpy
     HAS_NUMPY = False
     pass
-from .util_inject import inject
-from ._internal.meta_util_six import IntType, LongType, FloatType, BooleanType
+from utool.util_inject import inject
+from utool._internal.meta_util_six import IntType, LongType, FloatType, BooleanType
 print, print_, printDBG, rrr, profile = inject(__name__, '[type]')
 
 
@@ -92,7 +92,7 @@ def bool_from_str(str_):
 
 
 def assert_int(var, lbl='var'):
-    from .util_arg import NO_ASSERTS
+    from utool.util_arg import NO_ASSERTS
     if NO_ASSERTS:
         return
     try:

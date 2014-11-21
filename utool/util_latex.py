@@ -8,11 +8,11 @@ import textwrap
 import numpy as np
 from os.path import join, splitext
 # Util
-from . import util_cplat
-from . import util_path
-from . import util_num
-from . import util_dev
-from . import util_io
+from utool import util_cplat
+from utool import util_path
+from utool import util_num
+from utool import util_dev
+from utool import util_io
 from .util_dbg import printex
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[latex]')

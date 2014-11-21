@@ -6,7 +6,7 @@ except ImportError as ex:
 import six
 from six.moves import zip, range
 from itertools import chain, cycle, islice, izip_longest
-from .util_inject import inject
+from utool.util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[iter]')
 
 
@@ -29,11 +29,48 @@ def isiterable(obj):
 
 
 def ifilter_items(item_iter, flag_iter):
+    """
+    ifilter_items
+
+    Args:
+        item_iter (list):
+        flag_iter (list): of bools
+
+    Returns:
+        list: true_items
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_iter import *  # NOQA
+        >>> item_iter = [1, 2, 3, 4, 5]
+        >>> flag_iter = [False, True, True, False, True]
+        >>> true_items = ifilter_items(item_iter, flag_iter)
+        >>> result = list(true_items)
+        >>> print(result)
+        [2, 3, 5]
+    """
     true_items = (item for (item, flag) in zip(item_iter, flag_iter) if flag)
     return true_items
 
 
 def ifilterfalse_items(item_iter, flag_iter):
+    """
+    ifilterfalse_items
+
+    Args:
+        item_iter (list):
+        flag_iter (list): of bools
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_iter import *  # NOQA
+        >>> item_iter = [1, 2, 3, 4, 5]
+        >>> flag_iter = [False, True, True, False, True]
+        >>> false_items = ifilterfalse_items(item_iter, flag_iter)
+        >>> result = list(false_items)
+        >>> print(result)
+        [1, 4]
+    """
     false_items = (item for (item, flag) in zip(item_iter, flag_iter) if not flag)
     return false_items
 
@@ -82,8 +119,9 @@ def ichunks(iterable, chunksize):
         >>> from utool.util_iter import *  # NOQA
         >>> iterable = [1, 2, 3, 4, 5, 6, 7]
         >>> chunksize = 3
-        >>> result = ichunks(iterable, chunksize)
-        >>> print(list(result))
+        >>> genresult = ichunks(iterable, chunksize)
+        >>> result = list(genresult)
+        >>> print(result)
         [[1, 2, 3], [4, 5, 6], [7]]
     """
     # feed the same iter to izip_longest multiple times, this causes it to
@@ -117,8 +155,9 @@ def interleave(args):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_iter import *  # NOQA
         >>> args = ([1, 2, 3, 4, 5], ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
-        >>> result = interleave(args)
-        >>> print(list(result))
+        >>> genresult = interleave(args)
+        >>> result = list(genresult)
+        >>> print(result)
         [1, 'A', 2, 'B', 3, 'C', 4, 'D', 5, 'E']
     """
     arg_iters = list(map(iter, args))
@@ -161,3 +200,17 @@ def roundrobin(*iterables):
         except StopIteration:
             pending -= 1
             nexts = cycle(islice(nexts, pending))
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, utool.util_iter; utool.doctest_funcs(utool.util_iter, allexamples=True)"
+        python -c "import utool, utool.util_iter; utool.doctest_funcs(utool.util_iter)"
+        python utool/util_iter.py
+        python utool/util_iter.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

@@ -11,13 +11,13 @@ from __future__ import absolute_import, division, print_function
 #from os.path import join, normpath
 #import functools
 #from itertools import chain
-#from . import util_arg
-#from . import util_hash
-from . import util_inject
-#from . import util_path
-#from . import util_io
-#from . import util_str
-#from . import util_cplat
+#from utool import util_arg
+#from utool import util_hash
+from utool import util_inject
+#from utool import util_path
+#from utool import util_io
+#from utool import util_str
+#from utool import util_cplat
 #from ._internal.meta_util_six import get_funcname
 #from ._internal.meta_util_constants import (global_cache_fname,
 #                                            global_cache_dname,

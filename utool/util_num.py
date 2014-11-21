@@ -4,8 +4,8 @@ try:
 except ImportError as ex:
     pass
 import decimal
-from .util_type import is_float, is_int
-from .util_inject import inject
+from utool.util_type import is_float, is_int
+from utool.util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[num]')
 
 

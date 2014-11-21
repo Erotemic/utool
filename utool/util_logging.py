@@ -49,9 +49,9 @@ def get_logging_dir(appname='default'):
     Returns:
         log_dir_realpath (str): real path to logging directory
     """
-    from ._internal.meta_util_cache import global_cache_read
-    from ._internal.meta_util_cplat import get_resource_dir
-    from .util_cache import get_default_appname  # Hacky
+    from utool._internal.meta_util_cache import global_cache_read
+    from utool._internal.meta_util_cplat import get_resource_dir
+    from utool.util_cache import get_default_appname  # Hacky
     if appname is None or  appname == 'default':
         appname = get_default_appname()
     log_dir = global_cache_read(logdir_cacheid, appname=appname, default=join(get_resource_dir(), appname, 'logs'))

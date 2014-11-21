@@ -17,6 +17,38 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
                    column_type=None, row_lbls=None, transpose=False):
     """
     Creates a csv table with aligned columns
+
+    make_csv_table
+
+    Args:
+        column_list (list):
+        column_lbls (None):
+        header (str):
+        column_type (None):
+        row_lbls (None):
+        transpose (bool):
+
+    Returns:
+        str: csv_text
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_csv import *  # NOQA
+        >>> column_list = [[1, 2, 3], ['A', 'B', 'C']]
+        >>> column_lbls = ['num', 'alpha']
+        >>> header = '# Test CSV'
+        >>> column_type = (int, str)
+        >>> row_lbls = None
+        >>> transpose = False
+        >>> csv_text = make_csv_table(column_list, column_lbls, header, column_type, row_lbls, transpose)
+        >>> result = csv_text
+        >>> print(result)
+        # Test CSV
+        # NumData 3
+        #   num,  alpha
+              1,      A
+              2,      B
+              3,      C
     """
     if transpose:
         column_lbls, row_lbls = row_lbls, column_lbls
@@ -95,3 +127,16 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
 
     csv_text = '\n'.join(csv_rows)
     return csv_text
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, utool.util_csv; utool.doctest_funcs(utool.util_csv, allexamples=True)"
+        python -c "import utool, utool.util_csv; utool.doctest_funcs(utool.util_csv)"
+        python utool/util_csv.py
+        python utool/util_csv.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

@@ -65,14 +65,20 @@ def hist_isect(hist1, hist2):
 def emd(hist1, hist2):
     """
     earth mover's distance by robjects(lpSovle::lp.transport)
-    import numpy as np
-    hist1 = np.random.rand(128)
-    hist2 = np.random.rand(128)
     require: lpsolve55-5.5.0.9.win32-py2.7.exe
-    https://github.com/andreasjansson/python-emd
-    http://stackoverflow.com/questions/15706339/how-to-compute-emd-for-2-numpy-arrays-i-e-histogram-using-opencv
-    http://www.cs.huji.ac.il/~ofirpele/FastEMD/code/
-    http://www.cs.huji.ac.il/~ofirpele/publications/ECCV2008.pdf
+
+    Example:
+        >>> from utool.util_distances import *   # NOQA
+        >>> import numpy as np
+        >>> hist1 = np.random.rand(128)
+        >>> hist2 = np.random.rand(128)
+        >>> result = emd(hist1, hist2)
+
+    References:
+        https://github.com/andreasjansson/python-emd
+        http://stackoverflow.com/questions/15706339/how-to-compute-emd-for-2-numpy-arrays-i-e-histogram-using-opencv
+        http://www.cs.huji.ac.il/~ofirpele/FastEMD/code/
+        http://www.cs.huji.ac.il/~ofirpele/publications/ECCV2008.pdf
     """
     try:
         from cv2 import cv
@@ -107,3 +113,17 @@ def emd(hist1, hist2):
         ab32_list = [(convertCV32(a), convertCV32(b)) for a, b in ab_list]
         emd_dists = [emd_(a32, b32) for a32, b32, in ab32_list]
         return emd_dists
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, utool.util_distances; utool.doctest_funcs(utool.util_distances, allexamples=True)"
+        python -c "import utool, utool.util_distances; utool.doctest_funcs(utool.util_distances)"
+        python utool/util_distances.py
+        python utool/util_distances.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

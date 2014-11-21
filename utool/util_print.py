@@ -6,8 +6,8 @@ except ImportError:
 import six
 import functools
 import sys
-from .util_str import horiz_string, filesize_str
-from .util_inject import inject, get_injected_modules
+from utool.util_str import horiz_string, filesize_str
+from utool.util_inject import inject, get_injected_modules
 print, print_, printDBG, rrr, profile = inject(__name__, '[print]')
 
 QUIET = '--quiet' in sys.argv
@@ -159,7 +159,7 @@ def printif(func, condition=VERBOSE and not QUIET):
 
 
 def print_locals():
-    from . import util_str
-    from . import util_dbg
+    from utool import util_str
+    from utool import util_dbg
     locals_ = util_dbg.get_caller_locals()
     print(util_str.dict_str(locals_))

@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import cPickle
-from . import util_path
-from . import util_inject
+from utool import util_path
+from utool import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[io]')
 
 

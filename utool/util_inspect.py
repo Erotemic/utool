@@ -3,7 +3,7 @@ import inspect
 import types
 import six
 import functools
-from . import util_inject
+from utool import util_inject
 from ._internal import meta_util_six
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
 
@@ -23,7 +23,7 @@ def iter_module_funcs(module):
             yield key, val
         elif val is None:
             pass
-        elif isinstance(val, (dict, list, tuple, bool, float, int)):
+        elif isinstance(val, (dict, list, tuple, set, frozenset, bool, float, int)):
             pass
         elif isinstance(val, types.InstanceType):
             pass
@@ -53,6 +53,7 @@ def list_class_funcnames(fname, blank_pats=['    #']):
         list: funcname_list
 
     Example:
+        >>>
         >>> from utool.util_inspect import *  # NOQA
         >>> fname = 'util_class.py'
         >>> blank_pats = ['    #']
@@ -107,3 +108,17 @@ def set_funcdoc(func, newdoc):
 def get_func_argspec(func):
     argspec = inspect.getargspec(func)
     return argspec
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -c "import utool, utool.util_inspect; utool.doctest_funcs(utool.util_inspect, allexamples=True)"
+        python -c "import utool, utool.util_inspect; utool.doctest_funcs(utool.util_inspect)"
+        python utool/util_inspect.py
+        python utool/util_inspect.py --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

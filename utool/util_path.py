@@ -616,7 +616,7 @@ def get_relative_modpath(module_fpath):
         >>> import utool as ut
         >>> module_fpath = ut.util_path.__file__
         >>> rel_modpath = ut.get_relative_modpath(module_fpath)
-        >>> result = rel_modpath
+        >>> result = rel_modpath.replace('.pyc', '.py')  # allow pyc or py
         >>> print(result)
         utool/util_path.py
     """
@@ -764,10 +764,12 @@ def is_module_dir(path):
         flag: True if path contains an __init__ file
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_path import *  # NOQA
         >>> path = truepath('~/code/utool/utool')
         >>> flag = is_module_dir(path)
-        >>> print(flag)
+        >>> result = (flag)
+        >>> print(result)
     """
     return exists(join(path, '__init__.py'))
 
