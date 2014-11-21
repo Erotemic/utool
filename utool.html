@@ -2605,10 +2605,12 @@ Output: a list of dicts correpsonding to all combinations of params settings</p>
 It tries to not be oververbose and returns only what parameters are varied
 in each label.</p>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">varied_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;logdist_weight&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span> <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;vsmany&#39;</span><span class="p">],</span> <span class="s">&#39;sv_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">None</span><span class="p">]}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">comb_lbls</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">all_dict_combinations_lbls</span><span class="p">(</span><span class="n">varied_dict</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">comb_lbls</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">comb_lbls</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">[</span>
 <span class="go">    ((&#39;sv_on&#39;, True), (&#39;logdist_weight&#39;, 0.0)),</span>
 <span class="go">    ((&#39;sv_on&#39;, True), (&#39;logdist_weight&#39;, 1.0)),</span>
@@ -2661,7 +2663,23 @@ in each label.</p>
 <dl class="function">
 <dt id="utool.util_dict.dictinfo">
 <tt class="descclassname">utool.util_dict.</tt><tt class="descname">dictinfo</tt><big>(</big><em>dict_</em><big>)</big><a class="reference internal" href="_modules/utool/util_dict.html#dictinfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_dict.dictinfo" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>In depth debugging info</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_dict</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dict_</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">dictinfo</span><span class="p">(</span><span class="n">dict_</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="function">
 <dt id="utool.util_dict.invert_dict">
@@ -2670,14 +2688,19 @@ in each label.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">?: inverted_dict</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">inverted_dict</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_dict</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_dict</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dict_</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;a&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;b&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">inverted_dict</span> <span class="o">=</span> <span class="n">invert_dict</span><span class="p">(</span><span class="n">dict_</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">inverted_dict</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">{1: &#39;a&#39;, 2: &#39;b&#39;}</span>
 </pre></div>
 </div>
@@ -6276,8 +6299,10 @@ recursive = True
 <dd><p>Horizontally prints objects</p>
 <p>Prints a list of objects ensuring that the next item in the list
 is all the way to the right of any previous items.</p>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Pretty printing of matrices demo / test</span>
+<dl class="docutils">
+<dt>Example1:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Pretty printing of matrices demo / test</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># Wouldn&#39;t it be nice if we could print this operation easily?</span>
@@ -6285,17 +6310,25 @@ is all the way to the right of any previous items.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">)))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">=</span> <span class="n">B</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">C</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># Eg 1:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">str_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;A = &#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">B</span><span class="p">),</span> <span class="s">&#39; * &#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">C</span><span class="p">)]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">horizstr</span> <span class="o">=</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">horiz_string</span><span class="p">(</span><span class="o">*</span><span class="n">str_list</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">horizstr</span><span class="p">)</span>
-<span class="go">A = [[1 2]  * [[5 6]</span>
-<span class="go">     [3 4]]    [7 8]]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Eg 2:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">hz_str</span><span class="p">(</span><span class="s">&#39;A = &#39;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="s">&#39; = &#39;</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="s">&#39; * &#39;</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">hz_str</span><span class="p">(</span><span class="s">&#39;A = &#39;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="s">&#39; = &#39;</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="s">&#39; * &#39;</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">A = [[19 22]  = [[1 2]  * [[5 6]</span>
 <span class="go">     [43 50]]    [3 4]]    [7 8]]</span>
 </pre></div>
 </div>
+</dd>
+<dt>Exam2:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Eg 2:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">str_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;A = &#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">B</span><span class="p">),</span> <span class="s">&#39; * &#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">C</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">horizstr</span> <span class="o">=</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">horiz_string</span><span class="p">(</span><span class="o">*</span><span class="n">str_list</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">horizstr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">A = [[1 2]  * [[5 6]</span>
+<span class="go">     [3 4]]    [7 8]]</span>
+</pre></div>
+</div>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -6304,8 +6337,10 @@ is all the way to the right of any previous items.</p>
 <dd><p>Horizontally prints objects</p>
 <p>Prints a list of objects ensuring that the next item in the list
 is all the way to the right of any previous items.</p>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Pretty printing of matrices demo / test</span>
+<dl class="docutils">
+<dt>Example1:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Pretty printing of matrices demo / test</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># Wouldn&#39;t it be nice if we could print this operation easily?</span>
@@ -6313,17 +6348,25 @@ is all the way to the right of any previous items.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">)))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">=</span> <span class="n">B</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">C</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># Eg 1:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">str_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;A = &#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">B</span><span class="p">),</span> <span class="s">&#39; * &#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">C</span><span class="p">)]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">horizstr</span> <span class="o">=</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">horiz_string</span><span class="p">(</span><span class="o">*</span><span class="n">str_list</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">horizstr</span><span class="p">)</span>
-<span class="go">A = [[1 2]  * [[5 6]</span>
-<span class="go">     [3 4]]    [7 8]]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Eg 2:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">hz_str</span><span class="p">(</span><span class="s">&#39;A = &#39;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="s">&#39; = &#39;</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="s">&#39; * &#39;</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">hz_str</span><span class="p">(</span><span class="s">&#39;A = &#39;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="s">&#39; = &#39;</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="s">&#39; * &#39;</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">A = [[19 22]  = [[1 2]  * [[5 6]</span>
 <span class="go">     [43 50]]    [3 4]]    [7 8]]</span>
 </pre></div>
 </div>
+</dd>
+<dt>Exam2:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Eg 2:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">str_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;A = &#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">B</span><span class="p">),</span> <span class="s">&#39; * &#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">C</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">horizstr</span> <span class="o">=</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">horiz_string</span><span class="p">(</span><span class="o">*</span><span class="n">str_list</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">horizstr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">A = [[1 2]  * [[5 6]</span>
+<span class="go">     [3 4]]    [7 8]]</span>
+</pre></div>
+</div>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
