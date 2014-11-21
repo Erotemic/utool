@@ -191,9 +191,14 @@ def find_packages(recursive=True, maxdepth=None):
 
 
 def get_cmdclass():
-    from Cython.Distutils import build_ext
-    cmdclass = {'build_ext': build_ext}
-    return cmdclass
+    try:
+        from Cython.Distutils import build_ext
+        cmdclass = {'build_ext': build_ext}
+        return cmdclass
+    except Exception as ex:
+        print(ex)
+        print('WARNING: Cython is not installed. This is only a problem if you are building C extensions')
+        return None
 
 
 def parse_author():

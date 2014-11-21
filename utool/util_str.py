@@ -24,11 +24,11 @@ def theta_str(theta, taustr=('tau' if '--myway' in sys.argv else '2pi')):
     return ('%.2f * ' % coeff) + taustr
 
 
-def bbox_str(bbox, pad=4):
+def bbox_str(bbox, pad=4, sep=', '):
     """ makes a string from an integer bounding box """
     if bbox is None:
         return 'None'
-    fmtstr = ', '.join(['%' + str(pad) + 'd'] * 4)
+    fmtstr = sep.join(['%' + str(pad) + 'd'] * 4)
     return '(' + fmtstr % bbox + ')'
 
 

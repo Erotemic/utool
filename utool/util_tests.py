@@ -18,7 +18,9 @@ from utool._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[tests]')
 
 
-VERBOSE_TEST = '--verb-test' in sys.argv or '--verbose-test' in sys.argv
+VERBOSE_TEST = util_arg.get_argflag(('--verb-test', '--verbose-test'))
+PRINT_SRC = not util_arg.get_argflag('--noprintsrc', '--nosrc')
+PRINT_FACE = not util_arg.get_argflag('--noprintface', '--noface')
 
 HAPPY_FACE = r'''
                .-""""""-.
@@ -412,7 +414,8 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     for testtup in enabled_testtup_list:
         name, num, src, want, flag = testtup
         print('\n\n ---- DOCTEST ' + name.upper() + ':' + str(num) + '---')
-        print(ut.msgblock('EXEC SRC', src))
+        if PRINT_SRC:
+            print(ut.msgblock('EXEC SRC', src))
         # --- EXEC STATMENT ---
         test_globals = module.__dict__.copy()
         try:
@@ -478,11 +481,11 @@ def run_test(func, *args, **kwargs):
                         #print(result)
                         if result != want:
                             errmsg1 = ''
-                            errmsg1 += ('GOT: result=\n%s\n' % (result))
-                            errmsg1 += ('EXPECTED: want=\n%s\n' % (want))
+                            errmsg1 += ('REPR_GOT: result=\n%r\n' % (result))
+                            errmsg1 += ('REPR_EXPECTED: want=\n%r\n' % (want))
                             errmsg1 += ''
-                            errmsg1 += ('GOT: result=\n%r\n' % (result))
-                            errmsg1 += ('EXPECTED: want=\n%r\n' % (want))
+                            errmsg1 += ('STR_GOT: result=\n%s\n' % (result))
+                            errmsg1 += ('STR_EXPECTED: want=\n%s\n' % (want))
                             raise AssertionError('result != want\n' + errmsg1)
                         #assert result == want, 'result is not the same as want'
                     #print('\n'.join(output_lines))
@@ -491,7 +494,8 @@ def run_test(func, *args, **kwargs):
                 print('')
                 # Write timings
             printTEST('[TEST.FINISH] %s -- SUCCESS' % (funcname,))
-            print(HAPPY_FACE)
+            if PRINT_FACE:
+                print(HAPPY_FACE)
             try:
                 with open('test_times.txt', 'a') as file_:
                     msg = '%.4fs in %s\n' % (timer.ellapsed, upper_funcname)
@@ -508,7 +512,9 @@ def run_test(func, *args, **kwargs):
             if func_is_text:
                 #ut.embed()
                 print('Failed in module: %r' % frame_fpath)
-                print(ut.msgblock('FAILED DOCTEST IN %s' % (funcname,), src))
+                src_with_lineno = '\n'.join([('%2d >>> ' % (count + 1)) + line
+                                             for count, line in enumerate(src.splitlines())])
+                print(ut.msgblock('FAILED DOCTEST IN %s' % (funcname,), src_with_lineno))
                 #failed_execline = traceback.format_tb(tb)[-1]
                 #parse_str = 'File {fname}, line {lineno}, in {modname}'
                 #parse_dict = parse.parse('{prefix_}' + parse_str + '{suffix_}', failed_execline)
@@ -516,7 +522,8 @@ def run_test(func, *args, **kwargs):
                 #    lineno = int(parse_dict['lineno'])
                 #    failed_line = src.splitlines()[lineno - 1]
                 #    print('Failed on line: %s' % failed_line)
-            print(SAD_FACE)
+            if PRINT_FACE:
+                print(SAD_FACE)
             raise
             if util_arg.STRICT:
                 # Remove this function from stack strace

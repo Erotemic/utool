@@ -5,9 +5,9 @@ from setuptools import setup
 
 def utool_setup():
     INSTALL_REQUIRES = [
-        'six',
-        'psutil',
-        'parse',
+        'six >= 1.8.0',
+        'psutil >= 2.1.3',
+        'parse >= 1.6.6',
         #'decorator',
     ]
 
