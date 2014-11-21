@@ -198,7 +198,7 @@ def get_cmdclass():
     except Exception as ex:
         print(ex)
         print('WARNING: Cython is not installed. This is only a problem if you are building C extensions')
-        return None
+        return {}
 
 
 def parse_author():
