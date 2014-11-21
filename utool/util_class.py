@@ -35,7 +35,7 @@ def inject_instance(self, classtype=None, allow_override=False, verbose=VERBOSE_
         make_class_method_decorator
 
     Example:
-        >>> DOCTEST = False
+        >>> # DOCTEST_DISABLE
         >>> utool.make_class_method_decorator(InvertedIndex)(smk_debug.invindex_dbgstr)
         >>> utool.inject_instance(invindex)
     """
@@ -217,13 +217,12 @@ def makeForwardingMetaclass(forwarding_dest_getter, whitelist, base_class=object
 
 class ReloadingMetaclass(type):
     """
-    __init__
+    Classes with this metaclass will be able to reload themselves
+    on a per-instance basis using the rrr function.
 
-    Args:
-        metaself (?):
-        name (?):
-        bases (?):
-        dct (?):
+    If the functions _on_reload and _initialize_self exist
+    they will be called after and before reload respectively. Any
+    inject_instance functions should be handled there.
 
     Example:
         >>> # DIABLE_DOCTEST
@@ -260,6 +259,8 @@ class ReloadingMetaclass(type):
                 modname = self.__class__.__module__
                 if verbose:
                     print('reloading ' + classname + ' from ' + modname)
+                if hasattr(self, '_on_reload'):
+                    self._on_reload()
                 module = sys.modules[modname]
                 if modname != '__main__':
                     # Reload the parent module
@@ -272,6 +273,8 @@ class ReloadingMetaclass(type):
                 class_ = getattr(module, classname)
                 # TODO: handle injected definitions
                 reload_class_methods(self, class_)
+                if hasattr(self, '_initialize_self'):
+                    self._initialize_self()
             except Exception as ex:
                 import utool as ut
                 ut.printex(ex, 'Error Reloading Class', keys=[
