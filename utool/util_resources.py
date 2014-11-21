@@ -1,9 +1,8 @@
 from __future__ import absolute_import, division, print_function
 # Python
-import psutil
 import os
-from .util_inject import inject
-from .util_str import byte_str2
+from utool.util_inject import inject
+from utool.util_str import byte_str2
 print, print_, printDBG, rrr, profile = inject(__name__, '[print]')
 
 try:
@@ -106,6 +105,7 @@ def print_resource_usage():
 
 
 def current_memory_usage():
+    import psutil
     meminfo = psutil.Process(os.getpid()).get_memory_info()
     rss = meminfo[0]  # Resident Set Size / Mem Usage
     vms = meminfo[1]  # Virtual Memory Size / VM Size  # NOQA
@@ -113,14 +113,17 @@ def current_memory_usage():
 
 
 def num_cpus():
+    import psutil
     return psutil.NUM_CPUS
 
 
 def available_memory():
+    import psutil
     return psutil.virtual_memory().available
 
 
 def total_memory():
+    import psutil
     return psutil.virtual_memory().total
 
 
