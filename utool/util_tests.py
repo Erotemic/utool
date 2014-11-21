@@ -4,7 +4,6 @@ import six
 from six.moves import builtins
 import inspect
 import types
-import parse  # NOQA
 import traceback  # NOQA
 import sys
 from os.path import basename
@@ -64,8 +63,8 @@ def _get_testable_name(testable):
 
 def parse_docblocks_from_docstr(docstr):
     # FIXME Requires tags to be separated by two spaces
-    import parse   # NOQA
-    import utool as ut  # NOQA
+    import parse
+    import utool as ut
     initial_docblocks = docstr.split('\n\n')
     #print('__________')
     #print('\n---\n'.join(initial_docblocks))
