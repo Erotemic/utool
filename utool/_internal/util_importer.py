@@ -337,9 +337,9 @@ def make_import_tuples(module_path, exclude_modnames=[]):
     module_list  = util_path.ls_modulefiles(module_path, noext=True, **kwargs)
     package_list = util_path.ls_moduledirs(module_path, **kwargs)
     exclude_set = set(exclude_modnames)
-    module_import_tuples = [(modname, None, False) for modname in module_list
+    module_import_tuples = [(modname, None) for modname in module_list
                             if modname not in exclude_set]
-    package_import_tuples = [(modname, None, True)  for modname in package_list
+    package_import_tuples = [(modname, None)  for modname in package_list
                             if modname not in exclude_set]
     IMPORT_TUPLES = (module_import_tuples + package_import_tuples)
     return IMPORT_TUPLES

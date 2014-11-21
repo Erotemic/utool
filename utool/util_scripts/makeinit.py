@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import os
-#from os.path import basename
+from os.path import dirname
 from utool._internal import util_importer
 
 
@@ -11,7 +11,8 @@ def makeinit(module_path, exclude_modnames=[]):
     module_name = ut.get_modname_from_modpath(module_path)
     IMPORT_TUPLES = util_importer.make_import_tuples(module_path, exclude_modnames=exclude_modnames)
     initstr = util_importer.make_initstr(module_name, IMPORT_TUPLES)
-    regen_command = 'makeinit.py'
+    regen_command = 'cd %s\n' % (module_path)
+    regen_command += '    makeinit.py'
     if len(exclude_modnames ) > 0:
         regen_command += ' -x ' + ' '.join(exclude_modnames)
     regen_block = (ut.codeblock('''

@@ -19,7 +19,8 @@ __CLASSTYPE_POSTINJECT_FUNCS__ = defaultdict(oset)
 VERBOSE_CLASS = util_arg.get_argflag(('--verbose-class', '--verbclass')) or util_arg.VERYVERBOSE
 
 
-def inject_instance(self, classtype=None, allow_override=False, verbose=VERBOSE_CLASS):
+def inject_instance(self, classtype=None, allow_override=False,
+                    verbose=VERBOSE_CLASS, strict=True):
     """
     Injects an instance (self) of type (classtype)
     with all functions registered to (classtype)
@@ -39,39 +40,45 @@ def inject_instance(self, classtype=None, allow_override=False, verbose=VERBOSE_
         >>> utool.make_class_method_decorator(InvertedIndex)(smk_debug.invindex_dbgstr)
         >>> utool.inject_instance(invindex)
     """
-    if classtype is None:
-        import utool as ut
-        classtype = self.__class__
-        if classtype == 'ibeis.gui.models_and_views.IBEISTableView':
-            # HACK HACK HACK
-            from guitool.__PYQT__ import QtGui
-            classtype = QtGui.QAbstractItemView
-        if len(__CLASSTYPE_ATTRIBUTES__[classtype]) == 0:
-            print('[utool] Warning: no classes of type %r are registered' % (classtype,))
-            print('[utool] type(self)=%r, self=%r' % (type(self), self)),
-            print('[utool] Checking to see if anybody else was registered...')
-            print('[utool] __CLASSTYPE_ATTRIBUTES__ = ' + ut.list_str(__CLASSTYPE_ATTRIBUTES__.keys()))
-            for classtype_, _ in six.iteritems(__CLASSTYPE_ATTRIBUTES__):
-                isinstance(self, classtype_)
-                classtype = classtype_
-                print('[utool] Warning: using subclass=%r' % (classtype_,))
-                break
-    if verbose:
-        print('[util_class] injecting methods into %r' % (self,))
-    for func in __CLASSTYPE_ATTRIBUTES__[classtype]:
-        if VERBOSE_CLASS:
-            print('[util_class] * injecting %r' % (func,))
-        method_name = None
-        # Allow user to register tuples for aliases
-        if isinstance(func, tuple):
-            func, method_name = func
-        inject_func_as_method(self, func, method_name=method_name, allow_override=allow_override)
-    if verbose:
-        print('[util_class] Running postinject functions on %r' % (self,))
-    for func in __CLASSTYPE_POSTINJECT_FUNCS__[classtype]:
-        func(self)
-    if verbose:
-        print('[util_class] Finished injecting instance self=%r' % (self,))
+    import utool as ut
+    try:
+        if classtype is None:
+            classtype = self.__class__
+            if classtype == 'ibeis.gui.models_and_views.IBEISTableView':
+                # HACK HACK HACK
+                from guitool.__PYQT__ import QtGui
+                classtype = QtGui.QAbstractItemView
+            if len(__CLASSTYPE_ATTRIBUTES__[classtype]) == 0:
+                print('[utool] Warning: no classes of type %r are registered' % (classtype,))
+                print('[utool] type(self)=%r, self=%r' % (type(self), self)),
+                print('[utool] Checking to see if anybody else was registered...')
+                print('[utool] __CLASSTYPE_ATTRIBUTES__ = ' + ut.list_str(__CLASSTYPE_ATTRIBUTES__.keys()))
+                for classtype_, _ in six.iteritems(__CLASSTYPE_ATTRIBUTES__):
+                    isinstance(self, classtype_)
+                    classtype = classtype_
+                    print('[utool] Warning: using subclass=%r' % (classtype_,))
+                    break
+        if verbose:
+            print('[util_class] injecting methods into %r' % (self,))
+        for func in __CLASSTYPE_ATTRIBUTES__[classtype]:
+            if VERBOSE_CLASS:
+                print('[util_class] * injecting %r' % (func,))
+            method_name = None
+            # Allow user to register tuples for aliases
+            if isinstance(func, tuple):
+                func, method_name = func
+            inject_func_as_method(self, func, method_name=method_name, allow_override=allow_override)
+        if verbose:
+            print('[util_class] Running postinject functions on %r' % (self,))
+        for func in __CLASSTYPE_POSTINJECT_FUNCS__[classtype]:
+            func(self)
+        if verbose:
+            print('[util_class] Finished injecting instance self=%r' % (self,))
+    except Exception as ex:
+        ut.printex(ex, 'ISSUE WHEN INJECTING %r' % (classtype,),
+                      iswarning=not strict)
+        if strict:
+            raise
 
 
 def make_class_method_decorator(classtype):
