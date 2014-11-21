@@ -456,11 +456,13 @@ def make_default_docstr(func):
                 if return_name is None:
                     return_name = 'result'
                 result_assign = return_name + ' = '
-                result_print = 'print(' + return_name + ')'
+                result_print = 'print(result)'  # + return_name + ')'
         # Default example call
         example_call = func.func_name + '(' + ', '.join(argname_list) + ')'
         examplecode += '\n' + result_assign + example_call
         if result_print is not None:
+            if return_name != 'result':
+                examplecode += '\nresult = str(' + return_name + ')'
             examplecode += '\n' + result_print
         exampleblock = docstr_block(exampleheader, ut.indent(examplecode, '>>> '))
         docstr_parts.append(exampleblock)
