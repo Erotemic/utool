@@ -9,7 +9,7 @@ from utool import util_path
 from utool import util_io
 from utool import util_str
 #from utool import util_dev
-from .util_dbg import printex
+from utool.util_dbg import printex
 
 VERBOSE = '--verbose' in sys.argv
 
@@ -563,7 +563,7 @@ def setuptools_setup(setup_fpath=None, module=None, **kwargs):
         platforms          list of strings  ('a list of platforms')
         license            short string     ('license for the package')
     """
-    from .util_inject import inject_colored_exceptions
+    from utool.util_inject import inject_colored_exceptions
     inject_colored_exceptions()  # Fluffly, but nice
     if VERBOSE:
         print(util_str.dict_str(kwargs))
