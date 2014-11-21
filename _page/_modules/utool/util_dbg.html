@@ -67,13 +67,13 @@
 <span class="kn">import</span> <span class="nn">types</span>
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">split</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_inject</span>
-<span class="kn">from</span> <span class="nn">.util_arg</span> <span class="kn">import</span> <span class="n">get_argflag</span>
-<span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
-<span class="kn">from</span> <span class="nn">.util_list</span> <span class="kn">import</span> <span class="n">list_allsame</span>
-<span class="kn">from</span> <span class="nn">.util_print</span> <span class="kn">import</span> <span class="n">Indenter</span>
-<span class="kn">from</span> <span class="nn">.util_str</span> <span class="kn">import</span> <span class="n">pack_into</span><span class="p">,</span> <span class="n">truncate_str</span><span class="p">,</span> <span class="n">horiz_string</span><span class="p">,</span> <span class="n">indent</span>
-<span class="kn">from</span> <span class="nn">.util_type</span> <span class="kn">import</span> <span class="n">is_listlike</span><span class="p">,</span> <span class="n">get_type</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
+<span class="kn">from</span> <span class="nn">utool.util_arg</span> <span class="kn">import</span> <span class="n">get_argflag</span>
+<span class="kn">from</span> <span class="nn">utool.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="kn">from</span> <span class="nn">utool.util_list</span> <span class="kn">import</span> <span class="n">list_allsame</span>
+<span class="kn">from</span> <span class="nn">utool.util_print</span> <span class="kn">import</span> <span class="n">Indenter</span>
+<span class="kn">from</span> <span class="nn">utool.util_str</span> <span class="kn">import</span> <span class="n">pack_into</span><span class="p">,</span> <span class="n">truncate_str</span><span class="p">,</span> <span class="n">horiz_string</span><span class="p">,</span> <span class="n">indent</span>
+<span class="kn">from</span> <span class="nn">utool.util_type</span> <span class="kn">import</span> <span class="n">is_listlike</span><span class="p">,</span> <span class="n">get_type</span>
 <span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[dbg]&#39;</span><span class="p">)</span>
 
@@ -219,13 +219,15 @@
 <span class="sd">            into local vars</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_dbg import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; my_dictionary = {&#39;a&#39;: True, &#39;b&#39;:False}</span>
 <span class="sd">        &gt;&gt;&gt; execstr = execstr_dict(my_dictionary)</span>
 <span class="sd">        &gt;&gt;&gt; exec(execstr)</span>
 <span class="sd">        &gt;&gt;&gt; assert &#39;a&#39; in vars() and &#39;b&#39; in vars(), &#39;execstr failed&#39;</span>
 <span class="sd">        &gt;&gt;&gt; assert b is False and a is True, &#39;execstr failed&#39;</span>
-<span class="sd">        &gt;&gt;&gt; print(execstr)</span>
+<span class="sd">        &gt;&gt;&gt; result = execstr</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        a = my_dictionary[&#39;a&#39;]</span>
 <span class="sd">        b = my_dictionary[&#39;b&#39;]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -923,7 +925,7 @@
 </div>
 <div class="viewcode-block" id="parse_locals_keylist"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.parse_locals_keylist">[docs]</a><span class="k">def</span> <span class="nf">parse_locals_keylist</span><span class="p">(</span><span class="n">locals_</span><span class="p">,</span> <span class="n">key_list</span><span class="p">,</span> <span class="n">strlist_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; For each key in keylist, puts its value in locals into a stringlist &quot;&quot;&quot;</span>
-    <span class="c">#from .util_str import get_callable_name</span>
+    <span class="c">#from utool.util_str import get_callable_name</span>
     <span class="kn">from</span> <span class="nn">utool.util_str</span> <span class="kn">import</span> <span class="n">get_callable_name</span>
     <span class="k">if</span> <span class="n">strlist_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">strlist_</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1104,7 +1106,20 @@
             <span class="n">trace_locals</span> <span class="o">=</span> <span class="n">trace</span><span class="o">.</span><span class="n">tb_frame</span><span class="o">.</span><span class="n">f_locals</span>
             <span class="n">execstr_trace</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">trace_locals</span><span class="p">,</span> <span class="s">&#39;trace_locals&#39;</span><span class="p">)</span>
             <span class="k">exec</span><span class="p">(</span><span class="n">execstr_trace</span><span class="p">)</span>
-            <span class="n">utool</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span></div>
+            <span class="n">utool</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -c &quot;import utool, utool.util_dbg; utool.doctest_funcs(utool.util_dbg, allexamples=True)&quot;</span>
+<span class="sd">        python -c &quot;import utool, utool.util_dbg; utool.doctest_funcs(utool.util_dbg)&quot;</span>
+<span class="sd">        python utool/util_dbg.py</span>
+<span class="sd">        python utool/util_dbg.py --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

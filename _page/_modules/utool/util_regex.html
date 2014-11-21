@@ -57,7 +57,7 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">parse</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">split</span><span class="p">,</span> <span class="n">relpath</span>
-<span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="kn">from</span> <span class="nn">utool.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[str]&#39;</span><span class="p">)</span>
 
 
@@ -132,6 +132,7 @@
 <span class="sd">        str: modified text</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_regex import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; regex = r&#39;\(.*\):&#39;</span>
 <span class="sd">        &gt;&gt;&gt; repl = &#39;(*args)&#39;</span>
@@ -157,6 +158,7 @@
 <span class="sd">        str: regex</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_regex import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; keypat_tups = [</span>
 <span class="sd">        ...    (&#39;name&#39;,  r&#39;G\d+&#39;),  # species and 2 numbers</span>
@@ -166,7 +168,8 @@
 <span class="sd">        ...    (&#39;ext&#39;,   r&#39;\w+&#39;),</span>
 <span class="sd">        ... ]</span>
 <span class="sd">        &gt;&gt;&gt; parse_dict = named_field_regex(keypat_tups)</span>
-<span class="sd">        &gt;&gt;&gt; print(parse_dict)</span>
+<span class="sd">        &gt;&gt;&gt; result = (parse_dict)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        (?P&lt;name&gt;G\d+)(?P&lt;under&gt;_)(?P&lt;id&gt;\d+)\.(?P&lt;ext&gt;\w+)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">named_fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">named_field</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">pat</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">pat</span> <span class="ow">in</span> <span class="n">keypat_tups</span><span class="p">]</span>
@@ -308,7 +311,7 @@
 <span class="sd">        recursive (bool):</span>
 <span class="sd">        dpath_list (list): directories to search (defaults to cwd)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_path</span>
+    <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_path</span>
     <span class="c">#_grep(r, [repl], dpath_list=dpath_list, recursive=recursive)</span>
     <span class="n">include_patterns</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;*.py&#39;</span><span class="p">,</span> <span class="s">&#39;*.cxx&#39;</span><span class="p">,</span> <span class="s">&#39;*.cpp&#39;</span><span class="p">,</span> <span class="s">&#39;*.hxx&#39;</span><span class="p">,</span> <span class="s">&#39;*.hpp&#39;</span><span class="p">,</span> <span class="s">&#39;*.c&#39;</span><span class="p">,</span> <span class="s">&#39;*.h&#39;</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">dpath_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -330,13 +333,19 @@
         <span class="n">sedfile</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">regexpr</span><span class="p">,</span> <span class="n">repl</span><span class="p">,</span> <span class="n">force</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="sedfile"><a class="viewcode-back" href="../../utool.html#utool.util_regex.sedfile">[docs]</a><span class="k">def</span> <span class="nf">sedfile</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">regexpr</span><span class="p">,</span> <span class="n">repl</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="sedfile"><a class="viewcode-back" href="../../utool.html#utool.util_regex.sedfile">[docs]</a><span class="k">def</span> <span class="nf">sedfile</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">regexpr</span><span class="p">,</span> <span class="n">repl</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">veryverbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Executes sed on a specific file</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># TODO: move to util_edit</span>
     <span class="n">path</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
     <span class="n">new_file_lines</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="n">veryverbose</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sedfile] fpath=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fpath</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sedfile] regexpr=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">regexpr</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sedfile] repl=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">repl</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sedfile] force=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">force</span><span class="p">)</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="nb">file</span><span class="p">:</span>
         <span class="n">file_lines</span> <span class="o">=</span> <span class="nb">file</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
         <span class="c"># Search each line for the desired regexpr</span>
@@ -368,7 +377,23 @@
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="nb">file</span><span class="p">:</span>
                 <span class="nb">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">new_file</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">changed_lines</span>
-    <span class="k">return</span> <span class="bp">None</span></div>
+    <span class="k">elif</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Nothing changed&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">None</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -c &quot;import utool, utool.util_regex; utool.doctest_funcs(utool.util_regex, allexamples=True)&quot;</span>
+<span class="sd">        python -c &quot;import utool, utool.util_regex; utool.doctest_funcs(utool.util_regex)&quot;</span>
+<span class="sd">        python utool/util_regex.py</span>
+<span class="sd">        python utool/util_regex.py --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

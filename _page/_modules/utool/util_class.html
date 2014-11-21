@@ -54,10 +54,10 @@
 <span class="kn">import</span> <span class="nn">types</span>
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
-<span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
-<span class="kn">from</span> <span class="nn">.util_set</span> <span class="kn">import</span> <span class="n">oset</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_arg</span>
-<span class="kn">from</span> <span class="nn">._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
+<span class="kn">from</span> <span class="nn">utool.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="kn">from</span> <span class="nn">utool.util_set</span> <span class="kn">import</span> <span class="n">oset</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_arg</span>
+<span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[class]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 
@@ -266,29 +266,71 @@
 
 </div>
 <div class="viewcode-block" id="ReloadingMetaclass"><a class="viewcode-back" href="../../utool.html#utool.util_class.ReloadingMetaclass">[docs]</a><span class="k">class</span> <span class="nc">ReloadingMetaclass</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    __init__</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        metaself (?):</span>
+<span class="sd">        name (?):</span>
+<span class="sd">        bases (?):</span>
+<span class="sd">        dct (?):</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DIABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_class import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; @six.add_metaclass(ut.ReloadingMetaclass)</span>
+<span class="sd">        &gt;&gt;&gt; class Foo():</span>
+<span class="sd">        ...     def __init__(self):</span>
+<span class="sd">        ...        pass</span>
+<span class="sd">        &gt;&gt;&gt; # You can edit foo on disk and call rrr in ipython</span>
+<span class="sd">        &gt;&gt;&gt; # if you add a new function to it</span>
+<span class="sd">        &gt;&gt;&gt; foo = Foo()</span>
+<span class="sd">        &gt;&gt;&gt; # This will not work as a doctests because</span>
+<span class="sd">        &gt;&gt;&gt; # Foo&#39;s parent module will be __main__ but</span>
+<span class="sd">        &gt;&gt;&gt; # there will be no easy way to write to it.</span>
+<span class="sd">        &gt;&gt;&gt; # This does work when you run from ipython</span>
+<span class="sd">        &gt;&gt;&gt; @six.add_metaclass(ut.ReloadingMetaclass)</span>
+<span class="sd">        &gt;&gt;&gt; class Foo():</span>
+<span class="sd">        ...     def __init__(self):</span>
+<span class="sd">        ...        pass</span>
+<span class="sd">        ...     def bar(self):</span>
+<span class="sd">        ...        return &quot;spam&quot;</span>
+<span class="sd">        &gt;&gt;&gt; foo.rrr()</span>
+<span class="sd">        &gt;&gt;&gt; result = foo.bar()</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        spam</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ReloadingMetaclass</span><span class="p">,</span> <span class="n">metaself</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
 
-        <span class="k">def</span> <span class="nf">rrr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">rrr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
             <span class="n">classname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">modname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__module__</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;reloading &#39;</span> <span class="o">+</span> <span class="n">classname</span> <span class="o">+</span> <span class="s">&#39; from &#39;</span> <span class="o">+</span> <span class="n">modname</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;reloading &#39;</span> <span class="o">+</span> <span class="n">classname</span> <span class="o">+</span> <span class="s">&#39; from &#39;</span> <span class="o">+</span> <span class="n">modname</span><span class="p">)</span>
                 <span class="n">module</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">modname</span><span class="p">]</span>
                 <span class="k">if</span> <span class="n">modname</span> <span class="o">!=</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
                     <span class="c"># Reload the parent module</span>
-                    <span class="n">module</span><span class="o">.</span><span class="n">rrr</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">):</span>
+                        <span class="n">module</span><span class="o">.</span><span class="n">rrr</span><span class="p">()</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="kn">import</span> <span class="nn">imp</span>
+                        <span class="n">imp</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
                 <span class="c"># Get new class definition</span>
                 <span class="n">class_</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">classname</span><span class="p">)</span>
                 <span class="c"># TODO: handle injected definitions</span>
                 <span class="n">reload_class_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-                <span class="kn">import</span> <span class="nn">utool</span>
-                <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span>
+                <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Error Reloading Class&#39;</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span>
                     <span class="s">&#39;modname&#39;</span><span class="p">,</span>
                     <span class="s">&#39;module&#39;</span><span class="p">,</span>
                     <span class="s">&#39;class_&#39;</span><span class="p">,</span>
                     <span class="s">&#39;self&#39;</span><span class="p">,</span> <span class="p">])</span>
+                <span class="c">#ut.embed()</span>
+                <span class="c">#print(ut.dict_str(module.__dict__))</span>
                 <span class="k">raise</span>
         <span class="n">metaself</span><span class="o">.</span><span class="n">rrr</span> <span class="o">=</span> <span class="n">rrr</span>
 

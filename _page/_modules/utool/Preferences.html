@@ -62,11 +62,11 @@
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
     <span class="k">pass</span>
-<span class="kn">from</span> <span class="nn">.DynamicStruct</span> <span class="kn">import</span> <span class="n">DynStruct</span>
-<span class="kn">from</span> <span class="nn">.util_dbg</span> <span class="kn">import</span> <span class="n">printex</span>
-<span class="kn">from</span> <span class="nn">.util_type</span> <span class="kn">import</span> <span class="n">is_str</span><span class="p">,</span> <span class="n">is_dict</span><span class="p">,</span> <span class="n">try_cast</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_inject</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_type</span>
+<span class="kn">from</span> <span class="nn">utool.DynamicStruct</span> <span class="kn">import</span> <span class="n">DynStruct</span>
+<span class="kn">from</span> <span class="nn">utool.util_dbg</span> <span class="kn">import</span> <span class="n">printex</span>
+<span class="kn">from</span> <span class="nn">utool.util_type</span> <span class="kn">import</span> <span class="n">is_str</span><span class="p">,</span> <span class="n">is_dict</span><span class="p">,</span> <span class="n">try_cast</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_type</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[pref]&#39;</span><span class="p">)</span>
 
 <span class="c"># ---</span>

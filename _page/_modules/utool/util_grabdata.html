@@ -56,10 +56,10 @@
 <span class="kn">import</span> <span class="nn">urllib</span>
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_path</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_cplat</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util_arg</span>
-<span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_path</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_cplat</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_arg</span>
+<span class="kn">from</span> <span class="nn">utool.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[grabdata]&#39;</span><span class="p">)</span>
 
 
@@ -93,7 +93,8 @@
 </div>
 <span class="k">def</span> <span class="nf">_extract_archive</span><span class="p">(</span><span class="n">archive_fpath</span><span class="p">,</span> <span class="n">archive_file</span><span class="p">,</span> <span class="n">archive_namelist</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">force_commonprefix</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="c"># force extracted components into a subdirectory if force_commonprefix is on</span>
-    <span class="n">return_path</span> <span class="o">=</span> <span class="n">output_dir</span>
+    <span class="c">#return_path = output_diG</span>
+    <span class="c"># FIXME doesn&#39;t work right</span>
     <span class="k">if</span> <span class="n">force_commonprefix</span> <span class="ow">and</span> <span class="n">commonprefix</span><span class="p">(</span><span class="n">archive_namelist</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
         <span class="c"># use the archivename as the default common prefix</span>
         <span class="n">archive_basename</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">split_archive_ext</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">archive_fpath</span><span class="p">))</span>
@@ -203,9 +204,46 @@
 
 </div>
 <div class="viewcode-block" id="grab_file_url"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.grab_file_url">[docs]</a><span class="k">def</span> <span class="nf">grab_file_url</span><span class="p">(</span><span class="n">file_url</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s">&#39;utool&#39;</span><span class="p">,</span> <span class="n">download_dir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                  <span class="n">delay</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">spoof</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+                  <span class="n">delay</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">spoof</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    grab_file_url</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        file_url (str):</span>
+<span class="sd">        ensure (bool):</span>
+<span class="sd">        appname (str):</span>
+<span class="sd">        download_dir (None):</span>
+<span class="sd">        delay (None):</span>
+<span class="sd">        spoof (bool):</span>
+<span class="sd">        fname (None):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: fpath</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        sh -c &quot;python ~/code/utool/utool/util_grabdata.py --all-examples&quot;</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_grabdata import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from os.path import basename</span>
+<span class="sd">        &gt;&gt;&gt; file_url = &#39;http://i.imgur.com/JGrqMnV.png&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ensure = True</span>
+<span class="sd">        &gt;&gt;&gt; appname = &#39;utool&#39;</span>
+<span class="sd">        &gt;&gt;&gt; download_dir = None</span>
+<span class="sd">        &gt;&gt;&gt; delay = None</span>
+<span class="sd">        &gt;&gt;&gt; spoof = False</span>
+<span class="sd">        &gt;&gt;&gt; fname =&#39;lena.png&#39;</span>
+<span class="sd">        &gt;&gt;&gt; lena_fpath = grab_file_url(file_url, ensure, appname, download_dir, delay, spoof, fname)</span>
+<span class="sd">        &gt;&gt;&gt; result = basename(lena_fpath)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        lena.png</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">file_url</span> <span class="o">=</span> <span class="n">fix_dropbox_link</span><span class="p">(</span><span class="n">file_url</span><span class="p">)</span>
-    <span class="n">fname</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">file_url</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">fname</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">fname</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">file_url</span><span class="p">)</span>
     <span class="c"># Download zipfile to</span>
     <span class="k">if</span> <span class="n">download_dir</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">download_dir</span> <span class="o">=</span> <span class="n">util_cplat</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="n">appname</span><span class="p">)</span>
@@ -225,7 +263,7 @@
 
 </div>
 <div class="viewcode-block" id="grab_zipped_url"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.grab_zipped_url">[docs]</a><span class="k">def</span> <span class="nf">grab_zipped_url</span><span class="p">(</span><span class="n">zipped_url</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s">&#39;utool&#39;</span><span class="p">,</span> <span class="n">download_dir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                    <span class="n">force_commonprefix</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">cleanup</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+                    <span class="n">force_commonprefix</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">cleanup</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    downloads and unzips the url</span>
 
@@ -251,13 +289,32 @@
             <span class="c"># Download and unzip testdata</span>
             <span class="n">zip_fpath</span> <span class="o">=</span> <span class="n">realpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">download_dir</span><span class="p">,</span> <span class="n">zip_fname</span><span class="p">))</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Downloading archive </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">zip_fpath</span><span class="p">)</span>
+            <span class="c">#true_zipped_fpath = grab_file_url(zipped_url,</span>
+            <span class="c">#                                  download_dir=download_dir,</span>
+            <span class="c">#                                  appname=appname)</span>
+            <span class="c">#data_dir = unarchive_file(true_zipped_fpath, force_commonprefix)</span>
             <span class="n">download_url</span><span class="p">(</span><span class="n">zipped_url</span><span class="p">,</span> <span class="n">zip_fpath</span><span class="p">)</span>
             <span class="n">unarchive_file</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">,</span> <span class="n">force_commonprefix</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">cleanup</span><span class="p">:</span>
                 <span class="n">util_path</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">)</span>  <span class="c"># Cleanup</span>
     <span class="k">if</span> <span class="n">cleanup</span><span class="p">:</span>
         <span class="n">util_path</span><span class="o">.</span><span class="n">assert_exists</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">util_path</span><span class="o">.</span><span class="n">unixpath</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">util_path</span><span class="o">.</span><span class="n">unixpath</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        sh -c &quot;python ~/code/utool/utool/util_grabdata.py --all-examples&quot;</span>
+<span class="sd">        python -c &quot;import utool, utool.util_grabdata; utool.doctest_funcs(utool.util_grabdata, allexamples=True)&quot;</span>
+<span class="sd">        python -c &quot;import utool, utool.util_grabdata; utool.doctest_funcs(utool.util_grabdata)&quot;</span>
+<span class="sd">        python utool/util_grabdata.py</span>
+<span class="sd">        python utool/util_grabdata.py --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

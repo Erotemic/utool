@@ -60,8 +60,8 @@
     <span class="c"># TODO remove numpy</span>
     <span class="n">HAS_NUMPY</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="k">pass</span>
-<span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
-<span class="kn">from</span> <span class="nn">._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">IntType</span><span class="p">,</span> <span class="n">LongType</span><span class="p">,</span> <span class="n">FloatType</span><span class="p">,</span> <span class="n">BooleanType</span>
+<span class="kn">from</span> <span class="nn">utool.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">IntType</span><span class="p">,</span> <span class="n">LongType</span><span class="p">,</span> <span class="n">FloatType</span><span class="p">,</span> <span class="n">BooleanType</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[type]&#39;</span><span class="p">)</span>
 
 
@@ -142,7 +142,7 @@
 
 </div>
 <div class="viewcode-block" id="assert_int"><a class="viewcode-back" href="../../utool.html#utool.util_type.assert_int">[docs]</a><span class="k">def</span> <span class="nf">assert_int</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;var&#39;</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">.util_arg</span> <span class="kn">import</span> <span class="n">NO_ASSERTS</span>
+    <span class="kn">from</span> <span class="nn">utool.util_arg</span> <span class="kn">import</span> <span class="n">NO_ASSERTS</span>
     <span class="k">if</span> <span class="n">NO_ASSERTS</span><span class="p">:</span>
         <span class="k">return</span>
     <span class="k">try</span><span class="p">:</span>

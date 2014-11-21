@@ -98,8 +98,8 @@
 
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;_________________&#39;</span><span class="p">)</span>
 
-    <span class="n">numiter</span> <span class="o">=</span> <span class="mi">1000</span>
-    <span class="n">rate</span> <span class="o">=</span> <span class="o">.</span><span class="mo">01</span>
+    <span class="n">numiter</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="n">rate</span> <span class="o">=</span> <span class="o">.</span><span class="mo">001</span>
 
     <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numiter</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
@@ -114,8 +114,8 @@
 
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;_________________&#39;</span><span class="p">)</span>
 
-    <span class="n">numiter</span> <span class="o">=</span> <span class="mi">100000</span>
-    <span class="n">rate</span> <span class="o">=</span> <span class="o">.</span><span class="mo">00000</span><span class="mi">8</span>
+    <span class="n">numiter</span> <span class="o">=</span> <span class="mi">10000</span>
+    <span class="n">rate</span> <span class="o">=</span> <span class="o">.</span><span class="mo">000000</span><span class="mi">8</span>
 
     <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numiter</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
@@ -166,6 +166,7 @@
 <span class="sd">        num (None):   alias for nTotal</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; import utool</span>
 <span class="sd">        &gt;&gt;&gt; from six.moves import range</span>
 <span class="sd">        &gt;&gt;&gt; results1 = [x for x in utool.ProgressIter(range(10000), wfreq=10)]</span>
@@ -592,10 +593,15 @@
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
-<span class="sd">        python utool/util_progress.py --test-test-progress</span>
+<span class="sd">        python -c &quot;import utool, utool.util_progress; utool.doctest_funcs(utool.util_progress, allexamples=True)&quot;</span>
+<span class="sd">        python -c &quot;import utool, utool.util_progress; utool.doctest_funcs(utool.util_progress)&quot;</span>
+<span class="sd">        python utool/util_progress.py</span>
+<span class="sd">        python utool/util_progress.py --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">utool.util_tests</span> <span class="kn">import</span> <span class="n">doctest_funcs</span>
-    <span class="n">doctest_funcs</span><span class="p">()</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

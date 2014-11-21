@@ -99,9 +99,9 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        log_dir_realpath (str): real path to logging directory</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">._internal.meta_util_cache</span> <span class="kn">import</span> <span class="n">global_cache_read</span>
-    <span class="kn">from</span> <span class="nn">._internal.meta_util_cplat</span> <span class="kn">import</span> <span class="n">get_resource_dir</span>
-    <span class="kn">from</span> <span class="nn">.util_cache</span> <span class="kn">import</span> <span class="n">get_default_appname</span>  <span class="c"># Hacky</span>
+    <span class="kn">from</span> <span class="nn">utool._internal.meta_util_cache</span> <span class="kn">import</span> <span class="n">global_cache_read</span>
+    <span class="kn">from</span> <span class="nn">utool._internal.meta_util_cplat</span> <span class="kn">import</span> <span class="n">get_resource_dir</span>
+    <span class="kn">from</span> <span class="nn">utool.util_cache</span> <span class="kn">import</span> <span class="n">get_default_appname</span>  <span class="c"># Hacky</span>
     <span class="k">if</span> <span class="n">appname</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span>  <span class="n">appname</span> <span class="o">==</span> <span class="s">&#39;default&#39;</span><span class="p">:</span>
         <span class="n">appname</span> <span class="o">=</span> <span class="n">get_default_appname</span><span class="p">()</span>
     <span class="n">log_dir</span> <span class="o">=</span> <span class="n">global_cache_read</span><span class="p">(</span><span class="n">logdir_cacheid</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="n">appname</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">join</span><span class="p">(</span><span class="n">get_resource_dir</span><span class="p">(),</span> <span class="n">appname</span><span class="p">,</span> <span class="s">&#39;logs&#39;</span><span class="p">))</span>

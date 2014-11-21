@@ -436,17 +436,52 @@ cartesian products formed of input arrays</p>
 </tr>
 </tbody>
 </table>
-<p>#Example:
-#    &gt;&gt;&gt; cartesian(([1, 2, 3], [4, 5], [6, 7]))
-#    array([[1, 4, 6], [1, 4, 7], [1, 5, 6], [1, 5, 7],
-#           [2, 4, 6], [2, 4, 7], [2, 5, 6], [2, 5, 7],
-#           [3, 4, 6], [3, 4, 7], [3, 5, 6], [3, 5, 7]])</p>
+<p class="rubric">References</p>
+<p><a class="reference external" href="https://gist.github.com/hernamesbarbara/68d073f551565de02ac5">https://gist.github.com/hernamesbarbara/68d073f551565de02ac5</a></p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arrays</span> <span class="o">=</span> <span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">cartesian</span><span class="p">(</span><span class="n">arrays</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+<span class="go">array([[1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3],</span>
+<span class="go">       [4, 4, 5, 5, 4, 4, 5, 5, 4, 4, 5, 5],</span>
+<span class="go">       [6, 7, 6, 7, 6, 7, 6, 7, 6, 7, 6, 7]])</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
 <dt id="utool.util_alg.choose">
 <tt class="descclassname">utool.util_alg.</tt><tt class="descname">choose</tt><big>(</big><em>n</em>, <em>k</em><big>)</big><a class="reference internal" href="_modules/utool/util_alg.html#choose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_alg.choose" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="function">
+<dt id="utool.util_alg.estimate_pdf">
+<tt class="descclassname">utool.util_alg.</tt><tt class="descname">estimate_pdf</tt><big>(</big><em>data</em>, <em>gridsize=1024</em><big>)</big><a class="reference internal" href="_modules/utool/util_alg.html#estimate_pdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_alg.estimate_pdf" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>References;</dt>
+<dd><a class="reference external" href="http://statsmodels.sourceforge.net/devel/generated/statsmodels.nonparametric.kde.KDEUnivariate.html">http://statsmodels.sourceforge.net/devel/generated/statsmodels.nonparametric.kde.KDEUnivariate.html</a>
+<a class="reference external" href="https://jakevdp.github.io/blog/2013/12/01/kernel-density-estimation/">https://jakevdp.github.io/blog/2013/12/01/kernel-density-estimation/</a></dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">?: data_pdf</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_alg</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="s">&#39;?&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bw_factor</span> <span class="o">=</span> <span class="s">&#39;?&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_pdf</span> <span class="o">=</span> <span class="n">estimate_pdf</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">bw_factor</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">data_pdf</span><span class="o">.</span><span class="n">cdf</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">data_pdf</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="function">
 <dt id="utool.util_alg.euclidean_dist">
@@ -499,11 +534,13 @@ cartesian products formed of input arrays</p>
 vtool.apply_gropuing - second part to faster numpy grouping algorithm</dd>
 </dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">item_list</span>    <span class="o">=</span> <span class="p">[</span> <span class="s">&#39;ham&#39;</span><span class="p">,</span>      <span class="s">&#39;jam&#39;</span><span class="p">,</span>    <span class="s">&#39;spam&#39;</span><span class="p">,</span>     <span class="s">&#39;eggs&#39;</span><span class="p">,</span> <span class="s">&#39;cheese&#39;</span><span class="p">,</span> <span class="s">&#39;bannana&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">groupid_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;protein&#39;</span><span class="p">,</span> <span class="s">&#39;fruit&#39;</span><span class="p">,</span> <span class="s">&#39;protein&#39;</span><span class="p">,</span>  <span class="s">&#39;protein&#39;</span><span class="p">,</span>  <span class="s">&#39;dairy&#39;</span><span class="p">,</span>   <span class="s">&#39;fruit&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">groupid2_items</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">item_list</span><span class="p">,</span> <span class="n">groupid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">groupid2_items</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">groupid2_items</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">{&#39;protein&#39;: [&#39;eggs&#39;, &#39;ham&#39;, &#39;spam&#39;], &#39;fruit&#39;: [&#39;bannana&#39;, &#39;jam&#39;], &#39;dairy&#39;: [&#39;cheese&#39;],}</span>
 </pre></div>
 </div>
@@ -772,6 +809,11 @@ python -c &#8220;import utool; print([(type(x), x) for x in [utool.get_argval((&
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="utool.util_arg.parse_arglist_hack">
+<tt class="descclassname">utool.util_arg.</tt><tt class="descname">parse_arglist_hack</tt><big>(</big><em>argx</em><big>)</big><a class="reference internal" href="_modules/utool/util_arg.html#parse_arglist_hack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_arg.parse_arglist_hack" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="utool.util_arg.switch_sanataize">
 <tt class="descclassname">utool.util_arg.</tt><tt class="descname">switch_sanataize</tt><big>(</big><em>switch</em><big>)</big><a class="reference internal" href="_modules/utool/util_arg.html#switch_sanataize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_arg.switch_sanataize" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -812,7 +854,8 @@ python -c &#8220;import utool; print([(type(x), x) for x in [utool.get_argval((&
 <dd><p>Wraps a function with a Cacher object</p>
 <p>uses a hash of arguments as input</p>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">costly_func</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s">&#39;d&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="gp">... </span>   <span class="k">return</span> <span class="p">([</span><span class="n">a</span><span class="p">]</span> <span class="o">*</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ans0</span> <span class="o">=</span> <span class="n">costly_func</span><span class="p">(</span><span class="mi">41</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
@@ -929,6 +972,40 @@ syntax. And the SyntaxError did not seem to be excepted.</p>
 <dt id="utool.util_class.ReloadingMetaclass">
 <em class="property">class </em><tt class="descclassname">utool.util_class.</tt><tt class="descname">ReloadingMetaclass</tt><big>(</big><em>metaself</em>, <em>name</em>, <em>bases</em>, <em>dct</em><big>)</big><a class="reference internal" href="_modules/utool/util_class.html#ReloadingMetaclass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_class.ReloadingMetaclass" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">type</span></tt></p>
+<p>__init__</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DIABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_class</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ReloadingMetaclass</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">Foo</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>       <span class="k">pass</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># You can edit foo on disk and call rrr in ipython</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># if you add a new function to it</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">foo</span> <span class="o">=</span> <span class="n">Foo</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># This will not work as a doctests because</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Foo&#39;s parent module will be __main__ but</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># there will be no easy way to write to it.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># This does work when you run from ipython</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ReloadingMetaclass</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">Foo</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>       <span class="k">pass</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">bar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>       <span class="k">return</span> <span class="s">&quot;spam&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">foo</span><span class="o">.</span><span class="n">rrr</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">foo</span><span class="o">.</span><span class="n">bar</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">spam</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -1158,7 +1235,9 @@ decorator for injectable methods</td>
 <dl class="function">
 <dt id="utool.util_cplat.get_disk_space">
 <tt class="descclassname">utool.util_cplat.</tt><tt class="descname">get_disk_space</tt><big>(</big><em>start_path='.'</em><big>)</big><a class="reference internal" href="_modules/utool/util_cplat.html#get_disk_space"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_cplat.get_disk_space" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p class="rubric">References</p>
+<p># <a class="reference external" href="http://stackoverflow.com/questions/1392413/calculating-a-directory-size-using-python">http://stackoverflow.com/questions/1392413/calculating-a-directory-size-using-python</a></p>
+</dd></dl>
 
 <dl class="function">
 <dt id="utool.util_cplat.get_dynamic_lib_globstrs">
@@ -1180,10 +1259,16 @@ current platform.</p>
 <dl class="function">
 <dt id="utool.util_cplat.get_free_diskbytes">
 <tt class="descclassname">utool.util_cplat.</tt><tt class="descname">get_free_diskbytes</tt><big>(</big><em>dir_</em><big>)</big><a class="reference internal" href="_modules/utool/util_cplat.html#get_free_diskbytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_cplat.get_free_diskbytes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns:
-folder/drive free space (in bytes)</p>
-<p>References::
-<a class="reference external" href="http://stackoverflow.com/questions/51658/cross-platform-space-remaining-on-volume-using-python">http://stackoverflow.com/questions/51658/cross-platform-space-remaining-on-volume-using-python</a></p>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">folder/drive free space (in bytes)</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">References</p>
+<p><a class="reference external" href="http://stackoverflow.com/questions/51658/cross-platform-space-remaining-on-volume-using-python">http://stackoverflow.com/questions/51658/cross-platform-space-remaining-on-volume-using-python</a></p>
 </dd></dl>
 
 <dl class="function">
@@ -1205,6 +1290,23 @@ folder/drive free space (in bytes)</p>
 <dt id="utool.util_cplat.get_python_dynlib">
 <tt class="descclassname">utool.util_cplat.</tt><tt class="descname">get_python_dynlib</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/utool/util_cplat.html#get_python_dynlib"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_cplat.get_python_dynlib" title="Permalink to this definition">¶</a></dt>
 <dd><p>python -c &#8220;import utool; print(utool.get_python_dynlib())&#8221;</p>
+<p>get_python_dynlib</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">?: dynlib</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DOCTEST_DISABLE</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_cplat</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dynlib</span> <span class="o">=</span> <span class="n">get_python_dynlib</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">dynlib</span><span class="p">)</span>
+<span class="go">/usr/lib/x86_64-linux-gnu/libpython2.7.so</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -1272,12 +1374,44 @@ folder/drive free space (in bytes)</p>
 <dt id="utool.util_cplat.vd">
 <tt class="descclassname">utool.util_cplat.</tt><tt class="descname">vd</tt><big>(</big><em>dname=None</em>, <em>verbose=True</em><big>)</big><a class="headerlink" href="#utool.util_cplat.vd" title="Permalink to this definition">¶</a></dt>
 <dd><p>view directory</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dname</strong> (<em>str</em>) &#8211; directory name</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DOCTEST_DISABLE</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_cplat</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dname</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">view_directory</span><span class="p">(</span><span class="n">dname</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
 <dt id="utool.util_cplat.view_directory">
 <tt class="descclassname">utool.util_cplat.</tt><tt class="descname">view_directory</tt><big>(</big><em>dname=None</em>, <em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/utool/util_cplat.html#view_directory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_cplat.view_directory" title="Permalink to this definition">¶</a></dt>
 <dd><p>view directory</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dname</strong> (<em>str</em>) &#8211; directory name</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DOCTEST_DISABLE</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_cplat</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dname</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">view_directory</span><span class="p">(</span><span class="n">dname</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </div>
@@ -1287,6 +1421,37 @@ folder/drive free space (in bytes)</p>
 <dt id="utool.util_csv.make_csv_table">
 <tt class="descclassname">utool.util_csv.</tt><tt class="descname">make_csv_table</tt><big>(</big><em>column_list=[]</em>, <em>column_lbls=None</em>, <em>header=''</em>, <em>column_type=None</em>, <em>row_lbls=None</em>, <em>transpose=False</em><big>)</big><a class="reference internal" href="_modules/utool/util_csv.html#make_csv_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_csv.make_csv_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a csv table with aligned columns</p>
+<p>make_csv_table</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">csv_text</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_csv</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">column_list</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;A&#39;</span><span class="p">,</span> <span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">column_lbls</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;num&#39;</span><span class="p">,</span> <span class="s">&#39;alpha&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">header</span> <span class="o">=</span> <span class="s">&#39;# Test CSV&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">column_type</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">row_lbls</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">transpose</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">csv_text</span> <span class="o">=</span> <span class="n">make_csv_table</span><span class="p">(</span><span class="n">column_list</span><span class="p">,</span> <span class="n">column_lbls</span><span class="p">,</span> <span class="n">header</span><span class="p">,</span> <span class="n">column_type</span><span class="p">,</span> <span class="n">row_lbls</span><span class="p">,</span> <span class="n">transpose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">csv_text</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go"># Test CSV</span>
+<span class="go"># NumData 3</span>
+<span class="go">#   num,  alpha</span>
+<span class="go">      1,      A</span>
+<span class="go">      2,      B</span>
+<span class="go">      3,      C</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -1370,13 +1535,15 @@ into local vars</td>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_dbg</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_dbg</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">my_dictionary</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;a&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span> <span class="s">&#39;b&#39;</span><span class="p">:</span><span class="bp">False</span><span class="p">}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">execstr</span> <span class="o">=</span> <span class="n">execstr_dict</span><span class="p">(</span><span class="n">my_dictionary</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">exec</span><span class="p">(</span><span class="n">execstr</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="s">&#39;a&#39;</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">()</span> <span class="ow">and</span> <span class="s">&#39;b&#39;</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(),</span> <span class="s">&#39;execstr failed&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">b</span> <span class="ow">is</span> <span class="bp">False</span> <span class="ow">and</span> <span class="n">a</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">,</span> <span class="s">&#39;execstr failed&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">execstr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">execstr</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">a = my_dictionary[&#39;a&#39;]</span>
 <span class="go">b = my_dictionary[&#39;b&#39;]</span>
 </pre></div>
@@ -2147,7 +2314,7 @@ get_stats_str</dd>
 
 <dl class="function">
 <dt id="utool.util_dev.get_stats_str">
-<tt class="descclassname">utool.util_dev.</tt><tt class="descname">get_stats_str</tt><big>(</big><em>list_</em>, <em>newlines=False</em><big>)</big><a class="reference internal" href="_modules/utool/util_dev.html#get_stats_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_dev.get_stats_str" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utool.util_dev.</tt><tt class="descname">get_stats_str</tt><big>(</big><em>list_</em>, <em>newlines=False</em>, <em>exclude_keys=[]</em>, <em>lbl=None</em><big>)</big><a class="reference internal" href="_modules/utool/util_dev.html#get_stats_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_dev.get_stats_str" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the string version of get_stats</p>
 <dl class="docutils">
 <dt>SeeAlso:</dt>
@@ -2568,14 +2735,20 @@ seealso L2</p>
 <dt id="utool.util_distances.emd">
 <tt class="descclassname">utool.util_distances.</tt><tt class="descname">emd</tt><big>(</big><em>hist1</em>, <em>hist2</em><big>)</big><a class="reference internal" href="_modules/utool/util_distances.html#emd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_distances.emd" title="Permalink to this definition">¶</a></dt>
 <dd><p>earth mover&#8217;s distance by robjects(lpSovle::lp.transport)
-import numpy as np
-hist1 = np.random.rand(128)
-hist2 = np.random.rand(128)
-require: lpsolve55-5.5.0.9.win32-py2.7.exe
-https://github.com/andreasjansson/python-emd
-http://stackoverflow.com/questions/15706339/how-to-compute-emd-for-2-numpy-arrays-i-e-histogram-using-opencv
-http://www.cs.huji.ac.il/~ofirpele/FastEMD/code/
-http://www.cs.huji.ac.il/~ofirpele/publications/ECCV2008.pdf</p>
+require: lpsolve55-5.5.0.9.win32-py2.7.exe</p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_distances</span> <span class="kn">import</span> <span class="o">*</span>   <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hist1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">128</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hist2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">128</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">emd</span><span class="p">(</span><span class="n">hist1</span><span class="p">,</span> <span class="n">hist2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p><a class="reference external" href="https://github.com/andreasjansson/python-emd">https://github.com/andreasjansson/python-emd</a>
+<a class="reference external" href="http://stackoverflow.com/questions/15706339/how-to-compute-emd-for-2-numpy-arrays-i-e-histogram-using-opencv">http://stackoverflow.com/questions/15706339/how-to-compute-emd-for-2-numpy-arrays-i-e-histogram-using-opencv</a>
+<a class="reference external" href="http://www.cs.huji.ac.il/~ofirpele/FastEMD/code/">http://www.cs.huji.ac.il/~ofirpele/FastEMD/code/</a>
+<a class="reference external" href="http://www.cs.huji.ac.il/~ofirpele/publications/ECCV2008.pdf">http://www.cs.huji.ac.il/~ofirpele/publications/ECCV2008.pdf</a></p>
 </dd></dl>
 
 <dl class="function">
@@ -2716,12 +2889,44 @@ only function)</p>
 
 <dl class="function">
 <dt id="utool.util_grabdata.grab_file_url">
-<tt class="descclassname">utool.util_grabdata.</tt><tt class="descname">grab_file_url</tt><big>(</big><em>file_url</em>, <em>ensure=True</em>, <em>appname='utool'</em>, <em>download_dir=None</em>, <em>delay=None</em>, <em>spoof=False</em><big>)</big><a class="reference internal" href="_modules/utool/util_grabdata.html#grab_file_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_grabdata.grab_file_url" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<tt class="descclassname">utool.util_grabdata.</tt><tt class="descname">grab_file_url</tt><big>(</big><em>file_url</em>, <em>ensure=True</em>, <em>appname='utool'</em>, <em>download_dir=None</em>, <em>delay=None</em>, <em>spoof=False</em>, <em>fname=None</em><big>)</big><a class="reference internal" href="_modules/utool/util_grabdata.html#grab_file_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_grabdata.grab_file_url" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">fpath</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>sh -c &#8220;python ~/code/utool/utool/util_grabdata.py &#8211;all-examples&#8221;</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_grabdata</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_url</span> <span class="o">=</span> <span class="s">&#39;http://i.imgur.com/JGrqMnV.png&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ensure</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">appname</span> <span class="o">=</span> <span class="s">&#39;utool&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">download_dir</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">delay</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spoof</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fname</span> <span class="o">=</span><span class="s">&#39;lena.png&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lena_fpath</span> <span class="o">=</span> <span class="n">grab_file_url</span><span class="p">(</span><span class="n">file_url</span><span class="p">,</span> <span class="n">ensure</span><span class="p">,</span> <span class="n">appname</span><span class="p">,</span> <span class="n">download_dir</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="n">spoof</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">lena_fpath</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">lena.png</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="function">
 <dt id="utool.util_grabdata.grab_zipped_url">
-<tt class="descclassname">utool.util_grabdata.</tt><tt class="descname">grab_zipped_url</tt><big>(</big><em>zipped_url</em>, <em>ensure=True</em>, <em>appname='utool'</em>, <em>download_dir=None</em>, <em>force_commonprefix=True</em>, <em>cleanup=True</em><big>)</big><a class="reference internal" href="_modules/utool/util_grabdata.html#grab_zipped_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_grabdata.grab_zipped_url" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utool.util_grabdata.</tt><tt class="descname">grab_zipped_url</tt><big>(</big><em>zipped_url</em>, <em>ensure=True</em>, <em>appname='utool'</em>, <em>download_dir=None</em>, <em>force_commonprefix=True</em>, <em>cleanup=False</em><big>)</big><a class="reference internal" href="_modules/utool/util_grabdata.html#grab_zipped_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_grabdata.grab_zipped_url" title="Permalink to this definition">¶</a></dt>
 <dd><p>downloads and unzips the url</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -3061,7 +3266,8 @@ loaded modules</p>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_inspect</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_inspect</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fname</span> <span class="o">=</span> <span class="s">&#39;util_class.py&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">blank_pats</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;    #&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">funcname_list</span> <span class="o">=</span> <span class="n">list_class_funcnames</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">blank_pats</span><span class="p">)</span>
@@ -3190,8 +3396,9 @@ checks hash of to_write vs the hash of the contents of fpath</li>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_iter</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">iterable</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">chunksize</span> <span class="o">=</span> <span class="mi">3</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ichunks</span><span class="p">(</span><span class="n">iterable</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">genresult</span> <span class="o">=</span> <span class="n">ichunks</span><span class="p">(</span><span class="n">iterable</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">genresult</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">[[1, 2, 3], [4, 5, 6], [7]]</span>
 </pre></div>
 </div>
@@ -3214,12 +3421,54 @@ checks hash of to_write vs the hash of the contents of fpath</li>
 <dl class="function">
 <dt id="utool.util_iter.ifilter_items">
 <tt class="descclassname">utool.util_iter.</tt><tt class="descname">ifilter_items</tt><big>(</big><em>item_iter</em>, <em>flag_iter</em><big>)</big><a class="reference internal" href="_modules/utool/util_iter.html#ifilter_items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_iter.ifilter_items" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>flag_iter</strong> (<em>list</em>) &#8211; of bools</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">true_items</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_iter</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item_iter</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">flag_iter</span> <span class="o">=</span> <span class="p">[</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">true_items</span> <span class="o">=</span> <span class="n">ifilter_items</span><span class="p">(</span><span class="n">item_iter</span><span class="p">,</span> <span class="n">flag_iter</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">true_items</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">[2, 3, 5]</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="function">
 <dt id="utool.util_iter.ifilterfalse_items">
 <tt class="descclassname">utool.util_iter.</tt><tt class="descname">ifilterfalse_items</tt><big>(</big><em>item_iter</em>, <em>flag_iter</em><big>)</big><a class="reference internal" href="_modules/utool/util_iter.html#ifilterfalse_items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_iter.ifilterfalse_items" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>flag_iter</strong> (<em>list</em>) &#8211; of bools</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_iter</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item_iter</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">flag_iter</span> <span class="o">=</span> <span class="p">[</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">false_items</span> <span class="o">=</span> <span class="n">ifilterfalse_items</span><span class="p">(</span><span class="n">item_iter</span><span class="p">,</span> <span class="n">flag_iter</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">false_items</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">[1, 4]</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="function">
 <dt id="utool.util_iter.iflatten">
@@ -3245,8 +3494,9 @@ checks hash of to_write vs the hash of the contents of fpath</li>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_iter</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">args</span> <span class="o">=</span> <span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;A&#39;</span><span class="p">,</span> <span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">,</span> <span class="s">&#39;D&#39;</span><span class="p">,</span> <span class="s">&#39;E&#39;</span><span class="p">,</span> <span class="s">&#39;F&#39;</span><span class="p">,</span> <span class="s">&#39;G&#39;</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">interleave</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">genresult</span> <span class="o">=</span> <span class="n">interleave</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">genresult</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">[1, &#39;A&#39;, 2, &#39;B&#39;, 3, &#39;C&#39;, 4, &#39;D&#39;, 5, &#39;E&#39;]</span>
 </pre></div>
 </div>
@@ -3420,9 +3670,11 @@ checks hash of to_write vs the hash of the contents of fpath</li>
 <tt class="descclassname">utool.util_list.</tt><tt class="descname">depth_profile</tt><big>(</big><em>list_</em><big>)</big><a class="reference internal" href="_modules/utool/util_list.html#depth_profile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_list.depth_profile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a nested list corresponding the shape of the nested structure</p>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_list</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_list</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">list_</span> <span class="o">=</span> <span class="p">[[[[[</span><span class="mi">1</span><span class="p">]]],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">33</span><span class="p">]],</span> <span class="p">[[</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">]],</span> <span class="p">[[</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">]]]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">depth_profile</span><span class="p">(</span><span class="n">list_</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">depth_profile</span><span class="p">(</span><span class="n">list_</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">[[[[1]], 3], [1, 1], [1, 1]]</span>
 </pre></div>
 </div>
@@ -3531,15 +3783,17 @@ checks hash of to_write vs the hash of the contents of fpath</li>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_list</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">unique_vals</span> <span class="o">=</span> <span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span>  <span class="mi">2</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_list</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">unique_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span>  <span class="mi">2</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">max_</span> <span class="o">=</span> <span class="n">unique_vals</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">min_</span> <span class="o">=</span> <span class="n">unique_vals</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">range_</span> <span class="o">=</span> <span class="n">max_</span> <span class="o">-</span> <span class="n">min_</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">consec_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">min_</span><span class="p">,</span> <span class="n">max_</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">range_</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">missing_ixs</span> <span class="o">=</span> <span class="n">find_nonconsec_indicies</span><span class="p">(</span><span class="n">unique_vals</span><span class="p">,</span> <span class="n">consec_vals</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">consec_vals</span><span class="p">[</span><span class="n">missing_ixs</span><span class="p">])</span>
-<span class="go">array([ 0.,  3.,  4.,  5.,  6.,  7.,  8.,  9.])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">consec_vals</span><span class="p">[</span><span class="n">missing_ixs</span><span class="p">])</span>
+<span class="go">[ 0.  3.  4.  5.  6.  7.  8.  9.]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -3638,8 +3892,8 @@ checks hash of to_write vs the hash of the contents of fpath</li>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_list</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">list1</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;featweight_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;feature_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;featweight_forground_weight&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">list2</span> <span class="o">=</span> <span class="p">[</span><span class="s">u&#39;featweight_rowid&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">new_list</span> <span class="o">=</span> <span class="n">intersect_ordered</span><span class="p">(</span><span class="n">list1</span><span class="p">,</span> <span class="n">list2</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">new_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">intersect_ordered</span><span class="p">(</span><span class="n">list1</span><span class="p">,</span> <span class="n">list2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">[&#39;featweight_rowid&#39;]</span>
 </pre></div>
 </div>
@@ -3674,15 +3928,17 @@ Returns flat <tt class="docutils literal"><span class="pre">list</span></tt> and
 Returns flat <tt class="docutils literal"><span class="pre">list</span></tt> and the unflat <tt class="docutils literal"><span class="pre">list</span></tt> with indexes into the flat
 <tt class="docutils literal"><span class="pre">list</span></tt></p>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_list</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_list</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">utool</span><span class="o">.</span><span class="n">util_list</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">unflat_list</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">],</span> <span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">]]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">flat_list</span><span class="p">,</span> <span class="n">cumlen_list</span> <span class="o">=</span> <span class="n">invertable_flatten2</span><span class="p">(</span><span class="n">unflat_list</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">unflat_list2</span> <span class="o">=</span> <span class="n">unflatten2</span><span class="p">(</span><span class="n">flat_list</span><span class="p">,</span> <span class="n">cumlen_list</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">unflat_list2</span> <span class="o">==</span> <span class="n">unflat_list</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">((</span><span class="n">flat_list</span><span class="p">,</span> <span class="n">cumlen_list</span><span class="p">))</span>
-<span class="go">([5, 2, 3, 12, 3, 3, 9, 13, 3, 5], array([ 1,  6,  7,  9, 10]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">((</span><span class="n">flat_list</span><span class="p">,</span> <span class="n">cumlen_list</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">([5, 2, 3, 12, 3, 3, 9, 13, 3, 5], [1, 6, 7, 9, 10])</span>
 </pre></div>
 </div>
 <dl class="docutils">
@@ -3778,8 +4034,10 @@ print(&#8216;Timings 2:)
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">list_</span> <span class="o">=</span> <span class="p">[[[[[</span><span class="mi">1</span><span class="p">]]],</span> <span class="p">[</span><span class="mi">3</span><span class="p">]],</span> <span class="p">[[</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">]],</span> <span class="p">[[</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">]]]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">list_depth</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">_depth</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">list_</span> <span class="o">=</span> <span class="p">[[[[[</span><span class="mi">1</span><span class="p">]]],</span> <span class="p">[</span><span class="mi">3</span><span class="p">]],</span> <span class="p">[[</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">]],</span> <span class="p">[[</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">]]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">list_depth</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">_depth</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -3903,11 +4161,13 @@ otherwise applies func to <tt class="docutils literal"><span class="pre">input_<
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_list</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_list</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">list1</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;featweight_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;feature_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;featweight_forground_weight&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">list2</span> <span class="o">=</span> <span class="p">[</span><span class="s">u&#39;featweight_rowid&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">new_list</span> <span class="o">=</span> <span class="n">setdiff_ordered</span><span class="p">(</span><span class="n">list1</span><span class="p">,</span> <span class="n">list2</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">new_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">new_list</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">[&#39;feature_rowid&#39;, &#39;config_rowid&#39;, &#39;featweight_forground_weight&#39;]</span>
 </pre></div>
 </div>
@@ -3938,10 +4198,11 @@ ascending order</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">list_</span>    <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">key_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">utool</span><span class="o">.</span><span class="n">sortedby</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">key_list</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">sortedby</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">key_list</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="go">[5, 2, 3, 1, 4]</span>
 </pre></div>
 </div>
@@ -3975,14 +4236,16 @@ ascending order</td>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">item_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">key_list1</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">key_list2</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">key_list1</span><span class="p">,</span> <span class="n">key_list2</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">utool</span><span class="o">.</span><span class="n">sortedby2</span><span class="p">(</span><span class="n">item_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<span class="go">[5, 2, 3, 1, 4]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">reverse</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">sortedby2</span><span class="p">(</span><span class="n">item_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">[2, 1, 3, 4, 5]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -4052,13 +4315,16 @@ invertable_flatten2
 unflatten2</dd>
 </dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_list</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_list</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">utool</span><span class="o">.</span><span class="n">util_list</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">flat_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cumlen_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span> <span class="mi">1</span><span class="p">,</span>  <span class="mi">6</span><span class="p">,</span>  <span class="mi">7</span><span class="p">,</span>  <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">unflat_list2</span> <span class="o">=</span> <span class="n">unflatten2</span><span class="p">(</span><span class="n">flat_list</span><span class="p">,</span> <span class="n">cumlen_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">unflat_list2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">unflat_list2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">[[5], [2, 3, 12, 3, 3], [9], [13, 3], [5]]</span>
 </pre></div>
 </div>
@@ -4276,7 +4542,8 @@ print([format_(num) for num in nums])</p>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_numpy</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_numpy</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">14</span><span class="p">]])</span>
@@ -4289,7 +4556,9 @@ print([format_(num) for num in nums])</p>
 <dl class="function">
 <dt id="utool.util_numpy.intersect2d_numpy">
 <tt class="descclassname">utool.util_numpy.</tt><tt class="descname">intersect2d_numpy</tt><big>(</big><em>A</em>, <em>B</em><big>)</big><a class="reference internal" href="_modules/utool/util_numpy.html#intersect2d_numpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_numpy.intersect2d_numpy" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p class="rubric">References</p>
+<p><a class="reference external" href="http://stackoverflow.com/questions/8317022/get-intersecting-rows-across-two-2d-numpy-arrays/8317155#8317155">http://stackoverflow.com/questions/8317022/get-intersecting-rows-across-two-2d-numpy-arrays/8317155#8317155</a></p>
+</dd></dl>
 
 <dl class="function">
 <dt id="utool.util_numpy.list_index">
@@ -4327,11 +4596,13 @@ Searches search_list for each element in to_find_list</p>
 <dl class="function">
 <dt id="utool.util_numpy.sample_domain">
 <tt class="descclassname">utool.util_numpy.</tt><tt class="descname">sample_domain</tt><big>(</big><em>min_</em>, <em>max_</em>, <em>nSamp</em>, <em>mode='linear'</em><big>)</big><a class="reference internal" href="_modules/utool/util_numpy.html#sample_domain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_numpy.sample_domain" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
+<dd><p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">min_</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">max_</span> <span class="o">=</span> <span class="mi">1000</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">nSamp</span>  <span class="o">=</span> <span class="mi">7</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">utool</span><span class="o">.</span><span class="n">sample_domain</span><span class="p">(</span><span class="n">min_</span><span class="p">,</span> <span class="n">max_</span><span class="p">,</span> <span class="n">nSamp</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">sample_domain</span><span class="p">(</span><span class="n">min_</span><span class="p">,</span> <span class="n">max_</span><span class="p">,</span> <span class="n">nSamp</span><span class="p">)</span>
 <span class="go">[10, 151, 293, 434, 576, 717, 859]</span>
 </pre></div>
 </div>
@@ -4702,7 +4973,7 @@ list of file-names</td>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">module_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_path</span><span class="o">.</span><span class="n">__file__</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rel_modpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_relative_modpath</span><span class="p">(</span><span class="n">module_fpath</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">rel_modpath</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">rel_modpath</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;.pyc&#39;</span><span class="p">,</span> <span class="s">&#39;.py&#39;</span><span class="p">)</span>  <span class="c"># allow pyc or py</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">utool/util_path.py</span>
 </pre></div>
@@ -4807,10 +5078,12 @@ list of lines and list of line numbers</td>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_path</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_path</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">truepath</span><span class="p">(</span><span class="s">&#39;~/code/utool/utool&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">flag</span> <span class="o">=</span> <span class="n">is_module_dir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">flag</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">flag</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -5134,7 +5407,8 @@ total=None, num=None, with_totaltime=None</p>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">results1</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">utool</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">10000</span><span class="p">),</span> <span class="n">wfreq</span><span class="o">=</span><span class="mi">10</span><span class="p">)]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">results4</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">utool</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">10000</span><span class="p">),</span> <span class="n">wfreq</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
@@ -5319,7 +5593,8 @@ single quotes only. no nesting.</p>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_regex</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_regex</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">keypat_tups</span> <span class="o">=</span> <span class="p">[</span>
 <span class="gp">... </span>   <span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span>  <span class="s">r&#39;G\d+&#39;</span><span class="p">),</span>  <span class="c"># species and 2 numbers</span>
 <span class="gp">... </span>   <span class="p">(</span><span class="s">&#39;under&#39;</span><span class="p">,</span> <span class="s">r&#39;_&#39;</span><span class="p">),</span>     <span class="c"># 2 more numbers</span>
@@ -5328,7 +5603,8 @@ single quotes only. no nesting.</p>
 <span class="gp">... </span>   <span class="p">(</span><span class="s">&#39;ext&#39;</span><span class="p">,</span>   <span class="s">r&#39;\w+&#39;</span><span class="p">),</span>
 <span class="gp">... </span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">parse_dict</span> <span class="o">=</span> <span class="n">named_field_regex</span><span class="p">(</span><span class="n">keypat_tups</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">parse_dict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">parse_dict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">(?P&lt;name&gt;G\d+)(?P&lt;under&gt;_)(?P&lt;id&gt;\d+)\.(?P&lt;ext&gt;\w+)</span>
 </pre></div>
 </div>
@@ -5413,7 +5689,8 @@ regex_replace</p>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_regex</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_regex</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">regex</span> <span class="o">=</span> <span class="s">r&#39;\(.*\):&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">repl</span> <span class="o">=</span> <span class="s">&#39;(*args)&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">text</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;def foo(param1,</span>
@@ -5468,7 +5745,7 @@ regex_replace</p>
 
 <dl class="function">
 <dt id="utool.util_regex.sedfile">
-<tt class="descclassname">utool.util_regex.</tt><tt class="descname">sedfile</tt><big>(</big><em>fpath</em>, <em>regexpr</em>, <em>repl</em>, <em>force=False</em>, <em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/utool/util_regex.html#sedfile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_regex.sedfile" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utool.util_regex.</tt><tt class="descname">sedfile</tt><big>(</big><em>fpath</em>, <em>regexpr</em>, <em>repl</em>, <em>force=False</em>, <em>verbose=True</em>, <em>veryverbose=False</em><big>)</big><a class="reference internal" href="_modules/utool/util_regex.html#sedfile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_regex.sedfile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Executes sed on a specific file</p>
 </dd></dl>
 
@@ -5776,10 +6053,12 @@ license            short string     (&#39;license for the package&#39;)
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_str</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_str</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">character</span> <span class="o">=</span> <span class="s">&#39;=&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">text</span> <span class="o">=</span> <span class="s">&#39;a = b</span><span class="se">\n</span><span class="s">one = two</span><span class="se">\n</span><span class="s">three = fish</span><span class="se">\n</span><span class="s">&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">align</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="s">&#39;=&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">align</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="s">&#39;=&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">a     = b</span>
 <span class="go">one   = two</span>
 <span class="go">three = fish</span>
@@ -6245,15 +6524,18 @@ which is also unsafely implemented</p>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">utool</span><span class="o">.</span><span class="n">util_str</span><span class="o">.</span><span class="n">rrr</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">num_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="mf">4.2</span> <span class="o">/</span> <span class="p">(</span><span class="mf">10.0</span> <span class="o">**</span> <span class="n">exp_</span><span class="p">)</span> <span class="k">for</span> <span class="n">exp_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">13</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">4</span><span class="p">)])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">secstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">utool</span><span class="o">.</span><span class="n">util_str</span><span class="o">.</span><span class="n">seconds_str</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">num_list</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">secstr_list</span><span class="p">))</span>
-<span class="go">0.042 ns, 0.42 us, 4.2 ms, 0.042 ks, 0.42 Ms, 4.2 Gs, 42.0 Ts</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">secstr_list</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">0.04 ns, 0.42 us, 4.20 ms, 0.04 ks, 0.42 Ms, 4.20 Gs, 42.00 Ts</span>
 </pre></div>
 </div>
-<p>#&gt;&gt;&gt; print(&#8216;,n&#8217;.join(map(str, zip(secstr_list, num_list))))</p>
+<p>0.042 ns, 0.42 us, 4.2 ms, 0.042 ks, 0.42 Ms, 4.2 Gs, 42.0 Ts
+#&gt;&gt;&gt; print(&#8216;,n&#8217;.join(map(str, zip(secstr_list, num_list))))</p>
 </dd></dl>
 
 <dl class="function">
@@ -6342,6 +6624,9 @@ which is also unsafely implemented</p>
 <dt id="utool.util_tests.bubbletext">
 <tt class="descclassname">utool.util_tests.</tt><tt class="descname">bubbletext</tt><big>(</big><em>text</em>, <em>font='cybermedium'</em><big>)</big><a class="reference internal" href="_modules/utool/util_tests.html#bubbletext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utool.util_tests.bubbletext" title="Permalink to this definition">¶</a></dt>
 <dd><p>Other fonts include: cybersmall, cybermedium, and cyberlarge</p>
+<p>import pyfiglet</p>
+<p class="rubric">References</p>
+<p><a class="reference external" href="http://www.figlet.org/">http://www.figlet.org/</a></p>
 <p class="rubric">Example</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
@@ -6427,7 +6712,7 @@ example_list, want_list</td>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_tests</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">func_or_class</span> <span class="o">=</span> <span class="n">get_doctest_examples</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">testsrc_list</span><span class="p">,</span> <span class="n">testwant_list</span><span class="p">,</span> <span class="n">docstr</span> <span class="o">=</span> <span class="n">get_doctest_examples</span><span class="p">(</span><span class="n">func_or_class</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">example_list</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">want_list</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">testsrc_list</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">testwant_list</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">2</span>
 </pre></div>
@@ -6506,9 +6791,10 @@ example_list, want_list</td>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Timer with-statment context object.</p>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">utool</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s">&#39;Timer test!&#39;</span><span class="p">):</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">prime</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_nth_prime</span><span class="p">(</span><span class="mi">4000</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">prime</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_nth_prime</span><span class="p">(</span><span class="mi">400</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="method">
@@ -6555,10 +6841,12 @@ example_list, want_list</td>
 <p class="rubric">References</p>
 <p><a class="reference external" href="http://stackoverflow.com/questions/8906926/formatting-python-timedelta-objects">http://stackoverflow.com/questions/8906926/formatting-python-timedelta-objects</a></p>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_time</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_time</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">timedelta</span> <span class="o">=</span> <span class="n">get_unix_timedelta</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">timedelta_str</span> <span class="o">=</span> <span class="n">get_timedelta_str</span><span class="p">(</span><span class="n">timedelta</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">timedelta_str</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">timedelta_str</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">10 seconds</span>
 </pre></div>
 </div>
@@ -6578,7 +6866,8 @@ example_list, want_list</td>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_time</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_time</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">format_</span> <span class="o">=</span> <span class="s">&#39;printable&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">use_second</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">delta_seconds</span> <span class="o">=</span> <span class="bp">None</span>
@@ -6641,7 +6930,8 @@ formated time string</td>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_time</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utool.util_time</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">format_</span> <span class="o">=</span> <span class="s">&#39;printable&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">use_second</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">delta_seconds</span> <span class="o">=</span> <span class="bp">None</span>

@@ -53,7 +53,7 @@
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">datetime</span>
-<span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="kn">from</span> <span class="nn">utool.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[time]&#39;</span><span class="p">)</span>
 
 
@@ -86,6 +86,7 @@
 <span class="sd">        str: stamp</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_time import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; format_ = &#39;printable&#39;</span>
 <span class="sd">        &gt;&gt;&gt; use_second = False</span>
@@ -126,9 +127,10 @@
 <span class="sd">    Timer with-statment context object.</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; import utool</span>
 <span class="sd">        &gt;&gt;&gt; with utool.Timer(&#39;Timer test!&#39;):</span>
-<span class="sd">        &gt;&gt;&gt;     prime = utool.get_nth_prime(4000)</span>
+<span class="sd">        &gt;&gt;&gt;     prime = utool.get_nth_prime(400)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span>
@@ -189,7 +191,7 @@
             <span class="c">#return -1</span>
         <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
     <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">.util_arg</span> <span class="kn">import</span> <span class="n">STRICT</span>
+        <span class="kn">from</span> <span class="nn">utool.util_arg</span> <span class="kn">import</span> <span class="n">STRICT</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">datetime_str_</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">datetime_str_</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;No EXIF Data&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
@@ -254,10 +256,12 @@
 <span class="sd">        http://stackoverflow.com/questions/8906926/formatting-python-timedelta-objects</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_time import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; timedelta = get_unix_timedelta(10)</span>
 <span class="sd">        &gt;&gt;&gt; timedelta_str = get_timedelta_str(timedelta)</span>
-<span class="sd">        &gt;&gt;&gt; print(timedelta_str)</span>
+<span class="sd">        &gt;&gt;&gt; result = (timedelta_str)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        10 seconds</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">days</span> <span class="o">=</span> <span class="n">timedelta</span><span class="o">.</span><span class="n">days</span>
@@ -308,7 +312,21 @@
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="k">pass</span>
     <span class="n">timestat_str</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">unixtime_stats</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="n">newlines</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">timestat_str</span></div>
+    <span class="k">return</span> <span class="n">timestat_str</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -c &quot;import utool, utool.util_time; utool.doctest_funcs(utool.util_time, allexamples=True)&quot;</span>
+<span class="sd">        python -c &quot;import utool, utool.util_time; utool.doctest_funcs(utool.util_time)&quot;</span>
+<span class="sd">        python utool/util_time.py</span>
+<span class="sd">        python utool/util_time.py --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

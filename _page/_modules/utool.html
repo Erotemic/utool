@@ -130,7 +130,7 @@
     <span class="c"># anything that has already in a toplevel namespace</span>
     <span class="c"># COMMENTED OUT FOR FROZEN __INIT__</span>
     <span class="c"># Dynamically import listed util libraries and their members.</span>
-    <span class="kn">from</span> <span class="nn">._internal</span> <span class="kn">import</span> <span class="n">util_importer</span>
+    <span class="kn">from</span> <span class="nn">utool._internal</span> <span class="kn">import</span> <span class="n">util_importer</span>
     <span class="c"># FIXME: this might actually work with rrrr, but things arent being</span>
     <span class="c"># reimported because they are already in the modules list</span>
     <span class="n">import_execstr</span> <span class="o">=</span> <span class="n">util_importer</span><span class="o">.</span><span class="n">dynamic_import</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="n">IMPORT_TUPLES</span><span class="p">)</span>
@@ -185,316 +185,314 @@
     <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_tests</span>
     <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">DynamicStruct</span>
     <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">Preferences</span>
-     
-    <span class="kn">from</span> <span class="nn">utool.util_alg</span> <span class="kn">import</span> <span class="p">(</span><span class="n">HAS_NUMPY</span><span class="p">,</span> <span class="n">PHI</span><span class="p">,</span> <span class="n">PHI_A</span><span class="p">,</span> <span class="n">PHI_B</span><span class="p">,</span> <span class="n">almost_eq</span><span class="p">,</span> 
-                                <span class="n">build_reverse_mapping</span><span class="p">,</span> <span class="n">cartesian</span><span class="p">,</span> <span class="n">choose</span><span class="p">,</span> 
-                                <span class="n">defaultdict</span><span class="p">,</span> <span class="n">euclidean_dist</span><span class="p">,</span> <span class="n">find_std_inliers</span><span class="p">,</span> 
-                                <span class="n">flatten_membership_mapping</span><span class="p">,</span> <span class="n">get_nth_prime</span><span class="p">,</span> 
-                                <span class="n">get_phi</span><span class="p">,</span> <span class="n">get_phi_ratio1</span><span class="p">,</span> <span class="n">group_items</span><span class="p">,</span> <span class="n">iceil</span><span class="p">,</span> 
-                                <span class="n">iround</span><span class="p">,</span> <span class="n">is_prime</span><span class="p">,</span> <span class="n">item_hist</span><span class="p">,</span> 
-                                <span class="n">negative_minclamp_inplace</span><span class="p">,</span> <span class="n">norm_zero_one</span><span class="p">,</span> 
-                                <span class="n">normalize</span><span class="p">,</span> <span class="n">search_utool</span><span class="p">,</span> <span class="n">unique_row_indexes</span><span class="p">,</span> 
-                                <span class="n">unpack_items_sorted</span><span class="p">,</span> 
-                                <span class="n">unpack_items_sorted_by_lenvalue</span><span class="p">,</span> 
-                                <span class="n">unpack_items_sorted_by_value</span><span class="p">,</span> 
-                                <span class="n">void_rowview_numpy</span><span class="p">,</span> <span class="n">xywh_to_tlbr</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_aliases</span> <span class="kn">import</span> <span class="p">(</span><span class="n">OrderedDict</span><span class="p">,</span> <span class="n">ddict</span><span class="p">,</span> <span class="n">iprod</span><span class="p">,</span> <span class="n">odict</span><span class="p">,</span> <span class="n">product</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_arg</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ArgumentParser2</span><span class="p">,</span> <span class="n">DEBUG2</span><span class="p">,</span> <span class="n">Indenter</span><span class="p">,</span> <span class="n">NOT_QUIET</span><span class="p">,</span> 
-                                <span class="n">NO_ASSERTS</span><span class="p">,</span> <span class="n">QUIET</span><span class="p">,</span> <span class="n">REPORT</span><span class="p">,</span> <span class="n">SAFE</span><span class="p">,</span> <span class="n">SILENT</span><span class="p">,</span> 
-                                <span class="n">STRICT</span><span class="p">,</span> <span class="n">SUPER_STRICT</span><span class="p">,</span> <span class="n">TRACE</span><span class="p">,</span> <span class="n">USE_ASSERT</span><span class="p">,</span> 
-                                <span class="n">VERBOSE</span><span class="p">,</span> <span class="n">VERYVERBOSE</span><span class="p">,</span> <span class="n">argv_flag_dec</span><span class="p">,</span> 
-                                <span class="n">argv_flag_dec_true</span><span class="p">,</span> <span class="n">autogen_argparse2</span><span class="p">,</span> 
-                                <span class="n">fuzzy_int</span><span class="p">,</span> <span class="n">get_arg</span><span class="p">,</span> <span class="n">get_argflag</span><span class="p">,</span> <span class="n">get_argval</span><span class="p">,</span> 
-                                <span class="n">get_flag</span><span class="p">,</span> <span class="n">get_fpath_args</span><span class="p">,</span> <span class="n">get_funcname</span><span class="p">,</span> <span class="n">inject</span><span class="p">,</span> 
-                                <span class="n">make_argparse2</span><span class="p">,</span> <span class="n">set_funcname</span><span class="p">,</span> <span class="n">switch_sanataize</span><span class="p">,</span> 
-                                <span class="n">try_cast</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_cache</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Cacher</span><span class="p">,</span> <span class="n">GlobalShelfContext</span><span class="p">,</span> <span class="n">cached_func</span><span class="p">,</span> 
-                                  <span class="n">chain</span><span class="p">,</span> <span class="n">default_appname</span><span class="p">,</span> <span class="n">delete_global_cache</span><span class="p">,</span> 
-                                  <span class="n">get_argnames</span><span class="p">,</span> <span class="n">get_cfgstr_from_args</span><span class="p">,</span> 
-                                  <span class="n">get_default_appname</span><span class="p">,</span> <span class="n">get_global_cache_dir</span><span class="p">,</span> 
-                                  <span class="n">get_global_shelf_fpath</span><span class="p">,</span> <span class="n">get_kwdefaults</span><span class="p">,</span> 
-                                  <span class="n">global_cache_dname</span><span class="p">,</span> <span class="n">global_cache_dump</span><span class="p">,</span> 
-                                  <span class="n">global_cache_fname</span><span class="p">,</span> <span class="n">global_cache_read</span><span class="p">,</span> 
-                                  <span class="n">global_cache_write</span><span class="p">,</span> <span class="n">load_cache</span><span class="p">,</span> <span class="n">save_cache</span><span class="p">,</span> 
-                                  <span class="n">text_dict_write</span><span class="p">,</span> <span class="n">view_global_cache_dir</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_cplat</span> <span class="kn">import</span> <span class="p">(</span><span class="n">COMPUTER_NAME</span><span class="p">,</span> <span class="n">DARWIN</span><span class="p">,</span> <span class="n">LIB_DICT</span><span class="p">,</span> 
-                                  <span class="n">LIB_EXT_LIST</span><span class="p">,</span> <span class="n">LINUX</span><span class="p">,</span> <span class="n">OS_TYPE</span><span class="p">,</span> <span class="n">PYLIB_DICT</span><span class="p">,</span> 
-                                  <span class="n">WIN32</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">editfile</span><span class="p">,</span> 
-                                  <span class="n">ensure_app_resource_dir</span><span class="p">,</span> 
-                                  <span class="n">get_app_resource_dir</span><span class="p">,</span> <span class="n">get_computer_name</span><span class="p">,</span> 
-                                  <span class="n">get_dir_diskspaces</span><span class="p">,</span> <span class="n">get_disk_space</span><span class="p">,</span> 
-                                  <span class="n">get_dynamic_lib_globstrs</span><span class="p">,</span> 
-                                  <span class="n">get_dynlib_dependencies</span><span class="p">,</span> <span class="n">get_flops</span><span class="p">,</span> 
-                                  <span class="n">get_free_diskbytes</span><span class="p">,</span> <span class="n">get_install_dirs</span><span class="p">,</span> 
-                                  <span class="n">get_lib_ext</span><span class="p">,</span> <span class="n">get_pylib_ext</span><span class="p">,</span> 
-                                  <span class="n">get_python_dynlib</span><span class="p">,</span> <span class="n">get_resource_dir</span><span class="p">,</span> 
-                                  <span class="n">get_user_name</span><span class="p">,</span> <span class="n">getroot</span><span class="p">,</span> <span class="n">is64bit_python</span><span class="p">,</span> 
-                                  <span class="n">ls_libs</span><span class="p">,</span> <span class="n">print_dir_diskspace</span><span class="p">,</span> 
-                                  <span class="n">python_executable</span><span class="p">,</span> <span class="n">run_realtime_process</span><span class="p">,</span> 
-                                  <span class="n">set_process_title</span><span class="p">,</span> <span class="n">shell</span><span class="p">,</span> <span class="n">startfile</span><span class="p">,</span> 
-                                  <span class="n">truepath</span><span class="p">,</span> <span class="n">unixpath</span><span class="p">,</span> <span class="n">vd</span><span class="p">,</span> <span class="n">view_directory</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_class</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ReloadingMetaclass</span><span class="p">,</span> <span class="n">VERBOSE_CLASS</span><span class="p">,</span> 
-                                  <span class="n">decorate_class_method</span><span class="p">,</span> <span class="n">decorate_postinject</span><span class="p">,</span> 
-                                  <span class="n">get_comparison_methods</span><span class="p">,</span> 
-                                  <span class="n">inject_func_as_method</span><span class="p">,</span> <span class="n">inject_instance</span><span class="p">,</span> 
-                                  <span class="n">makeForwardingMetaclass</span><span class="p">,</span> 
-                                  <span class="n">make_class_method_decorator</span><span class="p">,</span> 
-                                  <span class="n">make_class_postinject_decorator</span><span class="p">,</span> <span class="n">oset</span><span class="p">,</span> 
-                                  <span class="n">reload_class_methods</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_csv</span> <span class="kn">import</span> <span class="p">(</span><span class="n">is_float</span><span class="p">,</span> <span class="n">is_int</span><span class="p">,</span> <span class="n">is_list</span><span class="p">,</span> <span class="n">is_str</span><span class="p">,</span> 
-                                <span class="n">make_csv_table</span><span class="p">,</span> <span class="n">numpy_to_csv</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_config</span> <span class="kn">import</span> <span class="p">(</span><span class="n">get_default_global_config</span><span class="p">,</span> 
-                                   <span class="n">get_default_repo_config</span><span class="p">,</span> <span class="n">read_repo_config</span><span class="p">,</span> 
-                                   <span class="n">write_default_repo_config</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_dbg</span> <span class="kn">import</span> <span class="p">(</span><span class="n">EmbedOnException</span><span class="p">,</span> <span class="n">IPYTHON_EMBED_STR</span><span class="p">,</span> <span class="n">RAISE_ALL</span><span class="p">,</span> 
-                                <span class="n">all_rrr</span><span class="p">,</span> <span class="n">debug_exception</span><span class="p">,</span> <span class="n">debug_hstack</span><span class="p">,</span> 
-                                <span class="n">debug_list</span><span class="p">,</span> <span class="n">debug_npstack</span><span class="p">,</span> <span class="n">debug_vstack</span><span class="p">,</span> 
-                                <span class="n">dict_dbgstr</span><span class="p">,</span> <span class="n">embed</span><span class="p">,</span> <span class="n">execstr_attr_list</span><span class="p">,</span> 
-                                <span class="n">execstr_dict</span><span class="p">,</span> <span class="n">execstr_embed</span><span class="p">,</span> <span class="n">execstr_func</span><span class="p">,</span> 
-                                <span class="n">execstr_parent_locals</span><span class="p">,</span> <span class="n">execstr_src</span><span class="p">,</span> 
-                                <span class="n">explore_module</span><span class="p">,</span> <span class="n">explore_stack</span><span class="p">,</span> <span class="n">fmtlocals</span><span class="p">,</span> 
-                                <span class="n">formatex</span><span class="p">,</span> <span class="n">get_caller_locals</span><span class="p">,</span> <span class="n">get_caller_name</span><span class="p">,</span> 
-                                <span class="n">get_caller_prefix</span><span class="p">,</span> <span class="n">get_caller_stack_frame</span><span class="p">,</span> 
-                                <span class="n">get_localvar_from_stack</span><span class="p">,</span> <span class="n">get_parent_frame</span><span class="p">,</span> 
-                                <span class="n">get_parent_globals</span><span class="p">,</span> <span class="n">get_parent_locals</span><span class="p">,</span> 
-                                <span class="n">get_reprs</span><span class="p">,</span> <span class="n">get_stack_frame</span><span class="p">,</span> <span class="n">get_type</span><span class="p">,</span> 
-                                <span class="n">get_var_from_stack</span><span class="p">,</span> <span class="n">get_varname_from_locals</span><span class="p">,</span> 
-                                <span class="n">get_varname_from_stack</span><span class="p">,</span> <span class="n">get_varstr</span><span class="p">,</span> 
-                                <span class="n">get_varval_from_locals</span><span class="p">,</span> <span class="n">haveIPython</span><span class="p">,</span> 
-                                <span class="n">horiz_string</span><span class="p">,</span> <span class="n">import_testdata</span><span class="p">,</span> <span class="n">inIPython</span><span class="p">,</span> 
-                                <span class="n">indent</span><span class="p">,</span> <span class="n">ipython_execstr</span><span class="p">,</span> <span class="n">ipython_execstr2</span><span class="p">,</span> 
-                                <span class="n">is_listlike</span><span class="p">,</span> <span class="n">is_valid_varname</span><span class="p">,</span> <span class="n">keys_dbgstr</span><span class="p">,</span> 
-                                <span class="n">len_dbgstr</span><span class="p">,</span> <span class="n">list_allsame</span><span class="p">,</span> <span class="n">list_dbgstr</span><span class="p">,</span> 
-                                <span class="n">load_testdata</span><span class="p">,</span> <span class="n">module_functions</span><span class="p">,</span> 
-                                <span class="n">my_numpy_printops</span><span class="p">,</span> <span class="n">pack_into</span><span class="p">,</span> 
-                                <span class="n">parse_locals_keylist</span><span class="p">,</span> <span class="n">print_frame</span><span class="p">,</span> <span class="n">print_keys</span><span class="p">,</span> 
-                                <span class="n">print_traceback</span><span class="p">,</span> <span class="n">print_varlen</span><span class="p">,</span> <span class="n">printex</span><span class="p">,</span> 
-                                <span class="n">printvar</span><span class="p">,</span> <span class="n">printvar2</span><span class="p">,</span> <span class="n">public_attributes</span><span class="p">,</span> <span class="n">qflag</span><span class="p">,</span> 
-                                <span class="n">quasiquote</span><span class="p">,</span> <span class="n">quit</span><span class="p">,</span> <span class="n">quitflag</span><span class="p">,</span> <span class="n">save_testdata</span><span class="p">,</span> 
-                                <span class="n">search_stack_for_localvar</span><span class="p">,</span> 
-                                <span class="n">search_stack_for_var</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">super_print</span><span class="p">,</span> 
-                                <span class="n">truncate_str</span><span class="p">,</span> <span class="n">varname_regex</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_dev</span> <span class="kn">import</span> <span class="p">(</span><span class="n">DEPRICATED</span><span class="p">,</span> <span class="n">INDEXABLE_TYPES</span><span class="p">,</span> <span class="n">InteractiveIter</span><span class="p">,</span> 
-                                <span class="n">MemoryTracker</span><span class="p">,</span> <span class="n">auto_docstr</span><span class="p">,</span> <span class="n">autofix_codeblock</span><span class="p">,</span> 
-                                <span class="n">compile_cython</span><span class="p">,</span> <span class="n">disable_garbage_collection</span><span class="p">,</span> 
-                                <span class="n">enable_garbage_collection</span><span class="p">,</span> <span class="n">find_exe</span><span class="p">,</span> 
-                                <span class="n">garbage_collect</span><span class="p">,</span> <span class="n">get_cython_exe</span><span class="p">,</span> 
-                                <span class="n">get_object_base</span><span class="p">,</span> <span class="n">get_object_size</span><span class="p">,</span> 
-                                <span class="n">get_object_size_str</span><span class="p">,</span> <span class="n">get_stats</span><span class="p">,</span> <span class="n">get_stats_str</span><span class="p">,</span> 
-                                <span class="n">infer_arg_types_and_descriptions</span><span class="p">,</span> <span class="n">info</span><span class="p">,</span> 
-                                <span class="n">init_catch_ctrl_c</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span> <span class="n">input_timeout</span><span class="p">,</span> 
-                                <span class="n">is_developer</span><span class="p">,</span> <span class="n">listinfo</span><span class="p">,</span> <span class="n">make_call_graph</span><span class="p">,</span> 
-                                <span class="n">make_default_docstr</span><span class="p">,</span> <span class="n">make_object_graph</span><span class="p">,</span> 
-                                <span class="n">memory_dump</span><span class="p">,</span> <span class="n">myprint</span><span class="p">,</span> <span class="n">npArrInfo</span><span class="p">,</span> <span class="n">npinfo</span><span class="p">,</span> 
-                                <span class="n">numpy_list_num_bits</span><span class="p">,</span> <span class="n">parse_return_type</span><span class="p">,</span> 
-                                <span class="n">print_auto_docstr</span><span class="p">,</span> <span class="n">print_object_size</span><span class="p">,</span> 
-                                <span class="n">print_object_size_tree</span><span class="p">,</span> <span class="n">print_stats</span><span class="p">,</span> 
-                                <span class="n">printableType</span><span class="p">,</span> <span class="n">printableVal</span><span class="p">,</span> <span class="n">report_memsize</span><span class="p">,</span> 
-                                <span class="n">reset_catch_ctrl_c</span><span class="p">,</span> <span class="n">strip_line_comments</span><span class="p">,</span> 
-                                <span class="n">testit</span><span class="p">,</span> <span class="n">timeit_compare</span><span class="p">,</span> 
-                                <span class="n">tuples_to_unique_scalars</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_decor</span> <span class="kn">import</span> <span class="p">(</span><span class="n">IGNORE_TRACEBACK</span><span class="p">,</span> <span class="n">NOINDENT_DECOR</span><span class="p">,</span> <span class="n">PROFILING</span><span class="p">,</span> 
-                                  <span class="n">SIG_PRESERVE</span><span class="p">,</span> <span class="n">UNIQUE_NUMPY</span><span class="p">,</span> <span class="n">accepts_numpy</span><span class="p">,</span> 
-                                  <span class="n">accepts_scalar_input</span><span class="p">,</span> <span class="n">accepts_scalar_input2</span><span class="p">,</span> 
-                                  <span class="n">accepts_scalar_input_vector_output</span><span class="p">,</span> 
-                                  <span class="n">getter_1to1</span><span class="p">,</span> <span class="n">getter_1toM</span><span class="p">,</span> <span class="n">ignores_exc_tb</span><span class="p">,</span> 
-                                  <span class="n">indent_func</span><span class="p">,</span> <span class="n">interested</span><span class="p">,</span> <span class="n">lazyfunc</span><span class="p">,</span> <span class="n">memorize</span><span class="p">,</span> 
-                                  <span class="n">on_exception_report_input</span><span class="p">,</span> <span class="n">preserve_sig</span><span class="p">,</span> 
-                                  <span class="n">show_return_value</span><span class="p">,</span> <span class="n">time_func</span><span class="p">,</span> <span class="n">update_wrapper</span><span class="p">,</span> 
-                                  <span class="n">wraps</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_distances</span> <span class="kn">import</span> <span class="p">(</span><span class="n">L1</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span> <span class="n">L2_sqrd</span><span class="p">,</span> <span class="n">compute_distances</span><span class="p">,</span> <span class="n">emd</span><span class="p">,</span> 
-                                      <span class="n">hist_isect</span><span class="p">,</span> <span class="n">nearest_point</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_dict</span> <span class="kn">import</span> <span class="p">(</span><span class="n">all_dict_combinations</span><span class="p">,</span> 
-                                 <span class="n">all_dict_combinations_lbls</span><span class="p">,</span> 
-                                 <span class="n">build_conflict_dict</span><span class="p">,</span> <span class="n">dict_take_gen</span><span class="p">,</span> 
-                                 <span class="n">dict_take_list</span><span class="p">,</span> <span class="n">dict_union</span><span class="p">,</span> <span class="n">dict_union2</span><span class="p">,</span> 
-                                 <span class="n">dict_update_newkeys</span><span class="p">,</span> <span class="n">dict_where_len0</span><span class="p">,</span> 
-                                 <span class="n">dictinfo</span><span class="p">,</span> <span class="n">invert_dict</span><span class="p">,</span> <span class="n">is_dicteq</span><span class="p">,</span> 
-                                 <span class="n">items_sorted_by_value</span><span class="p">,</span> <span class="n">keys_sorted_by_value</span><span class="p">,</span> 
-                                 <span class="n">updateif_haskey</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_func</span> <span class="kn">import</span> <span class="p">(</span><span class="n">general_get</span><span class="p">,</span> <span class="n">general_set</span><span class="p">,</span> <span class="n">identity</span><span class="p">,</span> 
-                                 <span class="n">uinput_1to1</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_grabdata</span> <span class="kn">import</span> <span class="p">(</span><span class="n">BadZipfile</span><span class="p">,</span> <span class="n">download_url</span><span class="p">,</span> 
-                                     <span class="n">fix_dropbox_link</span><span class="p">,</span> <span class="n">grab_file_url</span><span class="p">,</span> 
-                                     <span class="n">grab_zipped_url</span><span class="p">,</span> <span class="n">open_url_in_browser</span><span class="p">,</span> 
-                                     <span class="n">split_archive_ext</span><span class="p">,</span> <span class="n">unarchive_file</span><span class="p">,</span> 
-                                     <span class="n">untar_file</span><span class="p">,</span> <span class="n">unzip_file</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_git</span> <span class="kn">import</span> <span class="p">(</span><span class="n">PROJECT_REPO_DIRS</span><span class="p">,</span> <span class="n">PROJECT_REPO_URLS</span><span class="p">,</span> 
-                                <span class="n">checkout_repos</span><span class="p">,</span> <span class="n">ensure_repos</span><span class="p">,</span> <span class="n">get_repo_dirs</span><span class="p">,</span> 
-                                <span class="n">get_repo_dname</span><span class="p">,</span> <span class="n">gg_command</span><span class="p">,</span> <span class="n">gitcmd</span><span class="p">,</span> <span class="n">is_gitrepo</span><span class="p">,</span> 
-                                <span class="n">isdir</span><span class="p">,</span> <span class="n">pull_repos</span><span class="p">,</span> <span class="n">repo_list</span><span class="p">,</span> 
-                                <span class="n">set_project_repos</span><span class="p">,</span> <span class="n">set_userid</span><span class="p">,</span> 
-                                <span class="n">setup_develop_repos</span><span class="p">,</span> <span class="n">std_build_command</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_hash</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ALPHABET</span><span class="p">,</span> <span class="n">ALPHABET_16</span><span class="p">,</span> <span class="n">ALPHABET_27</span><span class="p">,</span> <span class="n">BIGBASE</span><span class="p">,</span> 
-                                 <span class="n">HASH_LEN</span><span class="p">,</span> <span class="n">augment_uuid</span><span class="p">,</span> 
-                                 <span class="n">convert_hexstr_to_bigbase</span><span class="p">,</span> <span class="n">deterministic_uuid</span><span class="p">,</span> 
-                                 <span class="n">get_file_hash</span><span class="p">,</span> <span class="n">get_file_uuid</span><span class="p">,</span> <span class="n">get_zero_uuid</span><span class="p">,</span> 
-                                 <span class="n">hashable_to_uuid</span><span class="p">,</span> <span class="n">hashstr</span><span class="p">,</span> <span class="n">hashstr_arr</span><span class="p">,</span> 
-                                 <span class="n">hashstr_md5</span><span class="p">,</span> <span class="n">hashstr_sha1</span><span class="p">,</span> <span class="n">image_uuid</span><span class="p">,</span> 
-                                 <span class="n">random_nonce</span><span class="p">,</span> <span class="n">random_uuid</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_inject</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ARGV_DEBUG_FLAGS</span><span class="p">,</span> <span class="n">DUMMYPROF_FUNC</span><span class="p">,</span> 
-                                   <span class="n">KERNPROF_FUNC</span><span class="p">,</span> <span class="n">PRINT_INJECT_ORDER</span><span class="p">,</span> 
-                                   <span class="n">PROF_FUNC_PAT_LIST</span><span class="p">,</span> <span class="n">PROF_MOD_PAT_LIST</span><span class="p">,</span> 
-                                   <span class="n">TIMERPROF_FUNC</span><span class="p">,</span> <span class="n">argv</span><span class="p">,</span> <span class="n">get_injected_modules</span><span class="p">,</span> 
-                                   <span class="n">inject</span><span class="p">,</span> <span class="n">inject_all</span><span class="p">,</span> 
-                                   <span class="n">inject_colored_exceptions</span><span class="p">,</span> 
-                                   <span class="n">inject_print_functions</span><span class="p">,</span> 
-                                   <span class="n">inject_profile_function</span><span class="p">,</span> 
-                                   <span class="n">inject_reload_function</span><span class="p">,</span> <span class="n">memprof</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_io</span> <span class="kn">import</span> <span class="p">(</span><span class="n">load_cPkl</span><span class="p">,</span> <span class="n">read_from</span><span class="p">,</span> <span class="n">save_cPkl</span><span class="p">,</span> <span class="n">try_decode</span><span class="p">,</span> 
-                               <span class="n">write_to</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_iter</span> <span class="kn">import</span> <span class="p">(</span><span class="n">cycle</span><span class="p">,</span> <span class="n">ensure_iterable</span><span class="p">,</span> <span class="n">ichunks</span><span class="p">,</span> <span class="n">ichunks_list</span><span class="p">,</span> 
-                                 <span class="n">ifilter_Nones</span><span class="p">,</span> <span class="n">ifilter_items</span><span class="p">,</span> 
-                                 <span class="n">ifilterfalse_items</span><span class="p">,</span> <span class="n">iflatten</span><span class="p">,</span> 
-                                 <span class="n">iflatten_scalars</span><span class="p">,</span> <span class="n">interleave</span><span class="p">,</span> <span class="n">interleave2</span><span class="p">,</span> 
-                                 <span class="n">interleave3</span><span class="p">,</span> <span class="n">isiterable</span><span class="p">,</span> <span class="n">islice</span><span class="p">,</span> <span class="n">itertwo</span><span class="p">,</span> 
-                                 <span class="n">izip_longest</span><span class="p">,</span> <span class="n">roundrobin</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_inspect</span> <span class="kn">import</span> <span class="p">(</span><span class="n">get_func_argspec</span><span class="p">,</span> <span class="n">get_funcdoc</span><span class="p">,</span> 
-                                    <span class="n">get_funcglobals</span><span class="p">,</span> <span class="n">get_imfunc</span><span class="p">,</span> 
-                                    <span class="n">iter_module_funcs</span><span class="p">,</span> <span class="n">list_class_funcnames</span><span class="p">,</span> 
-                                    <span class="n">set_funcdoc</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_logging</span> <span class="kn">import</span> <span class="p">(</span><span class="n">LOGGING_VERBOSE</span><span class="p">,</span> <span class="n">PRINT_ALL_CALLERS</span><span class="p">,</span> 
-                                    <span class="n">add_logging_handler</span><span class="p">,</span> <span class="n">get_log_fpath</span><span class="p">,</span> 
-                                    <span class="n">get_logging_dir</span><span class="p">,</span> <span class="n">logdir_cacheid</span><span class="p">,</span> 
-                                    <span class="n">start_logging</span><span class="p">,</span> <span class="n">stop_logging</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_list</span> <span class="kn">import</span> <span class="p">(</span><span class="n">accumulate</span><span class="p">,</span> <span class="n">alloc_lists</span><span class="p">,</span> <span class="n">alloc_nones</span><span class="p">,</span> 
-                                 <span class="n">assert_all_not_None</span><span class="p">,</span> <span class="n">assert_unflat_level</span><span class="p">,</span> 
-                                 <span class="n">debug_consec_list</span><span class="p">,</span> <span class="n">debug_duplicate_items</span><span class="p">,</span> 
-                                 <span class="n">depth_profile</span><span class="p">,</span> <span class="n">duplicates_exist</span><span class="p">,</span> 
-                                 <span class="n">ensure_list_size</span><span class="p">,</span> <span class="n">filter_Nones</span><span class="p">,</span> <span class="n">filter_items</span><span class="p">,</span> 
-                                 <span class="n">filterfalse_items</span><span class="p">,</span> <span class="n">find_duplicate_items</span><span class="p">,</span> 
-                                 <span class="n">find_nonconsec_indicies</span><span class="p">,</span> <span class="n">flag_unique_items</span><span class="p">,</span> 
-                                 <span class="n">flatten</span><span class="p">,</span> <span class="n">flattenize</span><span class="p">,</span> <span class="n">get_callable_name</span><span class="p">,</span> 
-                                 <span class="n">get_dirty_items</span><span class="p">,</span> <span class="n">get_list_column</span><span class="p">,</span> 
-                                 <span class="n">intersect_ordered</span><span class="p">,</span> <span class="n">invertable_flatten</span><span class="p">,</span> 
-                                 <span class="n">invertable_flatten2</span><span class="p">,</span> <span class="n">issorted</span><span class="p">,</span> <span class="n">isunique</span><span class="p">,</span> 
-                                 <span class="n">list_argsort</span><span class="p">,</span> <span class="n">list_deep_types</span><span class="p">,</span> <span class="n">list_depth</span><span class="p">,</span> 
-                                 <span class="n">list_getat</span><span class="p">,</span> <span class="n">list_replace</span><span class="p">,</span> <span class="n">list_take</span><span class="p">,</span> <span class="n">listfind</span><span class="p">,</span> 
-                                 <span class="n">partial_imap_1to1</span><span class="p">,</span> <span class="n">print_duplicate_map</span><span class="p">,</span> 
-                                 <span class="n">safe_listget</span><span class="p">,</span> <span class="n">safe_slice</span><span class="p">,</span> <span class="n">sample_zip</span><span class="p">,</span> 
-                                 <span class="n">scalar_input_map</span><span class="p">,</span> <span class="n">setdiff_ordered</span><span class="p">,</span> <span class="n">sortedby</span><span class="p">,</span> 
-                                 <span class="n">sortedby2</span><span class="p">,</span> <span class="n">tuplize</span><span class="p">,</span> <span class="n">unflatten</span><span class="p">,</span> <span class="n">unflatten2</span><span class="p">,</span> 
-                                 <span class="n">unique_keep_order2</span><span class="p">,</span> <span class="n">unique_ordered</span><span class="p">,</span> 
-                                 <span class="n">unique_unordered</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_num</span> <span class="kn">import</span> <span class="p">(</span><span class="n">commas</span><span class="p">,</span> <span class="n">fewest_digits_float_str</span><span class="p">,</span> 
-                                <span class="n">float_to_decimal</span><span class="p">,</span> <span class="n">format_</span><span class="p">,</span> <span class="n">int_comma_str</span><span class="p">,</span> 
-                                <span class="n">num2_sigfig</span><span class="p">,</span> <span class="n">num_fmt</span><span class="p">,</span> <span class="n">order_of_magnitude_ceil</span><span class="p">,</span> 
-                                <span class="n">sigfig_str</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_numpy</span> <span class="kn">import</span> <span class="p">(</span><span class="n">deterministic_sample</span><span class="p">,</span> <span class="n">deterministic_shuffle</span><span class="p">,</span> 
-                                  <span class="n">inbounds</span><span class="p">,</span> <span class="n">index_of</span><span class="p">,</span> <span class="n">intersect2d</span><span class="p">,</span> 
-                                  <span class="n">intersect2d_numpy</span><span class="p">,</span> <span class="n">list_index</span><span class="p">,</span> <span class="n">listlike_copy</span><span class="p">,</span> 
-                                  <span class="n">make_incrementer</span><span class="p">,</span> <span class="n">npfind</span><span class="p">,</span> <span class="n">random_indexes</span><span class="p">,</span> 
-                                  <span class="n">random_sample</span><span class="p">,</span> <span class="n">sample_domain</span><span class="p">,</span> <span class="n">spaced_indexes</span><span class="p">,</span> 
-                                  <span class="n">spaced_items</span><span class="p">,</span> <span class="n">tiled_range</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_path</span> <span class="kn">import</span> <span class="p">(</span><span class="n">IMG_EXTENSIONS</span><span class="p">,</span> <span class="n">append_suffixlist_to_namelist</span><span class="p">,</span> 
-                                 <span class="n">assert_exists</span><span class="p">,</span> <span class="n">assertpath</span><span class="p">,</span> <span class="n">basename_noext</span><span class="p">,</span> 
-                                 <span class="n">checkpath</span><span class="p">,</span> <span class="n">copy</span><span class="p">,</span> <span class="n">copy_all</span><span class="p">,</span> <span class="n">copy_list</span><span class="p">,</span> 
-                                 <span class="n">copy_task</span><span class="p">,</span> <span class="n">delete</span><span class="p">,</span> <span class="n">dirsplit</span><span class="p">,</span> <span class="n">ensuredir</span><span class="p">,</span> 
-                                 <span class="n">ensurepath</span><span class="p">,</span> <span class="n">existing_subpath</span><span class="p">,</span> <span class="n">ext</span><span class="p">,</span> 
-                                 <span class="n">extend_regex</span><span class="p">,</span> <span class="n">file_bytes</span><span class="p">,</span> <span class="n">file_megabytes</span><span class="p">,</span> 
-                                 <span class="n">find_lib_fpath</span><span class="p">,</span> <span class="n">fixwin32_shortname</span><span class="p">,</span> 
-                                 <span class="n">fnames_to_fpaths</span><span class="p">,</span> <span class="n">fpaths_to_fnames</span><span class="p">,</span> 
-                                 <span class="n">get_basename_noext_list</span><span class="p">,</span> <span class="n">get_basepath_list</span><span class="p">,</span> 
-                                 <span class="n">get_ext_list</span><span class="p">,</span> <span class="n">get_modname_from_modpath</span><span class="p">,</span> 
-                                 <span class="n">get_module_dir</span><span class="p">,</span> <span class="n">get_module_subdir_list</span><span class="p">,</span> 
-                                 <span class="n">get_relative_modpath</span><span class="p">,</span> <span class="n">glob</span><span class="p">,</span> <span class="n">grep</span><span class="p">,</span> <span class="n">grepfile</span><span class="p">,</span> 
-                                 <span class="n">iglob</span><span class="p">,</span> <span class="n">is_module_dir</span><span class="p">,</span> <span class="n">is_private_module</span><span class="p">,</span> 
-                                 <span class="n">isfile</span><span class="p">,</span> <span class="n">islink</span><span class="p">,</span> <span class="n">ismount</span><span class="p">,</span> <span class="n">list_images</span><span class="p">,</span> 
-                                 <span class="n">longest_existing_path</span><span class="p">,</span> <span class="n">ls</span><span class="p">,</span> <span class="n">ls_dirs</span><span class="p">,</span> 
-                                 <span class="n">ls_moduledirs</span><span class="p">,</span> <span class="n">ls_modulefiles</span><span class="p">,</span> <span class="n">matches_image</span><span class="p">,</span> 
-                                 <span class="n">matching_fnames</span><span class="p">,</span> <span class="n">move</span><span class="p">,</span> <span class="n">move_list</span><span class="p">,</span> <span class="n">newcd</span><span class="p">,</span> 
-                                 <span class="n">num_images_in_dir</span><span class="p">,</span> <span class="n">path_ndir_split</span><span class="p">,</span> 
-                                 <span class="n">platform_path</span><span class="p">,</span> <span class="n">progress_func</span><span class="p">,</span> <span class="n">remove_dirs</span><span class="p">,</span> 
-                                 <span class="n">remove_file</span><span class="p">,</span> <span class="n">remove_file_list</span><span class="p">,</span> 
-                                 <span class="n">remove_files_in_dir</span><span class="p">,</span> <span class="n">search_in_dirs</span><span class="p">,</span> <span class="n">symlink</span><span class="p">,</span> 
-                                 <span class="n">tail</span><span class="p">,</span> <span class="n">touch</span><span class="p">,</span> <span class="n">truepath</span><span class="p">,</span> <span class="n">truepath_relative</span><span class="p">,</span> 
-                                 <span class="n">unixjoin</span><span class="p">,</span> <span class="n">win_shortcut</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_print</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Indenter</span><span class="p">,</span> <span class="n">NO_INDENT</span><span class="p">,</span> <span class="n">NpPrintOpts</span><span class="p">,</span> 
-                                  <span class="n">filesize_str</span><span class="p">,</span> <span class="n">full_numpy_repr</span><span class="p">,</span> <span class="n">horiz_print</span><span class="p">,</span> 
-                                  <span class="n">printNOTQUIET</span><span class="p">,</span> <span class="n">printVERBOSE</span><span class="p">,</span> <span class="n">printWARN</span><span class="p">,</span> 
-                                  <span class="n">print_filesize</span><span class="p">,</span> <span class="n">print_locals</span><span class="p">,</span> <span class="n">printif</span><span class="p">,</span> 
-                                  <span class="n">printshape</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_progress</span> <span class="kn">import</span> <span class="p">(</span><span class="n">AGGROFLUSH</span><span class="p">,</span> <span class="n">PROGGRESS_BACKSPACE</span><span class="p">,</span> 
-                                     <span class="n">PROGRESS_FLUSH</span><span class="p">,</span> <span class="n">PROGRESS_WRITE</span><span class="p">,</span> 
-                                     <span class="n">ProgressIter</span><span class="p">,</span> <span class="n">VALID_PROGRESS_TYPES</span><span class="p">,</span> 
-                                     <span class="n">log_progress</span><span class="p">,</span> <span class="n">prog_func</span><span class="p">,</span> <span class="n">progiter</span><span class="p">,</span> 
-                                     <span class="n">progress_func</span><span class="p">,</span> <span class="n">progress_str</span><span class="p">,</span> 
-                                     <span class="n">simple_progres_func</span><span class="p">,</span> <span class="n">test_progress</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_parallel</span> <span class="kn">import</span> <span class="p">(</span><span class="n">BACKEND</span><span class="p">,</span> <span class="n">close_pool</span><span class="p">,</span> <span class="n">ensure_pool</span><span class="p">,</span> 
-                                     <span class="n">generate</span><span class="p">,</span> <span class="n">get_default_numprocs</span><span class="p">,</span> 
-                                     <span class="n">in_main_process</span><span class="p">,</span> <span class="n">init_pool</span><span class="p">,</span> <span class="n">init_worker</span><span class="p">,</span> 
-                                     <span class="n">new_pool</span><span class="p">,</span> <span class="n">process</span><span class="p">,</span> <span class="n">set_num_procs</span><span class="p">,</span> <span class="n">tic</span><span class="p">,</span> 
-                                     <span class="n">toc</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_resources</span> <span class="kn">import</span> <span class="p">(</span><span class="n">available_memory</span><span class="p">,</span> <span class="n">byte_str2</span><span class="p">,</span> 
-                                      <span class="n">current_memory_usage</span><span class="p">,</span> 
-                                      <span class="n">get_resource_limits</span><span class="p">,</span> <span class="n">memstats</span><span class="p">,</span> <span class="n">num_cpus</span><span class="p">,</span> 
-                                      <span class="n">peak_memory</span><span class="p">,</span> <span class="n">print_resource_usage</span><span class="p">,</span> 
-                                      <span class="n">time_in_systemmode</span><span class="p">,</span> <span class="n">time_in_usermode</span><span class="p">,</span> 
-                                      <span class="n">time_str2</span><span class="p">,</span> <span class="n">total_memory</span><span class="p">,</span> <span class="n">used_memory</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_str</span> <span class="kn">import</span> <span class="p">(</span><span class="n">GLOBAL_TYPE_ALIASES</span><span class="p">,</span> <span class="n">TAU</span><span class="p">,</span> <span class="n">align</span><span class="p">,</span> <span class="n">align_lines</span><span class="p">,</span> 
-                                <span class="n">bbox_str</span><span class="p">,</span> <span class="n">byte_str</span><span class="p">,</span> <span class="n">byte_str2</span><span class="p">,</span> <span class="n">clipstr</span><span class="p">,</span> 
-                                <span class="n">codeblock</span><span class="p">,</span> <span class="n">dict_aliased_repr</span><span class="p">,</span> 
-                                <span class="n">dict_itemstr_list</span><span class="p">,</span> <span class="n">dict_str</span><span class="p">,</span> 
-                                <span class="n">extend_global_aliases</span><span class="p">,</span> <span class="n">file_megabytes_str</span><span class="p">,</span> 
-                                <span class="n">func_str</span><span class="p">,</span> <span class="n">get_freespace_str</span><span class="p">,</span> <span class="n">get_indentation</span><span class="p">,</span> 
-                                <span class="n">get_unix_timedelta</span><span class="p">,</span> <span class="n">get_unix_timedelta_str</span><span class="p">,</span> 
-                                <span class="n">horiz_string</span><span class="p">,</span> <span class="n">hz_str</span><span class="p">,</span> <span class="n">indent_list</span><span class="p">,</span> <span class="n">indentjoin</span><span class="p">,</span> 
-                                <span class="n">joins</span><span class="p">,</span> <span class="n">list_aliased_repr</span><span class="p">,</span> <span class="n">list_str</span><span class="p">,</span> 
-                                <span class="n">listinfo_str</span><span class="p">,</span> <span class="n">long_fname_format</span><span class="p">,</span> <span class="n">msgblock</span><span class="p">,</span> 
-                                <span class="n">newlined_list</span><span class="p">,</span> <span class="n">order_of_magnitude_str</span><span class="p">,</span> <span class="n">packstr</span><span class="p">,</span> 
-                                <span class="n">padded_str_range</span><span class="p">,</span> <span class="n">remove_chars</span><span class="p">,</span> <span class="n">remove_vowels</span><span class="p">,</span> 
-                                <span class="n">replace_nonquoted_text</span><span class="p">,</span> <span class="n">seconds_str</span><span class="p">,</span> 
-                                <span class="n">singular_string</span><span class="p">,</span> <span class="n">str2</span><span class="p">,</span> <span class="n">str_between</span><span class="p">,</span> <span class="n">theta_str</span><span class="p">,</span> 
-                                <span class="n">tupstr</span><span class="p">,</span> <span class="n">unindent</span><span class="p">,</span> <span class="n">var_aliased_repr</span><span class="p">,</span> <span class="n">verts_str</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_sysreq</span> <span class="kn">import</span> <span class="p">(</span><span class="n">DEBUG</span><span class="p">,</span> <span class="n">ensure_in_pythonpath</span><span class="p">,</span> <span class="n">locate_path</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_setup</span> <span class="kn">import</span> <span class="p">(</span><span class="n">NOOP</span><span class="p">,</span> <span class="n">SETUP_PATTERNS</span><span class="p">,</span> <span class="n">assert_in_setup_repo</span><span class="p">,</span> 
-                                  <span class="n">autogen_sphinx_apidoc</span><span class="p">,</span> <span class="n">build_pyo</span><span class="p">,</span> <span class="n">clean</span><span class="p">,</span> 
-                                  <span class="n">find_ext_modules</span><span class="p">,</span> <span class="n">find_packages</span><span class="p">,</span> 
-                                  <span class="n">get_cmdclass</span><span class="p">,</span> <span class="n">get_numpy_include_dir</span><span class="p">,</span> 
-                                  <span class="n">parse_author</span><span class="p">,</span> <span class="n">parse_package_for_version</span><span class="p">,</span> 
-                                  <span class="n">parse_readme</span><span class="p">,</span> <span class="n">presetup</span><span class="p">,</span> <span class="n">presetup_commands</span><span class="p">,</span> 
-                                  <span class="n">read_license</span><span class="p">,</span> <span class="n">setup_chmod</span><span class="p">,</span> <span class="n">setuptools_setup</span><span class="p">,</span> 
-                                  <span class="n">translate_cyth</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_set</span> <span class="kn">import</span> <span class="p">(</span><span class="n">OrderedSet</span><span class="p">,</span> <span class="n">proxy</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_regex</span> <span class="kn">import</span> <span class="p">(</span><span class="n">REGEX_VARNAME</span><span class="p">,</span> <span class="n">RE_FLAGS</span><span class="p">,</span> <span class="n">RE_KWARGS</span><span class="p">,</span> 
-                                  <span class="n">get_match_text</span><span class="p">,</span> <span class="n">modify_quoted_strs</span><span class="p">,</span> 
-                                  <span class="n">named_field</span><span class="p">,</span> <span class="n">named_field_regex</span><span class="p">,</span> <span class="n">padded_parse</span><span class="p">,</span> 
-                                  <span class="n">parse_docblock</span><span class="p">,</span> <span class="n">regex_get_match</span><span class="p">,</span> 
-                                  <span class="n">regex_matches</span><span class="p">,</span> <span class="n">regex_parse</span><span class="p">,</span> <span class="n">regex_replace</span><span class="p">,</span> 
-                                  <span class="n">regex_replace_lines</span><span class="p">,</span> <span class="n">regex_search</span><span class="p">,</span> 
-                                  <span class="n">regex_split</span><span class="p">,</span> <span class="n">repl_field</span><span class="p">,</span> <span class="n">sed</span><span class="p">,</span> <span class="n">sedfile</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_time</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Timer</span><span class="p">,</span> <span class="n">exiftime_to_unixtime</span><span class="p">,</span> <span class="n">get_day</span><span class="p">,</span> 
-                                 <span class="n">get_month</span><span class="p">,</span> <span class="n">get_timedelta_str</span><span class="p">,</span> <span class="n">get_timestamp</span><span class="p">,</span> 
-                                 <span class="n">get_timestats_str</span><span class="p">,</span> <span class="n">get_year</span><span class="p">,</span> <span class="n">tic</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> 
-                                 <span class="n">toc</span><span class="p">,</span> <span class="n">unixtime_to_datetime</span><span class="p">,</span> 
-                                 <span class="n">unixtime_to_timedelta</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_type</span> <span class="kn">import</span> <span class="p">(</span><span class="n">BooleanType</span><span class="p">,</span> <span class="n">FloatType</span><span class="p">,</span> <span class="n">IntType</span><span class="p">,</span> <span class="n">LongType</span><span class="p">,</span> 
-                                 <span class="n">NP_NDARRAY</span><span class="p">,</span> <span class="n">VALID_BOOL_TYPES</span><span class="p">,</span> 
-                                 <span class="n">VALID_FLOAT_TYPES</span><span class="p">,</span> <span class="n">VALID_INT_TYPES</span><span class="p">,</span> 
-                                 <span class="n">assert_int</span><span class="p">,</span> <span class="n">bool_from_str</span><span class="p">,</span> <span class="n">is_bool</span><span class="p">,</span> <span class="n">is_dict</span><span class="p">,</span> 
-                                 <span class="n">is_func_or_method</span><span class="p">,</span> 
-                                 <span class="n">is_func_or_method_or_partial</span><span class="p">,</span> <span class="n">is_funclike</span><span class="p">,</span> 
-                                 <span class="n">is_tuple</span><span class="p">,</span> <span class="n">is_type</span><span class="p">,</span> <span class="n">is_valid_floattype</span><span class="p">,</span> 
-                                 <span class="n">smart_cast</span><span class="p">,</span> <span class="n">type_str</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.util_tests</span> <span class="kn">import</span> <span class="p">(</span><span class="n">HAPPY_FACE</span><span class="p">,</span> <span class="n">SAD_FACE</span><span class="p">,</span> <span class="n">VERBOSE_TEST</span><span class="p">,</span> 
-                                  <span class="n">bubbletext</span><span class="p">,</span> <span class="n">def_test</span><span class="p">,</span> <span class="n">doctest_funcs</span><span class="p">,</span> 
-                                  <span class="n">doctest_modules</span><span class="p">,</span> <span class="n">find_doctestable_modnames</span><span class="p">,</span> 
-                                  <span class="n">find_untested_modpaths</span><span class="p">,</span> <span class="n">get_doctest_examples</span><span class="p">,</span> 
-                                  <span class="n">get_doctest_testtup_list</span><span class="p">,</span> 
-                                  <span class="n">get_module_testlines</span><span class="p">,</span> 
-                                  <span class="n">make_run_tests_script_text</span><span class="p">,</span> 
-                                  <span class="n">parse_docblocks_from_docstr</span><span class="p">,</span> 
-                                  <span class="n">parse_doctest_from_docstr</span><span class="p">,</span> <span class="n">printTEST</span><span class="p">,</span> 
-                                  <span class="n">run_test</span><span class="p">,</span> <span class="n">tryimport</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.DynamicStruct</span> <span class="kn">import</span> <span class="p">(</span><span class="n">AbstractPrintable</span><span class="p">,</span> <span class="n">DynStruct</span><span class="p">,)</span> 
-    <span class="kn">from</span> <span class="nn">utool.Preferences</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Pref</span><span class="p">,</span> <span class="n">PrefChoice</span><span class="p">,</span> <span class="n">PrefInternal</span><span class="p">,</span> <span class="n">PrefNode</span><span class="p">,</span> 
-                                   <span class="n">PrefTree</span><span class="p">,)</span> 
-    <span class="c"># STARTBLOCK</span>
-    
+
+    <span class="kn">from</span> <span class="nn">utool.util_alg</span> <span class="kn">import</span> <span class="p">(</span><span class="n">HAS_NUMPY</span><span class="p">,</span> <span class="n">PHI</span><span class="p">,</span> <span class="n">PHI_A</span><span class="p">,</span> <span class="n">PHI_B</span><span class="p">,</span> <span class="n">almost_eq</span><span class="p">,</span>
+                                <span class="n">build_reverse_mapping</span><span class="p">,</span> <span class="n">cartesian</span><span class="p">,</span> <span class="n">choose</span><span class="p">,</span>
+                                <span class="n">defaultdict</span><span class="p">,</span> <span class="n">estimate_pdf</span><span class="p">,</span> <span class="n">euclidean_dist</span><span class="p">,</span>
+                                <span class="n">find_std_inliers</span><span class="p">,</span> <span class="n">flatten_membership_mapping</span><span class="p">,</span>
+                                <span class="n">get_nth_prime</span><span class="p">,</span> <span class="n">get_phi</span><span class="p">,</span> <span class="n">get_phi_ratio1</span><span class="p">,</span>
+                                <span class="n">group_items</span><span class="p">,</span> <span class="n">iceil</span><span class="p">,</span> <span class="n">iround</span><span class="p">,</span> <span class="n">is_prime</span><span class="p">,</span>
+                                <span class="n">item_hist</span><span class="p">,</span> <span class="n">negative_minclamp_inplace</span><span class="p">,</span>
+                                <span class="n">norm_zero_one</span><span class="p">,</span> <span class="n">normalize</span><span class="p">,</span> <span class="n">search_utool</span><span class="p">,</span>
+                                <span class="n">unique_row_indexes</span><span class="p">,</span> <span class="n">unpack_items_sorted</span><span class="p">,</span>
+                                <span class="n">unpack_items_sorted_by_lenvalue</span><span class="p">,</span>
+                                <span class="n">unpack_items_sorted_by_value</span><span class="p">,</span>
+                                <span class="n">void_rowview_numpy</span><span class="p">,</span> <span class="n">xywh_to_tlbr</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_aliases</span> <span class="kn">import</span> <span class="p">(</span><span class="n">OrderedDict</span><span class="p">,</span> <span class="n">ddict</span><span class="p">,</span> <span class="n">iprod</span><span class="p">,</span> <span class="n">odict</span><span class="p">,</span> <span class="n">product</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_arg</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ArgumentParser2</span><span class="p">,</span> <span class="n">DEBUG2</span><span class="p">,</span> <span class="n">Indenter</span><span class="p">,</span> <span class="n">NOT_QUIET</span><span class="p">,</span>
+                                <span class="n">NO_ASSERTS</span><span class="p">,</span> <span class="n">QUIET</span><span class="p">,</span> <span class="n">REPORT</span><span class="p">,</span> <span class="n">SAFE</span><span class="p">,</span> <span class="n">SILENT</span><span class="p">,</span>
+                                <span class="n">STRICT</span><span class="p">,</span> <span class="n">SUPER_STRICT</span><span class="p">,</span> <span class="n">TRACE</span><span class="p">,</span> <span class="n">USE_ASSERT</span><span class="p">,</span>
+                                <span class="n">VERBOSE</span><span class="p">,</span> <span class="n">VERYVERBOSE</span><span class="p">,</span> <span class="n">argv_flag_dec</span><span class="p">,</span>
+                                <span class="n">argv_flag_dec_true</span><span class="p">,</span> <span class="n">autogen_argparse2</span><span class="p">,</span>
+                                <span class="n">fuzzy_int</span><span class="p">,</span> <span class="n">get_arg</span><span class="p">,</span> <span class="n">get_argflag</span><span class="p">,</span> <span class="n">get_argval</span><span class="p">,</span>
+                                <span class="n">get_flag</span><span class="p">,</span> <span class="n">get_fpath_args</span><span class="p">,</span> <span class="n">get_funcname</span><span class="p">,</span> <span class="n">inject</span><span class="p">,</span>
+                                <span class="n">make_argparse2</span><span class="p">,</span> <span class="n">parse_arglist_hack</span><span class="p">,</span>
+                                <span class="n">set_funcname</span><span class="p">,</span> <span class="n">switch_sanataize</span><span class="p">,</span> <span class="n">try_cast</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_cache</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Cacher</span><span class="p">,</span> <span class="n">GlobalShelfContext</span><span class="p">,</span> <span class="n">cached_func</span><span class="p">,</span>
+                                  <span class="n">chain</span><span class="p">,</span> <span class="n">default_appname</span><span class="p">,</span> <span class="n">delete_global_cache</span><span class="p">,</span>
+                                  <span class="n">get_argnames</span><span class="p">,</span> <span class="n">get_cfgstr_from_args</span><span class="p">,</span>
+                                  <span class="n">get_default_appname</span><span class="p">,</span> <span class="n">get_global_cache_dir</span><span class="p">,</span>
+                                  <span class="n">get_global_shelf_fpath</span><span class="p">,</span> <span class="n">get_kwdefaults</span><span class="p">,</span>
+                                  <span class="n">global_cache_dname</span><span class="p">,</span> <span class="n">global_cache_dump</span><span class="p">,</span>
+                                  <span class="n">global_cache_fname</span><span class="p">,</span> <span class="n">global_cache_read</span><span class="p">,</span>
+                                  <span class="n">global_cache_write</span><span class="p">,</span> <span class="n">load_cache</span><span class="p">,</span> <span class="n">save_cache</span><span class="p">,</span>
+                                  <span class="n">text_dict_write</span><span class="p">,</span> <span class="n">view_global_cache_dir</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_cplat</span> <span class="kn">import</span> <span class="p">(</span><span class="n">COMPUTER_NAME</span><span class="p">,</span> <span class="n">DARWIN</span><span class="p">,</span> <span class="n">LIB_DICT</span><span class="p">,</span>
+                                  <span class="n">LIB_EXT_LIST</span><span class="p">,</span> <span class="n">LINUX</span><span class="p">,</span> <span class="n">OS_TYPE</span><span class="p">,</span> <span class="n">PYLIB_DICT</span><span class="p">,</span>
+                                  <span class="n">WIN32</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">editfile</span><span class="p">,</span>
+                                  <span class="n">ensure_app_resource_dir</span><span class="p">,</span>
+                                  <span class="n">get_app_resource_dir</span><span class="p">,</span> <span class="n">get_computer_name</span><span class="p">,</span>
+                                  <span class="n">get_dir_diskspaces</span><span class="p">,</span> <span class="n">get_disk_space</span><span class="p">,</span>
+                                  <span class="n">get_dynamic_lib_globstrs</span><span class="p">,</span>
+                                  <span class="n">get_dynlib_dependencies</span><span class="p">,</span> <span class="n">get_flops</span><span class="p">,</span>
+                                  <span class="n">get_free_diskbytes</span><span class="p">,</span> <span class="n">get_install_dirs</span><span class="p">,</span>
+                                  <span class="n">get_lib_ext</span><span class="p">,</span> <span class="n">get_pylib_ext</span><span class="p">,</span>
+                                  <span class="n">get_python_dynlib</span><span class="p">,</span> <span class="n">get_resource_dir</span><span class="p">,</span>
+                                  <span class="n">get_user_name</span><span class="p">,</span> <span class="n">getroot</span><span class="p">,</span> <span class="n">is64bit_python</span><span class="p">,</span>
+                                  <span class="n">ls_libs</span><span class="p">,</span> <span class="n">print_dir_diskspace</span><span class="p">,</span>
+                                  <span class="n">python_executable</span><span class="p">,</span> <span class="n">run_realtime_process</span><span class="p">,</span>
+                                  <span class="n">set_process_title</span><span class="p">,</span> <span class="n">shell</span><span class="p">,</span> <span class="n">startfile</span><span class="p">,</span>
+                                  <span class="n">truepath</span><span class="p">,</span> <span class="n">unixpath</span><span class="p">,</span> <span class="n">vd</span><span class="p">,</span> <span class="n">view_directory</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_class</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ReloadingMetaclass</span><span class="p">,</span> <span class="n">VERBOSE_CLASS</span><span class="p">,</span>
+                                  <span class="n">decorate_class_method</span><span class="p">,</span> <span class="n">decorate_postinject</span><span class="p">,</span>
+                                  <span class="n">get_comparison_methods</span><span class="p">,</span>
+                                  <span class="n">inject_func_as_method</span><span class="p">,</span> <span class="n">inject_instance</span><span class="p">,</span>
+                                  <span class="n">makeForwardingMetaclass</span><span class="p">,</span>
+                                  <span class="n">make_class_method_decorator</span><span class="p">,</span>
+                                  <span class="n">make_class_postinject_decorator</span><span class="p">,</span> <span class="n">oset</span><span class="p">,</span>
+                                  <span class="n">reload_class_methods</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_csv</span> <span class="kn">import</span> <span class="p">(</span><span class="n">is_float</span><span class="p">,</span> <span class="n">is_int</span><span class="p">,</span> <span class="n">is_list</span><span class="p">,</span> <span class="n">is_str</span><span class="p">,</span>
+                                <span class="n">make_csv_table</span><span class="p">,</span> <span class="n">numpy_to_csv</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_config</span> <span class="kn">import</span> <span class="p">(</span><span class="n">get_default_global_config</span><span class="p">,</span>
+                                   <span class="n">get_default_repo_config</span><span class="p">,</span> <span class="n">read_repo_config</span><span class="p">,</span>
+                                   <span class="n">write_default_repo_config</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_dbg</span> <span class="kn">import</span> <span class="p">(</span><span class="n">EmbedOnException</span><span class="p">,</span> <span class="n">IPYTHON_EMBED_STR</span><span class="p">,</span> <span class="n">RAISE_ALL</span><span class="p">,</span>
+                                <span class="n">all_rrr</span><span class="p">,</span> <span class="n">debug_exception</span><span class="p">,</span> <span class="n">debug_hstack</span><span class="p">,</span>
+                                <span class="n">debug_list</span><span class="p">,</span> <span class="n">debug_npstack</span><span class="p">,</span> <span class="n">debug_vstack</span><span class="p">,</span>
+                                <span class="n">dict_dbgstr</span><span class="p">,</span> <span class="n">embed</span><span class="p">,</span> <span class="n">execstr_attr_list</span><span class="p">,</span>
+                                <span class="n">execstr_dict</span><span class="p">,</span> <span class="n">execstr_embed</span><span class="p">,</span> <span class="n">execstr_func</span><span class="p">,</span>
+                                <span class="n">execstr_parent_locals</span><span class="p">,</span> <span class="n">execstr_src</span><span class="p">,</span>
+                                <span class="n">explore_module</span><span class="p">,</span> <span class="n">explore_stack</span><span class="p">,</span> <span class="n">fmtlocals</span><span class="p">,</span>
+                                <span class="n">formatex</span><span class="p">,</span> <span class="n">get_caller_locals</span><span class="p">,</span> <span class="n">get_caller_name</span><span class="p">,</span>
+                                <span class="n">get_caller_prefix</span><span class="p">,</span> <span class="n">get_caller_stack_frame</span><span class="p">,</span>
+                                <span class="n">get_localvar_from_stack</span><span class="p">,</span> <span class="n">get_parent_frame</span><span class="p">,</span>
+                                <span class="n">get_parent_globals</span><span class="p">,</span> <span class="n">get_parent_locals</span><span class="p">,</span>
+                                <span class="n">get_reprs</span><span class="p">,</span> <span class="n">get_stack_frame</span><span class="p">,</span> <span class="n">get_type</span><span class="p">,</span>
+                                <span class="n">get_var_from_stack</span><span class="p">,</span> <span class="n">get_varname_from_locals</span><span class="p">,</span>
+                                <span class="n">get_varname_from_stack</span><span class="p">,</span> <span class="n">get_varstr</span><span class="p">,</span>
+                                <span class="n">get_varval_from_locals</span><span class="p">,</span> <span class="n">haveIPython</span><span class="p">,</span>
+                                <span class="n">horiz_string</span><span class="p">,</span> <span class="n">import_testdata</span><span class="p">,</span> <span class="n">inIPython</span><span class="p">,</span>
+                                <span class="n">indent</span><span class="p">,</span> <span class="n">ipython_execstr</span><span class="p">,</span> <span class="n">ipython_execstr2</span><span class="p">,</span>
+                                <span class="n">is_listlike</span><span class="p">,</span> <span class="n">is_valid_varname</span><span class="p">,</span> <span class="n">keys_dbgstr</span><span class="p">,</span>
+                                <span class="n">len_dbgstr</span><span class="p">,</span> <span class="n">list_allsame</span><span class="p">,</span> <span class="n">list_dbgstr</span><span class="p">,</span>
+                                <span class="n">load_testdata</span><span class="p">,</span> <span class="n">module_functions</span><span class="p">,</span>
+                                <span class="n">my_numpy_printops</span><span class="p">,</span> <span class="n">pack_into</span><span class="p">,</span>
+                                <span class="n">parse_locals_keylist</span><span class="p">,</span> <span class="n">print_frame</span><span class="p">,</span> <span class="n">print_keys</span><span class="p">,</span>
+                                <span class="n">print_traceback</span><span class="p">,</span> <span class="n">print_varlen</span><span class="p">,</span> <span class="n">printex</span><span class="p">,</span>
+                                <span class="n">printvar</span><span class="p">,</span> <span class="n">printvar2</span><span class="p">,</span> <span class="n">public_attributes</span><span class="p">,</span> <span class="n">qflag</span><span class="p">,</span>
+                                <span class="n">quasiquote</span><span class="p">,</span> <span class="n">quit</span><span class="p">,</span> <span class="n">quitflag</span><span class="p">,</span> <span class="n">save_testdata</span><span class="p">,</span>
+                                <span class="n">search_stack_for_localvar</span><span class="p">,</span>
+                                <span class="n">search_stack_for_var</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">super_print</span><span class="p">,</span>
+                                <span class="n">truncate_str</span><span class="p">,</span> <span class="n">varname_regex</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_dev</span> <span class="kn">import</span> <span class="p">(</span><span class="n">DEPRICATED</span><span class="p">,</span> <span class="n">INDEXABLE_TYPES</span><span class="p">,</span> <span class="n">InteractiveIter</span><span class="p">,</span>
+                                <span class="n">MemoryTracker</span><span class="p">,</span> <span class="n">auto_docstr</span><span class="p">,</span> <span class="n">autofix_codeblock</span><span class="p">,</span>
+                                <span class="n">compile_cython</span><span class="p">,</span> <span class="n">disable_garbage_collection</span><span class="p">,</span>
+                                <span class="n">enable_garbage_collection</span><span class="p">,</span> <span class="n">find_exe</span><span class="p">,</span>
+                                <span class="n">garbage_collect</span><span class="p">,</span> <span class="n">get_cython_exe</span><span class="p">,</span>
+                                <span class="n">get_object_base</span><span class="p">,</span> <span class="n">get_object_size</span><span class="p">,</span>
+                                <span class="n">get_object_size_str</span><span class="p">,</span> <span class="n">get_stats</span><span class="p">,</span> <span class="n">get_stats_str</span><span class="p">,</span>
+                                <span class="n">infer_arg_types_and_descriptions</span><span class="p">,</span> <span class="n">info</span><span class="p">,</span>
+                                <span class="n">init_catch_ctrl_c</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span> <span class="n">input_timeout</span><span class="p">,</span>
+                                <span class="n">is_developer</span><span class="p">,</span> <span class="n">listinfo</span><span class="p">,</span> <span class="n">make_call_graph</span><span class="p">,</span>
+                                <span class="n">make_default_docstr</span><span class="p">,</span> <span class="n">make_object_graph</span><span class="p">,</span>
+                                <span class="n">memory_dump</span><span class="p">,</span> <span class="n">myprint</span><span class="p">,</span> <span class="n">npArrInfo</span><span class="p">,</span> <span class="n">npinfo</span><span class="p">,</span>
+                                <span class="n">numpy_list_num_bits</span><span class="p">,</span> <span class="n">parse_return_type</span><span class="p">,</span>
+                                <span class="n">print_auto_docstr</span><span class="p">,</span> <span class="n">print_object_size</span><span class="p">,</span>
+                                <span class="n">print_object_size_tree</span><span class="p">,</span> <span class="n">print_stats</span><span class="p">,</span>
+                                <span class="n">printableType</span><span class="p">,</span> <span class="n">printableVal</span><span class="p">,</span> <span class="n">report_memsize</span><span class="p">,</span>
+                                <span class="n">reset_catch_ctrl_c</span><span class="p">,</span> <span class="n">strip_line_comments</span><span class="p">,</span>
+                                <span class="n">testit</span><span class="p">,</span> <span class="n">timeit_compare</span><span class="p">,</span>
+                                <span class="n">tuples_to_unique_scalars</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_decor</span> <span class="kn">import</span> <span class="p">(</span><span class="n">IGNORE_TRACEBACK</span><span class="p">,</span> <span class="n">NOINDENT_DECOR</span><span class="p">,</span> <span class="n">PROFILING</span><span class="p">,</span>
+                                  <span class="n">SIG_PRESERVE</span><span class="p">,</span> <span class="n">UNIQUE_NUMPY</span><span class="p">,</span> <span class="n">accepts_numpy</span><span class="p">,</span>
+                                  <span class="n">accepts_scalar_input</span><span class="p">,</span> <span class="n">accepts_scalar_input2</span><span class="p">,</span>
+                                  <span class="n">accepts_scalar_input_vector_output</span><span class="p">,</span>
+                                  <span class="n">getter_1to1</span><span class="p">,</span> <span class="n">getter_1toM</span><span class="p">,</span> <span class="n">ignores_exc_tb</span><span class="p">,</span>
+                                  <span class="n">indent_func</span><span class="p">,</span> <span class="n">interested</span><span class="p">,</span> <span class="n">lazyfunc</span><span class="p">,</span> <span class="n">memorize</span><span class="p">,</span>
+                                  <span class="n">on_exception_report_input</span><span class="p">,</span> <span class="n">preserve_sig</span><span class="p">,</span>
+                                  <span class="n">show_return_value</span><span class="p">,</span> <span class="n">time_func</span><span class="p">,</span> <span class="n">update_wrapper</span><span class="p">,</span>
+                                  <span class="n">wraps</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_distances</span> <span class="kn">import</span> <span class="p">(</span><span class="n">L1</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span> <span class="n">L2_sqrd</span><span class="p">,</span> <span class="n">compute_distances</span><span class="p">,</span> <span class="n">emd</span><span class="p">,</span>
+                                      <span class="n">hist_isect</span><span class="p">,</span> <span class="n">nearest_point</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_dict</span> <span class="kn">import</span> <span class="p">(</span><span class="n">all_dict_combinations</span><span class="p">,</span>
+                                 <span class="n">all_dict_combinations_lbls</span><span class="p">,</span>
+                                 <span class="n">build_conflict_dict</span><span class="p">,</span> <span class="n">dict_take_gen</span><span class="p">,</span>
+                                 <span class="n">dict_take_list</span><span class="p">,</span> <span class="n">dict_union</span><span class="p">,</span> <span class="n">dict_union2</span><span class="p">,</span>
+                                 <span class="n">dict_update_newkeys</span><span class="p">,</span> <span class="n">dict_where_len0</span><span class="p">,</span>
+                                 <span class="n">dictinfo</span><span class="p">,</span> <span class="n">invert_dict</span><span class="p">,</span> <span class="n">is_dicteq</span><span class="p">,</span>
+                                 <span class="n">items_sorted_by_value</span><span class="p">,</span> <span class="n">keys_sorted_by_value</span><span class="p">,</span>
+                                 <span class="n">updateif_haskey</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_func</span> <span class="kn">import</span> <span class="p">(</span><span class="n">general_get</span><span class="p">,</span> <span class="n">general_set</span><span class="p">,</span> <span class="n">identity</span><span class="p">,</span>
+                                 <span class="n">uinput_1to1</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_grabdata</span> <span class="kn">import</span> <span class="p">(</span><span class="n">BadZipfile</span><span class="p">,</span> <span class="n">download_url</span><span class="p">,</span>
+                                     <span class="n">fix_dropbox_link</span><span class="p">,</span> <span class="n">grab_file_url</span><span class="p">,</span>
+                                     <span class="n">grab_zipped_url</span><span class="p">,</span> <span class="n">open_url_in_browser</span><span class="p">,</span>
+                                     <span class="n">split_archive_ext</span><span class="p">,</span> <span class="n">unarchive_file</span><span class="p">,</span>
+                                     <span class="n">untar_file</span><span class="p">,</span> <span class="n">unzip_file</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_git</span> <span class="kn">import</span> <span class="p">(</span><span class="n">PROJECT_REPO_DIRS</span><span class="p">,</span> <span class="n">PROJECT_REPO_URLS</span><span class="p">,</span>
+                                <span class="n">checkout_repos</span><span class="p">,</span> <span class="n">ensure_repos</span><span class="p">,</span> <span class="n">get_repo_dirs</span><span class="p">,</span>
+                                <span class="n">get_repo_dname</span><span class="p">,</span> <span class="n">gg_command</span><span class="p">,</span> <span class="n">gitcmd</span><span class="p">,</span> <span class="n">is_gitrepo</span><span class="p">,</span>
+                                <span class="n">isdir</span><span class="p">,</span> <span class="n">pull_repos</span><span class="p">,</span> <span class="n">repo_list</span><span class="p">,</span>
+                                <span class="n">set_project_repos</span><span class="p">,</span> <span class="n">set_userid</span><span class="p">,</span>
+                                <span class="n">setup_develop_repos</span><span class="p">,</span> <span class="n">std_build_command</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_hash</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ALPHABET</span><span class="p">,</span> <span class="n">ALPHABET_16</span><span class="p">,</span> <span class="n">ALPHABET_27</span><span class="p">,</span> <span class="n">BIGBASE</span><span class="p">,</span>
+                                 <span class="n">HASH_LEN</span><span class="p">,</span> <span class="n">augment_uuid</span><span class="p">,</span>
+                                 <span class="n">convert_hexstr_to_bigbase</span><span class="p">,</span> <span class="n">deterministic_uuid</span><span class="p">,</span>
+                                 <span class="n">get_file_hash</span><span class="p">,</span> <span class="n">get_file_uuid</span><span class="p">,</span> <span class="n">get_zero_uuid</span><span class="p">,</span>
+                                 <span class="n">hashable_to_uuid</span><span class="p">,</span> <span class="n">hashstr</span><span class="p">,</span> <span class="n">hashstr_arr</span><span class="p">,</span>
+                                 <span class="n">hashstr_md5</span><span class="p">,</span> <span class="n">hashstr_sha1</span><span class="p">,</span> <span class="n">image_uuid</span><span class="p">,</span>
+                                 <span class="n">random_nonce</span><span class="p">,</span> <span class="n">random_uuid</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_inject</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ARGV_DEBUG_FLAGS</span><span class="p">,</span> <span class="n">DUMMYPROF_FUNC</span><span class="p">,</span>
+                                   <span class="n">KERNPROF_FUNC</span><span class="p">,</span> <span class="n">PRINT_INJECT_ORDER</span><span class="p">,</span>
+                                   <span class="n">PROF_FUNC_PAT_LIST</span><span class="p">,</span> <span class="n">PROF_MOD_PAT_LIST</span><span class="p">,</span>
+                                   <span class="n">TIMERPROF_FUNC</span><span class="p">,</span> <span class="n">argv</span><span class="p">,</span> <span class="n">get_injected_modules</span><span class="p">,</span>
+                                   <span class="n">inject</span><span class="p">,</span> <span class="n">inject_all</span><span class="p">,</span>
+                                   <span class="n">inject_colored_exceptions</span><span class="p">,</span>
+                                   <span class="n">inject_print_functions</span><span class="p">,</span>
+                                   <span class="n">inject_profile_function</span><span class="p">,</span>
+                                   <span class="n">inject_reload_function</span><span class="p">,</span> <span class="n">memprof</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_io</span> <span class="kn">import</span> <span class="p">(</span><span class="n">load_cPkl</span><span class="p">,</span> <span class="n">read_from</span><span class="p">,</span> <span class="n">save_cPkl</span><span class="p">,</span> <span class="n">try_decode</span><span class="p">,</span>
+                               <span class="n">write_to</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_iter</span> <span class="kn">import</span> <span class="p">(</span><span class="n">cycle</span><span class="p">,</span> <span class="n">ensure_iterable</span><span class="p">,</span> <span class="n">ichunks</span><span class="p">,</span> <span class="n">ichunks_list</span><span class="p">,</span>
+                                 <span class="n">ifilter_Nones</span><span class="p">,</span> <span class="n">ifilter_items</span><span class="p">,</span>
+                                 <span class="n">ifilterfalse_items</span><span class="p">,</span> <span class="n">iflatten</span><span class="p">,</span>
+                                 <span class="n">iflatten_scalars</span><span class="p">,</span> <span class="n">interleave</span><span class="p">,</span> <span class="n">interleave2</span><span class="p">,</span>
+                                 <span class="n">interleave3</span><span class="p">,</span> <span class="n">isiterable</span><span class="p">,</span> <span class="n">islice</span><span class="p">,</span> <span class="n">itertwo</span><span class="p">,</span>
+                                 <span class="n">izip_longest</span><span class="p">,</span> <span class="n">roundrobin</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_inspect</span> <span class="kn">import</span> <span class="p">(</span><span class="n">get_func_argspec</span><span class="p">,</span> <span class="n">get_funcdoc</span><span class="p">,</span>
+                                    <span class="n">get_funcglobals</span><span class="p">,</span> <span class="n">get_imfunc</span><span class="p">,</span>
+                                    <span class="n">iter_module_funcs</span><span class="p">,</span> <span class="n">list_class_funcnames</span><span class="p">,</span>
+                                    <span class="n">set_funcdoc</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_logging</span> <span class="kn">import</span> <span class="p">(</span><span class="n">LOGGING_VERBOSE</span><span class="p">,</span> <span class="n">PRINT_ALL_CALLERS</span><span class="p">,</span>
+                                    <span class="n">add_logging_handler</span><span class="p">,</span> <span class="n">get_log_fpath</span><span class="p">,</span>
+                                    <span class="n">get_logging_dir</span><span class="p">,</span> <span class="n">logdir_cacheid</span><span class="p">,</span>
+                                    <span class="n">start_logging</span><span class="p">,</span> <span class="n">stop_logging</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_list</span> <span class="kn">import</span> <span class="p">(</span><span class="n">accumulate</span><span class="p">,</span> <span class="n">alloc_lists</span><span class="p">,</span> <span class="n">alloc_nones</span><span class="p">,</span>
+                                 <span class="n">assert_all_not_None</span><span class="p">,</span> <span class="n">assert_unflat_level</span><span class="p">,</span>
+                                 <span class="n">debug_consec_list</span><span class="p">,</span> <span class="n">debug_duplicate_items</span><span class="p">,</span>
+                                 <span class="n">depth_profile</span><span class="p">,</span> <span class="n">duplicates_exist</span><span class="p">,</span>
+                                 <span class="n">ensure_list_size</span><span class="p">,</span> <span class="n">filter_Nones</span><span class="p">,</span> <span class="n">filter_items</span><span class="p">,</span>
+                                 <span class="n">filterfalse_items</span><span class="p">,</span> <span class="n">find_duplicate_items</span><span class="p">,</span>
+                                 <span class="n">find_nonconsec_indicies</span><span class="p">,</span> <span class="n">flag_unique_items</span><span class="p">,</span>
+                                 <span class="n">flatten</span><span class="p">,</span> <span class="n">flattenize</span><span class="p">,</span> <span class="n">get_callable_name</span><span class="p">,</span>
+                                 <span class="n">get_dirty_items</span><span class="p">,</span> <span class="n">get_list_column</span><span class="p">,</span>
+                                 <span class="n">intersect_ordered</span><span class="p">,</span> <span class="n">invertable_flatten</span><span class="p">,</span>
+                                 <span class="n">invertable_flatten2</span><span class="p">,</span> <span class="n">issorted</span><span class="p">,</span> <span class="n">isunique</span><span class="p">,</span>
+                                 <span class="n">list_argsort</span><span class="p">,</span> <span class="n">list_deep_types</span><span class="p">,</span> <span class="n">list_depth</span><span class="p">,</span>
+                                 <span class="n">list_getat</span><span class="p">,</span> <span class="n">list_replace</span><span class="p">,</span> <span class="n">list_take</span><span class="p">,</span> <span class="n">listfind</span><span class="p">,</span>
+                                 <span class="n">partial_imap_1to1</span><span class="p">,</span> <span class="n">print_duplicate_map</span><span class="p">,</span>
+                                 <span class="n">safe_listget</span><span class="p">,</span> <span class="n">safe_slice</span><span class="p">,</span> <span class="n">sample_zip</span><span class="p">,</span>
+                                 <span class="n">scalar_input_map</span><span class="p">,</span> <span class="n">setdiff_ordered</span><span class="p">,</span> <span class="n">sortedby</span><span class="p">,</span>
+                                 <span class="n">sortedby2</span><span class="p">,</span> <span class="n">tuplize</span><span class="p">,</span> <span class="n">unflatten</span><span class="p">,</span> <span class="n">unflatten2</span><span class="p">,</span>
+                                 <span class="n">unique_keep_order2</span><span class="p">,</span> <span class="n">unique_ordered</span><span class="p">,</span>
+                                 <span class="n">unique_unordered</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_num</span> <span class="kn">import</span> <span class="p">(</span><span class="n">commas</span><span class="p">,</span> <span class="n">fewest_digits_float_str</span><span class="p">,</span>
+                                <span class="n">float_to_decimal</span><span class="p">,</span> <span class="n">format_</span><span class="p">,</span> <span class="n">int_comma_str</span><span class="p">,</span>
+                                <span class="n">num2_sigfig</span><span class="p">,</span> <span class="n">num_fmt</span><span class="p">,</span> <span class="n">order_of_magnitude_ceil</span><span class="p">,</span>
+                                <span class="n">sigfig_str</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_numpy</span> <span class="kn">import</span> <span class="p">(</span><span class="n">deterministic_sample</span><span class="p">,</span> <span class="n">deterministic_shuffle</span><span class="p">,</span>
+                                  <span class="n">inbounds</span><span class="p">,</span> <span class="n">index_of</span><span class="p">,</span> <span class="n">intersect2d</span><span class="p">,</span>
+                                  <span class="n">intersect2d_numpy</span><span class="p">,</span> <span class="n">list_index</span><span class="p">,</span> <span class="n">listlike_copy</span><span class="p">,</span>
+                                  <span class="n">make_incrementer</span><span class="p">,</span> <span class="n">npfind</span><span class="p">,</span> <span class="n">random_indexes</span><span class="p">,</span>
+                                  <span class="n">random_sample</span><span class="p">,</span> <span class="n">sample_domain</span><span class="p">,</span> <span class="n">spaced_indexes</span><span class="p">,</span>
+                                  <span class="n">spaced_items</span><span class="p">,</span> <span class="n">tiled_range</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_path</span> <span class="kn">import</span> <span class="p">(</span><span class="n">IMG_EXTENSIONS</span><span class="p">,</span> <span class="n">append_suffixlist_to_namelist</span><span class="p">,</span>
+                                 <span class="n">assert_exists</span><span class="p">,</span> <span class="n">assertpath</span><span class="p">,</span> <span class="n">basename_noext</span><span class="p">,</span>
+                                 <span class="n">checkpath</span><span class="p">,</span> <span class="n">copy</span><span class="p">,</span> <span class="n">copy_all</span><span class="p">,</span> <span class="n">copy_list</span><span class="p">,</span>
+                                 <span class="n">copy_task</span><span class="p">,</span> <span class="n">delete</span><span class="p">,</span> <span class="n">dirsplit</span><span class="p">,</span> <span class="n">ensuredir</span><span class="p">,</span>
+                                 <span class="n">ensurepath</span><span class="p">,</span> <span class="n">existing_subpath</span><span class="p">,</span> <span class="n">ext</span><span class="p">,</span>
+                                 <span class="n">extend_regex</span><span class="p">,</span> <span class="n">file_bytes</span><span class="p">,</span> <span class="n">file_megabytes</span><span class="p">,</span>
+                                 <span class="n">find_lib_fpath</span><span class="p">,</span> <span class="n">fixwin32_shortname</span><span class="p">,</span>
+                                 <span class="n">fnames_to_fpaths</span><span class="p">,</span> <span class="n">fpaths_to_fnames</span><span class="p">,</span>
+                                 <span class="n">get_basename_noext_list</span><span class="p">,</span> <span class="n">get_basepath_list</span><span class="p">,</span>
+                                 <span class="n">get_ext_list</span><span class="p">,</span> <span class="n">get_modname_from_modpath</span><span class="p">,</span>
+                                 <span class="n">get_module_dir</span><span class="p">,</span> <span class="n">get_module_subdir_list</span><span class="p">,</span>
+                                 <span class="n">get_relative_modpath</span><span class="p">,</span> <span class="n">glob</span><span class="p">,</span> <span class="n">grep</span><span class="p">,</span> <span class="n">grepfile</span><span class="p">,</span>
+                                 <span class="n">iglob</span><span class="p">,</span> <span class="n">is_module_dir</span><span class="p">,</span> <span class="n">is_private_module</span><span class="p">,</span>
+                                 <span class="n">isfile</span><span class="p">,</span> <span class="n">islink</span><span class="p">,</span> <span class="n">ismount</span><span class="p">,</span> <span class="n">list_images</span><span class="p">,</span>
+                                 <span class="n">longest_existing_path</span><span class="p">,</span> <span class="n">ls</span><span class="p">,</span> <span class="n">ls_dirs</span><span class="p">,</span>
+                                 <span class="n">ls_moduledirs</span><span class="p">,</span> <span class="n">ls_modulefiles</span><span class="p">,</span> <span class="n">matches_image</span><span class="p">,</span>
+                                 <span class="n">matching_fnames</span><span class="p">,</span> <span class="n">move</span><span class="p">,</span> <span class="n">move_list</span><span class="p">,</span> <span class="n">newcd</span><span class="p">,</span>
+                                 <span class="n">num_images_in_dir</span><span class="p">,</span> <span class="n">path_ndir_split</span><span class="p">,</span>
+                                 <span class="n">platform_path</span><span class="p">,</span> <span class="n">progress_func</span><span class="p">,</span> <span class="n">remove_dirs</span><span class="p">,</span>
+                                 <span class="n">remove_file</span><span class="p">,</span> <span class="n">remove_file_list</span><span class="p">,</span>
+                                 <span class="n">remove_files_in_dir</span><span class="p">,</span> <span class="n">search_in_dirs</span><span class="p">,</span> <span class="n">symlink</span><span class="p">,</span>
+                                 <span class="n">tail</span><span class="p">,</span> <span class="n">touch</span><span class="p">,</span> <span class="n">truepath</span><span class="p">,</span> <span class="n">truepath_relative</span><span class="p">,</span>
+                                 <span class="n">unixjoin</span><span class="p">,</span> <span class="n">win_shortcut</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_print</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Indenter</span><span class="p">,</span> <span class="n">NO_INDENT</span><span class="p">,</span> <span class="n">NpPrintOpts</span><span class="p">,</span>
+                                  <span class="n">filesize_str</span><span class="p">,</span> <span class="n">full_numpy_repr</span><span class="p">,</span> <span class="n">horiz_print</span><span class="p">,</span>
+                                  <span class="n">printNOTQUIET</span><span class="p">,</span> <span class="n">printVERBOSE</span><span class="p">,</span> <span class="n">printWARN</span><span class="p">,</span>
+                                  <span class="n">print_filesize</span><span class="p">,</span> <span class="n">print_locals</span><span class="p">,</span> <span class="n">printif</span><span class="p">,</span>
+                                  <span class="n">printshape</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_progress</span> <span class="kn">import</span> <span class="p">(</span><span class="n">AGGROFLUSH</span><span class="p">,</span> <span class="n">PROGGRESS_BACKSPACE</span><span class="p">,</span>
+                                     <span class="n">PROGRESS_FLUSH</span><span class="p">,</span> <span class="n">PROGRESS_WRITE</span><span class="p">,</span>
+                                     <span class="n">ProgressIter</span><span class="p">,</span> <span class="n">VALID_PROGRESS_TYPES</span><span class="p">,</span>
+                                     <span class="n">log_progress</span><span class="p">,</span> <span class="n">prog_func</span><span class="p">,</span> <span class="n">progiter</span><span class="p">,</span>
+                                     <span class="n">progress_func</span><span class="p">,</span> <span class="n">progress_str</span><span class="p">,</span>
+                                     <span class="n">simple_progres_func</span><span class="p">,</span> <span class="n">test_progress</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_parallel</span> <span class="kn">import</span> <span class="p">(</span><span class="n">BACKEND</span><span class="p">,</span> <span class="n">close_pool</span><span class="p">,</span> <span class="n">ensure_pool</span><span class="p">,</span>
+                                     <span class="n">generate</span><span class="p">,</span> <span class="n">get_default_numprocs</span><span class="p">,</span>
+                                     <span class="n">in_main_process</span><span class="p">,</span> <span class="n">init_pool</span><span class="p">,</span> <span class="n">init_worker</span><span class="p">,</span>
+                                     <span class="n">new_pool</span><span class="p">,</span> <span class="n">process</span><span class="p">,</span> <span class="n">set_num_procs</span><span class="p">,</span> <span class="n">tic</span><span class="p">,</span>
+                                     <span class="n">toc</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_resources</span> <span class="kn">import</span> <span class="p">(</span><span class="n">available_memory</span><span class="p">,</span> <span class="n">byte_str2</span><span class="p">,</span>
+                                      <span class="n">current_memory_usage</span><span class="p">,</span>
+                                      <span class="n">get_resource_limits</span><span class="p">,</span> <span class="n">memstats</span><span class="p">,</span> <span class="n">num_cpus</span><span class="p">,</span>
+                                      <span class="n">peak_memory</span><span class="p">,</span> <span class="n">print_resource_usage</span><span class="p">,</span>
+                                      <span class="n">time_in_systemmode</span><span class="p">,</span> <span class="n">time_in_usermode</span><span class="p">,</span>
+                                      <span class="n">time_str2</span><span class="p">,</span> <span class="n">total_memory</span><span class="p">,</span> <span class="n">used_memory</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_str</span> <span class="kn">import</span> <span class="p">(</span><span class="n">GLOBAL_TYPE_ALIASES</span><span class="p">,</span> <span class="n">TAU</span><span class="p">,</span> <span class="n">align</span><span class="p">,</span> <span class="n">align_lines</span><span class="p">,</span>
+                                <span class="n">bbox_str</span><span class="p">,</span> <span class="n">byte_str</span><span class="p">,</span> <span class="n">byte_str2</span><span class="p">,</span> <span class="n">clipstr</span><span class="p">,</span>
+                                <span class="n">codeblock</span><span class="p">,</span> <span class="n">dict_aliased_repr</span><span class="p">,</span>
+                                <span class="n">dict_itemstr_list</span><span class="p">,</span> <span class="n">dict_str</span><span class="p">,</span>
+                                <span class="n">extend_global_aliases</span><span class="p">,</span> <span class="n">file_megabytes_str</span><span class="p">,</span>
+                                <span class="n">func_str</span><span class="p">,</span> <span class="n">get_freespace_str</span><span class="p">,</span> <span class="n">get_indentation</span><span class="p">,</span>
+                                <span class="n">get_unix_timedelta</span><span class="p">,</span> <span class="n">get_unix_timedelta_str</span><span class="p">,</span>
+                                <span class="n">horiz_string</span><span class="p">,</span> <span class="n">hz_str</span><span class="p">,</span> <span class="n">indent_list</span><span class="p">,</span> <span class="n">indentjoin</span><span class="p">,</span>
+                                <span class="n">joins</span><span class="p">,</span> <span class="n">list_aliased_repr</span><span class="p">,</span> <span class="n">list_str</span><span class="p">,</span>
+                                <span class="n">listinfo_str</span><span class="p">,</span> <span class="n">long_fname_format</span><span class="p">,</span> <span class="n">msgblock</span><span class="p">,</span>
+                                <span class="n">newlined_list</span><span class="p">,</span> <span class="n">order_of_magnitude_str</span><span class="p">,</span> <span class="n">packstr</span><span class="p">,</span>
+                                <span class="n">padded_str_range</span><span class="p">,</span> <span class="n">remove_chars</span><span class="p">,</span> <span class="n">remove_vowels</span><span class="p">,</span>
+                                <span class="n">replace_nonquoted_text</span><span class="p">,</span> <span class="n">seconds_str</span><span class="p">,</span>
+                                <span class="n">singular_string</span><span class="p">,</span> <span class="n">str2</span><span class="p">,</span> <span class="n">str_between</span><span class="p">,</span> <span class="n">theta_str</span><span class="p">,</span>
+                                <span class="n">tupstr</span><span class="p">,</span> <span class="n">unindent</span><span class="p">,</span> <span class="n">var_aliased_repr</span><span class="p">,</span> <span class="n">verts_str</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_sysreq</span> <span class="kn">import</span> <span class="p">(</span><span class="n">DEBUG</span><span class="p">,</span> <span class="n">ensure_in_pythonpath</span><span class="p">,</span> <span class="n">locate_path</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_setup</span> <span class="kn">import</span> <span class="p">(</span><span class="n">NOOP</span><span class="p">,</span> <span class="n">SETUP_PATTERNS</span><span class="p">,</span> <span class="n">assert_in_setup_repo</span><span class="p">,</span>
+                                  <span class="n">autogen_sphinx_apidoc</span><span class="p">,</span> <span class="n">build_pyo</span><span class="p">,</span> <span class="n">clean</span><span class="p">,</span>
+                                  <span class="n">find_ext_modules</span><span class="p">,</span> <span class="n">find_packages</span><span class="p">,</span>
+                                  <span class="n">get_cmdclass</span><span class="p">,</span> <span class="n">get_numpy_include_dir</span><span class="p">,</span>
+                                  <span class="n">parse_author</span><span class="p">,</span> <span class="n">parse_package_for_version</span><span class="p">,</span>
+                                  <span class="n">parse_readme</span><span class="p">,</span> <span class="n">presetup</span><span class="p">,</span> <span class="n">presetup_commands</span><span class="p">,</span>
+                                  <span class="n">read_license</span><span class="p">,</span> <span class="n">setup_chmod</span><span class="p">,</span> <span class="n">setuptools_setup</span><span class="p">,</span>
+                                  <span class="n">translate_cyth</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_set</span> <span class="kn">import</span> <span class="p">(</span><span class="n">OrderedSet</span><span class="p">,</span> <span class="n">proxy</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_regex</span> <span class="kn">import</span> <span class="p">(</span><span class="n">REGEX_VARNAME</span><span class="p">,</span> <span class="n">RE_FLAGS</span><span class="p">,</span> <span class="n">RE_KWARGS</span><span class="p">,</span>
+                                  <span class="n">get_match_text</span><span class="p">,</span> <span class="n">modify_quoted_strs</span><span class="p">,</span>
+                                  <span class="n">named_field</span><span class="p">,</span> <span class="n">named_field_regex</span><span class="p">,</span> <span class="n">padded_parse</span><span class="p">,</span>
+                                  <span class="n">parse_docblock</span><span class="p">,</span> <span class="n">regex_get_match</span><span class="p">,</span>
+                                  <span class="n">regex_matches</span><span class="p">,</span> <span class="n">regex_parse</span><span class="p">,</span> <span class="n">regex_replace</span><span class="p">,</span>
+                                  <span class="n">regex_replace_lines</span><span class="p">,</span> <span class="n">regex_search</span><span class="p">,</span>
+                                  <span class="n">regex_split</span><span class="p">,</span> <span class="n">repl_field</span><span class="p">,</span> <span class="n">sed</span><span class="p">,</span> <span class="n">sedfile</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_time</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Timer</span><span class="p">,</span> <span class="n">exiftime_to_unixtime</span><span class="p">,</span> <span class="n">get_day</span><span class="p">,</span>
+                                 <span class="n">get_month</span><span class="p">,</span> <span class="n">get_timedelta_str</span><span class="p">,</span> <span class="n">get_timestamp</span><span class="p">,</span>
+                                 <span class="n">get_timestats_str</span><span class="p">,</span> <span class="n">get_year</span><span class="p">,</span> <span class="n">tic</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span>
+                                 <span class="n">toc</span><span class="p">,</span> <span class="n">unixtime_to_datetime</span><span class="p">,</span>
+                                 <span class="n">unixtime_to_timedelta</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_type</span> <span class="kn">import</span> <span class="p">(</span><span class="n">BooleanType</span><span class="p">,</span> <span class="n">FloatType</span><span class="p">,</span> <span class="n">IntType</span><span class="p">,</span> <span class="n">LongType</span><span class="p">,</span>
+                                 <span class="n">NP_NDARRAY</span><span class="p">,</span> <span class="n">VALID_BOOL_TYPES</span><span class="p">,</span>
+                                 <span class="n">VALID_FLOAT_TYPES</span><span class="p">,</span> <span class="n">VALID_INT_TYPES</span><span class="p">,</span>
+                                 <span class="n">assert_int</span><span class="p">,</span> <span class="n">bool_from_str</span><span class="p">,</span> <span class="n">is_bool</span><span class="p">,</span> <span class="n">is_dict</span><span class="p">,</span>
+                                 <span class="n">is_func_or_method</span><span class="p">,</span>
+                                 <span class="n">is_func_or_method_or_partial</span><span class="p">,</span> <span class="n">is_funclike</span><span class="p">,</span>
+                                 <span class="n">is_tuple</span><span class="p">,</span> <span class="n">is_type</span><span class="p">,</span> <span class="n">is_valid_floattype</span><span class="p">,</span>
+                                 <span class="n">smart_cast</span><span class="p">,</span> <span class="n">type_str</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.util_tests</span> <span class="kn">import</span> <span class="p">(</span><span class="n">HAPPY_FACE</span><span class="p">,</span> <span class="n">SAD_FACE</span><span class="p">,</span> <span class="n">VERBOSE_TEST</span><span class="p">,</span>
+                                  <span class="n">bubbletext</span><span class="p">,</span> <span class="n">def_test</span><span class="p">,</span> <span class="n">doctest_funcs</span><span class="p">,</span>
+                                  <span class="n">doctest_modules</span><span class="p">,</span> <span class="n">find_doctestable_modnames</span><span class="p">,</span>
+                                  <span class="n">find_untested_modpaths</span><span class="p">,</span> <span class="n">get_doctest_examples</span><span class="p">,</span>
+                                  <span class="n">get_doctest_testtup_list</span><span class="p">,</span>
+                                  <span class="n">get_module_testlines</span><span class="p">,</span>
+                                  <span class="n">make_run_tests_script_text</span><span class="p">,</span>
+                                  <span class="n">parse_docblocks_from_docstr</span><span class="p">,</span>
+                                  <span class="n">parse_doctest_from_docstr</span><span class="p">,</span> <span class="n">printTEST</span><span class="p">,</span>
+                                  <span class="n">run_test</span><span class="p">,</span> <span class="n">tryimport</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.DynamicStruct</span> <span class="kn">import</span> <span class="p">(</span><span class="n">AbstractPrintable</span><span class="p">,</span> <span class="n">DynStruct</span><span class="p">,)</span>
+    <span class="kn">from</span> <span class="nn">utool.Preferences</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Pref</span><span class="p">,</span> <span class="n">PrefChoice</span><span class="p">,</span> <span class="n">PrefInternal</span><span class="p">,</span> <span class="n">PrefNode</span><span class="p">,</span>
+                                   <span class="n">PrefTree</span><span class="p">,)</span>
     <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
         <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[utool]&#39;</span><span class="p">)</span>
-    
-    
+
+
 <div class="viewcode-block" id="reassign_submodule_attributes"><a class="viewcode-back" href="../utool.html#utool.reassign_submodule_attributes">[docs]</a>    <span class="k">def</span> <span class="nf">reassign_submodule_attributes</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        why reloading all the modules doesnt do this I don&#39;t know</span>
@@ -518,8 +516,8 @@
                     <span class="k">continue</span>
                 <span class="n">seen_</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
                 <span class="nb">setattr</span><span class="p">(</span><span class="n">utool</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">submod</span><span class="p">,</span> <span class="n">attr</span><span class="p">))</span>
-    
-    </div>
+
+</div>
 <div class="viewcode-block" id="reload_subs"><a class="viewcode-back" href="../utool.html#utool.reload_subs">[docs]</a>    <span class="k">def</span> <span class="nf">reload_subs</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Reloads utool and submodules &quot;&quot;&quot;</span>
         <span class="n">rrr</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
@@ -571,7 +569,6 @@
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span></div>
     <span class="n">rrrr</span> <span class="o">=</span> <span class="n">reload_subs</span>
-    <span class="c"># ENDBLOCK</span>
     <span class="c"># &lt;/AUTOGEN_INIT&gt;</span>
 </pre></div>
 
