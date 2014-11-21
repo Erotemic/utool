@@ -64,9 +64,8 @@ if __name__ == '__main__':
     CommandLine:
         python autogen_test_script.py
         python autogen_test_script.py --verbose > run_tests.sh
-        python autogen_test_script.py -o run_tests.sh
+        python autogen_test_script.py -o run_tests.sh && ./run_tests.sh
         chmod +x run_tests.sh
-        run_tests.sh
         run_tests.sh --testall
     """
     text = autogen_utool_runtest()
