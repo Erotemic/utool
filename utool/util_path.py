@@ -49,31 +49,35 @@ def truepath_relative(path, otherpath=None):
     return normpath(relpath(path, otherpath))
 
 
-def path_ndir_split(path_, n, force_unix=True):
+def path_ndir_split(path_, n, force_unix=True, winroot='C:'):
     r"""
     Shows only a little bit of the path. Up to the n bottom-level directories
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> import utool
+        >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
         >>> paths = [r'/usr/bin/local/foo/bar',
         ...          r'C:/',
         ...          r'C:\Program Files (x86)/foobar/bin',]
-        >>> result = '\n'.join(['n=%r: %r' % (n, utool.path_ndir_split(path, n))
-        ...                     for path, n in utool.iprod(paths, range(1, 3))])
+        >>> iter_ = ut.iprod(paths, range(1, 3))
+        >>> force_unix = True
+        >>> tuplist = [(n, ut.path_ndir_split(path_, n)) for path_, n in iter_]
+        >>> list_ = ['n=%r: %r' % tup for tup in tuplist]
+        >>> result = '\n'.join(list_)
         >>> print(result)
         n=1: 'bar'
         n=2: 'foo/bar'
-        n=1: 'C:'
-        n=2: 'C:'
+        n=1: 'C:/'
+        n=2: 'C:/'
         n=1: 'bin'
         n=2: 'foobar/bin'
     """
     if n is None:
-        return path_
-    sep = '/' if force_unix else os.sep
+        return ensure_crossplat_path(path_)
     if n == 0:
         return ''
+    sep = '/' if force_unix else os.sep
     ndirs_list = []
     head = path_
     for _ in range(n):
@@ -84,7 +88,8 @@ def path_ndir_split(path_, n, force_unix=True):
             break
         ndirs_list.append(tail)
     ndirs = sep.join(ndirs_list[::-1])
-    return ndirs
+    cplat_path = ensure_crossplat_path(ndirs)
+    return cplat_path
 
 
 def remove_file(fpath, verbose=True, dryrun=False, ignore_errors=True, **kwargs):
@@ -495,6 +500,10 @@ def file_megabytes(fpath):
     return os.stat(fpath).st_size / (2.0 ** 20)
 
 
+def glob_python_modules(dirname, **kwargs):
+    return glob(dirname, '*.py', recursive=True, with_dirs=False)
+
+
 def glob(dirname, pattern, recursive=False, with_files=True, with_dirs=True,  maxdepth=None,
          **kwargs):
     """
@@ -600,6 +609,37 @@ def get_module_dir(module, *args):
     return module_dir
 
 
+def ensure_crossplat_path(path, winroot='C:'):
+    r"""
+    ensure_crossplat_path
+
+    Args:
+        path (str):
+
+    Returns:
+        str: crossplat_path
+
+    Example(DOCTEST):
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> path = r'C:\somedir'
+        >>> cplat_path = ensure_crossplat_path(path)
+        >>> result = cplat_path
+        >>> print(result)
+        C:/somedir
+    """
+    cplat_path = path.replace('\\', '/')
+    if cplat_path == winroot:
+        cplat_path += '/'
+    return cplat_path
+
+
+def ensure_native_path(path, winroot='C:'):
+    import utool as ut
+    if ut.WIN32 and path.startswith('/') or  path.startswith('\\'):
+        path = winroot + path
+
+
 def get_relative_modpath(module_fpath):
     """
     Returns path to module relative to the package root
@@ -616,13 +656,15 @@ def get_relative_modpath(module_fpath):
         >>> import utool as ut
         >>> module_fpath = ut.util_path.__file__
         >>> rel_modpath = ut.get_relative_modpath(module_fpath)
-        >>> result = rel_modpath.replace('.pyc', '.py')  # allow pyc or py
+        >>> rel_modpath = rel_modpath.replace('.pyc', '.py')  # allow pyc or py
+        >>> result = ensure_crossplat_path(rel_modpath)
         >>> print(result)
         utool/util_path.py
     """
     modsubdir_list = get_module_subdir_list(module_fpath)
     _, ext = splitext(module_fpath)
     rel_modpath = join(*modsubdir_list) + ext
+    rel_modpath = ensure_crossplat_path(rel_modpath)
     return rel_modpath
 
 

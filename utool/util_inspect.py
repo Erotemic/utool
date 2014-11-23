@@ -4,34 +4,64 @@ import types
 import six
 import functools
 from utool import util_inject
-from ._internal import meta_util_six
+from utool._internal import meta_util_six
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
 
 
-def iter_module_funcs(module):
+def iter_module_doctestable(module, include_funcs=True, include_classes=True, include_methods=True):
     r"""
-    Example:
-        >>> import utool
-        >>> func_names = utool.get_list_column(list(iter_module_funcs(utool.util_tests)), 0)
+    iter_module_doctestable
+
+    Args:
+        module (?):
+        include_funcs (bool):
+        include_classes (bool):
+        include_methods (bool):
+
+    Example1:
+        >>> from utool.util_inspect import *   # NOQA
+        >>> import utool as ut
+        >>> module = ut.util_tests
+        >>> doctestable_list = list(iter_module_doctestable(module))
+        >>> func_names = ut.get_list_column(doctestable_list, 0)
+        >>> print('\n'.join(func_names))
+
+    Example2:
+        >>> from utool.util_inspect import *   # NOQA
+        >>> import utool as ut
+        >>> import ibeis
+        >>> import ibeis.control.IBEISControl
+        >>> module = ibeis.control.IBEISControl
+        >>> doctestable_list = list(iter_module_doctestable(module))
+        >>> func_names = ut.get_list_column(doctestable_list, 0)
         >>> print('\n'.join(func_names))
     """
-    valid_func_types = (types.FunctionType, types.MethodType,
-                        types.BuiltinFunctionType, types.BuiltinMethodType,
-                        types.ClassType, types.TypeType)
+    valid_func_types = (types.FunctionType, types.BuiltinFunctionType,
+                        #types.MethodType, types.BuiltinMethodType,
+                        )
+    valid_class_types = (types.ClassType,  types.TypeType,)
+
+    scalar_types = [dict, list, tuple, set, frozenset, bool, float, int] + list(six.string_types)
+    scalar_types += list(six.string_types)
+    other_types = [types.InstanceType, functools.partial, types.ModuleType]
+    invalid_types = tuple(scalar_types + other_types)
+
     for key, val in six.iteritems(module.__dict__):
-        if isinstance(val, valid_func_types):
-            yield key, val
-        elif val is None:
+        if val is None:
             pass
-        elif isinstance(val, (dict, list, tuple, set, frozenset, bool, float, int)):
-            pass
-        elif isinstance(val, types.InstanceType):
-            pass
-        elif isinstance(val, functools.partial):
-            pass
-        elif isinstance(val, types.ModuleType):
-            pass
-        elif isinstance(val, six.string_types):
+        elif isinstance(val, valid_func_types):
+            if include_funcs:
+                yield key, val
+        elif isinstance(val, valid_class_types):
+            class_ = val
+            if include_classes:
+                yield key, val
+            if include_methods:
+                for subkey, subval in six.iteritems(class_.__dict__):
+                    # Unbound methods are still typed as functions
+                    if isinstance(subval, valid_func_types):
+                        yield subkey, subval
+        elif isinstance(val, invalid_types):
             pass
         else:
             #import utool as ut
@@ -115,7 +145,8 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, utool.util_inspect; utool.doctest_funcs(utool.util_inspect, allexamples=True)"
         python -c "import utool, utool.util_inspect; utool.doctest_funcs(utool.util_inspect)"
-        python utool/util_inspect.py
+        python utool/util_inspect.py --enableall
+        python utool/util_inspect.py --enableall --test-iter-module-doctestable:1
         python utool/util_inspect.py --allexamples
     """
     import multiprocessing

@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import os
-from os.path import dirname
+from os.path import dirname  # NOQA
 from utool._internal import util_importer
 
 

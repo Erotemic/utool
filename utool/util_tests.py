@@ -20,8 +20,10 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[tests]')
 VERBOSE_TEST = util_arg.get_argflag(('--verb-test', '--verbose-test'))
 PRINT_SRC = not util_arg.get_argflag('--noprintsrc', '--nosrc')
 PRINT_FACE = not util_arg.get_argflag('--noprintface', '--noface')
+BIGFACE = False
 
-HAPPY_FACE = r'''
+if BIGFACE:
+    HAPPY_FACE = r'''
                .-""""""-.
              .'          '.
             /   O      O   \
@@ -34,7 +36,7 @@ HAPPY_FACE = r'''
                    '''
 
 
-SAD_FACE = r'''
+    SAD_FACE = r'''
                .-""""""-.
              .'          '.
             /   O      O   \
@@ -45,6 +47,21 @@ SAD_FACE = r'''
              '.          .'
                '-......-'
                   '''
+
+else:
+    HAPPY_FACE = r'''
+     .""".
+    | o o |
+    | \_/ |
+     ' = '
+    '''
+
+    SAD_FACE = r'''
+     .""".
+    | . . |
+    |  ~  |
+     ' = '
+    '''
 
 
 def _get_testable_name(testable):
@@ -246,6 +263,23 @@ def get_module_testlines(module_list, remove_pyc=True, verbose=True, pythoncmd='
 def get_doctest_testtup_list(testable_list=None, check_flags=True, module=None,
                              allexamples=None, needs_enable=None, N=0,
                              verbose=True):
+    """
+    Returns:
+        tuple : (enabled_testtup_list, frame_fpath, all_testflags, module)
+            enabled_testtup_list (list): a list of testtup
+                testtup (tuple): (name, num, src, want, flag1) describes a valid doctest in the module
+                    name  (str): test name
+                    num   (str): test number of the module / function / class / method
+                    src   (str): test source code
+                    want  (str): expected test result
+                    flag1 (str): a valid commandline flag to enable this test
+            frame_fpath (str):
+                module fpath that will be tested
+            module (module):
+                the actual module that will be tested
+            all_testflags (list):
+                the command line arguments that will enable different tests
+    """
     import utool as ut  # NOQA
     if needs_enable is None:
         needs_enable = not ut.get_argflag('--enableall')
@@ -284,7 +318,7 @@ def get_doctest_testtup_list(testable_list=None, check_flags=True, module=None,
         if verbose or VERBOSE_TEST:
             print('[util_test] Iterating over module funcs')
 
-        for key, val in ut.iter_module_funcs(module):
+        for key, val in ut.iter_module_doctestable(module):
             docstr = inspect.getdoc(val)
             if docstr is not None and docstr.find('Example') >= 0:
                 testable_name_list.append(key)
@@ -353,7 +387,7 @@ def get_doctest_testtup_list(testable_list=None, check_flags=True, module=None,
         testenabled = TEST_ALL_EXAMPLES  or not check_flags or testflag
         if subx is not None and subx != num:
             continue
-        all_testflags.append(flag4)
+        all_testflags.append(flag3)
         if testenabled:
             new_testtup = (name, num, src, want, flag1)
             enabled_testtup_list.append(new_testtup)
@@ -457,18 +491,21 @@ def run_test(func, *args, **kwargs):
     else:
         funcname = get_funcname(func)
     upper_funcname = funcname.upper()
-    with util_print.Indenter('[' + funcname + ']'):
+    import utool as ut
+    if ut.VERBOSE:
+        printTEST('[TEST.BEGIN] %s ' % (sys.executable))
+        printTEST('[TEST.BEGIN] %s ' % (funcname,))
+    print('<< funcname >>')
+    with util_print.Indenter('<<  ' + funcname + '  >>'):
         try:
-            import utool as ut
-            if ut.VERBOSE:
-                printTEST('[TEST.BEGIN] %s ' % (sys.executable))
-                printTEST('[TEST.BEGIN] %s ' % (funcname,))
             with util_time.Timer(upper_funcname) as timer:
                 if func_is_text:
+                    # TEST INPUT IS PYTHON CODE TEXT
                     test_locals = {}
                     test_globals = kwargs.get('globals', {})
                     want = kwargs.get('want', None)
                     #test_globals['print'] = doctest_print
+                    # EXEC FUNC
                     six.exec_(src, test_globals, test_locals)
                     if want is None or want == '':
                         print('warning test does not want anything')
@@ -489,6 +526,7 @@ def run_test(func, *args, **kwargs):
                         #assert result == want, 'result is not the same as want'
                     #print('\n'.join(output_lines))
                 else:
+                    # TEST INPUT IS A LIVE PYTHON FUNCTION
                     test_locals = func(*args, **kwargs)
                 print('')
                 # Write timings

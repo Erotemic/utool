@@ -14,14 +14,52 @@ from utool._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[str]')
 
 
-TAU = (2 * math.pi)  # tauday.com
+TAU = (2 * math.pi)  # References: tauday.com
+
+TAUFMTSTR = '{coeff:,.1f}{taustr}'
+if '--myway' not in sys.argv:
+    TAUSTR = '*2pi'
+else:
+    TAUSTR = 'tau'
 
 
-def theta_str(theta, taustr=('tau' if '--myway' in sys.argv else '2pi')):
-    """ Format theta so it is interpretable in base 10 """
-    #coeff = (((tau - theta) % tau) / tau)
-    coeff = (theta / TAU)
-    return ('%.2f * ' % coeff) + taustr
+def theta_str(theta, taustr=TAUSTR, fmtstr='{coeff:,.1f}{taustr}'):
+    """
+    Format theta so it is interpretable in base 10
+
+    theta_str
+
+    CommandLine:
+        python utool\util_str.py --noface --nosrc --test-theta_str:0
+        python utool\util_str.py --noface --nosrc --test-theta_str:1
+
+    Args:
+        theta (float) angle in radians
+        taustr (str): default 2pi
+
+    Returns:
+        str : theta_str - the angle in tau units
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> theta = 3.1415
+        >>> result = theta_str(theta)
+        >>> print(result)
+        0.5*2pi
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> theta = 6.9932
+        >>> taustr = 'tau'
+        >>> result = theta_str(theta, taustr)
+        >>> print(result)
+        1.1tau
+    """
+    coeff = theta / TAU
+    theta_str = fmtstr.format(coeff=coeff, taustr=taustr)
+    return theta_str
 
 
 def bbox_str(bbox, pad=4, sep=', '):
@@ -29,7 +67,7 @@ def bbox_str(bbox, pad=4, sep=', '):
     if bbox is None:
         return 'None'
     fmtstr = sep.join(['%' + str(pad) + 'd'] * 4)
-    return '(' + fmtstr % bbox + ')'
+    return '(' + fmtstr % tuple(bbox) + ')'
 
 
 def verts_str(verts, pad=1):
