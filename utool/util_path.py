@@ -127,6 +127,31 @@ def remove_dirs(dpath, dryrun=False, ignore_errors=True, **kwargs):
 #import os
 
 
+def augpath(path, aug):
+    """
+    augpath
+
+    Args:
+        path (?):
+        aug (?):
+
+    Returns:
+        ?: newpath
+
+    Example:
+        >>> from utool.util_path import *  # NOQA
+        >>> path = 'somefile.txt'
+        >>> aug = '_aug'
+        >>> newpath = augpath(path, aug)
+        >>> result = str(newpath)
+        >>> print(result)
+        somefile_aug.txt
+    """
+    path_noext, ext = splitext(path)
+    newpath = ''.join((path_noext, aug, ext))
+    return newpath
+
+
 def touch(fname, times=None, verbose=True):
     """
     Args:

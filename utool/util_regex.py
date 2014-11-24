@@ -209,9 +209,11 @@ def modify_quoted_strs(text, modify_func=None):
 
 
 def padded_parse(pattern, text):
+    # TODO: move to util_parse
     import parse
     padded_pattern = '{_prefix}' + pattern + '{_suffix}'
-    parse_result = parse.parse(padded_pattern, text)
+    padded_text = ' ' + text + ' '
+    parse_result = parse.parse(padded_pattern, padded_text)
     return parse_result
 
 

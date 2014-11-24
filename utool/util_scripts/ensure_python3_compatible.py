@@ -12,7 +12,13 @@ TODO: Fixes/Warns about the folloing problems:
     * ill formated docstrings
     * bad init files
     * no setup file
+    * docstrings are prefixed with r
 
+    * Unused functions?
+
+
+rob sp DOCTEST_ENABLE ENABLE_DOCTEST
+rob sp DOCTEST_DIABLE DISABLE_DOCTEST
 
 """
 from __future__ import absolute_import, division, print_function

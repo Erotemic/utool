@@ -704,11 +704,15 @@ def align_lines(line_list, character='='):
         list: new_lines
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_str import *  # NOQA
-        >>> line_list = '?'
+        >>> line_list = 'a = b\none = two\nthree = fish\n'.split('\n')
         >>> character = '='
         >>> new_lines = align_lines(line_list, character)
-        >>> print(new_lines)
+        >>> print('\n'.join(new_lines))
+        a     = b
+        one   = two
+        three = fish
     """
 
     tup_list = [line.split(character) for line in line_list]

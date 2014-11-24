@@ -1,7 +1,7 @@
 # Licence:
 #
 # TODO: Rename
-# util_science
+# util_science?
 #
 from __future__ import absolute_import, division, print_function
 try:

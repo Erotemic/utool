@@ -88,6 +88,36 @@ def get_argval(argstr_, type_=None, default=None, help_=None):
     return arg_after
 
 
+def parse_cfgstr_list(cfgstr_list):
+    """
+    Parses a list of items in the format
+    ['var1:val1', 'var2:val2', 'var3:val3']
+    the '=' character can be used instead of the ':' character if desired
+
+    Args:
+        cfgstr_list (list):
+
+    Returns:
+        dict: cfgdict
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_arg import *  # NOQA
+        >>> cfgstr_list = ['var1:val1', 'var2:val2', 'var3:val3']
+        >>> cfgdict = parse_cfgstr_list(cfgstr_list)
+        >>> result = str(cfgdict)
+        >>> print(result)
+        {'var1': 'val1', 'var3': 'val3', 'var2': 'val2'}
+    """
+    cfgdict = {}
+    for item in cfgstr_list:
+        varval_tup = item.replace('=', ':').split(':')
+        assert len(varval_tup) == 2, '[!] Invalid cfgitem=%r' % (item,)
+        var, val = varval_tup
+        cfgdict[var] = val
+    return cfgdict
+
+
 def parse_arglist_hack(argx):
     arglist = []
     for argx2 in range(argx + 1, len(sys.argv)):
