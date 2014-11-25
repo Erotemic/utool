@@ -160,6 +160,48 @@ def parse_docblock(func_code):
     docblock_parser.parseString(func_code)
 
 
+def parse_python_syntax(text):
+    """
+    step1: split lines
+
+    step2: parse enclosure pairity for each line to find unended lines
+
+    for each unending line, is there a valid merge line?
+    (a line that could snytatically finish this runnon statement?
+    If no then error. Else try to join the two lines.
+
+    step3: perform context_sensitive_edit
+
+    Example:
+        >>> from utool.util_regex import *   # NOQA
+        >>> import utool
+        >>> from os.path import normpath
+        >>> text = utool.read_from(utool.util_regex.__file__)
+    """
+    import utool as ut
+    def find_all(a_str, sub):
+        start = 0
+        while True:
+            start = a_str.find(sub, start)
+            if start == -1:
+                return
+            yield start
+            start += len(sub)  # use start += 1 to find overlapping matches
+    line_list_ = [line + '\n' for line in text.splitlines()]  # NOQA
+    import re  # NOQA
+    line_list = [line[0:line.find('#')] for line in line_list_]
+    open_tokens  = ['\'\'\'', '"""', '\'', '"', '(', '[']   # ,  '#']
+    close_tokens = ['\'\'\'', '"""', '\'', '"', ')', ']']   # , '\n']
+    def find_token_pos(line, token):
+        return list(find_all(line, token))
+    open_tokenxs  = [[find_token_pos(line, token) for line in line_list] for token in open_tokens]
+    close_tokenxs = [[find_token_pos(line, token) for line in line_list] for token in close_tokens]
+    print(open_tokenxs)
+    print(close_tokenxs)
+    print(sum(ut.flatten(ut.flatten(open_tokenxs))))
+    print(sum(ut.flatten(ut.flatten(close_tokenxs))))
+
+
 def modify_quoted_strs(text, modify_func=None):
     """
 
@@ -222,8 +264,8 @@ def regex_parse(regex, text, fromstart=True):
     regex_parse
 
     Args:
-        regex (?):
-        text (?):
+        regex (str):
+        text (str):
         fromstart (bool):
 
     Returns:

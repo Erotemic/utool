@@ -141,6 +141,19 @@ def get_func_argspec(func):
     return argspec
 
 
+def get_docstr(func_or_class):
+    """  Get the docstring from a live object """
+    import utool as ut
+    try:
+        docstr_ = func_or_class.func_doc
+    except AttributeError:
+        docstr_ = func_or_class.__doc__
+    if docstr_ is None:
+        docstr_ = ''
+    docstr = ut.unindent(docstr_)
+    return docstr
+
+
 def parse_return_type(sourcecode):
     r"""
 

@@ -35,7 +35,6 @@ if BIGFACE:
                '-......-'
                    '''
 
-
     SAD_FACE = r'''
                .-""""""-.
              .'          '.
@@ -79,6 +78,28 @@ def _get_testable_name(testable):
 
 
 def parse_docblocks_from_docstr(docstr):
+    """
+    parse_docblocks_from_docstr
+
+    Args:
+        docstr (str):
+
+    Returns:
+        list: docstr_blocks
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_tests import *  # NOQA
+        >>> import utool as ut
+        >>> #import ibeis
+        >>> #import ibeis.model.hots.query_request
+        >>> #func_or_class = ibeis.model.hots.query_request.QueryParams
+        >>> func_or_class = ut.parse_docblocks_from_docstr
+        >>> docstr = ut.get_docstr(func_or_class)
+        >>> docstr_blocks = parse_docblocks_from_docstr(docstr)
+        >>> result = str(docstr_blocks)
+        >>> print(result)
+    """
     # FIXME Requires tags to be separated by two spaces
     import parse
     import utool as ut
@@ -161,14 +182,8 @@ def get_doctest_examples(func_or_class):
     if VERBOSE_TEST:
         print('[util_test] parsing %r for doctest' % (func_or_class))
 
-    # Get the docstring
-    try:
-        docstr = func_or_class.func_doc
-    except AttributeError:
-        docstr = func_or_class.__doc__
-
+    docstr = ut.get_docstr(func_or_class)
     # Cache because my janky parser is slow
-    docstr = ut.unindent(docstr)
     #with ut.GlobalShelfContext('utool') as shelf:
     #    if False and docstr in shelf:
     #        testsrc_list, testwant_list = shelf[docstr]
@@ -524,6 +539,8 @@ def run_test(func, *args, **kwargs):
                             errmsg1 += ('STR_EXPECTED: want=\n%s\n' % (want))
                             raise AssertionError('result != want\n' + errmsg1)
                         #assert result == want, 'result is not the same as want'
+                        print('\n... test encountered error. sys.exit(1)\n')
+                        sys.exit(1)
                     #print('\n'.join(output_lines))
                 else:
                     # TEST INPUT IS A LIVE PYTHON FUNCTION

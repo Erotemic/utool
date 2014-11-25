@@ -13,6 +13,7 @@ TODO: Fixes/Warns about the folloing problems:
     * bad init files
     * no setup file
     * docstrings are prefixed with r
+    * tests without any asserts or want lines
 
     * Unused functions?
 

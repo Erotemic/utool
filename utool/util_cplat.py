@@ -186,21 +186,25 @@ def startfile(fpath):
     pass
 
 
+def geteditor(fpath):
+    return 'gvim'
+
+
 def editfile(fpath):
     """ Runs gvim """
     print('[cplat] startfile(%r)' % fpath)
     if not exists(fpath):
         raise Exception('Cannot start nonexistant file: %r' % fpath)
     if LINUX:
-        out, err, ret = cmd(['gvim', fpath], detatch=True)
+        out, err, ret = cmd([geteditor(), fpath], detatch=True)
         if not ret:
             raise Exception(out + ' -- ' + err)
     elif DARWIN:
-        out, err, ret = cmd(['gvim', fpath], detatch=True)
+        out, err, ret = cmd([geteditor(), fpath], detatch=True)
         if not ret:
             raise Exception(out + ' -- ' + err)
     else:
-        out, err, ret = cmd(['gvim', fpath], detatch=True)
+        out, err, ret = cmd([geteditor(), fpath], detatch=True)
         if not ret:
             raise Exception(out + ' -- ' + err)
         #os.startfile(fpath)
