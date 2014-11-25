@@ -3,10 +3,11 @@ import shelve
 #import atexit
 import sys
 import inspect
-from six.moves import range
-from os.path import join, normpath
+from six.moves import range, zip
+from os.path import join, normpath, basename, exists
 import functools
 from itertools import chain
+from zipfile import error as BadZipFile  # Screwy naming convention.
 from utool import util_arg
 from utool import util_hash
 from utool import util_inject
@@ -91,6 +92,9 @@ def load_cache(dpath, fname, cfgstr):
 
 
 class Cacher(object):
+    """
+    old non inhertable version of cachable
+    """
     def __init__(self, fname, cfgstr=None, cache_dir='default', appname='utool',
                  verbose=VERBOSE):
         if cache_dir == 'default':
@@ -437,6 +441,101 @@ def delete_global_cache(appname='default'):
     #close_global_shelf(appname)
     shelf_fpath = get_global_shelf_fpath(appname)
     util_path.remove_file(shelf_fpath, verbose=True, dryrun=False)
+
+import abc  # abstract base class
+import six
+
+
+@six.add_metaclass(abc.ABCMeta)
+class Cachable(object):
+    """
+    Abstract base class.
+
+    This class which enables easy caching of object dictionarys
+
+    must implement get_cfgstr()
+
+    """
+    ext = '.cPkl'  # TODO: Capt'n Proto backend to replace pickle backend
+
+    @abc.abstractmethod
+    def get_cfgstr(self):
+        raise NotImplementedError('abstract method')
+
+    def get_fname(self, cfgstr=None):
+        if cfgstr is None:
+            cfgstr = self.get_cfgstr()
+        if cfgstr is None:
+            raise AssertionError('Must specify cfgstr')
+        return cfgstr + self.ext
+
+    def get_fpath(self, cachedir, cfgstr=None):
+        fpath = join(cachedir, self.get_fname(cfgstr=cfgstr))
+        return fpath
+
+    def delete(self, cachedir, cfgstr=None, verbose=True or VERBOSE or util_arg.VERBOSE):
+        """
+        saves query result to directory
+        """
+        fpath = self.get_fpath(cachedir, cfgstr=cfgstr)
+        if verbose:
+            print('[Cachable] cache delete: %r' % (basename(fpath),))
+        import os
+        os.remove(fpath)
+
+    def save(self, cachedir, cfgstr=None, verbose=True or VERBOSE or util_arg.VERBOSE):
+        """
+        saves query result to directory
+        """
+        fpath = self.get_fpath(cachedir, cfgstr=cfgstr)
+        if verbose:
+            print('[Cachable] cache save: %r' % (basename(fpath),))
+        util_io.save_cPkl(fpath, self.__dict__)
+        #with open(fpath, 'wb') as file_:
+        #    cPickle.dump(self.__dict__, file_)
+
+    def _unsafe_load(self, fpath):
+        loaded_dict = util_io.load_cPkl(fpath)
+        self.__dict__.update(loaded_dict)
+        #with open(fpath, 'rb') as file_:
+        #    loaded_dict = cPickle.load(file_)
+        #    self.__dict__.update(loaded_dict)
+
+    def load(self, cachedir, cfgstr=None, verbose=True or VERBOSE):
+        """ Loads the result from the given database """
+        fpath = self.get_fpath(cachedir)
+        if verbose:
+            print('[Cachable] cache tryload: %r' % (basename(fpath),))
+        try:
+            self._unsafe_load(fpath)
+            if verbose:
+                print('... self cache hit: %r' % (basename(fpath),))
+        except IOError as ex:
+            import utool as ut
+            if not exists(fpath):
+                msg = '... self cache miss: %r' % (basename(fpath),)
+                if verbose:
+                    print(msg)
+                raise
+            msg = '[!Cachable] Cachable(%s) is corrupt' % (self.get_cfgstr())
+            ut.printex(ex, msg, iswarning=True)
+            raise
+        except BadZipFile as ex:
+            import utool as ut
+            msg = '[!Cachable] Cachable(%s) has bad zipfile' % (self.get_cfgstr())
+            ut.printex(ex, msg, iswarning=True)
+            raise
+            #if exists(fpath):
+            #    #print('[Cachable] Removing corrupted file: %r' % fpath)
+            #    #os.remove(fpath)
+            #    raise hsexcept.HotsNeedsRecomputeError(msg)
+            #else:
+            #    raise Exception(msg)
+        except Exception as ex:
+            import utool as ut
+            ut.printex(ex, 'unknown exception while loading query result')
+            raise
+
 
 if __name__ == '__main__':
     """

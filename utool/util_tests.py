@@ -478,7 +478,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     # -------
     # Print Results
     if nTotal == 0:
-        print('No test flags sepcified. Please choose one of the following flags')
+        print('No test flags sepcified. Please choose one of the following flags or specify --enableall to test unenabled doctests')
         print('Valid test argflags:\n' + '    --allexamples' + ut.indentjoin(all_testflags, '\n    '))
     print('+-------')
     print('| finished testing fpath=%r' % (frame_fpath,))

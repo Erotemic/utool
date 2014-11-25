@@ -534,9 +534,22 @@ def glob(dirname, pattern, recursive=False, with_files=True, with_dirs=True,  ma
     """
     Globs directory for pattern
 
+    Args:
+        dirname    (str):
+        pattern    (str):
+        recursive  (bool):
+        with_files (bool):
+        with_dirs  (bool):
+        maxdepth   (None):
+
+    Returns:
+        list: path_list
+
     SeeAlso:
         iglob
     """
+    if dirname.find('*') >= 0:
+        print('warning: star in dirname')
     gen = iglob(dirname, pattern, recursive=recursive,
                 with_files=with_files, with_dirs=with_dirs, maxdepth=maxdepth,
                 **kwargs)
@@ -751,9 +764,9 @@ def get_module_subdir_list(module_fpath):
     return modsubdir_list
 
 
-def tail(fpath):
-    """ DEPRICATE USE os.path.basename """
-    return split(fpath)[1]
+def tail(fpath, n=2):
+    """ Alias for path_ndir_split """
+    return path_ndir_split(fpath, n=n)
 
 
 def ls(path, pattern='*'):

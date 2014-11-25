@@ -18,32 +18,34 @@ from utool import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
 
 
-def bayes_rule(a_given_b, prob_a, prob_b):
-    """
+def bayes_rule(b_given_a, prob_a, prob_b):
+    r"""
     bayes_rule
 
+    P(A | B) = \frac{ P(B | A) P(A) }{ P(B) }
+
     Args:
-        a_given_b (ndarray or float):
+        b_given_a (ndarray or float):
         prob_a (ndarray or float):
         prob_b (ndarray or float):
 
     Returns:
-        ndarray or float: b_given_a
+        ndarray or float: a_given_b
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
-        >>> a_given_b = .1
-        >>> prob_a = .4
-        >>> prob_b = .3
-        >>> b_given_a = bayes_rule(a_given_b, prob_a, prob_b)
-        >>> result = b_given_a
+        >>> b_given_a = .1
+        >>> prob_a = .3
+        >>> prob_b = .4
+        >>> a_given_b = bayes_rule(b_given_a, prob_a, prob_b)
+        >>> result = a_given_b
         >>> print(result)
         0.075
 
     """
-    b_given_a = (a_given_b * prob_b) / prob_a
-    return b_given_a
+    a_given_b = (b_given_a * prob_a) / prob_b
+    return a_given_b
 
 
 def estimate_pdf(data, gridsize=1024, adjust=1):

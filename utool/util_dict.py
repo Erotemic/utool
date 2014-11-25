@@ -36,15 +36,50 @@ def invert_dict(dict_):
     return inverted_dict
 
 
-def all_dict_combinations(varied_dict):
+def all_dict_combinations_ordered(varied_dict):
     """
-    Input: a dict with lists of possible parameter settings
-    Output: a list of dicts correpsonding to all combinations of params settings
+    Same as all_dict_combinations but preserves order
     """
-
+    from collections import OrderedDict
     tups_list = [[(key, val) for val in val_list]
                  for (key, val_list) in six.iteritems(varied_dict)]
-    dict_list = [{key: val for (key, val) in tups} for tups in iprod(*tups_list)]
+    dict_list = [OrderedDict(tups) for tups in iprod(*tups_list)]
+    return dict_list
+
+
+def all_dict_combinations(varied_dict):
+    """
+    all_dict_combinations
+
+    Args:
+        varied_dict (dict):  a dict with lists of possible parameter settings
+
+    Returns:
+        list: dict_list a list of dicts correpsonding to all combinations of params settings
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
+        >>> varied_dict = {'logdist_weight': [0.0, 1.0], 'pipeline_root': ['vsmany'], 'sv_on': [True, False, None]}
+        >>> dict_list = all_dict_combinations(varied_dict)
+        >>> result = str(ut.list_str(dict_list))
+        >>> print(result)
+        [
+            {'pipeline_root': 'vsmany', 'sv_on': True, 'logdist_weight': 0.0},
+            {'pipeline_root': 'vsmany', 'sv_on': True, 'logdist_weight': 1.0},
+            {'pipeline_root': 'vsmany', 'sv_on': False, 'logdist_weight': 0.0},
+            {'pipeline_root': 'vsmany', 'sv_on': False, 'logdist_weight': 1.0},
+            {'pipeline_root': 'vsmany', 'sv_on': None, 'logdist_weight': 0.0},
+            {'pipeline_root': 'vsmany', 'sv_on': None, 'logdist_weight': 1.0},
+        ]
+    """
+    tups_list = [[(key, val) for val in val_list]
+                 for (key, val_list) in six.iteritems(varied_dict)]
+    dict_list = [dict(tups) for tups in iprod(*tups_list)]
+    #dict_list = [{key: val for (key, val) in tups} for tups in iprod(*tups_list)]
+    #from collections import OrderedDict
+    #dict_list = [OrderedDict([(key, val) for (key, val) in tups]) for tups in iprod(*tups_list)]
     return dict_list
 
 
