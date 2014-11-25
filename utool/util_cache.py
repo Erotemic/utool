@@ -84,6 +84,7 @@ def _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl=False):
 def save_cache(dpath, fname, cfgstr, data):
     fpath = _args2_fpath(dpath, fname, cfgstr, '.cPkl', write_hashtbl=False)
     util_io.save_cPkl(fpath, data)
+    return fpath
 
 
 def load_cache(dpath, fname, cfgstr):
@@ -442,11 +443,11 @@ def delete_global_cache(appname='default'):
     shelf_fpath = get_global_shelf_fpath(appname)
     util_path.remove_file(shelf_fpath, verbose=True, dryrun=False)
 
-import abc  # abstract base class
-import six
+#import abc  # abstract base class
+#import six
 
 
-@six.add_metaclass(abc.ABCMeta)
+#@six.add_metaclass(abc.ABCMeta)
 class Cachable(object):
     """
     Abstract base class.
@@ -458,29 +459,32 @@ class Cachable(object):
     """
     ext = '.cPkl'  # TODO: Capt'n Proto backend to replace pickle backend
 
-    @abc.abstractmethod
-    def get_cfgstr(self):
-        raise NotImplementedError('abstract method')
+    #@abc.abstractmethod
+    #def get_cfgstr(self):
+    #    raise NotImplementedError('abstract method')
+
+    #@abc.abstractmethod
+    #def get_prefix(self):
+    #    raise NotImplementedError('abstract method')
 
     def get_fname(self, cfgstr=None):
-        if cfgstr is None:
-            cfgstr = self.get_cfgstr()
-        if cfgstr is None:
-            raise AssertionError('Must specify cfgstr')
-        return cfgstr + self.ext
+        # convinience
+        return basename(self.get_fpath('', cfgstr=cfgstr))
 
     def get_fpath(self, cachedir, cfgstr=None):
-        fpath = join(cachedir, self.get_fname(cfgstr=cfgstr))
+        _fname = self.get_prefix()
+        _cfgstr = self.get_cfgstr() if cfgstr is None else cfgstr
+        fpath = _args2_fpath(cachedir, _fname, _cfgstr, self.ext, write_hashtbl=False)
         return fpath
 
     def delete(self, cachedir, cfgstr=None, verbose=True or VERBOSE or util_arg.VERBOSE):
         """
         saves query result to directory
         """
+        import os
         fpath = self.get_fpath(cachedir, cfgstr=cfgstr)
         if verbose:
             print('[Cachable] cache delete: %r' % (basename(fpath),))
-        import os
         os.remove(fpath)
 
     def save(self, cachedir, cfgstr=None, verbose=True or VERBOSE or util_arg.VERBOSE):
@@ -491,6 +495,8 @@ class Cachable(object):
         if verbose:
             print('[Cachable] cache save: %r' % (basename(fpath),))
         util_io.save_cPkl(fpath, self.__dict__)
+        return fpath
+        #save_cache(cachedir, '', cfgstr, self.__dict__)
         #with open(fpath, 'wb') as file_:
         #    cPickle.dump(self.__dict__, file_)
 
@@ -502,8 +508,10 @@ class Cachable(object):
         #    self.__dict__.update(loaded_dict)
 
     def load(self, cachedir, cfgstr=None, verbose=True or VERBOSE):
-        """ Loads the result from the given database """
-        fpath = self.get_fpath(cachedir)
+        """
+        Loads the result from the given database
+        """
+        fpath = self.get_fpath(cachedir, cfgstr=cfgstr)
         if verbose:
             print('[Cachable] cache tryload: %r' % (basename(fpath),))
         try:

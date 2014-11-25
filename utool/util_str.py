@@ -129,11 +129,21 @@ def indent(string, indent='    '):
 
 def indentjoin(strlist, indent='\n    ', suffix=''):
     r"""
-    Convineince
+    Convineince indentjoin
 
     similar to '\n    '.join(strlist) but indent is also prefixed
+
+    Args:
+        strlist (?):
+        indent  (str):
+        suffix  (str):
+
+    Returns:
+        str: joineed list
     """
     indent_ = indent
+    if len(strlist) == 0:
+        return ''
     return indent_ + indent_.join([str(str_) + suffix for str_ in strlist])
 
 

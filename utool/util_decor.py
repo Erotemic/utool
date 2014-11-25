@@ -100,11 +100,11 @@ def on_exception_report_input(func):
             return func(*args, **kwargs)
         except Exception as ex:
             import utool as ut
-            arg_strs = list(map(ut.truncate_str, map(str, args)))
-            arg_strs = list(map(ut.truncate_str, map(str, ('%s=%r' % (key, val) for key, val in six.iteritems(kwargs)))))
-            msg = ('ERROR: funcname=%r,\n * args=%s,\n * kwargs=%r\n' % (get_funcname(func), arg_strs, kwargs))
+            arg_strs = ', '.join([repr(ut.truncate_str(str(arg))) for arg in args])
+            kwarg_strs = ', '.join([ut.truncate_str('%s=%r' % (key, val)) for key, val in six.iteritems(kwargs)])
+            msg = ('\nERROR: funcname=%r,\n * args=%s,\n * kwargs=%r\n' % (get_funcname(func), arg_strs, kwarg_strs))
             msg += ' * len(args) = %r\n' % len(args)
-            msg += ' * len(kwlargs) = %r\n' % len(kwargs)
+            msg += ' * len(kwargs) = %r\n' % len(kwargs)
             util_dbg.printex(ex, msg, separate=True)
             raise
     wrp_exception_report_input = preserve_sig(wrp_exception_report_input, func)
@@ -198,26 +198,28 @@ def __assert_param_consistency(args, argx_list):
     try:
         assert all([argx_flags[0] == flag for flag in argx_flags]), (
             'invalid mixing of iterable and scalar inputs')
-    except AssertionError:
-        print('!!! ASSERTION ERROR !!!')
+    except AssertionError as ex:
+        print('!!! ASSERTION ERROR IN UTIL_DECOR !!!')
         for argx in argx_list:
             print('args[%d] = %r' % (argx, args[argx]))
-        raise
+        raise ex
 
 
 def accepts_scalar_input2(argx_list=[0]):
     """
     FIXME: change to better name. Complete implementation.
 
-    Args:
-        argx_list (list): indexes of args that could be passed in as scalars to
-            code that operates on lists. Ensures that decorated function gets
-            the argument as an iterable.
+    used in IBEIS setters
 
     accepts_scalar_input is a decorator which expects to be used on class methods.
     It lets the user pass either a vector or a scalar to a function, as long as
     the function treats everything like a vector. Input and output is sanatized
     to the user expected format on return.
+
+    Args:
+        argx_list (list): indexes of args that could be passed in as scalars to
+            code that operates on lists. Ensures that decorated function gets
+            the argument as an iterable.
     """
     if not isinstance(argx_list, (list, tuple)):
         raise AssertionError('accepts_scalar_input2 must be called with argument positions')
