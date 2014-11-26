@@ -16,7 +16,7 @@ import keyword
 import re
 import types
 import functools
-from os.path import splitext, split
+from os.path import splitext, split, basename, dirname
 from utool import util_inject
 from utool.util_arg import get_argflag
 from utool.util_inject import inject
@@ -380,15 +380,15 @@ def haveIPython():
 
 def print_frame(frame):
     frame = frame if 'frame' in vars() else inspect.currentframe()
-    attr_list = ['f_code.co_name', 'f_back', 'f_lineno',
-                 'f_code.co_names', 'f_code.co_filename']
+    attr_list = ['f_code.co_name', 'f_code.co_filename', 'f_back', 'f_lineno',
+                 'f_code.co_names']
     obj_name = 'frame'
     execstr_print_list = ['print("%r=%%r" %% (%s,))' % (_execstr, _execstr)
                           for _execstr in execstr_attr_list(obj_name, attr_list)]
     execstr = '\n'.join(execstr_print_list)
     exec(execstr)
     local_varnames = pack_into('; '.join(frame.f_locals.keys()))
-    print(local_varnames)
+    print('Local varnames: ' + local_varnames)
     print('--- End Frame ---')
 
 
@@ -445,13 +445,16 @@ get_var_from_stack = search_stack_for_var
 get_localvar_from_stack = search_stack_for_localvar
 
 
-def get_stack_frame(N=0):
+def get_stack_frame(N=0, strict=True):
     frame_level0 = inspect.currentframe()
     frame_cur = frame_level0
     for _ix in range(N + 1):
         frame_next = frame_cur.f_back
         if frame_next is None:
-            raise AssertionError('Frame level %r is root' % _ix)
+            if strict:
+                raise AssertionError('Frame level %r is root' % _ix)
+            else:
+                break
         frame_cur = frame_next
     return frame_cur
 
@@ -515,6 +518,12 @@ def get_caller_prefix(N=0, aserror=False):
     return prefix
 
 
+def get_caller_lineno(N=0, strict=True):
+    parent_frame = get_parent_frame(N=N + 1)
+    lineno =  parent_frame.f_lineno
+    return lineno
+
+
 def get_caller_name(N=0):
     """
     get the name of the function that called you
@@ -543,7 +552,16 @@ def get_caller_name(N=0):
     if caller_name == '<module>':
         co_filename = parent_frame.f_code.co_filename
         caller_name = splitext(split(co_filename)[1])[0]
+    if caller_name == '__init__':
+        caller_name = basename(dirname(co_filename)) + '.' + caller_name
     return caller_name
+
+
+def get_caller_modname(N=0, allowmain=True):
+    parent_frame = get_stack_frame(N=N + 2)
+    assert allowmain is True
+    caller_modname = parent_frame.f_globals['__name__']
+    return caller_modname
 
 
 def module_functions(module):

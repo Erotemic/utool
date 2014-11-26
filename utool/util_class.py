@@ -16,7 +16,9 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[class]', DEBUG=False)
 __CLASSTYPE_ATTRIBUTES__ = defaultdict(oset)
 __CLASSTYPE_POSTINJECT_FUNCS__ = defaultdict(oset)
 
-VERBOSE_CLASS = util_arg.get_argflag(('--verbose-class', '--verbclass')) or util_arg.VERYVERBOSE
+
+QUIET_CLASS = util_arg.get_argflag(('--quiet-class', '--quietclass'))
+VERBOSE_CLASS = util_arg.get_argflag(('--verbose-class', '--verbclass')) or (not QUIET_CLASS and util_arg.VERYVERBOSE)
 
 
 def inject_instance(self, classtype=None, allow_override=False,
@@ -129,25 +131,33 @@ def make_class_postinject_decorator(classtype):
     return closure_decorate_postinject
 
 
-def decorate_class_method(func, classtype=None):
+def decorate_class_method(func, classtype=None, skipmain=True):
     """
     Will inject all decorated function as methods of classtype
 
+    classtype is some identifying string, tuple, or object
+
     func can also be a tuple
     """
-    assert classtype is not None, 'must specify classtype'
+    import utool as ut
     global __CLASSTYPE_ATTRIBUTES__
-    __CLASSTYPE_ATTRIBUTES__[classtype].append(func)
+    assert classtype is not None, 'must specify classtype'
+    if not (skipmain and ut.get_caller_modname() == '__main__'):
+        __CLASSTYPE_ATTRIBUTES__[classtype].append(func)
     return func
 
 
-def decorate_postinject(func, classtype=None):
+def decorate_postinject(func, classtype=None, skipmain=True):
     """
     Will perform func with argument self after inject_instance is called on classtype
+
+    classtype is some identifying string, tuple, or object
     """
-    assert classtype is not None, 'must specify classtype'
+    import utool as ut
     global __CLASSTYPE_POSTINJECT_FUNCS__
-    __CLASSTYPE_POSTINJECT_FUNCS__[classtype].append(func)
+    assert classtype is not None, 'must specify classtype'
+    if not (skipmain and ut.get_caller_modname() == '__main__'):
+        __CLASSTYPE_POSTINJECT_FUNCS__[classtype].append(func)
     return func
 
 
@@ -166,12 +176,18 @@ def inject_func_as_method(self, func, method_name=None, class_=None, allow_overr
     if method_name is None:
         method_name = get_funcname(func)
     #printDBG('Injecting method_name=%r' % method_name)
-    new_method = types.MethodType(func, self)
     old_method = getattr(self, method_name, None)
+    new_method = types.MethodType(func, self)
+
     if old_method is not None:
-        #if old_method is new_method or old_method.im_func is new_method.im_func:
-        #    print('WARNING: Injecting the same function twice: %r' % new_method)
-        if allow_override is False:
+        if (old_method.im_func.func_globals['__name__'] != '__main__' and
+                new_method.im_func.func_globals['__name__'] == '__main__'):
+            if VERBOSE_CLASS:
+                print('[util_class] skipping re-inject of %r from __main__' % method_name)
+            return
+        if old_method is new_method or old_method.im_func is new_method.im_func:
+            print('WARNING: Injecting the same function twice: %r' % new_method)
+        elif allow_override is False:
             raise AssertionError('Overrides are not allowed. Already have method_name=%r' % (method_name))
         elif allow_override == 'warn':
             print('WARNING: Overrides are not allowed. Already have method_name=%r. Skipping' % (method_name))
@@ -179,9 +195,11 @@ def inject_func_as_method(self, func, method_name=None, class_=None, allow_overr
         elif allow_override == 'override+warn':
             #import utool as ut
             #ut.embed()
-            print('WARNING: Overrides are allowed, but dangerous. Already have method_name=%r.' % (method_name))
+            print('WARNING: Overrides are allowed, but dangerous. method_name=%r.' % (method_name))
             print('old_method = %r, im_func=%s' % (old_method, str(old_method.im_func)))
             print('new_method = %r, im_func=%s' % (new_method, str(new_method.im_func)))
+            print(old_method.im_func.func_globals['__name__'])
+            print(new_method.im_func.func_globals['__name__'])
         # TODO: does this actually decrement the refcount enough?
         del old_method
     setattr(self, method_name, new_method)

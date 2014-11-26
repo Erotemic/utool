@@ -12,18 +12,20 @@ import multiprocessing
 import os
 import sys
 
-
-def __inside_doctest(original_stdout=sys.stdout):
-    return original_stdout != sys.stdout
-
-__IN_MAIN_PROCESS__ = multiprocessing.current_process().name == 'MainProcess'
-
-__UTOOL_ROOT_LOGGER__ = None
-
 PRINT_ALL_CALLERS = '--print-all-callers' in sys.argv
 VERBOSE = '--verbose' in sys.argv
 VERYVERBOSE = '--very-verbose' in sys.argv or '--veryverbose' in sys.argv
 LOGGING_VERBOSE = VERYVERBOSE or '--verb-logging' in sys.argv
+PRINT_INJECT_ORDER = VERYVERBOSE or '--print-inject-order' in sys.argv
+
+
+def __inside_doctest(original_stdout=sys.stdout):
+    return original_stdout != sys.stdout
+
+
+__IN_MAIN_PROCESS__ = multiprocessing.current_process().name == 'MainProcess'
+
+__UTOOL_ROOT_LOGGER__ = None
 
 # Remeber original python values
 __PYTHON_STDOUT__ = sys.stdout
@@ -202,3 +204,12 @@ def stop_logging():
         __UTOOL_PRINTDBG__ = __PYTHON_PRINT__
         __UTOOL_WRITE__    = __PYTHON_WRITE__
         __UTOOL_FLUSH__    = __PYTHON_FLUSH__
+
+# HAVE TO HACK THIS IN FOR UTOOL SPECIAL CASE ONLY
+# OTHER MODULE CAN USE NOINJECT
+if PRINT_INJECT_ORDER:
+    from utool._internal import meta_util_dbg
+    callername = meta_util_dbg.get_caller_name(N=1, strict=False)
+    fmtdict = dict(callername=callername, modname='utool.util_logging')
+    msg = '[util_inject] {modname} is imported by {callername}'.format(**fmtdict)
+    builtins.print(msg)

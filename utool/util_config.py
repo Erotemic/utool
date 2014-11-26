@@ -18,8 +18,8 @@ from utool import util_inject
 #from utool import util_io
 #from utool import util_str
 #from utool import util_cplat
-#from ._internal.meta_util_six import get_funcname
-#from ._internal.meta_util_constants import (global_cache_fname,
+#from utool._internal.meta_util_six import get_funcname
+#from utool._internal.meta_util_constants import (global_cache_fname,
 #                                            global_cache_dname,
 #                                            default_appname)
 (print, print_, printDBG, rrr, profile) = util_inject.inject(__name__, '[config]')

@@ -325,16 +325,57 @@ def make_default_docstr(func):
     return default_docstr
 
 
+def make_default_module_maintest(modname):
+    """
+    make_default_module_maintest
+
+    Args:
+        modname (str):  module name
+
+    Returns:
+        str: text
+
+    References:
+        http://legacy.python.org/dev/peps/pep-0338/
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_autogen import *  # NOQA
+        >>> modname = 'utool.util_autogen'
+        >>> text = make_default_module_maintest(modname)
+        >>> result = str(text)
+        >>> print(result)
+    """
+    import utool as ut
+    # Need to use python -m to run a module
+    # otherwise their could be odd platform specific errors.
+    text = ut.codeblock(
+        '''
+        if __name__ == '__main__':
+            """
+            CommandLine:
+                python -c "import utool, {modname}; utool.doctest_funcs({modname}, allexamples=True)"
+                python -m {modname}
+                python -m {modname} --allexamples
+                python -m {modname} --allexamples --noface --nosrc
+            """
+            import multiprocessing
+            multiprocessing.freeze_support()  # for win32
+            import utool as ut  # NOQA
+            ut.doctest_funcs()
+        '''
+    ).format(modname=modname)
+    return text
+
+
 if __name__ == '__main__':
     """
     CommandLine:
         python ibeis/control/template_generator.py --tbls annotations --Tflags getters native
-
         python -c "import utool, utool.util_autogen; utool.doctest_funcs(utool.util_autogen, allexamples=True)"
-        python -c "import utool, utool.util_autogen; utool.doctest_funcs(utool.util_autogen)"
-        python utool/util_autogen.py
-        python utool/util_autogen.py --allexamples
-        python utool/util_autogen.py --allexamples --noface --nosrc
+        python -m utool.util_autogen
+        python -m utool.util_autogen --allexamples
+        python -m utool.util_autogen --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

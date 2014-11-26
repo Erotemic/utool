@@ -4,8 +4,8 @@ from six.moves import builtins
 import sys
 from functools import wraps
 from utool import util_logging
-from ._internal.meta_util_six import get_funcname
-from ._internal.meta_util_arg import get_argval
+from utool._internal.meta_util_six import get_funcname
+from utool._internal.meta_util_arg import get_argval
 
 
 __AGGROFLUSH__ = '--aggroflush' in sys.argv
@@ -14,6 +14,8 @@ __DEBUG_ALL__  = '--debug-all'  in sys.argv
 __DEBUG_PROF__ = '--debug-prof' in sys.argv or '--debug-profile' in sys.argv
 QUIET = '--quiet' in sys.argv
 SILENT = '--silent' in sys.argv
+VERYVERBOSE = util_logging.VERYVERBOSE
+PRINT_INJECT_ORDER = util_logging.PRINT_INJECT_ORDER
 
 
 if __LOGGING__:
@@ -305,7 +307,18 @@ def inject_profile_function(module_name=None, module_prefix='[???]', module=None
     return profile_withfuncname_filter
 
 
-PRINT_INJECT_ORDER = '--veryverbose' in sys.argv or '--print-inject-order' in sys.argv
+def noinject(module_name=None, module_prefix='[???]', DEBUG=False, module=None, N=0):
+    """
+    Does not inject anything into the module. Just lets utool know that a module
+    is being imported so the import order can be debuged
+    """
+    if PRINT_INJECT_ORDER:
+        from utool._internal import meta_util_dbg
+        callername = meta_util_dbg.get_caller_name(N=2 + N, strict=False)
+        lineno = meta_util_dbg.get_caller_lineno(N=2 + N, strict=False)
+        fmtdict = dict(N=N, lineno=lineno, callername=callername, modname=module_name)
+        msg = '[util_inject] N={N} {modname} is imported by {callername} at lineno={lineno}'.format(**fmtdict)
+        builtins.print(msg)
 
 
 def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
@@ -335,10 +348,7 @@ def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
         >>> from util.util_inject import inject
         >>> print, print_, printDBG, rrr, profile = inject(__name__, '[mod]')
     """
-    if PRINT_INJECT_ORDER:
-        from ._internal import meta_util_dbg
-        callername = meta_util_dbg.get_caller_name(N=2)
-        builtins.print('[util_inject] {callername} is importing {modname}'.format(callername=callername, modname=module_name))
+    noinject(module_name, module_prefix, DEBUG, module, N=1)
     module = _get_module(module_name, module)
     rrr         = inject_reload_function(None, module_prefix, module)
     profile_    = inject_profile_function(None, module_prefix, module)

@@ -20,6 +20,19 @@ python -c "import utool" --dump-utool-init
 python -c "import utool" --update-utool-init
 """
 
+__VERYVERBOSE__ = '--veryverbose' in sys.argv or '--very-verbose' in sys.argv
+__PRINT_INJECT_ORDER__ = __VERYVERBOSE__ or '--print-inject-order' in sys.argv
+
+# HAVE TO HACK THIS IN FOR UTOOL.__INIT__ ONLY
+# OTHER MODULE CAN USE NOINJECT
+if __PRINT_INJECT_ORDER__:
+    from six.moves import builtins
+    from utool._internal import meta_util_dbg
+    callername = meta_util_dbg.get_caller_name(N=1, strict=False)
+    fmtdict = dict(callername=callername, modname='utool.__init__')
+    msg = '[util_inject] {modname} is imported by {callername}'.format(**fmtdict)
+    builtins.print(msg)
+
 
 IMPORT_TUPLES = [
     ('_internal',      None),
@@ -161,15 +174,18 @@ if DOELSE:
                                 fuzzy_int, get_arg, get_argflag, get_argval, 
                                 get_flag, get_fpath_args, get_funcname, inject, 
                                 make_argparse2, parse_arglist_hack, 
-                                set_funcname, switch_sanataize, try_cast,) 
+                                parse_cfgstr_list, set_funcname, 
+                                switch_sanataize, try_cast,) 
     from utool.util_autogen import (PythonStatement, auto_docstr, 
                                     autofix_codeblock, make_args_docstr, 
-                                    make_default_docstr, make_docstr_block, 
-                                    make_example_docstr, 
+                                    make_default_docstr, 
+                                    make_default_module_maintest, 
+                                    make_docstr_block, make_example_docstr, 
                                     make_returns_or_yeilds_docstr, 
                                     print_auto_docstr,) 
-    from utool.util_cache import (Cacher, GlobalShelfContext, cached_func, 
-                                  chain, default_appname, delete_global_cache, 
+    from utool.util_cache import (BadZipFile, Cachable, Cacher, 
+                                  GlobalShelfContext, cached_func, chain, 
+                                  default_appname, delete_global_cache, 
                                   get_argnames, get_cfgstr_from_args, 
                                   get_default_appname, get_global_cache_dir, 
                                   get_global_shelf_fpath, get_kwdefaults, 
@@ -188,14 +204,14 @@ if DOELSE:
                                   get_free_diskbytes, get_install_dirs, 
                                   get_lib_ext, get_pylib_ext, 
                                   get_python_dynlib, get_resource_dir, 
-                                  get_user_name, getroot, is64bit_python, 
-                                  ls_libs, print_dir_diskspace, 
+                                  get_user_name, geteditor, getroot, 
+                                  is64bit_python, ls_libs, print_dir_diskspace, 
                                   python_executable, run_realtime_process, 
                                   set_process_title, shell, startfile, 
                                   truepath, unixpath, vd, view_directory,) 
-    from utool.util_class import (ReloadingMetaclass, VERBOSE_CLASS, 
-                                  decorate_class_method, decorate_postinject, 
-                                  get_comparison_methods, 
+    from utool.util_class import (QUIET_CLASS, ReloadingMetaclass, 
+                                  VERBOSE_CLASS, decorate_class_method, 
+                                  decorate_postinject, get_comparison_methods, 
                                   inject_func_as_method, inject_instance, 
                                   makeForwardingMetaclass, 
                                   make_class_method_decorator, 
@@ -213,8 +229,9 @@ if DOELSE:
                                 execstr_dict, execstr_embed, execstr_func, 
                                 execstr_parent_locals, execstr_src, 
                                 explore_module, explore_stack, fmtlocals, 
-                                formatex, get_caller_locals, get_caller_name, 
-                                get_caller_prefix, get_caller_stack_frame, 
+                                formatex, get_caller_lineno, get_caller_locals, 
+                                get_caller_name, get_caller_prefix, 
+                                get_caller_stack_frame, 
                                 get_localvar_from_stack, get_parent_frame, 
                                 get_parent_globals, get_parent_locals, 
                                 get_reprs, get_stack_frame, get_type, 
@@ -263,6 +280,7 @@ if DOELSE:
                                       hist_isect, nearest_point,) 
     from utool.util_dict import (all_dict_combinations, 
                                  all_dict_combinations_lbls, 
+                                 all_dict_combinations_ordered, 
                                  build_conflict_dict, dict_take_gen, 
                                  dict_take_list, dict_union, dict_union2, 
                                  dict_update_newkeys, dict_where_len0, 
@@ -297,7 +315,7 @@ if DOELSE:
                                    inject_colored_exceptions, 
                                    inject_print_functions, 
                                    inject_profile_function, 
-                                   inject_reload_function, memprof,) 
+                                   inject_reload_function, memprof, noinject,) 
     from utool.util_io import (load_cPkl, read_from, save_cPkl, try_decode, 
                                write_to,) 
     from utool.util_iter import (cycle, ensure_iterable, ichunks, ichunks_list, 
@@ -306,7 +324,7 @@ if DOELSE:
                                  iflatten_scalars, interleave, interleave2, 
                                  interleave3, isiterable, islice, itertwo, 
                                  izip_longest, roundrobin,) 
-    from utool.util_inspect import (get_func_argspec, get_funcdoc, 
+    from utool.util_inspect import (get_docstr, get_func_argspec, get_funcdoc, 
                                     get_funcglobals, get_imfunc, 
                                     infer_arg_types_and_descriptions, 
                                     iter_module_doctestable, 
@@ -402,7 +420,8 @@ if DOELSE:
                                 horiz_string, hz_str, indent_list, indentjoin, 
                                 joins, list_aliased_repr, list_str, 
                                 listinfo_str, long_fname_format, msgblock, 
-                                newlined_list, order_of_magnitude_str, packstr, 
+                                newlined_list, number_text_lines, 
+                                order_of_magnitude_str, packstr, 
                                 padded_str_range, remove_chars, remove_vowels, 
                                 replace_nonquoted_text, seconds_str, 
                                 singular_string, str2, str_between, theta_str, 
@@ -420,10 +439,11 @@ if DOELSE:
     from utool.util_regex import (REGEX_VARNAME, RE_FLAGS, RE_KWARGS, 
                                   get_match_text, modify_quoted_strs, 
                                   named_field, named_field_regex, padded_parse, 
-                                  parse_docblock, regex_get_match, 
-                                  regex_matches, regex_parse, regex_replace, 
-                                  regex_replace_lines, regex_search, 
-                                  regex_split, repl_field, sed, sedfile,) 
+                                  parse_docblock, parse_python_syntax, 
+                                  regex_get_match, regex_matches, regex_parse, 
+                                  regex_replace, regex_replace_lines, 
+                                  regex_search, regex_split, repl_field, sed, 
+                                  sedfile,) 
     from utool.util_time import (Timer, exiftime_to_unixtime, get_day, 
                                  get_month, get_timedelta_str, get_timestamp, 
                                  get_timestats_str, get_year, tic, timestamp, 
@@ -439,8 +459,8 @@ if DOELSE:
                                  smart_cast, type_str,) 
     from utool.util_tests import (BIGFACE, HAPPY_FACE, PRINT_FACE, PRINT_SRC, 
                                   SAD_FACE, VERBOSE_TEST, bubbletext, def_test, 
-                                  doctest_funcs, doctest_modules, 
-                                  find_doctestable_modnames, 
+                                  doctest_funcs, doctest_module_list, 
+                                  exec_doctest, find_doctestable_modnames, 
                                   find_untested_modpaths, get_doctest_examples, 
                                   get_doctest_testtup_list, 
                                   get_module_testlines, 

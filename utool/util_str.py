@@ -184,6 +184,9 @@ def __OLD_pack_into(instr, textwidth=160, breakchars=' ', break_words=True,
 def pack_into(instr, textwidth=160, breakchars=' ', break_words=True,
               newline_prefix='', wordsep=' ', remove_newlines=True):
     r"""
+
+    TODO: Look into textwrap.wrap
+
     Inserts newlines into a string enforcing a maximum textwidth.
     Similar to vim's gq command in visual select mode.
 
@@ -847,6 +850,9 @@ def remove_vowels(str_):
 
 
 def clipstr(str_, maxlen):
+    """
+    tries to shorten string as much as it can until it is just barely readable
+    """
     if len(str_) > maxlen:
         str2 = (str_[0] + remove_vowels(str_[1:])).replace('_', '')
         if len(str2) > maxlen:

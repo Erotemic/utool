@@ -235,25 +235,39 @@ def get_doctest_examples(func_or_class):
     '''
 
 
-def doctest_modules(module_list):
-    nPass = 0
-    nTotal = 0
-    failed_cmd_list = []
-    for module in module_list:
-        (nPass_, nTotal_, failed_cmd_list_) = doctest_funcs(module=module, allexamples=True)
-        nPass  += nPass_
-        nTotal += nTotal_
-        failed_cmd_list.extend(failed_cmd_list_)
+def doctest_module_list(module_list):
+    """
+    Runs many module tests
+    """
+    import utool as ut
+    nPass_list = []
+    nTotal_list = []
+    failed_cmds_list = []
+    print('[util_test] Running doctests on module list')
 
-    print('+-------')
-    print('| FINISHED TESTING MODULE LIST')
-    print('| passed %d / %d' % (nPass, nTotal))
-    print('L-------')
+    with open('failed_doctests.txt', 'a') as file_:
+        file_.write('-------')
+        testkw = dict(allexamples=True)
+        for module in module_list:
+            (nPass, nTotal, failed_list) = ut.doctest_funcs(module=module, **testkw)
+            nPass_list.append(nPass)
+            nTotal_list.append(nTotal)
+            failed_cmds_list.append(failed_list)
+            # Write failed tests to disk
+            for cmd in failed_list:
+                file_.write(cmd)
+
+    nPass = sum(nPass_list)
+    nTotal = sum(nTotal_list)
+    failed_cmd_list = ut.flatten(failed_cmds_list)
+    print('')
+    print('+========')
+    print('| FINISHED TESTING %d MODULES' % (len(module_list),))
+    print('| PASSED %d / %d' % (nPass, nTotal))
+    print('L========')
     if len(failed_cmd_list) > 0:
-        print('Failed Tests:')
+        print('FAILED TESTS:')
         print('\n'.join(failed_cmd_list))
-    else:
-        print('No Failures :)')
 
 
 def get_module_testlines(module_list, remove_pyc=True, verbose=True, pythoncmd='python'):
@@ -263,7 +277,8 @@ def get_module_testlines(module_list, remove_pyc=True, verbose=True, pythoncmd='
     import utool as ut  # NOQA
     testcmd_list = []
     for module in module_list:
-        enabled_testtup_list, frame_fpath, all_testflags, module_ = get_doctest_testtup_list(module=module, allexamples=True, verbose=verbose)
+        tuptup = get_doctest_testtup_list(module=module, allexamples=True, verbose=verbose)
+        enabled_testtup_list, frame_fpath, all_testflags, module_ = tuptup
         for testtup in enabled_testtup_list:
             testflag = testtup[-1]
             if remove_pyc:
@@ -412,7 +427,7 @@ def get_doctest_testtup_list(testable_list=None, check_flags=True, module=None,
 
 
 def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples=None,
-                  needs_enable=None, strict=True, verbose=True):
+                  needs_enable=None, strict=False, verbose=True):
     """
     Main entry point into utools main module doctest harness
 
@@ -424,11 +439,15 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
         needs_enable (None):
 
     Returns:
-        tuple: (nPass, nTotal)
+        tuple: (nPass, nTotal, failed_cmd_list)
 
     CommandLine:
         python -c "import utool; utool.doctest_funcs(module=utool.util_tests, needs_enable=False)"
-        python ibeis/model/preproc/preproc_chip.py --all-examples
+        python -m ibeis.model.preproc.preproc_chip --all-examples
+
+    References:
+        http://legacy.python.org/dev/peps/pep-0338/
+        https://docs.python.org/2/library/runpy.html
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -448,17 +467,20 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     #
     if verbose:
         print('[util_test.doctest_funcs] Running doctest funcs')
+
     tup_ = get_doctest_testtup_list(testable_list, check_flags, module,
                                     allexamples, needs_enable, N=1,
                                     verbose=verbose)
+
     enabled_testtup_list, frame_fpath, all_testflags, module  = tup_
-    # ----------------------------------------
-    # Run enabled examles
-    # ----------------------------------------
-    nTotal = len(enabled_testtup_list)
     nPass = 0
     nFail = 0
     failed_flag_list = []
+    nTotal = len(enabled_testtup_list)
+
+    # ----------------------------------------
+    # Run enabled examles
+    # ----------------------------------------
     for testtup in enabled_testtup_list:
         name, num, src, want, flag = testtup
         print('\n\n ---- DOCTEST ' + name.upper() + ':' + str(num) + '---')
@@ -468,7 +490,11 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
         test_globals = module.__dict__.copy()
         try:
             test_locals = ut.run_test((name,  src, frame_fpath), globals=test_globals, want=want)
-            nPass += (test_locals is not False)
+            is_pass = (test_locals is not False)
+            if is_pass:
+                nPass += 1
+            else:
+                raise Exception('failed')
         except Exception:
             nFail += 1
             failed_flag_list.append(flag)
@@ -486,8 +512,12 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     print('L-------')
     failed_cmd_list = []
     if nFail > 0:
-        failed_cmd_list = ['python %s %s' % (frame_fpath, flag_)
+        #modname = module.__name__
+        modname = ut.get_modname_from_modpath(frame_fpath)
+        failed_cmd_list = ['python -m %s %s' % (modname, flag_)
                             for flag_ in failed_flag_list]
+        #failed_cmd_list = ['python %s %s' % (frame_fpath, flag_)
+        #                    for flag_ in failed_flag_list]
         print('Failed Tests:')
         print('\n'.join(failed_cmd_list))
     return (nPass, nTotal, failed_cmd_list)
@@ -542,8 +572,10 @@ def run_test(func, *args, **kwargs):
     if ut.VERBOSE:
         printTEST('[TEST.BEGIN] %s ' % (sys.executable))
         printTEST('[TEST.BEGIN] %s ' % (funcname,))
-    print('<< funcname >>')
-    with util_print.Indenter('<<  ' + funcname + '  >>'):
+    print('  <funcname>  ')
+    print('  <' + funcname + '>  ')
+    short_funcname = ut.clipstr(funcname, 8)
+    with util_print.Indenter('  <' + short_funcname + '>  '):
         try:
             # RUN THE TEST WITH A TIMER
             with util_time.Timer(upper_funcname) as timer:

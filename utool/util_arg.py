@@ -30,7 +30,7 @@ NOT_QUIET = not QUIET
 
 # TODO: rectify with meta_util_arg
 # This has diverged and is now better
-#from ._internal.meta_util_arg import get_argval
+#from utool._internal.meta_util_arg import get_argval
 def get_argval(argstr_, type_=None, default=None, help_=None):
     """ Returns a value of an argument specified on the command line after some flag
 
@@ -131,9 +131,11 @@ def parse_arglist_hack(argx):
 
 def get_argflag(arg, default=False, help_='', **kwargs):
     """ Checks if the commandline has a flag or a corresponding noflag """
+    assert isinstance(default, bool), 'default must be boolean'
     if isinstance(arg, (tuple, list)):
         arg_list = arg
     else:
+        assert isinstance(arg, six.string_types), 'arg is not tuple or string'
         arg_list = [arg]
     for arg in arg_list:
         if not (arg.find('--') == 0 or (arg.find('-') == 0 and len(arg) == 2)):

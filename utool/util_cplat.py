@@ -10,8 +10,8 @@ import subprocess
 import shlex
 from os.path import exists, normpath, basename
 from .util_inject import inject
-from ._internal import meta_util_cplat
-from ._internal.meta_util_path import unixpath, truepath
+from utool._internal import meta_util_cplat
+from utool._internal.meta_util_path import unixpath, truepath
 print, print_, printDBG, rrr, profile = inject(__name__, '[cplat]')
 
 COMPUTER_NAME = platform.node()
