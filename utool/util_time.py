@@ -273,8 +273,8 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, utool.util_time; utool.doctest_funcs(utool.util_time, allexamples=True)"
         python -c "import utool, utool.util_time; utool.doctest_funcs(utool.util_time)"
-        python utool/util_time.py
-        python utool/util_time.py --allexamples
+        python -m utool.util_time
+        python -m utool.util_time --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

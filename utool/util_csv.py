@@ -134,8 +134,8 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, utool.util_csv; utool.doctest_funcs(utool.util_csv, allexamples=True)"
         python -c "import utool, utool.util_csv; utool.doctest_funcs(utool.util_csv)"
-        python utool/util_csv.py
-        python utool/util_csv.py --allexamples
+        python -m utool.util_csv
+        python -m utool.util_csv --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

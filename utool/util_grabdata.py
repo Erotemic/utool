@@ -258,8 +258,8 @@ if __name__ == '__main__':
         sh -c "python ~/code/utool/utool/util_grabdata.py --all-examples"
         python -c "import utool, utool.util_grabdata; utool.doctest_funcs(utool.util_grabdata, allexamples=True)"
         python -c "import utool, utool.util_grabdata; utool.doctest_funcs(utool.util_grabdata)"
-        python utool/util_grabdata.py
-        python utool/util_grabdata.py --allexamples
+        python -m utool.util_grabdata
+        python -m utool.util_grabdata --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

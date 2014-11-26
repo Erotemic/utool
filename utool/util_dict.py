@@ -277,8 +277,8 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, utool.util_dict; utool.doctest_funcs(utool.util_dict, allexamples=True)"
         python -c "import utool, utool.util_dict; utool.doctest_funcs(utool.util_dict)"
-        python utool/util_dict.py
-        python utool/util_dict.py --allexamples
+        python -m utool.util_dict
+        python -m utool.util_dict --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -503,8 +503,8 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, utool.util_decor; utool.doctest_funcs(utool.util_decor, allexamples=True)"
         python -c "import utool, utool.util_decor; utool.doctest_funcs(utool.util_decor)"
-        python utool/util_decor.py
-        python utool/util_decor.py --allexamples
+        python -m utool.util_decor
+        python -m utool.util_decor --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

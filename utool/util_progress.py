@@ -545,8 +545,8 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, utool.util_progress; utool.doctest_funcs(utool.util_progress, allexamples=True)"
         python -c "import utool, utool.util_progress; utool.doctest_funcs(utool.util_progress)"
-        python utool/util_progress.py
-        python utool/util_progress.py --allexamples
+        python -m utool.util_progress
+        python -m utool.util_progress --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

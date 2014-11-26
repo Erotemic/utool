@@ -1081,8 +1081,8 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, utool.util_dbg; utool.doctest_funcs(utool.util_dbg, allexamples=True)"
         python -c "import utool, utool.util_dbg; utool.doctest_funcs(utool.util_dbg)"
-        python utool/util_dbg.py
-        python utool/util_dbg.py --allexamples
+        python -m utool.util_dbg
+        python -m utool.util_dbg --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -343,8 +343,8 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, utool.util_parallel; utool.doctest_funcs(utool.util_parallel, allexamples=True)"
         python -c "import utool, utool.util_parallel; utool.doctest_funcs(utool.util_parallel)"
-        python utool/util_parallel.py
-        python utool/util_parallel.py --allexamples
+        python -m utool.util_parallel
+        python -m utool.util_parallel --allexamples
     """
     #import multiprocessing
     multiprocessing.freeze_support()  # for win32

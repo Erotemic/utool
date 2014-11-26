@@ -207,8 +207,8 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, utool.util_iter; utool.doctest_funcs(utool.util_iter, allexamples=True)"
         python -c "import utool, utool.util_iter; utool.doctest_funcs(utool.util_iter)"
-        python utool/util_iter.py
-        python utool/util_iter.py --allexamples
+        python -m utool.util_iter
+        python -m utool.util_iter --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

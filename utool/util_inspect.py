@@ -330,9 +330,9 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, utool.util_inspect; utool.doctest_funcs(utool.util_inspect, allexamples=True)"
         python -c "import utool, utool.util_inspect; utool.doctest_funcs(utool.util_inspect)"
-        python utool/util_inspect.py --enableall
-        python utool/util_inspect.py --enableall --test-iter-module-doctestable:1
-        python utool/util_inspect.py --allexamples
+        python -m utool.util_inspect --enableall
+        python -m utool.util_inspect --enableall --test-iter-module-doctestable:1
+        python -m utool.util_inspect --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

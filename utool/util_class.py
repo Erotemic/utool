@@ -376,7 +376,7 @@ def get_comparison_methods():
 if __name__ == '__main__':
     """
     python -c "import utool; utool.doctest_funcs(utool.util_class, allexamples=True)"
-    python utool/util_class.py --allexamples
+    python -m utool.util_class --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()

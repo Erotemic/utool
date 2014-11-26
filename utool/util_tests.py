@@ -1028,9 +1028,9 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, utool.util_tests; utool.doctest_funcs(utool.util_tests, allexamples=True)"
         python -c "import utool, utool.util_tests; utool.doctest_funcs(utool.util_tests)"
-        python utool/util_tests.py
-        python utool/util_tests.py --allexamples
-        python utool/util_tests.py
+        python -m utool.util_tests
+        python -m utool.util_tests --allexamples
+        python -m utool.util_tests
         python -c "import utool; utool.doctest_funcs(module=utool.util_tests, needs_enable=False)"
         /model/preproc/preproc_chip.py --allexamples
     """

@@ -550,8 +550,8 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, utool.util_cache; utool.doctest_funcs(utool.util_cache, allexamples=True)"
         python -c "import utool, utool.util_cache; utool.doctest_funcs(utool.util_cache)"
-        python utool/util_cache.py
-        python utool/util_cache.py --allexamples
+        python -m utool.util_cache
+        python -m utool.util_cache --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

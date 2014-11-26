@@ -48,6 +48,16 @@ def fix_bad_doctestcmds():
     res = ut.grep(regex_list, recursive=True, dpath_list=dpath_list, verbose=True)
     found_filestr_list, found_lines_list, found_lxs_list = res
     fpath = res[0][0]
+
+    import re
+    keypat_list = [
+        ('prefix', 'python\s*'),
+        ('modrelpath', '[A-Za-z_]+[\\/]\S*'),
+        ('suffix', '.*'),
+    ]
+    namedregex = ut.named_field_regex(keypat_list)
+
+    # Define function to pass to re.sub
     def replmodpath(matchobj):
         groupdict_ = matchobj.groupdict()
         relpath = groupdict_['modrelpath']
@@ -61,20 +71,15 @@ def fix_bad_doctestcmds():
 
     for fpath in found_filestr_list:
         text = ut.read_from(fpath)
-        import re
-        keypat_list = [
-            ('prefix', 'python\s*'),
-            ('modrelpath', '[A-Za-z_]+[\\/]\S*'),
-            ('suffix', '.*'),
-        ]
-        namedregex = ut.named_field_regex(keypat_list)
         #matchobj = re.search(namedregex, text, flags=re.MULTILINE)
         #print(text)
-        for matchobj in re.finditer(namedregex, text):
-            print(ut.get_match_text(matchobj))
-            print('--')
+        #for matchobj in re.finditer(namedregex, text):
+        #    print(ut.get_match_text(matchobj))
+        #    print('--')
         newtext = re.sub(namedregex, replmodpath, text)
-        #print(newtext)
+        # Perform replacement
+        ut.write_to(fpath, newtext)
+        #print('\n'.join(newtext.splitlines()[-10:]))
 
 
 def ensure_future_compatible(mod_fpath):

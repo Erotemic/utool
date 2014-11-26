@@ -213,8 +213,8 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, utool.util_numpy; utool.doctest_funcs(utool.util_numpy, allexamples=True)"
         python -c "import utool, utool.util_numpy; utool.doctest_funcs(utool.util_numpy)"
-        python utool/util_numpy.py
-        python utool/util_numpy.py --allexamples
+        python -m utool.util_numpy
+        python -m utool.util_numpy --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

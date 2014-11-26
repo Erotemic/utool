@@ -422,8 +422,8 @@ if __name__ == '__main__':
     CommandLine:
         python -c "import utool, utool.util_regex; utool.doctest_funcs(utool.util_regex, allexamples=True)"
         python -c "import utool, utool.util_regex; utool.doctest_funcs(utool.util_regex)"
-        python utool/util_regex.py
-        python utool/util_regex.py --allexamples
+        python -m utool.util_regex
+        python -m utool.util_regex --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
