@@ -873,6 +873,15 @@ def msgblock(key, text):
     return blocked_text
 
 
+def number_text_lines(text):
+    numbered_linelist = [
+        ''.join((('%2d' % (count + 1)), ' >>> ', line))
+        for count, line in enumerate(text.splitlines())
+    ]
+    text_with_lineno = '\n'.join(numbered_linelist)
+    return text_with_lineno
+
+
 if __name__ == '__main__':
     """
     CommandLine:

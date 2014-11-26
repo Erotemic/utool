@@ -8,7 +8,6 @@ import traceback  # NOQA
 import sys
 from os.path import basename
 from utool import util_print
-from utool import util_dbg
 from utool import util_arg
 from utool import util_path
 from utool import util_time
@@ -18,8 +17,9 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[tests]')
 
 
 VERBOSE_TEST = util_arg.get_argflag(('--verb-test', '--verbose-test'))
-PRINT_SRC = not util_arg.get_argflag('--noprintsrc', '--nosrc')
-PRINT_FACE = not util_arg.get_argflag('--noprintface', '--noface')
+PRINT_SRC = not util_arg.get_argflag(('--noprintsrc', '--nosrc'))
+PRINT_FACE = not util_arg.get_argflag(('--noprintface', '--noface'))
+#BIGFACE = False
 BIGFACE = False
 
 if BIGFACE:
@@ -493,6 +493,38 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     return (nPass, nTotal, failed_cmd_list)
 
 
+def exec_doctest(src, kwargs):
+    """
+    block of code that runs doctest and was too big to be in run_test
+    """
+    # TEST INPUT IS PYTHON CODE TEXT
+    test_locals = {}
+    test_globals = kwargs.get('globals', {})
+    want = kwargs.get('want', None)
+    #test_globals['print'] = doctest_print
+    # EXEC FUNC
+    six.exec_(src, test_globals, test_locals)
+    if want is None or want == '':
+        print('warning test does not want anything')
+    else:
+        if want.endswith('\n'):
+            want = want[:-1]
+        result = str(test_locals.get('result', 'NO VARIABLE NAMED result'))
+        #print('!! RESULT LINES: ')
+        #print(result)
+        if result != want:
+            errmsg1 = ''
+            errmsg1 += ('REPR_GOT: result=\n%r\n' % (result))
+            errmsg1 += ('REPR_EXPECTED: want=\n%r\n' % (want))
+            errmsg1 += ''
+            errmsg1 += ('STR_GOT: result=\n%s\n' % (result))
+            errmsg1 += ('STR_EXPECTED: want=\n%s\n' % (want))
+            raise AssertionError('result != want\n' + errmsg1)
+        assert result == want, 'result is not the same as want'
+    return test_locals
+    #print('\n'.join(output_lines))
+
+
 def run_test(func, *args, **kwargs):
     """
     Runs the test function with success / failure printing
@@ -513,62 +545,43 @@ def run_test(func, *args, **kwargs):
     print('<< funcname >>')
     with util_print.Indenter('<<  ' + funcname + '  >>'):
         try:
+            # RUN THE TEST WITH A TIMER
             with util_time.Timer(upper_funcname) as timer:
                 if func_is_text:
-                    # TEST INPUT IS PYTHON CODE TEXT
-                    test_locals = {}
-                    test_globals = kwargs.get('globals', {})
-                    want = kwargs.get('want', None)
-                    #test_globals['print'] = doctest_print
-                    # EXEC FUNC
-                    six.exec_(src, test_globals, test_locals)
-                    if want is None or want == '':
-                        print('warning test does not want anything')
-                    else:
-                        if want.endswith('\n'):
-                            want = want[:-1]
-                        result = str(test_locals.get('result', 'NO VARIABLE NAMED result'))
-                        #print('!! RESULT LINES: ')
-                        #print(result)
-                        if result != want:
-                            errmsg1 = ''
-                            errmsg1 += ('REPR_GOT: result=\n%r\n' % (result))
-                            errmsg1 += ('REPR_EXPECTED: want=\n%r\n' % (want))
-                            errmsg1 += ''
-                            errmsg1 += ('STR_GOT: result=\n%s\n' % (result))
-                            errmsg1 += ('STR_EXPECTED: want=\n%s\n' % (want))
-                            raise AssertionError('result != want\n' + errmsg1)
-                        #assert result == want, 'result is not the same as want'
-                        print('\n... test encountered error. sys.exit(1)\n')
-                        sys.exit(1)
-                    #print('\n'.join(output_lines))
+                    test_locals = exec_doctest(src, kwargs)
                 else:
                     # TEST INPUT IS A LIVE PYTHON FUNCTION
                     test_locals = func(*args, **kwargs)
                 print('')
-                # Write timings
+            # YAY THE TEST PASSED
             printTEST('[TEST.FINISH] %s -- SUCCESS' % (funcname,))
             if PRINT_FACE:
                 print(HAPPY_FACE)
+            # WRITE TO PASSED TEST TIMES
             try:
                 with open('test_times.txt', 'a') as file_:
                     msg = '%.4fs in %s\n' % (timer.ellapsed, upper_funcname)
                     file_.write(msg)
             except IOError as ex:
                 ut.printex(ex, '[util_test] IOWarning')
+            # RETURN VALID TEST LOCALS
             return test_locals
+
         except Exception as ex:
             import utool as ut
             exc_type, exc_value, tb = sys.exc_info()
             # Get locals in the wrapped function
-            util_dbg.printex(ex, tb=True)
+            ut.printex(ex, tb=True)
             printTEST('[TEST.FINISH] %s -- FAILED: %s %s' % (funcname, type(ex), ex))
+            if PRINT_FACE:
+                print(SAD_FACE)
             if func_is_text:
-                #ut.embed()
                 print('Failed in module: %r' % frame_fpath)
-                src_with_lineno = '\n'.join([('%2d >>> ' % (count + 1)) + line
-                                             for count, line in enumerate(src.splitlines())])
+                src_with_lineno = ut.number_text_lines(src)
                 print(ut.msgblock('FAILED DOCTEST IN %s' % (funcname,), src_with_lineno))
+                #ut.embed()
+                #print('\n... test encountered error. sys.exit(1)\n')
+                #sys.exit(1)
                 #failed_execline = traceback.format_tb(tb)[-1]
                 #parse_str = 'File {fname}, line {lineno}, in {modname}'
                 #parse_dict = parse.parse('{prefix_}' + parse_str + '{suffix_}', failed_execline)
@@ -576,10 +589,7 @@ def run_test(func, *args, **kwargs):
                 #    lineno = int(parse_dict['lineno'])
                 #    failed_line = src.splitlines()[lineno - 1]
                 #    print('Failed on line: %s' % failed_line)
-            if PRINT_FACE:
-                print(SAD_FACE)
-            raise
-            if util_arg.STRICT:
+            if util_arg.SUPER_STRICT:
                 # Remove this function from stack strace
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 exc_traceback = exc_traceback.tb_next
@@ -591,6 +601,7 @@ def run_test(func, *args, **kwargs):
                 #ex = exc_type(exc_value)
                 #ex.__traceback__ = exc_traceback.tb_next
                 #raise ex
+            #raise
             return False
 
 
