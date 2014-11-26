@@ -21,6 +21,8 @@ TODO: Fixes/Warns about the folloing problems:
 rob sp DOCTEST_ENABLE ENABLE_DOCTEST
 rob sp DOCTEST_DIABLE DISABLE_DOCTEST
 
+rob gp "python .* --allexamples"
+
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut  # NOQA
@@ -28,6 +30,51 @@ import utool as ut  # NOQA
 
 def filter_comented_lines():
     pass
+
+
+def fix_bad_doctestcmds():
+    # http://stackoverflow.com/questions/18737863/passing-a-function-to-re-sub-in-python
+    # CANNOT USE [^ ] FOR SOME GOD DAMN REASON USE /S instead
+    regex_list = ['python [A-Za-z_]+[\\/]\S* --allexamples']
+    dpath_list = [
+        ut.ensure_crossplat_path(ut.truepath('~/code/utool/utool')),
+        ut.ensure_crossplat_path(ut.truepath('~/code/ibeis/ibeis')),
+        ut.ensure_crossplat_path(ut.truepath('~/code/vtool/vtool')),
+        ut.ensure_crossplat_path(ut.truepath('~/code/plottool/plottool')),
+        ut.ensure_crossplat_path(ut.truepath('~/code/guitool/guitool')),
+    ]
+    #ut.named_field_repl(['python ', ('modrelpath',),])
+    #['python ', ('modrelpath', 'utool[\\/].*'), '--allexamples'])
+    res = ut.grep(regex_list, recursive=True, dpath_list=dpath_list, verbose=True)
+    found_filestr_list, found_lines_list, found_lxs_list = res
+    fpath = res[0][0]
+    def replmodpath(matchobj):
+        groupdict_ = matchobj.groupdict()
+        relpath = groupdict_['modrelpath']
+        prefix = groupdict_['prefix']
+        suffix = groupdict_['suffix']
+        modname = relpath
+        modname = modname.replace('\\', '.')
+        modname = modname.replace('/', '.')
+        modname = modname.replace('.py', '')
+        return prefix + '-m ' + modname + suffix
+
+    for fpath in found_filestr_list:
+        text = ut.read_from(fpath)
+        import re
+        keypat_list = [
+            ('prefix', 'python\s*'),
+            ('modrelpath', '[A-Za-z_]+[\\/]\S*'),
+            ('suffix', '.*'),
+        ]
+        namedregex = ut.named_field_regex(keypat_list)
+        #matchobj = re.search(namedregex, text, flags=re.MULTILINE)
+        #print(text)
+        for matchobj in re.finditer(namedregex, text):
+            print(ut.get_match_text(matchobj))
+            print('--')
+        newtext = re.sub(namedregex, replmodpath, text)
+        #print(newtext)
 
 
 def ensure_future_compatible(mod_fpath):

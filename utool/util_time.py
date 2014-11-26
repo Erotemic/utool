@@ -23,6 +23,10 @@ def toc(tt, return_msg=False, write_msg=True):
         return ellapsed
 
 
+def get_printable_timestamp():
+    return get_timestamp('printable')
+
+
 def get_timestamp(format_='filename', use_second=False, delta_seconds=None):
     """
     get_timestamp

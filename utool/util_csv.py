@@ -3,6 +3,7 @@ try:
     import numpy as np
 except ImportError as ex:
     pass
+from six.moves import zip, map
 from utool.util_type import is_list, is_int, is_str, is_float
 from utool.util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[csv]')
@@ -101,7 +102,7 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
             raise
         return ('%d') % int(c)
 
-    for col, lbl, coltype in iter(zip(column_list, column_lbls, column_type)):
+    for col, lbl, coltype in zip(column_list, column_lbls, column_type):
         if coltype is list or is_list(coltype):
             #col_str = [str(c).replace(',', '<comma>').replace('.', '<dot>') for c in iter(col)]
             col_str = [str(c).replace(',', ' ').replace('.', '<dot>') for c in iter(col)]

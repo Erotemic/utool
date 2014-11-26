@@ -80,7 +80,7 @@ def regex_replace(regex, repl, text):
     Returns:
         str: modified text
 
-    Example:
+    Example1:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_regex import *  # NOQA
         >>> regex = r'\(.*\):'
@@ -92,6 +92,18 @@ def regex_replace(regex, repl, text):
         >>> print(result)
         def foo(*args)
 
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_regex import *  # NOQA
+        >>> import utool as ut
+        >>> regex = ut.named_field_regex([('keyword', 'def'), ' ', ('funcname', '.*'), '\(.*\):'])
+        >>> repl = ut.named_field_repl([('funcname',), ('keyword',)])
+        >>> text = '''def foo(param1,
+        ...                   param2,
+        ...                   param3):'''
+        >>> result = regex_replace(regex, repl, text)
+        >>> print(result)
+        foodef
     """
     return re.sub(regex, repl, text, **RE_KWARGS)
 
@@ -101,7 +113,8 @@ def named_field_regex(keypat_tups):
     named_field_regex
 
     Args:
-        keypat_tups (list): tuples of (name, pattern)
+        keypat_tups (list): tuples of (name, pattern) or a string for an unnamed
+        pattern
 
     Returns:
         str: regex
@@ -116,14 +129,42 @@ def named_field_regex(keypat_tups):
         ...    ( None,   r'\.'),
         ...    ('ext',   r'\w+'),
         ... ]
-        >>> parse_dict = named_field_regex(keypat_tups)
-        >>> result = (parse_dict)
+        >>> regex = named_field_regex(keypat_tups)
+        >>> result = (regex)
         >>> print(result)
         (?P<name>G\d+)(?P<under>_)(?P<id>\d+)\.(?P<ext>\w+)
     """
-    named_fields = [named_field(key, pat) for key, pat in keypat_tups]
+    # Allow for unnamed patterns
+    keypat_tups_ = [(None, tup) if isinstance(tup, six.string_types) else tup
+                    for tup in keypat_tups]
+    named_fields = [named_field(key, pat) for key, pat in keypat_tups_]
     regex = ''.join(named_fields)
     return regex
+
+
+def named_field_repl(field_list):
+    r"""
+    Args:
+        field_list (list): list of either a tuples to denote a keyword, or a
+            strings for relacement t3ext
+
+    Returns:
+        str: repl for regex
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_regex import *  # NOQA
+        >>> field_list = [('key',), 'unspecial string']
+        >>> repl = named_field_repl(field_list)
+        >>> result = repl
+        >>> print(result)
+        \g<key>unspecial string
+    """
+    # Allow for unnamed patterns
+    repl_fields = [r'\g<%s>' % key[0]
+                    if isinstance(key, tuple) else key for key in field_list]
+    repl = ''.join(repl_fields)
+    return repl
 
 
 def regex_get_match(regex, text, fromstart=False):

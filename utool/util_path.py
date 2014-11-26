@@ -53,25 +53,32 @@ def path_ndir_split(path_, n, force_unix=True, winroot='C:'):
     r"""
     Shows only a little bit of the path. Up to the n bottom-level directories
 
+    Returns:
+        (str) the trailing n paths of path.
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_path import *  # NOQA
         >>> import utool as ut
         >>> paths = [r'/usr/bin/local/foo/bar',
         ...          r'C:/',
+        ...          #r'lonerel',
+        ...          #r'reldir/other',
+        ...          #r'/ham',
+        ...          #r'/spam/eggs',
         ...          r'C:\Program Files (x86)/foobar/bin',]
-        >>> iter_ = ut.iprod(paths, range(1, 3))
+        >>> N = 2
+        >>> iter_ = ut.iprod(paths, range(1, N + 1))
         >>> force_unix = True
         >>> tuplist = [(n, ut.path_ndir_split(path_, n)) for path_, n in iter_]
-        >>> list_ = ['n=%r: %r' % tup for tup in tuplist]
-        >>> result = '\n'.join(list_)
+        >>> chunklist = list(ut.ichunks(tuplist, N))
+        >>> list_ = [['n=%r: %r' % tup for tup in chunk] for chunk in chunklist]
+        >>> line_list = [', '.join(strs) for strs in list_]
+        >>> result = '\n'.join(line_list)
         >>> print(result)
-        n=1: 'bar'
-        n=2: 'foo/bar'
-        n=1: 'C:/'
-        n=2: 'C:/'
-        n=1: 'bin'
-        n=2: 'foobar/bin'
+        n=1: 'bar', n=2: 'foo/bar'
+        n=1: 'C:/', n=2: 'C:/'
+        n=1: 'bin', n=2: 'foobar/bin'
     """
     if n is None:
         return ensure_crossplat_path(path_)
@@ -80,13 +87,17 @@ def path_ndir_split(path_, n, force_unix=True, winroot='C:'):
     sep = '/' if force_unix else os.sep
     ndirs_list = []
     head = path_
-    for _ in range(n):
+    for nx in range(n):
         head, tail = split(head)
         if tail == '':
-            root = head if len(ndirs_list) == 0 else head.strip('\\/')
-            ndirs_list.append(root)
-            break
-        ndirs_list.append(tail)
+            if head == '':
+                break
+            else:
+                root = head if len(ndirs_list) == 0 else head.strip('\\/')
+                ndirs_list.append(root)
+                break
+        else:
+            ndirs_list.append(tail)
     ndirs = sep.join(ndirs_list[::-1])
     cplat_path = ensure_crossplat_path(ndirs)
     return cplat_path
@@ -1024,6 +1035,8 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
             found_filestr_list.append(fpath)  # regular matching
             found_lines_list.append(found_lines)
             found_lxs_list.append(found_lxs)
+    if verbose:
+        print('[util_path] found matches in %d files' % len(found_filestr_list))
     return found_filestr_list, found_lines_list, found_lxs_list
 
 
@@ -1202,9 +1215,11 @@ if __name__ == '__main__':
     """
     CommandLine:
         python -c "import utool, utool.util_path; utool.doctest_funcs(utool.util_path, allexamples=True)"
-        python -c "import utool, utool.util_path; utool.doctest_funcs(utool.util_path)"
-        python utool/util_path.py
-        python utool/util_path.py --allexamples
+        python -m utool.util_path
+        python -m utool.util_path --allexamples
+        python -m utool.util_path --allexamples --noface --nosrc
     """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
     ut.doctest_funcs()

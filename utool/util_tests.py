@@ -245,8 +245,10 @@ def doctest_module_list(module_list):
     failed_cmds_list = []
     print('[util_test] Running doctests on module list')
 
-    with open('failed_doctests.txt', 'a') as file_:
-        file_.write('-------')
+    failed_doctest_fname = 'failed_doctests.txt'
+    with open(failed_doctest_fname, 'a') as file_:
+        file_.write('\n-------\n\n')
+        file_.write(ut.get_printable_timestamp() + '\n')
         testkw = dict(allexamples=True)
         for module in module_list:
             (nPass, nTotal, failed_list) = ut.doctest_funcs(module=module, **testkw)
@@ -255,7 +257,7 @@ def doctest_module_list(module_list):
             failed_cmds_list.append(failed_list)
             # Write failed tests to disk
             for cmd in failed_list:
-                file_.write(cmd)
+                file_.write(cmd + '\n')
 
     nPass = sum(nPass_list)
     nTotal = sum(nTotal_list)
@@ -405,7 +407,8 @@ def get_doctest_testtup_list(testable_list=None, check_flags=True, module=None,
     all_testflags = []
     enabled_testtup_list = []
     distabled_testflags  = []
-    subx = ut.get_argval('--subx', type_=int, default=None, help_='Only tests the subxth example')
+    subx = ut.get_argval('--subx', type_=int, default=None,
+                         help_='Only tests the subxth example')
     for testtup in testtup_list:
         name, num, src, want = testtup
         prefix = '--test-'
@@ -442,7 +445,6 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
         tuple: (nPass, nTotal, failed_cmd_list)
 
     CommandLine:
-        python -c "import utool; utool.doctest_funcs(module=utool.util_tests, needs_enable=False)"
         python -m ibeis.model.preproc.preproc_chip --all-examples
 
     References:
@@ -458,7 +460,8 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
         >>> allexamples = None
         >>> needs_enable = None
         >>> # careful might infinitely recurse
-        >>> (nPass, nTotal) = doctest_funcs(testable_list, check_flags, module, allexamples, needs_enable)
+        >>> (nPass, nTotal) = doctest_funcs(testable_list, check_flags, module,
+        ...                                 allexamples, needs_enable)
         >>> print((nPass, nTotal))
     """
     import multiprocessing
@@ -483,13 +486,18 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     # ----------------------------------------
     for testtup in enabled_testtup_list:
         name, num, src, want, flag = testtup
-        print('\n\n ---- DOCTEST ' + name.upper() + ':' + str(num) + '---')
+        print('\n\n')
+        print('--------------------------------------------------------------')
+        print('--------------------------------------------------------------')
+        print(' ---- DOCTEST ' + name.upper() + ':' + str(num) + '---')
         if PRINT_SRC:
             print(ut.msgblock('EXEC SRC', src))
         # --- EXEC STATMENT ---
         test_globals = module.__dict__.copy()
         try:
-            test_locals = ut.run_test((name,  src, frame_fpath), globals=test_globals, want=want)
+            test_locals = ut.run_test((name,  src, frame_fpath),
+                                      globals=test_globals,
+                                      want=want)
             is_pass = (test_locals is not False)
             if is_pass:
                 nPass += 1
@@ -504,8 +512,10 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     # -------
     # Print Results
     if nTotal == 0:
-        print('No test flags sepcified. Please choose one of the following flags or specify --enableall to test unenabled doctests')
-        print('Valid test argflags:\n' + '    --allexamples' + ut.indentjoin(all_testflags, '\n    '))
+        print('No test flags sepcified.')
+        print('Please choose one of the following flags or specify --enableall')
+        print('Valid test argflags:\n' + '    --allexamples' +
+                ut.indentjoin(all_testflags, '\n    '))
     print('+-------')
     print('| finished testing fpath=%r' % (frame_fpath,))
     print('| passed %d / %d' % (nPass, nTotal))
@@ -574,8 +584,8 @@ def run_test(func, *args, **kwargs):
         printTEST('[TEST.BEGIN] %s ' % (funcname,))
     print('  <funcname>  ')
     print('  <' + funcname + '>  ')
-    short_funcname = ut.clipstr(funcname, 8)
-    with util_print.Indenter('  <' + short_funcname + '>  '):
+    #short_funcname = ut.clipstr(funcname, 8)
+    with util_print.Indenter('  <' + funcname + '>  '):
         try:
             # RUN THE TEST WITH A TIMER
             with util_time.Timer(upper_funcname) as timer:

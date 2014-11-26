@@ -142,6 +142,7 @@ def indentjoin(strlist, indent='\n    ', suffix=''):
         str: joineed list
     """
     indent_ = indent
+    strlist = list(strlist)
     if len(strlist) == 0:
         return ''
     return indent_ + indent_.join([str(str_) + suffix for str_ in strlist])
@@ -532,7 +533,7 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True, recurs
 
 
 def list_str(list_):
-    return '[%s\n]' % indentjoin(list_, suffix=',')
+    return '[%s\n]' % indentjoin(list(list_), suffix=',')
 
 
 def dict_str(dict_, strvals=False, sorted_=False, newlines=True, recursive=True, indent_=''):
