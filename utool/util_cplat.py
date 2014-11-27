@@ -124,7 +124,7 @@ def get_dynlib_dependencies(lib_path):
     """
     if LINUX:
         ldd_fpath = '/usr/bin/ldd'
-        depend_out, depend_err, ret = cmd(ldd, lib_path, verbose=False)
+        depend_out, depend_err, ret = cmd(ldd_fpath, lib_path, verbose=False)
     elif DARWIN:
         depend_out, depend_err, ret = cmd('otool', '-L', lib_path, verbose=False)
     elif WIN32:
