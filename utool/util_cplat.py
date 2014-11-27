@@ -269,7 +269,8 @@ def shell(*args, **kwargs):
 def __parse_cmd_kwargs(kwargs):
     verbose = kwargs.get('verbose', True)
     detatch = kwargs.get('detatch', False)
-    shell   = kwargs.get('shell', False)
+    #shell   = kwargs.get('shell', False)
+    shell   = kwargs.get('shell', LINUX)
     sudo    = kwargs.get('sudo', False)
     separate    = kwargs.get('separate', True)
     return verbose, detatch, shell, sudo, separate
