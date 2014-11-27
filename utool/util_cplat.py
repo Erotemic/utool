@@ -400,7 +400,7 @@ def cmd(*args, **kwargs):
     except Exception as ex:
         import utool as ut
         if isinstance(args, tuple):
-            print(ut.unixpath[args[0]])
+            print(ut.truepath(args[0]))
         elif isinstance(args, six.string_types):
             print(ut.unixpath(args))
         ut.printex(ex)
