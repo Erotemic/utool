@@ -154,7 +154,7 @@ def split_archive_ext(path):
 
 
 def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
-                  delay=None, spoof=False, fname=None):
+                  delay=None, spoof=False, fname=None, verbose=True):
     """
     grab_file_url
 
@@ -203,11 +203,15 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
         util_path.ensurepath(download_dir)
         if not exists(fpath):
             # Download testdata
-            print('[utool] Downloading file %s' % fpath)
+            if verbose:
+                print('[utool] Downloading file %s' % fpath)
             if delay is not None:
                 print('[utool] delay download by %r seconds' % (delay,))
                 time.sleep(delay)
             download_url(file_url, fpath, spoof=spoof)
+        else:
+            if verbose:
+                print('[utool] Already have file %s' % fpath)
     util_path.assert_exists(fpath)
     return fpath
 

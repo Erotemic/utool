@@ -43,8 +43,12 @@ def inject_instance(self, classtype=None, allow_override=False,
         >>> utool.inject_instance(invindex)
     """
     import utool as ut
+    if verbose:
+        print('[util_class] begin inject_instance')
     try:
         if classtype is None:
+            # Probably should depricate this block of code
+            # It tries to do too much
             classtype = self.__class__
             if classtype == 'ibeis.gui.models_and_views.IBEISTableView':
                 # HACK HACK HACK
@@ -60,9 +64,10 @@ def inject_instance(self, classtype=None, allow_override=False,
                     classtype = classtype_
                     print('[utool] Warning: using subclass=%r' % (classtype_,))
                     break
-        if verbose:
-            print('[util_class] injecting methods into %r' % (self,))
-        for func in __CLASSTYPE_ATTRIBUTES__[classtype]:
+        func_list = __CLASSTYPE_ATTRIBUTES__[classtype]
+        if verbose or util_arg.VERBOSE:
+            print('[util_class] injecting %d methods with classtype=%r into %r' % (len(func_list), classtype, self,))
+        for func in func_list:
             if VERBOSE_CLASS:
                 print('[util_class] * injecting %r' % (func,))
             method_name = None

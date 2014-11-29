@@ -21,6 +21,7 @@ def get_computer_name():
 
 
 def get_repo_dirs(repo_urls, checkout_dir):
+    """ # TODO Fix name """
     repo_dirs = [join(checkout_dir, get_repo_dname(url)) for url in repo_urls]
     return repo_dirs
 

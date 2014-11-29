@@ -947,15 +947,54 @@ def grepfile(fpath, regexpr_list):
     return found_lines, found_lxs
 
 
-def matching_fnames(dpath_list, include_patterns, exclude_dirs=None, recursive=True):
-    if isinstance(dpath_list, (str)):
+def pathsplit_full(path):
+    """ splits all directories in path into a list """
+    return path.replace('\\', '/').split('/')
+
+
+def get_standard_exclude_dnames():
+    return ['lib.linux-x86_64-2.7', 'dist', 'build', '_page', '_doc', 'utool.egg-info', '.git']
+
+
+def get_standard_include_patterns():
+    return ['*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h', '*.vim']
+
+
+def matching_fnames(dpath_list, include_patterns, exclude_dirs=[],
+                    greater_exclude_dirs=[], recursive=True):
+    """
+
+    # TODO: fix names and behavior of exclude_dirs and greater_exclude_dirs
+
+    matching_fnames. walks dpath lists returning all directories that match the
+    requested pattern.
+
+    Args:
+        dpath_list       (list):
+        include_patterns (?):
+        exclude_dirs     (None):
+        recursive        (bool):
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
+        >>> dpath_list = [dirname(dirname(ut.__file__))]
+        >>> include_patterns = get_standard_include_patterns()
+        >>> exclude_dirs = ['_page']
+        >>> greater_exclude_dirs = get_standard_exclude_dnames()
+        >>> recursive = True
+        >>> fpath_gen = matching_fnames(dpath_list, include_patterns, exclude_dirs, greater_exclude_dirs, recursive)
+        >>> result = list(fpath_gen)
+        >>> print('\n'.join(result))
+    """
+    if isinstance(dpath_list, six.string_types):
         dpath_list = [dpath_list]
     for dpath in dpath_list:
         for root, dname_list, fname_list in os.walk(dpath):
             # Look at all subdirs
-            subdirs = relpath(root, dpath).split('/')
+            subdirs = pathsplit_full(relpath(root, dpath))
             # HACK:
-            greater_exclude_dirs = ['lib.linux-x86_64-2.7']
             if any([dir_ in greater_exclude_dirs for dir_ in subdirs]):
                 continue
             # Look at one subdir
@@ -972,7 +1011,7 @@ def matching_fnames(dpath_list, include_patterns, exclude_dirs=None, recursive=T
 
 
 def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
-         exclude_dirs=[],
+         exclude_dirs=[], greater_exclude_dirs=None,
          inverse=False, verbose=VERBOSE):
     """
     Python implementation of grep. NOT FINISHED
@@ -1003,8 +1042,9 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
 
     """
     if include_patterns is None:
-        include_patterns = ['*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c',
-                            '*.h', '*.vim']  # , '*.txt']
+        include_patterns =  get_standard_include_patterns()
+    if greater_exclude_dirs is None:
+        include_patterns =  get_standard_exclude_dnames()
     # ensure list input
     if isinstance(include_patterns, six.string_types):
         include_patterns = [include_patterns]
@@ -1019,7 +1059,7 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
     found_lines_list = []
     found_lxs_list = []
     # Walk through each directory recursively
-    fpath_generator = matching_fnames(dpath_list, include_patterns, exclude_dirs, recursive=recursive)
+    fpath_generator = matching_fnames(dpath_list, include_patterns, exclude_dirs, greater_exclude_dirs, recursive=recursive)
     extended_regex_list = list(map(extend_regex, regex_list))
     # For each matching filepath
     for fpath in fpath_generator:

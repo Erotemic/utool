@@ -1,4 +1,9 @@
 """
+
+TODO: rename to something better.
+this is pretty much just a mass file
+editor / inspector
+
 currently just checks invalidness
 does not correct anything yet.
 
@@ -26,6 +31,48 @@ rob gp "python .* --allexamples"
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut  # NOQA
+import os
+
+
+if 'CODE_DIR' in os.environ:
+    CODE_DIR = os.environ.get('CODE_DIR')
+
+# Non local project repos
+(IBEIS_REPO_URLS, IBEIS_REPO_DIRS) = ut.repo_list([
+    'https://github.com/Erotemic/utool.git',
+    'https://github.com/Erotemic/guitool.git',
+    'https://github.com/Erotemic/plottool.git',
+    'https://github.com/Erotemic/vtool.git',
+    'https://github.com/bluemellophone/detecttools.git',
+    'https://github.com/Erotemic/hesaff.git',
+    'https://github.com/bluemellophone/pyrf.git',
+    'https://github.com/Erotemic/ibeis.git',
+    'https://github.com/aweinstock314/cyth.git',
+    #'https://github.com/hjweide/pygist',
+], CODE_DIR, forcessh=False)
+
+
+ut.set_code_dir(CODE_DIR)
+ut.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
+
+
+def abstract_external_module_cv2():
+    from os.path import join
+    modname = 'cv2'
+    repo_dirs = ut.get_project_repo_dirs()
+    #exclude_dirs = [join(dpath, 'build') for dpath in repo_dirs]
+
+    grepkw = dict(
+        #exclude_dirs=exclude_dirs,
+        dpath_list=repo_dirs,
+        greater_exclude_dirs=ut.get_standard_exclude_dnames(),
+        recursive=True,
+    )
+    modregex = '\<' + modname + '\>'
+    tup = ut.grep(modregex, **grepkw)
+    fpath_list, line_list, lineno_list = tup
+    fpath_list = [fpath.replace('\\', '/') for fpath in fpath_list]
+    print('\n'.join(fpath_list))
 
 
 def filter_comented_lines():

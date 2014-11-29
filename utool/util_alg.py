@@ -175,7 +175,9 @@ def almost_eq(a, b, thresh=1E-11, ret_error=False):
     return passed
 
 
-def euclidean_dist(vecs1, vec2, dtype=np.float32):
+def euclidean_dist(vecs1, vec2, dtype=None):
+    if dtype is None:
+        dtype = np.float32
     return np.sqrt(((vecs1.astype(dtype) - vec2.astype(dtype)) ** 2).sum(1))
 
 

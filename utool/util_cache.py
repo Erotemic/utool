@@ -82,12 +82,57 @@ def _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl=False):
 
 
 def save_cache(dpath, fname, cfgstr, data):
+    """
+    save_cache
+
+    Args:
+        dpath  (str)
+        fname  (str):
+        cfgstr (str):
+        data   (pickleable):
+
+    Returns:
+        str: fpath
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_cache import *  # NOQA
+        >>> import utool as ut
+        >>> dpath = ut.get_app_resource_dir('utool')
+        >>> fname = 'foo'
+        >>> cfgstr = 'bar'
+        >>> data = object()
+        >>> fpath = save_cache(dpath, fname, cfgstr, data)
+        >>> result = str(fpath)
+        >>> print(result)
+    """
     fpath = _args2_fpath(dpath, fname, cfgstr, '.cPkl', write_hashtbl=False)
     util_io.save_cPkl(fpath, data)
     return fpath
 
 
 def load_cache(dpath, fname, cfgstr):
+    """
+    load_cache
+
+    Args:
+        dpath  (?):
+        fname  (?):
+        cfgstr (?):
+
+    Returns:
+        ?: data
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_cache import *  # NOQA
+        >>> dpath = '?'
+        >>> fname = '?'
+        >>> cfgstr = '?'
+        >>> data = load_cache(dpath, fname, cfgstr)
+        >>> result = str(data)
+        >>> print(result)
+    """
     fpath = _args2_fpath(dpath, fname, cfgstr, '.cPkl')
     return util_io.load_cPkl(fpath)
 

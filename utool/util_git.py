@@ -19,6 +19,12 @@ set_userid = mu.set_userid
 #except ImportError:
 PROJECT_REPO_DIRS = []
 PROJECT_REPO_URLS = []
+CODE_DIR = None
+
+
+def set_code_dir(code_dir):
+    global CODE_DIR
+    CODE_DIR = code_dir
 
 
 def set_project_repos(repo_urls, repo_dirs):
@@ -26,6 +32,11 @@ def set_project_repos(repo_urls, repo_dirs):
     global PROJECT_REPO_URLS
     PROJECT_REPO_URLS = repo_urls
     PROJECT_REPO_DIRS = repo_dirs
+
+
+def get_project_repo_dirs():
+    global PROJECT_REPO_DIRS
+    return PROJECT_REPO_DIRS
 
 
 def gitcmd(repo, command):
@@ -45,8 +56,7 @@ def std_build_command(repo):
     """
     print("************")
     print(repo)
-    WIN32 = sys.platform.startswith('win32')
-    if WIN32:
+    if sys.platform.startswith('win32'):
         scriptname = './mingw_build.sh'
     else:
         scriptname = './unix_build.sh'
@@ -58,9 +68,6 @@ def std_build_command(repo):
 
 def gg_command(command):
     """ Runs a command on all of your PROJECT_REPO_DIRS """
-    if command == 'ensure':
-        ensure_repos(PROJECT_REPO_URLS, PROJECT_REPO_DIRS)
-        return
     for repo in PROJECT_REPO_DIRS:
         if exists(repo):
             gitcmd(repo, command)
@@ -77,6 +84,10 @@ def checkout_repos(repo_urls, repo_dirs=None, checkout_dir=None):
         if not exists(repodir):
             mu.cd(dirname(repodir))
             mu.cmd('git clone ' + repourl)
+
+
+def ensure_project_repos():
+    ensure_repos(PROJECT_REPO_URLS, PROJECT_REPO_DIRS)
 
 
 def ensure_repos(repo_urls, repo_dirs=None, checkout_dir=None):

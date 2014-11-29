@@ -1,6 +1,7 @@
 #!/usr/bin/env python2.7
 from __future__ import absolute_import, division, print_function
 from setuptools import setup
+import sys
 
 
 def utool_setup():
@@ -14,26 +15,34 @@ def utool_setup():
     INSTALL_OPTIONAL = [
         'numpy >= 1.8.0',  # TODO REMOVE DEPENDENCY
         'astor',
-        'objgraph',
         'sphinx',
         'sphinxcontrib-napoleon',
+    ]
+
+    INSTALL_OPTIONAL_EXTRA = [  # NOQA
         'guppy',
+        'objgraph',
     ]
 
     INSTALL_REQUIRES += INSTALL_OPTIONAL
 
-    # HACK: Please remove someday
-    from utool import util_setup
-    ext_modules = util_setup.find_ext_modules()
-    import sys
-    for arg in iter(sys.argv[:]):
-        # Clean clutter files
-        if arg in ['clean']:
-            import utool
-            from os.path import dirname
-            clutter_dirs = ['cyth']
-            clutter_patterns = ['cyth']
-            utool.clean(dirname(__file__), clutter_patterns, clutter_dirs)
+    try:
+        # HACK: Please remove someday
+        from utool import util_setup
+        import utool
+        from os.path import dirname
+        for arg in iter(sys.argv[:]):
+            # Clean clutter files
+            if arg in ['clean']:
+                clutter_dirs = ['cyth']
+                clutter_patterns = ['cyth']
+                utool.clean(dirname(__file__), clutter_patterns, clutter_dirs)
+        ext_modules = util_setup.find_ext_modules()
+        cmdclass = util_setup.get_cmdclass()
+    except Exception as ex:
+        print(ex)
+        ext_modules = {}
+        cmdclass = {}
 
     setup(
         name='utool',
@@ -48,7 +57,7 @@ def utool_setup():
         description='Univerally useful utility tools for you!',
         url='https://github.com/Erotemic/utool',
         ext_modules=ext_modules,
-        cmdclass=util_setup.get_cmdclass(),
+        cmdclass=cmdclass,
         author='Jon Crall',
         author_email='erotemic@gmail.com',
         keywords='',
