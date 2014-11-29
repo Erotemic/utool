@@ -48,35 +48,11 @@ def autogen_ibeis_runtest():
 
     exclude_list = []
 
-    # Hacky, but not too bad way of getting in doctests
-    # Test to see if doctest_funcs appears after main
-    # Do not doctest these modules
-    #exclude_doctests_fnames = set(['template_definitions.py',
-    #                               'autogen_test_script.py'])
-    #exclude_dirs = [
-    #    '_broken',
-    #    'old',
-    #    'tests',
-    #    'timeits',
-    #    '_scripts',
-    #    '_timeits',
-    #    '_doc',
-    #    'notebook',
-    #]
-    #dpath_list = ['ibeis']
-    #doctest_modname_list = ut.find_doctestable_modnames(dpath_list, exclude_doctests_fnames, exclude_dirs)
-
     # Verbosity to show which modules at least have some tests
     #untested_modnames = ut.find_untested_modpaths(dpath_list, exclude_doctests_fnames, exclude_dirs)
     #print('\nUNTESTED MODULES:' + ut.indentjoin(untested_modnames))
     #print('\nTESTED MODULES:' + ut.indentjoin(doctest_modname_list))
 
-    # The implict list is exactly the code we will use to make the implicit list
-    #module_list = None
-    #doctest_modname_list = None
-    #'export_subset.py',
-    #'_autogen_ibeiscontrol_funcs.py',
-    #'randomforest.py',
     implicit_build_modlist_str = ut.codeblock(
         '''
         import sys
@@ -111,7 +87,7 @@ def autogen_ibeis_runtest():
     explicit_build_modlist_str = '\n\n'.join((import_str, modlist_str))
 
     build_modlist_str = implicit_build_modlist_str
-    build_modlist_str = explicit_build_modlist_str
+    #build_modlist_str = explicit_build_modlist_str
 
     pyscript_fmtstr = ut.codeblock(
         r'''
