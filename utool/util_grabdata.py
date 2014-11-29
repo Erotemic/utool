@@ -153,6 +153,22 @@ def split_archive_ext(path):
     return name, ext
 
 
+def grab_test_imgpath(key):
+    """
+    Gets paths to standard / fun test images.
+    Downloads them if they dont exits
+    """
+    testdata_urls = {
+        'ada2.jpg'  : 'http://i.imgur.com/zHOpTCb.jpg',
+        'ada.jpg'   : 'http://i.imgur.com/iXNf4Me.jpg',
+        'grace.jpg' : 'http://imgur.com/rgQyu7r.jpg',
+        'lena.png'  : 'http://i.imgur.com/JGrqMnV.png',
+        'carl.jpg'  : 'http://i.imgur.com/flTHWFD.jpg',
+        'jeff.png'  : 'http://imgur.com/l00rECD.png',
+    }
+    return grab_file_url(testdata_urls[key], fname=key)
+
+
 def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
                   delay=None, spoof=False, fname=None, verbose=True):
     """
