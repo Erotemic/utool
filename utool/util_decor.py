@@ -21,7 +21,8 @@ from utool._internal.meta_util_six import get_funcname
 
 SIG_PRESERVE = util_arg.get_argflag('--sigpreserve')
 #SIG_PRESERVE = not util_arg.SAFE or util_arg.get_argflag('--sigpreserve')
-IGNORE_TRACEBACK = '--smalltb' in sys.argv or '--ignoretb' in sys.argv
+#IGNORE_TRACEBACK = '--smalltb' in sys.argv or '--ignoretb' in sys.argv
+IGNORE_TRACEBACK = not ('--nosmalltb' in sys.argv or '--noignoretb' in sys.argv)
 
 # do not ignore traceback when profiling
 PROFILING = hasattr(builtins, 'profile')
@@ -47,6 +48,10 @@ def ignores_exc_tb(func):
 
     if IGNORE_TRACEBACK is False then this decorator does nothing
     (and it should do nothing in production code!)
+
+    References:
+        https://github.com/jcrocholl/pep8/issues/34  # NOQA
+        http://legacy.python.org/dev/peps/pep-3109/
     """
     if not IGNORE_TRACEBACK:
         # if the global enforces that we should not ignore anytracebacks
@@ -71,15 +76,16 @@ def ignores_exc_tb(func):
             except Exception:
                 pass
             # Python 2*3=6
-            six.reraise(exc_type, exc_value, exc_traceback)
+            # six has a problem because it inserts itself into the traceback
+            #six.reraise(exc_type, exc_value, exc_traceback)
             # PYTHON 2.7 DEPRICATED:
-            #raise exc_type, exc_value, exc_traceback
+            if six.PY2:
+                raise exc_type, exc_value, exc_traceback
             # PYTHON 3.3 NEW METHODS
-            #ex = exc_type(exc_value)
-            #ex.__traceback__ = exc_traceback
-            #raise ex
-            # https://github.com/jcrocholl/pep8/issues/34  # NOQA
-            # http://legacy.python.org/dev/peps/pep-3109/
+            elif six.PY3:
+                ex = exc_type(exc_value)
+                ex.__traceback__ = exc_traceback
+                raise ex
     wrp_noexectb = preserve_sig(wrp_noexectb, func)
     return wrp_noexectb
 

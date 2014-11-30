@@ -376,6 +376,8 @@ def get_doctest_testtup_list(testable_list=None, check_flags=True, module=None,
         #'UTOOL_TEST',
         #'UTOOLTEST'
     ]
+    if '--testall' in sys.argv:
+        test_sentinals.append('SLOW_DOCTEST')
     sorted_testable = sorted(list(set(testable_list)), key=_get_testable_name)
     testtup_list = []
     # Append each testable example
@@ -572,13 +574,14 @@ def run_test(func, *args, **kwargs):
     Input:
         Anything that needs to be passed to <func>
     """
+    import utool as ut
     func_is_text = isinstance(func, types.TupleType)
     if func_is_text:
         (funcname, src, frame_fpath) = func
     else:
         funcname = get_funcname(func)
+        frame_fpath = ut.get_funcfpath(func)
     upper_funcname = funcname.upper()
-    import utool as ut
     if ut.VERBOSE:
         printTEST('[TEST.BEGIN] %s ' % (sys.executable))
         printTEST('[TEST.BEGIN] %s ' % (funcname,))
@@ -602,7 +605,8 @@ def run_test(func, *args, **kwargs):
             # WRITE TO PASSED TEST TIMES
             try:
                 with open('test_times.txt', 'a') as file_:
-                    msg = '%.4fs in %s\n' % (timer.ellapsed, upper_funcname)
+                    msg = '%.4fs in %s %s\n' % (
+                        timer.ellapsed, funcname, frame_fpath)
                     file_.write(msg)
             except IOError as ex:
                 ut.printex(ex, '[util_test] IOWarning')

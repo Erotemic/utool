@@ -135,6 +135,10 @@ def get_funcdoc(func):
     return meta_util_six.get_funcdoc(func)
 
 
+def get_funcfpath(func):
+    return func.func_code.co_filename
+
+
 def set_funcdoc(func, newdoc):
     return meta_util_six.set_funcdoc(func, newdoc)
 
