@@ -1,5 +1,4 @@
 from __future__ import absolute_import, division, print_function
-import inspect
 from utool import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
 
@@ -53,7 +52,7 @@ def autofix_codeblock(codeblock, max_line_len=80,
     return fixed_codeblock
 
 
-def auto_docstr(modname, funcname, verbose=True):
+def auto_docstr(modname, funcname, verbose=True, **kwargs):
     """
     Args:
         modname (str):
@@ -64,7 +63,7 @@ def auto_docstr(modname, funcname, verbose=True):
 
     Example:
         >>> import utool
-        >>> utool.util_autogen.rrr()
+        >>> utool.util_autogen.rrr(verbose=False)
         >>> #docstr = utool.auto_docstr('ibeis.model.hots.smk.smk_index', 'compute_negentropy_names')
         >>> modname = 'utool.util_autogen'
         >>> funcname = 'auto_docstr'
@@ -98,7 +97,8 @@ def auto_docstr(modname, funcname, verbose=True):
                 import utool
                 imp.reload(utool.util_autogen)
                 imp.reload(utool.util_inspect)
-                docstr = utool.util_autogen.make_default_docstr({modname}.{funcname})
+                func = {modname}.{funcname}
+                docstr = utool.util_autogen.make_default_docstr(func, **kwargs)
                 '''
             ).format(**locals())
             exec(execstr)
@@ -172,10 +172,15 @@ def make_returns_or_yeilds_docstr(return_type, return_name):
     return return_doctr
 
 
-def make_example_docstr(func, argname_list, defaults, return_type, return_name):
+def make_example_docstr(funcname=None, modname=None, argname_list=None,
+                        defaults=None, return_type=None, return_name=None):
+    """
+    Creates skeleton code to build an example doctest
+    """
     import utool as ut
     examplecode_lines = []
-    top_import = 'from {modname} import *  # NOQA'.format(modname=func.__module__)
+    top_import_fmstr = 'from {modname} import *  # NOQA'
+    top_import = top_import_fmstr.format(modname=modname)
     import_lines = [top_import]
 
     # TODO: Externally register these
@@ -193,16 +198,26 @@ def make_example_docstr(func, argname_list, defaults, return_type, return_name):
                 val = ut.PythonStatement(default_argval_map[argname])
                 if argname in import_depends_map:
                     import_lines.append(import_depends_map[argname])
-        return (argname, val)
+        return val
 
     # Default example values
     defaults_ = [] if defaults is None else defaults
-    default_vals = ['?'] * (len(argname_list) - len(defaults_)) + list(defaults_)
+    num_unknown = (len(argname_list) - len(defaults_))
+    default_vals = ['?'] * num_unknown + list(defaults_)
     arg_val_iter = zip(argname_list, default_vals)
-    argdef_lines = ['%s = %r' % find_arg_defaultval(argname, val) for argname, val in arg_val_iter]
+    infered_defaults = [find_arg_defaultval(argname, val)
+                        for argname, val in arg_val_iter]
+    arg_inferval_iter = zip(argname_list, infered_defaults)
+    argdef_lines = ['%s = %r' % (argname, inferval)
+                    for argname, inferval in arg_inferval_iter]
     import_lines = ut.unique_ordered(import_lines)
 
-    examplecode_lines.append('# DISABLE_DOCTEST')
+    if any([inferval == '?' for inferval in infered_defaults]):
+        examplecode_lines.append('# DISABLE_DOCTEST')
+    else:
+        # Enable the test if it can be run immediately
+        examplecode_lines.append('# ENABLE_DOCTEST')
+
     examplecode_lines.extend(import_lines)
     examplecode_lines.extend(argdef_lines)
     # Default example result assignment
@@ -215,7 +230,7 @@ def make_example_docstr(func, argname_list, defaults, return_type, return_name):
             result_assign = return_name + ' = '
             result_print = 'print(result)'  # + return_name + ')'
     # Default example call
-    example_call = func.func_name + '(' + ', '.join(argname_list) + ')'
+    example_call = funcname + '(' + ', '.join(argname_list) + ')'
     examplecode_lines.append(result_assign + example_call)
     if result_print is not None:
         if return_name != 'result':
@@ -230,11 +245,18 @@ def make_example_docstr(func, argname_list, defaults, return_type, return_name):
 def make_docstr_block(header, block):
     import utool as ut
     indented_block = '\n' + ut.indent(block)
-    return ''.join([header, ':', indented_block])
+    docstr_block = ''.join([header, ':', indented_block])
+    return docstr_block
 
 
-def make_default_docstr(func):
-    """
+def make_default_docstr(func,
+                        with_args=True,
+                        with_ret=True,
+                        with_example=True,
+                        with_header=False,
+                        with_debug=False,
+                        ):
+    r"""
     Tries to make a sensible default docstr so the user
     can fill things in without typing too much
 
@@ -258,52 +280,53 @@ def make_default_docstr(func):
 
     """
     import utool as ut
-    current_doc = inspect.getdoc(func)
-    needs_surround = current_doc is None or len(current_doc) == 0
-    argspec = inspect.getargspec(func)
-    (argname_list, varargs, varkw, defaults) = argspec
+    funcinfo = ut.infer_function_info(func)
 
-    # See util_inspect
-    argtype_list, argdesc_list = ut.infer_arg_types_and_descriptions(argname_list, defaults)
+    argname_list   = funcinfo.argname_list
+    argtype_list   = funcinfo.argtype_list
+    argdesc_list   = funcinfo.argdesc_list
+    return_header  = funcinfo.return_header
+    return_type    = funcinfo.return_type
+    return_name    = funcinfo.return_name
+    funcname       = funcinfo.funcname
+    modname        = funcinfo.modname
+    defaults       = funcinfo.defaults
+    num_indent     = funcinfo.num_indent
+    needs_surround = funcinfo.needs_surround
+    funcname       = funcinfo.funcname
 
     docstr_parts = []
 
-    # Move source down to base indentation, but remember original indentation
-    sourcecode = inspect.getsource(func)
-    num_indent = ut.get_indentation(sourcecode)
-    sourcecode = ut.unindent(sourcecode)
-
     # Header part
-    header_block = func.func_name
-    docstr_parts.append(header_block)
+    if with_header:
+        header_block = funcname
+        docstr_parts.append(header_block)
 
     # Args part
-    if len(argname_list) > 0:
+    if with_args and len(argname_list) > 0:
         argheader = 'Args'
         arg_docstr = make_args_docstr(argname_list, argtype_list, argdesc_list)
         argsblock = make_docstr_block(argheader, arg_docstr)
         docstr_parts.append(argsblock)
 
     # Return / Yeild part
-    if sourcecode is not None:
-        return_type, return_name, return_header = ut.parse_return_type(sourcecode)
+    if with_ret and return_header is not None:
         if return_header is not None:
             return_doctr = make_returns_or_yeilds_docstr(return_type, return_name)
             returnblock = make_docstr_block(return_header, return_doctr)
             docstr_parts.append(returnblock)
 
     # Example part
-    if sourcecode is not None:
-        # try to generate a simple and unit testable example
+    # try to generate a simple and unit testable example
+    if with_example:
         exampleheader = 'Example'
-        examplecode = make_example_docstr(func, argname_list, defaults, return_type, return_name)
+        examplecode = make_example_docstr(funcname, modname, argname_list, defaults, return_type, return_name)
         examplecode_ = ut.indent(examplecode, '>>> ')
         exampleblock = make_docstr_block(exampleheader, examplecode_)
         docstr_parts.append(exampleblock)
 
     # DEBUG part (in case something goes wrong)
-    DEBUG_DOC = False
-    if DEBUG_DOC:
+    if with_debug:
         debugheader = 'Debug'
         debugblock = ut.codeblock(
             '''
@@ -315,7 +338,7 @@ def make_default_docstr(func):
 
     # Enclosure / Indentation Parts
     if needs_surround:
-        docstr_parts = ['"""'] + ['\n\n'.join(docstr_parts)] + ['"""']
+        docstr_parts = ['r"""'] + ['\n\n'.join(docstr_parts)] + ['"""']
         default_docstr = '\n'.join(docstr_parts)
     else:
         default_docstr = '\n\n'.join(docstr_parts)
@@ -349,12 +372,13 @@ def make_default_module_maintest(modname):
     import utool as ut
     # Need to use python -m to run a module
     # otherwise their could be odd platform specific errors.
+    #python -c "import utool, {modname};
+    # utool.doctest_funcs({modname}, allexamples=True)"
     text = ut.codeblock(
         '''
         if __name__ == '__main__':
             """
             CommandLine:
-                python -c "import utool, {modname}; utool.doctest_funcs({modname}, allexamples=True)"
                 python -m {modname}
                 python -m {modname} --allexamples
                 python -m {modname} --allexamples --noface --nosrc

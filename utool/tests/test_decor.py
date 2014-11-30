@@ -1,3 +1,4 @@
+from __future__ import absolute_import, division, print_function
 import inspect
 import utool
 
@@ -28,10 +29,10 @@ def func6(*args, **kwargs):
 
 def decor(func):
     @utool.accepts_scalar_input2([0, 4])
-    def wrp(*args, **kwargs):
+    def testwrp(*args, **kwargs):
         return func(*args, **kwargs)
-    wrp = utool.preserve_sig(wrp, func, force=True)
-    return wrp
+    testwrp = utool.preserve_sig(testwrp, func, force=True)
+    return testwrp
 
 
 class BoringTestClass(object):
@@ -94,13 +95,66 @@ def print_argspec(func):
         print('------------')
 
 
+def test_decorator_module():
+    import utool as ut
+    import decorator
+    ut.rrrr()
+    def testdecor(func):
+        @ut.on_exception_report_input
+        @ut.accepts_scalar_input2([0])
+        @ut.ignores_exc_tb
+        def testwrp(*args, **kwargs):
+            print('was wrapped')
+            return func(*args, **kwargs)
+        return testwrp
+
+    preserving_testdecor = decorator.decorator(testdecor)
+
+    def myfunction(self, listinput_, arg1, *args, **kwargs):
+        " just a test function "
+        return [x + 1 for x in listinput_]
+
+    wrapper = testdecor(myfunction)
+    orig_func = myfunction
+
+    _wrp_preserve0 = preserving_testdecor(myfunction)
+    _wrp_preserve1 = ut.preserve_sig(wrapper, orig_func, True)
+    _wrp_preserve2 = ut.preserve_sig(wrapper, orig_func, False)
+
+    print('___')
+    print(ut.get_func_sourcecode(_wrp_preserve0))
+    print('___')
+    print(ut.get_func_sourcecode(_wrp_preserve1))
+    print('___')
+    print(ut.get_func_sourcecode(_wrp_preserve2))
+    print('___')
+
+    print('---')
+    print(ut.get_docstr(_wrp_preserve0))
+    print('---')
+    print(ut.get_docstr(_wrp_preserve1))
+    print('---')
+    print(ut.get_docstr(_wrp_preserve2))
+    print('---')
+
+    print(ut.dict_str(_wrp_preserve2._utinfo))
+
+
 def main():
+    r"""
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.tests.test_decor import *  # NOQA
+        >>> result = main()
+        >>> print(result)
+    """
+    print('BEGINING TEST_DECOR')
     print('Testing normal func')
     for func in [func1, func2, func3, func4, func5, func6]:
         print_argspec(func)
 
-    utool.rrrr()
-    utool.util_decor.rrr()
+    #utool.rrrr()
+    #utool.util_decor.rrr()
 
     self = BoringTestClass()
     print('Testing class methods')
@@ -111,6 +165,8 @@ def main():
         print(func.im_func.func_code.co_name)
         print('<<')
 
+    print('---')
+    print_argspec(self.method2)
     self.method2('a', 'b')
     print('---')
     self.method2('a', 'b', c='c')
@@ -126,4 +182,17 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    """
+    CommandLine:
+        python -m utool.tests.test_decor
+        python -m utool.tests.test_decor --allexamples
+        python -m utool.tests.test_decor --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    import sys
+    if len(sys.argv) == 1:
+        main()
+    else:
+        ut.doctest_funcs()

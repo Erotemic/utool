@@ -61,8 +61,15 @@ def named_field(key, regex):
     return r'(?P<%s>%s)' % (key, regex)
 
 
-def repl_field(key):
+def whole_word(regex):
+    return r'\b%s\b' % regex
+
+
+def backref_field(key):
     return r'\g<%s>' % (key)
+
+
+bref_field = backref_field
 
 
 def regex_replace(regex, repl, text):
@@ -161,9 +168,11 @@ def named_field_repl(field_list):
         \g<key>unspecial string
     """
     # Allow for unnamed patterns
-    repl_fields = [r'\g<%s>' % key[0]
-                    if isinstance(key, tuple) else key for key in field_list]
-    repl = ''.join(repl_fields)
+    bref_field_list = [
+        backref_field(key[0]) if isinstance(key, tuple) else key
+        for key in field_list
+    ]
+    repl = ''.join(bref_field_list)
     return repl
 
 

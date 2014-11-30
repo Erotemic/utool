@@ -528,6 +528,12 @@ class InteractiveIter(object):
         print('Ended interactive iteration')
 
 
+def user_cmdline_prompt(msg=''):
+    msg += '\n... Enter yes to accept or anything else to reject\n'
+    ans = input(msg)
+    return ans == 'yes'
+
+
 def tuples_to_unique_scalars(tup_list):
     seen = {}
     def addval(tup):

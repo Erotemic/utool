@@ -6,20 +6,22 @@ import functools
 from utool import util_regex
 from utool import util_inject
 from utool._internal import meta_util_six
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[inspect]')
 
 
-def iter_module_doctestable(module, include_funcs=True, include_classes=True, include_methods=True):
+def iter_module_doctestable(module, include_funcs=True, include_classes=True,
+                            include_methods=True):
     r"""
-    iter_module_doctestable
+    Yeilds doctestable live object form a modules
 
     Args:
-        module (?):
+        module (live python module):
         include_funcs (bool):
         include_classes (bool):
         include_methods (bool):
 
     Example1:
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_inspect import *   # NOQA
         >>> import utool as ut
         >>> module = ut.util_tests
@@ -28,6 +30,7 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True, in
         >>> print('\n'.join(func_names))
 
     Example2:
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_inspect import *   # NOQA
         >>> import utool as ut
         >>> import ibeis
@@ -42,7 +45,8 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True, in
                         )
     valid_class_types = (types.ClassType,  types.TypeType,)
 
-    scalar_types = [dict, list, tuple, set, frozenset, bool, float, int] + list(six.string_types)
+    scalar_types = ([dict, list, tuple, set, frozenset, bool, float, int] +
+                    list(six.string_types))
     scalar_types += list(six.string_types)
     other_types = [types.InstanceType, functools.partial, types.ModuleType]
     invalid_types = tuple(scalar_types + other_types)
@@ -84,7 +88,6 @@ def list_class_funcnames(fname, blank_pats=['    #']):
         list: funcname_list
 
     Example:
-        >>>
         >>> from utool.util_inspect import *  # NOQA
         >>> fname = 'util_class.py'
         >>> blank_pats = ['    #']
@@ -136,11 +139,6 @@ def set_funcdoc(func, newdoc):
     return meta_util_six.set_funcdoc(func, newdoc)
 
 
-def get_func_argspec(func):
-    argspec = inspect.getargspec(func)
-    return argspec
-
-
 def get_docstr(func_or_class):
     """  Get the docstring from a live object """
     import utool as ut
@@ -166,20 +164,19 @@ def parse_return_type(sourcecode):
         tuple: (return_type, return_name, return_header)
 
     Example:
-        >>> # DOCTEST_DISABLE
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
-        >>> sourcecode = '?'
-        >>> (return_type, return_name, return_header) = parse_return_type(sourcecode)
+        >>> import utool
+        >>> sourcecode = utool.codeblock(
+        ... 'def foo(tmp=False):\n'
+        ... '    bar = True\n'
+        ... '    return bar\n'
+        ... )
+        >>> returninfo = parse_return_type(sourcecode)
+        >>> (return_type, return_name, return_header) = returninfo
         >>> result = str((return_type, return_name, return_header))
         >>> print(result)
-
-    import utool
-    sourcecode = utool.codeblock(r'''
-    def foo(tmp=False):
-        bar = True
-        return bar
-    ''')
-
+        ('?', 'bar', 'Returns')
     """
 
     import utool
@@ -255,6 +252,91 @@ def parse_return_type(sourcecode):
     return return_type, return_name, return_header
 
 
+def get_func_sourcecode(func):
+    """
+    wrapper around inspect.getsource but takes into account utool decorators
+    """
+    sourcefile = inspect.getsourcefile(func)
+    if sourcefile is not None:
+        return inspect.getsource(func)
+    else:
+        if hasattr(func, '_utinfo'):
+            return func._utinfo['src']
+            return get_func_sourcecode(func._utinfo['orig_func'])
+            #return get_func_sourcecode(func._utinfo['src'])
+
+
+def get_func_argspec(func):
+    """
+    wrapper around inspect.getargspec but takes into account utool decorators
+    """
+    if hasattr(func, '_utinfo'):
+        argspec = func._utinfo['orig_argspec']
+        return argspec
+    argspec = inspect.getargspec(func)
+    return argspec
+
+
+def infer_function_info(func):
+    """
+    Infers information for make_default_docstr
+
+    Args:
+        func (function): live python function
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_inspect import *  # NOQA
+        >>> import utool as ut
+        >>> func = ut.infer_function_info
+        >>> funcinfo = infer_function_info(func)
+        >>> result = ut.dict_str(funcinfo.__dict__)
+        >>> print(result)
+    """
+    import utool as ut
+    current_doc = inspect.getdoc(func)
+    needs_surround = current_doc is None or len(current_doc) == 0
+    argspec = ut.get_func_argspec(func)
+    (argname_list, varargs, varkw, defaults) = argspec
+
+    # See util_inspect
+    argtype_list, argdesc_list = ut.infer_arg_types_and_descriptions(argname_list, defaults)
+
+    # Move source down to base indentation, but remember original indentation
+    sourcecode = get_func_sourcecode(func)
+    num_indent = ut.get_indentation(sourcecode)
+    sourcecode = ut.unindent(sourcecode)
+
+    if sourcecode is not None:
+        returninfo = ut.parse_return_type(sourcecode)
+    else:
+        returninfo = None, None, None
+    return_type, return_name, return_header = returninfo
+
+    modname = func.__module__
+    funcname = ut.get_funcname(func)
+
+    class FunctionInfo(object):
+        def __init__(self):
+            pass
+    funcinfo = FunctionInfo()
+    funcinfo.needs_surround = needs_surround
+    funcinfo.argname_list = argname_list
+    funcinfo.argtype_list = argtype_list
+    funcinfo.argdesc_list = argdesc_list
+    funcinfo.varargs = varargs
+    funcinfo.varkw = varkw
+    funcinfo.defaults = defaults
+    funcinfo.num_indent = num_indent
+    funcinfo.return_type = return_type
+    funcinfo.return_name = return_name
+    funcinfo.return_header = return_header
+    funcinfo.modname = modname
+    funcinfo.funcname = funcname
+
+    return funcinfo
+
+
 def infer_arg_types_and_descriptions(argname_list, defaults):
     """
     Args:
@@ -265,6 +347,7 @@ def infer_arg_types_and_descriptions(argname_list, defaults):
         tuple : (arg_types, argdesc_list)
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> import utool
         >>> argname_list = ['ibs', 'qaid', 'fdKfds']
         >>> defaults = None

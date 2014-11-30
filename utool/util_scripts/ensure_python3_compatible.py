@@ -56,8 +56,52 @@ ut.set_code_dir(CODE_DIR)
 ut.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
 
 
+def ensure_ibeis_control_explicit_namespace(varname_list):
+    # <input>
+    import ibeis
+    namespace = 'const'
+    module = ibeis.control.IBEISControl
+    fpath = module.__file__
+    # </input>
+    varname_list = [
+        'ENCOUNTER_TABLE', 'EG_RELATION_TABLE', 'AL_RELATION_TABLE',
+        'GL_RELATION_TABLE', 'CHIP_TABLE', 'FEATURE_TABLE',
+        'LBLIMAGE_TABLE', 'CONTRIBUTOR_TABLE', 'LBLTYPE_TABLE',
+        'METADATA_TABLE', 'VERSIONS_TABLE'
+    ]
+    ensure_explicit_namespace(fpath, namespace, varname_list)
+
+
+def ensure_explicit_namespace(fpath, namespace, varname_list):
+    import re
+    import utool as ut
+
+    text = ut.read_from(fpath)
+    orig_text = text
+    new_text = text
+
+    for varname in varname_list:
+        regex = ''.join((
+            ut.named_field('prefix', '[^.]'),
+            ut.named_field('var', ut.whole_word(varname)),
+        ))
+        repl = ''.join((
+            ut.bref_field('prefix'),
+            namespace, '.',
+            ut.bref_field('var')
+        ))
+
+        new_text = re.sub(regex, repl, new_text)
+
+    textdiff = ut.get_textdiff(orig_text, new_text)
+    print(textdiff)
+    if ut.user_cmdline_prompt('Does the text look good?'):
+        # if diff looks good write
+        ut.write_to(fpath, new_text)
+
+
 def abstract_external_module_cv2():
-    from os.path import join
+    from os.path import join  # NOQA
     modname = 'cv2'
     repo_dirs = ut.get_project_repo_dirs()
     #exclude_dirs = [join(dpath, 'build') for dpath in repo_dirs]
@@ -79,7 +123,12 @@ def filter_comented_lines():
     pass
 
 
-def fix_bad_doctestcmds():
+def change_doctestcommand_to_use_dashm_flag():
+    r"""
+    VimRegex: # note sure how to execute replace command in vim in one lin
+    %s/python\s*\([A-Za-z_]+[\\/]\S*\)\.py\(.*\)/python -m \1 \2
+
+    """
     # http://stackoverflow.com/questions/18737863/passing-a-function-to-re-sub-in-python
     # CANNOT USE [^ ] FOR SOME GOD DAMN REASON USE /S instead
     regex_list = ['python [A-Za-z_]+[\\/]\S* --allexamples']

@@ -4,7 +4,7 @@ import inspect
 import textwrap
 import six
 import sys
-from functools import wraps, update_wrapper
+import functools
 try:
     import numpy as np
     HAS_NUMPY = True
@@ -45,42 +45,43 @@ def ignores_exc_tb(func):
     This is useful to decorate other trivial decorators
     which are polluting your stacktrace.
 
-    if IGNORE_EXC_TB is False then this decorator does nothing
+    if IGNORE_TRACEBACK is False then this decorator does nothing
     (and it should do nothing in production code!)
     """
     if not IGNORE_TRACEBACK:
+        # if the global enforces that we should not ignore anytracebacks
+        # then just return the original function without any modifcation
         return func
-    else:
-        @wraps(func)
-        def wrp_no_exectb(*args, **kwargs):
+    #@wraps(func)
+    def wrp_noexectb(*args, **kwargs):
+        try:
+            #import utool
+            #if utool.DEBUG:
+            #    print('[IN IGNORETB] args=%r' % (args,))
+            #    print('[IN IGNORETB] kwargs=%r' % (kwargs,))
+            return func(*args, **kwargs)
+        except Exception:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            # Code to remove this decorator from traceback
+            # Remove two levels to remove this one as well
+            exc_type, exc_value, exc_traceback = sys.exc_info()
             try:
-                #import utool
-                #if utool.DEBUG:
-                #    print('[IN IGNORETB] args=%r' % (args,))
-                #    print('[IN IGNORETB] kwargs=%r' % (kwargs,))
-                return func(*args, **kwargs)
+                exc_traceback = exc_traceback.tb_next
+                exc_traceback = exc_traceback.tb_next
             except Exception:
-                exc_type, exc_value, exc_traceback = sys.exc_info()
-                # Code to remove this decorator from traceback
-                # Remove two levels to remove this one as well
-                exc_type, exc_value, exc_traceback = sys.exc_info()
-                try:
-                    exc_traceback = exc_traceback.tb_next
-                    exc_traceback = exc_traceback.tb_next
-                except Exception:
-                    pass
-                # Python 2*3=6
-                six.reraise(exc_type, exc_value, exc_traceback)
-                # PYTHON 2.7 DEPRICATED:
-                #raise exc_type, exc_value, exc_traceback
-                # PYTHON 3.3 NEW METHODS
-                #ex = exc_type(exc_value)
-                #ex.__traceback__ = exc_traceback
-                #raise ex
-                # https://github.com/jcrocholl/pep8/issues/34  # NOQA
-                # http://legacy.python.org/dev/peps/pep-3109/
-        wrp_no_exectb = preserve_sig(wrp_no_exectb, func)
-        return wrp_no_exectb
+                pass
+            # Python 2*3=6
+            six.reraise(exc_type, exc_value, exc_traceback)
+            # PYTHON 2.7 DEPRICATED:
+            #raise exc_type, exc_value, exc_traceback
+            # PYTHON 3.3 NEW METHODS
+            #ex = exc_type(exc_value)
+            #ex.__traceback__ = exc_traceback
+            #raise ex
+            # https://github.com/jcrocholl/pep8/issues/34  # NOQA
+            # http://legacy.python.org/dev/peps/pep-3109/
+    wrp_noexectb = preserve_sig(wrp_noexectb, func)
+    return wrp_noexectb
 
 
 def on_exception_report_input(func):
@@ -89,9 +90,9 @@ def on_exception_report_input(func):
     decorated function name and the arguments passed to it will be printed to
     the utool print function.
     """
-    #@ignores_exc_tb
-    @wraps(func)
-    def wrp_exception_report_input(*args, **kwargs):
+    @ignores_exc_tb
+    #@wraps(func)
+    def wrp_onexceptreport(*args, **kwargs):
         try:
             #import utool
             #if utool.DEBUG:
@@ -107,8 +108,8 @@ def on_exception_report_input(func):
             msg += ' * len(kwargs) = %r\n' % len(kwargs)
             util_dbg.printex(ex, msg, separate=True)
             raise
-    wrp_exception_report_input = preserve_sig(wrp_exception_report_input, func)
-    return wrp_exception_report_input
+    wrp_onexceptreport = preserve_sig(wrp_onexceptreport, func)
+    return wrp_onexceptreport
 
 
 def _indent_decor(lbl):
@@ -119,7 +120,7 @@ def _indent_decor(lbl):
         #printDBG('Indenting lbl=%r, func=%r' % (lbl, func))
         if util_arg.TRACE:
             @ignores_exc_tb
-            @wraps(func)
+            #@wraps(func)
             def wrp_indent(*args, **kwargs):
                 with util_print.Indenter(lbl):
                     print('    ...trace[in]')
@@ -128,7 +129,7 @@ def _indent_decor(lbl):
                     return ret
         else:
             @ignores_exc_tb
-            @wraps(func)
+            #@wraps(func)
             def wrp_indent(*args, **kwargs):
                 with util_print.Indenter(lbl):
                     ret = func(*args, **kwargs)
@@ -163,6 +164,9 @@ def indent_func(input_):
 
 def accepts_scalar_input(func):
     """
+    DEPRICATE in favor of accepts_scalar_input2
+    only accepts one input as vector
+
     accepts_scalar_input is a decorator which expects to be used on class methods.
     It lets the user pass either a vector or a scalar to a function, as long as
     the function treats everything like a vector. Input and output is sanatized
@@ -170,8 +174,8 @@ def accepts_scalar_input(func):
     """
     #@on_exception_report_input
     @ignores_exc_tb
-    @wraps(func)
-    def wrp_si(self, input_, *args, **kwargs):
+    #@wraps(func)
+    def wrp_asi(self, input_, *args, **kwargs):
         #if HAS_PANDAS:
         #    if isinstance(input_, (pd.DataFrame, pd.Series)):
         #        input_ = input_.values
@@ -183,26 +187,8 @@ def accepts_scalar_input(func):
             ret = func(self, (input_,), *args, **kwargs)
             if ret is not None:
                 return ret[0]
-    return wrp_si
-
-
-def __assert_param_consistency(args, argx_list):
-    """
-    debugging function for accepts_scalar_input2
-    """
-    if util_arg.NO_ASSERTS:
-        return
-    if len(argx_list) == 0:
-        return True
-    argx_flags = [util_iter.isiterable(args[argx]) for argx in argx_list]
-    try:
-        assert all([argx_flags[0] == flag for flag in argx_flags]), (
-            'invalid mixing of iterable and scalar inputs')
-    except AssertionError as ex:
-        print('!!! ASSERTION ERROR IN UTIL_DECOR !!!')
-        for argx in argx_list:
-            print('args[%d] = %r' % (argx, args[argx]))
-        raise ex
+    wrp_asi = preserve_sig(wrp_asi, func)
+    return wrp_asi
 
 
 def accepts_scalar_input2(argx_list=[0]):
@@ -211,7 +197,7 @@ def accepts_scalar_input2(argx_list=[0]):
 
     used in IBEIS setters
 
-    accepts_scalar_input is a decorator which expects to be used on class methods.
+    accepts_scalar_input2 is a decorator which expects to be used on class methods.
     It lets the user pass either a vector or a scalar to a function, as long as
     the function treats everything like a vector. Input and output is sanatized
     to the user expected format on return.
@@ -224,37 +210,58 @@ def accepts_scalar_input2(argx_list=[0]):
     if not isinstance(argx_list, (list, tuple)):
         raise AssertionError('accepts_scalar_input2 must be called with argument positions')
 
-    def closure_si2(func):
+    def closure_asi2(func):
+        @on_exception_report_input
         @ignores_exc_tb
-        @wraps(func)
-        def wrp_si2(self, *args, **kwargs):
-            __assert_param_consistency(args, argx_list)
-            if all([util_iter.isiterable(args[ix]) for ix in argx_list]):
+        #@wraps(func)
+        def wrp_asi2(self, *args, **kwargs):
+            # Hack in case wrapping a function with varargs
+            argx_list_ = [argx for argx in argx_list if argx < len(args)]
+            __assert_param_consistency(args, argx_list_)
+            if all([util_iter.isiterable(args[ix]) for ix in argx_list_]):
                 # If input is already iterable do default behavior
                 return func(self, *args, **kwargs)
             else:
                 # If input is scalar, wrap input, execute, and unpack result
-                args_wrapped = [(arg,) if ix in argx_list else arg
+                args_wrapped = [(arg,) if ix in argx_list_ else arg
                                 for ix, arg in enumerate(args)]
                 ret = func(self, *args_wrapped, **kwargs)
                 if ret is not None:
                     return ret[0]
-        return wrp_si2
-    return closure_si2
+        wrp_asi2 = preserve_sig(wrp_asi2, func)
+        return wrp_asi2
+    return closure_asi2
+
+
+def __assert_param_consistency(args, argx_list_):
+    """
+    debugging function for accepts_scalar_input2
+    checks to make sure all the iterable inputs are of the same length
+    """
+    if util_arg.NO_ASSERTS:
+        return
+    if len(argx_list_) == 0:
+        return True
+    argx_flags = [util_iter.isiterable(args[argx]) for argx in argx_list_]
+    try:
+        assert all([argx_flags[0] == flag for flag in argx_flags]), (
+            'invalid mixing of iterable and scalar inputs')
+    except AssertionError as ex:
+        print('!!! ASSERTION ERROR IN UTIL_DECOR !!!')
+        for argx in argx_list_:
+            print('args[%d] = %r' % (argx, args[argx]))
+        raise ex
 
 
 def accepts_scalar_input_vector_output(func):
     """
     DEPRICATE IN FAVOR OF accepts_scalar_input2
 
-    accepts_scalar_input is a decorator which expects to be used on class
-    methods.  It lets the user pass either a vector or a scalar to a function,
-    as long as the function treats everything like a vector. Input and output is
-    sanatized to the user expected format on return.
+    accepts_scalar_input_vector_output
     """
     @ignores_exc_tb
-    @wraps(func)
-    def wrp_sivo(self, input_, *args, **kwargs):
+    #@wraps(func)
+    def wrp_asivo(self, input_, *args, **kwargs):
         #import utool
         #if utool.DEBUG:
         #    print('[IN SIVO] args=%r' % (args,))
@@ -266,11 +273,12 @@ def accepts_scalar_input_vector_output(func):
             # If input is scalar, wrap input, execute, and unpack result
             result = func(self, (input_,), *args, **kwargs)
             # The output length could be 0 on a scalar input
-            if len(result) != 0:
-                return result[0]
+            if len(result) == 0:
+                return []
             else:
-                return result
-    return wrp_sivo
+                assert len(result) == 1, 'error in asivo'
+                return result[0]
+    return wrp_asivo
 
 # TODO: Rename to listget_1to1 1toM etc...
 getter_1to1 = accepts_scalar_input
@@ -278,26 +286,10 @@ getter_1toM = accepts_scalar_input_vector_output
 #----------
 
 
-#def accepts_scalar_input_vector_output(func):
-#    @wraps(func)
-#    def wrp_sivo(self, input_, *args, **kwargs):
-#        is_scalar = not isiterable(input_)
-#        if is_scalar:
-#            iter_input = (input_,)
-#        else:
-#            iter_input = input_
-#        result = func(self, iter_input, *args, **kwargs)
-#        if is_scalar:
-#            if len(result) != 0:
-#                result = result[0]
-#        return result
-#    return wrp_sivo
-
-
 def accepts_numpy(func):
     """ Allows the first input to be a numpy array and get result in numpy form """
     #@ignores_exc_tb
-    @wraps(func)
+    #@wraps(func)
     def wrp_accepts_numpy(self, input_, *args, **kwargs):
         if not (HAS_NUMPY and isinstance(input_, np.ndarray)):
             # If the input is not numpy, just call the function
@@ -310,15 +302,19 @@ def accepts_numpy(func):
                 input_list, inverse_unique = np.unique(input_, return_inverse=True)
             else:
                 input_list = input_.flatten()
+            # Call the function in list format
+            # TODO: is this necessary?
             input_list = input_list.tolist()
             output_list = func(self, input_list, *args, **kwargs)
+            # Put the output back into numpy
             if UNIQUE_NUMPY:
-                # Reconstruct redundant queries (the user will never know!)
+                # Reconstruct redundant queries
                 output_arr = np.array(output_list)[inverse_unique]
                 output_shape = tuple(list(input_.shape) + list(output_arr.shape[1:]))
                 return np.array(output_arr).reshape(output_shape)
             else:
                 return np.array(output_list).reshape(input_.shape)
+    wrp_accepts_numpy = preserve_sig(wrp_accepts_numpy, func)
     return wrp_accepts_numpy
 
 
@@ -341,7 +337,7 @@ def memorize(func):
 def interested(func):
     @indent_func
     #@ignores_exc_tb
-    @wraps(func)
+    #@wraps(func)
     def wrp_interested(*args, **kwargs):
         sys.stdout.write('#\n')
         sys.stdout.write('#\n')
@@ -353,7 +349,7 @@ def interested(func):
 
 def show_return_value(func):
     from .util_str import func_str
-    @wraps(func)
+    #@wraps(func)
     def wrp_show_return_value(*args, **kwargs):
         ret = func(*args, **kwargs)
         #print('%s(*%r, **%r) returns %r' % (get_funcname(func), args, kwargs, rv))
@@ -363,10 +359,11 @@ def show_return_value(func):
 
 
 def time_func(func):
-    @wraps(func)
+    #@wraps(func)
     def wrp_time(*args, **kwargs):
         with util_time.Timer(get_funcname(func)):
             return func(*args, **kwargs)
+    wrp_time = preserve_sig(wrp_time, func)
     return wrp_time
 
 
@@ -443,18 +440,59 @@ def preserve_sig(wrapper, orig_func, force=False):
 
     References:
         http://emptysqua.re/blog/copying-a-python-functions-signature/
+        https://code.google.com/p/micheles/source/browse/decorator/src/decorator.py
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import utool as ut
+        >>> #ut.rrrr(False)
+        >>> def myfunction(self, listinput_, arg1, *args, **kwargs):
+        >>>     " just a test function "
+        >>>     return [x + 1 for x in listinput_]
+        >>> orig_func = myfunction
+        >>> wrapper = ut.accepts_scalar_input2([0])(orig_func)
+        >>> _wrp_preserve1 = ut.preserve_sig(wrapper, orig_func, True)
+        >>> _wrp_preserve2 = ut.preserve_sig(wrapper, orig_func, False)
+        >>> print(ut.get_func_sourcecode(_wrp_preserve1))
+        >>> print(ut.get_func_sourcecode(_wrp_preserve2))
+
+        >>> result = str(_wrp_preserve1)
+        >>> print(result)
     """
+    import utool as ut
+    if wrapper is orig_func:
+        # nothing to do
+        return orig_func
+    orig_docstr = ut.get_funcdoc(orig_func)
+    orig_docstr = '' if orig_docstr is None else orig_docstr
+    orig_argspec = ut.get_func_argspec(orig_func)
+    wrap_name = wrapper.func_code.co_name
+    orig_name = ut.get_funcname(orig_func)
+
+    # At the very least preserve info in a dictionary
+    _utinfo = {}
+    _utinfo['orig_func'] = orig_func
+    _utinfo['wrap_name'] = wrap_name
+    _utinfo['orig_name'] = orig_name
+    _utinfo['orig_argspec'] = orig_argspec
+
+    if hasattr(wrapper, '_utinfo'):
+        parent_wrapper_utinfo = wrapper._utinfo
+        _utinfo['parent_wrapper_utinfo'] = parent_wrapper_utinfo
+    if hasattr(orig_func, '_utinfo'):
+        parent_orig_utinfo = orig_func._utinfo
+        _utinfo['parent_orig_utinfo'] = parent_orig_utinfo
+
     if force or SIG_PRESERVE:
         src_fmt = r'''
         def _wrp_preserve{defsig}:
+            """ {orig_docstr} """
             try:
                 return wrapper{callsig}
             except Exception as ex:
-                import utool
+                import utool as ut
                 msg = ('Failure in signature preserving wrapper:\n')
-                msg += ("defsig={defsig}\n")
-                msg += ("callsig={callsig}\n")
-                utool.print(ex, msg)
+                ut.printex(ex, msg)
                 raise
         '''
         # Put wrapped function into a scope
@@ -469,32 +507,38 @@ def preserve_sig(wrapper, orig_func, force=False):
         # Get function call signature (no defaults)
         callsig = inspect.formatargspec(*argspec[0:3])
         # Define an exec function
-        src = textwrap.dedent(src_fmt).format(defsig=defsig, callsig=callsig)
+        src_fmtdict = dict(defsig=defsig, callsig=callsig, orig_docstr=orig_docstr)
+        src = textwrap.dedent(src_fmt).format(**src_fmtdict)
         # Define the new function on the fly
         # (I wish there was a non exec / eval way to do this)
         #print(src)
-        exec(src, globals_, locals_)
+        six.exec_(src, globals_, locals_)
         # Use functools.update_wapper to complete preservation
-        _wrp_preserve = update_wrapper(locals_['_wrp_preserve'], orig_func)
+        _wrp_preserve = functools.update_wrapper(locals_['_wrp_preserve'], orig_func)
         # Keep debug info
-        _wrp_preserve._utinfo = {}
-        _wrp_preserve._utinfo['src'] = src
+        _utinfo['src'] = src
         # Set an internal sig variable that we may use
         #_wrp_preserve.__sig__ = defsig
-        _wrp_preserve._dbgsrc = src
     else:
         # signature preservation is turned off. just preserve the name.
         # Does not use any exec or eval statments.
         import utool as ut
-        orig_func_argspec = ut.get_func_argspec(orig_func)
-        _wrp_preserve = update_wrapper(wrapper, orig_func)
+        _wrp_preserve = functools.update_wrapper(wrapper, orig_func)
         # Just do something to preserve signature
-        docstr_orig = ut.get_funcdoc(_wrp_preserve)
-        if docstr_orig is None:
-            docstr_orig = ''
-        docstr_append = 'orig_func_argspec = %r' % (orig_func_argspec,)
-        newdoc = docstr_orig + '\n' + docstr_append
-        ut.set_funcdoc(_wrp_preserve, newdoc)
+    new_docstr_fmtstr = ut.codeblock(
+        '''
+        Wrapped function {wrap_name}({orig_name})
+
+        orig_argspec = {orig_argspec}
+
+        orig_docstr = {orig_docstr}
+        '''
+    )
+    new_docstr = new_docstr_fmtstr.format(wrap_name=wrap_name,
+                                          orig_name=orig_name, orig_docstr=orig_docstr,
+                                          orig_argspec=orig_argspec)
+    ut.set_funcdoc(_wrp_preserve, new_docstr)
+    _wrp_preserve._utinfo = _utinfo
     return _wrp_preserve
 
 

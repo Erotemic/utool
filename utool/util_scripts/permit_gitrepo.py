@@ -8,7 +8,7 @@ def permit_gitrepo(config_fpath, writeback=False):
     """
     # Define search replace patterns
     username_regex = utool.named_field('username', utool.REGEX_VARNAME)
-    username_repl = utool.repl_field('username')
+    username_repl = utool.backref_field('username')
     regexpat = r'https://github.com/' + username_regex + '/'
     replpat = r'git@github.com:' + username_repl + '/'
     # Read and replace

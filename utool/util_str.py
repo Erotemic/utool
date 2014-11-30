@@ -510,25 +510,30 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True, recurs
     """
 
     def valfunc(val):
+        if strvals:
+            return str(val)
+        else:
+            return repr(val)
+
+    def recursive_valfunc(val):
         if isinstance(val, dict):
             # recursive call
-            return dict_str(val, strvals, sorted_, newlines, recursive, indent_ + '    ')
+            return dict_str(val, strvals=strvals, sorted_=sorted_,
+                            newlines=newlines, recursive=recursive,
+                            indent_=indent_ + '    ')
         else:
             # base case
-            return val
+            return valfunc(val)
 
     iteritems = six.iteritems
-    if strvals:
-        fmtstr = indent_ + '%s: %s,'
-    else:
-        fmtstr = indent_ + '%r: %r,'
+    fmtstr = indent_ + '%s: %s,'
     if sorted_:
         iteritems = lambda iter_: iter(sorted(six.iteritems(iter_)))
 
     if recursive:
-        itemstr_list = [fmtstr % (key, valfunc(val)) for (key, val) in iteritems(dict_)]
+        itemstr_list = [fmtstr % (key, recursive_valfunc(val)) for (key, val) in iteritems(dict_)]
     else:
-        itemstr_list = [fmtstr % (key, val) for (key, val) in iteritems(dict_)]
+        itemstr_list = [fmtstr % (key, valfunc(val)) for (key, val) in iteritems(dict_)]
     return itemstr_list
 
 
@@ -888,6 +893,19 @@ def number_text_lines(text):
     text_with_lineno = '\n'.join(numbered_linelist)
     return text_with_lineno
 
+
+def get_textdiff(text1, text2):
+    """
+    References:
+        http://www.java2s.com/Code/Python/Utility/IntelligentdiffbetweentextfilesTimPeters.htm
+    """
+    import difflib
+    text1_lines = text1.splitlines()
+    text2_lines = text2.splitlines()
+    diffline_gen = difflib.ndiff(text1_lines, text2_lines)
+    diff_lines = [line for line in diffline_gen
+                  if len(line) > 0 and line[0] in '+-?']
+    return '\n'.join(diff_lines)
 
 if __name__ == '__main__':
     """
