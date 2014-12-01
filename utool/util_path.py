@@ -911,7 +911,7 @@ def assert_exists(path):
     assert exists(path), 'path=%r does not exist!' % path
 
 
-def grepfile(fpath, regexpr_list):
+def grepfile(fpath, regexpr_list, reflags=0):
     """
     grepfile - greps a specific file
 
@@ -940,7 +940,8 @@ def grepfile(fpath, regexpr_list):
         # Search each line for each pattern
         for lx, line in enumerate(line_list):
             for regexpr_ in regexpr_list_:
-                match_object = re.search(regexpr_, line)
+                # FIXME: multiline mode doesnt work
+                match_object = re.search(regexpr_, line, flags=reflags)
                 if match_object is not None:
                     found_lines.append(line)
                     found_lxs.append(lx)
@@ -1012,7 +1013,7 @@ def matching_fnames(dpath_list, include_patterns, exclude_dirs=[],
 
 def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
          exclude_dirs=[], greater_exclude_dirs=None,
-         inverse=False, verbose=VERBOSE):
+         inverse=False, verbose=VERBOSE, reflags=0):
     """
     Python implementation of grep. NOT FINISHED
 
@@ -1064,7 +1065,7 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
     # For each matching filepath
     for fpath in fpath_generator:
         # For each search pattern
-        found_lines, found_lxs = grepfile(fpath, extended_regex_list)
+        found_lines, found_lxs = grepfile(fpath, extended_regex_list, reflags)
         if inverse:
             if len(found_lines) == 0:
                 # Append files that the pattern was not found in
