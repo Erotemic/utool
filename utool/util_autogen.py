@@ -239,6 +239,11 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
     examplecode = '\n'.join(examplecode_lines)
     return examplecode
 
+
+def make_cmdline_docstr(funcname, modname):
+    cmdline_fmtstr = 'python -m {modname} --test-{funcname}'  # --enableall'
+    return cmdline_fmtstr.format(**locals())
+
 # </INVIDIAL DOCSTR COMPONENTS>
 
 
@@ -252,6 +257,7 @@ def make_docstr_block(header, block):
 def make_default_docstr(func,
                         with_args=True,
                         with_ret=True,
+                        with_commandline=True,
                         with_example=True,
                         with_header=False,
                         with_debug=False,
@@ -318,6 +324,12 @@ def make_default_docstr(func,
 
     # Example part
     # try to generate a simple and unit testable example
+    if with_commandline:
+        cmdlineheader = 'CommandLine'
+        cmdlinecode = make_cmdline_docstr(funcname, modname)
+        cmdlineblock = make_docstr_block(cmdlineheader, cmdlinecode)
+        docstr_parts.append(cmdlineblock)
+
     if with_example:
         exampleheader = 'Example'
         examplecode = make_example_docstr(funcname, modname, argname_list, defaults, return_type, return_name)

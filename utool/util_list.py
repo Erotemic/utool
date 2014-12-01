@@ -326,6 +326,10 @@ def list_allsame(list_):
     return all([item == first_item for item in list_])
 
 
+def flag_None_items(list_):
+    return [item is None for item in list_]
+
+
 def assert_all_not_None(list_, list_name='some_list', key_list=[]):
     if NO_ASSERTS:
         return
@@ -591,7 +595,7 @@ def sortedby2(item_list, *args, **kwargs):
     reverse = kwargs.get('reverse', False)
     key = operator.itemgetter(*range(1, len(args) + 1))
     tup_list = list(zip(item_list, *args))
-    print(tup_list)
+    #print(tup_list)
     sorted_tups = sorted(tup_list, key=key, reverse=reverse)
     sorted_list = [tup[0] for tup in sorted_tups]
     return sorted_list

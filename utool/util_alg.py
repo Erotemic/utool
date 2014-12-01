@@ -18,6 +18,11 @@ from utool import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
 
 
+PHI = 1.61803398875
+PHI_A = (1 / PHI)
+PHI_B = 1 - PHI_A
+
+
 def bayes_rule(b_given_a, prob_a, prob_b):
     r"""
     bayes_rule
@@ -333,16 +338,11 @@ def get_phi():
     """ Golden Ratio: phi = 1 / sqrt(5) / 2.0 = 1.61803398875 """
     #phi = (1.0 + np.sqrt(5)) / 2.0 = 1.61803398875
     # return phi
-    return 1.61803398875
+    return PHI
 
 
 def get_phi_ratio1():
     return 1.0 / get_phi()
-
-
-PHI = get_phi()
-PHI_A = (1 / PHI)
-PHI_B = 1 - PHI_A
 
 
 def iceil(num):
@@ -361,6 +361,12 @@ def is_prime(num):
         if (num % j) == 0:
             return False
     return True
+
+
+def deg_to_rad(degree):
+    degree %= 360.0
+    tau = 2 * np.pi
+    return (degree / 360.0) * tau
 
 
 def get_nth_prime(n, max_prime=4100):

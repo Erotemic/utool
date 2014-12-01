@@ -12,6 +12,7 @@ __AGGROFLUSH__ = '--aggroflush' in sys.argv
 __LOGGING__    = '--logging'    in sys.argv
 __DEBUG_ALL__  = '--debug-all'  in sys.argv
 __DEBUG_PROF__ = '--debug-prof' in sys.argv or '--debug-profile' in sys.argv
+DEBUG_PRINT = '--debug-print' in sys.argv
 QUIET = '--quiet' in sys.argv
 SILENT = '--silent' in sys.argv
 VERYVERBOSE = util_logging.VERYVERBOSE
@@ -119,9 +120,17 @@ def inject_print_functions(module_name=None, module_prefix='[???]', DEBUG=False,
         def print_(*args):
             pass
     else:
-        def print(*args):
-            """ logging print """
-            util_logging.__UTOOL_PRINT__(*args)
+        if DEBUG_PRINT:
+            # Turns on printing where a message came from
+            def print(*args):
+                """ logging print """
+                from utool._internal.meta_util_dbg import get_caller_name
+                calltag = ''.join(('[caller:', get_caller_name(), ']' ))
+                util_logging.__UTOOL_PRINT__(calltag, *args)
+        else:
+            def print(*args):
+                """ logging print """
+                util_logging.__UTOOL_PRINT__(*args)
 
         if __AGGROFLUSH__:
             def print_(*args):

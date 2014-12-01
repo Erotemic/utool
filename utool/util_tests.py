@@ -21,6 +21,7 @@ PRINT_SRC = not util_arg.get_argflag(('--noprintsrc', '--nosrc'))
 PRINT_FACE = not util_arg.get_argflag(('--noprintface', '--noface'))
 #BIGFACE = False
 BIGFACE = False
+SYSEXIT_ON_FAIL = util_arg.get_argflag('--sysexitonfail')
 
 if BIGFACE:
     HAPPY_FACE = r'''
@@ -272,14 +273,16 @@ def doctest_module_list(module_list):
         print('\n'.join(failed_cmd_list))
 
 
-def get_module_testlines(module_list, remove_pyc=True, verbose=True, pythoncmd='python'):
+def get_module_testlines(module_list, remove_pyc=True, verbose=True,
+                         pythoncmd='python', **kwargs):
     """
     Builds test commands for autogen tests
     """
     import utool as ut  # NOQA
     testcmd_list = []
     for module in module_list:
-        tuptup = get_doctest_testtup_list(module=module, allexamples=True, verbose=verbose)
+        tuptup = get_doctest_testtup_list(module=module, allexamples=True,
+                                          verbose=verbose, **kwargs)
         enabled_testtup_list, frame_fpath, all_testflags, module_ = tuptup
         for testtup in enabled_testtup_list:
             testflag = testtup[-1]
@@ -294,7 +297,7 @@ def get_module_testlines(module_list, remove_pyc=True, verbose=True, pythoncmd='
 
 def get_doctest_testtup_list(testable_list=None, check_flags=True, module=None,
                              allexamples=None, needs_enable=None, N=0,
-                             verbose=True):
+                             verbose=True, testslow=False):
     """
     Returns:
         tuple : (enabled_testtup_list, frame_fpath, all_testflags, module)
@@ -376,8 +379,16 @@ def get_doctest_testtup_list(testable_list=None, check_flags=True, module=None,
         #'UTOOL_TEST',
         #'UTOOLTEST'
     ]
-    if '--testall' in sys.argv:
+    if testslow or ut.get_argflag(('--testall', '--testslow')):
         test_sentinals.append('SLOW_DOCTEST')
+
+    force_enable_testnames = []
+    for arg in sys.argv:
+        if arg.startswith('--test-'):
+            testname = arg[7:].split(':')[0].replace('-', '_')
+            force_enable_testnames.append(testname)
+    #print(force_enable_testnames)
+
     sorted_testable = sorted(list(set(testable_list)), key=_get_testable_name)
     testtup_list = []
     # Append each testable example
@@ -390,9 +401,10 @@ def get_doctest_testtup_list(testable_list=None, check_flags=True, module=None,
                 src_ = ut.regex_replace('from __future__ import.*$', '', src)
                 test_disabled = not any([src_.find(s) >= 0 for s in test_sentinals])
                 if needs_enable and test_disabled:
-                    #print('skipping: %r' % testname)
-                    #print(src)
-                    continue
+                    if testname not in force_enable_testnames:
+                        #print('skipping: %r' % testname)
+                        #print(src)
+                        continue
                 #ut.embed()
                 testtup = (testname, testno, src_, want)
                 testtup_list.append(testtup)
@@ -647,6 +659,10 @@ def run_test(func, *args, **kwargs):
                 #ex = exc_type(exc_value)
                 #ex.__traceback__ = exc_traceback.tb_next
                 #raise ex
+            if SYSEXIT_ON_FAIL:
+                print('[util_test] SYSEXIT_ON_FAIL = True')
+                print('[util_test] exiting with sys.exit(1)')
+                sys.exit(1)
             #raise
             return False
 

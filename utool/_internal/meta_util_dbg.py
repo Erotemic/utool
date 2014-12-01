@@ -34,7 +34,7 @@ def get_caller_name(N=0, strict=True):
                 name_list.append('X')
         return '[' + ']['.join(name_list) + ']'
     # <get_parent_frame>
-    parent_frame = get_stack_frame(N=N + 1, strict=strict)
+    parent_frame = get_stack_frame(N=N + 2, strict=strict)
     # </get_parent_frame>
     caller_name = parent_frame.f_code.co_name
     if caller_name == '<module>':

@@ -217,7 +217,7 @@ def accepts_scalar_input2(argx_list=[0]):
         raise AssertionError('accepts_scalar_input2 must be called with argument positions')
 
     def closure_asi2(func):
-        @on_exception_report_input
+        #@on_exception_report_input
         @ignores_exc_tb
         #@wraps(func)
         def wrp_asi2(self, *args, **kwargs):
@@ -234,7 +234,7 @@ def accepts_scalar_input2(argx_list=[0]):
                 ret = func(self, *args_wrapped, **kwargs)
                 if ret is not None:
                     return ret[0]
-        wrp_asi2 = preserve_sig(wrp_asi2, func)
+        wrp_asi2 = on_exception_report_input(preserve_sig(wrp_asi2, func))
         return wrp_asi2
     return closure_asi2
 

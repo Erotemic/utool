@@ -1026,7 +1026,7 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
         include_patterns (list) : defaults to standard file extensions
 
     Returns:
-        tuple (list, list, list): (found_filestr_list, found_lines_list, found_lxs_list)
+        tuple (list, list, list): (found_fpath_list, found_lines_list, found_lxs_list)
 
     Example:
         >>> from utool.util_path import *  # NOQA
@@ -1038,7 +1038,7 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
         >>> verbose = False
         >>> recursive = True
         >>> result = ut.grep(regex_list, recursive, dpath_list, include_patterns, exclude_dirs)
-        >>> (found_filestr_list, found_lines_list, found_lxs_list) = result
+        >>> (found_fpath_list, found_lines_list, found_lxs_list) = result
         >>> print(result)
 
     """
@@ -1056,7 +1056,7 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
         print('[util_path] Greping (%s) %r for %r' % (recursive_stat_str, dpath_list, regex_list))
     if isinstance(regex_list, six.string_types):
         regex_list = [regex_list]
-    found_filestr_list = []
+    found_fpath_list = []
     found_lines_list = []
     found_lxs_list = []
     # Walk through each directory recursively
@@ -1069,16 +1069,16 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
         if inverse:
             if len(found_lines) == 0:
                 # Append files that the pattern was not found in
-                found_filestr_list.append(fpath)
+                found_fpath_list.append(fpath)
                 found_lines_list.append([])
                 found_lxs_list.append([])
         elif len(found_lines) > 0:
-            found_filestr_list.append(fpath)  # regular matching
+            found_fpath_list.append(fpath)  # regular matching
             found_lines_list.append(found_lines)
             found_lxs_list.append(found_lxs)
     if verbose:
-        print('[util_path] found matches in %d files' % len(found_filestr_list))
-    return found_filestr_list, found_lines_list, found_lxs_list
+        print('[util_path] found matches in %d files' % len(found_fpath_list))
+    return found_fpath_list, found_lines_list, found_lxs_list
 
 
 def fixwin32_shortname(path1):
