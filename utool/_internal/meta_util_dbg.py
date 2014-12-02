@@ -41,5 +41,6 @@ def get_caller_name(N=0, strict=True):
         co_filename = parent_frame.f_code.co_filename
         caller_name = splitext(split(co_filename)[1])[0]
     if caller_name == '__init__':
+        co_filename = parent_frame.f_code.co_filename
         caller_name = basename(dirname(co_filename)) + '.' + caller_name
     return caller_name

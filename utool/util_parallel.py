@@ -39,6 +39,7 @@ if BACKEND == 'gevent':
     raise NotImplementedError('gevent cannot run on multiple cpus')
     pass
 elif BACKEND == 'zeromq':
+    # TODO: Implement zeromq backend
     #http://zguide.zeromq.org/py:mtserver
     raise NotImplementedError('no zeromq yet')
     pass
@@ -82,16 +83,16 @@ def init_pool(num_procs=None, maxtasksperchild=None):
         # Get number of cpu cores
         num_procs = get_default_numprocs()
     if not QUIET:
-        print('[util_parallel] initializing pool with %d processes' % num_procs)
+        print('[util_parallel.init_pool] initializing pool with %d processes' % num_procs)
     if num_procs == 1:
-        print('[util_parallel] num_procs=1, Will process in serial')
+        print('[util_parallel.init_pool] num_procs=1, Will process in serial')
         __POOL__ = 1
         return
     if STRICT:
         #assert __POOL__ is None, 'pool is a singleton. can only initialize once'
         assert multiprocessing.current_process().name, 'can only initialize from main process'
     if __POOL__ is not None:
-        print('close pool before reinitializing')
+        print('[util_parallel.init_pool] close pool before reinitializing')
         return
     # Create the pool of processes
     #__POOL__ = multiprocessing.Pool(processes=num_procs, initializer=init_worker, maxtasksperchild=maxtasksperchild)
@@ -173,7 +174,7 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
     if chunksize is None:
         chunksize = max(1, nTasks // (__POOL__._processes ** 2))
     if verbose:
-        print('[util_parallel] executing %d %s tasks using %d processes with chunksize=%r' %
+        print('[util_parallel._generate_parallel] executing %d %s tasks using %d processes with chunksize=%r' %
                 (nTasks, get_funcname(func), __POOL__._processes, chunksize))
     #assert isinstance(__POOL__, multiprocessing.Pool),\
     #        '%r __POOL__ = %r' % (type(__POOL__), __POOL__,)
@@ -216,7 +217,7 @@ def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None):
     if nTasks is None:
         nTasks = len(args_list)
     if verbose:
-        print('[util_parallel] executing %d %s tasks in serial' %
+        print('[util_parallel._generate_serial] executing %d %s tasks in serial' %
                 (nTasks, get_funcname(func)))
     prog = prog and verbose
     use_new_prog = True
@@ -275,14 +276,22 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
         generator which yeilds result of applying func to args in args_list
 
     Example:
-        >>> from utool.util_parallel import *  # NOQA
+        >>> # ENABLE_DOCTEST
+        >>> import utool as ut
+        >>> num = 8700  # parallel is slower for smaller numbers
+        >>> flag_generator0 = ut.generate(ut.is_prime, range(0, num), force_serial=True)
+        >>> flag_list0 = list(flag_generator0)
+        >>> flag_generator1 = ut.generate(ut.is_prime, range(0, num))
+        >>> flag_list1 = list(flag_generator1)
+        >>> assert flag_list0 == flag_list1
+
     """
     if nTasks is None:
         nTasks = len(args_list)
     if nTasks == 0:
         if verbose:
-            print('[util_parallel] submitted 0 tasks')
-        return []
+            print('[util_parallel.generate] submitted 0 tasks')
+        return iter([])
     if VERBOSE and verbose:
         print('[util_parallel.generate] ordered=%r' % ordered)
         print('[util_parallel.generate] force_serial=%r' % force_serial)
@@ -308,6 +317,7 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
 def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__,
             nTasks=None):
     """
+    Use ut.generate rather than ut.process
 
     Args:
         func (func):
@@ -319,7 +329,14 @@ def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__,
         result of parallel map(func, args_list)
 
     Example:
-        >>> from utool.util_parallel import *  # NOQA
+        >>> # ENABLE_DOCTEST
+        >>> import utool as ut
+        >>> num = 8700  # parallel is slower for smaller numbers
+        >>> flag_generator0 = ut.process(ut.is_prime, zip(range(0, num)), force_serial=True)
+        >>> flag_list0 = list(flag_generator0)
+        >>> flag_generator1 = ut.process(ut.is_prime, zip(range(0, num)), force_serial=False)
+        >>> flag_list1 = list(flag_generator1)
+        >>> assert flag_list0 == flag_list1
     """
 
     ensure_pool()
@@ -341,8 +358,6 @@ def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -c "import utool, utool.util_parallel; utool.doctest_funcs(utool.util_parallel, allexamples=True)"
-        python -c "import utool, utool.util_parallel; utool.doctest_funcs(utool.util_parallel)"
         python -m utool.util_parallel
         python -m utool.util_parallel --allexamples
     """

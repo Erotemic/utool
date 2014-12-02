@@ -536,7 +536,7 @@ def get_caller_name(N=0):
     Returns:
         str: a function name
     """
-    if isinstance(N, (list, tuple)):
+    if isinstance(N, (list, tuple, range)):
         name_list = []
         for N_ in N:
             try:

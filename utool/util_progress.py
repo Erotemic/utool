@@ -203,6 +203,8 @@ class ProgressIter(object):
         #time_thresh = 0.5
         max_between_time = -1.0
         max_between_count = -1.0  # why is this different? # becuase frequency varies
+        iters_per_second = -1
+        est_min_left = -1
 
         with ut.Timer(self.lbl):
             import six
@@ -243,7 +245,7 @@ class ProgressIter(object):
                     iters_left = nTotal - self.count
                     est_seconds_left = iters_left / (iters_per_second + 1E-9)
                     est_min_left = est_seconds_left / 60.0
-                    msg = fmt_msg % (self.count, iters_per_second, est_min_left)
+                    msg = fmt_msg % (self.count + 1, iters_per_second, est_min_left)
                     #if False and __debug__:
                     #    print('<!!!!!!!!!!!!!>')
                     #    print('iters_left = %r' % iters_left)
@@ -256,6 +258,9 @@ class ProgressIter(object):
                     PROGRESS_FLUSH()
                     last_count = self.count
                     last_time = now_time
+            est_min_left = 0
+            msg = fmt_msg % (self.count + 1, iters_per_second, est_min_left)
+            PROGRESS_WRITE(msg)
             #print('freq = %r' % freq)
             PROGRESS_WRITE('\n')
             PROGRESS_FLUSH()

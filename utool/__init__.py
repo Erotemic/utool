@@ -385,7 +385,7 @@ if DOELSE:
                                  matching_fnames, move, move_list, newcd,
                                  num_images_in_dir, path_ndir_split,
                                  platform_path, progress_func, remove_dirs,
-                                 remove_file, remove_file_list,
+                                 remove_file, remove_fpaths,
                                  remove_files_in_dir, search_in_dirs, symlink,
                                  tail, touch, truepath, truepath_relative,
                                  unixjoin, win_shortcut,)

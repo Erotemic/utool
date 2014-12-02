@@ -20,9 +20,12 @@ from utool.util_dbg import get_caller_name, printex
 from utool.util_progress import progress_func
 from utool._internal import meta_util_path
 from utool import util_inject
+from utool import util_arg
 from utool.util_arg import NO_ASSERTS, VERBOSE, VERYVERBOSE, QUIET
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[path]')
 
+
+PRINT_CALLER = util_arg.get_argflag('--print-caller')  # FIXME: name
 
 __IMG_EXTS = ['.jpg', '.jpeg', '.png', '.tif', '.tiff', '.ppm']
 __LOWER_EXTS = [ext.lower() for ext in __IMG_EXTS]
@@ -243,20 +246,50 @@ def delete(path, dryrun=False, recursive=True, verbose=VERBOSE, print_exists=Tru
     return flag
 
 
-def remove_file_list(fpath_list, verbose=VERYVERBOSE, quiet=False):
-    if not quiet:
-        print('[util_path] Removing %d files' % len(fpath_list))
+def remove_existing_fpaths(fpath_list, verbose=VERBOSE, quiet=QUIET,
+                           strict=False, print_caller=PRINT_CALLER, lbl='files'):
+    """ checks existance before removing. then tries to remove exisint paths """
+    import utool as ut
+    if print_caller:
+        print(get_caller_name(range(1, 4)) + ' called remove_existing_fpaths')
+    fpath_list_ = ut.filter_Nones(fpath_list)
+    exists_list = list(map(exists, fpath_list_))
+    if verbose:
+        nTotal = len(fpath_list)
+        nValid = len(fpath_list_)
+        nExist = sum(exists_list)
+        print('[util_path.remove_existing_fpaths] requesting delete of %d %s' % (nTotal, lbl))
+        if nValid != nTotal:
+            print('[util_path.remove_existing_fpaths] trying to delete %d/%d non None %s ' % (nValid, nTotal, lbl))
+        print('[util_path.remove_existing_fpaths] %d/%d exist and need to be deleted' % (nExist, nValid))
+    existing_fpath_list = ut.filter_items(fpath_list_, exists_list)
+    return remove_fpaths(existing_fpath_list, verbose=verbose, quiet=quiet,
+                            strict=strict, print_caller=False, lbl=lbl)
+
+
+def remove_fpaths(fpath_list, verbose=VERBOSE, quiet=QUIET, strict=False, print_caller=PRINT_CALLER, lbl='files'):
+    if print_caller:
+        print(get_caller_name(range(1, 4)) + ' called remove_fpaths')
+    if not quiet and verbose:
+        print('[util_path.remove_fpaths] try removing %d %s' % (len(fpath_list), lbl))
     nRemoved = 0
     for fpath in fpath_list:
         try:
             os.remove(fpath)  # Force refresh
             nRemoved += 1
         except OSError as ex:
-            if verbose:
-                printex(ex, 'Could not remove fpath = %r' % (fpath,), iswarning=True)
+            if VERYVERBOSE:
+                print('WARNING: Could not remove fpath = %r' % (fpath,))
+            if strict:
+                printex(ex, 'Could not remove fpath = %r' % (fpath,), iswarning=False)
+                raise
             pass
     if not quiet:
-        print('[util_path] Removed %d / %d files' % (nRemoved, len(fpath_list)))
+        print('[util_path.remove_fpaths] ... removed %d / %d %s' % (nRemoved, len(fpath_list), lbl))
+    return nRemoved
+
+
+remove_file_list = remove_fpaths  # backwards compatible
 
 
 def longest_existing_path(_path):
