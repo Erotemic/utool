@@ -141,28 +141,57 @@ def remove_dirs(dpath, dryrun=False, ignore_errors=True, **kwargs):
 #import os
 
 
-def augpath(path, aug):
+def augpath(path, augsuf='', augext='', augdir=None, newext=None, ensure=False):
     """
+    augments end of path before the extension.
+
     augpath
 
     Args:
-        path (?):
-        aug (?):
+        path (str):
+        augsuf (str): augment filename before extension
 
     Returns:
-        ?: newpath
+        str: newpath
 
     Example:
         >>> from utool.util_path import *  # NOQA
         >>> path = 'somefile.txt'
-        >>> aug = '_aug'
-        >>> newpath = augpath(path, aug)
+        >>> augsuf = '_aug'
+        >>> newpath = augpath(path, augsuf)
         >>> result = str(newpath)
         >>> print(result)
         somefile_aug.txt
+
+    Example:
+        >>> from utool.util_path import *  # NOQA
+        >>> path = 'somefile.txt'
+        >>> augsuf = '_aug2'
+        >>> newext = '.bak'
+        >>> augdir = 'backup'
+        >>> newpath = augpath(path, augsuf, newext=newext, augdir=augdir)
+        >>> result = str(newpath)
+        >>> print(result)
+        backup/somefile_aug2.bak
     """
-    path_noext, ext = splitext(path)
-    newpath = ''.join((path_noext, aug, ext))
+    # Breakup path
+    dpath, fname = split(path)
+    fname_noext, ext = splitext(fname)
+    # Augment ext
+    if newext is None:
+        newext = ext
+    # Augment fname
+    new_fname = ''.join((fname_noext, augsuf, newext, augext))
+    # Augment dpath
+    if augdir is not None:
+        new_dpath = join(dpath, augdir)
+        if ensure:
+            # create new dir if needebe
+            ensuredir(new_dpath)
+    else:
+        new_dpath = dpath
+    # Recombine into new path
+    newpath = join(new_dpath, new_fname)
     return newpath
 
 
@@ -344,7 +373,7 @@ def checkpath(path_, verbose=VERYVERBOSE, n=None, info=VERYVERBOSE):
 
 
 def ensurepath(path_, verbose=VERYVERBOSE):
-    """ DEPRICATE - use ensuredir instead """
+    """ DEPRICATE - alias - use ensuredir instead """
     return ensuredir(path_, verbose=verbose)
 
 
