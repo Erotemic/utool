@@ -320,10 +320,23 @@ def list_allsame(list_):
     if len(list_) == 0:
         return True
     first_item = list_[0]
-    if HAS_NUMPY:
-        if isinstance(first_item, np.ndarray):
-            return all([np.all(item == first_item) for item in list_])
-    return all([item == first_item for item in list_])
+    return list_all_eq_to(list_, first_item)
+
+
+def list_all_eq_to(list_, val):
+    """
+    checks to see if list is equal everywhere to a value
+
+    Args:
+        list_ (list):
+        val : value to check against
+
+    Returns:
+        True if all items in the list are equal to val
+    """
+    if HAS_NUMPY and isinstance(val, np.ndarray):
+        return all([np.all(item == val) for item in list_])
+    return all([item == val for item in list_])
 
 
 def flag_None_items(list_):

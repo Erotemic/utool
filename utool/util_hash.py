@@ -239,6 +239,10 @@ def random_uuid():
 
 
 def random_nonce(length=64, alphabet=None):
+    """
+    returns a random string of len=<length> from <alphabet>
+    I have no idea why this is named random_nonce
+    """
     assert length > 0
     if alphabet is None:
         alphabet = ALPHABET_16
