@@ -1135,10 +1135,30 @@ def fixwin32_shortname(path1):
 def platform_path(path):
     """
     Returns platform specific path for pyinstaller usage
+
+    Args:
+        path (str):
+
+    Returns:
+        str: path2
+
+    CommandLine:
+        python -m utool.util_path --test-platform_path
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> # FIXME: find examples of the wird paths this fixes (mostly on win32 i think)
+        >>> from utool.util_path import *  # NOQA
+        >>> path = 'some/odd/../weird/path'
+        >>> path2 = platform_path(path)
+        >>> result = str(path2)
+        >>> print(result)
+        some/weird/path
     """
     try:
         if path == '':
             raise ValueError('path cannot be the empty string')
+        # get path relative to cwd
         path1 = truepath_relative(path)
         if sys.platform.startswith('win32'):
             path2 = fixwin32_shortname(path1)
