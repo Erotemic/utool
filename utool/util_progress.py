@@ -144,7 +144,17 @@ class ProgressIter(object):
         self.nTotal    = kwargs.get('nTotal', 0)
         self.backspace = kwargs.get('backspace', True)
         self.freq      = kwargs.get('freq', 4)
-        self.mark, self.end = log_progress(*args, **kwargs)
+        self.with_totaltime = False
+        if self.use_rate:
+            # Hacky so hacky. this needs major cleanup
+            # saving args and kwargs so can wait on log_progress call
+            # not sure where it is called and dont want to break things
+            self.args = args
+            self.kwargs = kwargs
+            self.mark = None
+            self.end = None
+        else:
+            self.mark, self.end = log_progress(*args, **kwargs)
         self.count = -1
 
     def __call__(self, iterable):
@@ -158,6 +168,9 @@ class ProgressIter(object):
             return self.iter_without_rate()
 
     def iter_without_rate(self):
+        if self.mark is None:
+            # Continuation of hacking
+            self.mark, self.end = log_progress(*self.args, **self.kwargs)
         mark = self.mark
         # Wrap the for loop with a generator
         self.count = -1
@@ -165,6 +178,9 @@ class ProgressIter(object):
             mark(self.count)
             yield item
         self.end(self.count + 1)
+
+    def mark_current(self):
+        self.mark(self.count)
 
     def iter_rate(self):
         # TODO Incorporate this better
@@ -206,11 +222,12 @@ class ProgressIter(object):
         iters_per_second = -1
         est_min_left = -1
 
-        with ut.Timer(self.lbl):
+        with ut.Timer(self.lbl, verbose=self.with_totaltime):
             import six
             # yeild first element
             enumiter = enumerate(self.iterable)
-            yield six.next(enumiter)[1]
+            self.count, item = six.next(enumiter)
+            yield item
 
             for self.count, item in enumiter:
                 #mark(self.count)
@@ -265,9 +282,6 @@ class ProgressIter(object):
             PROGRESS_WRITE('\n')
             PROGRESS_FLUSH()
         #self.end(self.count + 1)
-
-    def mark_current(self):
-        self.mark(self.count)
 
 
 progiter = ProgressIter

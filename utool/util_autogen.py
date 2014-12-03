@@ -187,6 +187,7 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
     default_argval_map = {
         'ibs':      'ibeis.opendb(\'testdb1\')',
         'aid_list': 'ibs.get_valid_aids()',
+        'nid_list': 'ibs._get_all_known_nids()',
     }
     import_depends_map = {
         'ibs':      'import ibeis',

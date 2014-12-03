@@ -6,11 +6,11 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[io]')
 
 
 __PRINT_IO__ = True
-__PRINT_WRITES__ = False or __PRINT_IO__
-__PRINT_READS__  = False or __PRINT_IO__
+__PRINT_WRITES__ = __PRINT_IO__
+__PRINT_READS__  =  __PRINT_IO__
 
 
-def write_to(fpath, to_write, aslines=False, verbose=__PRINT_WRITES__,
+def write_to(fpath, to_write, aslines=False, verbose=False,
                 onlyifdiff=False):
     """ Writes text to a file
 
@@ -27,7 +27,7 @@ def write_to(fpath, to_write, aslines=False, verbose=__PRINT_WRITES__,
         if ut.hashstr(read_from(fpath)) == ut.hashstr(to_write):
             print('[util_io] * no difference')
             return
-    if __PRINT_WRITES__:
+    if verbose or __PRINT_WRITES__:
         print('[util_io] * Writing to text file: %r ' % util_path.tail(fpath))
     with open(fpath, 'w') as file_:
         if aslines:
@@ -36,7 +36,7 @@ def write_to(fpath, to_write, aslines=False, verbose=__PRINT_WRITES__,
             file_.write(to_write)
 
 
-def read_from(fpath, verbose=__PRINT_READS__, aslines=False, strict=True):
+def read_from(fpath, verbose=False, aslines=False, strict=True):
     """ Reads text from a file
 
     Args:
@@ -47,7 +47,7 @@ def read_from(fpath, verbose=__PRINT_READS__, aslines=False, strict=True):
     Returns:
         text from fpath
     """
-    if verbose:
+    if verbose or __PRINT_READS__:
         print('[util_io] * Reading text file: %r ' % util_path.tail(fpath))
     try:
         if not util_path.checkpath(fpath, verbose=verbose, n=3):
@@ -67,15 +67,15 @@ def read_from(fpath, verbose=__PRINT_READS__, aslines=False, strict=True):
             raise
 
 
-def save_cPkl(fpath, data):
-    if __PRINT_WRITES__:
+def save_cPkl(fpath, data, verbose=False):
+    if verbose or __PRINT_WRITES__:
         print('[util_io] * save_cPkl(%r, data)' % (util_path.tail(fpath),))
     with open(fpath, 'wb') as file_:
         cPickle.dump(data, file_, cPickle.HIGHEST_PROTOCOL)
 
 
-def load_cPkl(fpath):
-    if __PRINT_READS__:
+def load_cPkl(fpath, verbose=False):
+    if verbose or __PRINT_READS__:
         print('[util_io] * load_cPkl(%r, data)' % (util_path.tail(fpath),))
     with open(fpath, 'rb') as file_:
         data = cPickle.load(file_)

@@ -289,7 +289,7 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
     if nTasks is None:
         nTasks = len(args_list)
     if nTasks == 0:
-        if verbose:
+        if VERBOSE and verbose:
             print('[util_parallel.generate] submitted 0 tasks')
         return iter([])
     if VERBOSE and verbose:

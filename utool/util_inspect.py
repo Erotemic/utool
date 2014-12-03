@@ -261,13 +261,13 @@ def get_func_sourcecode(func):
     wrapper around inspect.getsource but takes into account utool decorators
     """
     sourcefile = inspect.getsourcefile(func)
+    if hasattr(func, '_utinfo'):
+        #return func._utinfo['src']
+        return get_func_sourcecode(func._utinfo['orig_func'])
     if sourcefile is not None:
         return inspect.getsource(func)
-    else:
-        if hasattr(func, '_utinfo'):
-            return func._utinfo['src']
-            return get_func_sourcecode(func._utinfo['orig_func'])
-            #return get_func_sourcecode(func._utinfo['src'])
+    #else:
+    #return get_func_sourcecode(func._utinfo['src'])
 
 
 def get_func_argspec(func):

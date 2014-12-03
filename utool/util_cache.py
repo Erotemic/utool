@@ -1,7 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import shelve
 #import atexit
-import sys
 import inspect
 from six.moves import range, zip
 from os.path import join, normpath, basename, exists
@@ -24,7 +23,8 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[cache]')
 
 # TODO: Remove globalness
 
-VERBOSE = '--verbose' in sys.argv
+VERBOSE = util_arg.VERBOSE
+QUIET = util_arg.QUIET
 __SHELF__ = None  # GLOBAL CACHE
 __APPNAME__ = default_appname  # the global application name
 
@@ -532,7 +532,7 @@ class Cachable(object):
             print('[Cachable] cache delete: %r' % (basename(fpath),))
         os.remove(fpath)
 
-    def save(self, cachedir, cfgstr=None, verbose=True or VERBOSE or util_arg.VERBOSE):
+    def save(self, cachedir, cfgstr=None, verbose=VERBOSE, quiet=QUIET):
         """
         saves query result to directory
         """
@@ -552,7 +552,7 @@ class Cachable(object):
         #    loaded_dict = cPickle.load(file_)
         #    self.__dict__.update(loaded_dict)
 
-    def load(self, cachedir, cfgstr=None, verbose=True or VERBOSE):
+    def load(self, cachedir, cfgstr=None, verbose=VERBOSE, quiet=QUIET):
         """
         Loads the result from the given database
         """
