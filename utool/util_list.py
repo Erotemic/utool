@@ -728,6 +728,30 @@ def issorted(list_, op=operator.le):
     return all(op(list_[ix], list_[ix + 1]) for ix in range(len(list_) - 1))
 
 
+def assert_lists_eq(list1, list2, verbose=False):
+    msg = ''
+    if len(list1) != len(list2):
+        msg += ('LENGTHS ARE UNEQUAL: len(list1)=%r, len(list2)=%r\n' % (len(list1), len(list2)))
+
+    difflist = []
+    for count, (item1, item2) in enumerate(zip(list1, list2)):
+        if item1 != item2:
+            difflist.append('count=%r, item1=%r, item2=%r' % (count, item1, item2))
+
+    nTotal = max(len(list1), len(list2))
+
+    if verbose:
+        msg += '\n'.join(difflist)
+    else:
+        if len(difflist) > 0:
+            msg += 'There are %d/%d different ordered items\n' % (len(difflist), nTotal)
+
+    if len(msg) > 0:
+        num_intersect = len(set(list1).intersection(set(list2)))
+        msg += 'There are %r/%d intersecting unordered items' % (num_intersect, nTotal)
+        raise AssertionError(msg)
+
+
 def debug_consec_list(list_):
     """
     Returns:
