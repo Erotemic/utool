@@ -125,9 +125,27 @@ class Timer(object):
         #return self.ellapsed
 
 
-def exiftime_to_unixtime(datetime_str, timestamp_format=1):
+def exiftime_to_unixtime(datetime_str, timestamp_format=1, strict=False):
     """
     converts a datetime string to posixtime (unixtime)
+
+    Args:
+        datetime_str     (str):
+        timestamp_format (int):
+
+    Returns:
+        int: unixtime seconds from 1970
+
+    CommandLine:
+        python -m utool.util_time --test-exiftime_to_unixtime
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_time import *  # NOQA
+        >>> datetime_str = '0000:00:00 00:00:00'
+        >>> timestamp_format = 1
+        >>> result = exiftime_to_unixtime(datetime_str, timestamp_format)
+        >>> print(result)
     """
     try:
         # Normal format, or non-standard year first data
@@ -146,13 +164,13 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=1):
             #return -1
         return -1
     except ValueError as ex:
-        from utool.util_arg import STRICT
+        #from utool.util_arg import STRICT
         if isinstance(datetime_str, six.string_types):
-            if datetime_str.find('No EXIF Data') == 0:
+            if datetime_str_.find('No EXIF Data') == 0:
                 return -1
-            if datetime_str.find('Invalid') == 0:
+            if datetime_str_.find('Invalid') == 0:
                 return -1
-            if datetime_str == '0000:00:00 00:00:00':
+            if datetime_str_ == '0000:00:00 00:00:00':
                 return -1
         print('<!!! ValueError !!!>')
         print('[util_time] Caught Error: ' + repr(ex))
@@ -163,7 +181,7 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=1):
         print('[util_time] repr(datetime_str_) = %r' % datetime_str_)
         print('[util_time]  len(datetime_str_) = %d' % len(datetime_str_))
         print('</!!! ValueError !!!>')
-        if STRICT:
+        if strict:
             raise
         else:
             print('Supressed ValueError')

@@ -45,6 +45,10 @@ truepath = meta_util_path.truepath
 unixjoin = meta_util_path.unixjoin
 
 
+def relpath_unix(path, otherpath):
+    return relpath(path, otherpath).replace('\\', '/')
+
+
 def truepath_relative(path, otherpath=None):
     """ Normalizes and returns absolute path with so specs  """
     if otherpath is None:
