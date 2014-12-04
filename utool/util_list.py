@@ -728,6 +728,17 @@ def issorted(list_, op=operator.le):
     return all(op(list_[ix], list_[ix + 1]) for ix in range(len(list_) - 1))
 
 
+def assert_scalar_list(list_):
+    for count, item in enumerate(list_):
+        assert not isiterable(item), 'count=%r, item=%r is iterable!' % (count, item)
+
+
+def assert_same_len(list1, list2, additional_msg=''):
+    assert len(list1) == len(list2), (
+        'unequal lens. len(list1)=%r, len(list2)=%r%s' % (
+            len(list1), len(list2), additional_msg))
+
+
 def assert_lists_eq(list1, list2, verbose=False):
     msg = ''
     if len(list1) != len(list2):
