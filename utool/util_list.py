@@ -716,6 +716,18 @@ def sample_zip(items_list, num_samples, allow_overflow=False, per_bin=1):
         return samples_list
 
 
+def sample_lists(items_list, num=1, seed=None):
+    if seed is not None:
+        np.random.seed(seed)
+    def random_choice(items, num):
+        size = min(len(items), num)
+        return np.random.choice(items, size, replace=False).tolist()
+    samples_list = [random_choice(items, num)
+                    if len(items) > 0 else []
+                    for items in items_list]
+    return samples_list
+
+
 def issorted(list_, op=operator.le):
     """
     Args:

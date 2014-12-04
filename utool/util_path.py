@@ -22,7 +22,7 @@ from utool._internal import meta_util_path
 from utool import util_inject
 from utool import util_arg
 from utool.util_arg import NO_ASSERTS, VERBOSE, VERYVERBOSE, QUIET
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[path]')
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[util_path]')
 
 
 PRINT_CALLER = util_arg.get_argflag('--print-caller')  # FIXME: name
@@ -114,15 +114,15 @@ def remove_file(fpath, verbose=True, dryrun=False, ignore_errors=True, **kwargs)
     """ Removes a file """
     if dryrun:
         if verbose:
-            print('[path] Dryrem %r' % fpath)
+            print('[util_path] Dryrem %r' % fpath)
         return
     else:
         try:
             os.remove(fpath)
             if verbose and not QUIET:
-                print('[path] Removed %r' % fpath)
+                print('[util_path] Removed %r' % fpath)
         except OSError:
-            print('[path] Misrem %r' % fpath)
+            print('[util_path] Misrem %r' % fpath)
             #warnings.warn('OSError: %s,\n Could not delete %s' % (str(e), fpath))
             if not ignore_errors:
                 raise
@@ -132,7 +132,7 @@ def remove_file(fpath, verbose=True, dryrun=False, ignore_errors=True, **kwargs)
 
 def remove_dirs(dpath, dryrun=False, ignore_errors=True, **kwargs):
     """ Removes a directory """
-    print('[path] Removing directory: %r' % dpath)
+    print('[util_path] Removing directory: %r' % dpath)
     try:
         shutil.rmtree(dpath)
     except OSError as e:
@@ -202,7 +202,7 @@ def augpath(path, augsuf='', augext='', augdir=None, newext=None, ensure=False):
 def touch(fname, times=None, verbose=True):
     """
     Args:
-        fname (?):
+        fname (str)
         times (None):
         verbose (bool):
 
@@ -219,7 +219,7 @@ def touch(fname, times=None, verbose=True):
     """
     try:
         if verbose:
-            print('[path] touching %r' % fname)
+            print('[util_path] touching %r' % fname)
         with open(fname, 'a'):
             os.utime(fname, times)
     except Exception as ex:
@@ -234,9 +234,9 @@ def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False, verbose=
     if isinstance(fname_pattern_list, six.string_types):
         fname_pattern_list = [fname_pattern_list]
     if not QUIET:
-        print('[path] Removing files:')
-        print('  * in dpath = %r ' % dpath)
-        print('  * matching patterns = %r' % fname_pattern_list)
+        print('[util_path] Removing files:')
+        print('  * from dpath = %r ' % dpath)
+        print('  * with patterns = %r' % fname_pattern_list)
         print('  * recursive = %r' % recursive)
     num_removed, num_matched = (0, 0)
     kwargs.update({
@@ -256,14 +256,14 @@ def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False, verbose=
                                            ignore_errors=ignore_errors, **kwargs)
         if not recursive:
             break
-    print('[path] ... Removed %d/%d files' % (num_removed, num_matched))
+    print('[util_path] ... Removed %d/%d files' % (num_removed, num_matched))
     return True
 
 
 def delete(path, dryrun=False, recursive=True, verbose=VERBOSE, print_exists=True, ignore_errors=True, **kwargs):
     """ Removes a file or directory """
     #if verbose:
-    print('[path] Deleting path=%r' % path)
+    print('[util_path] Deleting path=%r' % path)
     if not exists(path):
         if print_exists and not QUIET:
             msg = ('..does not exist!')
@@ -369,9 +369,9 @@ def checkpath(path_, verbose=VERYVERBOSE, n=None, info=VERYVERBOSE):
         else:
             print('[%s] ... does not exist' % (caller_name))
             if info:
-                print('[path]  ! Does not exist')
+                print('[util_path]  ! Does not exist')
                 _longest_path = longest_existing_path(path_)
-                print('[path] ... The longest existing path is: %r' % _longest_path)
+                print('[util_path] ... The longest existing path is: %r' % _longest_path)
             return False
         return True
     else:
@@ -387,7 +387,7 @@ def ensuredir(path_, verbose=VERYVERBOSE):
     """ Ensures that directory will exist """
     if not checkpath(path_):
         if verbose:
-            print('[path] mkdir(%r)' % path_)
+            print('[util_path] mkdir(%r)' % path_)
         os.makedirs(path_)
     return True
 
@@ -414,34 +414,34 @@ def copy_task(cp_list, test=False, nooverwrite=False, print_tasks=True):
     num_overwrite = 0
     _cp_tasks = []  # Build this list with the actual tasks
     if nooverwrite:
-        print('[path] Removed: copy task ')
+        print('[util_path] Removed: copy task ')
     else:
-        print('[path] Begining copy + overwrite task.')
+        print('[util_path] Begining copy + overwrite task.')
     for (src, dst) in iter(cp_list):
         if exists(dst):
             num_overwrite += 1
             if print_tasks:
-                print('[path] !!! Overwriting ')
+                print('[util_path] !!! Overwriting ')
             if not nooverwrite:
                 _cp_tasks.append((src, dst))
         else:
             if print_tasks:
-                print('[path] ... Copying ')
+                print('[util_path] ... Copying ')
                 _cp_tasks.append((src, dst))
         if print_tasks:
-            print('[path]    ' + src + ' -> \n    ' + dst)
-    print('[path] About to copy %d files' % len(cp_list))
+            print('[util_path]    ' + src + ' -> \n    ' + dst)
+    print('[util_path] About to copy %d files' % len(cp_list))
     if nooverwrite:
-        print('[path] Skipping %d tasks which would have overwriten files' % num_overwrite)
+        print('[util_path] Skipping %d tasks which would have overwriten files' % num_overwrite)
     else:
-        print('[path] There will be %d overwrites' % num_overwrite)
+        print('[util_path] There will be %d overwrites' % num_overwrite)
     if not test:
-        print('[path]... Copying')
+        print('[util_path]... Copying')
         for (src, dst) in iter(_cp_tasks):
             shutil.copy2(src, dst)
-        print('[path]... Finished copying')
+        print('[util_path]... Finished copying')
     else:
-        print('[path]... In test mode. Nothing was copied.')
+        print('[util_path]... In test mode. Nothing was copied.')
 
 
 def copy(src, dst, overwrite=True, verbose=True):
@@ -462,7 +462,7 @@ def copy(src, dst, overwrite=True, verbose=True):
             if overwrite:
                 prefix = 'C+O'
                 if verbose:
-                    print('[path] [Copying + Overwrite]:')
+                    print('[util_path] [Copying + Overwrite]:')
             else:
                 prefix = 'Skip'
                 if verbose:
@@ -471,7 +471,7 @@ def copy(src, dst, overwrite=True, verbose=True):
         else:
             prefix = 'C'
             if verbose:
-                print('[path] [Copying]: ')
+                print('[util_path] [Copying]: ')
         if verbose:
             print('[%s] | %s' % (prefix, src))
             print('[%s] ->%s' % (prefix, dst))
@@ -482,7 +482,7 @@ def copy(src, dst, overwrite=True, verbose=True):
     else:
         prefix = 'Miss'
         if verbose:
-            print('[path] [Cannot Copy]: ')
+            print('[util_path] [Cannot Copy]: ')
             print('[%s] src=%s does not exist!' % (prefix, src))
             print('[%s] dst=%s' % (prefix, dst))
 
@@ -560,7 +560,7 @@ def win_shortcut(source, link_name):
     flags = 1 if isdir(source) else 0
     retval = csl(link_name, source, flags)
     if retval == 0:
-        #warn_msg = '[path] Unable to create symbolic link on windows.'
+        #warn_msg = '[util_path] Unable to create symbolic link on windows.'
         #print(warn_msg)
         #warnings.warn(warn_msg, category=UserWarning)
         if checkpath(link_name):
@@ -574,9 +574,9 @@ def symlink(source, link_name, noraise=False):
     TODO: TEST / FIXME
     """
     if os.path.islink(link_name):
-        print('[path] symlink %r exists' % (link_name))
+        print('[util_path] symlink %r exists' % (link_name))
         return
-    print('[path] Creating symlink: source=%r link_name=%r' % (source, link_name))
+    print('[util_path] Creating symlink: source=%r link_name=%r' % (source, link_name))
     try:
         os_symlink = getattr(os, "symlink", None)
         if callable(os_symlink):

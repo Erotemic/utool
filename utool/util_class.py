@@ -13,8 +13,21 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[class]', DEBUG=False)
 
 # Registers which classes have which attributes
 # FIXME: this might cause memory leaks
+# FIXME: this does cause weird reimport behavior
 __CLASSTYPE_ATTRIBUTES__ = defaultdict(oset)
 __CLASSTYPE_POSTINJECT_FUNCS__ = defaultdict(oset)
+
+
+#_rrr = rrr
+#def rrr(verbose=True):
+#    """ keep registered functions through reloads ? """
+#    global __CLASSTYPE_ATTRIBUTES__
+#    global __CLASSTYPE_POSTINJECT_FUNCS__
+#    cta = __CLASSTYPE_ATTRIBUTES__.copy()
+#    ctpif = __CLASSTYPE_POSTINJECT_FUNCS__.copy()
+#    rrr_(verbose=verbose)
+#    __CLASSTYPE_ATTRIBUTES__ = cta
+#    __CLASSTYPE_POSTINJECT_FUNCS__ = ctpif
 
 
 QUIET_CLASS = util_arg.get_argflag(('--quiet-class', '--quietclass'))
@@ -66,7 +79,7 @@ def inject_instance(self, classtype=None, allow_override=False,
                     break
         func_list = __CLASSTYPE_ATTRIBUTES__[classtype]
         if verbose or util_arg.VERBOSE:
-            print('[util_class] injecting %d methods with classtype=%r into %r' % (len(func_list), classtype, self,))
+            print('[util_class] injecting %d methods\n   with classtype=%r\n   into %r' % (len(func_list), classtype, self,))
         for func in func_list:
             if VERBOSE_CLASS:
                 print('[util_class] * injecting %r' % (func,))
@@ -88,13 +101,15 @@ def inject_instance(self, classtype=None, allow_override=False,
             raise
 
 
-def make_class_method_decorator(classtype):
-    """ register a class to be injectable
-    classtype is a key which should be a type
+def make_class_method_decorator(classtype, modname=None):
+    """
+    register a class to be injectable
+    classtype is a key that identifies the injected class
+    REMEMBER to call inject_instance in __init__
 
     Args:
         classtype : the class to be injected into
-            REMEMBER to call inject_instance in __init__
+        modname : the global __name__ of the module youa re injecting from
 
     Returns:
         closure_decorate_class_method (func): decorator for injectable methods
@@ -113,16 +128,22 @@ def make_class_method_decorator(classtype):
         >>> shop = CheeseShop()
         >>> assert shop.has_cheese() is False
     """
-    if VERBOSE_CLASS:
-        print('[util_class] register make_class_method_decorator=%r' % make_class_method_decorator)
+    if util_arg.VERBOSE or VERBOSE_CLASS:
+        print('[util_class] register make_class_method_decorator classtype=%r, modname=%r'
+              % (classtype, modname))
+    if modname == '__main__':
+        # skips reinjects into main
+        print('WARNING: cannot register class functions as __main__')
+        return lambda func: func
     closure_decorate_class_method = functools.partial(decorate_class_method, classtype=classtype)
     return closure_decorate_class_method
 
 
-def make_class_postinject_decorator(classtype):
+def make_class_postinject_decorator(classtype, modname=None):
     """
     Args:
         classtype : the class to be injected into
+        modname : the global __name__ of the module youa re injecting from
 
     Returns:
         closure_decorate_postinject (func): decorator for injectable methods
@@ -130,13 +151,18 @@ def make_class_postinject_decorator(classtype):
     SeeAlso:
         make_class_method_decorator
     """
-    if VERBOSE_CLASS:
-        print('[util_class] register class_postinject=%r' % make_class_method_decorator)
+    if util_arg.VERBOSE or VERBOSE_CLASS:
+        print('[util_class] register class_postinject classtype=%r, modname=%r'
+              % (classtype, modname))
+    if modname == '__main__':
+        print('WARNING: cannot register class functions as __main__')
+        # skips reinjects into main
+        return lambda func: func
     closure_decorate_postinject = functools.partial(decorate_postinject, classtype=classtype)
     return closure_decorate_postinject
 
 
-def decorate_class_method(func, classtype=None, skipmain=True):
+def decorate_class_method(func, classtype=None, skipmain=False):
     """
     Will inject all decorated function as methods of classtype
 
@@ -144,25 +170,25 @@ def decorate_class_method(func, classtype=None, skipmain=True):
 
     func can also be a tuple
     """
-    import utool as ut
+    #import utool as ut
     global __CLASSTYPE_ATTRIBUTES__
     assert classtype is not None, 'must specify classtype'
-    if not (skipmain and ut.get_caller_modname() == '__main__'):
-        __CLASSTYPE_ATTRIBUTES__[classtype].append(func)
+    #if not (skipmain and ut.get_caller_modname() == '__main__'):
+    __CLASSTYPE_ATTRIBUTES__[classtype].append(func)
     return func
 
 
-def decorate_postinject(func, classtype=None, skipmain=True):
+def decorate_postinject(func, classtype=None, skipmain=False):
     """
     Will perform func with argument self after inject_instance is called on classtype
 
     classtype is some identifying string, tuple, or object
     """
-    import utool as ut
+    #import utool as ut
     global __CLASSTYPE_POSTINJECT_FUNCS__
     assert classtype is not None, 'must specify classtype'
-    if not (skipmain and ut.get_caller_modname() == '__main__'):
-        __CLASSTYPE_POSTINJECT_FUNCS__[classtype].append(func)
+    #if not (skipmain and ut.get_caller_modname() == '__main__'):
+    __CLASSTYPE_POSTINJECT_FUNCS__[classtype].append(func)
     return func
 
 
@@ -177,17 +203,26 @@ def inject_func_as_method(self, func, method_name=None, class_=None, allow_overr
        func : some function whos first arugment is a class instance
        method_name (str) : default=func.__name__, if specified renames the method
        class_ (type) : if func is an unbound method of this class
+
+
+    References:
+        http://stackoverflow.com/questions/1015307/python-bind-an-unbound-method
     """
     if method_name is None:
         method_name = get_funcname(func)
     #printDBG('Injecting method_name=%r' % method_name)
     old_method = getattr(self, method_name, None)
-    new_method = types.MethodType(func, self)
+    #import utool as ut
+    #ut.embed()
+
+    # Bind function to the class instance
+    #new_method = types.MethodType(func, self, self.__class__)
+    new_method = func.__get__(self, self.__class__)
 
     if old_method is not None:
         if (old_method.im_func.func_globals['__name__'] != '__main__' and
                 new_method.im_func.func_globals['__name__'] == '__main__'):
-            if VERBOSE_CLASS:
+            if True or VERBOSE_CLASS:
                 print('[util_class] skipping re-inject of %r from __main__' % method_name)
             return
         if old_method is new_method or old_method.im_func is new_method.im_func:
