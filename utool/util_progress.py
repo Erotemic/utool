@@ -17,6 +17,7 @@ from utool import util_logging
 from utool.util_inject import inject
 from utool.util_arg import QUIET, SILENT
 from utool import util_time
+import six
 #get_argflag,
 #, VERBOSE
 print, print_, printDBG, rrr, profile = inject(__name__, '[progress]')
@@ -184,7 +185,6 @@ class ProgressIter(object):
 
     def iter_rate(self):
         # TODO Incorporate this better
-        import utool as ut
         starttime = time.time()
         last_time = starttime
         #mark = self.mark
@@ -222,8 +222,11 @@ class ProgressIter(object):
         iters_per_second = -1
         est_min_left = -1
 
-        with ut.Timer(self.lbl, verbose=self.with_totaltime):
-            import six
+        with util_time.Timer(self.lbl, verbose=self.with_totaltime):
+
+            PROGRESS_WRITE(fmt_msg % (0, -1, -1))
+            PROGRESS_FLUSH()
+
             # yeild first element
             enumiter = enumerate(self.iterable)
             self.count, item = six.next(enumiter)
@@ -276,7 +279,9 @@ class ProgressIter(object):
                     last_count = self.count
                     last_time = now_time
             est_min_left = 0
-            msg = fmt_msg % (self.count + 1, iters_per_second, est_min_left)
+            #PROGRESS_WRITE('\n')
+            #msg = fmt_msg % (self.count + 1, iters_per_second, est_min_left)
+            msg = fmt_msg % (nTotal, iters_per_second, est_min_left)
             PROGRESS_WRITE(msg)
             #print('freq = %r' % freq)
             PROGRESS_WRITE('\n')

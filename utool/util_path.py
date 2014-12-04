@@ -303,8 +303,10 @@ def remove_existing_fpaths(fpath_list, verbose=VERBOSE, quiet=QUIET,
 def remove_fpaths(fpath_list, verbose=VERBOSE, quiet=QUIET, strict=False, print_caller=PRINT_CALLER, lbl='files'):
     if print_caller:
         print(get_caller_name(range(1, 4)) + ' called remove_fpaths')
-    if not quiet and verbose:
-        print('[util_path.remove_fpaths] try removing %d %s' % (len(fpath_list), lbl))
+    nTotal = len(fpath_list)
+    _verbose = (not quiet and nTotal > 0) or VERYVERBOSE
+    if _verbose:
+        print('[util_path.remove_fpaths] try removing %d %s' % (nTotal, lbl))
     nRemoved = 0
     for fpath in fpath_list:
         try:
@@ -317,8 +319,8 @@ def remove_fpaths(fpath_list, verbose=VERBOSE, quiet=QUIET, strict=False, print_
                 printex(ex, 'Could not remove fpath = %r' % (fpath,), iswarning=False)
                 raise
             pass
-    if not quiet:
-        print('[util_path.remove_fpaths] ... removed %d / %d %s' % (nRemoved, len(fpath_list), lbl))
+    if _verbose:
+        print('[util_path.remove_fpaths] ... removed %d / %d %s' % (nRemoved, nTotal, lbl))
     return nRemoved
 
 

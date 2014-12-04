@@ -20,7 +20,7 @@ VERBOSE_TEST = util_arg.get_argflag(('--verb-test', '--verbose-test'))
 PRINT_SRC = not util_arg.get_argflag(('--noprintsrc', '--nosrc'))
 PRINT_FACE = not util_arg.get_argflag(('--noprintface', '--noface'))
 #BIGFACE = False
-BIGFACE = False
+BIGFACE = util_arg.get_argflag('--bigface')
 SYSEXIT_ON_FAIL = util_arg.get_argflag('--sysexitonfail')
 
 if BIGFACE:

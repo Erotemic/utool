@@ -197,7 +197,7 @@ def accepts_scalar_input(func):
     return wrp_asi
 
 
-def accepts_scalar_input2(argx_list=[0]):
+def accepts_scalar_input2(argx_list=[0], outer_wrapper=True):
     """
     FIXME: change to better name. Complete implementation.
 
@@ -234,7 +234,8 @@ def accepts_scalar_input2(argx_list=[0]):
                 ret = func(self, *args_wrapped, **kwargs)
                 if ret is not None:
                     return ret[0]
-        wrp_asi2 = on_exception_report_input(preserve_sig(wrp_asi2, func))
+        if outer_wrapper:
+            wrp_asi2 = on_exception_report_input(preserve_sig(wrp_asi2, func))
         return wrp_asi2
     return closure_asi2
 
