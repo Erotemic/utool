@@ -196,7 +196,10 @@ def _inject_execstr(modname, IMPORT_TUPLES):
         import {modname}
         # Implicit reassignment.
         seen_ = set([])
-        for submodname, fromimports in IMPORT_TUPLES:
+        for tup in IMPORT_TUPLES:
+            if len(tup) > 2 and tup[2]:
+                continue  # dont import package names
+            submodname, fromimports = tup[0:2]
             submod = getattr({modname}, submodname)
             for attr in dir(submod):
                 if attr.startswith('_'):
@@ -213,7 +216,10 @@ def _inject_execstr(modname, IMPORT_TUPLES):
     def reload_subs(verbose=True):
         """ Reloads {modname} and submodules """
         rrr(verbose=verbose)
-        {body}
+        def fbrrr(*args, **kwargs):
+            """ fallback reload """
+            pass
+        {reload_body}
         rrr(verbose=verbose)
         try:
             # hackish way of propogating up the new reloaded submodule attributes
@@ -225,18 +231,18 @@ def _inject_execstr(modname, IMPORT_TUPLES):
     ''')
     injectstr_fmt = injectstr_fmt.replace('# STARTBLOCK', '')
     injectstr_fmt = injectstr_fmt.replace('# ENDBLOCK', '')
-    rrrdir_fmt  = '    getattr(%s, \'reload_subs\', lambda verbose: None)(verbose=verbose)'
-    rrrfile_fmt = '    getattr(%s, \'rrr\', lambda verbose: None)(verbose=verbose)'
+    rrrdir_fmt  = '    getattr(%s, \'reload_subs\', fbrrr)(verbose=verbose)'
+    rrrfile_fmt = '    getattr(%s, \'rrr\', fbrrr)(verbose=verbose)'
 
     def _reload_command(tup):
         if len(tup) > 2 and tup[2] is True:
             return rrrdir_fmt % tup[0]
         else:
             return rrrfile_fmt % tup[0]
-    body = '\n'.join(map(_reload_command, IMPORT_TUPLES)).strip()
+    reload_body = '\n'.join(map(_reload_command, IMPORT_TUPLES)).strip()
     format_dict = {
         'modname': modname,
-        'body': body,
+        'reload_body': reload_body,
         'injecter': injecter,
         'injecter_import': injecter_import,
     }
@@ -339,7 +345,7 @@ def make_import_tuples(module_path, exclude_modnames=[]):
     exclude_set = set(exclude_modnames)
     module_import_tuples = [(modname, None) for modname in module_list
                             if modname not in exclude_set]
-    package_import_tuples = [(modname, None)  for modname in package_list
+    package_import_tuples = [(modname, None, True)  for modname in package_list
                             if modname not in exclude_set]
     IMPORT_TUPLES = (module_import_tuples + package_import_tuples)
     return IMPORT_TUPLES

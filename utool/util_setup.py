@@ -318,6 +318,7 @@ def autogen_sphinx_apidoc():
 
         # Dont parse IBEIS args
         os.environ['IBIES_PARSE_ARGS'] = 'OFF'
+        os.environ['UTOOL_AUTOGEN_SPHINX_RUNNING'] = 'ON'
 
         sys.path.append('{modpath}')
         sys.path.append(sys.path.insert(0, os.path.abspath("../")))

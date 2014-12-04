@@ -24,10 +24,15 @@ SIG_PRESERVE = util_arg.get_argflag('--sigpreserve')
 #IGNORE_TRACEBACK = '--smalltb' in sys.argv or '--ignoretb' in sys.argv
 IGNORE_TRACEBACK = not ('--nosmalltb' in sys.argv or '--noignoretb' in sys.argv)
 
+
+import os
+
 # do not ignore traceback when profiling
 PROFILING = hasattr(builtins, 'profile')
 UNIQUE_NUMPY = True
 NOINDENT_DECOR = False
+
+os.environ.get('UTOOL_AUTOGEN_SPHINX_RUNNING', 'OFF')
 
 #def composed(*decs):
 #    """ combines multiple decorators """
@@ -38,7 +43,7 @@ NOINDENT_DECOR = False
 #    return deco
 
 
-def ignores_exc_tb(func):
+def ignores_exc_tb(func, outer_wrapper=True):
     """
     ignore_exc_tb decorates a function and remove both itself
     and the function from any exception traceback that occurs.
@@ -86,7 +91,8 @@ def ignores_exc_tb(func):
                 ex = exc_type(exc_value)
                 ex.__traceback__ = exc_traceback
                 raise ex
-    wrp_noexectb = preserve_sig(wrp_noexectb, func)
+    if outer_wrapper:
+        wrp_noexectb = preserve_sig(wrp_noexectb, func)
     return wrp_noexectb
 
 
@@ -106,9 +112,9 @@ def on_exception_report_input(func):
             #    print('[IN EXCPRPT] kwargs=%r' % (kwargs,))
             return func(*args, **kwargs)
         except Exception as ex:
-            import utool as ut
-            arg_strs = ', '.join([repr(ut.truncate_str(str(arg))) for arg in args])
-            kwarg_strs = ', '.join([ut.truncate_str('%s=%r' % (key, val)) for key, val in six.iteritems(kwargs)])
+            from utool import util_str
+            arg_strs = ', '.join([repr(util_str.truncate_str(str(arg))) for arg in args])
+            kwarg_strs = ', '.join([util_str.truncate_str('%s=%r' % (key, val)) for key, val in six.iteritems(kwargs)])
             msg = ('\nERROR: funcname=%r,\n * args=%s,\n * kwargs=%r\n' % (get_funcname(func), arg_strs, kwarg_strs))
             msg += ' * len(args) = %r\n' % len(args)
             msg += ' * len(kwargs) = %r\n' % len(kwargs)
@@ -467,6 +473,7 @@ def preserve_sig(wrapper, orig_func, force=False):
         >>> print(result)
     """
     import utool as ut
+
     if wrapper is orig_func:
         # nothing to do
         return orig_func
@@ -490,7 +497,10 @@ def preserve_sig(wrapper, orig_func, force=False):
         parent_orig_utinfo = orig_func._utinfo
         _utinfo['parent_orig_utinfo'] = parent_orig_utinfo
 
-    if force or SIG_PRESERVE:
+    # preserve sig if building docs
+    building_docs = os.environ.get('UTOOL_AUTOGEN_SPHINX_RUNNING', 'OFF') == 'ON'
+
+    if force or SIG_PRESERVE or building_docs:
         src_fmt = r'''
         def _wrp_preserve{defsig}:
             """ {orig_docstr} """
