@@ -435,7 +435,20 @@ def get_global_shelf_fpath(appname='default', ensure=False):
 #    __SHELF__ = None
 
 
+#class ShelfContext(shelve.Shelf):
+#    """
+#    References:
+#        http://stackoverflow.com/questions/7489732/easiest-way-to-add-a-function-to-existing-class
+#    """
+#    def __enter__(self):
+#        return self
+
+#    def __exit__(self, exc_type, exc_value, exc_trace):
+#        self.close()
+
+
 class GlobalShelfContext(object):
+    """ older class. might need update """
     def __init__(self, appname):
         self.appname = appname
 
