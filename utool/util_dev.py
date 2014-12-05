@@ -213,6 +213,29 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
         return (passed, time_list, result_list)
 
 
+def are_you_sure(msg=''):
+    r"""
+    Prompts user to accept or checks command line for -y
+
+    Args:
+        msg (str):
+
+    Returns:
+        bool: accept or not
+    """
+    print(msg)
+    from utool import util_arg
+    from utool import util_str
+    override = util_arg.get_argflag(('--yes', '--y', '-y'))
+    if override:
+        print('accepting based on command line flag')
+        return True
+    valid_ans = ['yes', 'y']
+    valid_prompt = util_str.cond_phrase(valid_ans, 'or')
+    ans = input('Are you sure?\n Enter %s to accept\n' % valid_prompt)
+    return ans.lower() in valid_ans
+
+
 def testit(stmt, setup):
     # Make temporary locals/globals for a sandboxlike run
     _globals = {}

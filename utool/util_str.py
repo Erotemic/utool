@@ -907,6 +907,18 @@ def get_textdiff(text1, text2):
                   if len(line) > 0 and line[0] in '+-?']
     return '\n'.join(diff_lines)
 
+
+def cond_phrase(list_, cond='or'):
+    if len(list_) == 0:
+        return ''
+    elif len(list_) == 1:
+        return list_[0]
+    elif len(list_) == 2:
+        return ' '.join((list_[0], cond, list_[1]))
+    else:
+        condstr = ''.join((', ' + cond, ' '))
+        return ', '.join((', '.join(list_[:-2]), condstr.join(list_[-2:])))
+
 if __name__ == '__main__':
     """
     CommandLine:
