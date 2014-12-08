@@ -253,7 +253,15 @@ def parse_return_type(sourcecode):
         return_name = returnnode.value.id
     else:
         return_type = str(type(returnnode.value))
-    return return_type, return_name, return_header
+
+    if return_type == '?':
+        arg_types, arg_desc = infer_arg_types_and_descriptions([return_name], [])
+        return_type = arg_types[0]
+        return_desc = arg_desc[0]
+    else:
+        return_desc = ''
+
+    return return_type, return_name, return_header, return_desc
 
 
 def get_func_sourcecode(func):
@@ -315,8 +323,8 @@ def infer_function_info(func):
     if sourcecode is not None:
         returninfo = ut.parse_return_type(sourcecode)
     else:
-        returninfo = None, None, None
-    return_type, return_name, return_header = returninfo
+        returninfo = None, None, None, ''
+    return_type, return_name, return_header, return_desc = returninfo
 
     modname = func.__module__
     funcname = ut.get_funcname(func)
@@ -336,6 +344,7 @@ def infer_function_info(func):
     funcinfo.return_type = return_type
     funcinfo.return_name = return_name
     funcinfo.return_header = return_header
+    funcinfo.return_desc = return_desc
     funcinfo.modname = modname
     funcinfo.funcname = funcname
     funcinfo.ismethod = hasattr(func, 'im_class')
@@ -410,6 +419,7 @@ def infer_arg_types_and_descriptions(argname_list, defaults):
                         arg_types[argx] = type_
                     if desc_ is not None:
                         argdesc_list[argx] = ' ' + desc_
+                    break
     return arg_types, argdesc_list
 
 

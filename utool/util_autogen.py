@@ -169,10 +169,13 @@ def make_args_docstr(argname_list, argtype_list, argdesc_list, ismethod):
     return arg_docstr
 
 
-def make_returns_or_yeilds_docstr(return_type, return_name):
+def make_returns_or_yeilds_docstr(return_type, return_name, return_desc):
     return_doctr = return_type + ': '
     if return_name is not None:
         return_doctr += return_name
+        if len(return_desc) > 0:
+            return_doctr += ' - '
+    return_doctr += return_desc
     return return_doctr
 
 
@@ -308,6 +311,7 @@ def make_default_docstr(func,
     return_header  = funcinfo.return_header
     return_type    = funcinfo.return_type
     return_name    = funcinfo.return_name
+    return_desc    = funcinfo.return_desc
     funcname       = funcinfo.funcname
     modname        = funcinfo.modname
     defaults       = funcinfo.defaults
@@ -333,7 +337,7 @@ def make_default_docstr(func,
     # Return / Yeild part
     if with_ret and return_header is not None:
         if return_header is not None:
-            return_doctr = make_returns_or_yeilds_docstr(return_type, return_name)
+            return_doctr = make_returns_or_yeilds_docstr(return_type, return_name, return_desc)
             returnblock = make_docstr_block(return_header, return_doctr)
             docstr_parts.append(returnblock)
 
