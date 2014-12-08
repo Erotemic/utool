@@ -130,7 +130,7 @@ def print_auto_docstr(modname, funcname):
 
 # <INVIDIAL DOCSTR COMPONENTS>
 
-def make_args_docstr(argname_list, argtype_list, argdesc_list):
+def make_args_docstr(argname_list, argtype_list, argdesc_list, ismethod):
     r"""
     make_args_docstr
 
@@ -157,6 +157,10 @@ def make_args_docstr(argname_list, argtype_list, argdesc_list):
 
     """
     import utool as ut
+    if ismethod:
+        argname_list = argname_list[1:]
+        argtype_list = argtype_list[1:]
+        argdesc_list = argdesc_list[1:]
     argdoc_list = [arg + ' (%s): %s' % (_type, desc)
                    for arg, _type, desc in zip(argname_list, argtype_list, argdesc_list)]
     # align?
@@ -173,7 +177,8 @@ def make_returns_or_yeilds_docstr(return_type, return_name):
 
 
 def make_example_docstr(funcname=None, modname=None, argname_list=None,
-                        defaults=None, return_type=None, return_name=None):
+                        defaults=None, return_type=None, return_name=None,
+                        ismethod=False):
     """
     Creates skeleton code to build an example doctest
     """
@@ -231,7 +236,15 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
             result_assign = return_name + ' = '
             result_print = 'print(result)'  # + return_name + ')'
     # Default example call
-    example_call = funcname + '(' + ', '.join(argname_list) + ')'
+    if ismethod:
+        selfname = argname_list[0]
+        methodargs = ', '.join(argname_list[1:])
+        tup = (selfname, '.', funcname, '(', methodargs, ')')
+        example_call = ''.join(tup)
+    else:
+        funcargs = ', '.join(argname_list)
+        tup = (funcname, '(', funcargs, ')')
+        example_call = ''.join(tup)
     examplecode_lines.append(result_assign + example_call)
     if result_print is not None:
         if return_name != 'result':
@@ -301,6 +314,7 @@ def make_default_docstr(func,
     num_indent     = funcinfo.num_indent
     needs_surround = funcinfo.needs_surround
     funcname       = funcinfo.funcname
+    ismethod       = funcinfo.ismethod
 
     docstr_parts = []
 
@@ -312,7 +326,7 @@ def make_default_docstr(func,
     # Args part
     if with_args and len(argname_list) > 0:
         argheader = 'Args'
-        arg_docstr = make_args_docstr(argname_list, argtype_list, argdesc_list)
+        arg_docstr = make_args_docstr(argname_list, argtype_list, argdesc_list, ismethod)
         argsblock = make_docstr_block(argheader, arg_docstr)
         docstr_parts.append(argsblock)
 
@@ -333,7 +347,9 @@ def make_default_docstr(func,
 
     if with_example:
         exampleheader = 'Example'
-        examplecode = make_example_docstr(funcname, modname, argname_list, defaults, return_type, return_name)
+        examplecode = make_example_docstr(funcname, modname, argname_list,
+                                          defaults, return_type, return_name,
+                                          ismethod)
         examplecode_ = ut.indent(examplecode, '>>> ')
         exampleblock = make_docstr_block(exampleheader, examplecode_)
         docstr_parts.append(exampleblock)

@@ -293,6 +293,7 @@ def infer_function_info(func):
         >>> from utool.util_inspect import *  # NOQA
         >>> import utool as ut
         >>> func = ut.infer_function_info
+        >>> func = ut.Timer.tic
         >>> funcinfo = infer_function_info(func)
         >>> result = ut.dict_str(funcinfo.__dict__)
         >>> print(result)
@@ -337,7 +338,7 @@ def infer_function_info(func):
     funcinfo.return_header = return_header
     funcinfo.modname = modname
     funcinfo.funcname = funcname
-
+    funcinfo.ismethod = hasattr(func, 'im_class')
     return funcinfo
 
 
