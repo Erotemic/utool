@@ -1,7 +1,9 @@
 from __future__ import absolute_import, division, print_function
-from .util_inject import inject
+from utool.util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[func]')
 
+
+# DEPRICATE WHOLE FILE
 
 def uinput_1to1(func, input_):
     """ universal input (really just accept list or tuple as input to a list

@@ -59,17 +59,26 @@ def get_free_diskbytes(dir_):
         return bytes_
 
 
+def get_file_nBytes(fpath):
+    return os.path.getsize(fpath)
+
+
+def get_file_nBytes_str(fpath):
+    from utool import util_str
+    return util_str.byte_str2(os.path.getsize(fpath))
+
+
 def get_disk_space(start_path='.'):
     """
     References:
-        # http://stackoverflow.com/questions/1392413/calculating-a-directory-size-using-python
+        http://stackoverflow.com/questions/1392413/calculating-a-directory-size-using-python
     """
     total_size = 0
-    for dirpath, dirnames, filenames in os.walk(start_path):
-        for f in filenames:
-            fp = os.path.join(dirpath, f)
+    for root, dname_list, fname_list in os.walk(start_path):
+        for fname in fname_list:
+            fpath = os.path.join(root, fname)
             try:
-                total_size += os.path.getsize(fp)
+                total_size += os.path.getsize(fpath)
             except OSError:
                 pass
     return total_size
@@ -126,7 +135,8 @@ def get_dynlib_dependencies(lib_path):
         ldd_fpath = '/usr/bin/ldd'
         depend_out, depend_err, ret = cmd(ldd_fpath, lib_path, verbose=False)
     elif DARWIN:
-        depend_out, depend_err, ret = cmd('otool', '-L', lib_path, verbose=False)
+        otool_fpath = '/opt/local/bin/otool'
+        depend_out, depend_err, ret = cmd(otool_fpath, '-L', lib_path, verbose=False)
     elif WIN32:
         depend_out, depend_err, ret = cmd('objdump', '-p', lib_path, verbose=False)
         #fnmatch.filter(depend_out.split('\n'), '*DLL*')
@@ -227,8 +237,8 @@ def view_directory(dname=None, verbose=True):
         >>> verbose = True
         >>> view_directory(dname, verbose)
     """
-    from .util_arg import STRICT
-    from .util_path import checkpath
+    from utool.util_arg import STRICT
+    from utool.util_path import checkpath
 
     if verbose:
         print('[cplat] view_directory(%r) ' % dname)
