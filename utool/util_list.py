@@ -844,6 +844,24 @@ def find_nonconsec_indicies(unique_vals, consec_vals):
 
 
 def find_duplicate_items(items):
+    r"""
+    Args:
+        items (list):
+
+    Returns:
+        dict: duplicate_map of indexes
+
+    CommandLine:
+        python -m utool.util_list --test-find_duplicate_items
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> items = [0, 1, 2, 3, 3, 0, 12, 2, 9]
+        >>> duplicate_map = find_duplicate_items(items)
+        >>> result = str(duplicate_map)
+        >>> print(result)
+    """
     import utool as ut
     # Build item histogram
     duplicate_map = ut.ddict(list)
@@ -854,7 +872,6 @@ def find_duplicate_items(items):
     for key in six.iterkeys(duplicate_map):
         if len(duplicate_map[key]) == 1:
             singleton_keys.append(key)
-        pass
     for key in singleton_keys:
         del duplicate_map[key]
     return duplicate_map

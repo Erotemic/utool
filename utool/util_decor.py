@@ -165,9 +165,9 @@ def indent_func(input_):
         func = input_
         return func
     else:
+        from utool._internal.meta_util_six import get_funcname
         # Use the function name as the label
         func = input_
-        from utool._internal.meta_util_six import get_funcname
         lbl = '[' + get_funcname(func) + ']'
         return _indent_decor(lbl)(func)
 
