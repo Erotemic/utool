@@ -288,7 +288,7 @@ def __parse_cmd_kwargs(kwargs):
     return verbose, detatch, shell, sudo, separate
 
 
-def __parse_cmd_args(args, sudo):
+def __parse_cmd_args(args, sudo, shell):
     """
     Returns:
         args suitable for subprocess.Popen
@@ -304,18 +304,19 @@ def __parse_cmd_args(args, sudo):
     print(type(args))
     print(args)
     print(shlex)
-    if isinstance(args, (list, tuple)) and len(args) > 1:
-        # Input is ['cmd', 'arg1', 'arg2']
-        args = ' '.join(args)
-    elif isinstance(args, (list, tuple)) and len(args) == 1:
-        if isinstance(args[0], (tuple, list)):
-            # input got nexted
+    if shell:
+        if  isinstance(args, (list, tuple)) and len(args) > 1:
+            # Input is ['cmd', 'arg1', 'arg2']
             args = ' '.join(args)
-        elif isinstance(args[0], six.string_types):
-            # input is just nested string
-            args = args[0]
-    elif isinstance(args, six.string_types):
-        pass
+        elif isinstance(args, (list, tuple)) and len(args) == 1:
+            if isinstance(args[0], (tuple, list)):
+                # input got nexted
+                args = ' '.join(args)
+            elif isinstance(args[0], six.string_types):
+                # input is just nested string
+                args = args[0]
+        elif isinstance(args, six.string_types):
+            pass
     if not WIN32 and sudo is True:
         args = ['sudo'] + args
     #if isinstance(args, (list, tuple)):
@@ -375,7 +376,7 @@ def cmd(*args, **kwargs):
         verbose, detatch, shell, sudo, separate = __parse_cmd_kwargs(kwargs)
         if separate:
             print('\n+--------------')
-        args = __parse_cmd_args(args, sudo)
+        args = __parse_cmd_args(args, sudo, shell)
         # Print what you are about to do
         print('[ut.cmd] RUNNING: %r' % (args,))
         # Open a subprocess with a pipe
