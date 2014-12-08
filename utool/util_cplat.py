@@ -377,17 +377,17 @@ def cmd(*args, **kwargs):
             print('\n+--------------')
         args = __parse_cmd_args(args, sudo)
         # Print what you are about to do
-        print('[cplat] RUNNING: %r' % (args,))
+        print('[ut.cmd] RUNNING: %r' % (args,))
         # Open a subprocess with a pipe
         proc = subprocess.Popen(args,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT,
                                 shell=shell)
         if detatch:
-            print('[cplat] PROCESS DETATCHING')
+            print('[ut.cmd] PROCESS DETATCHING')
             return None, None, 1
         if verbose and not detatch:
-            print('[cplat] RUNNING WITH VERBOSE OUTPUT')
+            print('[ut.cmd] RUNNING WITH VERBOSE OUTPUT')
             logged_out = []
             for line in _run_process(proc):
                 if six.PY2:
@@ -398,16 +398,16 @@ def cmd(*args, **kwargs):
                 logged_out.append(line)
             out = '\n'.join(logged_out)
             (out_, err) = proc.communicate()
-            #print('[cplat] out: %s' % (out,))
-            print('[cplat] stdout: %s' % (out_,))
-            print('[cplat] stderr: %s' % (err,))
+            #print('[ut.cmd] out: %s' % (out,))
+            print('[ut.cmd] stdout: %s' % (out_,))
+            print('[ut.cmd] stderr: %s' % (err,))
         else:
             # Surpress output
-            #print('[cplat] RUNNING WITH SUPRESSED OUTPUT')
+            #print('[ut.cmd] RUNNING WITH SUPRESSED OUTPUT')
             (out, err) = proc.communicate()
         # Make sure process if finished
         ret = proc.wait()
-        print('[cplat] PROCESS FINISHED')
+        print('[ut.cmd] PROCESS FINISHED')
         if separate:
             print('L--------------\n')
         return out, err, ret
@@ -417,7 +417,7 @@ def cmd(*args, **kwargs):
             print(ut.truepath(args[0]))
         elif isinstance(args, six.string_types):
             print(ut.unixpath(args))
-        ut.printex(ex)
+        ut.printex(ex, 'Exception running ut.cmd')
 
 
 def get_flops():
