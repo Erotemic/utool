@@ -177,7 +177,7 @@ def parse_return_type(sourcecode):
         ... '    return bar\n'
         ... )
         >>> returninfo = parse_return_type(sourcecode)
-        >>> (return_type, return_name, return_header) = returninfo
+        >>> (return_type, return_name, return_header, return_desc) = returninfo
         >>> result = str((return_type, return_name, return_header))
         >>> print(result)
         ('?', 'bar', 'Returns')

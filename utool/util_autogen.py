@@ -148,7 +148,8 @@ def make_args_docstr(argname_list, argtype_list, argdesc_list, ismethod):
         >>> argname_list = ['argname_list', 'argtype_list', 'argdesc_list']
         >>> argtype_list = ['list', 'list', 'list']
         >>> argdesc_list = ['names', 'types', 'descriptions']
-        >>> arg_docstr = make_args_docstr(argname_list, argtype_list, argdesc_list)
+        >>> ismethod = False
+        >>> arg_docstr = make_args_docstr(argname_list, argtype_list, argdesc_list, ismethod)
         >>> result = str(arg_docstr)
         >>> print(result)
         argname_list (list): names

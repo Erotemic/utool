@@ -509,11 +509,10 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True, recurs
         indent_ = ''
     """
 
-    def valfunc(val):
-        if strvals:
-            return str(val)
-        else:
-            return repr(val)
+    if strvals:
+        valfunc = str
+    else:
+        valfunc = repr
 
     def recursive_valfunc(val):
         if isinstance(val, dict):
@@ -526,7 +525,7 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True, recurs
             return valfunc(val)
 
     iteritems = six.iteritems
-    fmtstr = indent_ + '%s: %s,'
+    fmtstr = indent_ + '%r: %s,'
     if sorted_:
         iteritems = lambda iter_: iter(sorted(six.iteritems(iter_)))
 

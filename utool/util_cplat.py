@@ -305,6 +305,8 @@ def __parse_cmd_args(args, sudo, shell):
     print(args)
     print(shlex)
     if shell:
+        # Popen only accepts strings is shell is True, which
+        # it really shouldn't be.
         if  isinstance(args, (list, tuple)) and len(args) > 1:
             # Input is ['cmd', 'arg1', 'arg2']
             args = ' '.join(args)

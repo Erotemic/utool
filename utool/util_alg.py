@@ -300,7 +300,7 @@ def group_items(item_list, groupid_list):
         >>> item_list    = [ 'ham',      'jam',    'spam',     'eggs', 'cheese', 'bannana']
         >>> groupid_list = ['protein', 'fruit', 'protein',  'protein',  'dairy',   'fruit']
         >>> groupid2_items = ut.group_items(item_list, groupid_list)
-        >>> result = ut.dict_str(groupid2_items, newlines=False)
+        >>> result = ut.dict_str(groupid2_items, newlines=False, strvals=False)
         >>> print(result)
         {'protein': ['eggs', 'ham', 'spam'], 'fruit': ['bannana', 'jam'], 'dairy': ['cheese'],}
     """
