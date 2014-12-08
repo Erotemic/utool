@@ -417,7 +417,8 @@ def cmd(*args, **kwargs):
             print(ut.truepath(args[0]))
         elif isinstance(args, six.string_types):
             print(ut.unixpath(args))
-        ut.printex(ex, 'Exception running ut.cmd')
+        ut.printex(ex, 'Exception running ut.cmd',
+                   keys=['verbose', 'detatch', 'shell', 'sudo', 'separate'])
 
 
 def get_flops():
