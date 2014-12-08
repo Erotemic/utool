@@ -12,7 +12,7 @@ except ImportError:
     # TODO remove numpy
     pass
 from collections import defaultdict
-#import six
+import six
 from six.moves import zip, range
 from utool import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
@@ -21,6 +21,57 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
 PHI = 1.61803398875
 PHI_A = (1 / PHI)
 PHI_B = 1 - PHI_A
+
+
+def greedy_max_inden_setcover(candidate_sets_dict, items):
+    """
+    greedy algorithm for maximum independent set cover
+
+    Covers items with sets from candidate sets. Could be made faster.
+
+    CommandLine:
+        python -m utool.util_alg --test-greedy_max_inden_setcover
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> candidate_sets_dict = {'a': [5, 3], 'b': [2, 3, 5],
+        ...                        'c': [4, 8], 'd': [7, 6, 2, 1]}
+        >>> items = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        >>> tup = greedy_max_inden_setcover(candidate_sets_dict, items)
+        >>> (uncovered_items, covered_items_list, accepted_keys) = tup
+        >>> result = str((uncovered_items, accepted_keys))
+        >>> print(result)
+        ([0, 9], set(['a', 'c', 'd']))
+    """
+    uncovered_set = set(items)
+    rejected_keys = set()
+    accepted_keys = set()
+    covered_items_list = []
+    while True:
+        maxkey = None
+        maxlen = -1
+        for key, candidate_items in six.iteritems(candidate_sets_dict):
+            if key in rejected_keys or key in accepted_keys:
+                continue
+            #print('Checking %r' % (key,))
+            lenval = len(candidate_items)
+            # len(uncovered_set.intersection(candidate_items)) == lenval:
+            if uncovered_set.issuperset(candidate_items):
+                if lenval > maxlen:
+                    maxkey = key
+                    maxlen = lenval
+            else:
+                rejected_keys.add(key)
+        if maxkey is None:
+            break
+        maxval = candidate_sets_dict[maxkey]
+        accepted_keys.add(maxkey)
+        covered_items_list.append(list(maxval))
+        # Add values in this key to the cover
+        uncovered_set.difference_update(maxval)
+    uncovered_items = list(uncovered_set)
+    return uncovered_items, covered_items_list, accepted_keys
 
 
 def bayes_rule(b_given_a, prob_a, prob_b):

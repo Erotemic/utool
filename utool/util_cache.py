@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 import shelve
 #import atexit
 import inspect
+import contextlib
 from six.moves import range, zip
 from os.path import join, normpath, basename, exists
 import functools
@@ -445,6 +446,26 @@ def get_global_shelf_fpath(appname='default', ensure=False):
 
 #    def __exit__(self, exc_type, exc_value, exc_trace):
 #        self.close()
+
+
+def shelf_open(fpath):
+    """
+    allows for shelf to be used in with statements
+
+    References:
+        http://stackoverflow.com/questions/7489732/easiest-way-to-add-a-function-to-existing-class
+
+    CommandLine:
+        python -m utool.util_cache --test-shelf_open
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import utool as ut
+        >>> fpath = ut.get_app_resource_dir('utool', 'test.shelf')
+        >>> with ut.shelf_open(fpath) as dict_:
+        >>>     print(ut.dict_str(dict_))
+    """
+    return contextlib.closing(shelve.open(fpath))
 
 
 class GlobalShelfContext(object):
