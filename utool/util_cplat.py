@@ -418,10 +418,12 @@ def cmd(*args, **kwargs):
         elif isinstance(args, six.string_types):
             print(ut.unixpath(args))
         ut.printex(ex, 'Exception running ut.cmd',
-                   keys=['verbose', 'detatch', 'shell', 'sudo', 'separate'])
+                   keys=['verbose', 'detatch', 'shell', 'sudo', 'separate'],
+                   tb=True)
 
 
 def get_flops():
+    # DOESNT WORK
     from sys import stdout
     from re import compile
 
