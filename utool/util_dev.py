@@ -643,12 +643,30 @@ def get_stats(list_, axis=None):
 # --- Info Strings ---
 
 
-def get_stats_str(list_, newlines=False, keys=None, exclude_keys=[], lbl=None):
+def get_stats_str(list_, newlines=False, keys=None, exclude_keys=[], lbl=None,
+                  precision=None):
     """
     Returns the string version of get_stats
 
     if keys is not None then it only displays chosen keys
     excluded keys are always removed
+
+
+    CommandLine:
+        python -m utool.util_dev --test-get_stats_str
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dev import *  # NOQA
+        >>> list_ = [1, 2, 3, 4, 5]
+        >>> newlines = False
+        >>> keys = None
+        >>> exclude_keys = []
+        >>> lbl = None
+        >>> precision = 2
+        >>> stat_str = get_stats_str(list_, newlines, keys, exclude_keys, lbl, precision)
+        >>> result = str(stat_str)
+        >>> print(result)
 
     SeeAlso:
         print_stats
@@ -656,36 +674,52 @@ def get_stats_str(list_, newlines=False, keys=None, exclude_keys=[], lbl=None):
     """
     from utool.util_str import dict_str
     import utool as ut
+    # Get stats dict
     stat_dict = get_stats(list_)
+    # Keep included keys
     if keys is not None:
         for key in list(six.iterkeys(stat_dict)):
             if key not in keys:
                 del stat_dict[key]
-
+    # Remove excluded keys
     for key in exclude_keys:
         del stat_dict[key]
-    stat_str  = dict_str(stat_dict, strvals=True, newlines=newlines)
+    # apply precision
+    statstr_dict = stat_dict.copy()
+    #with ut.EmbedOnException():
+    #precisionless_types =  (bool,) + six.string_types
+    if precision is not None:
+        float_fmtstr = '%.' + str(precision) + 'f'
+        for key in list(six.iterkeys(statstr_dict)):
+            val = statstr_dict[key]
+            if ut.is_float(val):
+                strval = float_fmtstr % val
+                statstr_dict[key] = starval
+    # format the dictionary string
+    stat_str  = dict_str(statstr_dict, strvals=True, newlines=newlines)
+    # add a label if requested
     if lbl is True:
-        lbl = ut.get_varname_from_stack(list_, N=1)
+        lbl = ut.get_varname_from_stack(list_, N=1)  # fancy
     if lbl is not None:
         stat_str = 'stats(' + lbl + ') = ' + stat_str
-    #stat_strs = ['%r: %s' % (key, val) for key, val in six.iteritems(stat_dict)]
-    #if newlines:
-    #    indent = '    '
-    #    head = '{\n' + indent
-    #    sep  = ',\n' + indent
-    #    tail = '\n}'
-    #else:
-    #    head = '{'
-    #    sep = ', '
-    #    tail = '}'
-    #stat_str = head + sep.join(stat_strs) + tail
     return stat_str
 
 
-def print_stats(list_, lbl=None, newlines=False):
+def print_stats(list_, lbl=None, newlines=False, precision=2):
     """
     Prints string representation of stat of list_
+
+    CommandLine:
+        python -m utool.util_dev --test-print_stats
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dev import *  # NOQA
+        >>> list_ = [1, 2, 3, 4, 5]
+        >>> lbl = None
+        >>> newlines = False
+        >>> precision = 2
+        >>> result = print_stats(list_, lbl, newlines, precision)
 
     Example:
         >>> import utool
@@ -700,8 +734,9 @@ def print_stats(list_, lbl=None, newlines=False):
     """
     if lbl is not None:
         print('Stats for %s' % lbl)
-    stat_str = get_stats_str(list_, newlines=newlines)
+    stat_str = get_stats_str(list_, newlines=newlines, precision=2)
     print(stat_str)
+    return stat_str
 
 
 def npArrInfo(arr):
