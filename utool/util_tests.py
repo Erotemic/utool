@@ -827,7 +827,7 @@ def make_run_tests_script_text(test_headers, test_argvs, quick_tests=None,
                 echo "-----"
                 printf "Failed Tests:"
                 printf "$FAILED_TESTS\n"
-                printf "$FAILED_TESTS\n" >> failed.txt
+                printf "$FAILED_TESTS\n" >> failed_shelltests.txt
                 echo "-----"
             fi
             echo "$num_passed / $num_ran tests passed"

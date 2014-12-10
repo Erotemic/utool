@@ -813,7 +813,7 @@ def assert_same_len(list1, list2, additional_msg=''):
             len(list1), len(list2), additional_msg))
 
 
-def assert_lists_eq(list1, list2, verbose=False):
+def assert_lists_eq(list1, list2, failmsg='', verbose=False):
     msg = ''
     if len(list1) != len(list2):
         msg += ('LENGTHS ARE UNEQUAL: len(list1)=%r, len(list2)=%r\n' % (len(list1), len(list2)))
@@ -832,8 +832,9 @@ def assert_lists_eq(list1, list2, verbose=False):
             msg += 'There are %d/%d different ordered items\n' % (len(difflist), nTotal)
 
     if len(msg) > 0:
+
         num_intersect = len(set(list1).intersection(set(list2)))
-        msg += 'There are %r/%d intersecting unordered items' % (num_intersect, nTotal)
+        msg = failmsg + '\n' + msg + 'There are %r/%d intersecting unordered items' % (num_intersect, nTotal)
         raise AssertionError(msg)
 
 
