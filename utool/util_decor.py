@@ -43,7 +43,7 @@ os.environ.get('UTOOL_AUTOGEN_SPHINX_RUNNING', 'OFF')
 #    return deco
 
 
-def ignores_exc_tb(func, outer_wrapper=True):
+def ignores_exc_tb(*args, **kwargs):
     """
     ignore_exc_tb decorates a function and remove both itself
     and the function from any exception traceback that occurs.
@@ -58,42 +58,51 @@ def ignores_exc_tb(func, outer_wrapper=True):
         https://github.com/jcrocholl/pep8/issues/34  # NOQA
         http://legacy.python.org/dev/peps/pep-3109/
     """
-    if not IGNORE_TRACEBACK:
-        # if the global enforces that we should not ignore anytracebacks
-        # then just return the original function without any modifcation
-        return func
-    #@wraps(func)
-    def wrp_noexectb(*args, **kwargs):
-        try:
-            #import utool
-            #if utool.DEBUG:
-            #    print('[IN IGNORETB] args=%r' % (args,))
-            #    print('[IN IGNORETB] kwargs=%r' % (kwargs,))
-            return func(*args, **kwargs)
-        except Exception:
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            # Code to remove this decorator from traceback
-            # Remove two levels to remove this one as well
-            exc_type, exc_value, exc_traceback = sys.exc_info()
+    outer_wrapper = kwargs.get('outer_wrapper', True)
+    def ignores_exc_tb_closure(func):
+        if not IGNORE_TRACEBACK:
+            # if the global enforces that we should not ignore anytracebacks
+            # then just return the original function without any modifcation
+            return func
+        #@wraps(func)
+        def wrp_noexectb(*args, **kwargs):
             try:
-                exc_traceback = exc_traceback.tb_next
-                exc_traceback = exc_traceback.tb_next
+                #import utool
+                #if utool.DEBUG:
+                #    print('[IN IGNORETB] args=%r' % (args,))
+                #    print('[IN IGNORETB] kwargs=%r' % (kwargs,))
+                return func(*args, **kwargs)
             except Exception:
-                pass
-            # Python 2*3=6
-            # six has a problem because it inserts itself into the traceback
-            #six.reraise(exc_type, exc_value, exc_traceback)
-            # PYTHON 2.7 DEPRICATED:
-            if six.PY2:
-                raise exc_type, exc_value, exc_traceback
-            # PYTHON 3.3 NEW METHODS
-            elif six.PY3:
-                ex = exc_type(exc_value)
-                ex.__traceback__ = exc_traceback
-                raise ex
-    if outer_wrapper:
-        wrp_noexectb = preserve_sig(wrp_noexectb, func)
-    return wrp_noexectb
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                # Code to remove this decorator from traceback
+                # Remove two levels to remove this one as well
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                try:
+                    exc_traceback = exc_traceback.tb_next
+                    exc_traceback = exc_traceback.tb_next
+                except Exception:
+                    pass
+                # Python 2*3=6
+                # six has a problem because it inserts itself into the traceback
+                #six.reraise(exc_type, exc_value, exc_traceback)
+                # PYTHON 2.7 DEPRICATED:
+                if six.PY2:
+                    raise exc_type, exc_value, exc_traceback
+                # PYTHON 3.3 NEW METHODS
+                elif six.PY3:
+                    ex = exc_type(exc_value)
+                    ex.__traceback__ = exc_traceback
+                    raise ex
+        if outer_wrapper:
+            wrp_noexectb = preserve_sig(wrp_noexectb, func)
+        return wrp_noexectb
+    if len(args) == 1:
+        # called with one arg means its a function call
+        func = args[0]
+        return ignores_exc_tb_closure(func)
+    else:
+        # called with no args means kwargs as specified
+        return ignores_exc_tb_closure
 
 
 def on_exception_report_input(func):
@@ -102,7 +111,7 @@ def on_exception_report_input(func):
     decorated function name and the arguments passed to it will be printed to
     the utool print function.
     """
-    @ignores_exc_tb
+    @ignores_exc_tb(outer_wrapper=False)
     #@wraps(func)
     def wrp_onexceptreport(*args, **kwargs):
         try:
@@ -131,7 +140,7 @@ def _indent_decor(lbl):
     def closure_indent(func):
         #printDBG('Indenting lbl=%r, func=%r' % (lbl, func))
         if util_arg.TRACE:
-            @ignores_exc_tb
+            @ignores_exc_tb(outer_wrapper=False)
             #@wraps(func)
             def wrp_indent(*args, **kwargs):
                 with util_print.Indenter(lbl):
@@ -140,7 +149,7 @@ def _indent_decor(lbl):
                     print('    ...trace[out]')
                     return ret
         else:
-            @ignores_exc_tb
+            @ignores_exc_tb(outer_wrapper=False)
             #@wraps(func)
             def wrp_indent(*args, **kwargs):
                 with util_print.Indenter(lbl):
@@ -185,7 +194,7 @@ def accepts_scalar_input(func):
     to the user expected format on return.
     """
     #@on_exception_report_input
-    @ignores_exc_tb
+    @ignores_exc_tb(outer_wrapper=False)
     #@wraps(func)
     def wrp_asi(self, input_, *args, **kwargs):
         #if HAS_PANDAS:
@@ -224,7 +233,7 @@ def accepts_scalar_input2(argx_list=[0], outer_wrapper=True):
 
     def closure_asi2(func):
         #@on_exception_report_input
-        @ignores_exc_tb
+        @ignores_exc_tb(outer_wrapper=False)
         #@wraps(func)
         def wrp_asi2(self, *args, **kwargs):
             # Hack in case wrapping a function with varargs
@@ -272,7 +281,7 @@ def accepts_scalar_input_vector_output(func):
 
     accepts_scalar_input_vector_output
     """
-    @ignores_exc_tb
+    @ignores_exc_tb(outer_wrapper=False)
     #@wraps(func)
     def wrp_asivo(self, input_, *args, **kwargs):
         #import utool
