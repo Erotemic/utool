@@ -179,6 +179,26 @@ def is_dicteq(dict1_, dict2_, almosteq_ok=True, verbose_err=True):
     return True
 
 
+def dict_subset(dict_, keys):
+    r"""
+    Args:
+        dict_ (dict):
+        keys (list):
+
+    Returns:
+        dict: subset dictionary
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> dict_ = '?'
+        >>> keys = '?'
+        >>> result = dict_subset(dict_, keys)
+        >>> print(result)
+    """
+    return {key: dict_[key] for key in keys}
+
+
 def dict_take_gen(dict_, keys):
     hasnumpy = 'np' in vars()
     for key in keys:
