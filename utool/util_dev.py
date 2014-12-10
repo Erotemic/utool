@@ -598,12 +598,29 @@ def get_stats(list_, axis=None):
         OrderedDict: stat_dict - dictionary of common numpy statistics
             (min, max, mean, std, nMin, nMax, shape)
 
+
+    CommandLine:
+        python -m utool.util_dev --test-get_stats
+
     Examples:
+        >>> # ENABLE_DOCTEST
         >>> import numpy as np
         >>> import utool
         >>> axis = 0
+        >>> np.random.seed(0)
         >>> list_ = np.random.rand(10, 2)
-        >>> utool.get_stats(list_, axis=axis)
+        >>> stat_dict = get_stats(list_, axis)
+        >>> result = str(utool.dict_str(stat_dict))
+        >>> print(result)
+        {
+            'max': array([ 0.96366274,  0.92559665], dtype=float32),
+            'min': array([ 0.0202184,  0.0871293], dtype=float32),
+            'mean': array([ 0.52056623,  0.64254338], dtype=float32),
+            'std': array([ 0.28543401,  0.25168759], dtype=float32),
+            'nMin': array([1, 1], dtype=int32),
+            'nMax': array([1, 1], dtype=int32),
+            'shape': '(10, 2)',
+        }
 
     SeeAlso:
         print_stats
@@ -656,7 +673,7 @@ def get_stats_str(list_, newlines=False, keys=None, exclude_keys=[], lbl=None,
         python -m utool.util_dev --test-get_stats_str
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_dev import *  # NOQA
         >>> list_ = [1, 2, 3, 4, 5]
         >>> newlines = False
@@ -667,6 +684,7 @@ def get_stats_str(list_, newlines=False, keys=None, exclude_keys=[], lbl=None,
         >>> stat_str = get_stats_str(list_, newlines, keys, exclude_keys, lbl, precision)
         >>> result = str(stat_str)
         >>> print(result)
+        {'max': 5, 'min': 1, 'mean': 3, 'std': 1.41, 'nMin': 1, 'nMax': 1, 'shape': (5,),}
 
     SeeAlso:
         print_stats
@@ -694,7 +712,10 @@ def get_stats_str(list_, newlines=False, keys=None, exclude_keys=[], lbl=None,
             val = statstr_dict[key]
             if ut.is_float(val):
                 strval = float_fmtstr % val
-                statstr_dict[key] = starval
+                if not strval.startswith('0'):
+                    strval = strval.rstrip('0')
+                    strval = strval.rstrip('.')
+                statstr_dict[key] = strval
     # format the dictionary string
     stat_str  = dict_str(statstr_dict, strvals=True, newlines=newlines)
     # add a label if requested
@@ -713,19 +734,14 @@ def print_stats(list_, lbl=None, newlines=False, precision=2):
         python -m utool.util_dev --test-print_stats
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_dev import *  # NOQA
         >>> list_ = [1, 2, 3, 4, 5]
         >>> lbl = None
         >>> newlines = False
         >>> precision = 2
         >>> result = print_stats(list_, lbl, newlines, precision)
-
-    Example:
-        >>> import utool
-        >>> list_ = [1, 2, 3, 4, 5]
-        >>> utool.print_stats(list_)
-        {max: 5.0, min: 1.0, mean: 3.0, std: 1.41421, nMin: 1, nMax: 1, shape: (5,),}
+        {'max': 5, 'min': 1, 'mean': 3, 'std': 1.41, 'nMin': 1, 'nMax': 1, 'shape': (5,),}
 
     SeeAlso:
         get_stats_str
