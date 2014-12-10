@@ -165,8 +165,12 @@ def make_args_docstr(argname_list, argtype_list, argdesc_list, ismethod):
     argdoc_list = [arg + ' (%s): %s' % (_type, desc)
                    for arg, _type, desc in zip(argname_list, argtype_list, argdesc_list)]
     # align?
-    argdoc_aligned_list = ut.align_lines(argdoc_list, character='(')
-    arg_docstr = '\n'.join(argdoc_aligned_list)
+    align_args = False
+    if align_args:
+        argdoc_aligned_list = ut.align_lines(argdoc_list, character='(')
+        arg_docstr = '\n'.join(argdoc_aligned_list)
+    else:
+        arg_docstr = '\n'.join(argdoc_list)
     return arg_docstr
 
 

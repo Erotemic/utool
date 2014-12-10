@@ -19,16 +19,16 @@ def random_indexes(max_index, subset_size):
     return subst
 
 
-def list_index(search_list, to_find_list):
-    """ Keep this function
-    Searches search_list for each element in to_find_list"""
-    try:
-        toret = [np.where(search_list == item)[0][0] for item in to_find_list]
-    except IndexError as ex1:
-        print('ERROR: ' + str(ex1))
-        print('item = %r' % (item,))
-        raise
-    return toret
+#def list_index(search_list, to_find_list):
+#    """ Keep this function
+#    Searches search_list for each element in to_find_list"""
+#    try:
+#        toret = [np.where(search_list == item)[0][0] for item in to_find_list]
+#    except IndexError as ex1:
+#        print('ERROR: ' + str(ex1))
+#        print('item = %r' % (item,))
+#        raise
+#    return toret
 
 
 def npfind(arr):

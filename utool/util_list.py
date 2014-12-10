@@ -8,13 +8,13 @@ except ImportError:
 import six
 import itertools
 from six.moves import zip, map, zip_longest, range
-from utool.util_iter import iflatten, isiterable, ifilter_Nones, ifilter_items, ifilterfalse_items
-from utool.util_inject import inject
+from utool import util_iter
+from utool import util_inject
 from utool.util_str import get_callable_name
 from utool.util_arg import NO_ASSERTS
 from utool.util_type import is_listlike
 from utool._internal.meta_util_six import get_funcname, set_funcname
-print, print_, printDBG, rrr, profile = inject(__name__, '[list]')
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[list]')
 
 
 # --- List Allocations ---
@@ -48,6 +48,23 @@ def ensure_list_size(list_, size_):
 # --- List Searching --- #
 
 def get_list_column(list_, colx):
+    r"""
+    Args:
+        list_ (list):  list of lists
+        colx (int):  position in each sublist get item
+
+    Returns:
+        list: list of selected items
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [['a', 'b'], ['c', 'd']]
+        >>> colx = 0
+        >>> result = get_list_column(list_, colx)
+        >>> print(result)
+        ['a', 'c']
+    """
     return [row[colx] for row in list_]
 
 
@@ -65,6 +82,35 @@ def safe_listget(list_, index, default='?'):
 
 
 def listfind(list_, tofind):
+    r"""
+    get the position of item ``tofind`` in ``list_`` if it exists
+    otherwise returns None
+
+    Args:
+        list_ (?):
+        tofind (?):
+
+    Returns:
+        int: index of ``tofind`` in ``list_``
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = ['a', 'b', 'c']
+        >>> tofind = 'b'
+        >>> result = listfind(list_, tofind)
+        >>> print(result)
+        1
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = ['a', 'b', 'c']
+        >>> tofind = 'd'
+        >>> result = listfind(list_, tofind)
+        >>> print(result)
+        None
+    """
     try:
         return list_.index(tofind)
     except ValueError:
@@ -81,7 +127,23 @@ def list_replace(instr, search_list=[], repl_list=None):
 
 
 def flatten(list_):
-    return list(iflatten(list_))
+    r"""
+    Args:
+        list_ (list): list of lists
+
+    Returns:
+        list: flat list
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [['a', 'b'], ['c', 'd']]
+        >>> unflat_list2 = flatten(list_)
+        >>> result = str(unflat_list2)
+        >>> print(result)
+        ['a', 'b', 'c', 'd']
+    """
+    return list(util_iter.iflatten(list_))
 
 
 def invertable_flatten(unflat_list):
@@ -235,7 +297,7 @@ def unflatten2(flat_list, cumlen_list):
 def tuplize(list_):
     """ Converts each scalar item in a list to a dimension-1 tuple
     """
-    tup_list = [item if isiterable(item) else (item,) for item in list_]
+    tup_list = [item if util_iter.isiterable(item) else (item,) for item in list_]
     return tup_list
 
 
@@ -409,11 +471,11 @@ def filter_items(item_list, flag_list):
         filtered_items
 
     SeeAlso:
-        ifilter_items
+        util_iter.ifilter_items
     """
 
     assert len(item_list) == len(flag_list)
-    filtered_items = list(ifilter_items(item_list, flag_list))
+    filtered_items = list(util_iter.ifilter_items(item_list, flag_list))
     return filtered_items
 
 
@@ -429,10 +491,10 @@ def filterfalse_items(item_list, flag_list):
         filtered_items : items where the corresponding flag was truthy
 
     SeeAlso:
-        ifilterfalse_items
+        util_iter.ifilterfalse_items
     """
     assert len(item_list) == len(flag_list)
-    filtered_items = list(ifilterfalse_items(item_list, flag_list))
+    filtered_items = list(util_iter.ifilterfalse_items(item_list, flag_list))
     return filtered_items
 
 
@@ -446,7 +508,7 @@ def filter_Nones(item_list):
     Returns:
         sublist which does not contain Nones
     """
-    return list(ifilter_Nones(item_list))
+    return list(util_iter.ifilter_Nones(item_list))
 
 
 # --- List combinations --- #
@@ -637,7 +699,7 @@ def scalar_input_map(func, input_):
         If ``input_`` is iterable this function behaves like map
         otherwise applies func to ``input_``
     """
-    if isiterable(input_):
+    if util_iter.isiterable(input_):
         return list(map(func, input_))
     else:
         return func(input_)
@@ -648,7 +710,7 @@ def partial_imap_1to1(func, si_func):
     from functools import wraps
     @wraps(si_func)
     def wrapper(input_):
-        if not isiterable(input_):
+        if not util_iter.isiterable(input_):
             return func(si_func(input_))
         else:
             return list(map(func, si_func(input_)))
@@ -742,7 +804,7 @@ def issorted(list_, op=operator.le):
 
 def assert_scalar_list(list_):
     for count, item in enumerate(list_):
-        assert not isiterable(item), 'count=%r, item=%r is iterable!' % (count, item)
+        assert not util_iter.isiterable(item), 'count=%r, item=%r is iterable!' % (count, item)
 
 
 def assert_same_len(list1, list2, additional_msg=''):

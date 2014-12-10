@@ -14,6 +14,7 @@ except ImportError:
 from collections import defaultdict
 import six
 from six.moves import zip, range
+from utool import util_type
 from utool import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
 
@@ -161,15 +162,37 @@ def normalize(array, dim=0):
     return norm_zero_one(array, dim)
 
 
-def norm_zero_one(array, dim=0):
+def norm_zero_one(array, dim=None):
     """
-    normalizes a numpy array from 0 to 1
-    """
+    normalizes a numpy array from 0 to 1 based in its extent
 
+    Args:
+        array (ndarray):
+        dim   (int):
+
+    Returns:
+        ndarray:
+
+    CommandLine:
+        python -m utool.util_alg --test-norm_zero_one
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> array = np.array([ 22, 1, 3, 2, 10, 42, ])
+        >>> dim = None
+        >>> array_norm = norm_zero_one(array, dim)
+        >>> result = np.array_str(array_norm, precision=3)
+        >>> print(result)
+        [ 0.512  0.     0.049  0.024  0.22   1.   ]
+    """
+    if not util_type.is_float(array):
+        array = array.astype(np.float32)
     array_max  = array.max(dim)
     array_min  = array.min(dim)
     array_exnt = np.subtract(array_max, array_min)
-    return np.divide(np.subtract(array, array_min), array_exnt)
+    array_norm = np.divide(np.subtract(array, array_min), array_exnt)
+    return array_norm
 
 
 def find_std_inliers(data, m=2):

@@ -88,6 +88,17 @@ def test_progress():
     print('_________________')
 
 
+def progress_chunks(list_, chunksize, **kwargs):
+    import utool as ut
+    chunk_iter = ut.ichunks(list_, chunksize)
+    nTotal = ut.iceil(len(list_) / chunksize)
+    if 'freq' not in kwargs:
+        kwargs['freq'] = 1
+    kwargs['nTotal'] = nTotal
+    progiter_ = ProgressIter(chunk_iter, **kwargs)
+    return progiter_
+
+
 class ProgressIter(object):
     """
     Wraps a for loop with progress reporting

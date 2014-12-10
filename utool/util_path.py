@@ -719,6 +719,31 @@ def fnames_to_fpaths(fname_list, path):
     return fpath_list
 
 
+def get_modpath_from_modname(modname):
+    r"""
+    Args:
+        modname (str):
+
+    Returns:
+        str: module_dir
+
+    CommandLine:
+        python -m utool.util_path --test-get_modpath_from_modname
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> modname = 'utool.util_path'
+        >>> module_dir = get_modpath_from_modname(modname)
+        >>> result = str(module_dir)
+        >>> print(result)
+    """
+    import importlib
+    module = importlib.import_module(modname)
+    module_dir = get_module_dir(module)
+    return module_dir
+
+
 def get_module_dir(module, *args):
     module_dir = truepath(dirname(module.__file__))
     if len(args) > 0:

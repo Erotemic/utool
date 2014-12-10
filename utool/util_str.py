@@ -636,6 +636,7 @@ def str2(obj):
 
 
 def get_unix_timedelta_str(unixtime_diff):
+    """ string representation of time deltas """
     timedelta = get_unix_timedelta(unixtime_diff)
     sign = '+' if unixtime_diff >= 0 else '-'
     timedelta_str = sign + str(timedelta)
@@ -643,6 +644,7 @@ def get_unix_timedelta_str(unixtime_diff):
 
 
 def str_between(str_, startstr, endstr):
+    """ gets substring between two sentianl strings """
     startpos = str_.find(startstr) + len(startstr)
     endpos = str_.find(endstr) - 1
     return str_[startpos:endpos]
@@ -751,6 +753,7 @@ def align_lines(line_list, character='='):
 
 
 def get_freespace_str(dir_='.'):
+    """ returns string denoting free disk space in a directory """
     from utool import util_cplat
     return byte_str2(util_cplat.get_free_diskbytes(dir_))
 
@@ -800,7 +803,8 @@ def long_fname_format(fmt_str, fmt_dict, hashable_keys=[], max_len=64, hashlen=1
                 break
         if len(fname) > max_len:
             diff = len(fname) - max_len
-            msg = ('Warning: Too big by %d chars. Exausted all options to make fname fit into size. ' % diff)
+            msg = ('Warning: Too big by %d chars. Exausted all options'
+                   'to make fname fit into size. ')  % (diff,)
             print(msg)
             print('len(fname) = %r' % len(fname))
             print('fname = %r' % fname)
@@ -845,10 +849,15 @@ def replace_nonquoted_text(text, search_list, repl_list):
 
 
 def singular_string(str_, plural_suffix='s', singular_suffix=''):
+    """
+    tries to use english grammar to make a string singular
+    very naive implementation. will break often
+    """
     return str_[:-1] if str_.endswith(plural_suffix) else str_
 
 
 def remove_vowels(str_):
+    """ strips all vowels from a string """
     for char_ in 'AEOIUaeiou':
         str_ = str_.replace(char_, '')
     return str_
@@ -876,6 +885,7 @@ def clipstr(str_, maxlen):
 
 
 def msgblock(key, text):
+    """ puts text inside a visual ascii block """
     blocked_text = ''.join(
         [' + --- ', key, ' ---\n'] +
         [' | ' + line + '\n' for line in text.split('\n')] +
@@ -885,6 +895,13 @@ def msgblock(key, text):
 
 
 def number_text_lines(text):
+    r"""
+    Args:
+        text (str):
+
+    Returns:
+        str: text_with_lineno - string with numbered lines
+    """
     numbered_linelist = [
         ''.join((('%2d' % (count + 1)), ' >>> ', line))
         for count, line in enumerate(text.splitlines())
@@ -895,6 +912,9 @@ def number_text_lines(text):
 
 def get_textdiff(text1, text2):
     """
+    Uses difflib to return a difference string between two
+    similar texts
+
     References:
         http://www.java2s.com/Code/Python/Utility/IntelligentdiffbetweentextfilesTimPeters.htm
     """
@@ -908,6 +928,38 @@ def get_textdiff(text1, text2):
 
 
 def cond_phrase(list_, cond='or'):
+    """
+    takes a list of words and joins them using english conjunction rules
+
+    not sure what the right name for this should be
+    something to do with conjunctions?
+
+    Args:
+        list_ (list):  of strings
+        cond (str): a conjunction
+
+    Returns:
+        str: the conditional phrase
+
+    References:
+        http://en.wikipedia.org/wiki/Conjunction_(grammar)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> list_ = ['a', 'b', 'c']
+        >>> result = cond_phrase(list_, 'or')
+        >>> print(result)
+        a, b, or c
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> list_ = ['a', 'b']
+        >>> result = cond_phrase(list_, 'and')
+        >>> print(result)
+        a and b
+    """
     if len(list_) == 0:
         return ''
     elif len(list_) == 1:

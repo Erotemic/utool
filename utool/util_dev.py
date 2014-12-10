@@ -213,29 +213,6 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
         return (passed, time_list, result_list)
 
 
-def are_you_sure(msg=''):
-    r"""
-    Prompts user to accept or checks command line for -y
-
-    Args:
-        msg (str):
-
-    Returns:
-        bool: accept or not
-    """
-    print(msg)
-    from utool import util_arg
-    from utool import util_str
-    override = util_arg.get_argflag(('--yes', '--y', '-y'))
-    if override:
-        print('accepting based on command line flag')
-        return True
-    valid_ans = ['yes', 'y']
-    valid_prompt = util_str.cond_phrase(valid_ans, 'or')
-    ans = input('Are you sure?\n Enter %s to accept\n' % valid_prompt)
-    return ans.lower() in valid_ans
-
-
 def testit(stmt, setup):
     # Make temporary locals/globals for a sandboxlike run
     _globals = {}
@@ -552,9 +529,53 @@ class InteractiveIter(object):
 
 
 def user_cmdline_prompt(msg=''):
+    #prompt_fmtstr = ut.codeblock(
+    #    '''
+    #    Accept system decision?
+    #    ==========
+    #    {decidemsg}
+    #    ==========
+    #    Enter {no_phrase} to reject
+    #    Enter {embed_phrase} to embed into ipython
+    #    Any other inputs accept system decision
+    #    (input is case insensitive)
+    #    '''
+    #)
+    #ans_list_embed = ['cmd', 'ipy', 'embed']
+    #ans_list_no = ['no', 'n']
+    ##ans_list_yes = ['yes', 'y']
+    #prompt_str = prompt_fmtstr.format(
+    #    no_phrase=ut.cond_phrase(ans_list_no),
+    #    embed_phrase=ut.cond_phrase(ans_list_embed),
+    #    decidemsg=decidemsg
+    #)
+    #prompt_block = ut.msgblock('USER_INPUT', prompt_str)
     msg += '\n... Enter yes to accept or anything else to reject\n'
     ans = input(msg)
     return ans == 'yes'
+
+
+def are_you_sure(msg=''):
+    r"""
+    Prompts user to accept or checks command line for -y
+
+    Args:
+        msg (str):
+
+    Returns:
+        bool: accept or not
+    """
+    print(msg)
+    from utool import util_arg
+    from utool import util_str
+    override = util_arg.get_argflag(('--yes', '--y', '-y'))
+    if override:
+        print('accepting based on command line flag')
+        return True
+    valid_ans = ['yes', 'y']
+    valid_prompt = util_str.cond_phrase(valid_ans, 'or')
+    ans = input('Are you sure?\n Enter %s to accept\n' % valid_prompt)
+    return ans.lower() in valid_ans
 
 
 def tuples_to_unique_scalars(tup_list):
@@ -1253,6 +1274,9 @@ def reset_catch_ctrl_c():
     signal.signal(signal.SIGINT, signal.SIG_DFL)  # reset ctrl+c behavior
 
 
-def is_developer():
+def is_developer(mycomputers=None):
     import utool
-    return utool.get_computer_name().lower() in ['hyrule', 'ooo', 'bakerstreet']
+    if mycomputers is None:
+        mycomputers = ['hyrule', 'ooo', 'bakerstreet']
+    compname_lower = utool.get_computer_name().lower()
+    return compname_lower in mycomputers
