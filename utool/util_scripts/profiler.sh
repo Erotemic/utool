@@ -1,5 +1,7 @@
 #!/bin/bash
 # Globals
+echo ""
+echo "==========="
 echo "==========="
 echo "PROFILER.sh"
 export TIMESTAMP=$(date -d "today" +"%Y-%m-%d_%H-%M-%S")
@@ -74,25 +76,34 @@ if [ $PROFILE_TYPE = "plop" ]; then
     $PYEXE -m plop.viewer --datadir=profiles
 #
 #
-# LINE PROFILER
+# LINE PROFILER (prefered)
 elif [ $PROFILE_TYPE = "lineprof" ]; then
     # Output Stage 1
-    echo "line_profile_output: $line_profile_output"
     export line_profile_output=$pyscript.lprof
+    echo "WILL WRITE TO: line_profile_output: $line_profile_output"
     # Output Stage 2
     export raw_profile=raw_profile.$pyscript.$TIMESTAMP.$RAW_SUFFIX
     export clean_profile=clean_profile.$pyscript.$TIMESTAMP.$CLEAN_SUFFIX
+    echo "PROFILE COMMAND $KERNPROF_PY -l $@"
+    echo ""
+    echo "+==============BEGINING LINE PROFILE=============="
     # Line profile the python code w/ command line args
     $KERNPROF_PY -l $@
+    echo "L______________FINISHED LINE PROFILE______________"
+    echo ""
+    echo "DUMPING TO RAW PROFILE"
+    echo "USING COMMAND: $PYEXE -m line_profiler $line_profile_output"
     # Dump the line profile output to a text file
     $PYEXE -m line_profiler $line_profile_output >> $raw_profile
+    echo "CLEANING RAW PROFILE WITH COMMAND: $LINEPROF_CLEAN_PY $raw_profile $clean_profile"
     # Clean the line profile output
     $LINEPROF_CLEAN_PY $raw_profile $clean_profile
+    echo "DUMPING CLEAN PROFILE TO STANDARD OUT"
     # Print the cleaned output
     cat $clean_profile
 #
 #
-# PLOP PROFILER
+# RUNSNAKE PROFILER
 elif [ $PROFILE_TYPE = "runsnake" ]; then
     # Line profile the python code w/ command line args
     export runsnake_profile=RunSnakeContext.$pyscript.$TIMESTAMP.$RAW_SUFFIX

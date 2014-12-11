@@ -6,7 +6,7 @@ import inspect
 import types
 import traceback  # NOQA
 import sys
-from os.path import basename
+from os.path import basename, splitext
 from utool import util_print
 from utool import util_arg
 from utool import util_path
@@ -338,6 +338,12 @@ def get_doctest_testtup_list(testable_list=None, check_flags=True, module=None,
             frame_fpath = frame.f_globals['__file__']
             if frame_name == main_modname:
                 module = sys.modules[main_modname]
+                if ut.get_modname_from_modpath(module.__file__) == 'kernprof':
+                    # kernprof clobbers the __main__ variable.
+                    # workaround by reimporting the module name
+                    import importlib
+                    modname = ut.get_modname_from_modpath(frame_fpath)
+                    module = importlib.import_module(modname)
         except Exception as ex:
             print(frame.f_globals)
             ut.printex(ex, keys=['frame', 'module'])
