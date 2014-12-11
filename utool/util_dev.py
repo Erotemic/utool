@@ -193,7 +193,7 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
             for result in result_list:
                 for count, result in enumerate(result_list):
                     print('<Result %d>' % count)
-                    print(result)
+                    #print(ut.truncate_str(repr(result)))
                     print('</Result %d>' % count)
             if strict:
                 raise AssertionError('Results are not valid')
