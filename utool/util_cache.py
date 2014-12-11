@@ -61,22 +61,58 @@ def text_dict_write(fpath, key, val):
 
 
 def _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl=False):
-    """
+    r"""
+    Internal util_cache helper function
+
     Ensures that the filename is not too long (looking at you windows)
     Windows MAX_PATH=260 characters
     Absolute length is limited to 32,000 characters
     Each filename component is limited to 255 characters
 
     if write_hashtbl is True, hashed values expaneded and written to a text file
+
+    Args:
+        dpath (str):
+        fname (str):
+        cfgstr (str):
+        ext (str):
+        write_hashtbl (bool):
+
+    Returns:
+        str: fpath
+
+    CommandLine:
+        python -m utool.util_cache --test-_args2_fpath
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_cache import *  # NOQA
+        >>> from utool.util_cache import _args2_fpath
+        >>> dpath = 'F:\\data\\work\\PZ_MTEST\\_ibsdb\\_ibeis_cache'
+        >>> fname = 'normalizer_'
+        >>> cfgstr = u'PZ_MTEST_DSUUIDS((9)67j%dr%&bl%4oh4+)_QSUUIDS((9)67j%dr%&bl%4oh4+)zebra_plains_vsone_NN(single,K1+1,last,cks1024)_FILT(ratio<0.625;1.0,fg;1.0)_SV(0.01;2;1.57minIn=4,nRR=50,nsum,)_AGG(nsum)_FLANN(4_kdtrees)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)'
+        >>> ext = '.cPkl'
+        >>> write_hashtbl = False
+        >>> fpath = _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl)
+        >>> result = str(fpath)
+        >>> print(result)
+        F:\data\work\PZ_MTEST\_ibsdb\_ibeis_cache\normalizer_5cv1%3s&.cPkl
     """
     if len(ext) > 0 and ext[0] != '.':
         raise Exception('Fatal Error: Please be explicit and use a dot in ext')
     fname_cfgstr = fname + cfgstr
-    if len(fname_cfgstr) > 128:
-        hashed_cfgstr = util_hash.hashstr(cfgstr, 8)
+    max_fname_len = 128
+    if len(fname_cfgstr) > max_fname_len:
+        cfgstr_hashlen = 8  # TODO: make bigger before production
+        hashed_cfgstr = util_hash.hashstr(cfgstr, cfgstr_hashlen)
         if write_hashtbl:
+            # DONT WRITE TO HASHTABLE THE FUNCTION IS BROKEN
             text_dict_write(join(dpath, 'hashtbl.txt'), hashed_cfgstr, cfgstr)
-        fname_cfgstr = fname + '_' + hashed_cfgstr
+        # Hack for prettier names
+        if not fname.endswith('_'):
+            fname_cfgstr = fname + '_' + hashed_cfgstr
+        else:
+            fname_cfgstr = fname + hashed_cfgstr
     fpath = join(dpath, fname_cfgstr + ext)
     fpath = normpath(fpath)
     return fpath
@@ -551,9 +587,17 @@ class Cachable(object):
         return basename(self.get_fpath('', cfgstr=cfgstr))
 
     def get_fpath(self, cachedir, cfgstr=None):
+        """
+        Ignore:
+            fname = _fname
+            cfgstr = _cfgstr
+        """
         _fname = self.get_prefix()
         _cfgstr = self.get_cfgstr() if cfgstr is None else cfgstr
-        fpath = _args2_fpath(cachedir, _fname, _cfgstr, self.ext, write_hashtbl=False)
+        ext = self.ext
+        write_hashtbl = False
+        dpath = cachedir
+        fpath = _args2_fpath(dpath, _fname, _cfgstr, ext, write_hashtbl=write_hashtbl)
         return fpath
 
     def delete(self, cachedir, cfgstr=None, verbose=True or VERBOSE or util_arg.VERBOSE):
