@@ -6,7 +6,7 @@ import inspect
 import types
 import traceback  # NOQA
 import sys
-from os.path import basename, splitext
+from os.path import basename
 from utool import util_print
 from utool import util_arg
 from utool import util_path
