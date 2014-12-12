@@ -402,13 +402,36 @@ def infer_arg_types_and_descriptions(argname_list, defaults):
             ('qnid'    , ('int', 'query name id')),
 
             # Pipeline hints
-            ('qaid2_nns', ('dict', 'maps query annot id to (qfx2_idx, qfx2_dist)')),
-            ('qaid2_nnvalid0', ('dict', 'maps query annot id to qfx2_valid0 - an ndarray representing match non-imposibility')),
-            ('qfx2_valid0', ('ndarray', 'maps query feature index to K matches non-impossibility flags')),
-            ('filt2_weights', ('dict', 'maps filter names to qfx2_weight ndarray')),
-            ('qaid2_filtweights', ('dict', 'mapping to weights computed by filters like lnnbnn and ratio')),
-            ('qaid2_nnfiltagg', ('dict', 'maps to (qfx2_score, qfx2_valid) where the scores and matches correspond to the assigned nearest features')),
-            ('qaid2_nnfilts', ('dict', 'nonaggregate feature scores and validities for each feature NEW')),
+            ('qaid2_nns',
+             ('dict', 'maps query annotid to (qfx2_idx, qfx2_dist)')),
+
+            ('qaid2_nnvalid0',
+             ('dict',
+              'maps query annotid to qfx2_valid0')),
+
+            ('qfx2_valid0',
+             ('ndarray',
+              'maps query feature index to K matches non-impossibility flags')),
+
+            ('filt2_weights',
+             ('dict', 'maps filter names to qfx2_weight ndarray')),
+
+            ('qaid2_filtweights',
+             ('dict',
+              'mapping to weights computed by filters like lnnbnn and ratio')),
+
+            ('qaid2_nnfiltagg',
+             ('dict',
+              'maps to nnfiltagg - tuple(qfx2_score, qfx2_valid)')),
+
+            ('qaid2_nnfilts',
+             ('dict', 'nonaggregate feature scores and validities for each feature NEW')),
+
+            ('nnfiltagg', ('tuple', '(qfx2_score_agg, qfx2_valid_agg)')),
+            ('nnfilts', ('tuple', '(filt_list, qfx2_score_list, qfx2_valid_list)')),
+
+            ('qfx2_idx', ('ndarray[int32_t, ndims=2]', 'mapping from query feature index to db neighbor index')),
+
             ('K'       , ('int', None)),
             ('Knorm'   , ('int', None)),
 
@@ -431,8 +454,8 @@ def infer_arg_types_and_descriptions(argname_list, defaults):
             # My coding style hints
             ('wx2_'    , ('dict', None)),
             ('qfx2_' + VAL_FIELD,
-                ('ndarray',
-                 'mapping from query feature index to ' + VAL_BREF)),
+             ('ndarray',
+              'mapping from query feature index to ' + VAL_BREF)),
             ('.*x2_.*' , ('ndarray', None)),
             ('.+2_.*'  , ('dict', None)),
             ('.*_?list_?' , ('list', None)),
