@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 import inspect
 import types
 import six
+import re
 import functools
 from utool import util_regex
 from utool import util_inject
@@ -355,58 +356,89 @@ def infer_arg_types_and_descriptions(argname_list, defaults):
     """
     Args:
         argname_list (list):
-        defaults (?):
+        defaults (list):
 
     Returns:
         tuple : (arg_types, argdesc_list)
 
+    CommandLine:
+        python -m utool.util_inspect --test-infer_arg_types_and_descriptions
+
+    Ignore:
+        python -c "import utool; print(utool.auto_docstr('ibeis.model.hots.pipeline', 'build_chipmatches'))"
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> import utool
-        >>> argname_list = ['ibs', 'qaid', 'fdKfds']
+        >>> argname_list = ['ibs', 'qaid', 'fdKfds', 'qfx2_foo']
         >>> defaults = None
         >>> arg_types, argdesc_list = utool.infer_arg_types_and_descriptions(argname_list, defaults)
     """
-    import utool as ut
+    #import utool as ut
+    from utool import util_dev
 
     # hacks for IBEIS
-    if ut.is_developer():
+    if True or util_dev.is_developer():
         # key = regex pattern
         # val = hint=tuple(type_, desc_)
         from collections import OrderedDict
+        VAL_FIELD = util_regex.named_field('val', '.*')
+        VAL_BREF = util_regex.bref_field('val')
+
         registered_hints = OrderedDict([
-            ('ibs.*'   , ('IBEISController', None)),
-            ('qreq_'   , ('QueryRequest', 'hyper-parameters')),
+            # General IBEIS hints
+            ('ibs.*'   , ('IBEISController', 'ibeis controller object')),
+            ('qreq_'   , ('QueryRequest', 'query request object with hyper-parameters')),
             ('qres.*'  , ('QueryResult', 'object of feature correspondences and scores')),
-            ('qparams*', ('QueryParams', 'hyper-parameters')),
-            ('[qd]?rchip[0-9]?', ('ndarray', 'rotated annotation image data')),
-            ('[qd]?chip[0-9]?', ('ndarray', 'annotation image data')),
-            ('[qd]?kpts[0-9]?', ('ndarray', 'keypoints')),
+            ('qparams*', ('QueryParams', 'query hyper-parameters')),
+            ('vecs'    , ('ndarray[uint8_t, ndim=2]', 'descriptor vectors')),
+            ('maws'    , ('ndarray[float32_t, ndim=1]', 'multiple assignment weights')),
+            ('words'   , ('ndarray[uint8_t, ndim=2]', 'aggregate descriptor cluster centers')),
+            ('word'    , ('ndarray[uint8_t, ndim=1]', 'aggregate descriptor cluster center')),
+            ('rvecs'   , ('ndarray[uint8_t, ndim=2]', 'residual vector')),
             ('fm', ('list', 'list of feature matches as tuples (qfx, dfx)')),
-            ('img', ('ndarray', 'image data')),
             ('fs', ('list', 'list of feature scores')),
-            ('pnum', ('tuple', 'plot number')),
-            ('fnum', ('int', 'figure number')),
-            ('title', ('str', '')),
+            ('qaid'    , ('int', 'query annotation id')),
+            ('qnid'    , ('int', 'query name id')),
+
+            # Pipeline hints
+            ('qaid2_nns', ('dict', 'maps query annot id to (qfx2_idx, qfx2_dist)')),
+            ('qaid2_nnvalid0', ('dict', 'maps query annot id to qfx2_valid0 - an ndarray representing match non-imposibility')),
+            ('qfx2_valid0', ('ndarray', 'maps query feature index to K matches non-impossibility flags')),
+            ('filt2_weights', ('dict', 'maps filter names to qfx2_weight ndarray')),
+            ('qaid2_filtweights', ('dict', 'mapping to weights computed by filters like lnnbnn and ratio')),
+            ('qaid2_nnfiltagg', ('dict', 'maps to (qfx2_score, qfx2_valid) where the scores and matches correspond to the assigned nearest features')),
+            ('qaid2_nnfilts', ('dict', 'nonaggregate feature scores and validities for each feature NEW')),
             ('K'       , ('int', None)),
             ('Knorm'   , ('int', None)),
+
+            # SMK Hints
             ('smk_alpha',  ('float', 'selectivity power')),
             ('smk_thresh', ('float', 'selectivity threshold')),
             ('query_sccw', ('float', 'query self-consistency-criterion')),
             ('data_sccw', ('float', 'data self-consistency-criterion')),
             ('invindex', ('InvertedIndex', 'object for fast vocab lookup')),
-            ('vecs'    , ('ndarray', None)),
-            ('maws'    , ('ndarray', None)),
-            ('words'   , ('ndarray', None)),
-            ('word'    , ('ndarray', None)),
-            ('rvecs'   , ('ndarray', None)),
+
+            # Plotting hints
+            ('[qd]?rchip[0-9]?', ('ndarray[uint8_t, ndim=2]', 'rotated annotation image data')),
+            ('[qd]?chip[0-9]?', ('ndarray[uint8_t, ndim=2]', 'annotation image data')),
+            ('[qd]?kpts[0-9]?', ('ndarray[float32_t, ndim=2][ndims=2]', 'keypoints')),
+            ('img', ('ndarray[uint8_t, ndim=2]', 'image data')),
+            ('pnum', ('tuple', 'plot number')),
+            ('fnum', ('int', 'figure number')),
+            ('title', ('str', '')),
+
+            # My coding style hints
             ('wx2_'    , ('dict', None)),
-            ('qfx2_.*' , ('ndarray', None)),
+            ('qfx2_' + VAL_FIELD,
+                ('ndarray',
+                 'mapping from query feature index to ' + VAL_BREF)),
+            ('.*x2_.*' , ('ndarray', None)),
             ('.+2_.*'  , ('dict', None)),
-            ('.*_list' , ('list', None)),
+            ('.*_?list_?' , ('list', None)),
+            ('.*_tup' , ('tuple', None)),
             ('.*_sublist' , ('list', None)),
-            ('qaid'    , ('int', 'query annotation id')),
-            ('qnid'    , ('int', 'query name id')),
+            ('verbose', ('bool', 'verbosity flag')),
         ])
 
     if defaults is None:
@@ -421,12 +453,14 @@ def infer_arg_types_and_descriptions(argname_list, defaults):
         if arg_types[argx] == '?' or arg_types[argx] == 'None':
             argname = argname_list[argx]
             for regex, hint in six.iteritems(registered_hints):
-                if util_regex.regex_matches(regex, argname):
+                matchobj = re.match('^' + regex + '$', argname, flags=re.MULTILINE | re.DOTALL)
+                if matchobj is not None:
                     type_ = hint[0]
                     desc_ = hint[1]
                     if type_ is not None:
                         arg_types[argx] = type_
                     if desc_ is not None:
+                        desc_ = matchobj.expand(desc_)
                         argdesc_list[argx] = ' ' + desc_
                     break
     return arg_types, argdesc_list

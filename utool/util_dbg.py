@@ -785,13 +785,17 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
 
 
 def formatex(ex, msg='[!?] Caught exception',
-             prefix=None, key_list=[], locals_=None, iswarning=False, tb=False, N=0):
+             prefix=None, key_list=[], locals_=None, iswarning=False, tb=False,
+             N=0, keys=None):
     """ Formats an exception with relevant info """
     # Get error prefix and local info
     if prefix is None:
         prefix = get_caller_prefix(aserror=True, N=N)
     if locals_ is None:
         locals_ = get_caller_locals(N=N)
+    if keys is not None:
+        # shorthand for key_list
+        key_list = keys
     # build exception message
     errstr_list = []  # list of exception strings
     ex_tag = 'WARNING' if iswarning else 'EXCEPTION'
