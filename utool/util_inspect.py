@@ -451,6 +451,14 @@ def infer_arg_types_and_descriptions(argname_list, defaults):
             ('fnum', ('int', 'figure number')),
             ('title', ('str', '')),
 
+            # utool hints
+            ('funcname'    , ('str', 'function name')),
+            ('modname'    , ('str', 'module name')),
+            ('argname_list'    , ('str', 'list of argument names')),
+            ('return_name'    , ('str', 'return variable name')),
+            ('examplecode'    , ('str', None)),
+
+
             # My coding style hints
             ('wx2_'    , ('dict', None)),
             ('qfx2_' + VAL_FIELD,

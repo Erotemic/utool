@@ -189,6 +189,38 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
                         ismethod=False):
     """
     Creates skeleton code to build an example doctest
+
+    Args:
+        funcname (str):  function name
+        modname (str):  module name
+        argname_list (str):  list of argument names
+        defaults (None):
+        return_type (None):
+        return_name (str):  return variable name
+        ismethod (bool):
+
+    Returns:
+        str: examplecode
+
+    CommandLine:
+        python -m utool.util_autogen --test-make_example_docstr
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_autogen import *  # NOQA
+        >>> # build test data
+        >>> funcname = 'make_example_docstr'
+        >>> modname = 'utool.util_autogen'
+        >>> argname_list = None
+        >>> defaults = None
+        >>> return_type = None
+        >>> return_name = None
+        >>> ismethod = False
+        >>> # execute function
+        >>> examplecode = make_example_docstr(funcname, modname, argname_list, defaults, return_type, return_name, ismethod)
+        >>> # verify results
+        >>> result = str(examplecode)
+        >>> print(result)
     """
     import utool as ut
     examplecode_lines = []
@@ -233,6 +265,7 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
         examplecode_lines.append('# ENABLE_DOCTEST')
 
     examplecode_lines.extend(import_lines)
+    examplecode_lines.append('# build test data')
     examplecode_lines.extend(argdef_lines)
     # Default example result assignment
     result_assign = ''
@@ -253,7 +286,10 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
         funcargs = ', '.join(argname_list)
         tup = (funcname, '(', funcargs, ')')
         example_call = ''.join(tup)
+    # Append call line
+    examplecode_lines.append('# execute function')
     examplecode_lines.append(result_assign + example_call)
+    examplecode_lines.append('# verify results')
     if result_print is not None:
         if return_name != 'result':
             examplecode_lines.append('result = str(' + return_name + ')')
