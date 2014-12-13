@@ -13,6 +13,39 @@ except ImportError:
 print, print_, printDBG, rrr, profile = inject(__name__, '[dict]')
 
 
+def get_dict_hashid(dict_):
+    r"""
+    Args:
+        dict_ (?):
+
+    Returns:
+        ?: inverted_dict
+
+    CommandLine:
+        python -m utool.util_dict --test-get_dict_hashid
+
+    References:
+        http://stackoverflow.com/questions/5884066/hashing-a-python-dictionary
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> # build test data
+        >>> dict_ = {}
+        >>> dict_ = {'a': 'b'}
+        >>> dict_ = {'a': {'c': 'd'}}
+        >>> # execute function
+        >>> hashid = get_dict_hashid(dict_)
+        >>> # verify results
+        >>> result = str(hashid)
+        >>> print(result)
+    """
+    from utool import util_hash
+    #hashid = hash(frozenset(dict_.items()))
+    hashid = util_hash.make_hash(dict_)
+    return hashid
+
+
 def invert_dict(dict_):
     """
     invert_dict
@@ -199,17 +232,64 @@ def dict_subset(dict_, keys):
     return {key: dict_[key] for key in keys}
 
 
-def dict_take_gen(dict_, keys):
-    hasnumpy = 'np' in vars()
+def delete_dict_keys(dict_, key_list):
+    invalid_keys = set(key_list) - set(six.iterkeys(dict_))
+    for key in invalid_keys:
+        del dict_[key]
+
+
+def dict_take_gen(dict_, keys, *d):
+    r"""
+    Args:
+        dict_ (dict):
+        keys (list):
+
+    Varargs:
+        d: if specified is default for key errors
+
+    CommandLine:
+        python -m utool.util_dict --test-dict_take_gen
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> dict_ = {1: 'a', 2: 'b', 3: 'c'}
+        >>> keys = [1, 2, 3, 4, 5]
+        >>> result = list(dict_take_gen(dict_, keys, None))
+        >>> print(result)
+        ['a', 'b', 'c', None, None]
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> dict_ = {1: 'a', 2: 'b', 3: 'c'}
+        >>> keys = [1, 2, 3, 4, 5]
+        >>> try:
+        >>>     print(list(dict_take_gen(dict_, keys)))
+        >>>     result = 'did not get key error'
+        >>> except KeyError:
+        >>>     result = 'correctly got key error'
+        >>> print(result)
+        correctly got key error
+    """
+    if len(d) == 0:
+        # no default given throws key error
+        dictget = dict_.__getitem__
+    elif len(d) == 1:
+        # default given does not throw key erro
+        dictget = dict_.get
+    else:
+        raise ValueError('len(d) must be 1 or 0')
     for key in keys:
-        if hasnumpy and isinstance(key, np.ndarray):
-            yield list(dict_take_gen(dict_, key))
+        if HAS_NUMPY and isinstance(key, np.ndarray):
+            # recursive call
+            yield list(dict_take_gen(dict_, key, *d))
         else:
-            yield dict_[key]
+            yield dictget(key, *d)
 
 
-def dict_take_list(dict_, keys):
-    return list(dict_take_gen(dict_, keys))
+def dict_take_list(dict_, keys, *d):
+    return list(dict_take_gen(dict_, keys, *d))
     #return [dict_[key] for key in keys]
 
 
