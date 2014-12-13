@@ -461,6 +461,17 @@ def get_nth_prime(n, max_prime=4100):
         nth_prime = primes[n]
     return nth_prime
 
+
+def inbounds(num, low, high):
+    return num > low and num < high
+
+
+def assert_inbounds(num, low, high, msg=''):
+    if not inbounds(num, low, high):
+        msg_ = 'num=%r is out of bounds=(%r, %r)' % (num, low, high)
+        raise AssertionError(msg_ + '\n' + msg)
+
+
 if __name__ == '__main__':
     """
     CommandLine:

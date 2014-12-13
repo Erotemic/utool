@@ -168,6 +168,11 @@ def parse_return_type(sourcecode):
     Returns:
         tuple: (return_type, return_name, return_header)
 
+    Ignore:
+        testcase
+        automated_helpers query_vsone_verified
+
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
@@ -238,22 +243,43 @@ def parse_return_type(sourcecode):
     else:
         return_header = None
     # Get more return info
-    return_name = None
-    return_type = '?'
-    if returnnode is None:
-        return_type = 'None'
-    elif isinstance(returnnode.value, ast.Tuple):
-        names = returnnode.value.elts
-        tupleid = '(%s)' % (', '.join([str(name.id) for name in names]))
-        return_type = 'tuple'
-        return_name = tupleid
-    elif isinstance(returnnode.value, ast.Dict):
-        return_type = 'dict'
-        return_name = None
-    elif isinstance(returnnode.value, ast.Name):
-        return_name = returnnode.value.id
-    else:
-        return_type = str(type(returnnode.value))
+
+    def get_node_name_and_type(node):
+        node_name = None
+        node_type = '?'
+        if node is None:
+            node_type = 'None'
+        elif isinstance(node.value, ast.Tuple):
+            tupnode_list = node.value.elts
+            def get_tuple_membername(tupnode):
+                if hasattr(tupnode, 'id'):
+                    return tupnode.id
+                #elif hasattr(tupnode, 'key'):
+                #    return 'tupnode.key=%r' % (tupnode.key,)
+                elif hasattr(tupnode, 'value'):
+                    return 'None'
+                    #return 'tupnode.value=%r' % (tupnode.value,)
+                    #return (ast.dump(tupnode))
+                    #return get_node_name_and_type(tupnode)[1]
+                #type(name.value)
+                else:
+                    return 'None'
+                pass
+            tupleid = '(%s)' % (', '.join([str(get_tuple_membername(tupnode)) for tupnode in tupnode_list]))
+            node_type = 'tuple'
+            node_name = tupleid
+            #node_name = ast.dump(node)
+        elif isinstance(node.value, ast.Dict):
+            node_type = 'dict'
+            node_name = None
+        elif isinstance(node.value, ast.Name):
+            node_name = node.value.id
+        else:
+            #node_type = 'ADD_TO_GET_NODE_NAME_AND_TYPE: ' + str(type(node.value))
+            node_type = '?'
+        return node_type, node_name
+
+    return_type, return_name = get_node_name_and_type(returnnode)
 
     if return_type == '?':
         arg_types, arg_desc = infer_arg_types_and_descriptions([return_name], [])

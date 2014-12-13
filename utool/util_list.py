@@ -538,6 +538,14 @@ def intersect_ordered(list1, list2):
     return [item for item in list1 if item in set(list2)]
 
 
+def list_intersection(list1, list2):
+    return set(list1).intersection(set(list2))
+
+
+def list_issubset(list1, list2):
+    return set(list1).issubset(set(list2))
+
+
 def setdiff_ordered(list1, list2):
     """
     returns list1 elements that are not in list2. preserves order of list1
@@ -825,7 +833,7 @@ def assert_lists_eq(list1, list2, failmsg='', verbose=False):
 
     nTotal = max(len(list1), len(list2))
 
-    if verbose:
+    if verbose or len(difflist) < 10:
         msg += '\n'.join(difflist)
     else:
         if len(difflist) > 0:
