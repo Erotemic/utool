@@ -70,25 +70,6 @@ def inbounds(arr, low, high):
     return flag
 
 
-def intersect2d_numpy(A, B):
-    """
-    References::
-        http://stackoverflow.com/questions/8317022/get-intersecting-rows-across-two-2d-numpy-arrays/8317155#8317155
-    """
-    # TODO: MOVE to numpy libs
-    nrows, ncols = A.shape
-    # HACK to get consistent dtypes
-    assert A.dtype is B.dtype, 'A and B must have the same dtypes'
-    dtype = np.dtype([('f%d' % i, A.dtype) for i in range(ncols)])
-    try:
-        C = np.intersect1d(A.view(dtype), B.view(dtype))
-    except ValueError:
-        C = np.intersect1d(A.copy().view(dtype), B.copy().view(dtype))
-    # This last bit is optional if you're okay with "C" being a structured array...
-    C = C.view(A.dtype).reshape(-1, ncols)
-    return C
-
-
 def intersect2d(A, B):
     """
     intersect2d
@@ -109,7 +90,9 @@ def intersect2d(A, B):
         >>> A = np.array([[1, 2, 3], [1, 1, 1]])
         >>> B = np.array([[1, 2, 3], [1, 2, 14]])
         >>> (C, Ax, Bx) = ut.intersect2d(A, B)
-        >>> print((C, Ax, Bx))
+        >>> result = str((C, Ax, Bx))
+        >>> print(result)
+        (array([[1, 2, 3]]), array([0]), array([0]))
     """
     # TODO: MOVE to numpy libs
     Cset  =  set(tuple(x) for x in A).intersection(set(tuple(x) for x in B))
