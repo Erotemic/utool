@@ -3,6 +3,35 @@ import types
 import six
 import sys
 
+DEBUG        = '--debug' in sys.argv
+DEBUG2       = '--debug2' in sys.argv
+NO_ASSERTS   = '--no-assert' in sys.argv
+QUIET        = '--quiet' in sys.argv
+SILENT       = '--silent' in sys.argv
+SAFE         = '--safe' in sys.argv
+STRICT       = '--strict' not in sys.argv
+REPORT       = '--report' not in sys.argv
+TRACE        = '--trace' in sys.argv
+SUPER_STRICT = '--super-strict' in sys.argv or '--superstrict' in sys.argv
+VERBOSE      = '--verbose' in sys.argv or '--verb' in sys.argv
+VERYVERBOSE  = '--very-verbose' in sys.argv or '--veryverbose' in sys.argv
+NO_INDENT    = '--noindent' in sys.argv or '--no-indent' in sys.argv or SILENT
+PRINT_ALL_CALLERS  = '--print-all-callers' in sys.argv
+USE_ASSERT         = not NO_ASSERTS
+NOT_QUIET          = not QUIET
+PRINT_INJECT_ORDER = VERYVERBOSE or '--print-inject-order' in sys.argv
+LOGGING_VERBOSE    = VERYVERBOSE or '--verb-logging' in sys.argv
+
+if PRINT_INJECT_ORDER:
+    # HACK
+    from utool._internal import meta_util_dbg
+    from six.moves import builtins
+    N = 0
+    callername = meta_util_dbg.get_caller_name(N=2 + N, strict=False)
+    lineno = meta_util_dbg.get_caller_lineno(N=2 + N, strict=False)
+    fmtdict = dict(N=N, lineno=lineno, callername=callername, modname=__name__)
+    msg = '[util_inject] N={N} {modname} is imported by {callername} at lineno={lineno}'.format(**fmtdict)
+    builtins.print(msg)
 
 #def get_argval(arg, type_=None, default=None):
 #    arg_after = default

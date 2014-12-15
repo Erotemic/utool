@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function
+import sys
 try:
     import numpy as np
 except ImportError as ex:
@@ -151,3 +152,15 @@ def commas(num, n=8):
         #return fewest_digits_float_str(num, n)
     return '%d' % num
     #return int_comma_str(num)
+
+
+def get_sys_maxint():
+    return sys.maxint
+
+
+def get_sys_minint():
+    return sys.maxint + 1
+
+
+def get_sys_maxfloat():
+    return sys.float_info.max

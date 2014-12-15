@@ -3,9 +3,9 @@ from six.moves import builtins
 #import builtins
 import sys
 from functools import wraps
+from utool._internal import meta_util_six
+from utool._internal import meta_util_arg
 from utool import util_logging
-from utool._internal.meta_util_six import get_funcname
-from utool._internal.meta_util_arg import get_argval
 
 
 __AGGROFLUSH__ = '--aggroflush' in sys.argv
@@ -15,8 +15,8 @@ __DEBUG_PROF__ = '--debug-prof' in sys.argv or '--debug-profile' in sys.argv
 DEBUG_PRINT = '--debug-print' in sys.argv
 QUIET = '--quiet' in sys.argv
 SILENT = '--silent' in sys.argv
-VERYVERBOSE = util_logging.VERYVERBOSE
-PRINT_INJECT_ORDER = util_logging.PRINT_INJECT_ORDER
+VERYVERBOSE = meta_util_arg.VERYVERBOSE
+PRINT_INJECT_ORDER = meta_util_arg.PRINT_INJECT_ORDER
 
 
 if __LOGGING__:
@@ -52,8 +52,8 @@ def _inject_funcs(module, *func_list):
                 module.__name__ not in __INJECT_BLACKLIST__ and
                 not module.__name__.startswith('six') and
                 not module.__name__.startswith('sys')):
-            #print('setting: %s.%s = %r' % (module.__name__, get_funcname(func), func))
-            setattr(module, get_funcname(func), func)
+            #print('setting: %s.%s = %r' % (module.__name__, meta_util_six.get_funcname(func), func))
+            setattr(module, meta_util_six.get_funcname(func), func)
 
 
 def _add_injected_module(module):
@@ -204,7 +204,7 @@ def TIMERPROF_FUNC(func):
     @wraps(func)
     def prof_wrapper(*args, **kwargs):
         import utool
-        with utool.Timer(get_funcname(func)):
+        with utool.Timer(meta_util_six.get_funcname(func)):
             return func(*args, **kwargs)
         #return ret
     return prof_wrapper
@@ -226,9 +226,9 @@ except AttributeError:
 #    try:
 #        kernprof_func = getattr(builtins, 'profile')
 #        #def profile(func):
-#        #    #print('decorate: %r' % get_funcname(func))
+#        #    #print('decorate: %r' % meta_util_six.get_funcname(func))
 #        #    # hack to filter profiled functions
-#        #    if get_funcname(func)).startswith('get_affine'):
+#        #    if meta_util_six.get_funcname(func)).startswith('get_affine'):
 #        #        return kernprof_func(func)
 #        #    return func
 #        profile = kernprof_func
@@ -237,7 +237,7 @@ except AttributeError:
 #    except AttributeError:
 #        # Create dummy kernprof_func
 #        def profile(func):
-#            #print('decorate: %r' % get_funcname(func)))
+#            #print('decorate: %r' % meta_util_six.get_funcname(func)))
 #            return func
 #        if __DEBUG_PROF__:
 #            print('[util_inject] PROFILE OFF: %r' % module)
@@ -250,13 +250,13 @@ except AttributeError:
 #PROF_MOD_PAT_LIST = ['spatial', 'linalg', 'keypoint']
 
 # Look in command line for functions to profile
-PROF_FUNC_PAT_LIST = get_argval('--prof-func', type_=str, default=None)
+PROF_FUNC_PAT_LIST = meta_util_arg.get_argval('--prof-func', type_=str, default=None)
 if PROF_FUNC_PAT_LIST is not None:
     PROF_FUNC_PAT_LIST = PROF_FUNC_PAT_LIST.split(',')
     print('[util_inject] PROF_FUNC_PAT_LIST: %r' % (PROF_FUNC_PAT_LIST,))
 
 # Look in command line for modules to profile
-PROF_MOD_PAT_LIST = get_argval('--prof-mod', type_=str, default=None)
+PROF_MOD_PAT_LIST = meta_util_arg.get_argval('--prof-mod', type_=str, default=None)
 if PROF_MOD_PAT_LIST is not None:
     PROF_MOD_PAT_LIST = PROF_MOD_PAT_LIST.split(',')
     print('[util_inject] PROF_MOD_PAT_LIST: %r' % (PROF_MOD_PAT_LIST,))
@@ -298,7 +298,7 @@ def inject_profile_function(module_name=None, module_prefix='[???]', module=None
 
     def profile_withfuncname_filter(func):
         # Test to see if this function is specified
-        if _profile_func_flag(get_funcname(func)):
+        if _profile_func_flag(meta_util_six.get_funcname(func)):
             return KERNPROF_FUNC(func)
         return func
     #profile = KERNPROF_FUNC

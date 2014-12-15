@@ -10,10 +10,12 @@ from utool.util_str import horiz_string, filesize_str
 from utool.util_inject import inject, get_injected_modules
 print, print_, printDBG, rrr, profile = inject(__name__, '[print]')
 
-QUIET = '--quiet' in sys.argv
-VERBOSE = '--verbose' in sys.argv
-SILENT = '--silent' in sys.argv
-NO_INDENT = '--noindent' in sys.argv or '--no-indent' in sys.argv or SILENT
+from utool._internal import meta_util_arg
+
+QUIET        = meta_util_arg.QUIET
+VERBOSE      = meta_util_arg.VERBOSE
+NO_INDENT    = meta_util_arg.NO_INDENT
+SILENT       = meta_util_arg.SILENT
 
 
 def horiz_print(*args):

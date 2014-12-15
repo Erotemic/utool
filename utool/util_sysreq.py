@@ -3,11 +3,12 @@ import sys
 from os.path import split, exists, join, dirname
 import os
 from utool.util_inject import inject
+from utool._internal import meta_util_arg
 print, print_, printDBG, rrr, profile = inject(__name__, '[sysreq]')
 
 
-DEBUG = '--debug' in sys.argv
-VERBOSE = '--verbose' in sys.argv
+VERBOSE = meta_util_arg.VERBOSE
+DEBUG = meta_util_arg.DEBUG
 
 
 def locate_path(dname, recurse_down=True):

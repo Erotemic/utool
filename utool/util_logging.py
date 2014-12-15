@@ -11,12 +11,13 @@ import logging.config
 import multiprocessing
 import os
 import sys
+from utool._internal import meta_util_arg
 
-PRINT_ALL_CALLERS = '--print-all-callers' in sys.argv
-VERBOSE = '--verbose' in sys.argv
-VERYVERBOSE = '--very-verbose' in sys.argv or '--veryverbose' in sys.argv
-LOGGING_VERBOSE = VERYVERBOSE or '--verb-logging' in sys.argv
-PRINT_INJECT_ORDER = VERYVERBOSE or '--print-inject-order' in sys.argv
+VERBOSE            = meta_util_arg.VERBOSE
+VERYVERBOSE        = meta_util_arg.VERYVERBOSE
+PRINT_ALL_CALLERS  = meta_util_arg.PRINT_ALL_CALLERS
+LOGGING_VERBOSE    = meta_util_arg.LOGGING_VERBOSE
+PRINT_INJECT_ORDER = meta_util_arg.PRINT_INJECT_ORDER
 
 
 def __inside_doctest(original_stdout=sys.stdout):

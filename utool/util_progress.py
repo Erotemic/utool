@@ -1,33 +1,20 @@
-"""
-# Need to invoke this way because of relative imports
-
-
-Examples:
-    python -c "import utool, doctest; print(doctest.testmod(utool.util_progress))"
-    python -m doctest -v ~/code/utool/utool/util_progress.py
-    python -c "import utool, doctest; doctest.testmod(utool.util_progress, verbose=True)"
-    python -c "import utool, doctest; doctest.testmod(utool.util_progress)" -v
-    python -c "import utool, doctest; doctest.testmod(utool.util_progress)"
-    python -c "import utool, doctest; help(doctest.testmod)"
-"""
 from __future__ import absolute_import, division, print_function
 import time
 import sys
 from utool import util_logging
-from utool.util_inject import inject
-from utool.util_arg import QUIET, SILENT
+from utool import util_inject
+from utool import util_arg
 from utool import util_time
 import six
-#get_argflag,
-#, VERBOSE
-print, print_, printDBG, rrr, profile = inject(__name__, '[progress]')
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[progress]')
 
 
-#QUIET = get_argflag('--quiet')
-#VERBOSE = get_argflag('--verbose')
+QUIET = util_arg.QUIET
+SILENT = util_arg.SILENT
 VALID_PROGRESS_TYPES = ['none', 'dots', 'fmtstr', 'simple']
-AGGROFLUSH = '--aggroflush' in sys.argv
-PROGGRESS_BACKSPACE = ('--screen' not in sys.argv and '--progress-backspace' not in sys.argv)
+AGGROFLUSH = util_arg.get_argflag('--aggroflush')
+PROGGRESS_BACKSPACE = not util_arg.get_argflag(('--screen', '--progress-backspace'))
+#('--screen' not in sys.argv and '--progress-backspace' not in sys.argv)
 
 
 #PROGRESS_WRITE = sys.stdout.write

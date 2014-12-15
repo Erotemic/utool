@@ -694,14 +694,15 @@ def get_stats_str(list_, newlines=False, keys=None, exclude_keys=[], lbl=None,
     import utool as ut
     # Get stats dict
     stat_dict = get_stats(list_)
-    # Keep included keys
+    # Keep only included keys if specified
     if keys is not None:
         for key in list(six.iterkeys(stat_dict)):
             if key not in keys:
                 del stat_dict[key]
     # Remove excluded keys
     for key in exclude_keys:
-        del stat_dict[key]
+        if key in stat_dict:
+            del stat_dict[key]
     # apply precision
     statstr_dict = stat_dict.copy()
     #with ut.EmbedOnException():

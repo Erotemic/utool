@@ -9,23 +9,24 @@ import argparse
 from utool.util_type import try_cast
 from utool.util_inject import inject
 from utool.util_print import Indenter
-from utool._internal.meta_util_six import get_funcname, set_funcname
+from utool._internal import meta_util_six
+from utool._internal import meta_util_arg
 print, print_, printDBG, rrr, profile = inject(__name__, '[arg]')
 
 #STRICT = '--nostrict' not in sys.argv
-DEBUG2 = '--debug2' in sys.argv
-NO_ASSERTS = ('--no-assert' in sys.argv)
-QUIET = '--quiet' in sys.argv
-SILENT = '--silent' in sys.argv
-SAFE = '--safe' in sys.argv
-STRICT = '--strict' not in sys.argv
-REPORT = '--report' not in sys.argv
-SUPER_STRICT = '--super-strict' in sys.argv or '--superstrict' in sys.argv
-TRACE = '--trace' in sys.argv
-USE_ASSERT = not NO_ASSERTS
-VERBOSE = '--verbose' in sys.argv
-VERYVERBOSE = '--very-verbose' in sys.argv or '-veryverbose' in sys.argv
-NOT_QUIET = not QUIET
+DEBUG2       = meta_util_arg.DEBUG2
+NO_ASSERTS   = meta_util_arg.NO_ASSERTS
+SAFE         = meta_util_arg.SAFE
+STRICT       = meta_util_arg.STRICT
+REPORT       = meta_util_arg.REPORT
+SUPER_STRICT = meta_util_arg.SUPER_STRICT
+TRACE        = meta_util_arg.TRACE
+USE_ASSERT   = meta_util_arg.USE_ASSERT
+SILENT       = meta_util_arg.SILENT
+VERBOSE      = meta_util_arg.VERBOSE
+VERYVERBOSE  = meta_util_arg.VERYVERBOSE
+NOT_QUIET    = meta_util_arg.NOT_QUIET
+QUIET        = meta_util_arg.QUIET
 
 
 # TODO: rectify with meta_util_arg
@@ -34,19 +35,17 @@ NOT_QUIET = not QUIET
 def get_argval(argstr_, type_=None, default=None, help_=None):
     """ Returns a value of an argument specified on the command line after some flag
 
-
     Examples:
         >>> from utool.util_arg import *  # NOQA
         >>> import sys
         >>> sys.argv.extend(['--spam', 'eggs', '--quest=holy grail', '--ans=42'])
-        >>> get_argval('--spam', type_=str, default=None)
-        eggs
-        >>> get_argval('--quest', type_=str, default=None)
-        holy grail
-        >>> get_argval('--ans', type_=int, default=None)
-        42
+        >>> res1 = get_argval('--spam', type_=str, default=None)
+        >>> res2 = get_argval('--quest', type_=str, default=None)
+        >>> res3 = get_argval('--ans', type_=int, default=None)
+        >>> result = ', '.join((res1, res2, res3))
+        eggs, holy grail, 42
 
-
+    CommandLine:
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest="holy grail"
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest="42"
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest=42
@@ -357,7 +356,7 @@ def argv_flag_dec_true(func):
 
 
 def __argv_flag_dec(func, default=False, quiet=QUIET):
-    flag = get_funcname(func)
+    flag = meta_util_six.get_funcname(func)
     if flag.find('no') == 0:
         flag = flag[2:]
     flag = '--' + flag.replace('_', '-')
@@ -374,7 +373,7 @@ def __argv_flag_dec(func, default=False, quiet=QUIET):
         else:
             if not quiet:
                 print('\n~~~ %s ~~~' % flag)
-    set_funcname(GaurdWrapper, get_funcname(func))
+    meta_util_six.set_funcname(GaurdWrapper, meta_util_six.get_funcname(func))
     return GaurdWrapper
 
 

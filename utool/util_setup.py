@@ -10,8 +10,9 @@ from utool import util_io
 from utool import util_str
 #from utool import util_dev
 from utool.util_dbg import printex
+from utool._internal import meta_util_arg
 
-VERBOSE = '--verbose' in sys.argv
+VERBOSE = meta_util_arg.VERBOSE
 
 
 class SETUP_PATTERNS():
