@@ -509,6 +509,9 @@ def infer_arg_types_and_descriptions(argname_list, defaults):
     for argx in range(len(argname_list)):
         if arg_types[argx] == '?' or arg_types[argx] == 'None':
             argname = argname_list[argx]
+            if argname is None:
+                #print('warning argname is None')
+                continue
             for regex, hint in six.iteritems(registered_hints):
                 matchobj = re.match('^' + regex + '$', argname, flags=re.MULTILINE | re.DOTALL)
                 if matchobj is not None:

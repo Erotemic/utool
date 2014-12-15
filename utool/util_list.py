@@ -11,7 +11,6 @@ from six.moves import zip, map, zip_longest, range
 from utool import util_iter
 from utool import util_inject
 from utool.util_str import get_callable_name
-from utool.util_arg import NO_ASSERTS
 from utool.util_type import is_listlike
 from utool._internal.meta_util_six import get_funcname, set_funcname
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[list]')
@@ -405,39 +404,6 @@ def flag_None_items(list_):
     return [item is None for item in list_]
 
 
-def assert_all_not_None(list_, list_name='some_list', key_list=[]):
-    if NO_ASSERTS:
-        return
-    try:
-        for count, item in enumerate(list_):
-            #if any([item is None for count, item in enumerate(list_)]):
-            assert item is not None, 'a list element is None'
-    except AssertionError as ex:
-        from utool.util_dbg import printex
-        msg = (list_name + '[%d] = %r') % (count, item)
-        printex(ex, msg, key_list=key_list, N=1)
-        raise ex
-
-
-def assert_unflat_level(unflat_list, level=1, basetype=None):
-    if NO_ASSERTS:
-        return
-    num_checked = 0
-    for item in unflat_list:
-        if level == 1:
-            for x in item:
-                num_checked += 1
-                assert not isinstance(x, (tuple, list)), \
-                    'list is at an unexpected unflat level, x=%r' % (x,)
-                if basetype is not None:
-                    assert isinstance(x, basetype), \
-                        'x=%r, type(x)=%r is not basetype=%r' % (x, type(x), basetype)
-        else:
-            assert_unflat_level(item, level - 1)
-    #print('checked %r' % num_checked)
-    #assert num_checked > 0, 'num_checked=%r' % num_checked
-
-
 def get_dirty_items(item_list, flag_list):
     """
     Returns each item in item_list where not flag in flag_list
@@ -810,72 +776,6 @@ def issorted(list_, op=operator.le):
     return all(op(list_[ix], list_[ix + 1]) for ix in range(len(list_) - 1))
 
 
-def assert_scalar_list(list_):
-    for count, item in enumerate(list_):
-        assert not util_iter.isiterable(item), 'count=%r, item=%r is iterable!' % (count, item)
-
-
-def assert_same_len(list1, list2, additional_msg=''):
-    assert len(list1) == len(list2), (
-        'unequal lens. len(list1)=%r, len(list2)=%r%s' % (
-            len(list1), len(list2), additional_msg))
-
-
-def assert_lists_eq(list1, list2, failmsg='', verbose=False):
-    msg = ''
-    if len(list1) != len(list2):
-        msg += ('LENGTHS ARE UNEQUAL: len(list1)=%r, len(list2)=%r\n' % (len(list1), len(list2)))
-
-    difflist = []
-    for count, (item1, item2) in enumerate(zip(list1, list2)):
-        if item1 != item2:
-            difflist.append('count=%r, item1=%r, item2=%r' % (count, item1, item2))
-
-    nTotal = max(len(list1), len(list2))
-
-    if verbose or len(difflist) < 10:
-        msg += '\n'.join(difflist)
-    else:
-        if len(difflist) > 0:
-            msg += 'There are %d/%d different ordered items\n' % (len(difflist), nTotal)
-
-    if len(msg) > 0:
-
-        num_intersect = len(set(list1).intersection(set(list2)))
-        msg = failmsg + '\n' + msg + 'There are %r/%d intersecting unordered items' % (num_intersect, nTotal)
-        raise AssertionError(msg)
-
-
-def debug_consec_list(list_):
-    """
-    Returns:
-        tuple of (missing_items, missing_indicies, duplicate_items)
-    """
-    if not issorted(list_):
-        print('warning list is not sorted. indicies will not match')
-    sortedlist = sorted(list_)
-    start = sortedlist[0]
-    last = start - 1
-    missing_vals = []
-    missing_indicies = []
-    duplicate_items = []
-    for count, item in enumerate(sortedlist):
-        diff = item - last
-        if diff > 1:
-            missing_indicies.append(count)
-            for miss in range(last + 1, last + diff):
-                missing_vals.append(miss)
-        elif diff == 0:
-            duplicate_items.append(item)
-        elif diff == 1:
-            # Expected case
-            pass
-        else:
-            raise AssertionError('We sorted the list. diff can not be negative')
-        last = item
-    return missing_vals, missing_indicies, duplicate_items
-
-
 def find_nonconsec_indicies(unique_vals, consec_vals):
     """
     # TODO: rectify with above function
@@ -911,7 +811,35 @@ def find_nonconsec_indicies(unique_vals, consec_vals):
         consecx += 1
     return missing_ixs
 
-#get_non_consecutive_positions = debug_consec_list
+
+def debug_consec_list(list_):
+    """
+    Returns:
+        tuple of (missing_items, missing_indicies, duplicate_items)
+    """
+    if not issorted(list_):
+        print('warning list is not sorted. indicies will not match')
+    sortedlist = sorted(list_)
+    start = sortedlist[0]
+    last = start - 1
+    missing_vals = []
+    missing_indicies = []
+    duplicate_items = []
+    for count, item in enumerate(sortedlist):
+        diff = item - last
+        if diff > 1:
+            missing_indicies.append(count)
+            for miss in range(last + 1, last + diff):
+                missing_vals.append(miss)
+        elif diff == 0:
+            duplicate_items.append(item)
+        elif diff == 1:
+            # Expected case
+            pass
+        else:
+            raise AssertionError('We sorted the list. diff can not be negative')
+        last = item
+    return missing_vals, missing_indicies, duplicate_items
 
 
 def find_duplicate_items(items):
@@ -946,6 +874,9 @@ def find_duplicate_items(items):
     for key in singleton_keys:
         del duplicate_map[key]
     return duplicate_map
+
+
+#get_non_consecutive_positions = debug_consec_list
 
 
 def duplicates_exist(items):

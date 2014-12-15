@@ -41,6 +41,7 @@ IMPORT_TUPLES = [
     ('util_aliases',   ['ddict' ,'odict']),
     ('util_arg',       ['get_argval', 'get_argflag', 'argv_flag_dec', 'QUIET',
                         'VERBOSE']),
+    ('util_assert',    None),
     ('util_autogen',   None),
     ('util_cache',     ['global_cache_read', 'global_cache_write']),
     ('util_cplat',     ['cmd', 'view_directory',]),
@@ -114,6 +115,7 @@ if DOELSE:
     from utool import util_alg
     from utool import util_aliases
     from utool import util_arg
+    from utool import util_assert
     from utool import util_autogen
     from utool import util_cache
     from utool import util_cplat
@@ -154,13 +156,14 @@ if DOELSE:
     from utool import Preferences
      
     from utool.util_alg import (HAS_NUMPY, PHI, PHI_A, PHI_B, almost_eq, 
-                                bayes_rule, build_reverse_mapping, cartesian, 
-                                choose, defaultdict, deg_to_rad, estimate_pdf, 
+                                assert_inbounds, bayes_rule, 
+                                build_reverse_mapping, cartesian, choose, 
+                                defaultdict, deg_to_rad, estimate_pdf, 
                                 euclidean_dist, find_std_inliers, 
                                 flatten_membership_mapping, get_nth_prime, 
                                 get_phi, get_phi_ratio1, 
                                 greedy_max_inden_setcover, group_items, iceil, 
-                                iround, is_prime, item_hist, 
+                                inbounds, iround, is_prime, item_hist, 
                                 negative_minclamp_inplace, norm_zero_one, 
                                 normalize, search_utool, unique_row_indexes, 
                                 unpack_items_sorted, 
@@ -178,6 +181,9 @@ if DOELSE:
                                 make_argparse2, parse_arglist_hack, 
                                 parse_cfgstr_list, set_funcname, 
                                 switch_sanataize, try_cast,) 
+    from utool.util_assert import (assert_all_not_None, assert_lists_eq, 
+                                   assert_same_len, assert_scalar_list, 
+                                   assert_unflat_level,) 
     from utool.util_autogen import (PythonStatement, auto_docstr, 
                                     autofix_codeblock, make_args_docstr, 
                                     make_cmdline_docstr, make_default_docstr, 
@@ -284,12 +290,12 @@ if DOELSE:
     from utool.util_dict import (all_dict_combinations, 
                                  all_dict_combinations_lbls, 
                                  all_dict_combinations_ordered, 
-                                 build_conflict_dict, dict_take_gen, 
-                                 dict_take_list, dict_union, dict_union2, 
-                                 dict_update_newkeys, dict_where_len0, 
-                                 dictinfo, invert_dict, is_dicteq, 
-                                 items_sorted_by_value, keys_sorted_by_value, 
-                                 updateif_haskey,) 
+                                 build_conflict_dict, delete_dict_keys, 
+                                 dict_subset, dict_take_gen, dict_take_list, 
+                                 dict_union, dict_union2, dict_update_newkeys, 
+                                 dict_where_len0, dictinfo, get_dict_hashid, 
+                                 invert_dict, is_dicteq, items_sorted_by_value, 
+                                 keys_sorted_by_value, updateif_haskey,) 
     from utool.util_func import (general_get, general_set, identity, 
                                  uinput_1to1,) 
     from utool.util_grabdata import (BadZipfile, download_url, 
@@ -306,12 +312,12 @@ if DOELSE:
                                 set_userid, setup_develop_repos, 
                                 std_build_command,) 
     from utool.util_hash import (ALPHABET, ALPHABET_16, ALPHABET_27, BIGBASE, 
-                                 HASH_LEN, augment_uuid, 
+                                 DictProxyType, HASH_LEN, augment_uuid, 
                                  convert_hexstr_to_bigbase, deterministic_uuid, 
                                  get_file_hash, get_file_uuid, get_zero_uuid, 
                                  hashable_to_uuid, hashstr, hashstr_arr, 
                                  hashstr_md5, hashstr_sha1, image_uuid, 
-                                 random_nonce, random_uuid,) 
+                                 make_hash, random_nonce, random_uuid,) 
     from utool.util_inject import (ARGV_DEBUG_FLAGS, DEBUG_PRINT, 
                                    DUMMYPROF_FUNC, KERNPROF_FUNC, 
                                    PRINT_INJECT_ORDER, PROF_FUNC_PAT_LIST, 
@@ -343,33 +349,31 @@ if DOELSE:
                                     get_logging_dir, logdir_cacheid, 
                                     start_logging, stop_logging,) 
     from utool.util_list import (accumulate, alloc_lists, alloc_nones, 
-                                 assert_all_not_None, assert_lists_eq, 
-                                 assert_same_len, assert_scalar_list, 
-                                 assert_unflat_level, debug_consec_list, 
-                                 debug_duplicate_items, depth_profile, 
-                                 duplicates_exist, ensure_list_size, 
-                                 filter_Nones, filter_items, filterfalse_items, 
-                                 find_duplicate_items, find_nonconsec_indicies, 
-                                 flag_None_items, flag_unique_items, flatten, 
-                                 flattenize, get_callable_name, 
-                                 get_dirty_items, get_list_column, 
-                                 intersect_ordered, invertable_flatten, 
-                                 invertable_flatten2, issorted, isunique, 
-                                 list_all_eq_to, list_argsort, list_deep_types, 
-                                 list_depth, list_getat, list_replace, 
-                                 list_take, listfind, partial_imap_1to1, 
-                                 print_duplicate_map, safe_listget, safe_slice, 
-                                 sample_lists, sample_zip, scalar_input_map, 
-                                 setdiff_ordered, sortedby, sortedby2, tuplize, 
-                                 unflatten, unflatten2, unique_keep_order2, 
+                                 debug_consec_list, debug_duplicate_items, 
+                                 depth_profile, duplicates_exist, 
+                                 ensure_list_size, filter_Nones, filter_items, 
+                                 filterfalse_items, find_duplicate_items, 
+                                 find_nonconsec_indicies, flag_None_items, 
+                                 flag_unique_items, flatten, flattenize, 
+                                 get_callable_name, get_dirty_items, 
+                                 get_list_column, intersect_ordered, 
+                                 invertable_flatten, invertable_flatten2, 
+                                 issorted, isunique, list_all_eq_to, 
+                                 list_argsort, list_deep_types, list_depth, 
+                                 list_getat, list_intersection, list_issubset, 
+                                 list_replace, list_take, listfind, 
+                                 partial_imap_1to1, print_duplicate_map, 
+                                 safe_listget, safe_slice, sample_lists, 
+                                 sample_zip, scalar_input_map, setdiff_ordered, 
+                                 sortedby, sortedby2, tuplize, unflatten, 
+                                 unflatten2, unique_keep_order2, 
                                  unique_ordered, unique_unordered,) 
     from utool.util_num import (commas, fewest_digits_float_str, 
                                 float_to_decimal, format_, int_comma_str, 
                                 num2_sigfig, num_fmt, order_of_magnitude_ceil, 
                                 sigfig_str,) 
     from utool.util_numpy import (deterministic_sample, deterministic_shuffle, 
-                                  inbounds, index_of, intersect2d, 
-                                  intersect2d_numpy, listlike_copy, 
+                                  index_of, intersect2d, listlike_copy, 
                                   make_incrementer, npfind, random_indexes, 
                                   random_sample, sample_domain, spaced_indexes, 
                                   spaced_items, tiled_range,) 
@@ -533,6 +537,7 @@ if DOELSE:
         getattr(util_alg, 'rrr', fbrrr)(verbose=verbose)
         getattr(util_aliases, 'rrr', fbrrr)(verbose=verbose)
         getattr(util_arg, 'rrr', fbrrr)(verbose=verbose)
+        getattr(util_assert, 'rrr', fbrrr)(verbose=verbose)
         getattr(util_autogen, 'rrr', fbrrr)(verbose=verbose)
         getattr(util_cache, 'rrr', fbrrr)(verbose=verbose)
         getattr(util_cplat, 'rrr', fbrrr)(verbose=verbose)

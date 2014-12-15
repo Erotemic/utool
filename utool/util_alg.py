@@ -244,16 +244,6 @@ def cartesian(arrays, out=None):
     return out
 
 
-def almost_eq(a, b, thresh=1E-11, ret_error=False):
-    """ checks if floating point number are equal to a threshold
-    """
-    error = np.abs(a - b)
-    passed = error < thresh
-    if ret_error:
-        return passed, error
-    return passed
-
-
 def euclidean_dist(vecs1, vec2, dtype=None):
     if dtype is None:
         dtype = np.float32
@@ -466,10 +456,14 @@ def inbounds(num, low, high):
     return num > low and num < high
 
 
-def assert_inbounds(num, low, high, msg=''):
-    if not inbounds(num, low, high):
-        msg_ = 'num=%r is out of bounds=(%r, %r)' % (num, low, high)
-        raise AssertionError(msg_ + '\n' + msg)
+def almost_eq(arr1, arr2, thresh=1E-11, ret_error=False):
+    """ checks if floating point number are equal to a threshold
+    """
+    error = np.abs(arr1 - arr2)
+    passed = error < thresh
+    if ret_error:
+        return passed, error
+    return passed
 
 
 if __name__ == '__main__':

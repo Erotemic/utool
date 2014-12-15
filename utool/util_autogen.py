@@ -111,7 +111,8 @@ def auto_docstr(modname, funcname, verbose=True, **kwargs):
                 import utool
                 #utool.printex(ex1, 'ex1')
                 utool.printex(ex2, 'ex2', tb=True)
-            error_str = utool.formatex(ex2, 'ex2', tb=True, keys=['modname', 'funcname'])
+            testcmd = 'python -c "import utool; print(utool.auto_docstr(\'%s\', \'%s\')))"' % (modname, funcname)
+            error_str = utool.formatex(ex2, 'ex2', tb=True, keys=['modname', 'funcname', 'testcmd'])
             return error_str
             #return docstr + '\n' + execstr
     else:
