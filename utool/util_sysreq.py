@@ -11,8 +11,28 @@ VERBOSE = meta_util_arg.VERBOSE
 DEBUG = meta_util_arg.DEBUG
 
 
+def in_virtual_env():
+    """
+    returns True if you are running inside a python virtual environment
+
+    References:
+        http://stackoverflow.com/questions/1871549/python-determine-if-running-inside-virtualenv
+    """
+    import sys
+    return hasattr(sys, 'real_prefix')
+
+
+def is_running_as_root():
+    """
+    References:
+        http://stackoverflow.com/questions/5721529/running-python-script-as-root-with-sudo-what-is-the-username-of-the-effectiv
+        http://stackoverflow.com/questions/2806897/what-is-the-best-practices-for-checking-if-the-user-of-a-python-script-has-root
+    """
+    return os.getenv('USER') == 'root'
+
+
 def locate_path(dname, recurse_down=True):
-    'Search for a path'
+    """ Search for a path """
     tried_fpaths = []
     root_dir = os.getcwd()
     while root_dir is not None:

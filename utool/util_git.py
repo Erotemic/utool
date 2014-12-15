@@ -39,13 +39,16 @@ def get_project_repo_dirs():
     return PROJECT_REPO_DIRS
 
 
-def gitcmd(repo, command):
+def gitcmd(repo, command, sudo=False):
     print("************")
-    print(repo)
+    print('repo=%s' % repo)
     os.chdir(repo)
     #if command.find('git') != 0:
     #    command = 'git ' + command
-    os.system(command)
+    if sudo and not sys.platform.startswith('win32'):
+        os.system(command)
+    else:
+        os.system('sudo ' + command)
     print("************")
 
 
@@ -66,11 +69,15 @@ def std_build_command(repo):
     print("************")
 
 
-def gg_command(command):
+def gg_command(command, sudo=False):
     """ Runs a command on all of your PROJECT_REPO_DIRS """
+    print('+------- GG_COMMAND -------')
+    print('| sudo=%s' % sudo)
+    print('| command=%s' % command)
     for repo in PROJECT_REPO_DIRS:
         if exists(repo):
-            gitcmd(repo, command)
+            gitcmd(repo, command, sudo=False)
+    print('L___ FINISHED GG_COMMAND ___')
 
 
 def checkout_repos(repo_urls, repo_dirs=None, checkout_dir=None):
