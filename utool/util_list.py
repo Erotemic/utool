@@ -888,17 +888,18 @@ def isunique(items):
     return not duplicates_exist(items)
 
 
-def print_duplicate_map(duplicate_map, *args):
+def print_duplicate_map(duplicate_map, *args, **kwargs):
     # args are corresponding lists
     import utool as ut
-    print('There are %d duplicates' % (len(duplicate_map)))
+    printfn = kwargs.get('printfn', print)
+    printfn('There are %d duplicates' % (len(duplicate_map)))
     for key, index_list in six.iteritems(duplicate_map):
-        print('item=%s appears %d times at indicies: %r' % (key, len(index_list), index_list))
+        printfn('item=%s appears %d times at indicies: %r' % (key, len(index_list), index_list))
         for argx, arg in enumerate(args):
             #argname = 'arg%d' % (argx)
             argname = ut.get_varname_from_stack(arg, N=2)
             for index in index_list:
-                print(' * %s[%d] = %r' % (argname, index, arg[index]))
+                printfn(' * %s[%d] = %r' % (argname, index, arg[index]))
     return duplicate_map
 
 
@@ -907,10 +908,14 @@ def debug_duplicate_items(items, *args, **kwargs):
     separate = kwargs.get('separate', True)
     if separate:
         print('')
+
     print('[util_list] +--- DEBUG DUPLICATE ITEMS  %r ---' % ut.get_varname_from_locals(items, ut.get_caller_locals()))
-    with ut.Indenter('[util_list] | '):
-        duplicate_map = ut.find_duplicate_items(items)
-        ut.print_duplicate_map(duplicate_map, *args)
+    def printfn(msg):
+        print('[util_list] |' + msg)
+    #with ut.Indenter('[util_list] | '):
+    duplicate_map = ut.find_duplicate_items(items)
+    printkw = {'printfn': printfn}
+    ut.print_duplicate_map(duplicate_map, *args, **printkw)
     print('[util_list] L--- FINISH DEBUG DUPLICATE ITEMS ---')
     if separate:
         print('')

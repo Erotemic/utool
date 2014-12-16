@@ -6,11 +6,10 @@ except ImportError:
 import six
 import functools
 import sys
+from utool._internal import meta_util_arg
 from utool.util_str import horiz_string, filesize_str
 from utool.util_inject import inject, get_injected_modules
 print, print_, printDBG, rrr, profile = inject(__name__, '[print]')
-
-from utool._internal import meta_util_arg
 
 QUIET        = meta_util_arg.QUIET
 VERBOSE      = meta_util_arg.VERBOSE
@@ -31,6 +30,11 @@ def horiz_print(*args):
 
 
 class Indenter(object):
+    """
+    Works with utool.inject to allow for prefixing of all within-context
+    print statements in a semi-dynamic manner. There seem to be some bugs
+    but it works pretty well.
+    """
     # THIS IS MUCH BETTER
     #@profile
     def __init__(self, lbl='    '):
