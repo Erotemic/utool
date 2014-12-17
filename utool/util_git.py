@@ -45,7 +45,7 @@ def gitcmd(repo, command, sudo=False):
     os.chdir(repo)
     #if command.find('git') != 0:
     #    command = 'git ' + command
-    if sudo and not sys.platform.startswith('win32'):
+    if not sudo or sys.platform.startswith('win32'):
         os.system(command)
     else:
         os.system('sudo ' + command)
@@ -76,7 +76,7 @@ def gg_command(command, sudo=False):
     print('| command=%s' % command)
     for repo in PROJECT_REPO_DIRS:
         if exists(repo):
-            gitcmd(repo, command, sudo=False)
+            gitcmd(repo, command, sudo=sudo)
     print('L___ FINISHED GG_COMMAND ___')
 
 
