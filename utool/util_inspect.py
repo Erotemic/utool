@@ -414,6 +414,7 @@ def infer_arg_types_and_descriptions(argname_list, defaults):
         registered_hints = OrderedDict([
             # General IBEIS hints
             ('ibs.*'   , ('IBEISController', 'ibeis controller object')),
+            ('qaid2_qres.*'   , ('dict', 'dict of query result objects')),
             ('qreq_'   , ('QueryRequest', 'query request object with hyper-parameters')),
             ('qres.*'  , ('QueryResult', 'object of feature correspondences and scores')),
             ('qparams*', ('QueryParams', 'query hyper-parameters')),
