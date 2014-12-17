@@ -6,6 +6,14 @@ from functools import wraps
 from utool._internal import meta_util_six
 from utool._internal import meta_util_arg
 from utool import util_logging
+try:
+    import traceback
+    from pygments import highlight
+    from pygments.lexers import get_lexer_by_name
+    from pygments.formatters import TerminalFormatter
+    HAS_PYGMENTS = True
+except ImportError:
+    HAS_PYGMENTS = False
 
 
 __AGGROFLUSH__ = '--aggroflush' in sys.argv
@@ -90,19 +98,17 @@ def inject_colored_exceptions():
 
     Hooks into sys.excepthook
     """
+    #COLORED_INJECTS = '--nocolorex' not in sys.argv
+    #COLORED_INJECTS = '--colorex' in sys.argv
     def myexcepthook(type, value, tb):
         #https://stackoverflow.com/questions/14775916/coloring-exceptions-from-python-on-a-terminal
-        import traceback
-        from pygments import highlight
-        from pygments.lexers import get_lexer_by_name
-        from pygments.formatters import TerminalFormatter
         tbtext = ''.join(traceback.format_exception(type, value, tb))
         lexer = get_lexer_by_name('pytb', stripall=True)
         formatter = TerminalFormatter(bg='dark')
         formatted_text = highlight(tbtext, lexer, formatter)
         sys.stderr.write(formatted_text)
     # Ignore colored exceptions on win32
-    if not sys.platform.startswith('win32'):
+    if HAS_PYGMENTS and not sys.platform.startswith('win32'):
         sys.excepthook = myexcepthook
 
 

@@ -21,8 +21,9 @@ from utool._internal.meta_util_six import get_funcname
 
 SIG_PRESERVE = util_arg.get_argflag('--sigpreserve')
 #SIG_PRESERVE = not util_arg.SAFE or util_arg.get_argflag('--sigpreserve')
-#IGNORE_TRACEBACK = '--smalltb' in sys.argv or '--ignoretb' in sys.argv
-IGNORE_TRACEBACK = not ('--nosmalltb' in sys.argv or '--noignoretb' in sys.argv)
+IGNORE_TRACEBACK = '--smalltb' in sys.argv or '--ignoretb' in sys.argv
+ONEX_REPORT_INPUT = '--onex-report-input' in sys.argv
+#IGNORE_TRACEBACK = not ('--nosmalltb' in sys.argv or '--noignoretb' in sys.argv)
 
 
 import os
@@ -111,6 +112,8 @@ def on_exception_report_input(func):
     decorated function name and the arguments passed to it will be printed to
     the utool print function.
     """
+    if not ONEX_REPORT_INPUT:
+        return func
     @ignores_exc_tb(outer_wrapper=False)
     #@wraps(func)
     def wrp_onexceptreport(*args, **kwargs):
