@@ -13,6 +13,14 @@ class PythonStatement(object):
         return self.stmt
 
 
+def write_modscript_alias(fpath, modname):
+    """ convinience function because $@ is annoying to paste into the terminal """
+    import utool as ut
+    import os
+    ut.write_to(fpath, 'python -m {modname} $@'.format(modname=modname))
+    os.system('chmod +x ' + fpath)
+
+
 def autofix_codeblock(codeblock, max_line_len=80,
                       aggressive=False,
                       very_aggressive=False,
