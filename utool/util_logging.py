@@ -57,7 +57,9 @@ def get_logging_dir(appname='default'):
     from utool.util_cache import get_default_appname  # Hacky
     if appname is None or  appname == 'default':
         appname = get_default_appname()
-    log_dir = global_cache_read(logdir_cacheid, appname=appname, default=join(get_resource_dir(), appname, 'logs'))
+    default = join(get_resource_dir(), appname, 'logs')
+    log_dir = global_cache_read(logdir_cacheid, appname=appname,
+                                default=default)
     log_dir_realpath = realpath(log_dir)
     return log_dir_realpath
 

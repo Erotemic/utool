@@ -6,6 +6,7 @@ import os
 import gc
 import warnings
 import weakref
+import itertools
 from collections import OrderedDict
 from six.moves import input
 from utool import util_progress
@@ -52,6 +53,35 @@ def DEPRICATED(func):
 #        if isinstance(varargs[0], INDEXABLE_TYPES):
 #            return varargs[0]
 #    return varargs
+
+
+def get_nonconflicting_string(base_fmtstr, conflict_set, offset=0):
+    """
+    gets a new string that wont conflict with something that already exists
+
+    Args:
+        base_fmtstr (str):
+        conflict_set (set):
+
+    CommandLine:
+        python -m utool.util_dev --test-get_nonconflicting_string
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dev import *  # NOQA
+        >>> # build test data
+        >>> base_fmtstr = '?'
+        >>> conflict_set = '?'
+        >>> # execute function
+        >>> result = get_nonconflicting_string(base_fmtstr, conflict_set)
+        >>> # verify results
+        >>> print(result)
+    """
+    # Infinite loop until we find a non-conflict
+    for count in itertools.count(offset):
+        base_str = base_fmtstr % count
+        if base_str not in conflict_set:
+            return base_str
 
 
 def input_timeout(msg='Waiting for input...', timeout=30):
