@@ -80,6 +80,41 @@ def safe_listget(list_, index, default='?'):
     return ret
 
 
+def listclip(list_, index):
+    r"""
+    Args:
+        list_ (list):
+        index (int):
+
+    Returns:
+        sublist:
+
+    CommandLine:
+        python -m utool.util_list --test-listclip
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import utool as ut
+        >>> # build test data
+        >>> list_ = [1, 2, 3, 4, 5]
+        >>> result_list = []
+        >>> # execute function
+        >>> index = 3
+        >>> result_list += [ut.listclip(list_, index)]
+        >>> index = 9
+        >>> result_list += [ut.listclip(list_, index)]
+        >>> # verify results
+        >>> result = ut.list_str(result_list)
+        >>> print(result)
+        [
+            [1, 2, 3],
+            [1, 2, 3, 4, 5],
+        ]
+    """
+    sublist = list_[:min(len(list_), index)]
+    return sublist
+
+
 def listfind(list_, tofind):
     r"""
     get the position of item ``tofind`` in ``list_`` if it exists
