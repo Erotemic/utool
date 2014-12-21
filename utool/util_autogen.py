@@ -14,7 +14,9 @@ class PythonStatement(object):
 
 
 def write_modscript_alias(fpath, modname):
-    """ convinience function because $@ is annoying to paste into the terminal """
+    """
+    convinience function because $@ is annoying to paste into the terminal
+    """
     import utool as ut
     import os
     ut.write_to(fpath, 'python -m {modname} $@'.format(modname=modname))

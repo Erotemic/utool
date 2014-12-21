@@ -119,6 +119,39 @@ def codeblock(block_str):
     return unindent(block_str).strip('\n')
 
 
+def textblock(multiline_text):
+    r"""
+    Args:
+        block_str (str):
+
+    CommandLine:
+        python -m utool.util_str --test-textblock
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> # build test data
+        >>> multiline_text = ''' a big string
+            that should be layed out flat
+            yet still provide nice python
+            code that doesnt go too far over
+            80 characters.
+
+            Two newlines should be respected though
+            '''
+        >>> # execute function
+        >>> new_text = textblock(multiline_text)
+        >>> # verify results
+        >>> result = new_text
+        >>> print(result)
+    """
+    import re
+    def flatten_textlines(text):
+        return re.sub(' *\n *', ' ', text, flags=re.MULTILINE).strip(' ')
+    new_text = '\n\n'.join(list(map(flatten_textlines, multiline_text.split('\n\n'))))
+    return new_text
+
+
 def indent(string, indent='    '):
     """
     Indents a block of text

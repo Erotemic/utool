@@ -1016,6 +1016,38 @@ def depth_profile(list_):
     return level_shape_list
 
 
+def list_cover(list1, list2):
+    r"""
+    returns boolean for each position in list1 if it is in list2
+
+    Args:
+        list1 (list):
+        list2 (list):
+
+    Returns:
+        list: incover_list - true where list1 intersects list2
+
+    CommandLine:
+        python -m utool.util_list --test-list_cover
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> # build test data
+        >>> list1 = [1, 2, 3, 4, 5, 6]
+        >>> list2 = [2, 3, 6]
+        >>> # execute function
+        >>> incover_list = list_cover(list1, list2)
+        >>> # verify results
+        >>> result = str(incover_list)
+        >>> print(result)
+        [False, True, True, False, False, True]
+    """
+    set2 = set(list2)
+    incover_list = [item1 in set2 for item1 in list1]
+    return incover_list
+
+
 if __name__ == '__main__':
     """
     CommandLine:

@@ -5,6 +5,7 @@ import textwrap
 import six
 import sys
 import functools
+import os
 try:
     import numpy as np
     HAS_NUMPY = True
@@ -15,25 +16,23 @@ from utool import util_time
 from utool import util_iter
 from utool import util_dbg
 from utool import util_arg
-from .util_inject import inject
-from utool._internal.meta_util_six import get_funcname
-(print, print_, printDBG, rrr, profile) = inject(__name__, '[decor]')
+from utool import util_inject
+from utool._internal import meta_util_six
+(print, print_, printDBG, rrr, profile) = util_inject.inject(__name__, '[decor]')
 
+# Commandline to toggle certain convinience decorators
 SIG_PRESERVE = util_arg.get_argflag('--sigpreserve')
 #SIG_PRESERVE = not util_arg.SAFE or util_arg.get_argflag('--sigpreserve')
-IGNORE_TRACEBACK = '--smalltb' in sys.argv or '--ignoretb' in sys.argv
 ONEX_REPORT_INPUT = '--onex-report-input' in sys.argv
-#IGNORE_TRACEBACK = not ('--nosmalltb' in sys.argv or '--noignoretb' in sys.argv)
-
-
-import os
+#IGNORE_TRACEBACK = '--smalltb' in sys.argv or '--ignoretb' in sys.argv
+IGNORE_TRACEBACK = not ('--nosmalltb' in sys.argv or '--noignoretb' in sys.argv)
 
 # do not ignore traceback when profiling
 PROFILING = hasattr(builtins, 'profile')
 UNIQUE_NUMPY = True
 NOINDENT_DECOR = False
 
-os.environ.get('UTOOL_AUTOGEN_SPHINX_RUNNING', 'OFF')
+#os.environ.get('UTOOL_AUTOGEN_SPHINX_RUNNING', 'OFF')
 
 #def composed(*decs):
 #    """ combines multiple decorators """
@@ -127,7 +126,7 @@ def on_exception_report_input(func):
             from utool import util_str
             arg_strs = ', '.join([repr(util_str.truncate_str(str(arg))) for arg in args])
             kwarg_strs = ', '.join([util_str.truncate_str('%s=%r' % (key, val)) for key, val in six.iteritems(kwargs)])
-            msg = ('\nERROR: funcname=%r,\n * args=%s,\n * kwargs=%r\n' % (get_funcname(func), arg_strs, kwarg_strs))
+            msg = ('\nERROR: funcname=%r,\n * args=%s,\n * kwargs=%r\n' % (meta_util_six.get_funcname(func), arg_strs, kwarg_strs))
             msg += ' * len(args) = %r\n' % len(args)
             msg += ' * len(kwargs) = %r\n' % len(kwargs)
             util_dbg.printex(ex, msg, separate=True)
@@ -177,10 +176,9 @@ def indent_func(input_):
         func = input_
         return func
     else:
-        from utool._internal.meta_util_six import get_funcname
         # Use the function name as the label
         func = input_
-        lbl = '[' + get_funcname(func) + ']'
+        lbl = '[' + meta_util_six.get_funcname(func) + ']'
         return _indent_decor(lbl)(func)
 
 #----------
@@ -366,7 +364,7 @@ def interested(func):
     def wrp_interested(*args, **kwargs):
         sys.stdout.write('#\n')
         sys.stdout.write('#\n')
-        sys.stdout.write('<!INTERESTED>: ' + get_funcname(func) + '\n')
+        sys.stdout.write('<!INTERESTED>: ' + meta_util_six.get_funcname(func) + '\n')
         print('INTERESTING... ' + (' ' * 30) + ' <----')
         return func(*args, **kwargs)
     return wrp_interested
@@ -377,7 +375,7 @@ def show_return_value(func):
     #@wraps(func)
     def wrp_show_return_value(*args, **kwargs):
         ret = func(*args, **kwargs)
-        #print('%s(*%r, **%r) returns %r' % (get_funcname(func), args, kwargs, rv))
+        #print('%s(*%r, **%r) returns %r' % (meta_util_six.get_funcname(func), args, kwargs, rv))
         print(func_str(func, args, kwargs)  + ' -> ret=%r' % (ret,))
         return ret
     return wrp_show_return_value
@@ -386,7 +384,7 @@ def show_return_value(func):
 def time_func(func):
     #@wraps(func)
     def wrp_time(*args, **kwargs):
-        with util_time.Timer(get_funcname(func)):
+        with util_time.Timer(meta_util_six.get_funcname(func)):
             return func(*args, **kwargs)
     wrp_time = preserve_sig(wrp_time, func)
     return wrp_time
