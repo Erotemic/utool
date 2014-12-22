@@ -73,12 +73,10 @@ def render(input_text, fnum=1):
         fig.clf()
         ax = fig.add_subplot(1, 1, 1)
         ax.imshow(cropped, cmap=mpl.cm.gray)
-        #plt.show()
         #mpl.rc('text', usetex=True)
         #mpl.rc('font', family='serif')
         #plt.figure()
         #plt.text(9, 3.4, text, size=12)
-        #plt.show()
     except Exception as ex:
         print('LATEX ERROR')
         print(text)
