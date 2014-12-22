@@ -2,6 +2,11 @@
 If logging is on, utool will overwrite the print function with a logging function
 
 This is a special module which will not get injected into (should it be internal?)
+
+References:
+    # maybe we can do something like this Queue to try fixing error when
+    # when using injected print statments with Qt signals and slots
+    http://stackoverflow.com/questions/21071448/redirecting-stdout-and-stderr-to-a-pyqt4-qtextedit-from-a-secondary-thread
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import builtins
