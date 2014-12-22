@@ -76,6 +76,8 @@ def intersect2d(A, B):
 
     intersect rows of 2d numpy arrays
 
+    DEPRICATE: use intersect2d in vtool instead
+
     Args:
         A (ndarray[ndim=2]):
         B (ndarray[ndim=2]):
@@ -94,7 +96,6 @@ def intersect2d(A, B):
         >>> print(result)
         (array([[1, 2, 3]]), array([0]), array([0]))
     """
-    # TODO: MOVE to numpy libs
     Cset  =  set(tuple(x) for x in A).intersection(set(tuple(x) for x in B))
     Ax = np.array([x for x, item in enumerate(A) if tuple(item) in Cset], dtype=np.int)
     Bx = np.array([x for x, item in enumerate(B) if tuple(item) in Cset], dtype=np.int)
