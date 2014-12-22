@@ -303,7 +303,7 @@ def get_module_testlines(module_list, remove_pyc=True, verbose=True,
         for testtup in enabled_testtup_list:
             testflag = testtup[-1]
             if remove_pyc:
-                # FIXME python 3
+                # FIXME python 3 __pycache__/*.pyc
                 frame_fpath = frame_fpath.replace('.pyc', '.py')
             frame_rel_fpath = ut.get_relative_modpath(frame_fpath)
             testcmd = ' '.join((pythoncmd, frame_rel_fpath, testflag))

@@ -566,6 +566,12 @@ def get_caller_modname(N=0, allowmain=True):
     return caller_modname
 
 
+def get_current_stack_depth():
+    import traceback
+    stack = traceback.extract_stack()
+    return len(stack)
+
+
 def module_functions(module):
     module_members = inspect.getmembers(module)
     function_list = []
