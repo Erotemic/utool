@@ -122,8 +122,22 @@ def parse_docblocks_from_docstr(docstr):
 
 
 def parse_doctest_from_docstr(docstr):
-    """
+    r"""
     because doctest itself doesnt do what I want it to do
+
+    CAREFUL, IF YOU GET BACK WRONG RESULTS MAKE SURE YOUR DOCSTR IS PREFFIXED
+    WITH R
+
+    Ignore:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_tests import *  # NOQA
+        >>> from ibeis.model.hots import score_normalization
+        >>> func_or_class = score_normalization.cached_ibeis_score_normalizer
+        >>> docstr = ut.get_docstr(func_or_class)
+        >>> testsrc_list, testwant_list, docstr = get_doctest_examples(func_or_class)
+        >>> result = str(len(testsrc_list) + len(testwant_list))
+        >>> print(result)
+        2
     """
     import utool as ut
     docstr_blocks = parse_docblocks_from_docstr(docstr)
@@ -142,6 +156,8 @@ def parse_doctest_from_docstr(docstr):
         reversed_want_lines = []
         finished_want = False
 
+        # Read the example block backwards to get the want string
+        # and then the rest should all be source
         for line in reversed(nonheader_lines):
             if not finished_want:
                 if line.startswith('>>> ') or line.startswith('... '):
