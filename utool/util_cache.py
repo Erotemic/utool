@@ -610,6 +610,7 @@ class Cachable(object):
             print('[Cachable] cache delete: %r' % (basename(fpath),))
         os.remove(fpath)
 
+    @profile
     def save(self, cachedir, cfgstr=None, verbose=VERBOSE, quiet=QUIET):
         """
         saves query result to directory
@@ -630,6 +631,7 @@ class Cachable(object):
         #    loaded_dict = cPickle.load(file_)
         #    self.__dict__.update(loaded_dict)
 
+    @profile
     def load(self, cachedir, cfgstr=None, verbose=VERBOSE, quiet=QUIET):
         """
         Loads the result from the given database

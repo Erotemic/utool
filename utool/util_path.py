@@ -740,8 +740,10 @@ def get_modpath_from_modname(modname):
     """
     import importlib
     module = importlib.import_module(modname)
-    module_dir = get_module_dir(module)
-    return module_dir
+    modpath = module.__file__.replace('.pyc', '.py')
+    #modname = modname.replace('.__init__', '').strip()
+    #module_dir = get_module_dir(module)
+    return modpath
 
 
 def get_module_dir(module, *args):

@@ -47,7 +47,7 @@ class Indenter(object):
             self.lbl = lbl
             self.INDENT_PRINT_ = False
 
-    #@profile
+    @profile
     def start(self):
         # Chain functions together rather than overwriting stdout
         if NO_INDENT:
@@ -81,7 +81,7 @@ class Indenter(object):
             #    self.old_printDBG_dict[mod](indent_msg(msg))
             #setattr(mod, 'printDBG', indent_printDBG)
 
-    #@profile
+    @profile
     def stop(self):
         if NO_INDENT:
             return
@@ -95,10 +95,12 @@ class Indenter(object):
         #for mod in six.iterkeys(self.old_printDBG_dict):
         #    setattr(mod, 'printDBG', self.old_printDBG_dict[mod])
 
+    @profile
     def __enter__(self):
         self.start()
         return self
 
+    @profile
     def __exit__(self, type_, value, trace):
         self.stop()
         if trace is not None:

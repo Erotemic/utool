@@ -7,7 +7,7 @@ import types
 import traceback  # NOQA
 import sys
 from os.path import basename
-from utool import util_print
+from utool import util_print  # NOQA
 from utool import util_arg
 from utool import util_path
 from utool import util_time
@@ -622,7 +622,8 @@ def run_test(func, *args, **kwargs):
     print('  <funcname>  ')
     print('  <' + funcname + '>  ')
     #short_funcname = ut.clipstr(funcname, 8)
-    with util_print.Indenter('  <' + funcname + '>  '):
+    #with util_print.Indenter('  <' + funcname + '>  '):
+    if True:
         try:
             # RUN THE TEST WITH A TIMER
             with util_time.Timer(upper_funcname) as timer:

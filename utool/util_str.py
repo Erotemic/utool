@@ -771,13 +771,14 @@ def align_lines(line_list, character='='):
     tup_list = [line.split(character) for line in line_list]
     maxlen = 0
     for tup in tup_list:
-        if len(tup) == 2:
+        if len(tup) >= 2:
             maxlen = max(maxlen, len(tup[0]))
 
     new_lines = []
     for tup in tup_list:
-        if len(tup) == 2:
-            lhs, rhs = tup
+        if len(tup) >= 2:
+            lhs = tup[0]
+            rhs = character.join(tup[1:])
             newline = lhs.ljust(maxlen) + character + rhs
             new_lines.append(newline)
         else:
