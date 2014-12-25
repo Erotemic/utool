@@ -23,8 +23,7 @@ PRINT_FACE = not util_arg.get_argflag(('--noprintface', '--noface'))
 BIGFACE = util_arg.get_argflag('--bigface')
 SYSEXIT_ON_FAIL = util_arg.get_argflag('--sysexitonfail')
 
-if BIGFACE:
-    HAPPY_FACE = r'''
+HAPPY_FACE_BIG = r'''
                .-""""""-.
              .'          '.
             /   O      O   \
@@ -36,7 +35,7 @@ if BIGFACE:
                '-......-'
                    '''
 
-    SAD_FACE = r'''
+SAD_FACE_BIG = r'''
                .-""""""-.
              .'          '.
             /   O      O   \
@@ -48,20 +47,26 @@ if BIGFACE:
                '-......-'
                   '''
 
-else:
-    HAPPY_FACE = r'''
+HAPPY_FACE_SMALL = r'''
      .""".
     | o o |
     | \_/ |
      ' = '
     '''
 
-    SAD_FACE = r'''
+SAD_FACE_SMALL = r'''
      .""".
     | . . |
     |  ~  |
      ' = '
     '''
+
+if BIGFACE:
+    HAPPY_FACE = HAPPY_FACE_BIG
+    SAD_FACE = SAD_FACE_BIG
+else:
+    HAPPY_FACE = HAPPY_FACE_SMALL
+    SAD_FACE = SAD_FACE_SMALL
 
 
 def _get_testable_name(testable):
@@ -753,7 +758,7 @@ def make_run_tests_script_text(test_headers, test_argvs, quick_tests=None,
 
     Examples:
         >>> from utool.util_tests import *  # NOQA
-        >>> import utool
+        >>> import utool  # NOQA
         >>> testdirs = ['~/code/ibeis/test_ibs*.py']
     """
     import utool

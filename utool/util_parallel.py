@@ -9,6 +9,7 @@ import multiprocessing
 import atexit
 import sys
 import signal
+import thread
 from utool._internal.meta_util_six import get_funcname
 from utool.util_progress import progress_func, ProgressIter
 from utool.util_time import tic, toc
@@ -336,6 +337,66 @@ def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__,
                   (nTasks, get_funcname(func), __POOL__._processes))
         result_list = _process_parallel(func, args_list, args_dict, nTasks=nTasks)
     return result_list
+
+
+def spawn_background_process(func, *args, **kwargs):
+    """
+    Run a function in the background
+    (like rebuilding some costly data structure)
+
+    uses thread.start_new_thread to spawn a background process that calls a
+    single function.  Does not return any data. use generate to get return
+    values.
+
+    References:
+        http://stackoverflow.com/questions/1196074/starting-a-background-process-in-python
+
+    Args:
+        func (function):
+
+    Returns:
+        int : threadid
+
+    CommandLine:
+        python -m utool.util_parallel --test-spawn_background_process
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_parallel import *  # NOQA
+        >>> import utool as ut
+        >>> import time
+        >>> from os.path import join
+        >>> # build test data
+        >>> fname = 'test_bgfunc_output.txt'
+        >>> dpath = ut.get_app_resource_dir('utool')
+        >>> ut.ensuredir(dpath)
+        >>> fpath = join(dpath, fname)
+        >>> # ensure file is not around
+        >>> ut.delete(fpath)
+        >>> assert not ut.checkpath(fpath, verbose=True)
+        >>> def backgrond_func(fpath):
+        ...     import utool as ut
+        ...     import time
+        ...     print('[BG] Background Process has started')
+        ...     time.sleep(.001)
+        ...     print('[BG] Background Process is writing')
+        ...     ut.write_to(fpath, 'background process')
+        ...     print('[BG] Background Process has finished')
+        >>> # execute function
+        >>> func = backgrond_func
+        >>> print('[FG] Spawning process')
+        >>> threadid = ut.spawn_background_process(func, fpath)
+        >>> print('[FG] Spawned process. threadid=%r' % (threadid,))
+        >>> # background process should not have finished yet
+        >>> assert not ut.checkpath(fpath, verbose=True)
+        >>> print('[FG] Waiting to check')
+        >>> time.sleep(.01)
+        >>> print('[FG] Finished waiting')
+        >>> # Now the file should be there
+        >>> assert ut.checkpath(fpath, verbose=True)
+    """
+    threadid = thread.start_new_thread(func, args, kwargs)
+    return threadid
 
 
 if __name__ == '__main__':
