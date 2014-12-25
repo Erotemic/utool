@@ -348,19 +348,12 @@ def spawn_background_process(func, *args, **kwargs):
     Run a function in the background
     (like rebuilding some costly data structure)
 
-    uses thread.start_new_thread to spawn a background process that calls a
-    single function.  Does not return any data. use generate to get return
-    values.
-
     References:
         http://stackoverflow.com/questions/1196074/starting-a-background-process-in-python
         http://stackoverflow.com/questions/15063963/python-is-thread-still-running
 
     Args:
         func (function):
-
-    Returns:
-        int : threadid
 
     CommandLine:
         python -m utool.util_parallel --test-spawn_background_process
@@ -402,15 +395,21 @@ def spawn_background_process(func, *args, **kwargs):
         >>> # Now the file should be there
         >>> assert ut.checkpath(fpath, verbose=True)
     """
-    IMPLEMENTATION_NUM = 1
+    IMPLEMENTATION_NUM = 2
     if IMPLEMENTATION_NUM == 0:
-        threadid = thread.start_new_thread(func, args, kwargs)
-        return threadid
-    elif IMPLEMENTATION_NUM == 0:
+        thread_id = thread.start_new_thread(func, args, kwargs)
+        return thread_id
+    elif IMPLEMENTATION_NUM == 1:
         #threadobj = IMPLEMENTATION_NUM
-        threadobj = threading.Thread(target=func, args=args, kwargs=kwargs)
-        threadobj.start()
-        return threadobj
+        thread_obj = threading.Thread(target=func, args=args, kwargs=kwargs)
+        thread_obj.start()
+        return thread_obj
+    elif IMPLEMENTATION_NUM == 2:
+        proc_obj = multiprocessing.Process(target=func, args=args, kwargs=kwargs)
+        proc_obj.start()
+        return proc_obj
+    else:
+        raise NotImplementedError('IMPLEMENTATION_NUM = %r ' % (IMPLEMENTATION_NUM,))
 
 
 if __name__ == '__main__':
