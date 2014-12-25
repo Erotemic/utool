@@ -11,15 +11,16 @@ import sys
 import signal
 import thread
 from utool._internal.meta_util_six import get_funcname
-from utool.util_progress import progress_func, ProgressIter
-from utool.util_time import tic, toc
+from utool import util_progress
+from utool import util_time
 from utool import util_arg
+from utool import util_dbg
+from utool import util_inject
 #from utool.util_cplat import WIN32
-from utool.util_dbg import printex
-
+util_inject.noinject('[parallel]')
 
 QUIET   = util_arg.QUIET
-SILENT   = util_arg.SILENT
+SILENT  = util_arg.SILENT
 VERBOSE = util_arg.VERBOSE
 STRICT  = util_arg.STRICT
 
@@ -28,10 +29,10 @@ if SILENT:
         pass
 
 __POOL__ = None
-__TIME__ = '--time' in sys.argv
-__SERIAL_FALLBACK__ = '--noserial-fallback' not in sys.argv
-__NUM_PROCS__ = util_arg.get_argval('--num-procs', int, default=None)
-__FORCE_SERIAL__ = util_arg.get_argflag(('--utool-force-serial', '--force-serial', '--serial'))
+__TIME_GENERATE__   = util_arg.get_flag('--time-generate')
+__NUM_PROCS__       = util_arg.get_argval('--num-procs', int, default=None)
+__FORCE_SERIAL__    = util_arg.get_argflag(('--utool-force-serial', '--force-serial', '--serial'))
+__SERIAL_FALLBACK__ = not util_arg.get_flag('--noserial-fallback')
 
 
 BACKEND = 'multiprocessing'
@@ -125,8 +126,8 @@ def _process_serial(func, args_list, args_dict={}, nTasks=None):
     if nTasks is None:
         nTasks = len(args_list)
     result_list = []
-    mark_prog, end_prog = progress_func(max_val=nTasks,
-                                        lbl=get_funcname(func) + ': ')
+    mark_prog, end_prog = util_progress.progress_func(
+        max_val=nTasks, lbl=get_funcname(func) + ': ')
     mark_prog(0)
     # Execute each task sequentially
     for count, args in enumerate(args_list):
@@ -145,8 +146,8 @@ def _process_parallel(func, args_list, args_dict={}, nTasks=None):
     if nTasks is None:
         nTasks = len(args_list)
     num_tasks_returned_ptr = [0]
-    mark_prog, end_prog = progress_func(max_val=nTasks,
-                                        lbl=get_funcname(func) + ': ')
+    mark_prog, end_prog = util_progress.progress_func(
+        max_val=nTasks, lbl=get_funcname(func) + ': ')
     def _callback(result):
         mark_prog(num_tasks_returned_ptr[0])
         sys.stdout.flush()
@@ -186,7 +187,8 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
     try:
         if prog:
             # New way of doing progress
-            prog_generator = ProgressIter(generator, nTotal=nTasks, lbl=get_funcname(func) + ': ')
+            prog_generator = util_progress.ProgressIter(
+                generator, nTotal=nTasks, lbl=get_funcname(func) + ': ')
             for result in prog_generator:
                 yield result
         else:
@@ -194,7 +196,7 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
             for result in generator:
                 yield result
     except Exception as ex:
-        printex(ex, 'Parallel Generation Failed!', '[utool]')
+        util_dbg.printex(ex, 'Parallel Generation Failed!', '[utool]')
         print('__SERIAL_FALLBACK__ = %r' % __SERIAL_FALLBACK__)
         if __SERIAL_FALLBACK__:
             for result in _generate_serial(func, args_list, prog=prog,
@@ -215,7 +217,8 @@ def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None):
     prog = prog and verbose and nTasks > 1
     if prog:
         # New way of doing progress
-        prog_generator = ProgressIter(args_list, nTotal=nTasks, lbl=get_funcname(func) + ': ')
+        prog_generator = util_progress.ProgressIter(
+            args_list, nTotal=nTasks, lbl=get_funcname(func) + ': ')
         for args in prog_generator:
             result = func(args)
             yield result
@@ -282,8 +285,8 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
     force_serial_ = nTasks == 1 or force_serial
     if not force_serial_:
         ensure_pool()
-    if __TIME__:
-        tt = tic(get_funcname(func))
+    if __TIME_GENERATE__:
+        tt = util_time.tic(get_funcname(func))
     if force_serial_ or isinstance(__POOL__, int):
         if VERBOSE and verbose:
             print('[util_parallel.generate] generate_serial')
@@ -294,8 +297,8 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
         return _generate_parallel(func, args_list, ordered=ordered,
                                   chunksize=chunksize, prog=prog,
                                   verbose=verbose, nTasks=nTasks)
-    if __TIME__:
-        toc(tt)
+    if __TIME_GENERATE__:
+        util_time.toc(tt)
 
 
 def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__,
