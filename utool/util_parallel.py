@@ -10,6 +10,7 @@ import atexit
 import sys
 import signal
 import thread
+import threading
 from utool._internal.meta_util_six import get_funcname
 from utool import util_progress
 from utool import util_time
@@ -353,6 +354,7 @@ def spawn_background_process(func, *args, **kwargs):
 
     References:
         http://stackoverflow.com/questions/1196074/starting-a-background-process-in-python
+        http://stackoverflow.com/questions/15063963/python-is-thread-still-running
 
     Args:
         func (function):
@@ -387,8 +389,10 @@ def spawn_background_process(func, *args, **kwargs):
         ...     print('[BG] Background Process has finished')
         >>> # execute function
         >>> func = backgrond_func
+        >>> args = (fpath,)
+        >>> kwargs = {}
         >>> print('[FG] Spawning process')
-        >>> threadid = ut.spawn_background_process(func, fpath)
+        >>> threadid = ut.spawn_background_process(func, *args, **kwargs)
         >>> print('[FG] Spawned process. threadid=%r' % (threadid,))
         >>> # background process should not have finished yet
         >>> assert not ut.checkpath(fpath, verbose=True)
@@ -398,8 +402,15 @@ def spawn_background_process(func, *args, **kwargs):
         >>> # Now the file should be there
         >>> assert ut.checkpath(fpath, verbose=True)
     """
-    threadid = thread.start_new_thread(func, args, kwargs)
-    return threadid
+    IMPLEMENTATION_NUM = 1
+    if IMPLEMENTATION_NUM == 0:
+        threadid = thread.start_new_thread(func, args, kwargs)
+        return threadid
+    elif IMPLEMENTATION_NUM == 0:
+        #threadobj = IMPLEMENTATION_NUM
+        threadobj = threading.Thread(target=func, args=args, kwargs=kwargs)
+        threadobj.start()
+        return threadobj
 
 
 if __name__ == '__main__':

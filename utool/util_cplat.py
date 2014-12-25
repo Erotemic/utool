@@ -426,7 +426,7 @@ def cmd(*args, **kwargs):
 
 
 def get_flops():
-    # DOESNT WORK
+    """ # DOESNT WORK """
     from sys import stdout
     from re import compile
 
@@ -503,6 +503,12 @@ def get_python_dynlib():
         dynlib = os.path.join(cfgvars['LIBDIR'], cfgvars['LDLIBRARY'])
     assert exists(dynlib)
     return dynlib
+
+
+def get_path_dirs():
+    """ returns a list of directories in the PATH system variable """
+    pathdirs = os.environ['PATH'].split(os.pathsep)
+    return pathdirs
 
 
 #from subprocess import check_output
