@@ -9,7 +9,11 @@ import multiprocessing
 import atexit
 import sys
 import signal
-import thread
+import six
+if six.PY2:
+    import thread as _thread
+elif six.PY3:
+    import _thread
 import threading
 from utool._internal.meta_util_six import get_funcname
 from utool import util_progress
@@ -397,7 +401,7 @@ def spawn_background_process(func, *args, **kwargs):
     """
     IMPLEMENTATION_NUM = 2
     if IMPLEMENTATION_NUM == 0:
-        thread_id = thread.start_new_thread(func, args, kwargs)
+        thread_id = _thread.start_new_thread(func, args, kwargs)
         return thread_id
     elif IMPLEMENTATION_NUM == 1:
         #threadobj = IMPLEMENTATION_NUM
