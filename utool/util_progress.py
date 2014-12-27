@@ -31,7 +31,7 @@ def test_progress():
         >>> test_progress()
     """
     import utool as ut
-    import time
+    #import time
     ut.rrrr()
 
     print('_________________')

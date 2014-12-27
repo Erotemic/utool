@@ -410,6 +410,7 @@ def spawn_background_process(func, *args, **kwargs):
         return thread_obj
     elif IMPLEMENTATION_NUM == 2:
         proc_obj = multiprocessing.Process(target=func, args=args, kwargs=kwargs)
+        #proc_obj.isAlive = proc_obj.is_alive
         proc_obj.start()
         return proc_obj
     else:
