@@ -131,3 +131,31 @@ def assert_almost_eq(arr_test, arr_target, thresh=1E-11):
         ]
         msg = '\n'.join(msg_list)
         raise AssertionError(msg)
+
+
+def assert_eq(var1, var2, msg='', verbose=True):
+    import utool as ut
+    failed = var1 != var2
+    var1_name = ut.get_varname_from_stack(var1, N=1, default='var1')
+    var2_name = ut.get_varname_from_stack(var2, N=1, default='var2')
+    fmtdict = dict(
+        msg=msg,
+        var1_name=var1_name,
+        var2_name=var2_name,
+        var1_repr=repr(var1),
+        var2_repr=repr(var2))
+    if failed:
+        msg_fmtstr = ut.codeblock('''
+            +=====
+            ERROR {var1_name} != {var2_name}
+            msg = {msg}
+            ---
+            {var1_name} = {var1_repr}
+            ---
+            {var2_name} = {var2_repr}
+            L_____
+            ''')
+        msg = msg_fmtstr.format(**fmtdict)
+        raise AssertionError(msg)
+    else:
+        print('ASSERT_EQ_PASSED: {var1_name} == {var2_name} == {var1_repr}'.format(**fmtdict))

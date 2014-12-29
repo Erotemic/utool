@@ -222,7 +222,7 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
         >>> # build test data
         >>> funcname = 'make_example_docstr'
         >>> modname = 'utool.util_autogen'
-        >>> argname_list = None
+        >>> argname_list = ['qaids', 'qreq_']
         >>> defaults = None
         >>> return_type = None
         >>> return_name = None
@@ -242,13 +242,21 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
     # TODO: Externally register these
     default_argval_map = {
         'ibs':      'ibeis.opendb(\'testdb1\')',
+        'qreq_':      'ibs.new_query_request(qaids, daids)',
         'qaid2_qres':  'ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())',
         'qres':  'ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())[1]',
         'aid_list': 'ibs.get_valid_aids()',
         'nid_list': 'ibs._get_all_known_nids()',
+        'qaids': 'ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)',
+        'daids': 'ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)',
     }
     import_depends_map = {
         'ibs':      'import ibeis',
+    }
+    var_depends_map = {
+        'qreq_':     ['ibs', 'daids', 'qaids'],
+        'qaids':     ['ibs'],
+        'daids':     ['ibs'],
     }
 
     def find_arg_defaultval(argname, val):
@@ -259,14 +267,28 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
                     import_lines.append(import_depends_map[argname])
         return val
 
+    # augment argname list with dependencies
+    dependant_argnames = []
+    def append_dependant_argnames(argnames):
+        for argname in argnames:
+            if argname not in dependant_argnames and argname not in argname_list:
+                dependant_argnames.append(argname)
+            if argname in var_depends_map:
+                argdeps = var_depends_map[argname]
+                append_dependant_argnames(argdeps)
+    append_dependant_argnames(argname_list)
+
+    # argnames prefixed with dependeancies
+    argname_list_ = dependant_argnames + argname_list
+
     # Default example values
     defaults_ = [] if defaults is None else defaults
-    num_unknown = (len(argname_list) - len(defaults_))
+    num_unknown = (len(argname_list_) - len(defaults_))
     default_vals = ['?'] * num_unknown + list(defaults_)
-    arg_val_iter = zip(argname_list, default_vals)
+    arg_val_iter = zip(argname_list_, default_vals)
     infered_defaults = [find_arg_defaultval(argname, val)
                         for argname, val in arg_val_iter]
-    arg_inferval_iter = zip(argname_list, infered_defaults)
+    arg_inferval_iter = zip(argname_list_, infered_defaults)
     argdef_lines = ['%s = %r' % (argname, inferval)
                     for argname, inferval in arg_inferval_iter]
     import_lines = ut.unique_ordered(import_lines)

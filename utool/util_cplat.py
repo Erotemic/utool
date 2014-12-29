@@ -303,7 +303,7 @@ def __parse_cmd_args(args, sudo, shell):
     #    print(' '.join(args))
     print(type(args))
     print(args)
-    print(shlex)
+    #print(shlex)
     if shell:
         # Popen only accepts strings is shell is True, which
         # it really shouldn't be.
@@ -319,8 +319,17 @@ def __parse_cmd_args(args, sudo, shell):
                 args = args[0]
         elif isinstance(args, six.string_types):
             pass
-    if not WIN32 and sudo is True:
-        args = ['sudo'] + args
+    if sudo is True:
+        if not WIN32:
+            if isinstance(args, six.string_types):
+                args = shlex.split(args)
+            args = ['sudo'] + args
+            # using sudo means we need to use a single string I believe
+            args = ' '.join(args)
+        else:
+            # TODO: strip out sudos
+            pass
+
     #if isinstance(args, (list, tuple)):
     #    if len(args) == 1:
     #        print('HERE1')

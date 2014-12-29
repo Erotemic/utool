@@ -80,11 +80,11 @@ def safe_listget(list_, index, default='?'):
     return ret
 
 
-def listclip(list_, index):
+def listclip(list_, num, fromback=False):
     r"""
     Args:
         list_ (list):
-        index (int):
+        num (int):
 
     Returns:
         sublist:
@@ -92,17 +92,17 @@ def listclip(list_, index):
     CommandLine:
         python -m utool.util_list --test-listclip
 
-    Example:
+    Example1:
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
         >>> # build test data
         >>> list_ = [1, 2, 3, 4, 5]
         >>> result_list = []
         >>> # execute function
-        >>> index = 3
-        >>> result_list += [ut.listclip(list_, index)]
-        >>> index = 9
-        >>> result_list += [ut.listclip(list_, index)]
+        >>> num = 3
+        >>> result_list += [ut.listclip(list_, num)]
+        >>> num = 9
+        >>> result_list += [ut.listclip(list_, num)]
         >>> # verify results
         >>> result = ut.list_str(result_list)
         >>> print(result)
@@ -110,8 +110,24 @@ def listclip(list_, index):
             [1, 2, 3],
             [1, 2, 3, 4, 5],
         ]
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> import utool as ut
+        >>> # build test data
+        >>> list_ = [1, 2, 3, 4, 5]
+        >>> result_list = []
+        >>> # execute function
+        >>> num = 3
+        >>> result = ut.listclip(list_, num, fromback=True)
+        >>> print(result)
+        [3, 4, 5]
     """
-    sublist = list_[:min(len(list_), index)]
+    num_ = min(len(list_), num)
+    if fromback:
+        sublist = list_[-num_:]
+    else:
+        sublist = list_[:num_]
     return sublist
 
 
@@ -545,6 +561,14 @@ def list_intersection(list1, list2):
 
 def list_issubset(list1, list2):
     return set(list1).issubset(set(list2))
+
+
+def list_issuperset(list1, list2):
+    return set(list1).issuperset(set(list2))
+
+
+def list_set_equal(list1, list2):
+    return set(list1) == set(list2)
 
 
 def setdiff_ordered(list1, list2):

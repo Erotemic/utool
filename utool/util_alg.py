@@ -24,7 +24,7 @@ PHI_A = (1 / PHI)
 PHI_B = 1 - PHI_A
 
 
-def greedy_max_inden_setcover(candidate_sets_dict, items):
+def greedy_max_inden_setcover(candidate_sets_dict, items, max_covers=None):
     """
     greedy algorithm for maximum independent set cover
 
@@ -33,25 +33,43 @@ def greedy_max_inden_setcover(candidate_sets_dict, items):
     CommandLine:
         python -m utool.util_alg --test-greedy_max_inden_setcover
 
-    Example:
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> candidate_sets_dict = {'a': [5, 3], 'b': [2, 3, 5],
         ...                        'c': [4, 8], 'd': [7, 6, 2, 1]}
         >>> items = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        >>> tup = greedy_max_inden_setcover(candidate_sets_dict, items)
+        >>> max_covers = None
+        >>> tup = greedy_max_inden_setcover(candidate_sets_dict, items, max_covers)
         >>> (uncovered_items, covered_items_list, accepted_keys) = tup
         >>> result = str((uncovered_items, accepted_keys))
         >>> print(result)
         ([0, 9], set(['a', 'c', 'd']))
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> candidate_sets_dict = {'a': [5, 3], 'b': [2, 3, 5],
+        ...                        'c': [4, 8], 'd': [7, 6, 2, 1]}
+        >>> items = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        >>> max_covers = 1
+        >>> tup = greedy_max_inden_setcover(candidate_sets_dict, items, max_covers)
+        >>> (uncovered_items, covered_items_list, accepted_keys) = tup
+        >>> result = str((uncovered_items, accepted_keys))
+        >>> print(result)
+        ([0, 3, 4, 5, 8, 9], set(['d']))
     """
     uncovered_set = set(items)
     rejected_keys = set()
     accepted_keys = set()
     covered_items_list = []
     while True:
+        # Break if we have enough covers
+        if max_covers is not None and len(covered_items_list) >= max_covers:
+            break
         maxkey = None
         maxlen = -1
+        # Loop over candidates to find the biggested unadded cover set
         for key, candidate_items in six.iteritems(candidate_sets_dict):
             if key in rejected_keys or key in accepted_keys:
                 continue
@@ -64,6 +82,7 @@ def greedy_max_inden_setcover(candidate_sets_dict, items):
                     maxlen = lenval
             else:
                 rejected_keys.add(key)
+        # Add the set to the cover
         if maxkey is None:
             break
         maxval = candidate_sets_dict[maxkey]

@@ -702,8 +702,12 @@ def printTEST(msg, wait=False):
     # raw_input('press enter to continue')
 
 
-def tryimport(modname, pipiname):
+def tryimport(modname, pipiname, ensure=False):
     """
+
+    CommandLine:
+        python -m utool.util_tests --test-tryimport
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_tests import *   # NOQA
@@ -711,18 +715,32 @@ def tryimport(modname, pipiname):
         >>> pipiname = 'git+https://github.com/pwaller/pyfiglet'
         >>> pyfiglet = tryimport(modname, pipiname)
         >>> assert pyfiglet is None or isinstance(pyfiglet, types.ModuleType)
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_tests import *   # NOQA
+        >>> modname = 'lru'
+        >>> pipiname = 'git+https://github.com/amitdev/lru-dict'
+        >>> lru = tryimport(modname, pipiname, ensure=True)
+        >>> assert isinstance(lru, types.ModuleType)
     """
     try:
         module = __import__(modname)
         return module
     except ImportError as ex:
         import utool
+        base_pipcmd = 'pip install %s' % pipiname
         if not utool.WIN32:
-            pipcmd = 'sudo pip install %s' % pipiname
+            pipcmd = 'sudo ' + base_pipcmd
+            sudo = True
         else:
-            pipcmd = 'pip install %s' % pipiname
+            sudo = False
         msg = 'unable to find module %r. Please install: %s' % (str(modname), str(pipcmd))
         utool.printex(ex, msg, iswarning=True)
+        if ensure:
+            #raise NotImplementedError('not ensuring')
+            utool.cmd(base_pipcmd, sudo=sudo)
+            pass
         return None
 
 

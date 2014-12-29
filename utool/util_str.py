@@ -558,6 +558,11 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True, recurs
             return valfunc(val)
 
     iteritems = six.iteritems
+    #def iteritems(x):
+    #    try:
+    #        return six.iteritems(x)
+    #    except AttributeError:
+    #        return iter(x.items())
     fmtstr = indent_ + '%r: %s,'
     if sorted_:
         iteritems = lambda iter_: iter(sorted(six.iteritems(iter_)))

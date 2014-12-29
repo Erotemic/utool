@@ -60,6 +60,8 @@ def path_ndir_split(path_, n, force_unix=True, winroot='C:'):
     r"""
     Shows only a little bit of the path. Up to the n bottom-level directories
 
+    TODO: rename to path_tail? ndir_split?
+
     Returns:
         (str) the trailing n paths of path.
 

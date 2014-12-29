@@ -60,6 +60,22 @@ def text_dict_write(fpath, key, val):
     util_io.write_to(fpath, dict_text2)
 
 
+def consensed_cfgstr(prefix, cfgstr, max_len=128, cfgstr_hashlen=16):
+    if len(prefix) + len(cfgstr) > max_len:
+        hashed_cfgstr = util_hash.hashstr(cfgstr, cfgstr_hashlen)
+        #if write_hashtbl:
+        #    # DONT WRITE TO HASHTABLE THE FUNCTION IS BROKEN
+        #    text_dict_write(join(dpath, 'hashtbl.txt'), hashed_cfgstr, cfgstr)
+        # Hack for prettier names
+        if not prefix.endswith('_'):
+            fname_cfgstr = prefix + '_' + hashed_cfgstr
+        else:
+            fname_cfgstr = prefix + hashed_cfgstr
+    else:
+        fname_cfgstr = prefix + cfgstr
+    return fname_cfgstr
+
+
 def _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl=False):
     r"""
     Internal util_cache helper function
@@ -100,19 +116,11 @@ def _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl=False):
     """
     if len(ext) > 0 and ext[0] != '.':
         raise Exception('Fatal Error: Please be explicit and use a dot in ext')
-    fname_cfgstr = fname + cfgstr
-    max_fname_len = 128
-    if len(fname_cfgstr) > max_fname_len:
-        cfgstr_hashlen = 8  # TODO: make bigger before production
-        hashed_cfgstr = util_hash.hashstr(cfgstr, cfgstr_hashlen)
-        if write_hashtbl:
-            # DONT WRITE TO HASHTABLE THE FUNCTION IS BROKEN
-            text_dict_write(join(dpath, 'hashtbl.txt'), hashed_cfgstr, cfgstr)
-        # Hack for prettier names
-        if not fname.endswith('_'):
-            fname_cfgstr = fname + '_' + hashed_cfgstr
-        else:
-            fname_cfgstr = fname + hashed_cfgstr
+    max_len = 128
+    cfgstr_hashlen = 16  # TODO: make bigger before production
+    prefix = fname
+    fname_cfgstr = consensed_cfgstr(prefix, cfgstr, max_len=max_len,
+                                    cfgstr_hashlen=cfgstr_hashlen)
     fpath = join(dpath, fname_cfgstr + ext)
     fpath = normpath(fpath)
     return fpath
@@ -668,6 +676,42 @@ class Cachable(object):
             import utool as ut
             ut.printex(ex, 'unknown exception while loading query result')
             raise
+
+
+def get_lru_cache(max_size=5):
+    """
+    Args:
+        max_size (int):
+
+    References:
+        https://github.com/amitdev/lru-dict
+
+    CommandLine:
+        python -m utool.util_cache --test-get_lru_cache
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_cache import *  # NOQA
+        >>> import utool as ut
+        >>> # build test data
+        >>> max_size = 5
+        >>> # execute function
+        >>> cache_obj = get_lru_cache(max_size)
+        >>> cache_obj[1] = 1
+        >>> cache_obj[2] = 2
+        >>> cache_obj[3] = 3
+        >>> cache_obj[4] = 4
+        >>> cache_obj[5] = 5
+        >>> cache_obj[6] = 6
+        >>> # verify results
+        >>> result = str(cache_obj)
+        >>> print(result)
+        {2: 2, 3: 3, 4: 4, 5: 5, 6: 6}
+    """
+    import utool as ut
+    lru = ut.tryimport('lru', 'git+https://github.com/amitdev/lru-dict', ensure=True)
+    cache_obj = lru.LRU(max_size)
+    return cache_obj
 
 
 if __name__ == '__main__':

@@ -83,7 +83,7 @@ def parse_timemap_from_blocks(profile_block_list):
     return prefix_list, timemap
 
 
-def get_summary(profile_block_list):
+def get_summary(profile_block_list, maxlines=10):
     time_list = [get_block_totaltime(block) for block in profile_block_list]
     time_list = [time if time is not None else -1 for time in time_list]
     blockid_list = [get_block_id(block) for block in profile_block_list]
@@ -92,8 +92,11 @@ def get_summary(profile_block_list):
     sorted_blockid_list = ut.list_take(blockid_list, sortx)
 
     aligned_blockid_list = ut.util_str.align_lines(sorted_blockid_list, ':')
-    summary_lines = [('%6.2f seconds - ' % time) + line for time, line in zip(sorted_time_list, aligned_blockid_list)]
-    summary_text = '\n'.join(summary_lines)
+    summary_lines = [('%6.2f seconds - ' % time) + line
+                     for time, line in
+                     zip(sorted_time_list, aligned_blockid_list)]
+    summary_lines_ = ut.listclip(summary_lines, maxlines, fromback=True)
+    summary_text = '\n'.join(summary_lines_)
     print(summary_text)
     return summary_text
 
