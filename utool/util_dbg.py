@@ -27,7 +27,8 @@ from utool.util_type import is_listlike, get_type
 from utool._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = inject(__name__, '[dbg]')
 
-RAISE_ALL = get_argflag('--raise-all')
+RAISE_ALL = get_argflag('--raise-all', help='Causes ut.printex to always reraise errors')
+FORCE_TB = get_argflag('--force-tb', help='Causes ut.printex to always print traceback')
 
 # --- Exec Strings ---
 IPYTHON_EMBED_STR = r'''
@@ -806,7 +807,7 @@ def formatex(ex, msg='[!?] Caught exception',
     errstr_list = []  # list of exception strings
     ex_tag = 'WARNING' if iswarning else 'EXCEPTION'
     errstr_list.append('<!!! %s !!!>' % ex_tag)
-    if tb:
+    if tb or FORCE_TB:
         errstr_list.append(traceback.format_exc())
     errstr_list.append(prefix + ' ' + str(msg) + '\n%r: %s' % (type(ex), str(ex)))
     parse_locals_keylist(locals_, key_list, errstr_list, prefix)

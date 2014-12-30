@@ -755,6 +755,10 @@ def get_module_dir(module, *args):
     return module_dir
 
 
+def ensure_unixslash(path):
+    return path.replace('\\', '/')
+
+
 def ensure_crossplat_path(path, winroot='C:'):
     r"""
     ensure_crossplat_path

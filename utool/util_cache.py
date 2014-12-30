@@ -110,9 +110,9 @@ def _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl=False):
         >>> ext = '.cPkl'
         >>> write_hashtbl = False
         >>> fpath = _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl)
-        >>> result = str(fpath)
+        >>> result = str(ut.ensure_unixslash(fpath))
         >>> print(result)
-        F:\data\work\PZ_MTEST\_ibsdb\_ibeis_cache\normalizer_5cv1%3s&.cPkl
+        F:/data/work/PZ_MTEST/_ibsdb/_ibeis_cache/normalizer_5cv1%3s&@1dtgjlj.cPkl
     """
     if len(ext) > 0 and ext[0] != '.':
         raise Exception('Fatal Error: Please be explicit and use a dot in ext')
