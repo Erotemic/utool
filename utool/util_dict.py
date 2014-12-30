@@ -293,6 +293,10 @@ def dict_take_list(dict_, keys, *d):
     #return [dict_[key] for key in keys]
 
 
+def dict_take(dict_, keys, *d):
+    return dict_take_list(dict_, keys, *d)
+
+
 def dict_where_len0(dict_):
     keys = np.array(dict_.keys())
     flags = np.array(list(map(len, dict_.values()))) == 0

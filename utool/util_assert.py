@@ -82,9 +82,18 @@ def assert_lists_eq(list1, list2, failmsg='', verbose=False):
             msg += 'There are %d/%d different ordered items\n' % (len(difflist), nTotal)
 
     if len(msg) > 0:
-
-        num_intersect = len(set(list1).intersection(set(list2)))
-        msg = failmsg + '\n' + msg + 'There are %r/%d intersecting unordered items' % (num_intersect, nTotal)
+        intersecting_items = set(list1).intersection(set(list2))
+        missing_items1 = set(list2).difference(intersecting_items)
+        missing_items2 = set(list1).difference(intersecting_items)
+        num_intersect = len(intersecting_items)
+        isect_msg = 'There are %d/%d intersecting unordered items' % (num_intersect, nTotal)
+        msg = failmsg + '\n' + msg + isect_msg
+        if len(missing_items1) > 0:
+            msg += '\n %d items are missing from list1' % (len(missing_items1))
+            msg += '\n missing_items1 = %r' % (missing_items1,)
+        if len(missing_items2) > 0:
+            msg += '\n %d items are missing from list2' % (len(missing_items2))
+            msg += '\n missing_items2 = %r' % (missing_items2,)
         raise AssertionError(msg)
 
 

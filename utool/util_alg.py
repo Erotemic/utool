@@ -91,7 +91,8 @@ def greedy_max_inden_setcover(candidate_sets_dict, items, max_covers=None):
         # Add values in this key to the cover
         uncovered_set.difference_update(maxval)
     uncovered_items = list(uncovered_set)
-    return uncovered_items, covered_items_list, accepted_keys
+    covertup = uncovered_items, covered_items_list, accepted_keys
+    return covertup
 
 
 def bayes_rule(b_given_a, prob_a, prob_b):

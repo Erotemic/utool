@@ -17,7 +17,8 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[tests]')
 
 
 VERBOSE_TEST = util_arg.get_argflag(('--verb-test', '--verbose-test'))
-PRINT_SRC = not util_arg.get_argflag(('--noprintsrc', '--nosrc'))
+#PRINT_SRC = not util_arg.get_argflag(('--noprintsrc', '--nosrc'))
+PRINT_SRC = util_arg.get_argflag(('--printsrc', '--src'))
 PRINT_FACE = not util_arg.get_argflag(('--noprintface', '--noface'))
 #BIGFACE = False
 BIGFACE = util_arg.get_argflag('--bigface')
@@ -451,7 +452,7 @@ def get_doctest_testtup_list(testable_list=None, check_flags=True, module=None,
     subx = ut.get_argval('--subx', type_=int, default=None,
                          help_='Only tests the subxth example')
     for testtup in testtup_list:
-        name, num, src, want = testtup
+        (name, num, src, want) = testtup
         prefix = '--test-'
         flag1 = prefix + name + ':' + str(num)
         flag2 = prefix + name
@@ -584,7 +585,8 @@ def exec_doctest(src, kwargs):
     want = kwargs.get('want', None)
     #test_globals['print'] = doctest_print
     # EXEC FUNC
-    six.exec_(src, test_globals, test_locals)
+    #six.exec_(src, test_globals, test_locals)
+    exec(src, test_globals, test_locals)
     if want is None or want == '':
         print('warning test does not want anything')
     else:
@@ -624,30 +626,31 @@ def run_test(func, *args, **kwargs):
     if ut.VERBOSE:
         printTEST('[TEST.BEGIN] %s ' % (sys.executable))
         printTEST('[TEST.BEGIN] %s ' % (funcname,))
-    print('  <funcname>  ')
-    print('  <' + funcname + '>  ')
+    VERBOSE_TIMER = True
+    INDENT_TEST = False
+    #print('  <funcname>  ')
+    #print('  <' + funcname + '>  ')
     #short_funcname = ut.clipstr(funcname, 8)
-    #with util_print.Indenter('  <' + funcname + '>  '):
-    if True:
+    with util_print.Indenter('  <' + funcname + '>  ', enabled=INDENT_TEST):
         try:
             # RUN THE TEST WITH A TIMER
-            with util_time.Timer(upper_funcname) as timer:
+            with util_time.Timer(upper_funcname, verbose=VERBOSE_TIMER) as timer:
                 if func_is_text:
                     test_locals = exec_doctest(src, kwargs)
                 else:
                     # TEST INPUT IS A LIVE PYTHON FUNCTION
                     test_locals = func(*args, **kwargs)
                 print('')
-            # YAY THE TEST PASSED
+            # LOG PASSING TEST
             printTEST('[TEST.FINISH] %s -- SUCCESS' % (funcname,))
             if PRINT_FACE:
                 print(HAPPY_FACE)
-            # WRITE TO PASSED TEST TIMES
+            msg = '%.4fs in %s %s\n' % (
+                timer.ellapsed, funcname, frame_fpath)
             try:
-                with open('test_times.txt', 'a') as file_:
-                    msg = '%.4fs in %s %s\n' % (
-                        timer.ellapsed, funcname, frame_fpath)
-                    file_.write(msg)
+                ut.write_to('test_times.txt', msg, mode='a')
+                #with open('test_times.txt', 'a') as file_:
+                #    file_.write(msg)
             except IOError as ex:
                 ut.printex(ex, '[util_test] IOWarning')
             # RETURN VALID TEST LOCALS
@@ -658,13 +661,15 @@ def run_test(func, *args, **kwargs):
             exc_type, exc_value, tb = sys.exc_info()
             # Get locals in the wrapped function
             ut.printex(ex, tb=True)
-            printTEST('[TEST.FINISH] %s -- FAILED: %s %s' % (funcname, type(ex), ex))
+            printTEST('[TEST.FINISH] %s -- FAILED:\n    type(ex)=%s\n    ex=%s' % (funcname, type(ex), ex))
             if PRINT_FACE:
                 print(SAD_FACE)
             if func_is_text:
                 print('Failed in module: %r' % frame_fpath)
-                src_with_lineno = ut.number_text_lines(src)
-                print(ut.msgblock('FAILED DOCTEST IN %s' % (funcname,), src_with_lineno))
+                DEBUG_SRC = True
+                if DEBUG_SRC:
+                    src_with_lineno = ut.number_text_lines(src)
+                    print(ut.msgblock('FAILED DOCTEST IN %s' % (funcname,), src_with_lineno))
                 #ut.embed()
                 #print('\n... test encountered error. sys.exit(1)\n')
                 #sys.exit(1)
@@ -676,17 +681,24 @@ def run_test(func, *args, **kwargs):
                 #    failed_line = src.splitlines()[lineno - 1]
                 #    print('Failed on line: %s' % failed_line)
             if util_arg.SUPER_STRICT:
-                # Remove this function from stack strace
                 exc_type, exc_value, exc_traceback = sys.exc_info()
-                exc_traceback = exc_traceback.tb_next
+                if not func_is_text:
+                    # Remove this function from stack strace
+                    # dont do this for execed code
+                    exc_traceback = exc_traceback.tb_next
                 # Python 2*3=6
-                six.reraise(exc_type, exc_value, exc_traceback)
+                #six.reraise(exc_type, exc_value, exc_traceback)
                 # PYTHON 2.7 DEPRICATED:
-                #raise exc_type, exc_value, exc_traceback.tb_next
+                if six.PY2:
+                    raise exc_type, exc_value, exc_traceback.tb_next
+                    #exec('raise exc_type, exc_value, exc_traceback.tb_next', globals(), locals())
                 # PYTHON 3.3 NEW METHODS
-                #ex = exc_type(exc_value)
-                #ex.__traceback__ = exc_traceback.tb_next
-                #raise ex
+                elif six.PY3:
+                    ex = exc_type(exc_value)
+                    ex.__traceback__ = exc_traceback.tb_next
+                    raise ex
+                else:
+                    raise AssertionError('Weird python version')
             if SYSEXIT_ON_FAIL:
                 print('[util_test] SYSEXIT_ON_FAIL = True')
                 print('[util_test] exiting with sys.exit(1)')

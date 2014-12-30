@@ -11,7 +11,7 @@ __PRINT_READS__  =  __PRINT_IO__
 
 
 def write_to(fpath, to_write, aslines=False, verbose=False,
-                onlyifdiff=False):
+             onlyifdiff=False, mode='w'):
     """ Writes text to a file
 
     Args:
@@ -29,7 +29,7 @@ def write_to(fpath, to_write, aslines=False, verbose=False,
             return
     if verbose or __PRINT_WRITES__:
         print('[util_io] * Writing to text file: %r ' % util_path.tail(fpath))
-    with open(fpath, 'w') as file_:
+    with open(fpath, mode) as file_:
         if aslines:
             file_.writelines(to_write)
         else:

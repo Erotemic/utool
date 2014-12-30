@@ -37,8 +37,9 @@ class Indenter(object):
     """
     # THIS IS MUCH BETTER
     #@profile
-    def __init__(self, lbl='    '):
-        if not NO_INDENT:
+    def __init__(self, lbl='    ', enabled=True):
+        self.enabled = enabled
+        if not NO_INDENT or not self.enabled:
             #self.modules = modules
             self.modules = get_injected_modules()
             self.old_print_dict = {}
@@ -50,7 +51,7 @@ class Indenter(object):
     @profile
     def start(self):
         # Chain functions together rather than overwriting stdout
-        if NO_INDENT:
+        if NO_INDENT or not self.enabled:
             return
         def indent_msg(*args):
             mgs = ', '.join(map(str, args))
@@ -83,7 +84,7 @@ class Indenter(object):
 
     @profile
     def stop(self):
-        if NO_INDENT:
+        if NO_INDENT or not self.enabled:
             return
         def pop_module_functions(dict_, funcname):
             for mod in six.iterkeys(dict_):
