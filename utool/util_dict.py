@@ -165,7 +165,7 @@ def keys_sorted_by_value(dict_):
 
 def build_conflict_dict(key_list, val_list):
     """
-    Builds dict where a list of values is associated with a key
+    Builds dict where a list of values is associated with more than one key
     """
     key_to_vals = defaultdict(list)
     for key, val in zip(key_list, val_list):
@@ -229,7 +229,20 @@ def dict_subset(dict_, keys):
         >>> result = dict_subset(dict_, keys)
         >>> print(result)
     """
-    return {key: dict_[key] for key in keys}
+    subdict_ = {key: dict_[key] for key in keys}
+    return subdict_
+
+
+def dict_setdiff(dict_, negative_keys):
+    r"""
+    Args:
+        dict_ (dict):
+        negative_keys (list):
+    """
+    keys = [key for key in six.iterkeys(dict_)
+            if key not in set(negative_keys)]
+    subdict_ = dict_subset(dict_, keys)
+    return subdict_
 
 
 def delete_dict_keys(dict_, key_list):
@@ -374,6 +387,61 @@ def dictinfo(dict_):
 
     fmtstr = fmtstr_.format(**locals())
     return ut.indent(fmtstr)
+
+
+def dict_find_keys(dict_, val_list):
+    r"""
+    Args:
+        dict_ (?):
+        val_list (list):
+
+    Returns:
+        ?: found_dict
+
+    CommandLine:
+        python -m utool.util_dict --test-dict_find_keys
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> # build test data
+        >>> dict_ = {'default': 1, 'hierarchical': 5, 'linear': 0, 'kdtree': 1,
+        ...          'composite': 3, 'autotuned': 255, 'saved': 254, 'kmeans': 2,
+        ...          'lsh': 6, 'kdtree_single': 4}
+        >>> val_list = [1]
+        >>> # execute function
+        >>> found_dict = dict_find_keys(dict_, val_list)
+        >>> # verify results
+        >>> result = str(found_dict)
+        >>> print(result)
+        {1: ['kdtree', 'default']}
+    """
+    found_dict = {
+        search_val: [key for key, val in six.iteritems(dict_)
+                     if val == search_val]
+        for search_val in val_list
+    }
+    return found_dict
+
+
+def dict_find_other_sameval_keys(dict_, key):
+    """
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> # build test data
+        >>> dict_ = {'default': 1, 'hierarchical': 5, 'linear': 0, 'kdtree': 1,
+        ...          'composite': 3, 'autotuned': 255, 'saved': 254, 'kmeans': 2,
+        ...          'lsh': 6, 'kdtree_single': 4}
+        >>> key = 'default'
+        >>> # execute function
+        >>> found_dict = dict_find_keys(dict_, val_list)
+    """
+    value = dict_[key]
+    found_dict = dict_find_keys(dict_, [value])
+    other_keys = found_dict[value]
+    other_keys.remove(key)
+    return other_keys
 
 
 if __name__ == '__main__':
