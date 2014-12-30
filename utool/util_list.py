@@ -720,6 +720,11 @@ def list_take(list_, index_list):
     return [list_[ix] for ix in index_list]
 
 
+def list_where(flag_list):
+    """ takes flags returns indexes of True values """
+    return [index for index, flag in enumerate(flag_list) if flag]
+
+
 def scalar_input_map(func, input_):
     """
     Map like function

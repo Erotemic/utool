@@ -83,7 +83,7 @@ def parse_timemap_from_blocks(profile_block_list):
     return prefix_list, timemap
 
 
-def get_summary(profile_block_list, maxlines=10):
+def get_summary(profile_block_list, maxlines=20):
     time_list = [get_block_totaltime(block) for block in profile_block_list]
     time_list = [time if time is not None else -1 for time in time_list]
     blockid_list = [get_block_id(block) for block in profile_block_list]

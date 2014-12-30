@@ -217,8 +217,8 @@ def inject_func_as_method(self, func, method_name=None, class_=None, allow_overr
 
     # Bind function to the class instance
     #new_method = types.MethodType(func, self, self.__class__)
-    #new_method = func.__get__(self, self.__class__)
-    new_method = profile(func.__get__(self, self.__class__))
+    new_method = func.__get__(self, self.__class__)
+    #new_method = profile(func.__get__(self, self.__class__))
 
     if old_method is not None:
         if (old_method.im_func.func_globals['__name__'] != '__main__' and
