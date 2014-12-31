@@ -453,6 +453,11 @@ def deg_to_rad(degree):
     return (degree / 360.0) * tau
 
 
+def enumerate_primes(max_prime=4100):
+    primes = [num for num in range(2, max_prime) if is_prime(num)]
+    return primes
+
+
 def get_nth_prime(n, max_prime=4100):
     """ horribly inefficient but convinient for small tests """
     if n <= 100:

@@ -374,30 +374,34 @@ def spawn_background_process(func, *args, **kwargs):
         >>> ut.ensuredir(dpath)
         >>> fpath = join(dpath, fname)
         >>> # ensure file is not around
+        >>> sleep_time = 1
         >>> ut.delete(fpath)
         >>> assert not ut.checkpath(fpath, verbose=True)
-        >>> def backgrond_func(fpath):
+        >>> def backgrond_func(fpath, sleep_time):
         ...     import utool as ut
         ...     import time
         ...     print('[BG] Background Process has started')
-        ...     time.sleep(.001)
+        ...     time.sleep(sleep_time)
         ...     print('[BG] Background Process is writing')
         ...     ut.write_to(fpath, 'background process')
         ...     print('[BG] Background Process has finished')
+        ...     #raise AssertionError('test exception')
         >>> # execute function
         >>> func = backgrond_func
-        >>> args = (fpath,)
+        >>> args = (fpath, sleep_time)
         >>> kwargs = {}
         >>> print('[FG] Spawning process')
         >>> threadid = ut.spawn_background_process(func, *args, **kwargs)
+        >>> assert threadid.is_alive() is True, 'thread should be active'
         >>> print('[FG] Spawned process. threadid=%r' % (threadid,))
         >>> # background process should not have finished yet
         >>> assert not ut.checkpath(fpath, verbose=True)
         >>> print('[FG] Waiting to check')
-        >>> time.sleep(.01)
+        >>> time.sleep(sleep_time + .1)
         >>> print('[FG] Finished waiting')
         >>> # Now the file should be there
         >>> assert ut.checkpath(fpath, verbose=True)
+        >>> assert threadid.is_alive() is False, 'process should have died'
     """
     IMPLEMENTATION_NUM = 2
     if IMPLEMENTATION_NUM == 0:

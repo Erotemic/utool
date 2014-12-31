@@ -520,6 +520,13 @@ def get_path_dirs():
     return pathdirs
 
 
+def print_path(sort=True):
+    pathdirs = get_path_dirs()
+    if sort:
+        pathdirs = sorted(pathdirs)
+    print('\n'.join(pathdirs))
+
+
 #from subprocess import check_output
 #http://stackoverflow.com/questions/8015163/how-to-check-screen-is-running
 #def screen_present(name):
