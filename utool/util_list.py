@@ -571,6 +571,49 @@ def list_set_equal(list1, list2):
     return set(list1) == set(list2)
 
 
+def is_subset_of_any(set_, other_sets):
+    """
+    returns True if set_ is a subset of any set in other_sets
+
+    Args:
+        set_ (set):
+        other_sets (list of sets):
+
+    Returns:
+        bool: flag
+
+    CommandLine:
+        python -m utool.util_list --test-is_subset_of_any
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> # build test data
+        >>> set_ = {1, 2}
+        >>> other_sets = [{1, 4}, {3, 2, 1}]
+        >>> # execute function
+        >>> result = is_subset_of_any(set_, other_sets)
+        >>> # verify results
+        >>> print(result)
+        True
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> # build test data
+        >>> set_ = {1, 2}
+        >>> other_sets = [{1, 4}, {3, 2}]
+        >>> # execute function
+        >>> result = is_subset_of_any(set_, other_sets)
+        >>> # verify results
+        >>> print(result)
+        False
+    """
+    set_ = set(set_)
+    other_sets = map(set, other_sets)
+    return any([set_.issubset(other_set) for other_set in other_sets])
+
+
 def setdiff_ordered(list1, list2):
     """
     returns list1 elements that are not in list2. preserves order of list1
