@@ -17,7 +17,7 @@ def utool_setup():
         'astor',
         'sphinx',
         'sphinxcontrib-napoleon',
-        #'git+https://github.com/amitdev/lru-dict',  # TODO REMOVE DEPENDENCY
+        'git+https://github.com/amitdev/lru-dict',  # TODO REMOVE DEPENDENCY
     ]
 
     INSTALL_OPTIONAL_EXTRA = [  # NOQA

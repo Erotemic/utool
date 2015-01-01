@@ -1,4 +1,11 @@
-""" Helpers for tests """
+"""
+Helpers for tests
+
+This module contains a more sane reimplementation of doctest functionality.
+(I.E. asserts work and you don't have to worry about standard out mucking things
+up) The code isn't super clean though due to time constriaints. Many functions
+probably belong elsewhere and the parsers need a big cleanup.
+"""
 from __future__ import absolute_import, division, print_function
 import six
 from six.moves import builtins
@@ -746,13 +753,18 @@ def tryimport(modname, pipiname, ensure=False):
             pipcmd = 'sudo ' + base_pipcmd
             sudo = True
         else:
+            pipcmd = base_pipcmd
             sudo = False
         msg = 'unable to find module %r. Please install: %s' % (str(modname), str(pipcmd))
+        print(msg)
         utool.printex(ex, msg, iswarning=True)
         if ensure:
             #raise NotImplementedError('not ensuring')
             utool.cmd(base_pipcmd, sudo=sudo)
-            pass
+            module = tryimport(modname, pipiname, ensure=False)
+            if module is None:
+                raise AssertionError('Cannot ensure modname=%r please install using %r'  % (modname, pipcmd))
+            return module
         return None
 
 
@@ -773,6 +785,7 @@ def bubbletext(text, font='cybermedium'):
         >>> bubble_text3 = utool.bubbletext('TEXT', font='cyberlarge')
         >>> print('\n'.join([bubble_text1, bubble_text2, bubble_text3]))
     """
+    # TODO: move this function elsewhere
     pyfiglet = tryimport('pyfiglet', 'git+https://github.com/pwaller/pyfiglet')
     if pyfiglet is None:
         return text
