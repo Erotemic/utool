@@ -70,8 +70,8 @@ def get_nonconflicting_string(base_fmtstr, conflict_set, offset=0):
         >>> # DISABLE_DOCTEST
         >>> from utool.util_dev import *  # NOQA
         >>> # build test data
-        >>> base_fmtstr = '?'
-        >>> conflict_set = '?'
+        >>> base_fmtstr = 'somestring%d'
+        >>> conflict_set = ['somestring0']
         >>> # execute function
         >>> result = get_nonconflicting_string(base_fmtstr, conflict_set)
         >>> # verify results
@@ -82,6 +82,19 @@ def get_nonconflicting_string(base_fmtstr, conflict_set, offset=0):
         base_str = base_fmtstr % count
         if base_str not in conflict_set:
             return base_str
+
+
+def get_nonconflicting_path(base_fmtstr, dpath, offset=0):
+    import utool as ut
+    from os.path import basename
+    pattern = '*'
+    dname_list = ut.glob(dpath, pattern, recursive=False,
+                               with_files=True, with_dirs=True)
+    conflict_set = set([basename(dname) for dname in dname_list])
+
+    newname = ut.get_nonconflicting_string(base_fmtstr, conflict_set, offset=offset)
+    newpath = join(dpath, newname)
+    return newpath
 
 
 def input_timeout(msg='Waiting for input...', timeout=30):
