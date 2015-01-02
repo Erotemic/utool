@@ -714,6 +714,68 @@ def get_lru_cache(max_size=5):
     return cache_obj
 
 
+def time_different_diskstores():
+    """
+    %timeit shelf_write_test()    # 15.1 ms per loop
+    %timeit cPickle_write_test()  # 1.26 ms per loop
+
+    %timeit shelf_read_test()     # 8.77 ms per loop
+    %timeit cPickle_read_test()   # 2.4 ms per loop
+    %timeit cPickle_read_test2()  # 2.35 ms per loop
+
+    %timeit json_read_test()
+    %timeit json_write_test()
+    """
+    import six
+    import uuid
+    import simplejson as json
+    import cPickle
+    import utool as ut
+    shelf_path = 'test.shelf'
+    json_path = 'test.json'
+    cpkl_path = 'test.pkl'
+    size = 1000
+    dict_ = {str(key): str(uuid.uuid4()) for key in range(size)}
+    ut.delete(cpkl_path)
+    ut.delete(json_path)
+    ut.delete(shelf_path)
+
+    def shelf_write_test():
+        with ut.shelf_open(shelf_path) as shelf_dict:
+            shelf_dict.update(dict_)
+
+    def shelf_read_test():
+        with ut.shelf_open(shelf_path) as shelf_dict:
+            test = {key: val for key, val in six.iteritems(shelf_dict)}
+        assert len(test) > 0
+
+    def json_write_test():
+        with open(json_path, 'wb') as outfile:
+            json.dump(dict_, outfile)
+
+    def cPickle_write_test():
+        with open(cpkl_path, 'wb') as outfile:
+            cPickle.dump(dict_, outfile)
+
+    def cPickle_read_test():
+        with open(cpkl_path, 'rb') as outfile:
+            test = {key: val for key, val in six.iteritems(cPickle.load(outfile))}
+        assert len(test) > 0
+
+    def cPickle_read_test2():
+        with open(cpkl_path, 'rb') as outfile:
+            test = cPickle.load(outfile)
+        assert len(test) > 0
+
+    shelf_write_test()
+    shelf_read_test()
+    #json_write_test()
+    #json_read_test()
+    cPickle_write_test()
+    cPickle_read_test()
+    cPickle_read_test2()
+
+
 if __name__ == '__main__':
     """
     CommandLine:

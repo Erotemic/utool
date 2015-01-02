@@ -49,6 +49,7 @@ def utool_setup():
         ext_modules = {}
         cmdclass = {}
 
+    # run setuptools setup function
     setup(
         name='utool',
         packages=[

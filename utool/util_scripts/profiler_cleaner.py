@@ -11,7 +11,7 @@ import utool as ut
 
 """
 input_fname = 'raw_profile.dev.py.2014-09-23_18-28-57.raw.prof'
-input_fname = 'raw_profile.interactive_automated_matcher.py.2014-12-23_11-31-53.raw.prof'
+input_fname = 'raw_profile.qt_inc_automatch.py.2014-12-23_11-31-53.raw.prof'
 """
 
 

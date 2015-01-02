@@ -527,6 +527,42 @@ def print_path(sort=True):
     print('\n'.join(pathdirs))
 
 
+def search_env_paths(fname):
+    r"""
+    Args:
+        fname (?):
+
+    CommandLine:
+        python -m utool.util_cplat --test-search_path
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_cplat import *  # NOQA
+        >>> # build test data
+        >>> fname = 'opencv2/highgui/libopencv_highgui.so'
+        >>> # execute function
+        >>> result = search_env_paths(fname)
+        >>> # verify results
+        >>> print(result)
+
+    Dev:
+        OpenCV_DIR:PATH={share_opencv}
+        OpenCV_CONFIG_PATH:FILEPATH={share_opencv}
+
+    """
+    key_list = [key for key in os.environ if key.find('PATH') > -1]
+
+    import utool as ut
+    from os.path import join
+    for key in key_list:
+        dpath_list = os.environ[key].split(os.pathsep)
+        for dpath in dpath_list:
+            testname = join(dpath, fname)
+            if ut.checkpath(testname, verbose=False):
+                print('Found in key=%r' % (key,))
+                ut.checkpath(testname, verbose=True, info=True)
+
+
 #from subprocess import check_output
 #http://stackoverflow.com/questions/8015163/how-to-check-screen-is-running
 #def screen_present(name):
