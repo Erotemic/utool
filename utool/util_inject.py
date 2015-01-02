@@ -119,31 +119,35 @@ def inject_print_functions(module_name=None, module_prefix='[???]', DEBUG=False,
     module = _get_module(module_name, module)
     if SILENT:
         def print(*args):
-            """ silent print """
+            """ silent builtins.print """
             pass
         def printDBG(*args):
+            """ silent debug print """
             pass
         def print_(*args):
+            """ silent stdout.write """
             pass
     else:
         if DEBUG_PRINT:
             # Turns on printing where a message came from
             def print(*args):
-                """ logging print """
+                """ debugging logging builtins.print """
                 from utool._internal.meta_util_dbg import get_caller_name
                 calltag = ''.join(('[caller:', get_caller_name(), ']' ))
                 util_logging.__UTOOL_PRINT__(calltag, *args)
         else:
             def print(*args):
-                """ logging print """
+                """ logging builtins.print """
                 util_logging.__UTOOL_PRINT__(*args)
 
         if __AGGROFLUSH__:
             def print_(*args):
+                """ aggressive logging stdout.write """
                 util_logging.__UTOOL_WRITE__(*args)
                 util_logging.__UTOOL_FLUSH__()
         else:
             def print_(*args):
+                """ logging stdout.write """
                 util_logging.__UTOOL_WRITE__(*args)
 
         # turn on module debugging with command line flags
@@ -163,13 +167,16 @@ def inject_print_functions(module_name=None, module_prefix='[???]', DEBUG=False,
         if __DEBUG_ALL__ or DEBUG or DEBUG_FLAG:
             print('INJECT_PRINT: %r == %r' % (module_name, module_prefix))
             def printDBG(*args):
+                """ debug logging print """
                 msg = ', '.join(map(str, args))
                 util_logging.__UTOOL_PRINTDBG__(module_prefix + ' DEBUG ' + msg)
         else:
             def printDBG(*args):
+                """ silent debug logging print """
                 pass
     _inject_funcs(module, print, print_, printDBG)
-    return print, print_, printDBG
+    print_funcs = (print, print_, printDBG)
+    return print_funcs
 
 
 def inject_reload_function(module_name=None, module_prefix='[???]', module=None):
@@ -324,6 +331,8 @@ def inject_profile_function(module_name=None, module_prefix='[???]', module=None
 
 def noinject(module_name=None, module_prefix='[???]', DEBUG=False, module=None, N=0):
     """
+    Use in modules that do not have inject in them
+
     Does not inject anything into the module. Just lets utool know that a module
     is being imported so the import order can be debuged
     """

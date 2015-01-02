@@ -54,6 +54,10 @@ logdir_cacheid = 'log_dpath'
 
 def get_logging_dir(appname='default'):
     """
+    The default log dir is in the system resource directory
+    But the utool global cache allows for the user to override
+    where the logs for a specific app should be stored.
+
     Returns:
         log_dir_realpath (str): real path to logging directory
     """
@@ -62,7 +66,10 @@ def get_logging_dir(appname='default'):
     from utool.util_cache import get_default_appname  # Hacky
     if appname is None or  appname == 'default':
         appname = get_default_appname()
-    default = join(get_resource_dir(), appname, 'logs')
+    resource_dpath = get_resource_dir()
+    default = join(resource_dpath, appname, 'logs')
+    # Check global cache for a custom logging dir otherwise
+    # use the default.
     log_dir = global_cache_read(logdir_cacheid, appname=appname,
                                 default=default)
     log_dir_realpath = realpath(log_dir)
@@ -119,8 +126,40 @@ def add_logging_handler(handler, format_='file'):
 
 
 def start_logging(log_fpath=None, mode='a', appname='default'):
-    """
+    r"""
     Overwrites utool print functions to use a logger
+
+    Example0:
+        >>> # DISABLE_DOCTEST
+        >>> import sys
+        >>> sys.argv.append('--verb-logging')
+        >>> import utool as ut
+        >>> ut.start_logging()
+        >>> ut.util_logging.__UTOOL_PRINT__('hello world')
+        >>> ut.util_logging.__UTOOL_WRITE__('writing1')
+        >>> ut.util_logging.__UTOOL_WRITE__('writing2\n')
+        >>> ut.util_logging.__UTOOL_WRITE__('writing3')
+        >>> ut.util_logging.__UTOOL_FLUSH__()
+        >>> handler = ut.util_logging.__UTOOL_ROOT_LOGGER__.handlers[0]
+        >>> current_log_fpath = handler.stream.name
+        >>> current_log_text = ut.read_from(current_log_fpath)
+        >>> assert current_log_text.find('hello world') > 0
+        >>> assert current_log_text.find('writing1writing2') > 0
+        >>> assert current_log_text.find('writing3') > 0
+
+    Example1:
+        >>> # DISABLE_DOCTEST
+        >>> # Ensure that progress is logged
+        >>> import sys
+        >>> sys.argv.append('--verb-logging')
+        >>> import utool as ut
+        >>> ut.start_logging()
+        >>> [x for x in  ut.ProgressIter(range(0, 1000), freq=4)]
+        >>> handler = ut.util_logging.__UTOOL_ROOT_LOGGER__.handlers[0]
+        >>> current_log_fpath = handler.stream.name
+        >>> current_log_text = ut.read_from(current_log_fpath)
+        >>> assert current_log_text.find('rate') > 0, 'progress was not logged'
+        >>> print(current_log_text)
     """
     global __UTOOL_ROOT_LOGGER__
     global __UTOOL_PRINT__
@@ -154,6 +193,7 @@ def start_logging(log_fpath=None, mode='a', appname='default'):
         # Overwrite utool functions with the logging functions
 
         def utool_flush(*args):
+            """ flushes whatever is in the current utool write buffer """
             global __UTOOL_WRITE_BUFFER__
             msg = ''.join(__UTOOL_WRITE_BUFFER__)
             __UTOOL_WRITE_BUFFER__ = []
@@ -161,6 +201,7 @@ def start_logging(log_fpath=None, mode='a', appname='default'):
             #__PYTHON_FLUSH__()
 
         def utool_write(*args):
+            """ writes to current utool logs and to sys.stdout.write """
             global __UTOOL_WRITE_BUFFER__
             msg = ', '.join(map(str, args))
             __UTOOL_WRITE_BUFFER__.append(msg)
@@ -171,14 +212,17 @@ def start_logging(log_fpath=None, mode='a', appname='default'):
 
         if PRINT_ALL_CALLERS:
             def utool_print(*args):
+                """ debugging utool print function """
                 import utool
                 __UTOOL_ROOT_LOGGER__.info('\n\n----------')
                 __UTOOL_ROOT_LOGGER__.info(utool.get_caller_name(range(0, 20)))
                 return  __UTOOL_ROOT_LOGGER__.info(', '.join(map(str, args)))
         else:
             def utool_print(*args):
+                """ standard utool print function """
                 return  __UTOOL_ROOT_LOGGER__.info(', '.join(map(str, args)))
         def utool_printdbg(*args):
+            """ standard utool print debug function """
             return  __UTOOL_ROOT_LOGGER__.debug(', '.join(map(str, args)))
         # overwrite the utool printers
         __UTOOL_WRITE__    = utool_write
@@ -221,3 +265,16 @@ if PRINT_INJECT_ORDER:
     fmtdict = dict(callername=callername, modname='utool.util_logging')
     msg = '[util_inject] {modname} is imported by {callername}'.format(**fmtdict)
     builtins.print(msg)
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m utool.util_logging
+        python -m utool.util_logging --allexamples
+        python -m utool.util_logging --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

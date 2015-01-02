@@ -294,7 +294,8 @@ class Pref(PrefNode):
                 pass
             else:
                 import utool
-                utool.printex(ex, 'Pref object missing named attribute', keys=['self._intern.name', 'name'])
+                if utool.VERBOSE:
+                    utool.printex(ex, 'Pref object missing named attribute', keys=['self._intern.name', 'name'], iswarning=True)
                 raise AttributeError('Pref object is missing named attribute: name=%r'  % name)
                 #raise
 

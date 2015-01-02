@@ -1,3 +1,8 @@
+"""
+progress handler.
+
+everything but ProgressIter in this file should be depricated
+"""
 from __future__ import absolute_import, division, print_function
 import time
 import sys
@@ -20,6 +25,8 @@ PROGGRESS_BACKSPACE = not util_arg.get_argflag(('--screen', '--progress-backspac
 #PROGRESS_WRITE = sys.stdout.write
 #PROGRESS_FLUSH = sys.stdout.flush
 
+# FIXME: if this is loaded before logging beings
+# progress will not be logged
 PROGRESS_WRITE = util_logging.__UTOOL_WRITE__
 PROGRESS_FLUSH = util_logging.__UTOOL_FLUSH__
 
@@ -228,6 +235,10 @@ class ProgressIter(object):
         est_min_left = -1
 
         #with util_time.Timer(self.lbl, verbose=self.with_totaltime):
+
+        # HACK: reaquire logging print funcs in case they have changed
+        PROGRESS_WRITE = util_logging.__UTOOL_WRITE__
+        PROGRESS_FLUSH = util_logging.__UTOOL_FLUSH__
 
         msg = fmt_msg % (0, -1, -1, 0)
         PROGRESS_WRITE(msg)
