@@ -17,13 +17,16 @@ def utool_setup():
         'astor',
         'sphinx',
         'sphinxcontrib-napoleon',
+    ]
+
+    OPTIONAL_DEPENDS_LINKS = [
         'git+https://github.com/amitdev/lru-dict',  # TODO REMOVE DEPENDENCY
+        'git+https://github.com/pwaller/pyfiglet',
     ]
 
     INSTALL_OPTIONAL_EXTRA = [  # NOQA
         'guppy',
         'objgraph',
-        'git+https://github.com/pwaller/pyfiglet',
     ]
 
     INSTALL_REQUIRES += INSTALL_OPTIONAL
@@ -64,6 +67,7 @@ def utool_setup():
         author_email='erotemic@gmail.com',
         keywords='',
         install_requires=INSTALL_REQUIRES,
+        dependency_links=OPTIONAL_DEPENDS_LINKS,
         package_data={},
         scripts=[
             'utool/util_scripts/makesetup.py',

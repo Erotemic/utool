@@ -1120,6 +1120,14 @@ def list_cover(list1, list2):
     return incover_list
 
 
+def and_lists(*args):
+    return [all(tup) for tup in zip(*args)]
+
+
+def or_lists(*args):
+    return [any(tup) for tup in zip(*args)]
+
+
 if __name__ == '__main__':
     """
     CommandLine:
