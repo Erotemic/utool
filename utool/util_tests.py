@@ -367,7 +367,9 @@ def get_doctest_testtup_list(testable_list=None, check_flags=True, module=None,
             frame_fpath = frame.f_globals['__file__']
             if frame_name == main_modname:
                 module = sys.modules[main_modname]
-                if ut.get_modname_from_modpath(module.__file__) == 'kernprof':
+                entry_modname = ut.get_modname_from_modpath(module.__file__)
+                #ut.embed()
+                if entry_modname in ['kernprof', 'kernprof-script']:
                     # kernprof clobbers the __main__ variable.
                     # workaround by reimporting the module name
                     import importlib

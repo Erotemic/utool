@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# Provides a wrapper around kernprof.py
+# with postprocessing functionality
 # Globals
 echo ""
 echo "==========="
@@ -35,8 +38,9 @@ if [ "$SYSNAME" = "MINGW32_NT" ]; then
     export MINGW_PYDIR=$(python -c "import sys, os; print(os.path.dirname(sys.executable))")
     export PYEXE=$(python -c "import sys; print(sys.executable)")
     export PYSCRIPTS=$MINGW_PYDIR/Scripts
-    export KERNPROF_PY="$PYEXE $PYSCRIPTS/kernprof.py"
-    export LINEPROF_CLEAN_PY="$PYEXE $PYSCRIPTS/profiler_cleaner.py"
+    #export KERNPROF_PY="$PYEXE $PYSCRIPTS/kernprof.py"
+    export KERNPROF_PY="$PYSCRIPTS/kernprof.exe"  # Changed for support on Ooo
+    export LINEPROF_CLEAN_PY="$PYEXE $PYSCRIPTS/utprof_cleaner.py"
 elif [ "$OSTYPE" = "darwin"* ]; then
     # MACPORTS
     export PYEXE=$(python -c "import sys; print(sys.executable)")
@@ -44,12 +48,12 @@ elif [ "$OSTYPE" = "darwin"* ]; then
     echo "Python EXE: $PYEXE"
     echo "Python Scripts $PYSCRIPTS"
     export KERNPROF_PY="$PYEXE $PYSCRIPTS/kernprof.py"
-    export LINEPROF_CLEAN_PY="$PYEXE $PYSCRIPTS/profiler_cleaner.py"
+    export LINEPROF_CLEAN_PY="$PYEXE $PYSCRIPTS/utprof_cleaner.py"
 else
     # UBUNTU
     #export KERNPROF_PY="kernprof.py"
     export KERNPROF_PY="kernprof"
-    export LINEPROF_CLEAN_PY="profiler_cleaner.py"
+    export LINEPROF_CLEAN_PY="utprof_cleaner.py"
 
     export RUNSNAKE_PY="runsnake"
     export PYEXE=$(python -c "import sys; print(sys.executable)")

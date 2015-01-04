@@ -73,9 +73,9 @@ def utool_setup():
         scripts=[
             'utool/util_scripts/makesetup.py',
             'utool/util_scripts/makeinit.py',
-            'utool/util_scripts/profiler.sh',
-            'utool/util_scripts/profiler.py',
-            'utool/util_scripts/profiler_cleaner.py',
+            'utool/util_scripts/utprof.sh',
+            'utool/util_scripts/utprof.py',
+            'utool/util_scripts/utprof_cleaner.py',
             'utool/util_scripts/utoolwc.py',
             'utool/util_scripts/grabzippedurl.py',
             'utool/util_scripts/autogen_sphinx_docs.py',
