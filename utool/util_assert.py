@@ -9,22 +9,33 @@ except ImportError:
 from utool import util_iter
 from utool import util_alg
 from utool import util_inject
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[assert]')
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[util_assert]')
 from utool import util_arg
 
 
-def assert_all_not_None(list_, list_name='some_list', key_list=[]):
+def get_first_None_position(list_):
+    for index, item in enumerate(list_):
+        if item is None:
+            return index
+    return None
+
+
+def assert_all_not_None(list_, list_name='some_list', key_list=[], verbose=True):
     if util_arg.NO_ASSERTS:
         return
     try:
-        for count, item in enumerate(list_):
-            #if any([item is None for count, item in enumerate(list_)]):
-            assert item is not None, 'a list element is None'
+        index = get_first_None_position(list_)
+        assert index is None, 'index=%r in %s is None' % (index, list_name)
+        if verbose:
+            print('PASSED: %s has no Nones' % (list_name))
     except AssertionError as ex:
-        from utool.util_dbg import printex
-        msg = (list_name + '[%d] = %r') % (count, item)
-        printex(ex, msg, key_list=key_list, N=1)
-        raise ex
+        from utool import util_dbg
+        item = list_[index]
+        msg = (list_name + '[%d] = %r') % (index, item)
+        if verbose:
+            msg += '\n len(list_) = %r' % (len(list_))
+        util_dbg.printex(ex, msg, keys=key_list, N=1)
+        raise
 
 
 def assert_unflat_level(unflat_list, level=1, basetype=None):
