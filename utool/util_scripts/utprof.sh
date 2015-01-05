@@ -102,9 +102,13 @@ elif [ $PROFILE_TYPE = "lineprof" ]; then
     echo "CLEANING RAW PROFILE WITH COMMAND: $LINEPROF_CLEAN_PY $raw_profile $clean_profile"
     # Clean the line profile output
     $LINEPROF_CLEAN_PY $raw_profile $clean_profile
-    echo "DUMPING CLEAN PROFILE TO STANDARD OUT"
-    # Print the cleaned output
-    cat $clean_profile
+    if [ "false" = "true" ]; then
+        echo "DUMPING CLEAN PROFILE TO STANDARD OUT"
+        # Print the cleaned output
+        cat $clean_profile
+    fi
+    cp $raw_profile raw_profile.txt
+    cp $clean_profile clean_profile.txt
 #
 #
 # RUNSNAKE PROFILER

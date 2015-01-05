@@ -195,9 +195,10 @@ def start_logging(log_fpath=None, mode='a', appname='default'):
         def utool_flush(*args):
             """ flushes whatever is in the current utool write buffer """
             global __UTOOL_WRITE_BUFFER__
-            msg = ''.join(__UTOOL_WRITE_BUFFER__)
-            __UTOOL_WRITE_BUFFER__ = []
-            return __UTOOL_ROOT_LOGGER__.info(msg)
+            if len(__UTOOL_WRITE_BUFFER__) > 0:
+                msg = ''.join(__UTOOL_WRITE_BUFFER__)
+                __UTOOL_WRITE_BUFFER__ = []
+                return __UTOOL_ROOT_LOGGER__.info(msg)
             #__PYTHON_FLUSH__()
 
         def utool_write(*args):
@@ -213,9 +214,10 @@ def start_logging(log_fpath=None, mode='a', appname='default'):
         if PRINT_ALL_CALLERS:
             def utool_print(*args):
                 """ debugging utool print function """
-                import utool
+                import utool as ut
+                utool_flush()
                 __UTOOL_ROOT_LOGGER__.info('\n\n----------')
-                __UTOOL_ROOT_LOGGER__.info(utool.get_caller_name(range(0, 20)))
+                __UTOOL_ROOT_LOGGER__.info(ut.get_caller_name(range(0, 20)))
                 return  __UTOOL_ROOT_LOGGER__.info(', '.join(map(str, args)))
         else:
             def utool_print(*args):

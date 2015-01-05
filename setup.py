@@ -9,6 +9,7 @@ def utool_setup():
         'six >= 1.8.0',
         'psutil >= 2.1.3',
         'parse >= 1.6.6',
+        'lockfile >= 0.10.2',
         #'decorator',
     ]
 
@@ -17,6 +18,9 @@ def utool_setup():
         'astor',
         'sphinx',
         'sphinxcontrib-napoleon',
+    ]
+
+    REQUIRES_LINKS = [
     ]
 
     OPTIONAL_DEPENDS_LINKS = [
@@ -29,7 +33,9 @@ def utool_setup():
         'objgraph',
     ]
 
+    # TODO: remove optional depends
     INSTALL_REQUIRES += INSTALL_OPTIONAL
+    REQUIRES_LINKS += OPTIONAL_DEPENDS_LINKS
 
     try:
         # HACK: Please remove someday
@@ -68,7 +74,7 @@ def utool_setup():
         author_email='erotemic@gmail.com',
         keywords='',
         install_requires=INSTALL_REQUIRES,
-        dependency_links=OPTIONAL_DEPENDS_LINKS,
+        dependency_links=REQUIRES_LINKS,
         package_data={},
         scripts=[
             'utool/util_scripts/makesetup.py',

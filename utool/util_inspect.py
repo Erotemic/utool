@@ -462,6 +462,10 @@ def infer_arg_types_and_descriptions(argname_list, defaults):
             ('fm', ('list', 'list of feature matches as tuples (qfx, dfx)')),
             ('fs', ('list', 'list of feature scores')),
             ('qaid'    , ('int', 'query annotation id')),
+            ('daids'   , ('list', 'database annotation ids')),
+            ('qaids'   , ('list', 'query annotation ids')),
+            ('use_cache', ('bool', 'turns on disk based caching')),
+            ('qreq_vsmany_', ('QueryRequest', 'persistant vsmany query request')),
             ('qnid'    , ('int', 'query name id')),
 
             # Pipeline hints
@@ -517,7 +521,7 @@ def infer_arg_types_and_descriptions(argname_list, defaults):
             # utool hints
             ('funcname'    , ('str', 'function name')),
             ('modname'    , ('str', 'module name')),
-            ('argname_list'    , ('str', 'list of argument names')),
+            ('argname_list'   , ('str', 'list of argument names')),
             ('return_name'    , ('str', 'return variable name')),
             ('examplecode'    , ('str', None)),
 
@@ -544,22 +548,23 @@ def infer_arg_types_and_descriptions(argname_list, defaults):
 
     # use hints to build better docstrs
     for argx in range(len(argname_list)):
-        if arg_types[argx] == '?' or arg_types[argx] == 'None':
-            argname = argname_list[argx]
-            if argname is None:
-                #print('warning argname is None')
-                continue
-            for regex, hint in six.iteritems(registered_hints):
-                matchobj = re.match('^' + regex + '$', argname, flags=re.MULTILINE | re.DOTALL)
-                if matchobj is not None:
-                    type_ = hint[0]
-                    desc_ = hint[1]
-                    if type_ is not None:
+        #if arg_types[argx] == '?' or arg_types[argx] == 'None':
+        argname = argname_list[argx]
+        if argname is None:
+            #print('warning argname is None')
+            continue
+        for regex, hint in six.iteritems(registered_hints):
+            matchobj = re.match('^' + regex + '$', argname, flags=re.MULTILINE | re.DOTALL)
+            if matchobj is not None:
+                type_ = hint[0]
+                desc_ = hint[1]
+                if type_ is not None:
+                    if arg_types[argx] == '?' or arg_types[argx] == 'None':
                         arg_types[argx] = type_
-                    if desc_ is not None:
-                        desc_ = matchobj.expand(desc_)
-                        argdesc_list[argx] = ' ' + desc_
-                    break
+                if desc_ is not None:
+                    desc_ = matchobj.expand(desc_)
+                    argdesc_list[argx] = ' ' + desc_
+                break
     return arg_types, argdesc_list
 
 
