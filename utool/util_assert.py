@@ -105,7 +105,10 @@ def assert_lists_eq(list1, list2, failmsg='', verbose=False):
         if len(missing_items2) > 0:
             msg += '\n %d items are missing from list2' % (len(missing_items2))
             msg += '\n missing_items2 = %r' % (missing_items2,)
-        raise AssertionError(msg)
+        ex = AssertionError(msg)
+        if verbose:
+            print(msg)
+        raise ex
 
 
 def assert_inbounds(num, low, high, msg=''):
