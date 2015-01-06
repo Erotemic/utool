@@ -13,13 +13,15 @@ class PythonStatement(object):
         return self.stmt
 
 
-def write_modscript_alias(fpath, modname):
+def write_modscript_alias(fpath, modname, pyscript='python'):
     """
     convinience function because $@ is annoying to paste into the terminal
     """
     import utool as ut
     import os
-    ut.write_to(fpath, 'python -m {modname} $@'.format(modname=modname))
+    fmtstr = '{pyscript} -m {modname} $@'
+    cmdstr = fmtstr.format(pyscript=pyscript, modname=modname)
+    ut.write_to(fpath, cmdstr)
     os.system('chmod +x ' + fpath)
 
 

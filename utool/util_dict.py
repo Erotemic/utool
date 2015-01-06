@@ -13,6 +13,11 @@ except ImportError:
 print, print_, printDBG, rrr, profile = inject(__name__, '[dict]')
 
 
+def count_dict_vals(dict_of_lists):
+    count_dict = {'len(%s)' % (key,): len(val) for key, val in six.iteritems(dict_of_lists)}
+    return count_dict
+
+
 def get_dict_hashid(dict_):
     r"""
     Args:
@@ -307,6 +312,7 @@ def dict_take_list(dict_, keys, *d):
 
 
 def dict_take(dict_, keys, *d):
+    """ alias """
     return dict_take_list(dict_, keys, *d)
 
 
@@ -392,11 +398,11 @@ def dictinfo(dict_):
 def dict_find_keys(dict_, val_list):
     r"""
     Args:
-        dict_ (?):
+        dict_ (dict):
         val_list (list):
 
     Returns:
-        ?: found_dict
+        dict: found_dict
 
     CommandLine:
         python -m utool.util_dict --test-dict_find_keys

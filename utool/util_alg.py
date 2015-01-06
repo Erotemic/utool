@@ -354,6 +354,7 @@ def search_utool(pat):
 
 
 def item_hist(list_):
+    """ counts the number of times each item appears in the dictionary """
     dict_hist = {}
     # Insert each item into the correct group
     for item in list_:

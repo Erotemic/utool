@@ -67,11 +67,8 @@ def get_list_column(list_, colx):
     return [row[colx] for row in list_]
 
 
-def list_getat(list_, index_list):
-    return [list_[index] for index in index_list]
-
-
 def safe_listget(list_, index, default='?'):
+    """ depricate """
     if index >= len(list_):
         return default
     ret = list_[index]

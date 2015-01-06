@@ -563,6 +563,33 @@ def search_env_paths(fname):
                 ut.checkpath(testname, verbose=True, info=True)
 
 
+def change_term_title(title):
+    """
+    only works on unix systems only tested on Ubuntu GNOME changes text on
+    terminal title for identifying debugging tasks.
+
+    The title will remain until python exists
+
+    Args:
+        title (str):
+
+    CommandLine:
+        python -m utool.util_cplat --test-change_term_title
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_cplat import *  # NOQA
+        >>> # build test data
+        >>> title = 'change title test'
+        >>> # execute function
+        >>> result = change_term_title(title)
+        >>> # verify results
+        >>> print(result)
+    """
+    cmd_str = r'''echo -en "\033]0;''' + title + '''\a"'''
+    os.system(cmd_str)
+
+
 #from subprocess import check_output
 #http://stackoverflow.com/questions/8015163/how-to-check-screen-is-running
 #def screen_present(name):

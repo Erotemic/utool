@@ -71,10 +71,10 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
             pass
         else:
             #import utool as ut
-            #if ut.VERBOSE:
-            print('[util_inspect] WARNING:')
-            print(' * Unknown if testable val=%r' % (val))
-            print(' * Unknown if testable type(val)=%r' % type(val))
+            if ut.VERBOSE:
+                print('[util_inspect] WARNING:')
+                print(' * Unknown if testable val=%r' % (val))
+                print(' * Unknown if testable type(val)=%r' % type(val))
 
 
 def list_class_funcnames(fname, blank_pats=['    #']):

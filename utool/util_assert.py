@@ -20,13 +20,14 @@ def get_first_None_position(list_):
     return None
 
 
-def assert_all_not_None(list_, list_name='some_list', key_list=[], verbose=True):
+def assert_all_not_None(list_, list_name='some_list', key_list=[], verbose=True,
+                        veryverbose=False):
     if util_arg.NO_ASSERTS:
         return
     try:
         index = get_first_None_position(list_)
         assert index is None, 'index=%r in %s is None' % (index, list_name)
-        if verbose:
+        if veryverbose:
             print('PASSED: %s has no Nones' % (list_name))
     except AssertionError as ex:
         from utool import util_dbg
