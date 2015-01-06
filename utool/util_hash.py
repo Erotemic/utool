@@ -5,7 +5,7 @@ import six
 import uuid
 import random
 from utool.util_inject import inject
-print, print_, printDBG, rrr, profile = inject(__name__, '[hash]')
+(print, print_, printDBG, rrr, profile) = inject(__name__, '[hash]')
 
 # default length of hash codes
 HASH_LEN = 16
@@ -75,6 +75,7 @@ def make_hash(o):
     return hash(tuple(frozenset(sorted(new_o.items()))))
 
 
+@profile
 def hashstr_arr(arr, lbl='arr', **kwargs):
     if isinstance(arr, list):
         arr = tuple(arr)  # force arrays into a tuple for hashability
@@ -88,6 +89,7 @@ def hashstr_arr(arr, lbl='arr', **kwargs):
     return arr_uid
 
 
+@profile
 def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
     if isinstance(data, tuple):
         data = repr(data)
