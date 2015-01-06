@@ -242,7 +242,7 @@ class ProgressIter(object):
 
         msg = fmt_msg % (0, -1, -1, 0)
         PROGRESS_WRITE(msg)
-        #PROGRESS_FLUSH()
+        PROGRESS_FLUSH()
 
         # yeild first element
         enumiter = enumerate(self.iterable)
@@ -296,7 +296,7 @@ class ProgressIter(object):
                 #    print('iters_per_second = %r' % iters_per_second)
                 #    print('</!!!!!!!!!!!!!>')
                 PROGRESS_WRITE(msg)
-                #PROGRESS_FLUSH()
+                PROGRESS_FLUSH()
                 last_count = self.count
                 last_time = now_time
         # FINISH PROGRESS INFO
@@ -309,7 +309,7 @@ class ProgressIter(object):
         PROGRESS_WRITE(msg)
         #print('freq = %r' % freq)
         PROGRESS_WRITE('\n')
-        #PROGRESS_FLUSH()
+        PROGRESS_FLUSH()
         #self.end(self.count + 1)
 
 
