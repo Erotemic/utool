@@ -4,6 +4,7 @@ from six.moves import range
 import fnmatch
 import inspect
 import traceback
+import time
 try:
     import numpy as np
 except ImportError:
@@ -324,11 +325,29 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
     print('Get stack location with: ')
     print('ut.get_caller_stack_frame(N=8).f_code.co_name')
     print('set EXIT_NOW or qqq to True to hard exit on unembed')
-    IPython.embed()
-    # Exit python immediately if specifed
-    if vars().get('EXIT_NOW', False) or vars().get('qqq', False):
-        print('[utool.embed] EXIT_NOW specified')
-        sys.exit(1)
+    #print('set iup to True to draw plottool stuff')
+    print('call %pylab qt4 to get plottool stuff working')
+    once = True
+    # Allow user to set iup and redo the loop
+    while once or vars().get('iup', False):
+        if not once:
+            # SUPER HACKY WAY OF GETTING FIGURES ON THE SCREEN BETWEEN UPDATES
+            #vars()['iup'] = False
+            # ALL YOU NEED TO DO IS %pylab qt4
+            print('re-emebeding')
+            #import plottool as pt
+            #pt.update()
+            #(pt.present())
+            for _ in range(100):
+                time.sleep(.01)
+
+        once = False
+        #vars().get('iup', False):
+        IPython.embed()
+        # Exit python immediately if specifed
+        if vars().get('EXIT_NOW', False) or vars().get('qqq', False):
+            print('[utool.embed] EXIT_NOW specified')
+            sys.exit(1)
 
 
 def quitflag(num=None, embed_=False, parent_locals=None, parent_globals=None):

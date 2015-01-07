@@ -55,6 +55,43 @@ def DEPRICATED(func):
 #    return varargs
 
 
+def set_clipboard(text):
+    """
+    References:
+        http://stackoverflow.com/questions/11063458/python-script-to-copy-text-to-clipboard
+        http://stackoverflow.com/questions/579687/how-do-i-copy-a-string-to-the-clipboard-on-windows-using-python
+    """
+    import utool as ut
+    pyperclip = ut.tryimport('pyperclip', ensure=True)
+    if pyperclip is not None:
+        pyperclip.copy(text)
+    else:
+        from Tkinter import Tk
+        tk_inst = Tk()
+        tk_inst.withdraw()
+        tk_inst.clipboard_clear()
+        tk_inst.clipboard_append(text)
+        tk_inst.destroy()
+
+
+def get_clipboard():
+    """
+    References:
+        http://stackoverflow.com/questions/11063458/python-script-to-copy-text-to-clipboard
+    """
+    import utool as ut
+    pyperclip = ut.tryimport('pyperclip', ensure=True)
+    if pyperclip is not None:
+        text = pyperclip.paste()
+    else:
+        from Tkinter import Tk
+        tk_inst = Tk()
+        tk_inst.withdraw()
+        text = tk_inst.clipboard_get()
+        tk_inst.destroy()
+    return text
+
+
 def get_nonconflicting_string(base_fmtstr, conflict_set, offset=0):
     """
     gets a new string that wont conflict with something that already exists

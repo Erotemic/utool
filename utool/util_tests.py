@@ -723,7 +723,7 @@ def printTEST(msg, wait=False):
     # raw_input('press enter to continue')
 
 
-def tryimport(modname, pipiname, ensure=False):
+def tryimport(modname, pipiname=None, ensure=False):
     """
 
     CommandLine:
@@ -745,6 +745,8 @@ def tryimport(modname, pipiname, ensure=False):
         >>> lru = tryimport(modname, pipiname, ensure=True)
         >>> assert isinstance(lru, types.ModuleType)
     """
+    if pipiname is None:
+        pipiname = modname
     try:
         module = __import__(modname)
         return module
