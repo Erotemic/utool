@@ -144,12 +144,13 @@ class ProgressIter(object):
                 kwargs['nTotal'] = nTotal
             except Exception:
                 pass
-        self.time_thresh = kwargs.pop('time_thresh', None)
-        self.use_rate  = kwargs.pop('use_rate', True)
-        self.lbl       = kwargs.get('lbl', 'lbl')
-        self.nTotal    = kwargs.get('nTotal', 0)
-        self.backspace = kwargs.get('backspace', True)
-        self.freq      = kwargs.get('freq', 4)
+        self.time_thresh    = kwargs.pop('time_thresh', None)
+        self.use_rate       = kwargs.pop('use_rate', True)
+        self.lbl            = kwargs.get('lbl', 'lbl')
+        self.nTotal         = kwargs.get('nTotal', 0)
+        self.backspace      = kwargs.get('backspace', True)
+        self.freq           = kwargs.get('freq', 4)
+        self.message_type   = kwargs.get('message_type', 1)
         self.with_totaltime = False
         if self.use_rate:
             # Hacky so hacky. this needs major cleanup
@@ -203,14 +204,24 @@ class ProgressIter(object):
         last_count = -1
         #self.nTotal = len(self.iterable)
         nTotal = self.nTotal
-        msg_parts = (
-            '\r',
-            self.lbl,
-            ' %4d/', str(nTotal),
-            '...  rate=%4.1f iters per second.',
-            ' est_min_left=%4.2f,',
-            ' total_min=%4.2f,',
-        )
+        if self.message_type == 2:
+            msg_parts = (
+                '\r',
+                self.lbl,
+                ' %4d/', str(nTotal),
+                '...  rate=%3.3f seconds per iter.',
+                ' est_min_left=%4.2f,',
+                ' total_min=%4.2f,',
+            )
+        else:
+            msg_parts = (
+                '\r',
+                self.lbl,
+                ' %4d/', str(nTotal),
+                '...  rate=%4.2f iters per second.',
+                ' est_min_left=%4.2f,',
+                ' total_min=%4.2f,',
+            )
         fmt_msg = ''.join(msg_parts)
 
         if not self.backspace:
@@ -286,7 +297,11 @@ class ProgressIter(object):
                 iters_left = nTotal - self.count
                 est_seconds_left = iters_left / (iters_per_second + 1E-9)
                 est_min_left = est_seconds_left / 60.0
-                msg = fmt_msg % (self.count + 1, iters_per_second, est_min_left, total_min)
+                if self.message_type == 2:
+                    seconds_per_iter = 1.0 / iters_per_second
+                    msg = fmt_msg % (self.count + 1, seconds_per_iter, est_min_left, total_min)
+                else:
+                    msg = fmt_msg % (self.count + 1, iters_per_second, est_min_left, total_min)
                 #if False and __debug__:
                 #    print('<!!!!!!!!!!!!!>')
                 #    print('iters_left = %r' % iters_left)
