@@ -5,6 +5,7 @@ import six
 import re
 import functools
 from utool import util_regex
+from utool import util_arg
 from utool import util_inject
 from utool._internal import meta_util_six
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[inspect]')
@@ -71,7 +72,7 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
             pass
         else:
             #import utool as ut
-            if ut.VERBOSE:
+            if util_arg.VERBOSE:
                 print('[util_inspect] WARNING:')
                 print(' * Unknown if testable val=%r' % (val))
                 print(' * Unknown if testable type(val)=%r' % type(val))
