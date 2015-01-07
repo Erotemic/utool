@@ -6,6 +6,7 @@ except ImportError:
     HAS_NUMPY = False
     # TODO remove numpy
     pass
+from six.moves import zip
 from utool import util_iter
 from utool import util_alg
 from utool import util_inject
@@ -71,6 +72,20 @@ def assert_same_len(list1, list2, additional_msg=''):
     assert len(list1) == len(list2), (
         'unequal lens. len(list1)=%r, len(list2)=%r%s' % (
             len(list1), len(list2), additional_msg))
+
+
+def lists_eq(list1, list2):
+    """ recursive """
+    if len(list1) != len(list2):
+        return False
+    for count, (item1, item2) in enumerate(zip(list1, list2)):
+        if isinstance(item1, np.ndarray) or isinstance(item2, np.ndarray):
+            failed = not np.all(item1 == item2)  # lists_eq(item1, item2)
+        else:
+            failed = item1 != item2
+        if failed:
+            return False
+    return True
 
 
 def assert_lists_eq(list1, list2, failmsg='', verbose=False):
