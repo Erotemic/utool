@@ -303,11 +303,14 @@ def doctest_module_list(module_list):
 
 
 def get_module_testlines(module_list, remove_pyc=True, verbose=True,
-                         pythoncmd='python', **kwargs):
+                         pythoncmd=None, **kwargs):
     """
     Builds test commands for autogen tests
     """
     import utool as ut  # NOQA
+    if pythoncmd is None:
+        pythoncmd = sys.executable
+        #'python'
     testcmd_list = []
     for module in module_list:
         tuptup = get_doctest_testtup_list(module=module, allexamples=True,
