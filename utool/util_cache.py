@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import shelve
+import six
 #import atexit
 import inspect
 import contextlib
@@ -590,22 +591,22 @@ class Cachable(object):
     #def get_prefix(self):
     #    raise NotImplementedError('abstract method')
 
-    def get_fname(self, cfgstr=None):
+    def get_fname(self, cfgstr=None, ext=None):
         # convinience
-        return basename(self.get_fpath('', cfgstr=cfgstr))
+        return basename(self.get_fpath('', cfgstr=cfgstr, ext=ext))
 
-    def get_fpath(self, cachedir, cfgstr=None):
+    def get_fpath(self, cachedir, cfgstr=None, ext=None):
         """
         Ignore:
             fname = _fname
             cfgstr = _cfgstr
         """
+        _dpath = cachedir
         _fname = self.get_prefix()
         _cfgstr = self.get_cfgstr() if cfgstr is None else cfgstr
-        ext = self.ext
+        _ext =   self.ext if ext is None else ext
         write_hashtbl = False
-        dpath = cachedir
-        fpath = _args2_fpath(dpath, _fname, _cfgstr, ext, write_hashtbl=write_hashtbl)
+        fpath = _args2_fpath(_dpath, _fname, _cfgstr, _ext, write_hashtbl=write_hashtbl)
         return fpath
 
     def delete(self, cachedir, cfgstr=None, verbose=True or VERBOSE or util_arg.VERBOSE):
@@ -619,28 +620,39 @@ class Cachable(object):
         os.remove(fpath)
 
     @profile
-    def save(self, cachedir, cfgstr=None, verbose=VERBOSE, quiet=QUIET):
+    def save(self, cachedir, cfgstr=None, verbose=VERBOSE, quiet=QUIET,
+             ignore_keys=None):
         """
         saves query result to directory
         """
         fpath = self.get_fpath(cachedir, cfgstr=cfgstr)
         if verbose:
             print('[Cachable] cache save: %r' % (basename(fpath),))
-        util_io.save_cPkl(fpath, self.__dict__)
+        if ignore_keys is None:
+            save_dict = self.__dict__
+        else:
+            save_dict = {key: val for (key, val) in six.iteritems(self.__dict__)
+                         if key not in ignore_keys}
+
+        util_io.save_cPkl(fpath, save_dict)
         return fpath
         #save_cache(cachedir, '', cfgstr, self.__dict__)
         #with open(fpath, 'wb') as file_:
         #    cPickle.dump(self.__dict__, file_)
 
-    def _unsafe_load(self, fpath):
+    def _unsafe_load(self, fpath, ignore_keys=None):
         loaded_dict = util_io.load_cPkl(fpath)
+        if ignore_keys is not None:
+            for key in ignore_keys:
+                if key in loaded_dict:
+                    del loaded_dict[key]
         self.__dict__.update(loaded_dict)
         #with open(fpath, 'rb') as file_:
         #    loaded_dict = cPickle.load(file_)
         #    self.__dict__.update(loaded_dict)
 
     @profile
-    def load(self, cachedir, cfgstr=None, verbose=VERBOSE, quiet=QUIET):
+    def load(self, cachedir, cfgstr=None, verbose=VERBOSE, quiet=QUIET, ignore_keys=None):
         """
         Loads the result from the given database
         """
@@ -648,7 +660,7 @@ class Cachable(object):
         if verbose:
             print('[Cachable] cache tryload: %r' % (basename(fpath),))
         try:
-            self._unsafe_load(fpath)
+            self._unsafe_load(fpath, ignore_keys)
             if verbose:
                 print('... self cache hit: %r' % (basename(fpath),))
         except IOError as ex:
