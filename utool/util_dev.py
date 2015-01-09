@@ -74,6 +74,11 @@ def set_clipboard(text):
         tk_inst.destroy()
 
 
+def copy_text_to_clipboard(text):
+    """ alias """
+    return set_clipboard(text)
+
+
 def get_clipboard():
     """
     References:
