@@ -17,6 +17,43 @@ QUIET = util_arg.QUIET
 BadZipfile = zipfile.BadZipfile
 
 
+def archive_files(archive_fpath, fpath_list, small=True, allowZip64=False):
+    """
+    Args:
+        archive_fpath (str): path to zipfile to create
+        fpath_list (list): path of files to add to the zipfile
+        small (bool): if True uses compression but the zipfile will take more time to write
+        allowZip64 (bool): use if a file is over 2GB
+
+    References:
+        https://docs.python.org/2/library/zipfile.html
+
+    CommandLine:
+        python -m utool.util_grabdata --test-archive_files
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_grabdata import *  # NOQA
+        >>> # build test data
+        >>> archive_fpath = '?'
+        >>> fpath_list = '?'
+        >>> small = True
+        >>> allowZip64 = False
+        >>> # execute function
+        >>> result = archive_files(archive_fpath, fpath_list, small, allowZip64)
+        >>> # verify results
+        >>> print(result)
+
+    """
+    from os.path import relpath, dirname
+    print('Archiving %d files' % len(fpath_list))
+    compression = zipfile.ZIP_DEFLATED if small else zipfile.ZIP_STORED
+    with zipfile.ZipFile(archive_fpath, 'w', compression, allowZip64) as myzip:
+        for fpath in fpath_list:
+            arcname = relpath(fpath, dirname(archive_fpath))
+            myzip.write(fpath, arcname)
+
+
 def unarchive_file(archive_fpath, force_commonprefix=True):
     print('Unarchive: %r' % archive_fpath)
     if tarfile.is_tarfile(archive_fpath):
