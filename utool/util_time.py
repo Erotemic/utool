@@ -191,6 +191,8 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=1, strict=False):
 def unixtime_to_datetime(unixtime, timefmt='%Y/%m/%d %H:%M:%S'):
     if unixtime == -1:
         return 'NA'
+    if unixtime is None:
+        return None
     return datetime.datetime.fromtimestamp(unixtime).strftime(timefmt)
 
 

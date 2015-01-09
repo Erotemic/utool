@@ -631,8 +631,7 @@ class Cachable(object):
         if ignore_keys is None:
             save_dict = self.__dict__
         else:
-            save_dict = {key: val for (key, val) in six.iteritems(self.__dict__)
-                         if key not in ignore_keys}
+            save_dict = {key: val for (key, val) in six.iteritems(self.__dict__) if key not in ignore_keys}
 
         util_io.save_cPkl(fpath, save_dict)
         return fpath
