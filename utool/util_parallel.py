@@ -403,22 +403,22 @@ def spawn_background_process(func, *args, **kwargs):
         >>> assert ut.checkpath(fpath, verbose=True)
         >>> assert threadid.is_alive() is False, 'process should have died'
     """
-    IMPLEMENTATION_NUM = 2
-    if IMPLEMENTATION_NUM == 0:
-        thread_id = _thread.start_new_thread(func, args, kwargs)
-        return thread_id
-    elif IMPLEMENTATION_NUM == 1:
-        #threadobj = IMPLEMENTATION_NUM
-        thread_obj = threading.Thread(target=func, args=args, kwargs=kwargs)
-        thread_obj.start()
-        return thread_obj
-    elif IMPLEMENTATION_NUM == 2:
-        proc_obj = multiprocessing.Process(target=func, args=args, kwargs=kwargs)
-        #proc_obj.isAlive = proc_obj.is_alive
-        proc_obj.start()
-        return proc_obj
-    else:
-        raise NotImplementedError('IMPLEMENTATION_NUM = %r ' % (IMPLEMENTATION_NUM,))
+    proc_obj = multiprocessing.Process(target=func, args=args, kwargs=kwargs)
+    #proc_obj.isAlive = proc_obj.is_alive
+    proc_obj.start()
+    return proc_obj
+
+
+def spawn_background_thread(func, *args, **kwargs):
+    #threadobj = IMPLEMENTATION_NUM
+    thread_obj = threading.Thread(target=func, args=args, kwargs=kwargs)
+    thread_obj.start()
+    return thread_obj
+
+
+def _spawn_background_thread0(func, *args, **kwargs):
+    thread_id = _thread.start_new_thread(func, args, kwargs)
+    return thread_id
 
 
 if __name__ == '__main__':

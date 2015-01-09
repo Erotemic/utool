@@ -590,6 +590,59 @@ def change_term_title(title):
     os.system(cmd_str)
 
 
+def send_keyboard_input(text=None, key_list=None):
+    if WIN32:
+        raise NotImplementedError()
+    else:
+        if key_list is None:
+            char_map = {
+                '%': 'shift+5'
+            }
+            key_list = [char_map.get(char, char) for char in text]
+        xdotool_args = ['xdotool', 'key'] + key_list
+        #, 'shift+5', 'p', 'a', 's', 't', 'e', 'enter']
+        cmd = ' '.join(xdotool_args)
+        print('Running: cmd=%r' % (cmd,))
+        print('+---')
+        print(cmd)
+        print('L___')
+        os.system(cmd)
+
+
+def ipython_paste(*args, **kwargs):
+    """ pastes for me FIXME: make something like this work on unix and windows"""
+    winhandle = 'joncrall@Hyrule'
+    args1 = ['wmctrl', '-a', winhandle]
+    args2 = ['xdotool', 'key', 'shift+5', 'p', 'a', 's', 't', 'e', 'enter']
+    os.system(' '.join(args1))
+    os.system(' '.join(args2))
+
+    #fallback_execute(args1)
+    #fallback_execute(args2)
+
+
+def print_system_users():
+    r"""
+    CommandLine:
+        python -m utool.util_cplat --test-print_system_users
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_cplat import *  # NOQA
+        >>> # build test data
+        >>> # execute function
+        >>> result = print_system_users()
+        >>> # verify results
+        >>> print(result)
+    """
+    import utool as ut
+    text = ut.read_from('/etc/passwd')
+    userinfo_text_list = text.splitlines()
+    userinfo_list = [uitext.split(':') for uitext in userinfo_text_list]
+    #print(ut.list_str(sorted(userinfo_list)))
+    bash_users = [tup for tup in userinfo_list if tup[-1] == '/bin/bash']
+    print(ut.list_str(sorted(bash_users)))
+
 #from subprocess import check_output
 #http://stackoverflow.com/questions/8015163/how-to-check-screen-is-running
 #def screen_present(name):
