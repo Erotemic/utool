@@ -719,8 +719,9 @@ def get_lru_cache(max_size=5):
         >>> print(result)
         {2: 2, 3: 3, 4: 4, 5: 5, 6: 6}
     """
-    import utool as ut
-    lru = ut.tryimport('lru', 'git+https://github.com/amitdev/lru-dict', ensure=True)
+    #import utool as ut
+    import lru
+    #lru = ut.tryimport('lru', 'git+https://github.com/amitdev/lru-dict', ensure=True)
     cache_obj = lru.LRU(max_size)
     return cache_obj
 

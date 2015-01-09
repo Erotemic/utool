@@ -10,6 +10,8 @@ def utool_setup():
         'psutil >= 2.1.3',
         'parse >= 1.6.6',
         'lockfile >= 0.10.2',
+        'lru-dict >= 1.1.1'
+
         #'decorator',
     ]
 
@@ -18,14 +20,17 @@ def utool_setup():
         'astor',
         'sphinx',
         'sphinxcontrib-napoleon',
+        'pyperclip >= 1.5.7',
+        'pyfiglet >= 0.7.2',
     ]
 
     REQUIRES_LINKS = [
     ]
 
     OPTIONAL_DEPENDS_LINKS = [
-        'git+https://github.com/amitdev/lru-dict',  # TODO REMOVE DEPENDENCY
-        'git+https://github.com/pwaller/pyfiglet',
+        #'git+https://github.com/amitdev/lru-dict',  # TODO REMOVE DEPENDENCY
+        #'git+https://github.com/pwaller/pyfiglet',
+
     ]
 
     INSTALL_OPTIONAL_EXTRA = [  # NOQA
