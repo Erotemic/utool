@@ -24,5 +24,7 @@ def permit_gitrepo(config_fpath, writeback=False):
 if __name__ == '__main__':
     import utool
     WRITEBACK = utool.get_argflag('-i')
+    if not WRITEBACK:
+        print('specify -i to write changes')
     config_fpath = '.git/config'
     permit_gitrepo(config_fpath, writeback=WRITEBACK)
