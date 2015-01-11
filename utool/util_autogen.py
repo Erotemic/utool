@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function
+import os
 from utool import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
 
@@ -18,7 +19,6 @@ def write_modscript_alias(fpath, modname, pyscript='python'):
     convinience function because $@ is annoying to paste into the terminal
     """
     import utool as ut
-    import os
     fmtstr = '{pyscript} -m {modname} $@'
     cmdstr = fmtstr.format(pyscript=pyscript, modname=modname)
     ut.write_to(fpath, cmdstr)
@@ -64,7 +64,7 @@ def autofix_codeblock(codeblock, max_line_len=80,
     return fixed_codeblock
 
 
-def auto_docstr(modname, funcname, verbose=True, **kwargs):
+def auto_docstr(modname, funcname, verbose=True, moddir=None, **kwargs):
     """
     Args:
         modname (str):
@@ -85,9 +85,9 @@ def auto_docstr(modname, funcname, verbose=True, **kwargs):
     import utool
     docstr = 'error'
     if isinstance(modname, str):
-        module = __import__(modname)
-        import imp
-        imp.reload(module)
+        #module = __import__(modname)
+        #import imp
+        #imp.reload(module)
         #try:
         #    func = getattr(module, funcname)
         #    docstr = make_default_docstr(func)
@@ -103,17 +103,47 @@ def auto_docstr(modname, funcname, verbose=True, **kwargs):
             # FIXME: PYTHON 3
             execstr = utool.codeblock(
                 '''
-                import {modname}
+                import utool as ut
+                try:
+                    import {modname}
+                    module = {modname}
+                    imp.reload(module)
+                except Exception:
+                    # If it fails maybe the module is not in the path
+                    if moddir is not None:
+                        try:
+                            import imp
+                            import os
+                            orig_dir = os.getcwd()
+                            os.chdir(moddir)
+                            #print('change dir to: moddir=%r' % (moddir,))
+                            #import {modname}
+                            #print('get modinfo')
+                            modname_str = '{modname}'
+                            modinfo = imp.find_module(modname_str, [moddir])
+                            #print('can get modinfo?')
+                            #print('modinfo=%r' % (modinfo,))
+                            module = imp.load_module(modname_str, *modinfo)
+                            print('loaded module=%r' % (module,))
+                        except Exception as ex:
+                            ut.printex(ex, 'failed to imp.load_module')
+                            pass
+                        finally:
+                            #print('change dir to: orig_dir=%r' % (orig_dir,))
+                            os.chdir(orig_dir)
                 import imp
-                imp.reload({modname})
                 import utool
                 imp.reload(utool.util_autogen)
                 imp.reload(utool.util_inspect)
-                func = {modname}.{funcname}
+                func = module.{funcname}
                 docstr = utool.util_autogen.make_default_docstr(func, **kwargs)
                 '''
             ).format(**locals())
-            exec(execstr)
+            exec_globals = globals()
+            exec_locals = locals()
+            exec(execstr, exec_globals, exec_locals)
+            docstr = exec_locals['docstr']
+            #, globals(), locals())
             #return 'BARFOOO' +  docstr
             return docstr
             #print(execstr)
@@ -123,8 +153,9 @@ def auto_docstr(modname, funcname, verbose=True, **kwargs):
                 import utool
                 #utool.printex(ex1, 'ex1')
                 utool.printex(ex2, 'ex2', tb=True)
-            testcmd = 'python -c "import utool; print(utool.auto_docstr(\'%s\', \'%s\')))"' % (modname, funcname)
+            testcmd = 'python -c "import utool; print(utool.auto_docstr(\'%s\', \'%s\'))"' % (modname, funcname)
             error_str = utool.formatex(ex2, 'ex2', tb=True, keys=['modname', 'funcname', 'testcmd'])
+            error_str += '---' + execstr
             return error_str
             #return docstr + '\n' + execstr
     else:
@@ -138,7 +169,8 @@ def print_auto_docstr(modname, funcname):
     python -c "import utool;
     utool.print_auto_docstr('ibeis.model.hots.smk.smk_index', 'compute_negentropy_names')"
     """
-    print(auto_docstr(modname, funcname))
+    docstr = auto_docstr(modname, funcname)
+    print(docstr)
 
 
 # <INVIDIAL DOCSTR COMPONENTS>

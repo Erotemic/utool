@@ -586,8 +586,9 @@ def change_term_title(title):
         >>> # verify results
         >>> print(result)
     """
-    cmd_str = r'''echo -en "\033]0;''' + title + '''\a"'''
-    os.system(cmd_str)
+    if not WIN32:
+        cmd_str = r'''echo -en "\033]0;''' + title + '''\a"'''
+        os.system(cmd_str)
 
 
 def send_keyboard_input(text=None, key_list=None):
@@ -611,11 +612,14 @@ def send_keyboard_input(text=None, key_list=None):
 
 def ipython_paste(*args, **kwargs):
     """ pastes for me FIXME: make something like this work on unix and windows"""
-    winhandle = 'joncrall@Hyrule'
-    args1 = ['wmctrl', '-a', winhandle]
-    args2 = ['xdotool', 'key', 'shift+5', 'p', 'a', 's', 't', 'e', 'enter']
-    os.system(' '.join(args1))
-    os.system(' '.join(args2))
+    if WIN32:
+        pass
+    else:
+        winhandle = 'joncrall@Hyrule'
+        args1 = ['wmctrl', '-a', winhandle]
+        args2 = ['xdotool', 'key', 'shift+5', 'p', 'a', 's', 't', 'e', 'enter']
+        os.system(' '.join(args1))
+        os.system(' '.join(args2))
 
     #fallback_execute(args1)
     #fallback_execute(args2)
@@ -623,6 +627,11 @@ def ipython_paste(*args, **kwargs):
 
 def print_system_users():
     r"""
+
+    prints users on the system
+
+    On unix looks for /bin/bash users in /etc/passwd
+
     CommandLine:
         python -m utool.util_cplat --test-print_system_users
 
