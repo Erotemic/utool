@@ -111,7 +111,7 @@ def save_hdf5(fpath, data, verbose=False, compression='gzip'):
         >>> fpath = 'myfile.hdf5'
         >>> np.random.seed(0)
         >>> compression = 'gzip'
-        >>> data = np.random.rand(100000, 128, dtype=np.uint8)
+        >>> data = (np.random.rand(100000, 128) * 255).astype(np.uint8).copy()
         >>> # execute function
         >>> ut.delete(fpath)
         >>> save_hdf5(fpath, data, verbose, compression)
@@ -123,15 +123,27 @@ def save_hdf5(fpath, data, verbose=False, compression='gzip'):
     Timeit:
         cPkl seems to be faster with this initial implementation
 
-        %timeit save_hdf5(fpath, data, verbose=False, compression='gzip') # 18.4 ms
-        %timeit save_hdf5(fpath, data, verbose=False, compression='lzf')  # 7.73 ms
-        %timeit save_cPkl(fpath + '.cPkl', data, verbose=False)           # 3.33 ms
+        %timeit save_hdf5(fpath, data, verbose=False, compression='gzip')
+        %timeit save_hdf5(fpath, data, verbose=False, compression='lzf')
+        %timeit save_cPkl(fpath + '.cPkl', data, verbose=False)
+        %timeit save_pytables(fpath + '.tables', data, verbose=False)
+        1 loops, best of 3: 258 ms per loop
+        10 loops, best of 3: 111 ms per loop
+        10 loops, best of 3: 53.1 ms per loop
+        10 loops, best of 3: 96.5 ms per loop
+
 
         save_hdf5(fpath, data, verbose=False, compression='gzip')
-        %timeit load_hdf5(fpath, verbose=False)  # 4.74 ms
+        %timeit load_hdf5(fpath, verbose=False)
         save_hdf5(fpath, data, verbose=False, compression='lzf')
-        %timeit load_hdf5(fpath, verbose=False)  # 680 us
-        %timeit load_cPkl(fpath + '.cPkl', verbose=False) # 553 us
+        %timeit load_hdf5(fpath, verbose=False)
+        %timeit load_cPkl(fpath + '.cPkl', verbose=False)
+        %timeit load_pytables(fpath + '.tables', verbose=False)
+        100 loops, best of 3: 19.4 ms per loop
+        100 loops, best of 3: 14.4 ms per loop
+        100 loops, best of 3: 3.92 ms per loop
+        100 loops, best of 3: 6.22 ms per loop
+
     """
     import h5py
     from os.path import basename
@@ -160,6 +172,61 @@ def load_hdf5(fpath, verbose=False):
         dtype = dset.dtype
         data = np.empty(shape, dtype=dtype)
         dset.read_direct(data)
+    return data
+
+
+def save_pytables(fpath, data, verbose=False):
+    """
+    sudo pip install numexpr
+    sudo pip install tables
+
+    References:
+        https://pytables.github.io/cookbook/py2exe_howto.html
+        https://gist.github.com/andrewgiessel/7515520
+        http://stackoverflow.com/questions/8843062/python-how-to-store-a-numpy-multidimensional-array-in-pytables
+        http://pytables.github.io/usersguide/tutorials.html#creating-new-array-objects
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_io import *  # NOQA
+        >>> import numpy as np
+        >>> import utool as ut
+        >>> # build test data
+        >>> verbose = True
+        >>> fpath = 'myfile.pytables.hdf5'
+        >>> np.random.seed(0)
+        >>> compression = 'gzip'
+        >>> data = (np.random.rand(100000, 128) * 255).astype(np.uint8).copy()
+        >>> # execute function
+        >>> ut.delete(fpath)
+        >>> save_pytables(fpath, data, verbose)
+        >>> data2 = load_pytables(fpath, verbose)
+        >>> assert data is not data2
+        >>> assert np.all(data == data2)
+        >>> assert ut.delete(fpath)
+    """
+    import tables
+    #from os.path import basename
+    #fname = basename(fpath)
+    #shape = data.shape
+    #dtype = data.dtype
+    #file_ = tables.open_file(fpath)
+    with tables.open_file(fpath, 'w') as file_:
+        atom = tables.Atom.from_dtype(data.dtype)
+        filters = tables.Filters(complib='blosc', complevel=5)
+        dset = file_.createCArray(file_.root, 'data', atom, data.shape, filters=filters)
+        # save w/o compressive filter
+        #dset = file_.createCArray(file_.root, 'all_data', atom, all_data.shape)
+        dset[:] = data
+
+
+def load_pytables(fpath, verbose=False):
+    import tables
+    #from os.path import basename
+    #fname = basename(fpath)
+    #file_ = tables.open_file(fpath)
+    with tables.open_file(fpath, 'r') as file_:
+        data = file_.root.data.read()
     return data
 
 
