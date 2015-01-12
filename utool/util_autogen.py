@@ -85,25 +85,13 @@ def auto_docstr(modname, funcname, verbose=True, moddir=None, **kwargs):
     import utool
     docstr = 'error'
     if isinstance(modname, str):
-        #module = __import__(modname)
-        #import imp
-        #imp.reload(module)
-        #try:
-        #    func = getattr(module, funcname)
-        #    docstr = make_default_docstr(func)
-        #    return docstr
-        #except Exception as ex1:
-        #docstr = 'error ' + str(ex1)
-        #if utool.VERBOSE:
-        #    print('make_default_docstr is falling back')
-        #print(ex)
-        #print('modname = '  + modname)
-        #print('funcname = ' + funcname)
+        module = __import__(modname)
+        import imp
+        imp.reload(module)
         try:
             # FIXME: PYTHON 3
             execstr = utool.codeblock(
                 '''
-                import utool as ut
                 try:
                     import {modname}
                     module = {modname}
@@ -116,20 +104,14 @@ def auto_docstr(modname, funcname, verbose=True, moddir=None, **kwargs):
                             import os
                             orig_dir = os.getcwd()
                             os.chdir(moddir)
-                            #print('change dir to: moddir=%r' % (moddir,))
-                            #import {modname}
-                            #print('get modinfo')
                             modname_str = '{modname}'
                             modinfo = imp.find_module(modname_str, [moddir])
-                            #print('can get modinfo?')
-                            #print('modinfo=%r' % (modinfo,))
                             module = imp.load_module(modname_str, *modinfo)
-                            print('loaded module=%r' % (module,))
+                            #print('loaded module=%r' % (module,))
                         except Exception as ex:
                             ut.printex(ex, 'failed to imp.load_module')
                             pass
                         finally:
-                            #print('change dir to: orig_dir=%r' % (orig_dir,))
                             os.chdir(orig_dir)
                 import imp
                 import utool

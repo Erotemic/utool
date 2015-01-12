@@ -478,8 +478,18 @@ def get_nth_prime(n, max_prime=4100):
     return nth_prime
 
 
-def inbounds(num, low, high):
-    return num > low and num < high
+def inbounds(num, low, high, eq=False):
+    import operator
+    if isinstance(num, np.ndarray):
+        less    = operator.le if eq else operator.lt
+        greater = operator.ge if eq else operator.gt
+        and_ = np.logical_and
+    else:
+        less = operator.le if eq else operator.lt
+        greater = operator.ge if eq else operator.gt
+        and_ = operator.and_
+    is_inbounds = and_(greater(num, low), less(num, high))
+    return is_inbounds
 
 
 def almost_eq(arr1, arr2, thresh=1E-11, ret_error=False):

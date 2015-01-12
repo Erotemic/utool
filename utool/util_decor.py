@@ -318,6 +318,7 @@ def accepts_numpy(func):
             # If the input is not numpy, just call the function
             return func(self, input_, *args, **kwargs)
         else:
+            # TODO: use a variant of util_list.unflat_unique_rowid_map
             # If the input is a numpy array, and return the output with the same
             # shape as the input
             if UNIQUE_NUMPY:

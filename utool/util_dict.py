@@ -1,7 +1,8 @@
 from __future__ import absolute_import, division, print_function
 from itertools import product as iprod
 from six.moves import zip
-from collections import defaultdict
+from collections import defaultdict, namedtuple
+from collections import OrderedDict
 from utool.util_inject import inject
 import six
 try:
@@ -74,15 +75,73 @@ def invert_dict(dict_):
     return inverted_dict
 
 
+def iter_all_dict_combinations_ordered(varied_dict):
+    """
+    Same as all_dict_combinations but preserves order
+    """
+    tups_list = [[(key, val) for val in val_list]
+                 for (key, val_list) in six.iteritems(varied_dict)]
+    dict_iter = (OrderedDict(tups) for tups in iprod(*tups_list))
+    return dict_iter
+
+
 def all_dict_combinations_ordered(varied_dict):
     """
     Same as all_dict_combinations but preserves order
     """
-    from collections import OrderedDict
-    tups_list = [[(key, val) for val in val_list]
-                 for (key, val_list) in six.iteritems(varied_dict)]
-    dict_list = [OrderedDict(tups) for tups in iprod(*tups_list)]
+    dict_list = list(iter_all_dict_combinations_ordered)
     return dict_list
+
+
+DimensionBasis = namedtuple('DimensionBasis', ('dimension_name', 'dimension_point_list'))
+
+
+def grid_search_generator(grid_basis=[], *args, **kwargs):
+    r"""
+    Iteratively yeilds individual configuration points
+    inside a defined basis.
+
+    Args:
+        grid_basis (list): a list of 2-component tuple. The named tuple looks
+            like this:
+
+    CommandLine:
+        python -m utool.util_dict --test-grid_search_generator
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
+        >>> # build test data
+        >>> grid_basis = [
+        ... DimensionBasis('dim1', [.1, .2, .3]),
+        ... DimensionBasis('dim2', [.1, .4, .5]),
+        ... ]
+        >>> args = tuple()
+        >>> kwargs = {}
+        >>> # execute function
+        >>> point_list = list(grid_search_generator(grid_basis))
+        >>> # verify results
+        >>> column_lbls = ut.get_list_column(grid_basis, 0)
+        >>> column_list  = ut.get_list_column(grid_basis, 1)
+        >>> first_vals = ut.get_list_column(ut.get_list_column(grid_basis, 1), 0)
+        >>> column_types = list(map(type, first_vals))
+        >>> header = 'grid search'
+        >>> result = ut.make_csv_table(column_list, column_lbls, header, column_types)
+        >>> print(result)
+        grid search
+        # NumData 3
+        #   dim1,  dim2
+            0.10,  0.10
+            0.20,  0.40
+            0.30,  0.50
+
+    """
+    grid_basis_ = grid_basis + list(args) + list(kwargs.items())
+    grid_basis_dict = OrderedDict(grid_basis_)
+    grid_point_iter = iter_all_dict_combinations_ordered(grid_basis_dict)
+    for grid_point in grid_point_iter:
+        yield grid_point
 
 
 def all_dict_combinations(varied_dict):

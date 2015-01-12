@@ -17,13 +17,15 @@ QUIET = util_arg.QUIET
 BadZipfile = zipfile.BadZipfile
 
 
-def archive_files(archive_fpath, fpath_list, small=True, allowZip64=False):
+def archive_files(archive_fpath, fpath_list, small=True, allowZip64=False,
+                  overwrite=False):
     """
     Args:
         archive_fpath (str): path to zipfile to create
         fpath_list (list): path of files to add to the zipfile
         small (bool): if True uses compression but the zipfile will take more time to write
         allowZip64 (bool): use if a file is over 2GB
+        overwrite (bool):
 
     References:
         https://docs.python.org/2/library/zipfile.html
@@ -45,7 +47,10 @@ def archive_files(archive_fpath, fpath_list, small=True, allowZip64=False):
         >>> print(result)
 
     """
+    import utool as ut
     from os.path import relpath, dirname
+    if not overwrite and ut.checkpath(archive_fpath, verbose=True):
+        raise AssertionError('cannot overrwite archive_fpath=%r' % (archive_fpath,))
     print('Archiving %d files' % len(fpath_list))
     compression = zipfile.ZIP_DEFLATED if small else zipfile.ZIP_STORED
     with zipfile.ZipFile(archive_fpath, 'w', compression, allowZip64) as myzip:

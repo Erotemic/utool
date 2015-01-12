@@ -67,6 +67,10 @@ def get_list_column(list_, colx):
     return [row[colx] for row in list_]
 
 
+#def get_list_row(list_, rowx):
+#    return list_[rowx]
+
+
 def safe_listget(list_, index, default='?'):
     """ depricate """
     if index >= len(list_):
@@ -339,6 +343,81 @@ def unflatten2(flat_list, cumlen_list):
     """
     unflat_list2 = [flat_list[low:high] for low, high in zip(itertools.chain([0], cumlen_list), cumlen_list)]
     return unflat_list2
+
+
+def unflat_unique_rowid_map(func, unflat_rowids, **kwargs):
+    """
+    performs only one call to the underlying func with unique rowids the func
+    must be some lookup function
+
+    TODO: move this to a better place.
+
+    CommandLine:
+        python -m utool.util_list --test-unflat_unique_rowid_map
+
+    Example0:
+        >>> # ENABLE_DOCTEST
+        >>> import utool as ut
+        >>> from utool.util_list import *  # NOQA
+        >>> kwargs = {}
+        >>> unflat_rowids = [[1, 2, 3], [2, 5], [1], []]
+        >>> num_calls0 = [0]
+        >>> num_input0 = [0]
+        >>> def func0(rowids, num_calls0=num_calls0, num_input0=num_input0):
+        ...    num_calls0[0] += 1
+        ...    num_input0[0] += len(rowids)
+        ...    return [rowid + 10 for rowid in rowids]
+        >>> func = func0
+        >>> unflat_vals = unflat_unique_rowid_map(func, unflat_rowids, **kwargs)
+        >>> result = np.array_repr(np.array(unflat_vals))
+        >>> print(result)
+        >>> ut.assert_eq(num_calls0[0], 1)
+        >>> ut.assert_eq(num_input0[0], 4)
+        array([array([11, 12, 13]), array([12, 15]), array([11]),
+               array([], dtype=int32)], dtype=object)
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> import utool as ut
+        >>> from utool.util_list import *  # NOQA
+        >>> kwargs = {}
+        >>> unflat_rowids = [[1, 2, 3], [2, 5], [1], []]
+        >>> num_calls1 = [0]
+        >>> num_input1 = [0]
+        >>> def func1(rowids, num_calls1=num_calls1, num_input1=num_input1):
+        ...    num_calls1[0] += 1
+        ...    num_input1[0] += len(rowids)
+        ...    return [np.array([rowid + 10, rowid, 3]) for rowid in rowids]
+        >>> func = func1
+        >>> unflat_vals = unflat_unique_rowid_map(func, unflat_rowids, **kwargs)
+        >>> result = np.array_repr(np.array(unflat_vals))
+        >>> print(result)
+        >>> ut.assert_eq(num_calls1[0], 1)
+        >>> ut.assert_eq(num_input1[0], 4)
+        array([array([[11,  1,  3],
+               [12,  2,  3],
+               [13,  3,  3]]),
+               array([[12,  2,  3],
+               [15,  5,  3]]), array([[11,  1,  3]]),
+               array([], shape=(0, 3), dtype=int32)], dtype=object)
+
+    """
+    import utool as ut
+    # First flatten the list, and remember the original dimensions
+    flat_rowids, reverse_list = ut.invertable_flatten2(unflat_rowids)
+    # Then make the input unique
+    flat_rowids_arr = np.array(flat_rowids)
+    unique_flat_rowids, inverse_unique = np.unique(flat_rowids_arr, return_inverse=True)
+    # Then preform the lookup / implicit mapping
+    unique_flat_vals = func(unique_flat_rowids, **kwargs)
+    # Then broadcast unique values back to original flat positions
+    flat_vals_ = np.array(unique_flat_vals)[inverse_unique]
+    #flat_vals_ = np.array(unique_flat_vals).take(inverse_unique, axis=0)
+    output_shape = tuple(list(flat_rowids_arr.shape) + list(flat_vals_.shape[1:]))
+    flat_vals = np.array(flat_vals_).reshape(output_shape)
+    # Then _unflatten the results to the original input dimensions
+    unflat_vals = ut.unflatten2(flat_vals, reverse_list)
+    return unflat_vals
 
 
 def tuplize(list_):
@@ -1123,6 +1202,14 @@ def and_lists(*args):
 
 def or_lists(*args):
     return [any(tup) for tup in zip(*args)]
+
+
+def make_sortby_func(item_list, reverse=False):
+    sortxs_ = list_argsort(item_list)
+    sortxs = sortxs_[::-1] if reverse else sortxs_
+    def sortby_func(list_):
+        return list_take(list_, sortxs)
+    return sortby_func
 
 
 if __name__ == '__main__':

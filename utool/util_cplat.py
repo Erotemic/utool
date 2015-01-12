@@ -592,8 +592,62 @@ def change_term_title(title):
 
 
 def send_keyboard_input(text=None, key_list=None):
+    """
+    Args:
+        text (None):
+        key_list (list):
+
+    References:
+        http://stackoverflow.com/questions/14788036/python-win32api-sendmesage
+        http://www.pinvoke.net/default.aspx/user32.sendinput
+
+    CommandLine:
+        python -m utool.util_cplat --test-send_keyboard_input
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_cplat import *  # NOQA
+        >>> # build test data
+        >>> text = '%paste'
+        >>> # execute function
+        >>> result = send_keyboard_input('%paste')
+        >>> # verify results
+        >>> print(result)
+    """
+    #key_mapping = {
+    #    'enter':
+    #}
     if WIN32:
-        raise NotImplementedError()
+        #raise NotImplementedError()
+        #import win32api
+        #import win32gui
+        #import win32con
+        #hwnd = win32gui.GetForegroundWindow()
+        #print('entering text into %r' % (win32gui.GetWindowText(hwnd ),))
+        #win32con.VK_RETURN
+
+        #def callback(hwnd, hwnds):
+            #if win32gui.IsWindowVisible(hwnd) and win32gui.IsWindowEnabled(hwnd):
+                #hwnds[win32gui.GetClassName(hwnd)] = hwnd
+            #return True
+        #hwnds = {}
+        #win32gui.EnumChildWindows(hwnd, callback, hwnds)
+
+        #for ord_char in map(ord, text):
+            #win32api.SendMessage(hwnd, win32con.WM_CHAR, ord_char, 0)
+        from utool._internal import win32_send_keys
+        pause = float(.05)
+        text = 'paste'
+        keys = text
+        kw = dict(with_spaces=False, with_tabs=True, with_newlines=False)
+        win32_send_keys.SendKeys(keys, pause=pause, turn_off_numlock=True, **kw)
+        #win32_send_keys
+        #import time
+        #keys_ = win32_send_keys.parse_keys(keys, **kw)
+        #for k in keys_:
+        #    k.Run()
+        #    time.sleep(pause)
+
     else:
         if key_list is None:
             char_map = {
@@ -623,6 +677,21 @@ def ipython_paste(*args, **kwargs):
 
     #fallback_execute(args1)
     #fallback_execute(args2)
+
+
+def spawn_delayed_ipython_paste():
+    import utool as ut
+    # Gonna be pasting
+    def delayed_ipython_paste(delay):
+        import time
+        import utool as ut
+        #import os
+        print('waiting')
+        time.sleep(delay)
+        ut.send_keyboard_input(text='%paste')
+        ut.send_keyboard_input(key_list=['KP_Enter'])
+        #os.system(' '.join(['xdotool', 'key', 'shift+5', 'p', 'a', 's', 't', 'e', 'KP_Enter']))
+    ut.spawn_background_thread(delayed_ipython_paste, .1)
 
 
 def print_system_users():
