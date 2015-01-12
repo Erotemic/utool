@@ -745,8 +745,8 @@ def get_stats(list_, axis=None):
 # --- Info Strings ---
 
 
-def get_stats_str(list_, newlines=False, keys=None, exclude_keys=[], lbl=None,
-                  precision=None, axis=0):
+def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=None,
+                  precision=None, axis=0, stat_dict=None):
     """
     Returns the string version of get_stats
 
@@ -778,7 +778,10 @@ def get_stats_str(list_, newlines=False, keys=None, exclude_keys=[], lbl=None,
     from utool.util_str import dict_str
     import utool as ut
     # Get stats dict
-    stat_dict = get_stats(list_, axis=axis)
+    if stat_dict is None:
+        stat_dict = get_stats(list_, axis=axis)
+    else:
+        stat_dict = stat_dict.copy()
     # Keep only included keys if specified
     if keys is not None:
         for key in list(six.iterkeys(stat_dict)):
