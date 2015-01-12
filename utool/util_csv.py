@@ -4,6 +4,7 @@ try:
 except ImportError as ex:
     pass
 from six.moves import zip, map
+from utool import util_type
 from utool.util_type import is_list, is_int, is_str, is_float
 from utool.util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[csv]')
@@ -110,7 +111,7 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
             #print('list')
             #col_str = [str(c).replace(',', '<comma>').replace('.', '<dot>') for c in iter(col)]
             col_str = [str(c).replace(',', ' ').replace('.', '<dot>') for c in col]
-        elif coltype is float or is_float(coltype) or coltype == np.float32:
+        elif coltype is float or is_float(coltype) or coltype == np.float32 or util_type.is_valid_floattype(coltype):
             #print('float')
             precision_fmtstr = '%.' + str(precision) + 'f'
             col_str = [precision_fmtstr % float(r) for r in col]
