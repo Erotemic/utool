@@ -800,11 +800,22 @@ def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=No
         for key in list(six.iterkeys(statstr_dict)):
             val = statstr_dict[key]
             if ut.is_float(val):
-                strval = float_fmtstr % val
+                if isinstance(val, np.ndarray):
+                    strval = str([float_fmtstr % v for v in val]).replace('\'', '')
+                    #np.array_str((val), precision=precision)
+                else:
+                    strval = float_fmtstr % val
                 if not strval.startswith('0'):
                     strval = strval.rstrip('0')
                     strval = strval.rstrip('.')
                 statstr_dict[key] = strval
+            else:
+                if isinstance(val, np.ndarray):
+                    strval = repr(val.tolist())
+                else:
+                    strval = str(val)
+                statstr_dict[key] = strval
+
     # format the dictionary string
     stat_str  = dict_str(statstr_dict, strvals=True, newlines=newlines)
     # add a label if requested
@@ -1420,3 +1431,16 @@ def is_developer(mycomputers=None):
         mycomputers = ['hyrule', 'ooo', 'bakerstreet']
     compname_lower = utool.get_computer_name().lower()
     return compname_lower in mycomputers
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m utool.util_dev
+        python -m utool.util_dev --allexamples
+        python -m utool.util_dev --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

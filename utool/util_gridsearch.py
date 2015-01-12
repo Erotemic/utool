@@ -12,65 +12,90 @@ DimensionBasis = namedtuple('DimensionBasis', ('dimension_name', 'dimension_poin
 
 
 def testdata_grid_search():
+    """
+    test data function for doctests
+    """
     import utool as ut
     grid_basis = [
-        ut.util_gridsearch.DimensionBasis('p', [.5, .6, .7, .8, .9, 1.0]),
-        ut.util_gridsearch.DimensionBasis('K', [2, 3, 4, 5]),
-        ut.util_gridsearch.DimensionBasis('clip_fraction', [.1, .2, .5, 1.0]),
+        ut.DimensionBasis('p', [.5, .8, .9, 1.0]),
+        ut.DimensionBasis('K', [2, 3, 4, 5]),
+        ut.DimensionBasis('clip_fraction', [.1, .2, .5, 1.0]),
     ]
-    grid_searcher = ut.GridSearch(grid_basis)
-    for cfgdict in grid_searcher:
+    gridsearch = ut.GridSearch(grid_basis, label='testdata_gridsearch')
+    for cfgdict in gridsearch:
         tp_score = cfgdict['p'] + (cfgdict['K'] ** .5)
         tn_score = (cfgdict['p'] * (cfgdict['K'])) / cfgdict['clip_fraction']
-        grid_searcher.append_result(tp_score, tn_score)
-    return grid_searcher
+        gridsearch.append_result(tp_score, tn_score)
+    return gridsearch
 
 
 @six.add_metaclass(util_class.ReloadingMetaclass)
 class GridSearch(object):
     """
     helper for executing iterations and analyzing the results of a grid search
-    """
-    def __init__(grid_searcher, grid_basis):
-        grid_searcher.grid_basis = grid_basis
-        grid_searcher.tp_score_list = []
-        grid_searcher.tn_score_list = []
-        grid_searcher.score_diff_list = []
-        cfgdict_iter = grid_search_generator(grid_basis)
-        grid_searcher.cfgdict_list = list(cfgdict_iter)
 
-    def __iter__(grid_searcher):
-        for cfgdict in grid_searcher.cfgdict_list:
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> grid_basis = [
+        ...     ut.DimensionBasis('p', [.5, .8, .9, 1.0]),
+        ...     ut.DimensionBasis('K', [2, 3, 4, 5]),
+        ...     ut.DimensionBasis('clip_fraction', [.1, .2, .5, 1.0]),
+        ... ]
+        >>> gridsearch = ut.GridSearch(grid_basis, label='testdata_gridsearch')
+        >>> for cfgdict in gridsearch:
+        ...    tp_score = cfgdict['p'] + (cfgdict['K'] ** .5)
+        ...    tn_score = (cfgdict['p'] * (cfgdict['K'])) / cfgdict['clip_fraction']
+        ...    gridsearch.append_result(tp_score, tn_score)
+    """
+    def __init__(gridsearch, grid_basis, label=None):
+        gridsearch.label = label
+        gridsearch.grid_basis = grid_basis
+        gridsearch.tp_score_list = []
+        gridsearch.tn_score_list = []
+        gridsearch.score_diff_list = []
+        cfgdict_iter = grid_search_generator(grid_basis)
+        gridsearch.cfgdict_list = list(cfgdict_iter)
+        gridsearch.num_configs = len(gridsearch.cfgdict_list)
+        gridsearch.score_lbls  = ['score_diff', 'tp_score', 'tn_score']
+
+    def append_result(gridsearch, tp_score, tn_score):
+        """ for use in iteration """
+        diff = tp_score - tn_score
+        gridsearch.score_diff_list.append(diff)
+        gridsearch.tp_score_list.append(tp_score)
+        gridsearch.tn_score_list.append(tn_score)
+
+    def __iter__(gridsearch):
+        for cfgdict in gridsearch.cfgdict_list:
             yield cfgdict
 
-    def append_result(grid_searcher, tp_score, tn_score):
-        diff = tp_score - tn_score
-        grid_searcher.score_diff_list.append(diff)
-        grid_searcher.tp_score_list.append(tp_score)
-        grid_searcher.tn_score_list.append(tn_score)
+    def __len__(gridsearch):
+        return gridsearch.num_configs
 
-    def get_score_list_and_lbls(grid_searcher):
-        score_list  = [grid_searcher.score_diff_list,
-                       grid_searcher.tp_score_list,
-                       grid_searcher.tn_score_list]
-        score_lbls  = ['score_diff', 'tp_score', 'tn_score']
+    def get_score_list_and_lbls(gridsearch):
+        """ returns result data """
+        score_list  = [gridsearch.score_diff_list,
+                       gridsearch.tp_score_list,
+                       gridsearch.tn_score_list]
+        score_lbls = gridsearch.score_lbls
         return score_list, score_lbls
 
-    def get_param_list_and_lbls(grid_searcher):
+    def get_param_list_and_lbls(gridsearch):
+        """ returns input data """
         import utool as ut
-        param_name_list = ut.get_list_column(grid_searcher.grid_basis, 0)
-        params_vals = [list(six.itervalues(dict_)) for dict_ in grid_searcher.cfgdict_list]
+        param_name_list = ut.get_list_column(gridsearch.grid_basis, 0)
+        params_vals = [list(six.itervalues(dict_)) for dict_ in gridsearch.cfgdict_list]
         param_vals_list = list(zip(*params_vals))
         return param_name_list, param_vals_list
 
-    def get_csv_results(grid_searcher, max_lines=None):
+    def get_sorted_columns_and_labels(gridsearch, score_lbl='score_diff'):
+        """ returns sorted input and result data """
         import utool as ut
         # Input Parameters
-        param_name_list, param_vals_list = grid_searcher.get_param_list_and_lbls()
+        param_name_list, param_vals_list = gridsearch.get_param_list_and_lbls()
         # Result Scores
-        score_list, score_lbls = grid_searcher.get_score_list_and_lbls()
+        score_list, score_lbls = gridsearch.get_score_list_and_lbls()
 
-        score_lbl  = 'score_diff'
         score_vals = score_list[score_lbls.index(score_lbl)]
         sortby_func = ut.make_sortby_func(score_vals, reverse=True)
 
@@ -78,6 +103,42 @@ class GridSearch(object):
         param_name_sorted = param_name_list
         score_list_sorted = list(map(sortby_func, score_list))
         param_vals_sorted = list(map(sortby_func, param_vals_list))
+        collbl_tup = (score_name_sorted, param_name_sorted,
+                      score_list_sorted, param_vals_sorted)
+        return collbl_tup
+
+    def get_csv_results(gridsearch, max_lines=None, score_lbl='score_diff'):
+        """
+        Make csv text describing results
+
+        Args:
+            max_lines (int): add top num lines to the csv. No limit if None.
+            score_lbl (str): score label to sort by
+
+        Returns:
+            str: result data in csv format
+
+        CommandLine:
+            python -m utool.util_gridsearch --test-get_csv_results
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from utool.util_gridsearch import *  # NOQA
+            >>> import utool as ut
+            >>> import plottool as pt
+            >>> # build test data
+            >>> score_lbl = 'score_diff'
+            >>> gridsearch = testdata_grid_search()
+            >>> csvtext = gridsearch.get_csv_results(10, score_lbl)
+            >>> print(csvtext)
+            >>> result = ut.hashstr(csvtext)
+            >>> print(result)
+            60yptleiwo@lk@24
+        """
+        import utool as ut
+        collbl_tup = gridsearch.get_sorted_columns_and_labels(score_lbl)
+        (score_name_sorted, param_name_sorted,
+         score_list_sorted, param_vals_sorted) = collbl_tup
 
         # Build CSV
         column_lbls = score_name_sorted + param_name_sorted
@@ -90,22 +151,42 @@ class GridSearch(object):
             import utool as ut
             from utool import DimensionBasis
             title = 'Grid Search Results CSV'
+            label = {label}
             grid_basis = {grid_basis_str}
             ''')
         fmtdict = dict(
-            grid_basis_str=ut.list_str(grid_searcher.grid_basis),
+            grid_basis_str=ut.list_str(gridsearch.grid_basis),
+            label=gridsearch.label
         )
         header_raw = header_raw_fmtstr.format(**fmtdict)
-        header = ut.indent(header_raw, '# >>> ')
-        #ut.rrrr()
+        header     = ut.indent(header_raw, '# >>> ')
         precision = 3
         csvtext = ut.make_csv_table(column_list, column_lbls, header, precision=precision)
         return csvtext
 
-    def get_dimension_stats(grid_searcher, param_lbl, score_lbl='score_diff'):
+    def get_rank_cfgdict(gridsearch, rank=0, score_lbl='score_diff'):
         import utool as ut
-        score_list, score_lbls = grid_searcher.get_score_list_and_lbls()
-        param_name_list, param_vals_list = grid_searcher.get_param_list_and_lbls()
+        collbl_tup = gridsearch.get_sorted_columns_and_labels(score_lbl)
+        (score_name_sorted, param_name_sorted,
+         score_list_sorted, param_vals_sorted) = collbl_tup
+        rank_vals = ut.get_list_column(param_vals_sorted, rank)
+        rank_cfgdict = dict(zip(param_name_sorted, rank_vals))
+        return rank_cfgdict
+
+    def get_dimension_stats(gridsearch, param_lbl, score_lbl='score_diff'):
+        r"""
+        Returns result stats about a specific parameter
+
+        Args:
+            param_lbl (str); paramter to get stats about
+            score_lbl (str): score label to sort by
+
+        Returns:
+            dict: param2_score_stats
+        """
+        import utool as ut
+        score_list, score_lbls = gridsearch.get_score_list_and_lbls()
+        param_name_list, param_vals_list = gridsearch.get_param_list_and_lbls()
         param_vals = param_vals_list[param_name_list.index(param_lbl)]
         score_vals = score_list[score_lbls.index(score_lbl)]
         #sortby_func = ut.make_sortby_func(score_vals, reverse=True)
@@ -118,11 +199,26 @@ class GridSearch(object):
         #print(ut.dict_str(param2_score_stats))
         return param2_score_stats
 
-    def plot_dimension(grid_searcher, param_lbl, score_lbl='score_diff',
+    def get_dimension_stats_str(gridsearch, param_lbl, score_lbl='score_diff'):
+        r"""
+        Returns a result stat string about a specific parameter
+        """
+        import utool as ut
+        exclude_keys = ['nMin', 'nMax']
+        param2_score_stats = gridsearch.get_dimension_stats(param_lbl)
+        param2_score_stats_str = {
+            param: ut.get_stats_str(stat_dict=stat_dict, exclude_keys=exclude_keys)
+            for param, stat_dict in six.iteritems(param2_score_stats)}
+        param_stats_str = 'stats(' + param_lbl + ') = ' + ut.dict_str(param2_score_stats_str)
+        return param_stats_str
+
+    def plot_dimension(gridsearch, param_lbl, score_lbl='score_diff',
                        **kwargs):
         r"""
+        Plots result statistics about a specific parameter
+
         Args:
-            param_lbl (?):
+            param_lbl (str);
             score_lbl (str):
 
         CommandLine:
@@ -134,16 +230,17 @@ class GridSearch(object):
             >>> from utool.util_gridsearch import *  # NOQA
             >>> import plottool as pt
             >>> # build test data
-            >>> grid_searcher = testdata_grid_search()
+            >>> gridsearch = testdata_grid_search()
             >>> param_lbl = 'p'
             >>> score_lbl = 'score_diff'
-            >>> grid_searcher.plot_dimension('p', score_lbl, fnum=1)
-            >>> grid_searcher.plot_dimension('K', score_lbl, fnum=2)
-            >>> grid_searcher.plot_dimension('clip_fraction', score_lbl, fnum=3)
+            >>> self = gridsearch
+            >>> self.plot_dimension('p', score_lbl, fnum=1, pnum=(1, 3, 1))
+            >>> self.plot_dimension('K', score_lbl, fnum=1, pnum=(1, 3, 2))
+            >>> self.plot_dimension('clip_fraction', score_lbl, fnum=1, pnum=(1, 3, 3))
             >>> pt.show_if_requested()
         """
         import plottool as pt
-        param2_score_stats = grid_searcher.get_dimension_stats(param_lbl, score_lbl)
+        param2_score_stats = gridsearch.get_dimension_stats(param_lbl, score_lbl)
         title = param_lbl + ' vs ' + score_lbl
         fig = pt.interval_stats_plot(param2_score_stats, x_label=param_lbl,
                                      y_label=score_lbl, title=title, **kwargs)
