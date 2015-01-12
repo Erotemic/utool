@@ -605,7 +605,7 @@ def send_keyboard_input(text=None, key_list=None):
         python -m utool.util_cplat --test-send_keyboard_input
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_cplat import *  # NOQA
         >>> # build test data
         >>> text = '%paste'
@@ -705,7 +705,7 @@ def print_system_users():
         python -m utool.util_cplat --test-print_system_users
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_cplat import *  # NOQA
         >>> # build test data
         >>> # execute function

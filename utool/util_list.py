@@ -353,7 +353,8 @@ def unflat_unique_rowid_map(func, unflat_rowids, **kwargs):
     TODO: move this to a better place.
 
     CommandLine:
-        python -m utool.util_list --test-unflat_unique_rowid_map
+        python -m utool.util_list --test-unflat_unique_rowid_map:0
+        python -m utool.util_list --test-unflat_unique_rowid_map:1
 
     Example0:
         >>> # ENABLE_DOCTEST
@@ -369,12 +370,11 @@ def unflat_unique_rowid_map(func, unflat_rowids, **kwargs):
         ...    return [rowid + 10 for rowid in rowids]
         >>> func = func0
         >>> unflat_vals = unflat_unique_rowid_map(func, unflat_rowids, **kwargs)
-        >>> result = np.array_repr(np.array(unflat_vals))
+        >>> result = [arr.tolist() for arr in unflat_vals]
         >>> print(result)
         >>> ut.assert_eq(num_calls0[0], 1)
         >>> ut.assert_eq(num_input0[0], 4)
-        array([array([11, 12, 13]), array([12, 15]), array([11]),
-               array([], dtype=int32)], dtype=object)
+        [[11, 12, 13], [12, 15], [11], []]
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -390,16 +390,11 @@ def unflat_unique_rowid_map(func, unflat_rowids, **kwargs):
         ...    return [np.array([rowid + 10, rowid, 3]) for rowid in rowids]
         >>> func = func1
         >>> unflat_vals = unflat_unique_rowid_map(func, unflat_rowids, **kwargs)
-        >>> result = np.array_repr(np.array(unflat_vals))
+        >>> result = [arr.tolist() for arr in unflat_vals]
         >>> print(result)
         >>> ut.assert_eq(num_calls1[0], 1)
         >>> ut.assert_eq(num_input1[0], 4)
-        array([array([[11,  1,  3],
-               [12,  2,  3],
-               [13,  3,  3]]),
-               array([[12,  2,  3],
-               [15,  5,  3]]), array([[11,  1,  3]]),
-               array([], shape=(0, 3), dtype=int32)], dtype=object)
+        [[[11, 1, 3], [12, 2, 3], [13, 3, 3]], [[12, 2, 3], [15, 5, 3]], [[11, 1, 3]], []]
 
     """
     import utool as ut

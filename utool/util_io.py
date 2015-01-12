@@ -151,7 +151,7 @@ def save_hdf5(fpath, data, verbose=False, compression='gzip'):
     fname = basename(fpath)
     shape = data.shape
     dtype = data.dtype
-    if verbose and __PRINT_READS__:
+    if verbose and __PRINT_WRITES__:
         print('[util_io] * save_hdf5(%r, data)' % (util_path.tail(fpath),))
     with h5py.File(fpath, 'w') as file_:
         dset = file_.create_dataset(fname, shape,  dtype, chunks=chunks, compression=compression)
@@ -166,6 +166,8 @@ def load_hdf5(fpath, verbose=False):
     #file_ = h5py.File(fpath, 'r')
     #file_.values()
     #file_.keys()
+    if verbose and __PRINT_READS__:
+        print('[util_io] * load_hdf5(%r, data)' % (util_path.tail(fpath),))
     with h5py.File(fpath, 'r') as file_:
         dset = file_[fname]
         shape = dset.shape
@@ -211,6 +213,8 @@ def save_pytables(fpath, data, verbose=False):
     #shape = data.shape
     #dtype = data.dtype
     #file_ = tables.open_file(fpath)
+    if verbose and __PRINT_WRITES__:
+        print('[util_io] * save_pytables(%r, data)' % (util_path.tail(fpath),))
     with tables.open_file(fpath, 'w') as file_:
         atom = tables.Atom.from_dtype(data.dtype)
         filters = tables.Filters(complib='blosc', complevel=5)
@@ -225,6 +229,8 @@ def load_pytables(fpath, verbose=False):
     #from os.path import basename
     #fname = basename(fpath)
     #file_ = tables.open_file(fpath)
+    if verbose and __PRINT_READS__:
+        print('[util_io] * load_pytables(%r, data)' % (util_path.tail(fpath),))
     with tables.open_file(fpath, 'r') as file_:
         data = file_.root.data.read()
     return data

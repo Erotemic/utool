@@ -46,7 +46,7 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
         >>> result = csv_text
         >>> print(result)
         # Test CSV
-        # NumCVSRows=3
+        # num_rows=3
         #   num,  alpha
               1,      A
               2,      B
@@ -83,7 +83,7 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
 
     csv_rows = []
     csv_rows.append(header)
-    csv_rows.append('# >>> num_rows=%r' % num_data)
+    csv_rows.append('# num_rows=%r' % num_data)
 
     column_maxlen = []
     column_str_list = []
