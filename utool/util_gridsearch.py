@@ -88,6 +88,18 @@ class GridSearch(object):
         param_vals_list = list(zip(*params_vals))
         return param_name_list, param_vals_list
 
+    def get_param_lbls(gridsearch, exclude_unvaried_dimension=True):
+        #param_label_list, param_vals_list = gridsearch.get_param_list_and_lbls()[0]
+        import utool as ut
+        param_label_list_ = ut.get_list_column(gridsearch.grid_basis, 0)
+        param_range_list = ut.get_list_column(gridsearch.grid_basis, 1)
+        if exclude_unvaried_dimension:
+            is_varied = [len(param_range) > 1 for param_range in param_range_list]
+            param_label_list = ut.filter_items(param_label_list_, is_varied)
+        else:
+            param_label_list = param_label_list_
+        return param_label_list
+
     def get_sorted_columns_and_labels(gridsearch, score_lbl='score_diff'):
         """ returns sorted input and result data """
         import utool as ut
