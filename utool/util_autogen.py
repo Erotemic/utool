@@ -265,9 +265,11 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
         'nid_list': 'ibs._get_all_known_nids()',
         'qaids': 'ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)',
         'daids': 'ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)',
+        'kpts': 'vt.dummy.get_dummy_kpts()'
     }
     import_depends_map = {
         'ibs':      'import ibeis',
+        'kpts':     'import vtool as vt',
     }
     var_depends_map = {
         'qreq_':     ['ibs', 'daids', 'qaids'],
