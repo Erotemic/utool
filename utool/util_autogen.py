@@ -83,6 +83,7 @@ def auto_docstr(modname, funcname, verbose=True, moddir=None, **kwargs):
         >>> print(docstr)
     """
     import utool
+    import utool as ut  # NOQA
     docstr = 'error'
     if isinstance(modname, str):
         module = __import__(modname)

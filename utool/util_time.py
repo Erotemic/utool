@@ -151,8 +151,12 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=1, strict=False):
         # Normal format, or non-standard year first data
         if timestamp_format == 2:
             timefmt = '%m/%d/%Y %H:%M:%S'
-        else:
+        elif timestamp_format == 1:
             timefmt = '%Y:%m:%d %H:%M:%S'
+        else:
+            assert isinstance(timestamp_format, six.string_types)
+            timefmt = timestamp_format
+            #raise AssertionError('unknown timestamp_format=%r' % (timestamp_format,))
         if len(datetime_str) > 19:
             datetime_str_ = datetime_str[:19].strip(';').strip()
         else:
