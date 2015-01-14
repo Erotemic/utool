@@ -339,7 +339,8 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool', download_dir=None,
             #                                  download_dir=download_dir,
             #                                  appname=appname)
             #data_dir = unarchive_file(true_zipped_fpath, force_commonprefix)
-            download_url(zipped_url, zip_fpath)
+            if not exists(zip_fpath):
+                download_url(zipped_url, zip_fpath)
             unarchive_file(zip_fpath, force_commonprefix)
             if cleanup:
                 util_path.delete(zip_fpath)  # Cleanup
