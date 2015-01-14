@@ -59,7 +59,7 @@ def test_progress():
 
     print('_________________')
 
-    numiter = 10000
+    numiter = 1000
     rate = .0000008
 
     with ut.Timer():

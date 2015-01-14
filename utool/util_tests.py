@@ -134,6 +134,48 @@ def parse_docblocks_from_docstr(docstr):
     return docstr_blocks
 
 
+def dev_ipython_copypaster(func):
+    import utool as ut
+    code_text = get_dev_paste_code(func)
+    ut.copy_text_to_clipboard(code_text)
+
+
+def get_dev_paste_code(func):
+    import utool as ut
+    example_texts = ut.get_doctest_examples(func)
+    example_text = example_texts[0][0]
+    assert isinstance(example_text, str), ut.list_str(example_text)
+    assert isinstance(example_text, str), ut.list_str(example_text)
+    source_text = ut.get_func_source(func)
+    get_dev_code = '\n'.join((example_text, source_text))
+    return get_dev_code
+
+
+def get_func_source(func):
+    r"""
+    Args:
+        func (?):
+
+    Returns:
+        ?: source_text
+
+    CommandLine:
+        python -m utool.util_tests --test-get_func_source
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.all_imports import *  # NOQA
+        >>> from ibeis.model.hots.devcases import *  # NOQA
+        >>> func = myquery
+        >>> deventer(func)
+    """
+    import utool as ut
+    source_text = inspect.getsource(func)
+    source_lines = source_text.splitlines()
+    source_text = ut.unindent('\n'.join(source_lines[1:]))
+    return source_text
+
+
 def parse_doctest_from_docstr(docstr):
     r"""
     because doctest itself doesnt do what I want it to do

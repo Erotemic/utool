@@ -1,8 +1,10 @@
+""" convinience functions for dictionaries """
 from __future__ import absolute_import, division, print_function
+from collections import defaultdict
 from itertools import product as iprod
 from six.moves import zip
-from collections import defaultdict
-from utool.util_inject import inject
+from collections import OrderedDict
+from utool import util_inject
 import six
 try:
     import numpy as np
@@ -10,7 +12,7 @@ try:
 except ImportError:
     HAS_NUMPY = False
     pass
-print, print_, printDBG, rrr, profile = inject(__name__, '[dict]')
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[dict]')
 
 
 def count_dict_vals(dict_of_lists):
@@ -74,14 +76,21 @@ def invert_dict(dict_):
     return inverted_dict
 
 
+def iter_all_dict_combinations_ordered(varied_dict):
+    """
+    Same as all_dict_combinations but preserves order
+    """
+    tups_list = [[(key, val) for val in val_list]
+                 for (key, val_list) in six.iteritems(varied_dict)]
+    dict_iter = (OrderedDict(tups) for tups in iprod(*tups_list))
+    return dict_iter
+
+
 def all_dict_combinations_ordered(varied_dict):
     """
     Same as all_dict_combinations but preserves order
     """
-    from collections import OrderedDict
-    tups_list = [[(key, val) for val in val_list]
-                 for (key, val_list) in six.iteritems(varied_dict)]
-    dict_list = [OrderedDict(tups) for tups in iprod(*tups_list)]
+    dict_list = list(iter_all_dict_combinations_ordered)
     return dict_list
 
 
@@ -171,6 +180,34 @@ def keys_sorted_by_value(dict_):
 def build_conflict_dict(key_list, val_list):
     """
     Builds dict where a list of values is associated with more than one key
+
+    Args:
+        key_list (list):
+        val_list (list):
+
+    Returns:
+        dict: key_to_vals
+
+    CommandLine:
+        python -m utool.util_dict --test-build_conflict_dict
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
+        >>> # build test data
+        >>> key_list = [  1,   2,   2,   3,   1]
+        >>> val_list = ['a', 'b', 'c', 'd', 'e']
+        >>> # execute function
+        >>> key_to_vals = build_conflict_dict(key_list, val_list)
+        >>> # verify results
+        >>> result = ut.dict_str(key_to_vals)
+        >>> print(result)
+        {
+            1: ['a', 'e'],
+            2: ['b', 'c'],
+            3: ['d'],
+        }
     """
     key_to_vals = defaultdict(list)
     for key, val in zip(key_list, val_list):

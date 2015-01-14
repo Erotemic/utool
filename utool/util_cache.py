@@ -105,6 +105,7 @@ def _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl=False):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_cache import *  # NOQA
         >>> from utool.util_cache import _args2_fpath
+        >>> import utool as ut
         >>> dpath = 'F:\\data\\work\\PZ_MTEST\\_ibsdb\\_ibeis_cache'
         >>> fname = 'normalizer_'
         >>> cfgstr = u'PZ_MTEST_DSUUIDS((9)67j%dr%&bl%4oh4+)_QSUUIDS((9)67j%dr%&bl%4oh4+)zebra_plains_vsone_NN(single,K1+1,last,cks1024)_FILT(ratio<0.625;1.0,fg;1.0)_SV(0.01;2;1.57minIn=4,nRR=50,nsum,)_AGG(nsum)_FLANN(4_kdtrees)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)'
@@ -112,8 +113,9 @@ def _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl=False):
         >>> write_hashtbl = False
         >>> fpath = _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl)
         >>> result = str(ut.ensure_unixslash(fpath))
-        >>> print(result)
-        F:/data/work/PZ_MTEST/_ibsdb/_ibeis_cache/normalizer_5cv1%3s&@1dtgjlj.cPkl
+        >>> target = 'F:/data/work/PZ_MTEST/_ibsdb/_ibeis_cache/normalizer_5cv1%3s&@1dtgjlj.cPkl'
+        >>> ut.assert_eq(result, target)
+
     """
     if len(ext) > 0 and ext[0] != '.':
         raise Exception('Fatal Error: Please be explicit and use a dot in ext')

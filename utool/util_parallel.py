@@ -268,7 +268,7 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
         generator which yeilds result of applying func to args in args_list
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> import utool as ut
         >>> num = 8700  # parallel is slower for smaller numbers
         >>> flag_generator0 = ut.generate(ut.is_prime, range(0, num), force_serial=True)
@@ -321,7 +321,7 @@ def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__,
         result of parallel map(func, args_list)
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> import utool as ut
         >>> num = 8700  # parallel is slower for smaller numbers
         >>> flag_generator0 = ut.process(ut.is_prime, zip(range(0, num)), force_serial=True)
