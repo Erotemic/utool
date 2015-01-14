@@ -297,6 +297,9 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
     CommandLine:
         python -m utool.util_dbg --test-embed
 
+    References:
+       http://stackoverflow.com/questions/27911570/can-you-specify-a-command-to-run-after-you-embed-into-ipython/27914204#27914204
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_dbg import *  # NOQA
@@ -340,22 +343,34 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
             # make qt not loop forever (I had qflag loop forever with this off)
     except ImportError as ex:
         print(ex)
-    NEW_METHOD = False
+    NEW_METHOD = True
     if NEW_METHOD:
-        # References:
-        #    http://stackoverflow.com/questions/27911570/can-you-specify-a-command-to-run-after-you-embed-into-ipython/27914204#27914204
+        user_ns = globals()
+        user_ns = globals().copy()
+        user_ns.update(locals())
+        if parent_globals is not None:
+            user_ns.update(parent_globals)
+        if parent_locals is not None:
+            user_ns.update(parent_locals)
+        orig_argv = sys.argv  # NOQA
+        print('About to start_ipython')
         c = IPython.Config()
         c.InteractiveShellApp.exec_lines = [
             '%pylab qt4',
             'print("Entered IPYTHON via utool")',
-            execstr_dict(parent_locals)
+            'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=11).f_code.co_name,))',
+            #'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=10).f_code.co_name,))',
+            #'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=9).f_code.co_name,))',
+            #'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=8).f_code.co_name,))',
+            #'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=7).f_code.co_name,))',
+            #'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=6).f_code.co_name,))',
+            #'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=5).f_code.co_name,))',
+            #execstr_dict(parent_locals)
         ]
-
-        orig_argv = sys.argv  # NOQA
-        IPython.start_ipython(config=c, argv=[])
+        IPython.start_ipython(config=c, argv=[], user_ns=user_ns)
         # Exit python immediately if specifed
-        if vars().get('EXIT_NOW', False) or vars().get('qqq', False):
-            print('[utool.embed] EXIT_NOW specified')
+        if user_ns.get('qqq', False) or user_ns.get('EXIT_NOW', False):
+            print('[utool.embed] EXIT_NOW or qqq specified')
             sys.exit(1)
     else:
         #from IPython.config.loader import Config
