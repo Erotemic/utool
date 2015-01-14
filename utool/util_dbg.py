@@ -286,6 +286,33 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
     """
     Starts interactive session. Similar to keyboard command in matlab.
     Wrapper around IPython.embed
+
+    Args:
+        parent_locals (None):
+        parent_globals (None):
+        exec_lines (None):
+        remove_pyqt_hook (bool):
+        N (int):
+
+    CommandLine:
+        python -m utool.util_dbg --test-embed
+
+    References:
+       http://stackoverflow.com/questions/27911570/can-you-specify-a-command-to-run-after-you-embed-into-ipython/27914204#27914204
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dbg import *  # NOQA
+        >>> # build test data
+        >>> parent_locals = None
+        >>> parent_globals = None
+        >>> exec_lines = None
+        >>> remove_pyqt_hook = True
+        >>> N = 0
+        >>> # execute function
+        >>> result = embed(parent_locals, parent_globals, exec_lines, remove_pyqt_hook, N)
+        >>> # verify results
+        >>> print(result)
     """
     if parent_globals is None:
         parent_globals = get_parent_globals(N=N)
@@ -316,38 +343,68 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
             # make qt not loop forever (I had qflag loop forever with this off)
     except ImportError as ex:
         print(ex)
-    #from IPython.config.loader import Config
-    # cfg = Config()
-    #config_dict = {}
-    #if exec_lines is not None:
-    #    config_dict['exec_lines'] = exec_lines
-    #IPython.embed(**config_dict)
-    print('Get stack location with: ')
-    print('ut.get_caller_stack_frame(N=8).f_code.co_name')
-    print('set EXIT_NOW or qqq to True to hard exit on unembed')
-    #print('set iup to True to draw plottool stuff')
-    print('call %pylab qt4 to get plottool stuff working')
-    once = True
-    # Allow user to set iup and redo the loop
-    while once or vars().get('iup', False):
-        if not once:
-            # SUPER HACKY WAY OF GETTING FIGURES ON THE SCREEN BETWEEN UPDATES
-            #vars()['iup'] = False
-            # ALL YOU NEED TO DO IS %pylab qt4
-            print('re-emebeding')
-            #import plottool as pt
-            #pt.update()
-            #(pt.present())
-            for _ in range(100):
-                time.sleep(.01)
-
-        once = False
-        #vars().get('iup', False):
-        IPython.embed()
+    NEW_METHOD = True
+    if NEW_METHOD:
+        user_ns = globals()
+        user_ns = globals().copy()
+        user_ns.update(locals())
+        if parent_globals is not None:
+            user_ns.update(parent_globals)
+        if parent_locals is not None:
+            user_ns.update(parent_locals)
+        orig_argv = sys.argv  # NOQA
+        print('About to start_ipython')
+        c = IPython.Config()
+        c.InteractiveShellApp.exec_lines = [
+            '%pylab qt4',
+            'print("Entered IPYTHON via utool")',
+            'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=11).f_code.co_name,))',
+            #'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=10).f_code.co_name,))',
+            #'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=9).f_code.co_name,))',
+            #'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=8).f_code.co_name,))',
+            #'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=7).f_code.co_name,))',
+            #'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=6).f_code.co_name,))',
+            #'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=5).f_code.co_name,))',
+            #execstr_dict(parent_locals)
+        ]
+        IPython.start_ipython(config=c, argv=[], user_ns=user_ns)
         # Exit python immediately if specifed
-        if vars().get('EXIT_NOW', False) or vars().get('qqq', False):
-            print('[utool.embed] EXIT_NOW specified')
+        if user_ns.get('qqq', False) or user_ns.get('EXIT_NOW', False):
+            print('[utool.embed] EXIT_NOW or qqq specified')
             sys.exit(1)
+    else:
+        #from IPython.config.loader import Config
+        # cfg = Config()
+        #config_dict = {}
+        #if exec_lines is not None:
+        #    config_dict['exec_lines'] = exec_lines
+        #IPython.embed(**config_dict)
+        print('Get stack location with: ')
+        print('ut.get_caller_stack_frame(N=8).f_code.co_name')
+        print('set EXIT_NOW or qqq to True to hard exit on unembed')
+        #print('set iup to True to draw plottool stuff')
+        print('call %pylab qt4 to get plottool stuff working')
+        once = True
+        # Allow user to set iup and redo the loop
+        while once or vars().get('iup', False):
+            if not once:
+                # SUPER HACKY WAY OF GETTING FIGURES ON THE SCREEN BETWEEN UPDATES
+                #vars()['iup'] = False
+                # ALL YOU NEED TO DO IS %pylab qt4
+                print('re-emebeding')
+                #import plottool as pt
+                #pt.update()
+                #(pt.present())
+                for _ in range(100):
+                    time.sleep(.01)
+
+            once = False
+            #vars().get('iup', False):
+            IPython.embed()
+            # Exit python immediately if specifed
+            if vars().get('EXIT_NOW', False) or vars().get('qqq', False):
+                print('[utool.embed] EXIT_NOW specified')
+                sys.exit(1)
 
 
 def quitflag(num=None, embed_=False, parent_locals=None, parent_globals=None):

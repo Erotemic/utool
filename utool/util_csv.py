@@ -4,6 +4,7 @@ try:
 except ImportError as ex:
     pass
 from six.moves import zip, map
+from utool import util_type
 from utool.util_type import is_list, is_int, is_str, is_float
 from utool.util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[csv]')
@@ -15,7 +16,8 @@ def numpy_to_csv(arr, col_lbls=None, header='', col_type=None):
 
 
 def make_csv_table(column_list=[], column_lbls=None, header='',
-                   column_type=None, row_lbls=None, transpose=False):
+                   column_type=None, row_lbls=None, transpose=False,
+                   precision=2):
     """
     Creates a csv table with aligned columns
 
@@ -45,12 +47,13 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
         >>> result = csv_text
         >>> print(result)
         # Test CSV
-        # NumData 3
+        # num_rows=3
         #   num,  alpha
               1,      A
               2,      B
               3,      C
     """
+    import utool as ut
     if transpose:
         column_lbls, row_lbls = row_lbls, column_lbls
         column_list = list(map(list, zip(*column_list)))
@@ -76,11 +79,12 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
         return header
 
     if column_type is None:
-        column_type = [type(col[0]) for col in column_list]
+        column_type = list(map(type, ut.get_list_column(column_list, 0)))
+        #column_type = [type(col[0]) for col in column_list]
 
     csv_rows = []
     csv_rows.append(header)
-    csv_rows.append('# NumData %r' % num_data)
+    csv_rows.append('# num_rows=%r' % num_data)
 
     column_maxlen = []
     column_str_list = []
@@ -104,15 +108,21 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
 
     for col, lbl, coltype in zip(column_list, column_lbls, column_type):
         if coltype is list or is_list(coltype):
+            #print('list')
             #col_str = [str(c).replace(',', '<comma>').replace('.', '<dot>') for c in iter(col)]
-            col_str = [str(c).replace(',', ' ').replace('.', '<dot>') for c in iter(col)]
-        elif coltype is float or is_float(coltype):
-            col_str = [('%.2f') % float(c) for c in iter(col)]
+            col_str = [str(c).replace(',', ' ').replace('.', '<dot>') for c in col]
+        elif coltype is float or is_float(coltype) or coltype == np.float32 or util_type.is_valid_floattype(coltype):
+            #print('float')
+            precision_fmtstr = '%.' + str(precision) + 'f'
+            col_str = [precision_fmtstr % float(r) for r in col]
         elif coltype is int or is_int(coltype):
+            #print('is_int')
             col_str = [_toint(c) for c in iter(col)]
         elif coltype is str or is_str(coltype):
-            col_str = [str(c).replace(',', '<comma>') for c in iter(col)]
+            #print('is_str')
+            col_str = [str(c).replace(',', '<comma>') for c in col]
         else:
+            print('[csv] is_unknown coltype=%r' % (coltype,))
             col_str = [str(c) for c in iter(col)]
         col_lens = [len(s) for s in iter(col_str)]
         max_len  = max(col_lens)

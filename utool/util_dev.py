@@ -745,8 +745,8 @@ def get_stats(list_, axis=None):
 # --- Info Strings ---
 
 
-def get_stats_str(list_, newlines=False, keys=None, exclude_keys=[], lbl=None,
-                  precision=None, axis=0):
+def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=None,
+                  precision=None, axis=0, stat_dict=None):
     """
     Returns the string version of get_stats
 
@@ -778,7 +778,10 @@ def get_stats_str(list_, newlines=False, keys=None, exclude_keys=[], lbl=None,
     from utool.util_str import dict_str
     import utool as ut
     # Get stats dict
-    stat_dict = get_stats(list_, axis=axis)
+    if stat_dict is None:
+        stat_dict = get_stats(list_, axis=axis)
+    else:
+        stat_dict = stat_dict.copy()
     # Keep only included keys if specified
     if keys is not None:
         for key in list(six.iterkeys(stat_dict)):
@@ -797,11 +800,22 @@ def get_stats_str(list_, newlines=False, keys=None, exclude_keys=[], lbl=None,
         for key in list(six.iterkeys(statstr_dict)):
             val = statstr_dict[key]
             if ut.is_float(val):
-                strval = float_fmtstr % val
+                if isinstance(val, np.ndarray):
+                    strval = str([float_fmtstr % v for v in val]).replace('\'', '')
+                    #np.array_str((val), precision=precision)
+                else:
+                    strval = float_fmtstr % val
                 if not strval.startswith('0'):
                     strval = strval.rstrip('0')
                     strval = strval.rstrip('.')
                 statstr_dict[key] = strval
+            else:
+                if isinstance(val, np.ndarray):
+                    strval = repr(val.tolist())
+                else:
+                    strval = str(val)
+                statstr_dict[key] = strval
+
     # format the dictionary string
     stat_str  = dict_str(statstr_dict, strvals=True, newlines=newlines)
     # add a label if requested
@@ -1417,3 +1431,16 @@ def is_developer(mycomputers=None):
         mycomputers = ['hyrule', 'ooo', 'bakerstreet']
     compname_lower = utool.get_computer_name().lower()
     return compname_lower in mycomputers
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m utool.util_dev
+        python -m utool.util_dev --allexamples
+        python -m utool.util_dev --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

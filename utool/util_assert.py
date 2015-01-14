@@ -170,6 +170,7 @@ def assert_almost_eq(arr_test, arr_target, thresh=1E-11):
         ]
         msg = '\n'.join(msg_list)
         raise AssertionError(msg)
+    return error
 
 
 def assert_eq(var1, var2, msg='', verbose=True):

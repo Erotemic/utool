@@ -27,7 +27,7 @@ def write_to(fpath, to_write, aslines=False, verbose=False,
         if ut.hashstr(read_from(fpath)) == ut.hashstr(to_write):
             print('[util_io] * no difference')
             return
-    if verbose or __PRINT_WRITES__:
+    if verbose and __PRINT_WRITES__:
         print('[util_io] * Writing to text file: %r ' % util_path.tail(fpath))
     with open(fpath, mode) as file_:
         if aslines:
@@ -47,7 +47,7 @@ def read_from(fpath, verbose=False, aslines=False, strict=True):
     Returns:
         text from fpath
     """
-    if verbose or __PRINT_READS__:
+    if verbose and __PRINT_READS__:
         print('[util_io] * Reading text file: %r ' % util_path.tail(fpath))
     try:
         if not util_path.checkpath(fpath, verbose=verbose, n=3):
@@ -68,18 +68,182 @@ def read_from(fpath, verbose=False, aslines=False, strict=True):
 
 
 def save_cPkl(fpath, data, verbose=False):
-    if verbose or __PRINT_WRITES__:
+    if verbose and __PRINT_WRITES__:
         print('[util_io] * save_cPkl(%r, data)' % (util_path.tail(fpath),))
     with open(fpath, 'wb') as file_:
         cPickle.dump(data, file_, cPickle.HIGHEST_PROTOCOL)
 
 
 def load_cPkl(fpath, verbose=False):
-    if verbose or __PRINT_READS__:
+    if verbose and __PRINT_READS__:
         print('[util_io] * load_cPkl(%r, data)' % (util_path.tail(fpath),))
     with open(fpath, 'rb') as file_:
         data = cPickle.load(file_)
     return data
+
+
+def save_hdf5(fpath, data, verbose=False, compression='gzip'):
+    r"""
+    Args:
+        fpath (?):
+        data (ndarray):
+        compression (str):
+            DEFLATE/GZIP - standard
+            LZF  - fast
+            SHUFFLE - compression ratio
+            FLETCHER32 - error detection
+            Scale-offset - integer / float scaling and truncation
+            SZIP - fast and patented
+
+    CommandLine:
+        python -m utool.util_io --test-save_hdf5
+
+    References:
+        http://docs.h5py.org/en/latest/quick.html
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_io import *  # NOQA
+        >>> import numpy as np
+        >>> import utool as ut
+        >>> # build test data
+        >>> verbose = True
+        >>> fpath = 'myfile.hdf5'
+        >>> np.random.seed(0)
+        >>> compression = 'gzip'
+        >>> data = (np.random.rand(100000, 128) * 255).astype(np.uint8).copy()
+        >>> # execute function
+        >>> ut.delete(fpath)
+        >>> save_hdf5(fpath, data, verbose, compression)
+        >>> data2 = load_hdf5(fpath, verbose)
+        >>> assert data is not data2
+        >>> assert np.all(data == data2)
+        >>> assert ut.delete(fpath)
+
+    Timeit:
+        cPkl seems to be faster with this initial implementation
+
+        %timeit save_hdf5(fpath, data, verbose=False, compression='gzip')
+        %timeit save_hdf5(fpath, data, verbose=False, compression='lzf')
+        %timeit save_cPkl(fpath + '.cPkl', data, verbose=False)
+        %timeit save_pytables(fpath + '.tables', data, verbose=False)
+        1 loops, best of 3: 258 ms per loop
+        10 loops, best of 3: 111 ms per loop
+        10 loops, best of 3: 53.1 ms per loop
+        10 loops, best of 3: 96.5 ms per loop
+
+
+        save_hdf5(fpath, data, verbose=False, compression='gzip')
+        %timeit load_hdf5(fpath, verbose=False)
+        save_hdf5(fpath, data, verbose=False, compression='lzf')
+        %timeit load_hdf5(fpath, verbose=False)
+        %timeit load_cPkl(fpath + '.cPkl', verbose=False)
+        %timeit load_pytables(fpath + '.tables', verbose=False)
+        100 loops, best of 3: 19.4 ms per loop
+        100 loops, best of 3: 14.4 ms per loop
+        100 loops, best of 3: 3.92 ms per loop
+        100 loops, best of 3: 6.22 ms per loop
+
+    """
+    import h5py
+    from os.path import basename
+    chunks = True
+    fname = basename(fpath)
+    shape = data.shape
+    dtype = data.dtype
+    if verbose and __PRINT_WRITES__:
+        print('[util_io] * save_hdf5(%r, data)' % (util_path.tail(fpath),))
+    with h5py.File(fpath, 'w') as file_:
+        dset = file_.create_dataset(fname, shape,  dtype, chunks=chunks, compression=compression)
+        dset[...] = data
+
+
+def load_hdf5(fpath, verbose=False):
+    import h5py
+    from os.path import basename
+    import numpy as np
+    fname = basename(fpath)
+    #file_ = h5py.File(fpath, 'r')
+    #file_.values()
+    #file_.keys()
+    if verbose and __PRINT_READS__:
+        print('[util_io] * load_hdf5(%r, data)' % (util_path.tail(fpath),))
+    with h5py.File(fpath, 'r') as file_:
+        dset = file_[fname]
+        shape = dset.shape
+        dtype = dset.dtype
+        data = np.empty(shape, dtype=dtype)
+        dset.read_direct(data)
+    return data
+
+
+def save_pytables(fpath, data, verbose=False):
+    """
+    sudo pip install numexpr
+    sudo pip install tables
+
+    References:
+        https://pytables.github.io/cookbook/py2exe_howto.html
+        https://gist.github.com/andrewgiessel/7515520
+        http://stackoverflow.com/questions/8843062/python-how-to-store-a-numpy-multidimensional-array-in-pytables
+        http://pytables.github.io/usersguide/tutorials.html#creating-new-array-objects
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_io import *  # NOQA
+        >>> import numpy as np
+        >>> import utool as ut
+        >>> # build test data
+        >>> verbose = True
+        >>> fpath = 'myfile.pytables.hdf5'
+        >>> np.random.seed(0)
+        >>> compression = 'gzip'
+        >>> data = (np.random.rand(100000, 128) * 255).astype(np.uint8).copy()
+        >>> # execute function
+        >>> ut.delete(fpath)
+        >>> save_pytables(fpath, data, verbose)
+        >>> data2 = load_pytables(fpath, verbose)
+        >>> assert data is not data2
+        >>> assert np.all(data == data2)
+        >>> assert ut.delete(fpath)
+    """
+    import tables
+    #from os.path import basename
+    #fname = basename(fpath)
+    #shape = data.shape
+    #dtype = data.dtype
+    #file_ = tables.open_file(fpath)
+    if verbose and __PRINT_WRITES__:
+        print('[util_io] * save_pytables(%r, data)' % (util_path.tail(fpath),))
+    with tables.open_file(fpath, 'w') as file_:
+        atom = tables.Atom.from_dtype(data.dtype)
+        filters = tables.Filters(complib='blosc', complevel=5)
+        dset = file_.createCArray(file_.root, 'data', atom, data.shape, filters=filters)
+        # save w/o compressive filter
+        #dset = file_.createCArray(file_.root, 'all_data', atom, all_data.shape)
+        dset[:] = data
+
+
+def load_pytables(fpath, verbose=False):
+    import tables
+    #from os.path import basename
+    #fname = basename(fpath)
+    #file_ = tables.open_file(fpath)
+    if verbose and __PRINT_READS__:
+        print('[util_io] * load_pytables(%r, data)' % (util_path.tail(fpath),))
+    with tables.open_file(fpath, 'r') as file_:
+        data = file_.root.data.read()
+    return data
+
+
+#def save_capnp(fpath, data, verbose=False):
+#    r"""
+#    Refernces:
+#        http://jparyani.github.io/pycapnp/quickstart.html#dictionaries
+#    """
+#    import capnp
+#    if verbose or __PRINT_WRITES__:
+#        print('[util_io] * save_capnp(%r, data)' % (util_path.tail(fpath),))
 
 
 def try_decode(x):
