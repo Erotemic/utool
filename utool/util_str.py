@@ -596,7 +596,7 @@ def dict_str(dict_, strvals=False, sorted_=False, newlines=True, recursive=True,
         return '{%s}' % ' '.join(itemstr_list)
 
 
-def horiz_string(*args):
+def horiz_string(*args, **kwargs):
     """
     Horizontally prints objects
 
@@ -627,15 +627,30 @@ def horiz_string(*args):
         A = [[1 2]  * [[5 6]
              [3 4]]    [7 8]]
     """
+    precision = kwargs.get('precision', None)
 
     if len(args) == 1 and not isinstance(args[0], str):
-        str_list = args[0]
+        val_list = args[0]
     else:
-        str_list = args
+        val_list = args
     all_lines = []
     hpos = 0
-    for sx in range(len(str_list)):
-        str_ = str(str_list[sx])
+    # for each value in the list or args
+    for sx in range(len(val_list)):
+        # Ensure value is a string
+        val = val_list[sx]
+        str_ = None
+        if precision is not None:
+            # Hack in numpy precision
+            try:
+                import numpy as np
+                if isinstance(val, np.ndarray):
+                    str_ = np.array_str(val, precision=precision, suppress_small=True)
+            except ImportError:
+                pass
+        if str_ is None:
+            str_ = str(val_list[sx])
+        # continue with formating
         lines = str_.split('\n')
         line_diff = len(lines) - len(all_lines)
         # Vertical padding
