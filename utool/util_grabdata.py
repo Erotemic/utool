@@ -24,7 +24,7 @@ def unarchive_file(archive_fpath, force_commonprefix=True):
     elif zipfile.is_zipfile(archive_fpath):
         return unzip_file(archive_fpath, force_commonprefix=force_commonprefix)
     else:
-        raise AssertionError('unknown archive format')
+        raise AssertionError('unknown archive format: %r' % (archive_fpath,))
 
 
 def untar_file(targz_fpath, force_commonprefix=True):
@@ -241,6 +241,7 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool', download_dir=None,
         zipped_url (str): url which must be either a .zip of a .tar.gz file
 
     Examples:
+        >>> from utool.util_grabdata import *  # NOQA
         >>> zipped_url = 'https://dl.dropboxusercontent.com/s/of2s82ed4xf86m6/testdata.zip'
         >>> zipped_url = 'http://www.spam.com/eggs/data.zip'
 
@@ -263,7 +264,8 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool', download_dir=None,
             #                                  download_dir=download_dir,
             #                                  appname=appname)
             #data_dir = unarchive_file(true_zipped_fpath, force_commonprefix)
-            download_url(zipped_url, zip_fpath)
+            if not exists(zip_fpath):
+                download_url(zipped_url, zip_fpath)
             unarchive_file(zip_fpath, force_commonprefix)
             if cleanup:
                 util_path.delete(zip_fpath)  # Cleanup
