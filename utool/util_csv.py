@@ -89,6 +89,8 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
         column_lbls = [''] * len(column_list)
 
     def _toint(c):
+        if c is None:
+            return 'None'
         try:
             if np.isnan(c):
                 return 'nan'
