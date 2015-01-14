@@ -36,6 +36,7 @@ class GridSearch(object):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> import utool as ut
         >>> grid_basis = [
         ...     ut.DimensionBasis('p', [.5, .8, .9, 1.0]),
         ...     ut.DimensionBasis('K', [2, 3, 4, 5]),

@@ -232,6 +232,7 @@ def grab_test_imgpath(key):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_grabdata import *  # NOQA
+        >>> import utool as ut
         >>> # build test data
         >>> key = 'carl.jpg'
         >>> # execute function
