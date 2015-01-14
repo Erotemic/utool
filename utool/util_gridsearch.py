@@ -253,7 +253,8 @@ class GridSearch(object):
         """
         import plottool as pt
         param2_score_stats = gridsearch.get_dimension_stats(param_lbl, score_lbl)
-        title = param_lbl + ' vs ' + score_lbl
+        title = param_lbl
+        #title = param_lbl + ' vs ' + score_lbl
         fig = pt.interval_stats_plot(param2_score_stats, x_label=param_lbl,
                                      y_label=score_lbl, title=title, **kwargs)
         return fig

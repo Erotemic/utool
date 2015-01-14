@@ -195,20 +195,54 @@ def split_archive_ext(path):
     return name, ext
 
 
+TESTIMG_URL_DICT = {
+    'grace.jpg' : 'http://i.imgur.com/rgQyu7r.jpg',
+    'jeff.png'  : 'http://i.imgur.com/l00rECD.png',
+    'ada2.jpg'  : 'http://i.imgur.com/zHOpTCb.jpg',
+    'ada.jpg'   : 'http://i.imgur.com/iXNf4Me.jpg',
+    'lena.png'  : 'http://i.imgur.com/JGrqMnV.png',
+    'carl.jpg'  : 'http://i.imgur.com/flTHWFD.jpg',
+    'easy1.png' : 'http://i.imgur.com/Qqd0VNq.png',
+    'easy2.png' : 'http://i.imgur.com/BDP8MIu.png',
+    'easy3.png' : 'http://i.imgur.com/zBcm5mS.png',
+    'hard3.png' : 'http://i.imgur.com/ST91yBf.png',
+    'zebra.png' : 'http://i.imgur.com/58hbGcd.png',
+}
+
+
+def get_valid_test_imgkeys():
+    """ returns valid keys for grab_test_imgpath """
+    return list(TESTIMG_URL_DICT.keys())
+
+
 def grab_test_imgpath(key):
     """
     Gets paths to standard / fun test images.
     Downloads them if they dont exits
+
+    Args:
+        key (str): one of the standard test images, e.g. lena.png, carl.jpg, ...
+
+    Returns:
+        str: testimg_fpath - filepath to the downloaded or cached test image.
+
+    CommandLine:
+        python -m utool.util_grabdata --test-grab_test_imgpath
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_grabdata import *  # NOQA
+        >>> # build test data
+        >>> key = 'carl.jpg'
+        >>> # execute function
+        >>> testimg_fpath = grab_test_imgpath(key)
+        >>> # verify results
+        >>> ut.assertpath(testimg_fpath)
     """
-    testdata_urls = {
-        'ada2.jpg'  : 'http://i.imgur.com/zHOpTCb.jpg',
-        'ada.jpg'   : 'http://i.imgur.com/iXNf4Me.jpg',
-        'grace.jpg' : 'http://imgur.com/rgQyu7r.jpg',
-        'lena.png'  : 'http://i.imgur.com/JGrqMnV.png',
-        'carl.jpg'  : 'http://i.imgur.com/flTHWFD.jpg',
-        'jeff.png'  : 'http://imgur.com/l00rECD.png',
-    }
-    return grab_file_url(testdata_urls[key], fname=key)
+    testimg_fname = key
+    testimg_url = TESTIMG_URL_DICT[key]
+    testimg_fpath = grab_file_url(testimg_url, fname=testimg_fname)
+    return testimg_fpath
 
 
 def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
