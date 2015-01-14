@@ -197,7 +197,7 @@ def startfile(fpath):
     pass
 
 
-def geteditor(fpath):
+def geteditor():
     return 'gvim'
 
 
