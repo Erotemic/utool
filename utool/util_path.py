@@ -1182,26 +1182,70 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
     return found_fpath_list, found_lines_list, found_lxs_list
 
 
-def fixwin32_shortname(path1):
+def get_win32_short_path_name(long_name):
+    """
+    Gets the short path name of a given long path.
+
+    References:
+        http://stackoverflow.com/a/23598461/200291
+        http://stackoverflow.com/questions/23598289/how-to-get-windows-short-file-name-in-python
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
+        >>> # build test data
+        >>> #long_name = unicode(normpath(ut.get_resource_dir()))
+        >>> long_name = unicode(r'C:/Program Files (x86)')
+        >>> #long_name = unicode(r'C:/Python27')
+        #unicode(normpath(ut.get_resource_dir()))
+        >>> # execute function
+        >>> result = get_win32_short_path_name(long_name)
+        >>> # verify results
+        >>> print(result)
+        C:/PROGRA~2
+    """
     import ctypes
+    from ctypes import wintypes
+    _GetShortPathNameW = ctypes.windll.kernel32.GetShortPathNameW
+    _GetShortPathNameW.argtypes = [wintypes.LPCWSTR, wintypes.LPWSTR, wintypes.DWORD]
+    _GetShortPathNameW.restype = wintypes.DWORD
+    output_buf_size = 0
+    while True:
+        output_buf = ctypes.create_unicode_buffer(output_buf_size)
+        needed = _GetShortPathNameW(long_name, output_buf, output_buf_size)
+        if output_buf_size >= needed:
+            short_name = output_buf.value
+            break
+        else:
+            output_buf_size = needed
+    return short_name
+
+
+def fixwin32_shortname(path1):
     try:
-        #import win32file
-        path1 = unicode(path1)
-        buflen = 260  # max size
-        buf = ctypes.create_unicode_buffer(buflen)
-        ctypes.windll.kernel32.GetLongPathNameW(path1, buf, buflen)
-        #win32file.GetLongPathName(path1, )
-        path2 = buf.value
+        #try:
+        #    import win32file
+        #    path2 = win32file.GetLongPathName(path1)
+        #except ImportError:
+            import ctypes
+            #import win32file
+            path1 = unicode(path1)
+            buflen = 260  # max size
+            buf = ctypes.create_unicode_buffer(buflen)
+            ctypes.windll.kernel32.GetLongPathNameW(path1, buf, buflen)
+            # If the path doesnt exist windows doesnt return anything
+            path2 = buf.value if len(buf.value) > 0 else path1
     except Exception as ex:
         print(ex)
-        printex(ex, 'cannot fix win32 shortcut')
+        printex(ex, 'cannot fix win32 shortcut', keys=['path1', 'path2'])
         path2 = path1
-        raise
+        #raise
     return path2
 
 
 def platform_path(path):
-    """
+    r"""
     Returns platform specific path for pyinstaller usage
 
     Args:
@@ -1217,11 +1261,23 @@ def platform_path(path):
         >>> # ENABLE_DOCTEST
         >>> # FIXME: find examples of the wird paths this fixes (mostly on win32 i think)
         >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
         >>> path = 'some/odd/../weird/path'
         >>> path2 = platform_path(path)
         >>> result = str(path2)
-        >>> print(result)
-        some/weird/path
+        >>> if ut.WIN32:
+        >>>     ut.assert_eq(path2, r'some\weird\path')
+        >>> else:
+        >>>     ut.assert_eq(path2, r'some/weird/path')
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
+        >>> if ut.WIN32:
+        >>>     path = 'C:/PROGRA~2'
+        >>>     path2 = platform_path(path)
+        >>>     assert path2 == u'..\\..\\..\\..\\Program Files (x86)''
     """
     try:
         if path == '':
