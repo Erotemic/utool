@@ -1277,7 +1277,7 @@ def platform_path(path):
         >>> if ut.WIN32:
         >>>     path = 'C:/PROGRA~2'
         >>>     path2 = platform_path(path)
-        >>>     assert path2 == u'..\\..\\..\\..\\Program Files (x86)''
+        >>>     assert path2 == u'..\\..\\..\\..\\Program Files (x86)'
     """
     try:
         if path == '':
