@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import os
 from utool import util_inject
+from collections import deque  # NOQA
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
 
 
@@ -251,6 +252,7 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
         >>> print(result)
     """
     import utool as ut
+
     examplecode_lines = []
     top_import_fmstr = 'from {modname} import *  # NOQA'
     top_import = top_import_fmstr.format(modname=modname)
@@ -264,8 +266,9 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
         'qres':  'ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())[1]',
         'aid_list': 'ibs.get_valid_aids()',
         'nid_list': 'ibs._get_all_known_nids()',
-        'qaids': 'ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)',
-        'daids': 'ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)',
+        'qaids': 'ibs.get_valid_aids(species=species)',
+        'daids': 'ibs.get_valid_aids(species=species)',
+        'species': 'ibeis.const.Species.ZEB_PLAIN',
         'kpts': 'vt.dummy.get_dummy_kpts()'
     }
     import_depends_map = {
@@ -273,9 +276,11 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
         'kpts':     'import vtool as vt',
     }
     var_depends_map = {
-        'qreq_':     ['ibs', 'daids', 'qaids'],
+        'qreq_':     ['ibs', 'species', 'daids', 'qaids'],
         'qaids':     ['ibs'],
         'daids':     ['ibs'],
+        'qaids':     ['species'],
+        'daids':     ['species'],
     }
 
     def find_arg_defaultval(argname, val):
@@ -287,18 +292,23 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
         return val
 
     # augment argname list with dependencies
-    dependant_argnames = []
-    def append_dependant_argnames(argnames):
+    dependant_argnames = []  # deque()
+    def append_dependant_argnames(argnames, dependant_argnames):
+        """ use hints to add known dependencies for certain argument inputs """
         for argname in argnames:
+            # Check if argname was already added as dependency
             if argname not in dependant_argnames and argname not in argname_list:
                 dependant_argnames.append(argname)
+            # Check if argname has dependants
             if argname in var_depends_map:
                 argdeps = var_depends_map[argname]
-                append_dependant_argnames(argdeps)
-    append_dependant_argnames(argname_list)
+                # RECURSIVE CALL
+                append_dependant_argnames(argdeps, dependant_argnames)
+    append_dependant_argnames(argname_list, dependant_argnames)
 
+    # Define argnames and dependencies in example code
     # argnames prefixed with dependeancies
-    argname_list_ = dependant_argnames + argname_list
+    argname_list_ = list(dependant_argnames) + argname_list
 
     # Default example values
     defaults_ = [] if defaults is None else defaults
