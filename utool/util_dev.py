@@ -523,74 +523,81 @@ def report_memsize(obj, name=None, verbose=True):
 class InteractiveIter(object):
     """
     Choose next value interactively
+
+    iterable should be a list, not a generator. sorry
     """
-    def __init__(self, iterable=None, enabled=True, startx=0):
+    def __init__(self, iterable=None, enabled=True, startx=0, default_action='next'):
         self.enabled = enabled
         self.iterable = iterable
-        self.action_keys = {
-            'quit_keys': ['q', 'exit', 'quit'],
-            'next_keys': ['', 'n'],
-            'prev_keys': ['p'],
-            'reload_keys': ['r'],
-            'index_keys': ['x', 'i', 'index'],
-            'ipy_keys': ['ipy', 'ipython', 'cmd'],
-        }
-        #self.quit_keys = ['q', 'exit', 'quit']
-        #self.next_keys = ['', 'n']
-        #self.prev_keys = ['p']
-        #self.index_keys = ['x', 'i', 'index']
-        #self.reload_keys = ['r']
-        #self.ipy_keys = ['ipy', 'ipython', 'cmd']
+        self.action_tuples = [
+            # (name, list, help)
+            ('next',   ['n'], 'move to the next index'),
+            ('prev',   ['p'], 'move to the previous index'),
+            ('reload', ['r'], 'stay at the same index'),
+            ('index',  ['x', 'i', 'index'], 'move to that index'),
+            ('set',    ['s', 'set'], 'set current index value'),
+            ('ipy',    ['ipy', 'ipython', 'cmd'], 'start IPython'),
+            ('quit',   ['q', 'exit', 'quit'], 'quit'),
+        ]
+        import utool as ut
+        default_action_index = ut.get_list_column(self.action_tuples, 0).index(default_action)
+        self.action_tuples[default_action_index][1].append('')
+        self.action_keys = {tup[0]: tup[1] for tup in self.action_tuples}
         self.index = startx
         pass
 
-    def __call__(self, iterable=None):
-        self.iterable = iterable
-
-    def format_msg(self, msg):
-        return msg.format(**self.action_keys)
-
-    def prompt(self):
-        import utool as ut
-        msg = ut.indentjoin(list(map(self.format_msg, [
-            'enter {next_keys} to move to the next index',
-            'enter {prev_keys} to move to the previous index',
-            'enter {reload_keys} to stay at the same index',
-            'enter {index_keys} to move to that index',
-            'enter {ipy_keys} to start IPython',
-            'enter {quit_keys} to quit',
-        ])), '\n | * ')
-        msg = ''.join([' +-----------', msg, '\n L-----------\n'])
-        # TODO: timeout, help message
-        ans = input(msg).strip()
-        return ans
-
-    def handle_ans(self, ans):
+    def handle_ans(self, ans_):
+        ans = ans_.strip(' ')
+        def parse_str_value(ans):
+            return ' '.join(ans.split(' ')[1:])
+        def chack_if_answer_was(valid_keys):
+            return any([ans.startswith(key + ' ') for key in valid_keys])
         # Quit
-        if ans in self.action_keys['quit_keys']:
+        if ans in self.action_keys['quit']:
             raise StopIteration()
         # Prev
-        elif ans in self.action_keys['prev_keys']:
+        elif ans in self.action_keys['prev']:
             self.index -= 1
         # Next
-        elif ans in self.action_keys['next_keys']:
+        elif ans in self.action_keys['next']:
             self.index += 1
         # Reload
-        elif ans in self.action_keys['reload_keys']:
+        elif ans in self.action_keys['reload']:
             self.index += 0
         # Index
-        elif any([ans.startswith(index_key + ' ') for index_key in self.action_keys['index_keys']]):
+        elif chack_if_answer_was(self.action_keys['index']):
             try:
-                self.index = int(ans.split(' ')[1])
+                self.index = int(parse_str_value(ans))
+            except ValueError:
+                print('Unknown ans=%r' % (ans,))
+        # Set
+        elif chack_if_answer_was(self.action_keys['set']):
+            try:
+                self.iterable[self.index] = eval(parse_str_value(ans))
             except ValueError:
                 print('Unknown ans=%r' % (ans,))
         # IPython
-        elif ans in self.action_keys['ipy_keys']:
+        elif ans in self.action_keys['ipy']:
             return 'IPython'
         else:
             print('Unknown ans=%r' % (ans,))
             return False
         return True
+
+    def prompt(self):
+        import utool as ut
+        def _or_phrase(list_):
+            return ut.cond_phrase(list(map(repr, list_)), 'or')
+        msg_list = ['enter %s to %s' % (_or_phrase(tup[1]), tup[2])
+                    for tup in self.action_tuples]
+        msg = ut.indentjoin(msg_list, '\n | * ')
+        msg = ''.join([' +-----------', msg, '\n L-----------\n'])
+        # TODO: timeout, help message
+        ans = input(msg).strip()
+        return ans
+
+    def __call__(self, iterable=None):
+        self.iterable = iterable
 
     def __iter__(self):
         import utool as ut
@@ -601,10 +608,15 @@ class InteractiveIter(object):
         print('Begin interactive iteration over %r items' % (self.num_items))
         mark_, end_ = util_progress.log_progress(total=self.num_items, lbl='interaction: ', freq=1)
         while True:
+            print('')
+            mark_(self.index)
             item = self.iterable[self.index]
+            yield item
+            print('')
             mark_(self.index)
             print('')
-            yield item
+            print('[IITER] current index=%r' % (self.index,))
+            print('[IITER] current item=%r' % (item,))
             ans = self.prompt()
             action = self.handle_ans(ans)
             if action == 'IPython':
