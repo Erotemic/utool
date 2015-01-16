@@ -9,6 +9,7 @@ probably belong elsewhere and the parsers need a big cleanup.
 from __future__ import absolute_import, division, print_function
 import six
 from six.moves import builtins
+from collections import namedtuple
 import inspect
 import types
 import traceback  # NOQA
@@ -154,10 +155,10 @@ def get_dev_paste_code(func):
 def get_func_source(func):
     r"""
     Args:
-        func (?):
+        func (function): live function
 
     Returns:
-        ?: source_text
+        src: source_text
 
     CommandLine:
         python -m utool.util_tests --test-get_func_source
@@ -355,9 +356,9 @@ def get_module_testlines(module_list, remove_pyc=True, verbose=True,
         #'python'
     testcmd_list = []
     for module in module_list:
-        tuptup = get_doctest_testtup_list(module=module, allexamples=True,
-                                          verbose=verbose, **kwargs)
-        enabled_testtup_list, frame_fpath, all_testflags, module_ = tuptup
+        mod_doctest_tup = get_module_doctest_tup(module=module, allexamples=True,
+                                                 verbose=verbose, **kwargs)
+        enabled_testtup_list, frame_fpath, all_testflags, module_ = mod_doctest_tup
         for testtup in enabled_testtup_list:
             testflag = testtup[-1]
             if remove_pyc:
@@ -368,13 +369,15 @@ def get_module_testlines(module_list, remove_pyc=True, verbose=True,
             testcmd_list.append(testcmd)
     return testcmd_list
 
+ModuleDoctestTup = namedtuple('ModuleDoctestTup', ('enabled_testtup_list', 'frame_fpath', 'all_testflags', 'module'))
 
-def get_doctest_testtup_list(testable_list=None, check_flags=True, module=None,
+
+def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                              allexamples=None, needs_enable=None, N=0,
                              verbose=True, testslow=False):
     """
     Returns:
-        tuple : (enabled_testtup_list, frame_fpath, all_testflags, module)
+        ModuleDoctestTup : (enabled_testtup_list, frame_fpath, all_testflags, module)
             enabled_testtup_list (list): a list of testtup
                 testtup (tuple): (name, num, src, want, flag1) describes a valid doctest in the module
                     name  (str): test name
@@ -522,7 +525,9 @@ def get_doctest_testtup_list(testable_list=None, check_flags=True, module=None,
             enabled_testtup_list.append(new_testtup)
         else:
             distabled_testflags.append(flag1)
-    return enabled_testtup_list, frame_fpath, all_testflags, module
+
+    mod_doctest_tup = ModuleDoctestTup(enabled_testtup_list, frame_fpath, all_testflags, module)
+    return mod_doctest_tup
 
 
 def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples=None,
@@ -567,11 +572,10 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     if verbose:
         print('[util_test.doctest_funcs] Running doctest funcs')
 
-    tup_ = get_doctest_testtup_list(testable_list, check_flags, module,
-                                    allexamples, needs_enable, N=1,
-                                    verbose=verbose)
+    mod_doctest_tup = get_module_doctest_tup(testable_list, check_flags, module,
+                                             allexamples, needs_enable, N=1, verbose=verbose)
 
-    enabled_testtup_list, frame_fpath, all_testflags, module  = tup_
+    enabled_testtup_list, frame_fpath, all_testflags, module  = mod_doctest_tup
     nPass = 0
     nFail = 0
     failed_flag_list = []
