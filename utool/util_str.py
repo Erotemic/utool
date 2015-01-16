@@ -16,6 +16,11 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[str]')
 
 TAU = (2 * math.pi)  # References: tauday.com
 
+TRIPLE_DOUBLE_QUOTE = r'"' * 3
+TRIPLE_SINGLE_QUOTE = r"'" * 3
+SINGLE_QUOTE = r"'"
+DOUBLE_QUOTE = r'"'
+
 TAUFMTSTR = '{coeff:,.1f}{taustr}'
 if '--myway' not in sys.argv:
     TAUSTR = '*2pi'

@@ -63,8 +63,21 @@ def get_list_column(list_, colx):
         >>> result = get_list_column(list_, colx)
         >>> print(result)
         ['a', 'c']
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [['a', 'b'], ['c', 'd']]
+        >>> colx = [1, 0]
+        >>> result = get_list_column(list_, colx)
+        >>> print(result)
+        [['b', 'a'], ['d', 'c']]
     """
-    return [row[colx] for row in list_]
+    if isinstance(colx, list):
+        # multi select
+        return [[row[colx_] for colx_ in colx] for row in list_]
+    else:
+        return [row[colx] for row in list_]
 
 
 #def get_list_row(list_, rowx):

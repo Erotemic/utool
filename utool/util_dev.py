@@ -526,10 +526,15 @@ class InteractiveIter(object):
 
     iterable should be a list, not a generator. sorry
     """
-    def __init__(self, iterable=None, enabled=True, startx=0, default_action='next'):
-        self.enabled = enabled
-        self.iterable = iterable
-        self.action_tuples = [
+    def __init__(iiter, iterable=None, enabled=True, startx=0,
+                 default_action='next', custom_actions=[], wraparound=False):
+        import utool as ut
+        iiter.wraparound = wraparound
+        iiter.enabled = enabled
+        iiter.iterable = iterable
+        iiter.custom_actions = ut.get_list_column(custom_actions, [0, 1, 2])
+        iiter.custom_funcs = ut.get_list_column(custom_actions, 3)
+        iiter.action_tuples = [
             # (name, list, help)
             ('next',   ['n'], 'move to the next index'),
             ('prev',   ['p'], 'move to the previous index'),
@@ -538,87 +543,95 @@ class InteractiveIter(object):
             ('set',    ['s', 'set'], 'set current index value'),
             ('ipy',    ['ipy', 'ipython', 'cmd'], 'start IPython'),
             ('quit',   ['q', 'exit', 'quit'], 'quit'),
-        ]
-        import utool as ut
-        default_action_index = ut.get_list_column(self.action_tuples, 0).index(default_action)
-        self.action_tuples[default_action_index][1].append('')
-        self.action_keys = {tup[0]: tup[1] for tup in self.action_tuples}
-        self.index = startx
+        ] + iiter.custom_actions
+        default_action_index = ut.get_list_column(iiter.action_tuples, 0).index(default_action)
+        iiter.action_tuples[default_action_index][1].append('')
+        iiter.action_keys = {tup[0]: tup[1] for tup in iiter.action_tuples}
+        iiter.index = startx
         pass
 
-    def handle_ans(self, ans_):
+    def handle_ans(iiter, ans_):
         ans = ans_.strip(' ')
         def parse_str_value(ans):
             return ' '.join(ans.split(' ')[1:])
         def chack_if_answer_was(valid_keys):
-            return any([ans.startswith(key + ' ') for key in valid_keys])
+            return any([ans == key or ans.startswith(key + ' ') for key in valid_keys])
         # Quit
-        if ans in self.action_keys['quit']:
+        if ans in iiter.action_keys['quit']:
             raise StopIteration()
         # Prev
-        elif ans in self.action_keys['prev']:
-            self.index -= 1
+        elif ans in iiter.action_keys['prev']:
+            iiter.index -= 1
         # Next
-        elif ans in self.action_keys['next']:
-            self.index += 1
+        elif ans in iiter.action_keys['next']:
+            iiter.index += 1
         # Reload
-        elif ans in self.action_keys['reload']:
-            self.index += 0
+        elif ans in iiter.action_keys['reload']:
+            iiter.index += 0
         # Index
-        elif chack_if_answer_was(self.action_keys['index']):
+        elif chack_if_answer_was(iiter.action_keys['index']):
             try:
-                self.index = int(parse_str_value(ans))
+                iiter.index = int(parse_str_value(ans))
             except ValueError:
                 print('Unknown ans=%r' % (ans,))
         # Set
-        elif chack_if_answer_was(self.action_keys['set']):
+        elif chack_if_answer_was(iiter.action_keys['set']):
             try:
-                self.iterable[self.index] = eval(parse_str_value(ans))
+                iiter.iterable[iiter.index] = eval(parse_str_value(ans))
             except ValueError:
                 print('Unknown ans=%r' % (ans,))
         # IPython
-        elif ans in self.action_keys['ipy']:
+        elif ans in iiter.action_keys['ipy']:
             return 'IPython'
         else:
+            # Custom interactions
+            for func, tup in zip(iiter.custom_funcs, iiter.custom_actions):
+                key = tup[0]
+                if chack_if_answer_was(iiter.action_keys[key]):
+                    value  = parse_str_value(ans)
+                    func(iiter, key, value)
+                    return True
             print('Unknown ans=%r' % (ans,))
             return False
         return True
 
-    def prompt(self):
+    def prompt(iiter):
         import utool as ut
         def _or_phrase(list_):
             return ut.cond_phrase(list(map(repr, list_)), 'or')
         msg_list = ['enter %s to %s' % (_or_phrase(tup[1]), tup[2])
-                    for tup in self.action_tuples]
+                    for tup in iiter.action_tuples]
         msg = ut.indentjoin(msg_list, '\n | * ')
         msg = ''.join([' +-----------', msg, '\n L-----------\n'])
         # TODO: timeout, help message
         ans = input(msg).strip()
         return ans
 
-    def __call__(self, iterable=None):
-        self.iterable = iterable
+    def __call__(iiter, iterable=None):
+        iiter.iterable = iterable
 
-    def __iter__(self):
+    def __iter__(iiter):
         import utool as ut
-        if not self.enabled:
+        if not iiter.enabled:
             raise StopIteration()
-        assert isinstance(self.iterable, INDEXABLE_TYPES)
-        self.num_items = len(self.iterable)
-        print('Begin interactive iteration over %r items' % (self.num_items))
-        mark_, end_ = util_progress.log_progress(total=self.num_items, lbl='interaction: ', freq=1)
+        assert isinstance(iiter.iterable, INDEXABLE_TYPES)
+        iiter.num_items = len(iiter.iterable)
+        print('Begin interactive iteration over %r items' % (iiter.num_items))
+        mark_, end_ = util_progress.log_progress(total=iiter.num_items, lbl='interaction: ', freq=1)
         while True:
             print('')
-            mark_(self.index)
-            item = self.iterable[self.index]
+            if iiter.wraparound:
+                iiter.index = iiter.index % len(iiter.iterable)
+            mark_(iiter.index)
+            item = iiter.iterable[iiter.index]
             yield item
             print('')
-            mark_(self.index)
+            mark_(iiter.index)
             print('')
-            print('[IITER] current index=%r' % (self.index,))
+            print('[IITER] current index=%r' % (iiter.index,))
             print('[IITER] current item=%r' % (item,))
-            ans = self.prompt()
-            action = self.handle_ans(ans)
+            ans = iiter.prompt()
+            action = iiter.handle_ans(ans)
             if action == 'IPython':
                 ut.embed(N=1)
         end_()

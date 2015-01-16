@@ -121,7 +121,7 @@ def all_dict_combinations(varied_dict):
             {'pipeline_root': 'vsmany', 'sv_on': None, 'logdist_weight': 1.0},
         ]
     """
-    tups_list = [[(key, val) for val in val_list]
+    tups_list = [[(key, val) for val in val_list] if isinstance(val_list, (list, tuple)) else [(key, val_list)]
                  for (key, val_list) in six.iteritems(varied_dict)]
     dict_list = [dict(tups) for tups in iprod(*tups_list)]
     #dict_list = [{key: val for (key, val) in tups} for tups in iprod(*tups_list)]

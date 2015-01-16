@@ -81,6 +81,55 @@ def smart_cast(var, type_):
     return type_(var)
 
 
+def smart_cast2(var):
+    r"""
+    if the variable is a string tries to cast it to a reasonable value.
+    maybe can just use eval. FIXME: funcname
+
+    Args:
+        var (unknown):
+
+    Returns:
+        unknown: some var
+
+    CommandLine:
+        python -m utool.util_type --test-smart_cast2
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_type import *  # NOQA
+        >>> # build test data
+        >>> var_list = ['?', 1, '1', '1.0', '1.2', 'True', None, 'None']
+        >>> # execute function
+        >>> castvar_list = [smart_cast2(var) for var in var_list]
+        >>> # verify results
+        >>> result = str(castvar_list)
+        >>> print(result)
+        ['?', 1, 1, 1.0, 1.2, True, None, None]
+    """
+    if var is None:
+        return None
+    if isinstance(var, six.string_types):
+        castvar = None
+        lower = var.lower()
+        if lower == 'true':
+            return True
+        elif lower == 'false':
+            return False
+        elif lower == 'none':
+            return None
+        type_list = [int, float]
+        for type_ in type_list:
+            castvar = try_cast(var, type_)
+            if castvar is not None:
+                break
+        if castvar is None:
+            castvar = var
+    else:
+        castvar = var
+    return castvar
+
+
 def bool_from_str(str_):
     lower = str_.lower()
     if lower == 'true':
@@ -173,3 +222,15 @@ def is_func_or_method_or_partial(var):
 
 def is_funclike(var):
     return hasattr(var, '__call__')
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m utool.util_type
+        python -m utool.util_type --allexamples
+        python -m utool.util_type --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

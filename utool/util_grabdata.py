@@ -215,13 +215,14 @@ def get_valid_test_imgkeys():
     return list(TESTIMG_URL_DICT.keys())
 
 
-def grab_test_imgpath(key):
+def grab_test_imgpath(key, allow_external=True):
     """
     Gets paths to standard / fun test images.
     Downloads them if they dont exits
 
     Args:
         key (str): one of the standard test images, e.g. lena.png, carl.jpg, ...
+        allow_external (bool): if True you can specify existing fpaths
 
     Returns:
         str: testimg_fpath - filepath to the downloaded or cached test image.
@@ -240,9 +241,13 @@ def grab_test_imgpath(key):
         >>> # verify results
         >>> ut.assertpath(testimg_fpath)
     """
-    testimg_fname = key
-    testimg_url = TESTIMG_URL_DICT[key]
-    testimg_fpath = grab_file_url(testimg_url, fname=testimg_fname)
+    if allow_external and key not in TESTIMG_URL_DICT:
+        testimg_fpath = key
+        assert util_path.checkpath(testimg_fpath, verbose=True)
+    else:
+        testimg_fname = key
+        testimg_url = TESTIMG_URL_DICT[key]
+        testimg_fpath = grab_file_url(testimg_url, fname=testimg_fname)
     return testimg_fpath
 
 

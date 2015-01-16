@@ -440,6 +440,9 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
 
         for key, val in ut.iter_module_doctestable(module):
             docstr = inspect.getdoc(val)
+            # FIXME: BUG: We need to verify that this function actually belongs
+            # to this module. In util_type ndarray is imported and we try to
+            # parse it
             if docstr is not None and docstr.find('Example') >= 0:
                 testable_name_list.append(key)
                 testable_list.append(val)
