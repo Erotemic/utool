@@ -288,9 +288,35 @@ def dict_setdiff(dict_, negative_keys):
 
 
 def delete_dict_keys(dict_, key_list):
+    r"""
+    in place deletion if  keys exist
+
+    Args:
+        dict_ (?):
+        key_list (list):
+
+    CommandLine:
+        python -m utool.util_dict --test-delete_dict_keys
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import utool as ut
+        >>> # build test data
+        >>> dict_ = {'bread': 1, 'churches': 1, 'cider': 2, 'very small rocks':2}
+        >>> key_list = ['duck', 'bread', 'cider']
+        >>> # execute function
+        >>> delete_dict_keys(dict_, key_list)
+        >>> # verify results
+        >>> result = ut.dict_str(dict_, newlines=False)
+        >>> print(result)
+        {'churches': 1, 'very small rocks': 2,}
+
+    """
     invalid_keys = set(key_list) - set(six.iterkeys(dict_))
-    for key in invalid_keys:
+    valid_keys = set(key_list) - invalid_keys
+    for key in valid_keys:
         del dict_[key]
+    return dict_
 
 
 def dict_take_gen(dict_, keys, *d):

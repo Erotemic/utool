@@ -492,6 +492,21 @@ def inbounds(num, low, high, eq=False):
     return is_inbounds
 
 
+#def inbounds(arr, min_, max_):
+#    if min_ > 0 and max_ is not None:
+#        #if max_ is not None and min
+#        islt_max = np.less_equal(arr, max_)
+#        isgt_min = np.greater_equal(arr, min_)
+#        is_inbounds = np.logical_and(islt_max, isgt_min)
+#    elif min_ == 0:
+#        is_inbounds = np.less_equal(arr, max_)
+#    elif max_ is None:
+#        is_inbounds = np.greater_equal(arr, min_)
+#    else:
+#        assert False
+#    return is_inbounds
+
+
 def almost_eq(arr1, arr2, thresh=1E-11, ret_error=False):
     """ checks if floating point number are equal to a threshold
     """

@@ -11,6 +11,172 @@ from utool._internal import meta_util_six
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[inspect]')
 
 
+def get_dev_hints():
+    from collections import OrderedDict
+    VAL_FIELD = util_regex.named_field('val', '.*')
+    VAL_BREF = util_regex.bref_field('val')
+
+    registered_hints = OrderedDict([
+        # General IBEIS hints
+        ('ibs.*'   , ('IBEISController', 'ibeis controller object')),
+        ('qaid2_qres.*'   , ('dict', 'dict of query result objects')),
+        ('qreq_'   , ('QueryRequest', 'query request object with hyper-parameters')),
+        ('qres.*'  , ('QueryResult', 'object of feature correspondences and scores')),
+        ('qparams*', ('QueryParams', 'query hyper-parameters')),
+        ('vecs'    , ('ndarray[uint8_t, ndim=2]', 'descriptor vectors')),
+        ('maws'    , ('ndarray[float32_t, ndim=1]', 'multiple assignment weights')),
+        ('words'   , ('ndarray[uint8_t, ndim=2]', 'aggregate descriptor cluster centers')),
+        ('word'    , ('ndarray[uint8_t, ndim=1]', 'aggregate descriptor cluster center')),
+        ('rvecs'   , ('ndarray[uint8_t, ndim=2]', 'residual vector')),
+        ('fm', ('list', 'list of feature matches as tuples (qfx, dfx)')),
+        ('fs', ('list', 'list of feature scores')),
+        ('qaid'    , ('int', 'query annotation id')),
+        ('daids'   , ('list', 'database annotation ids')),
+        ('qaids'   , ('list', 'query annotation ids')),
+        ('use_cache', ('bool', 'turns on disk based caching')),
+        ('qreq_vsmany_', ('QueryRequest', 'persistant vsmany query request')),
+        ('qnid'    , ('int', 'query name id')),
+
+        # Pipeline hints
+        ('qaid2_nns',
+         ('dict', 'maps query annotid to (qfx2_idx, qfx2_dist)')),
+
+        ('qaid2_nnvalid0',
+         ('dict',
+          'maps query annotid to qfx2_valid0')),
+
+        ('qfx2_valid0',
+         ('ndarray',
+          'maps query feature index to K matches non-impossibility flags')),
+
+        ('filt2_weights',
+         ('dict', 'maps filter names to qfx2_weight ndarray')),
+
+        ('qaid2_filtweights',
+         ('dict',
+          'mapping to weights computed by filters like lnnbnn and ratio')),
+
+        ('qaid2_nnfiltagg',
+         ('dict',
+          'maps to nnfiltagg - tuple(qfx2_score, qfx2_valid)')),
+
+        ('qaid2_nnfilts',
+         ('dict', 'nonaggregate feature scores and validities for each feature NEW')),
+
+        ('nnfiltagg', ('tuple', '(qfx2_score_agg, qfx2_valid_agg)')),
+        ('nnfilts', ('tuple', '(filt_list, qfx2_score_list, qfx2_valid_list)')),
+
+        ('qfx2_idx', ('ndarray[int32_t, ndims=2]', 'mapping from query feature index to db neighbor index')),
+
+        ('K'       , ('int', None)),
+        ('Knorm'   , ('int', None)),
+
+        # SMK Hints
+        ('smk_alpha',  ('float', 'selectivity power')),
+        ('smk_thresh', ('float', 'selectivity threshold')),
+        ('query_sccw', ('float', 'query self-consistency-criterion')),
+        ('data_sccw', ('float', 'data self-consistency-criterion')),
+        ('invindex', ('InvertedIndex', 'object for fast vocab lookup')),
+
+        # Plotting hints
+        ('[qd]?rchip[0-9]?', ('ndarray[uint8_t, ndim=2]', 'rotated annotation image data')),
+        ('[qd]?chip[0-9]?', ('ndarray[uint8_t, ndim=2]', 'annotation image data')),
+        ('[qd]?kpts[0-9]?', ('ndarray[float32_t, ndim=2]', 'keypoints')),
+        ('[qd]?vecs[0-9]?', ('ndarray[uint8_t, ndim=2]', 'descriptor vectors')),
+        ('H', ('ndarray[float64_t, ndim=2]', 'homography/perspective matrix')),
+        ('invV_mats2x2', ('ndarray[float32_t, ndim=3]',  'keypoint shapes')),
+        ('invVR_mats2x2', ('ndarray[float32_t, ndim=3]', 'keypoint shape and rotations')),
+        ('invV_mats', ('ndarray[float32_t, ndim=3]',  'keypoint shapes (possibly translation)')),
+        ('invVR_mats', ('ndarray[float32_t, ndim=3]', 'keypoint shape and rotations (possibly translation)')),
+        ('img', ('ndarray[uint8_t, ndim=2]', 'image data')),
+        ('pnum', ('tuple', 'plot number')),
+        ('fnum', ('int', 'figure number')),
+        ('title', ('str', '')),
+
+        # utool hints
+        ('funcname'       , ('str', 'function name')),
+        ('modname'        , ('str', 'module name')),
+        ('argname_list'   , ('str', 'list of argument names')),
+        ('return_name'    , ('str', 'return variable name')),
+        ('dict_'          , ('dict_', 'a dictionary')),
+        ('examplecode'    , ('str', None)),
+
+
+        # My coding style hints
+        ('wx2_'    , ('dict', None)),
+        ('qfx2_' + VAL_FIELD,
+         ('ndarray',
+          'mapping from query feature index to ' + VAL_BREF)),
+        ('.*x2_.*' , ('ndarray', None)),
+        ('.+2_.*'  , ('dict', None)),
+        ('.*_?list_?' , ('list', None)),
+        ('.*_tup' , ('tuple', None)),
+        ('.*_sublist' , ('list', None)),
+        ('verbose', ('bool', 'verbosity flag')),
+    ])
+    return registered_hints
+
+
+def infer_arg_types_and_descriptions(argname_list, defaults):
+    """
+    Args:
+        argname_list (list):
+        defaults (list):
+
+    Returns:
+        tuple : (arg_types, argdesc_list)
+
+    CommandLine:
+        python -m utool.util_inspect --test-infer_arg_types_and_descriptions
+
+    Ignore:
+        python -c "import utool; print(utool.auto_docstr('ibeis.model.hots.pipeline', 'build_chipmatches'))"
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import utool
+        >>> argname_list = ['ibs', 'qaid', 'fdKfds', 'qfx2_foo']
+        >>> defaults = None
+        >>> arg_types, argdesc_list = utool.infer_arg_types_and_descriptions(argname_list, defaults)
+    """
+    #import utool as ut
+    from utool import util_dev
+
+    # hacks for IBEIS
+    if True or util_dev.is_developer():
+        registered_hints = get_dev_hints()
+        # key = regex pattern
+        # val = hint=tuple(type_, desc_)
+
+    if defaults is None:
+        defaults = []
+    default_types = [type(val).__name__.replace('NoneType', 'None') for val in defaults]
+    arg_types = ['?'] * (len(argname_list) - len(defaults)) + default_types
+
+    argdesc_list = ['' for _ in range(len(argname_list))]
+
+    # use hints to build better docstrs
+    for argx in range(len(argname_list)):
+        #if arg_types[argx] == '?' or arg_types[argx] == 'None':
+        argname = argname_list[argx]
+        if argname is None:
+            #print('warning argname is None')
+            continue
+        for regex, hint in six.iteritems(registered_hints):
+            matchobj = re.match('^' + regex + '$', argname, flags=re.MULTILINE | re.DOTALL)
+            if matchobj is not None:
+                type_ = hint[0]
+                desc_ = hint[1]
+                if type_ is not None:
+                    if arg_types[argx] == '?' or arg_types[argx] == 'None':
+                        arg_types[argx] = type_
+                if desc_ is not None:
+                    desc_ = matchobj.expand(desc_)
+                    argdesc_list[argx] = ' ' + desc_
+                break
+    return arg_types, argdesc_list
+
+
 def iter_module_doctestable(module, include_funcs=True, include_classes=True,
                             include_methods=True):
     r"""
@@ -413,166 +579,6 @@ def infer_function_info(func):
     funcinfo.funcname = funcname
     funcinfo.ismethod = hasattr(func, 'im_class')
     return funcinfo
-
-
-def infer_arg_types_and_descriptions(argname_list, defaults):
-    """
-    Args:
-        argname_list (list):
-        defaults (list):
-
-    Returns:
-        tuple : (arg_types, argdesc_list)
-
-    CommandLine:
-        python -m utool.util_inspect --test-infer_arg_types_and_descriptions
-
-    Ignore:
-        python -c "import utool; print(utool.auto_docstr('ibeis.model.hots.pipeline', 'build_chipmatches'))"
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> import utool
-        >>> argname_list = ['ibs', 'qaid', 'fdKfds', 'qfx2_foo']
-        >>> defaults = None
-        >>> arg_types, argdesc_list = utool.infer_arg_types_and_descriptions(argname_list, defaults)
-    """
-    #import utool as ut
-    from utool import util_dev
-
-    # hacks for IBEIS
-    if True or util_dev.is_developer():
-        # key = regex pattern
-        # val = hint=tuple(type_, desc_)
-        from collections import OrderedDict
-        VAL_FIELD = util_regex.named_field('val', '.*')
-        VAL_BREF = util_regex.bref_field('val')
-
-        registered_hints = OrderedDict([
-            # General IBEIS hints
-            ('ibs.*'   , ('IBEISController', 'ibeis controller object')),
-            ('qaid2_qres.*'   , ('dict', 'dict of query result objects')),
-            ('qreq_'   , ('QueryRequest', 'query request object with hyper-parameters')),
-            ('qres.*'  , ('QueryResult', 'object of feature correspondences and scores')),
-            ('qparams*', ('QueryParams', 'query hyper-parameters')),
-            ('vecs'    , ('ndarray[uint8_t, ndim=2]', 'descriptor vectors')),
-            ('maws'    , ('ndarray[float32_t, ndim=1]', 'multiple assignment weights')),
-            ('words'   , ('ndarray[uint8_t, ndim=2]', 'aggregate descriptor cluster centers')),
-            ('word'    , ('ndarray[uint8_t, ndim=1]', 'aggregate descriptor cluster center')),
-            ('rvecs'   , ('ndarray[uint8_t, ndim=2]', 'residual vector')),
-            ('fm', ('list', 'list of feature matches as tuples (qfx, dfx)')),
-            ('fs', ('list', 'list of feature scores')),
-            ('qaid'    , ('int', 'query annotation id')),
-            ('daids'   , ('list', 'database annotation ids')),
-            ('qaids'   , ('list', 'query annotation ids')),
-            ('use_cache', ('bool', 'turns on disk based caching')),
-            ('qreq_vsmany_', ('QueryRequest', 'persistant vsmany query request')),
-            ('qnid'    , ('int', 'query name id')),
-
-            # Pipeline hints
-            ('qaid2_nns',
-             ('dict', 'maps query annotid to (qfx2_idx, qfx2_dist)')),
-
-            ('qaid2_nnvalid0',
-             ('dict',
-              'maps query annotid to qfx2_valid0')),
-
-            ('qfx2_valid0',
-             ('ndarray',
-              'maps query feature index to K matches non-impossibility flags')),
-
-            ('filt2_weights',
-             ('dict', 'maps filter names to qfx2_weight ndarray')),
-
-            ('qaid2_filtweights',
-             ('dict',
-              'mapping to weights computed by filters like lnnbnn and ratio')),
-
-            ('qaid2_nnfiltagg',
-             ('dict',
-              'maps to nnfiltagg - tuple(qfx2_score, qfx2_valid)')),
-
-            ('qaid2_nnfilts',
-             ('dict', 'nonaggregate feature scores and validities for each feature NEW')),
-
-            ('nnfiltagg', ('tuple', '(qfx2_score_agg, qfx2_valid_agg)')),
-            ('nnfilts', ('tuple', '(filt_list, qfx2_score_list, qfx2_valid_list)')),
-
-            ('qfx2_idx', ('ndarray[int32_t, ndims=2]', 'mapping from query feature index to db neighbor index')),
-
-            ('K'       , ('int', None)),
-            ('Knorm'   , ('int', None)),
-
-            # SMK Hints
-            ('smk_alpha',  ('float', 'selectivity power')),
-            ('smk_thresh', ('float', 'selectivity threshold')),
-            ('query_sccw', ('float', 'query self-consistency-criterion')),
-            ('data_sccw', ('float', 'data self-consistency-criterion')),
-            ('invindex', ('InvertedIndex', 'object for fast vocab lookup')),
-
-            # Plotting hints
-            ('[qd]?rchip[0-9]?', ('ndarray[uint8_t, ndim=2]', 'rotated annotation image data')),
-            ('[qd]?chip[0-9]?', ('ndarray[uint8_t, ndim=2]', 'annotation image data')),
-            ('[qd]?kpts[0-9]?', ('ndarray[float32_t, ndim=2]', 'keypoints')),
-            ('[qd]?vecs[0-9]?', ('ndarray[uint8_t, ndim=2]', 'descriptor vectors')),
-            ('H', ('ndarray[float64_t, ndim=2]', 'homography/perspective matrix')),
-            ('invV_mats2x2', ('ndarray[float32_t, ndim=3]',  'keypoint shapes')),
-            ('invVR_mats2x2', ('ndarray[float32_t, ndim=3]', 'keypoint shape and rotations')),
-            ('invV_mats', ('ndarray[float32_t, ndim=3]',  'keypoint shapes (possibly translation)')),
-            ('invVR_mats', ('ndarray[float32_t, ndim=3]', 'keypoint shape and rotations (possibly translation)')),
-            ('img', ('ndarray[uint8_t, ndim=2]', 'image data')),
-            ('pnum', ('tuple', 'plot number')),
-            ('fnum', ('int', 'figure number')),
-            ('title', ('str', '')),
-
-            # utool hints
-            ('funcname'    , ('str', 'function name')),
-            ('modname'    , ('str', 'module name')),
-            ('argname_list'   , ('str', 'list of argument names')),
-            ('return_name'    , ('str', 'return variable name')),
-            ('examplecode'    , ('str', None)),
-
-
-            # My coding style hints
-            ('wx2_'    , ('dict', None)),
-            ('qfx2_' + VAL_FIELD,
-             ('ndarray',
-              'mapping from query feature index to ' + VAL_BREF)),
-            ('.*x2_.*' , ('ndarray', None)),
-            ('.+2_.*'  , ('dict', None)),
-            ('.*_?list_?' , ('list', None)),
-            ('.*_tup' , ('tuple', None)),
-            ('.*_sublist' , ('list', None)),
-            ('verbose', ('bool', 'verbosity flag')),
-        ])
-
-    if defaults is None:
-        defaults = []
-    default_types = [type(val).__name__.replace('NoneType', 'None') for val in defaults]
-    arg_types = ['?'] * (len(argname_list) - len(defaults)) + default_types
-
-    argdesc_list = ['' for _ in range(len(argname_list))]
-
-    # use hints to build better docstrs
-    for argx in range(len(argname_list)):
-        #if arg_types[argx] == '?' or arg_types[argx] == 'None':
-        argname = argname_list[argx]
-        if argname is None:
-            #print('warning argname is None')
-            continue
-        for regex, hint in six.iteritems(registered_hints):
-            matchobj = re.match('^' + regex + '$', argname, flags=re.MULTILINE | re.DOTALL)
-            if matchobj is not None:
-                type_ = hint[0]
-                desc_ = hint[1]
-                if type_ is not None:
-                    if arg_types[argx] == '?' or arg_types[argx] == 'None':
-                        arg_types[argx] = type_
-                if desc_ is not None:
-                    desc_ = matchobj.expand(desc_)
-                    argdesc_list[argx] = ' ' + desc_
-                break
-    return arg_types, argdesc_list
 
 
 if __name__ == '__main__':
