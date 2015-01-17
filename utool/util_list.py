@@ -7,7 +7,7 @@ except ImportError:
     HAS_NUMPY = False
 import six
 import itertools
-from six.moves import zip, map, zip_longest, range
+from six.moves import zip, map, zip_longest, range, filter
 from utool import util_iter
 from utool import util_inject
 from utool.util_str import get_callable_name
@@ -1288,6 +1288,12 @@ def find_next_true_indicies(flags_list, offset_list):
     index_list = [None if offset is None else tryget_next_true(flags, offset)
                   for flags, offset in zip(flags_list, offset_list)]
     return index_list
+
+
+def filter_startswith(list_, str_):
+    def item_startswith(item):
+        return item.startswith(str_)
+    return list(filter(item_startswith, list_))
 
 
 if __name__ == '__main__':

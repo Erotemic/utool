@@ -540,7 +540,7 @@ class InteractiveIter(object):
             ('prev',   ['p'], 'move to the previous index'),
             ('reload', ['r'], 'stay at the same index'),
             ('index',  ['x', 'i', 'index'], 'move to that index'),
-            ('set',    ['s', 'set'], 'set current index value'),
+            ('set',    ['set'], 'set current index value'),
             ('ipy',    ['ipy', 'ipython', 'cmd'], 'start IPython'),
             ('quit',   ['q', 'exit', 'quit'], 'quit'),
         ] + iiter.custom_actions
