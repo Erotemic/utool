@@ -430,6 +430,8 @@ def cmd(*args, **kwargs):
         ut.printex(ex, 'Exception running ut.cmd',
                    keys=['verbose', 'detatch', 'shell', 'sudo', 'separate'],
                    tb=True)
+
+
 def get_flops():
     """ # DOESNT WORK """
     from sys import stdout
@@ -716,6 +718,14 @@ def print_system_users():
     #print(ut.list_str(sorted(userinfo_list)))
     bash_users = [tup for tup in userinfo_list if tup[-1] == '/bin/bash']
     print(ut.list_str(sorted(bash_users)))
+
+
+#def get_ipython_config_file():
+#    """
+#    or to create an empty default profile, populated with default config files:
+
+#    ipython profile create
+#    """
 
 #from subprocess import check_output
 #http://stackoverflow.com/questions/8015163/how-to-check-screen-is-running

@@ -173,11 +173,45 @@ def assert_almost_eq(arr_test, arr_target, thresh=1E-11):
     return error
 
 
-def assert_eq(var1, var2, msg='', verbose=True):
+def assert_lessthan(arr_test, arr_max, msg=''):
+    r"""
+    Args:
+        arr_test (ndarray or list):
+        arr_target (ndarray or list):
+        thresh (scalar or ndarray or list):
+    """
+    if util_arg.NO_ASSERTS:
+        return
+    arr1 = np.array(arr_test)
+    arr2 = np.array(arr_max)
+    error = arr_max - arr_test
+    passed = error >= 0
+    if not np.all(passed):
+        failed_xs = np.where(np.logical_not(passed))
+        failed_error = error.take(failed_xs)
+        failed_arr_test = arr1.take(failed_xs)
+        failed_arr_target = arr2.take(failed_xs)
+
+        msg_list = [
+            'FAILED ASSERT LESSTHAN',
+            msg,
+            '  * failed_xs = %r' % (failed_xs,),
+            '  * failed_error = %r' % (failed_error,),
+            '  * failed_arr_test   = %r' % (failed_arr_test,),
+            '  * failed_arr_target = %r' % (failed_arr_target,),
+        ]
+        msg = '\n'.join(msg_list)
+        raise AssertionError(msg)
+    return error
+
+
+def assert_eq(var1, var2, msg='', var1_name=None, var2_name=None, verbose=True):
     import utool as ut
     failed = var1 != var2
-    var1_name = ut.get_varname_from_stack(var1, N=1, default='var1')
-    var2_name = ut.get_varname_from_stack(var2, N=1, default='var2')
+    if var1_name is None:
+        var1_name = ut.get_varname_from_stack(var1, N=1, default='var1')
+    if var2_name is None:
+        var2_name = ut.get_varname_from_stack(var2, N=1, default='var2')
     fmtdict = dict(
         msg=msg,
         var1_name=var1_name,

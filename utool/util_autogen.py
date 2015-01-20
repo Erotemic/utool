@@ -274,6 +274,7 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
     import_depends_map = {
         'ibs':      'import ibeis',
         'kpts':     'import vtool as vt',
+        'species':  'import ibeis',
     }
     var_depends_map = {
         'qreq_':     ['ibs', 'species', 'daids', 'qaids'],
@@ -489,6 +490,8 @@ def make_default_docstr(func,
 def make_default_module_maintest(modname):
     """
     make_default_module_maintest
+
+    TODO: use path relative to home dir if the file is a script
 
     Args:
         modname (str):  module name
