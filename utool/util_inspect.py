@@ -31,6 +31,8 @@ def get_dev_hints():
         ('fm', ('list', 'list of feature matches as tuples (qfx, dfx)')),
         ('fs', ('list', 'list of feature scores')),
         ('qaid'    , ('int', 'query annotation id')),
+        ('aid1'    , ('int', 'annotation id')),
+        ('aid2'    , ('int', 'annotation id')),
         ('daids'   , ('list', 'database annotation ids')),
         ('qaids'   , ('list', 'query annotation ids')),
         ('use_cache', ('bool', 'turns on disk based caching')),
