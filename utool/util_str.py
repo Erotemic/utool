@@ -20,6 +20,7 @@ TRIPLE_DOUBLE_QUOTE = r'"' * 3
 TRIPLE_SINGLE_QUOTE = r"'" * 3
 SINGLE_QUOTE = r"'"
 DOUBLE_QUOTE = r'"'
+NEWLINE = '\n'
 
 TAUFMTSTR = '{coeff:,.1f}{taustr}'
 if '--myway' not in sys.argv:

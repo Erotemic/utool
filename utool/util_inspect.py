@@ -83,6 +83,7 @@ def get_dev_hints():
         # Plotting hints
         ('[qd]?rchip[0-9]?', ('ndarray[uint8_t, ndim=2]', 'rotated annotation image data')),
         ('[qd]?chip[0-9]?', ('ndarray[uint8_t, ndim=2]', 'annotation image data')),
+        ('kp', ('ndarray[float32_t, ndim=1]', 'a single keypoint')),
         ('[qd]?kpts[0-9]?', ('ndarray[float32_t, ndim=2]', 'keypoints')),
         ('[qd]?vecs[0-9]?', ('ndarray[uint8_t, ndim=2]', 'descriptor vectors')),
         ('H', ('ndarray[float64_t, ndim=2]', 'homography/perspective matrix')),
@@ -91,6 +92,7 @@ def get_dev_hints():
         ('invV_mats', ('ndarray[float32_t, ndim=3]',  'keypoint shapes (possibly translation)')),
         ('invVR_mats', ('ndarray[float32_t, ndim=3]', 'keypoint shape and rotations (possibly translation)')),
         ('img', ('ndarray[uint8_t, ndim=2]', 'image data')),
+        ('imgBGR', ('ndarray[uint8_t, ndim=2]', 'image data in opencv format (blue, green, red)')),
         ('pnum', ('tuple', 'plot number')),
         ('fnum', ('int', 'figure number')),
         ('title', ('str', '')),
@@ -496,16 +498,62 @@ def parse_return_type(sourcecode):
     return return_type, return_name, return_header, return_desc
 
 
-def get_func_sourcecode(func):
+def get_func_sourcecode(func, stripdef=False, stripret=False):
     """
     wrapper around inspect.getsource but takes into account utool decorators
+    strip flags are very hacky as of now
+
+    Args:
+        func (?):
+        stripdef (bool):
+
+
+    CommandLine:
+        python -m utool.util_inspect --test-get_func_sourcecode
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_inspect import *  # NOQA
+        >>> # build test data
+        >>> func = get_func_sourcecode
+        >>> stripdef = True
+        >>> stripret = True
+        >>> # execute function
+        >>> sourcecode = get_func_sourcecode(func, stripdef)
+        >>> # verify results
+        >>> print(result)
     """
+    import utool as ut
     sourcefile = inspect.getsourcefile(func)
     if hasattr(func, '_utinfo'):
         #return func._utinfo['src']
-        return get_func_sourcecode(func._utinfo['orig_func'])
-    if sourcefile is not None:
-        return inspect.getsource(func)
+        sourcecode = get_func_sourcecode(func._utinfo['orig_func'])
+    elif sourcefile is not None:
+        sourcecode = inspect.getsource(func)
+    #orig_source = sourcecode
+    #print(orig_source)
+    if stripdef:
+        # hacky
+        sourcecode = ut.unindent(ut.regex_replace('def [^)]*\\):\n', '', sourcecode))
+        #print(sourcecode)
+        pass
+    if stripret:
+        r""" \s is a whitespace char """
+        return_ = ut.named_field('return', 'return .*$')
+        prereturn = ut.named_field('prereturn', r'^\s*')
+        return_bref = ut.bref_field('return')
+        prereturn_bref = ut.bref_field('prereturn')
+        regex = prereturn + return_
+        repl = prereturn_bref + 'pass  # ' + return_bref
+        #import re
+        #print(re.search(regex, sourcecode, flags=re.MULTILINE ))
+        #print(re.search('return', sourcecode, flags=re.MULTILINE | re.DOTALL ))
+        #print(re.search(regex, sourcecode))
+        sourcecode_ = re.sub(regex, repl, sourcecode, flags=re.MULTILINE)
+        #print(sourcecode_)
+        sourcecode = sourcecode_
+        pass
+    return sourcecode
     #else:
     #return get_func_sourcecode(func._utinfo['src'])
 
