@@ -329,6 +329,9 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
     exec(execstr_dict(parent_globals, 'parent_globals'))
     exec(execstr_dict(parent_locals,  'parent_locals'))
     print('')
+    print('================')
+    print(ut.bubbletext('EMBEDING'))
+    print('================')
     print('[util] embedding')
     import IPython
     try:
@@ -354,8 +357,8 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
             user_ns.update(parent_locals)
         orig_argv = sys.argv  # NOQA
         print('About to start_ipython')
-        c = IPython.Config()
-        c.InteractiveShellApp.exec_lines = [
+        config = IPython.Config()
+        exec_lines_ = [
             '%pylab qt4',
             'print("Entered IPYTHON via utool")',
             'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=11).f_code.co_name,))',
@@ -366,10 +369,13 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
             #'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=6).f_code.co_name,))',
             #'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=5).f_code.co_name,))',
             #execstr_dict(parent_locals)
-        ]
-        IPython.start_ipython(config=c, argv=[], user_ns=user_ns)
+        ] + ut.ensure_str_list(exec_lines if exec_lines is not None else [])
+        config.InteractiveShellApp.exec_lines = exec_lines_
+        print('Exec Lines: ')
+        print(ut.indentjoin(exec_lines_, '\n    >>> '))
+        IPython.start_ipython(config=config, argv=[], user_ns=user_ns)
         # Exit python immediately if specifed
-        if user_ns.get('qqq', False) or user_ns.get('EXIT_NOW', False):
+        if user_ns.get('qqq', False) or vars.get('qqq', False) or user_ns.get('EXIT_NOW', False):
             print('[utool.embed] EXIT_NOW or qqq specified')
             sys.exit(1)
     else:

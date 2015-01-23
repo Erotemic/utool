@@ -54,6 +54,9 @@ def DEPRICATED(func):
 #            return varargs[0]
 #    return varargs
 
+def ensure_str_list(input_):
+    return [input_] if isinstance(input_, six.string_types) else input_
+
 
 def set_clipboard(text):
     """
