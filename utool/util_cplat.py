@@ -349,6 +349,16 @@ def __parse_cmd_args(args, sudo, shell):
     #    #    args = shlex.split(args)
     #    #else:
     #        #args = [args]
+
+    # HACK FOR WINDOWS AGAIN
+    # makes  this command work:
+    # python -c "import utool as ut; ut.cmd('build\\hesaffexe.exe ' + ut.grab_test_imgpath('star.png'))"
+    # and this should still work
+    # python -c "import utool as ut; ut.cmd('build\\hesaffexe.exe', ut.grab_test_imgpath('star.png'))"
+    if WIN32:
+        if len(args) == 1 and isinstance(args[0], six.string_types):
+            import shlex
+            args = shlex.split(args[0], posix=not WIN32)
     return args
 
 
@@ -391,10 +401,7 @@ def cmd(*args, **kwargs):
         # Print what you are about to do
         print('[ut.cmd] RUNNING: %r' % (args,))
         # Open a subprocess with a pipe
-        proc = subprocess.Popen(args,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT,
-                                shell=shell)
+        proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=shell)
         if detatch:
             print('[ut.cmd] PROCESS DETATCHING')
             return None, None, 1
