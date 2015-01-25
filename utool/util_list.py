@@ -955,6 +955,27 @@ def sample_lists(items_list, num=1, seed=None):
     return samples_list
 
 
+def strided_sample(items, num, offset=0):
+    r"""
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> # build test data
+        >>> items = [1, 2, 3, 4, 5]
+        >>> num = 3
+        >>> offset = 0
+        >>> # execute function
+        >>> sample_items = strided_sample(items, num, offset)
+        >>> # verify results
+        >>> result = str(sample_items)
+        >>> print(result)
+    """
+    import math
+    stride = max(int(math.ceil(len(items) / num)), 1)
+    sample_items = items[offset::stride]
+    return sample_items
+
+
 def issorted(list_, op=operator.le):
     """
     Args:

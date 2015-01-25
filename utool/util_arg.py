@@ -63,6 +63,7 @@ def get_argval(argstr_, type_=None, default=None, help_=None):
         else:
             # HACK FOR LIST. TODO INTEGRATE
             argstr_list = argstr_
+
         for argx, item in enumerate(sys.argv):
             for argstr in argstr_list:
                 if item == argstr:
@@ -78,8 +79,11 @@ def get_argval(argstr_, type_=None, default=None, help_=None):
                 if item.startswith(argstr + '='):
                     val_after = ''.join(item.split('=')[1:])
                     if type_ is list:
+                        #import utool as ut
+                        #ut.embed()
                         # HACK FOR LIST. TODO INTEGRATE
-                        arg_after = val_after.split(',')
+                        val_after_ = val_after.rstrip(']').lstrip('[')
+                        arg_after = val_after_.split(',')
                     else:
                         arg_after = try_cast(val_after, type_)
     except Exception:

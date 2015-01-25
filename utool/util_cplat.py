@@ -727,6 +727,44 @@ def print_system_users():
     print(ut.list_str(sorted(bash_users)))
 
 
+def unload_module(modname):
+    """
+    WARNING POTENTIALLY DANGEROUS AND MAY NOT WORK
+
+    References:
+        http://stackoverflow.com/questions/437589/how-do-i-unload-reload-a-python-module
+
+    CommandLine:
+        python -m utool.util_cplat --test-unload_module
+
+    Example:
+        >>> import sys, gc
+        >>> import pyhesaff
+        >>> import utool as ut
+        >>> modname = 'pyhesaff'
+        >>> print('%s refcount=%r' % (modname, sys.getrefcount(pyhesaff),))
+        >>> #referrer_list = gc.get_referrers(sys.modules[modname])
+        >>> #print('referrer_list = %s' % (ut.list_str(referrer_list),))
+        >>> ut.unload_module(modname)
+        >>> assert pyhesaff is None
+
+    """
+    import sys
+    import gc
+    if modname in sys.modules:
+        referrer_list = gc.get_referrers(sys.modules[modname])
+        #module = sys.modules[modname]
+        for referer in referrer_list:
+            if referer is not sys.modules:
+                referer[modname] = None
+            #del referer[modname]
+        #sys.modules[modname] = module
+        #del module
+        refcount = sys.getrefcount(sys.modules[modname])
+        print('%s refcount=%r' % (modname, refcount))
+        del sys.modules[modname]
+
+
 #def get_ipython_config_file():
 #    """
 #    or to create an empty default profile, populated with default config files:
