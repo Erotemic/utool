@@ -92,16 +92,26 @@ def time_str2(seconds):
 
 
 def print_resource_usage():
-    print('+______________________')
-    print('|    RESOURCE_USAGE    ')
-    print('|  * current_memory = %s' % byte_str2(current_memory_usage()))
+    print(get_resource_usage_str())
+
+
+def get_resource_usage_str():
+    usage_str_list = [
+        ('+______________________'),
+        ('|    RESOURCE_USAGE    '),
+        ('|  * current_memory = %s' % byte_str2(current_memory_usage())),
+    ]
     try:
-        print('|  * peak_memory    = %s' % byte_str2(peak_memory()))
-        print('|  * user_time      = %s' % time_str2(time_in_usermode()))
-        print('|  * system_time    = %s' % time_str2(time_in_systemmode()))
+        usage_str_list.extend([
+            ('|  * peak_memory    = %s' % byte_str2(peak_memory())),
+            ('|  * user_time      = %s' % time_str2(time_in_usermode())),
+            ('|  * system_time    = %s' % time_str2(time_in_systemmode())),
+        ])
     except Exception:
         pass
-    print('L______________________')
+    usage_str_list.append('L______________________')
+    usage_str = '\n'.join(usage_str_list)
+    return usage_str
 
 
 def current_memory_usage():

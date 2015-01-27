@@ -207,15 +207,15 @@ def editfile(fpath):
     if not exists(fpath):
         raise Exception('Cannot start nonexistant file: %r' % fpath)
     if LINUX:
-        out, err, ret = cmd([geteditor(), fpath], detatch=True)
+        out, err, ret = cmd(geteditor(), fpath, detatch=True)
         if not ret:
             raise Exception(out + ' -- ' + err)
     elif DARWIN:
-        out, err, ret = cmd([geteditor(), fpath], detatch=True)
+        out, err, ret = cmd(geteditor(), fpath, detatch=True)
         if not ret:
             raise Exception(out + ' -- ' + err)
     else:
-        out, err, ret = cmd([geteditor(), fpath], detatch=True)
+        out, err, ret = cmd(geteditor(), fpath, detatch=True)
         if not ret:
             raise Exception(out + ' -- ' + err)
         #os.startfile(fpath)
@@ -430,10 +430,10 @@ def cmd(*args, **kwargs):
         return out, err, ret
     except Exception as ex:
         import utool as ut
-        if isinstance(args, tuple):
-            print(ut.truepath(args[0]))
-        elif isinstance(args, six.string_types):
-            print(ut.unixpath(args))
+        #if isinstance(args, tuple):
+        #    print(ut.truepath(args[0]))
+        #elif isinstance(args, six.string_types):
+        #    print(ut.unixpath(args))
         ut.printex(ex, 'Exception running ut.cmd',
                    keys=['verbose', 'detatch', 'shell', 'sudo', 'separate'],
                    tb=True)

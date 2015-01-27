@@ -839,6 +839,10 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
     Returns:
         None
     """
+    if isinstance(ex, MemoryError):
+        import utool as ut
+        ut.print_resource_usage()
+    #ut.embed()
     if keys is not None:
         # shorthand for key_list
         key_list = keys
