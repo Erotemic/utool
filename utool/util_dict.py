@@ -379,6 +379,13 @@ def dict_take(dict_, keys, *d):
     return dict_take_list(dict_, keys, *d)
 
 
+def dict_assign(dict_, keys, vals):
+    """ simple method for assigning or setting values with a similar interface
+    to dict_take """
+    for key, val in zip(keys, vals):
+        dict_[key] = val
+
+
 def dict_where_len0(dict_):
     keys = np.array(dict_.keys())
     flags = np.array(list(map(len, dict_.values()))) == 0

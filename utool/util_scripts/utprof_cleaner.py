@@ -104,17 +104,17 @@ def get_summary(profile_block_list, maxlines=20):
     summary_lines = [('%6.2f seconds - ' % time) + line
                      for time, line in
                      zip(sorted_time_list, aligned_blockid_list)]
-    summary_header = ut.codeblock(
-        '''
-        CLEANED PROFILE OUPUT
+    #summary_header = ut.codeblock(
+    #    '''
+    #    CLEANED PROFILE OUPUT
 
-        The Pystone timings are not from kernprof, so they may include kernprof
-        overhead, whereas kernprof timings do not (unless the line being
-        profiled is also decorated with kernrof)
+    #    The Pystone timings are not from kernprof, so they may include kernprof
+    #    overhead, whereas kernprof timings do not (unless the line being
+    #    profiled is also decorated with kernrof)
 
-        The kernprof times are reported in Timer Units
+    #    The kernprof times are reported in Timer Units
 
-        ''')
+    #    ''')
     summary_lines_ = ut.listclip(summary_lines, maxlines, fromback=True)
     summary_text = '\n'.join(summary_lines_)
     print(summary_text)
@@ -124,7 +124,7 @@ def get_summary(profile_block_list, maxlines=20):
 def fix_rawprofile_blocks(profile_block_list):
     # TODO: finish function. should multiply times by
     # Timer unit to get true second profiling
-    profile_block_list_new = []
+    #profile_block_list_new = []
     for block in profile_block_list:
         block_lines = block.split('\n')
         sep = ['=' * 62]
@@ -146,7 +146,7 @@ def clean_line_profile_text(text):
     """
     #
     profile_block_list = parse_rawprofile_blocks(text)
-    profile_block_list = fix_rawprofile_blocks(profile_block_list)
+    #profile_block_list = fix_rawprofile_blocks(profile_block_list)
     #---
     # FIXME can be written much nicer
     prefix_list, timemap = parse_timemap_from_blocks(profile_block_list)
