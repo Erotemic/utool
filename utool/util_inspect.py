@@ -115,6 +115,7 @@ def get_dev_hints():
         ('.*_?list_?' , ('list', None)),
         ('.*_tup' , ('tuple', None)),
         ('.*_sublist' , ('list', None)),
+        ('fpath[0-9]?' , ('str', 'file path string')),
         ('verbose', ('bool', 'verbosity flag')),
     ])
     return registered_hints

@@ -6,12 +6,11 @@ import os
 import re
 #import six
 import argparse
-from utool.util_type import try_cast
-from utool.util_inject import inject
-from utool.util_print import Indenter
-from utool._internal import meta_util_six
-from utool._internal import meta_util_arg
-print, print_, printDBG, rrr, profile = inject(__name__, '[arg]')
+from utool import util_inject
+from utool import util_type
+from utool import util_print
+from utool._internal import meta_util_six, meta_util_arg
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[arg]')
 
 #STRICT = '--nostrict' not in sys.argv
 DEBUG2       = meta_util_arg.DEBUG2
@@ -74,7 +73,7 @@ def get_argval(argstr_, type_=None, default=None, help_=None):
                             # HACK FOR LIST. TODO INTEGRATE
                             arg_after = parse_arglist_hack(argx)
                         else:
-                            arg_after = try_cast(sys.argv[argx + 1], type_)
+                            arg_after = util_type.try_cast(sys.argv[argx + 1], type_)
 
                 if item.startswith(argstr + '='):
                     val_after = ''.join(item.split('=')[1:])
@@ -85,13 +84,13 @@ def get_argval(argstr_, type_=None, default=None, help_=None):
                         val_after_ = val_after.rstrip(']').lstrip('[')
                         arg_after = val_after_.split(',')
                     else:
-                        arg_after = try_cast(val_after, type_)
+                        arg_after = util_type.try_cast(val_after, type_)
     except Exception:
         pass
     return arg_after
 
 
-def parse_cfgstr_list(cfgstr_list):
+def parse_cfgstr_list(cfgstr_list, smartcast=False):
     """
     Parses a list of items in the format
     ['var1:val1', 'var2:val2', 'var3:val3']
@@ -106,18 +105,21 @@ def parse_cfgstr_list(cfgstr_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_arg import *  # NOQA
-        >>> cfgstr_list = ['var1:val1', 'var2:val2', 'var3:val3']
-        >>> cfgdict = parse_cfgstr_list(cfgstr_list)
+        >>> cfgstr_list = ['var1:val1', 'var2:1', 'var3:1.0', 'var4:None']
+        >>> smartcast = True
+        >>> cfgdict = parse_cfgstr_list(cfgstr_list, smartcast)
         >>> result = str(cfgdict)
         >>> print(result)
-        {'var1': 'val1', 'var3': 'val3', 'var2': 'val2'}
+        {'var4': None, 'var1': 'val1', 'var3': 1.0, 'var2': 1}
     """
     cfgdict = {}
     for item in cfgstr_list:
-        varval_tup = item.replace('=', ':').split(':')
-        assert len(varval_tup) == 2, '[!] Invalid cfgitem=%r' % (item,)
-        var, val = varval_tup
-        cfgdict[var] = val
+        keyval_tup = item.replace('=', ':').split(':')
+        assert len(keyval_tup) == 2, '[!] Invalid cfgitem=%r' % (item,)
+        key, val = keyval_tup
+        if smartcast:
+            val = util_type.smart_cast2(val)
+        cfgdict[key] = val
     return cfgdict
 
 
@@ -371,7 +373,7 @@ def __argv_flag_dec(func, default=False, quiet=QUIET):
             indent_lbl = flag.replace('--', '').replace('print-', '')
             print('')
             print('\n+++ ' + indent_lbl + ' +++')
-            with Indenter('[%s]' % indent_lbl):
+            with util_print.Indenter('[%s]' % indent_lbl):
                 return func(*args, **kwargs)
             print('')
         else:

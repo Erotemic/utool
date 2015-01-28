@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import cPickle
+import lockfile
 from utool import util_path
 from utool import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[io]')
@@ -80,6 +81,16 @@ def load_cPkl(fpath, verbose=False):
     with open(fpath, 'rb') as file_:
         data = cPickle.load(file_)
     return data
+
+
+def lock_and_load_cPkl(fpath, verbose=False):
+    with lockfile.LockFile(fpath + '.lock'):
+        return load_cPkl(fpath, verbose)
+
+
+def lock_and_save_cPkl(fpath, data, verbose=False):
+    with lockfile.LockFile(fpath + '.lock'):
+        return save_cPkl(fpath, data, verbose)
 
 
 def save_hdf5(fpath, data, verbose=False, compression='gzip'):
