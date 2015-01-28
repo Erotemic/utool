@@ -351,7 +351,6 @@ def argv_flag_dec(func):
     the decorated function does not execute without its corresponding
     flag
     """
-
     return __argv_flag_dec(func, default=False)
 
 
@@ -367,7 +366,8 @@ def __argv_flag_dec(func, default=False, quiet=QUIET):
 
     def GaurdWrapper(*args, **kwargs):
         # FIXME: the --print-all is a hack
-        if get_argflag(flag, default) or get_argflag('--print-all'):
+        default_ = kwargs.get('default', default)
+        if get_argflag(flag, default_) or get_argflag('--print-all'):
             indent_lbl = flag.replace('--', '').replace('print-', '')
             print('')
             print('\n+++ ' + indent_lbl + ' +++')
