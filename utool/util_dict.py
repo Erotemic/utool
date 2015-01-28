@@ -379,6 +379,49 @@ def dict_take(dict_, keys, *d):
     return dict_take_list(dict_, keys, *d)
 
 
+def dict_take_pop(dict_, keys, *d):
+    """ like dict_take but pops values off
+
+    CommandLine:
+        python -m utool.util_dict --test-dict_take_pop
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> dict_ = {1: 'a', 'other': None, 'another': 'foo', 2: 'b', 3: 'c'}
+        >>> keys = [1, 2, 3, 4, 5]
+        >>> print('before: ' + ut.dict_str(dict_))
+        >>> result = list(dict_take_pop(dict_, keys, None))
+        >>> print('after: ' + ut.dict_str(dict_))
+        >>> assert len(dict_) == 2
+        >>> print(result)
+        ['a', 'b', 'c', None, None]
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> dict_ = {1: 'a', 2: 'b', 3: 'c'}
+        >>> keys = [1, 2, 3, 4, 5]
+        >>> print('before: ' + ut.dict_str(dict_))
+        >>> try:
+        >>>     print(list(dict_take_pop(dict_, keys)))
+        >>>     result = 'did not get key error'
+        >>> except KeyError:
+        >>>     result = 'correctly got key error'
+        >>> assert len(dict_) == 0
+        >>> print('after: ' + ut.dict_str(dict_))
+        >>> print(result)
+        correctly got key error
+    """
+    if len(d) == 0:
+        return [dict_.pop(key) for key in keys]
+    elif len(d) == 1:
+        default = d[0]
+        return [dict_.pop(key, default) for key in keys]
+    else:
+        raise ValueError('len(d) must be 1 or 0')
+
+
 def dict_assign(dict_, keys, vals):
     """ simple method for assigning or setting values with a similar interface
     to dict_take """

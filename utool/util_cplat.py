@@ -179,21 +179,22 @@ def getroot():
     return root
 
 
-def startfile(fpath):
+def startfile(fpath, detatch=True):
     """ Uses default program defined by the system to open a file. """
     print('[cplat] startfile(%r)' % fpath)
     if not exists(fpath):
         raise Exception('Cannot start nonexistant file: %r' % fpath)
     if LINUX:
-        out, err, ret = cmd(['xdg-open', fpath], detatch=True)
-        if not ret:
-            raise Exception(out + ' -- ' + err)
+        #out, err, ret = cmd(['xdg-open', fpath], detatch=True)
+        outtup = cmd(('xdg-open', fpath), detatch=detatch)
     elif DARWIN:
-        out, err, ret = cmd(['open', fpath], detatch=True)
-        if not ret:
-            raise Exception(out + ' -- ' + err)
+        outtup = cmd(('open', fpath), detatch=detatch)
     else:
         os.startfile(fpath)
+    if outtup is not None:
+        out, err, ret = outtup
+        if not ret:
+            raise Exception(out + ' -- ' + err)
     pass
 
 
@@ -303,6 +304,11 @@ def __parse_cmd_args(args, sudo, shell):
     #    print(' '.join(args))
     print(type(args))
     print(args)
+
+    # Case where tuple is passed in as only argument
+    if isinstance(args, tuple) and len(args) == 1 and isinstance(args[0], tuple):
+        args = args[0]
+
     #print(shlex)
     if shell:
         # Popen only accepts strings is shell is True, which
