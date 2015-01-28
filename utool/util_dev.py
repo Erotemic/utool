@@ -41,6 +41,15 @@ def DEPRICATED(func):
     return __DEP_WRAPPER
 
 
+def show_was_requested():
+    """
+    returns True if --show is specified on the commandline or you are in
+    IPython (and presumably want some sort of interaction
+    """
+    import utool as ut
+    return ut.get_argflag('--show') or ut.inIPython()
+
+
 #def ensure_vararg_list(varargs):
 #    """
 #    It is useful to have a function take a list of objects to act upon.

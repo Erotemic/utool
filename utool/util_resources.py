@@ -142,10 +142,16 @@ def used_memory():
 
 
 def memstats():
-    print('[psutil] total     = %s' % byte_str2(total_memory()))
-    print('[psutil] available = %s' % byte_str2(available_memory()))
-    print('[psutil] used      = %s' % byte_str2(used_memory()))
-    print('[psutil] current   = %s' % byte_str2(current_memory_usage()))
+    print(get_memstats_str())
+
+
+def get_memstats_str():
+    return '\n'.join([
+        ('[psutil] total     = %s' % byte_str2(total_memory())),
+        ('[psutil] available = %s' % byte_str2(available_memory())),
+        ('[psutil] used      = %s' % byte_str2(used_memory())),
+        ('[psutil] current   = %s' % byte_str2(current_memory_usage())),
+    ])
 
 
 #psutil.virtual_memory()

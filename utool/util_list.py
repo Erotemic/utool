@@ -1171,17 +1171,25 @@ def list_deep_types(list_):
     return type_list
 
 
-def depth_profile(list_):
+def depth_profile(list_, max_depth=None):
     """
-    Returns a nested list corresponding the shape of the nested structure
+    Returns a nested list corresponding the shape of the nested structures
 
-    Example:
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
-        >>> list_ = [[[[[1]]], [3, 4, 33]], [[1], [3]], [[1], [3]]]
-        >>> result = (depth_profile(list_))
+        >>> list_ = [[[[[1]]], [3, 4, 33]], [[1], [2, 3], [4, [5, 5]]], [1, 3]]
+        >>> result = depth_profile(list_)
         >>> print(result)
-        [[[[1]], 3], [1, 1], [1, 1]]
+        [[[[1]], 3], [1, 2, [2]], 2]
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [[[[[1]]], [3, 4, 33]], [[1], [2, 3], [4, [5, 5]]], [1, 3]]
+        >>> result = depth_profile(list_, 1)
+        >>> print(result)
+        [['1', '3'], ['1', '2', '2'], 2]
     """
     level_shape_list = []
     # For a pure bottom level list return the length
@@ -1189,7 +1197,13 @@ def depth_profile(list_):
         return len(list_)
     for item in list_:
         if is_listlike(item):
-            level_shape_list.append(depth_profile(item))
+            if max_depth is None:
+                level_shape_list.append(depth_profile(item, None))
+            else:
+                if max_depth >= 0:
+                    level_shape_list.append(depth_profile(item, max_depth - 1))
+                else:
+                    level_shape_list.append(str(len(item)))
     return level_shape_list
 
 
