@@ -368,7 +368,7 @@ def __argv_flag_dec(func, default=False, quiet=QUIET):
 
     def GaurdWrapper(*args, **kwargs):
         # FIXME: the --print-all is a hack
-        default_ = kwargs.get('default', default)
+        default_ = kwargs.pop('default', default)
         if get_argflag(flag, default_) or get_argflag('--print-all'):
             indent_lbl = flag.replace('--', '').replace('print-', '')
             print('')
@@ -382,6 +382,70 @@ def __argv_flag_dec(func, default=False, quiet=QUIET):
     meta_util_six.set_funcname(GaurdWrapper, meta_util_six.get_funcname(func))
     return GaurdWrapper
 
+
+def get_dict_vals_from_commandline(default_dict_):
+    r"""
+    Gets values for a dict based on the command line
+
+    Args:
+        default_dict_ (?):
+
+    Returns:
+        dict_: dict_ -  a dictionary
+
+    CommandLine:
+        python -m utool.util_arg --test-get_dict_vals_from_commandline
+        python -m utool.util_arg --test-get_dict_vals_from_commandline --flag1
+        python -m utool.util_arg --test-get_dict_vals_from_commandline --flag2
+        python -m utool.util_arg --test-get_dict_vals_from_commandline --noflag2
+        python -m utool.util_arg --test-get_dict_vals_from_commandline --thresh=43
+        python -m utool.util_arg --test-get_dict_vals_from_commandline --bins=-10
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_arg import *  # NOQA
+        >>> import utool as ut
+        >>> # build test data
+        >>> default_dict_ = {
+        ...    'thresh': -5.333,
+        ...    'neg': -5,
+        ...    'bins': 8,
+        ...    'max': 0.2,
+        ...    'flag1': False,
+        ...    'flag2': True,
+        ... }
+        >>> # execute function
+        >>> dict_ = get_dict_vals_from_commandline(default_dict_)
+        >>> # verify results
+        >>> result = ut.dict_str(dict_)
+        >>> print(result)
+    """
+    def get_dictkey_cmdline_val(key, default):
+        type_ = type(default)
+        if isinstance(default, bool):
+            val = default
+            falsekeys = ('--no' + key, '--no-' + key, )
+            truekeys = ('--' + key,)
+            if default is True and get_argflag(falsekeys):
+                val = False
+            elif default is False and get_argflag(truekeys):
+                val = True
+        else:
+            argstr1_ = '--' + key
+            argstr2_ = '--' + key.replace('_', '-')
+            argtup = (argstr1_, argstr2_,)
+            val = get_argval(argtup, type_=type_, default=default)
+        return val
+
+    if get_argflag('--help') or get_argflag('--helpx'):
+        import utool as ut
+        print('COMMAND LINE IS ACCEPTING THESE PARAMS WITH DEFAULTS:')
+        print(ut.align(ut.dict_str(default_dict_), ':'))
+        if get_argflag('--helpx'):
+            sys.exit(1)
+
+    dict_ = {key: get_dictkey_cmdline_val(key, default) for key, default in six.iteritems(default_dict_)}
+    return dict_
 
 if __name__ == '__main__':
     """

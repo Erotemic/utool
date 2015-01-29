@@ -216,9 +216,35 @@ def build_conflict_dict(key_list, val_list):
 
 
 def updateif_haskey(dict1, dict2):
+    r"""
+    updates vals in dict1 using vals from dict2 only if the
+    key is already in dict1.
+
+    Args:
+        dict1 (dict)
+        dict2 (dict):
+
+    CommandLine:
+        python -m utool.util_dict --test-updateif_haskey
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> # build test data
+        >>> dict1 = {'a': 1, 'b': 2, 'c': 3}
+        >>> dict2 = {'a': 2, 'd': 3}
+        >>> # execute function
+        >>> result = updateif_haskey(dict1, dict2)
+        >>> assert 'd' not in dict1
+        >>> assert dict1['a'] == 2
+        >>> assert result is dict1
+        >>> # verify results
+        >>> print(result)
+    """
     for key, val in six.iteritems(dict2):
         if key in dict1:
             dict1[key] = val
+    return dict1
 
 
 def dict_update_newkeys(dict_, dict2):
