@@ -309,6 +309,133 @@ def grid_search_generator(grid_basis=[], *args, **kwargs):
         yield grid_point
 
 
+def make_constrained_cfg_and_lbl_list(varied_dict, constraint_func=None):
+    r"""
+    Args:
+        varied_dict (?):
+        constraint_func (None):
+
+    Returns:
+        tuple: (cfgdict_list, cfglbl_list)
+
+    CommandLine:
+        python -m utool.util_gridsearch --test-make_constrained_cfg_and_lbl_list
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_gridsearch import *  # NOQA
+        >>> # build test data
+        >>> varied_dict = {
+        ...     'p': [.1, .3, 1.0, 2.0],
+        ...     'clip_fraction': [.1, .2, .5],
+        ...     'K': [3, 5],
+        ... }
+        >>> constraint_func = None
+        >>> # execute function
+        >>> (cfgdict_list, cfglbl_list) = make_constrained_cfg_and_lbl_list(varied_dict, constraint_func)
+        >>> # verify results
+        >>> result = str((cfgdict_list, cfglbl_list))
+        >>> print(result)
+    """
+    cfgdict_list_ = util_dict.all_dict_combinations(varied_dict)
+    if constraint_func is not None:
+        cfgdict_list = constrain_cfgdict_list(cfgdict_list_, constraint_func)
+    else:
+        cfgdict_list = cfgdict_list_
+    cfglbl_list = make_cfglbls(cfgdict_list, varied_dict)
+    return cfgdict_list, cfglbl_list
+
+
+def get_cfgdict_lbl_list_subset(cfgdict_list, varied_dict):
+    keys = list(varied_dict.iterkeys())
+    cfgdict_sublist = get_cfgdict_list_subset(cfgdict_list, keys)
+    cfglbl_sublist = make_cfglbls(cfgdict_sublist, varied_dict)
+    return cfgdict_sublist, cfglbl_sublist
+
+
+def get_cfgdict_list_subset(cfgdict_list, keys):
+    r"""
+    returns list of unique dictionaries only with keys specified in keys
+
+    Args:
+        cfgdict_list (list):
+        keys (list):
+
+    Returns:
+        list: cfglbl_list
+
+    CommandLine:
+        python -m utool.util_gridsearch --test-get_cfgdict_list_subset
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_gridsearch import *  # NOQA
+        >>> import utool as ut
+        >>> # build test data
+        >>> cfgdict_list = [
+        ...    {'K': 3, 'clip_fraction': 0.1, 'p': 0.1},
+        ...    {'K': 5, 'clip_fraction': 0.1, 'p': 0.1},
+        ...    {'K': 5, 'clip_fraction': 0.1, 'p': 0.2},
+        ...    {'K': 3, 'clip_fraction': 0.2, 'p': 0.1},
+        ...    {'K': 5, 'clip_fraction': 0.2, 'p': 0.1},
+        ...    {'K': 3, 'clip_fraction': 0.2, 'p': 0.1}]
+        >>> keys = ['K', 'clip_fraction']
+        >>> # execute function
+        >>> cfgdict_sublist = get_cfgdict_list_subset(cfgdict_list, keys)
+        >>> # verify results
+        >>> result = ut.list_str(cfgdict_sublist)
+        >>> print(result)
+        [
+            {'K': 3, 'clip_fraction': 0.1},
+            {'K': 5, 'clip_fraction': 0.1},
+            {'K': 3, 'clip_fraction': 0.2},
+            {'K': 5, 'clip_fraction': 0.2},
+        ]
+    """
+    import utool as ut
+    cfgdict_sublist_ = [ut.dict_subset(cfgdict, keys) for cfgdict in cfgdict_list]
+    cfgtups_sublist_ = [tuple(ut.dict_to_keyvals(cfgdict)) for cfgdict in cfgdict_sublist_]
+    cfgtups_sublist = ut.unique_keep_order2(cfgtups_sublist_)
+    cfgdict_sublist = list(map(dict, cfgtups_sublist))
+    return cfgdict_sublist
+
+
+def constrain_cfgdict_list(cfgdict_list_, constraint_func):
+    """ constrains configurations and removes duplicates """
+    cfgdict_list = []
+    for cfg_ in cfgdict_list_:
+        cfg = cfg_.copy()
+        constraint_func(cfg)
+        if cfg not in cfgdict_list:
+            cfgdict_list.append(cfg)
+    return cfgdict_list
+
+
+def make_cfglbls(cfgdict_list, varied_dict):
+    """  Show only the text in labels that mater from the cfgdict """
+    import textwrap
+    wrapper = textwrap.TextWrapper(width=50)
+    cfglbl_list =  []
+    for cfgdict in cfgdict_list:
+        cfgdict = cfgdict.copy()
+        for key, val in six.iteritems(varied_dict):
+            # Dont print label if not varied
+            if len(val) == 1:
+                del cfgdict[key]
+            # Dont print label if it is None (irrelevant)
+            elif cfgdict[key] is None:
+                del cfgdict[key]
+        cfglbl = str(cfgdict)
+        search_repl_list = [('\'', ''), ('}', ''),
+                            ('{', ''), (': ', '=')]
+        for search, repl in search_repl_list:
+            cfglbl = cfglbl.replace(search, repl)
+        #cfglbl = str(cfgdict).replace('\'', '').replace('}', '').replace('{', '').replace(': ', '=')
+        cfglbl = ('\n'.join(wrapper.wrap(cfglbl)))
+        cfglbl_list.append(cfglbl)
+    return cfglbl_list
+
+
 if __name__ == '__main__':
     """
     CommandLine:

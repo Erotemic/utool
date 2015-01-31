@@ -244,7 +244,12 @@ def grab_test_imgpath(key, allow_external=True):
     """
     if allow_external and key not in TESTIMG_URL_DICT:
         testimg_fpath = key
-        assert util_path.checkpath(testimg_fpath, verbose=True)
+        if not util_path.checkpath(testimg_fpath, verbose=True):
+            import utool as ut
+            raise AssertionError(
+                'testimg_fpath=%r not found did you mean %s' % (
+                    testimg_fpath,
+                    ut.cond_phrase(get_valid_test_imgkeys(), 'or')))
     else:
         testimg_fname = key
         testimg_url = TESTIMG_URL_DICT[key]

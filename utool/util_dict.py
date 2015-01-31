@@ -94,7 +94,7 @@ def all_dict_combinations_ordered(varied_dict):
     return dict_list
 
 
-def all_dict_combinations(varied_dict):
+def all_dict_combinations(varied_dict, ):
     """
     all_dict_combinations
 
@@ -290,15 +290,20 @@ def dict_subset(dict_, keys):
         dict: subset dictionary
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
-        >>> dict_ = '?'
-        >>> keys = '?'
+        >>> dict_ = {'K': 3, 'clip_fraction': 0.2, 'p': 0.1}
+        >>> keys = ['K', 'clip_fraction']
         >>> result = dict_subset(dict_, keys)
         >>> print(result)
+        {'K': 3, 'clip_fraction': 0.2}
     """
     subdict_ = {key: dict_[key] for key in keys}
     return subdict_
+
+
+def dict_to_keyvals(dict_):
+    return list(six.iteritems(dict_))
 
 
 def dict_setdiff(dict_, negative_keys):

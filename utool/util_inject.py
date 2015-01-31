@@ -1,3 +1,6 @@
+"""
+Injects code into live modules or into text source files
+"""
 from __future__ import absolute_import, division, print_function
 from six.moves import builtins
 #import builtins
@@ -402,6 +405,12 @@ def inject_all(DEBUG=False):
             print('[util_inject] module=%r' % module)
             print('</!!!>')
             raise
+
+
+#def inject_python_code(fpath, patch_code):
+#    import utool as ut
+#    ut.readfrom(fpath)
+#    pass
 
 
 if '--inject-color' in sys.argv:

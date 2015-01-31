@@ -299,6 +299,25 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
 
     References:
        http://stackoverflow.com/questions/27911570/can-you-specify-a-command-to-run-after-you-embed-into-ipython/27914204#27914204
+       http://stackoverflow.com/questions/15167200/how-do-i-embed-an-ipython-interpreter-into-an-application-running-in-an-ipython
+
+    TODO:
+        try:
+            get_ipython
+        except NameError:
+            banner=exit_msg=''
+        else:
+            banner = '*** Nested interpreter ***'
+            exit_msg = '*** Back in main IPython ***'
+
+        # First import the embed function
+        from IPython.frontend.terminal.embed import InteractiveShellEmbed
+        # Now create the IPython shell instance. Put ipshell() anywhere in your code
+        # where you want it to open.
+        ipshell = InteractiveShellEmbed(banner1=banner, exit_msg=exit_msg)
+        #Then use ipshell() whenever you want to be dropped into an IPython shell. This
+        #will allow you to embed (and even nest) IPython interpreters in your code and
+        #inspect objects or the state of the program.
 
     Example:
         >>> # DISABLE_DOCTEST
