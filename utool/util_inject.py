@@ -407,10 +407,92 @@ def inject_all(DEBUG=False):
             raise
 
 
-#def inject_python_code(fpath, patch_code):
-#    import utool as ut
-#    ut.readfrom(fpath)
-#    pass
+def split_python_text_into_lines(text):
+    """
+    # TODO: make it so this function returns text so one statment is on one line
+    # that means no splitting up things like function definitions into multiple
+    # lines
+    """
+    #import jedi
+    #script = jedi.Script(text, line=1, column=None, path='')
+    def parentesis_are_balanced(line):
+        """
+        helper
+
+        References:
+            http://stackoverflow.com/questions/18007995/recursive-method-for-parentheses-balancing-python
+        """
+        def balanced(str_, i=0, cnt=0, left='(', right=')'):
+            if i == len(str_):
+                return cnt == 0
+            if cnt < 0:
+                return False
+            if str_[i] == left:
+                return  balanced(str_, i + 1, cnt + 1)
+            elif str_[i] == right:
+                return  balanced(str_, i + 1, cnt - 1)
+            return balanced(str_, i + 1, cnt)
+        return balanced(line)
+
+    lines = text.split('\n')
+    new_lines = []
+    current_line = ''
+    for line in lines:
+        current_line += line
+        if parentesis_are_balanced(current_line):
+            new_lines.append(current_line)
+            current_line = ''
+    return lines
+
+
+def inject_python_code(fpath, patch_code, tag=None, inject_location='after_imports'):
+    """ puts code into files on disk """
+    import utool as ut
+    assert tag is not None, 'TAG MUST BE SPECIFIED IN INJECTED CODETEXT'
+    text = ut.read_from(fpath)
+    comment_start_tag = '# <util_inject:%s>' % tag
+    comment_end_tag  = '# </util_inject:%s>' % tag
+
+    tagstart_txtpos = text.find(comment_start_tag)
+    tagend_txtpos = text.find(comment_end_tag)
+
+    text_lines = ut.split_python_text_into_lines(text)
+
+    # split the file into two parts and inject code between them
+    if tagstart_txtpos != -1 or tagend_txtpos != -1:
+        assert tagstart_txtpos != -1, 'both tags must not be found'
+        assert tagend_txtpos != -1, 'both tags must not be found'
+
+        for pos, line in enumerate(text_lines):
+            if line.startswith(comment_start_tag):
+                tagstart_pos = pos
+            if line.startswith(comment_end_tag):
+                tagend_pos = pos
+        part1 = text_lines[0:tagstart_pos]
+        part2 = text_lines[tagend_pos + 1:]
+    else:
+        if inject_location == 'after_imports':
+            first_nonimport_pos = 0
+            for line in text_lines:
+                list_ = ['import ', 'from ', '#', ' ']
+                isvalid = len(line) == 0 or any([line.startswith(str_) for str_ in list_])
+                if not isvalid:
+                    break
+                first_nonimport_pos += 1
+            part1 = text_lines[0:first_nonimport_pos]
+            part2 = text_lines[first_nonimport_pos:]
+        else:
+            raise AssertionError('Unknown inject location')
+
+    newtext = (
+        '\n'.join(part1 + [comment_start_tag]) +
+        '\n' + patch_code + '\n' +
+        '\n'.join( [comment_end_tag] + part2)
+    )
+    text_backup_fname = fpath + '.' + ut.get_timestamp() + '.bak'
+    ut.write_to(text_backup_fname, text)
+    ut.write_to(fpath, newtext)
+    #print(newtext)
 
 
 if '--inject-color' in sys.argv:

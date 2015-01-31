@@ -68,6 +68,11 @@ def read_from(fpath, verbose=False, aslines=False, strict=True):
             raise
 
 
+# aliases
+readfrom = read_from
+writeto = write_to
+
+
 def save_cPkl(fpath, data, verbose=False):
     if verbose and __PRINT_WRITES__:
         print('[util_io] * save_cPkl(%r, data)' % (util_path.tail(fpath),))
