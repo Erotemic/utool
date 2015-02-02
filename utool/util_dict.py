@@ -53,6 +53,42 @@ def get_dict_hashid(dict_):
     return hashid
 
 
+def dict_stack(dict_list):
+    r"""
+    stacks values from two dicts into a new dict where the values are list of
+    the input values. the keys are the same.
+
+    Args:
+        dict_list (list): list of dicts with similar keys
+
+    Returns:
+        dict dict_stacked
+
+    CommandLine:
+        python -m utool.util_dict --test-dict_stack
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> # build test data
+        >>> dict1_ = {'a': 1, 'b': 2}
+        >>> dict2_ = {'a': 2, 'b': 3, 'c': 4}
+        >>> # execute function
+        >>> dict_stacked = dict_stack(dict1_, dict2_)
+        >>> # verify results
+        >>> result = str(dict_stacked)
+        >>> print(result)
+        {'a': [1, 2], 'c': [4], 'b': [2, 3]}
+
+    """
+    dict_stacked_ = defaultdict(list)
+    for dict_ in dict_list:
+        for key, val in six.iteritems(dict_):
+            dict_stacked_[key].append(val)
+    dict_stacked = dict(dict_stacked_)
+    return dict_stacked
+
+
 def invert_dict(dict_):
     """
     invert_dict

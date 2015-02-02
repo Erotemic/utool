@@ -18,6 +18,7 @@ except ImportError as ex:
     pass
 from os.path import splitext, exists, join, split, relpath
 from utool import util_inject
+from utool import util_dict
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[dev]')
 
 if HAS_NUMPY:
@@ -708,6 +709,35 @@ def tuples_to_unique_scalars(tup_list):
         return val
     scalar_list = [seen[tup] if tup in seen else addval(tup) for tup in tup_list]
     return scalar_list
+
+
+def get_jagged_stats(arr_list):
+    r"""
+    Args:
+        arr_list (list):
+
+    Returns:
+        dict: stats_dict
+
+    CommandLine:
+        python -m utool.util_dev --test-get_jagged_stats
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dev import *  # NOQA
+        >>> # build test data
+        >>> arr_list = [[1, 2, 3, 4], [3, 10]]
+        >>> # execute function
+        >>> stats_dict = get_jagged_stats(arr_list)
+        >>> # verify results
+        >>> result = str(stats_dict)
+        >>> print(result)
+        {'std': [1.118034, 3.5], 'nMax': [1, 1], 'shape': ['(4,)', '(2,)'], 'min': [1.0, 3.0], 'max': [4.0, 10.0], 'nMin': [1, 1], 'mean': [2.5, 6.5]}
+
+    """
+    stats_dict_list = list(map(get_stats, arr_list))
+    stats_dict = util_dict.dict_stack(stats_dict_list)
+    return stats_dict
 
 
 def get_stats(list_, axis=None):

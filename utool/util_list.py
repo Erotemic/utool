@@ -20,6 +20,9 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[list]')
 
 def replace_nones(list_, repl=-1):
     r"""
+    Recursively removes Nones in all lists and sublists and replaces them with
+    the repl variable
+
     Args:
         list_ (list):
         repl (obj): replacement value
@@ -44,7 +47,12 @@ def replace_nones(list_, repl=-1):
         [-1, 0, 1, 2]
 
     """
-    repl_list = [repl if x is None else x for x in list_]
+    repl_list = [
+        repl if item is None else (
+            replace_nones(item, repl) if isinstance(item, list) else item
+        )
+        for item in list_
+    ]
     return repl_list
 
 
