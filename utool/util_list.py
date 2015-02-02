@@ -18,6 +18,36 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[list]')
 
 # --- List Allocations ---
 
+def replace_nones(list_, repl=-1):
+    r"""
+    Args:
+        list_ (list):
+        repl (obj): replacement value
+
+    Returns:
+        list
+
+    CommandLine:
+        python -m utool.util_list --test-replace_nones
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> # build test data
+        >>> list_ = [None, 0, 1, 2]
+        >>> repl = -1
+        >>> # execute function
+        >>> repl_list = replace_nones(list_, repl)
+        >>> # verify results
+        >>> result = str(repl_list)
+        >>> print(result)
+        [-1, 0, 1, 2]
+
+    """
+    repl_list = [repl if x is None else x for x in list_]
+    return repl_list
+
+
 def alloc_lists(num_alloc):
     """ allocates space for a ``list`` of lists """
     return [[] for _ in range(num_alloc)]
@@ -55,7 +85,7 @@ def get_list_column(list_, colx):
     Returns:
         list: list of selected items
 
-    Example:
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> list_ = [['a', 'b'], ['c', 'd']]
@@ -68,6 +98,15 @@ def get_list_column(list_, colx):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> list_ = [['a', 'b'], ['c', 'd']]
+        >>> colx = [1, 0]
+        >>> result = get_list_column(list_, colx)
+        >>> print(result)
+        [['b', 'a'], ['d', 'c']]
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [{'spam': 'eggs', 'ham': 'spam'}, {'spam': 'eggs', 'ham': 'spam'},]
         >>> colx = [1, 0]
         >>> result = get_list_column(list_, colx)
         >>> print(result)

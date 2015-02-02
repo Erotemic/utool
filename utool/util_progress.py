@@ -149,7 +149,7 @@ class ProgressIter(object):
         self.lbl            = kwargs.get('lbl', 'lbl')
         self.nTotal         = kwargs.get('nTotal', 0)
         self.backspace      = kwargs.get('backspace', True)
-        self.freq           = kwargs.get('freq', 4)
+        self.freq           = kwargs.get('freq', 1)
         self.message_type   = kwargs.get('message_type', 1)
         self.with_totaltime = False
         if self.use_rate:

@@ -8,7 +8,7 @@ import re
 import argparse
 from utool import util_inject
 from utool import util_type
-from utool import util_print
+#from utool import util_print
 from utool._internal import meta_util_six, meta_util_arg
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[arg]')
 
@@ -373,8 +373,8 @@ def __argv_flag_dec(func, default=False, quiet=QUIET):
             indent_lbl = flag.replace('--', '').replace('print-', '')
             print('')
             print('\n+++ ' + indent_lbl + ' +++')
-            with util_print.Indenter('[%s]' % indent_lbl):
-                return func(*args, **kwargs)
+            #with util_print.Indenter('[%s]' % indent_lbl):
+            return func(*args, **kwargs)
             print('')
         else:
             if not quiet:

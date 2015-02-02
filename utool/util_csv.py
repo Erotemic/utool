@@ -62,8 +62,14 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
         #column_lbls = row_lbls[0]
         #row_list =
     if row_lbls is not None:
+        if isinstance(column_list, np.ndarray):
+            column_list = column_list.tolist()
+        if isinstance(row_lbls, np.ndarray):
+            row_lbls = row_lbls.tolist()
         column_list = [row_lbls] + column_list
-        column_lbls = [''] + list(map(str, column_lbls))
+        column_lbls = ['ROWLBL'] + list(map(str, column_lbls))
+        if column_type is not None:
+            column_type =  [str] + column_type
     if len(column_list) == 0:
         print('[csv] No columns')
         return header
@@ -108,33 +114,45 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
             raise
         return ('%d') % int(c)
 
-    for col, lbl, coltype in zip(column_list, column_lbls, column_type):
-        if coltype is list or is_list(coltype):
-            #print('list')
-            #col_str = [str(c).replace(',', '<comma>').replace('.', '<dot>') for c in iter(col)]
-            col_str = [str(c).replace(',', ' ').replace('.', '<dot>') for c in col]
-        elif coltype is float or is_float(coltype) or coltype == np.float32 or util_type.is_valid_floattype(coltype):
-            #print('float')
-            precision_fmtstr = '%.' + str(precision) + 'f'
-            col_str = [precision_fmtstr % float(r) for r in col]
-        elif coltype is int or is_int(coltype):
-            #print('is_int')
-            col_str = [_toint(c) for c in iter(col)]
-        elif coltype is str or is_str(coltype):
-            #print('is_str')
-            col_str = [str(c).replace(',', '<comma>') for c in col]
-        else:
-            print('[csv] is_unknown coltype=%r' % (coltype,))
-            col_str = [str(c) for c in iter(col)]
-        col_lens = [len(s) for s in iter(col_str)]
-        max_len  = max(col_lens)
-        max_len  = max(len(lbl), max_len)
-        column_maxlen.append(max_len)
-        column_str_list.append(col_str)
+    try:
+        for col, lbl, coltype in zip(column_list, column_lbls, column_type):
+            if coltype is list or is_list(coltype):
+                #print('list')
+                #col_str = [str(c).replace(',', '<comma>').replace('.', '<dot>') for c in iter(col)]
+                col_str = [str(c).replace(',', ' ').replace('.', '<dot>') for c in col]
+            elif coltype is float or is_float(coltype) or coltype == np.float32 or util_type.is_valid_floattype(coltype):
+                #print('float')
+                precision_fmtstr = '%.' + str(precision) + 'f'
+                col_str = ['None' if r is None else precision_fmtstr % float(r) for r in col]
+            elif coltype is int or is_int(coltype):
+                #print('is_int')
+                col_str = [_toint(c) for c in iter(col)]
+            elif coltype is str or is_str(coltype):
+                #print('is_str')
+                col_str = [str(c).replace(',', '<comma>') for c in col]
+            else:
+                print('[csv] is_unknown coltype=%r' % (coltype,))
+                col_str = [str(c) for c in iter(col)]
+            col_lens = [len(s) for s in iter(col_str)]
+            max_len  = max(col_lens)
+            max_len  = max(len(lbl), max_len)
+            column_maxlen.append(max_len)
+            column_str_list.append(col_str)
+    except Exception as ex:
+        #ut.embed()
+        ut.printex(ex, keys=['col', 'lbl', 'coltype'])
+        raise
 
     _fmtfn = lambda maxlen: ''.join(['%', str(maxlen + 2), 's'])
     fmtstr = ','.join([_fmtfn(maxlen) for maxlen in column_maxlen])
-    csv_rows.append('# ' + fmtstr % tuple(column_lbls))
+    try:
+        csv_rows.append('# ' + fmtstr % tuple(column_lbls))
+        #csv_rows.append('# ' + fmtstr % column_lbls)
+    except Exception as ex:
+        #print(len(column_list))
+        #ut.embed()
+        ut.printex(ex, keys=['fmtstr', 'column_lbls'])
+        raise
     for row in zip(*column_str_list):
         csv_rows.append('  ' + fmtstr % row)
 
