@@ -365,7 +365,7 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
             # make qt not loop forever (I had qflag loop forever with this off)
     except ImportError as ex:
         print(ex)
-    NEW_METHOD = True
+    NEW_METHOD = False
     if NEW_METHOD:
         user_ns = globals()
         user_ns = globals().copy()
