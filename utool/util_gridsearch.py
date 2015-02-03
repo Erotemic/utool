@@ -436,6 +436,70 @@ def make_cfglbls(cfgdict_list, varied_dict):
     return cfglbl_list
 
 
+def interact_gridsearch_result_images(show_result_func, cfgdict_list,
+                                      cfglbl_list, cfgresult_list,
+                                      score_list=None, fnum=None, figtitle='',
+                                      unpack=False, max_plots=25, verbose=True):
+    """ helper function for visualizing results of gridsearch """
+    import utool as ut
+    import plottool as pt
+    from plottool import plot_helpers as ph
+    from plottool import interact_helpers as ih
+    if verbose:
+        print('Plotting gridsearch results figtitle=%r' % (figtitle,))
+    if score_list is None:
+        score_list = [None] * len(cfgdict_list)
+    else:
+        # sort by score if available
+        sortx_list = ut.list_argsort(score_list, reverse=True)
+        score_list = ut.list_take(score_list, sortx_list)
+        cfgdict_list = ut.list_take(cfgdict_list, sortx_list)
+        cfglbl_list = ut.list_take(cfglbl_list, sortx_list)
+        cfgresult_list = ut.list_take(cfgresult_list, sortx_list)
+    # Dont show too many results only the top few
+    score_list = ut.listclip(score_list, max_plots)
+
+    # Show the config results
+    fig = pt.figure(fnum=fnum)
+    # Get plots for each of the resutls
+    nRows, nCols = pt.get_square_row_cols(len(score_list), fix=True)
+    next_pnum = pt.make_pnum_nextgen(nRows, nCols)
+    for cfgdict, cfglbl, cfgresult, score in zip(cfgdict_list, cfglbl_list,
+                                                  cfgresult_list,
+                                                  score_list):
+        if score is not None:
+            cfglbl += '\nscore=%r' % (score,)
+        if unpack:
+            show_result_func(*cfgresult, fnum=fnum, pnum=next_pnum())
+        else:
+            show_result_func(cfgresult, fnum=fnum, pnum=next_pnum())
+        #pt.imshow(255 * cfgresult, fnum=fnum, pnum=next_pnum(), title=cfglbl)
+        ax = pt.gca()
+        ax.set_title(cfglbl)
+        ph.set_plotdat(ax, 'cfgdict', cfgdict)
+        ph.set_plotdat(ax, 'cfglbl', cfglbl)
+    # Define clicked callback
+    def on_clicked(event):
+        print('\n[pt] clicked gridsearch axes')
+        if event is None or event.xdata is None or event.inaxes is None:
+            print('out of axes')
+            pass
+        else:
+            ax = event.inaxes
+            cfglbl = ph.get_plotdat(ax, 'cfglbl', None)
+            cfgdict = ph.get_plotdat(ax, 'cfgdict', {})
+            infostr_list = [
+                ('cfglbl = ' + str(cfglbl)),
+                '',
+                ('cfgdict = ' + ut.dict_str(cfgdict)),
+            ]
+            infostr = ut.msgblock('CLICKED', '\n'.join(infostr_list))
+            print(infostr)
+    # Connect callbacks
+    ih.connect_callback(fig, 'button_press_event', on_clicked)
+    pt.set_figtitle(figtitle)
+
+
 if __name__ == '__main__':
     """
     CommandLine:

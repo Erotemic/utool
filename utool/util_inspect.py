@@ -30,6 +30,8 @@ def get_dev_hints():
         ('rvecs'   , ('ndarray[uint8_t, ndim=2]', 'residual vector')),
         ('fm', ('list', 'list of feature matches as tuples (qfx, dfx)')),
         ('fs', ('list', 'list of feature scores')),
+        ('aid_list' , ('int', 'list of annotation ids')),
+        ('ensure' , ('bool', 'eager evaluation if True')),
         ('qaid'    , ('int', 'query annotation id')),
         ('aid[0-9]?', ('int', 'annotation id')),
         ('daids'   , ('list', 'database annotation ids')),
@@ -104,6 +106,14 @@ def get_dev_hints():
         ('dict_'          , ('dict_', 'a dictionary')),
         ('examplecode'    , ('str', None)),
 
+
+        # Numpy Hints
+        ('shape'    , ('tuple', 'array dimensions')),
+        ('chipshape'    , ('tuple', 'height, width')),
+
+        # Opencv hings
+        ('dsize'    , ('tuple', 'width, height')),
+        ('chipsize'    , ('tuple', 'width, height')),
 
         # My coding style hints
         ('wx2_'    , ('dict', None)),

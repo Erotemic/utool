@@ -430,18 +430,47 @@ def get_phi_ratio1():
     return 1.0 / get_phi()
 
 
-def iceil(num):
-    """ Integer ceiling. (because numpy doesn't have it! """
-    return int(np.ceil(num))
+def iceil(num, dtype=np.int32):
+    """ Integer ceiling. (because numpy doesn't seem to have it!)
+
+    Args:
+        num (ndarray or scalar):
+
+    Returns:
+        ndarray or scalar:
+
+    CommandLine:
+        python -m utool.util_alg --test-iceil
+
+    Example0:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> num = 1.5
+        >>> result = iceil(num)
+        >>> print(result)
+        2
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> num = [1.5, 2.9]
+        >>> result = iceil(num)
+        >>> print(result)
+        [2, 3]
+    """
+    return np.ceil(num).astype(dtype)
 
 
-def iround(num):
-    """ Integer round. (because numpy doesn't have it! """
-    return int(round(num))
+def iround(num, dtype=np.int32):
+    """ Integer round. (because numpy doesn't seem to have it!) """
+    return np.round(num).astype(dtype)
 
 
 def is_prime(num):
-    """ http://thelivingpearl.com/2013/01/06/how-to-find-prime-numbers-in-python/ """
+    """
+    References:
+        http://thelivingpearl.com/2013/01/06/how-to-find-prime-numbers-in-python/
+    """
     for j in range(2, num):
         if (num % j) == 0:
             return False
