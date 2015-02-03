@@ -711,7 +711,7 @@ def tuples_to_unique_scalars(tup_list):
     return scalar_list
 
 
-def get_jagged_stats(arr_list):
+def get_jagged_stats(arr_list, use_nan=False):
     r"""
     Args:
         arr_list (list):
@@ -725,22 +725,37 @@ def get_jagged_stats(arr_list):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_dev import *  # NOQA
+        >>> import utool as ut
         >>> # build test data
-        >>> arr_list = [[1, 2, 3, 4], [3, 10]]
+        >>> use_nan = True
+        >>> arr_list = [[1, 2, 3, 4], [3, 10], [np.nan, 3, 3, 3]]
         >>> # execute function
-        >>> stats_dict = get_jagged_stats(arr_list)
+        >>> stats_dict = get_jagged_stats(arr_list, use_nan=use_nan)
         >>> # verify results
-        >>> result = str(stats_dict)
+        >>> result = ut.align(str(ut.dict_str(stats_dict)), ':')
         >>> print(result)
-        {'std': [1.118034, 3.5], 'nMax': [1, 1], 'shape': ['(4,)', '(2,)'], 'min': [1.0, 3.0], 'max': [4.0, 10.0], 'nMin': [1, 1], 'mean': [2.5, 6.5]}
+        {
+            'max'    : [4.0, 10.0, 3.0],
+            'min'    : [1.0, 3.0, 3.0],
+            'mean'   : [2.5, 6.5, 3.0],
+            'std'    : [1.118034, 3.5, 0.0],
+            'nMin'   : [1, 1, 3],
+            'nMax'   : [1, 1, 3],
+            'shape'  : ['(4,)', '(2,)', '(4,)'],
+            'num_nan': [0, 0, 1],
+        }
 
     """
-    stats_dict_list = list(map(get_stats, arr_list))
-    stats_dict = util_dict.dict_stack(stats_dict_list)
+    import functools
+    stats_dict_list = list(map(functools.partial(get_stats, use_nan=use_nan), arr_list))
+    stats_dict_ = util_dict.dict_stack(stats_dict_list)
+    # Fix order
+    key_order = ['max', 'min', 'mean', 'std', 'nMin', 'nMax', 'shape', 'num_nan']
+    stats_dict = OrderedDict([(key, stats_dict_[key]) for key in key_order])
     return stats_dict
 
 
-def get_stats(list_, axis=None):
+def get_stats(list_, axis=None, use_nan=False):
     """
     Args:
         list_ (listlike): values to get statistics of
@@ -761,7 +776,7 @@ def get_stats(list_, axis=None):
         >>> axis = 0
         >>> np.random.seed(0)
         >>> list_ = np.random.rand(10, 2)
-        >>> stat_dict = get_stats(list_, axis)
+        >>> stat_dict = get_stats(list_, axis, use_nan=False)
         >>> result = str(utool.dict_str(stat_dict))
         >>> print(result)
         {
@@ -791,22 +806,36 @@ def get_stats(list_, axis=None):
         stat_dict = {'empty_list': True}
     else:
         # Compute stats
-        min_val = nparr.min(axis=axis)
-        max_val = nparr.max(axis=axis)
-        mean_ = nparr.mean(axis=axis)
-        std_  = nparr.std(axis=axis)
+        if use_nan:
+            min_val = np.nanmin(nparr, axis=axis)
+            max_val = np.nanmax(nparr, axis=axis)
+            mean_ = np.nanmean(nparr, axis=axis)
+            std_  = np.nanstd(nparr, axis=axis)
+            # TODO report num nans
+        else:
+            min_val = nparr.min(axis=axis)
+            max_val = nparr.max(axis=axis)
+            mean_ = nparr.mean(axis=axis)
+            std_  = nparr.std(axis=axis)
         # number of entries with min val
         nMin = np.sum(nparr == min_val, axis=axis)
         # number of entries with min val
         nMax = np.sum(nparr == max_val, axis=axis)
-        stat_dict = OrderedDict(
-            [('max',   np.float32(max_val)),
-             ('min',   np.float32(min_val)),
-             ('mean',  np.float32(mean_)),
-             ('std',   np.float32(std_)),
-             ('nMin',  np.int32(nMin)),
-             ('nMax',  np.int32(nMax)),
-             ('shape', repr(nparr.shape))])
+        stat_dict = OrderedDict([
+            ('max',   np.float32(max_val)),
+            ('min',   np.float32(min_val)),
+            ('mean',  np.float32(mean_)),
+            ('std',   np.float32(std_)),
+            ('nMin',  np.int32(nMin)),
+            ('nMax',  np.int32(nMax)),
+            ('shape', repr(nparr.shape)),
+            ('num_nan', 0,),
+        ])
+        if use_nan:
+            stat_dict['num_nan'] = np.isnan(nparr).sum()
+        else:
+            del stat_dict['num_nan']
+
     return stat_dict
 
 # --- Info Strings ---
@@ -1498,6 +1527,12 @@ def is_developer(mycomputers=None):
         mycomputers = ['hyrule', 'ooo', 'bakerstreet']
     compname_lower = utool.get_computer_name().lower()
     return compname_lower in mycomputers
+
+
+def iup():
+    """ shortcut when pt is not imported """
+    import plottool as pt
+    pt.iup()
 
 
 if __name__ == '__main__':
