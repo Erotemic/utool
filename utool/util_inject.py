@@ -279,6 +279,13 @@ if PROF_MOD_PAT_LIST is not None:
 
 
 def memprof(func):
+    """ requires memory_profiler
+    pip install memory_profiler
+
+    References:
+        https://pypi.python.org/pypi/memory_profiler
+
+    """
     import memory_profiler
     return memory_profiler.profile(func)
 
