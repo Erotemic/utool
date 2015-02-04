@@ -297,7 +297,7 @@ class ProgressIter(object):
                 iters_left = nTotal - self.count
                 est_seconds_left = iters_left / (iters_per_second + 1E-9)
                 est_min_left = est_seconds_left / 60.0
-                if self.message_type == 2:
+                if self.invert_rate:
                     seconds_per_iter = 1.0 / iters_per_second
                     msg = fmt_msg % (self.count + 1, seconds_per_iter, est_min_left, total_min)
                 else:
