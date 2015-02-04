@@ -179,6 +179,26 @@ def is_int(var):
 
 
 def is_float(var):
+    r"""
+    Args:
+        var (ndarray or scalar):
+
+    Returns:
+        var:
+
+    CommandLine:
+        python -m utool.util_type --test-is_float
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_type import *  # NOQA
+        >>> # build test data
+        >>> var = np.array([1.0, 2.0, 3.0])
+        >>> # execute function
+        >>> assert is_float(var) is True, 'var is a float'
+        >>> # verify results
+        >>> print(result)
+    """
     return is_type(var, VALID_FLOAT_TYPES)
 
 

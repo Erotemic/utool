@@ -175,7 +175,8 @@ class ProgressIter(object):
         self.backspace      = kwargs.get('backspace', True)
         self.freq           = kwargs.get('freq', 1)
         self.invert_rate    = kwargs.get('invert_rate', False)
-        self.report_unit    = kwargs.get('report_unit', 'minutes')
+        #self.report_unit    = kwargs.get('report_unit', 'minutes')
+        self.report_unit    = kwargs.get('report_unit', 'seconds')
         self.with_totaltime = False
         if self.use_rate:
             # Hacky so hacky. this needs major cleanup
@@ -228,8 +229,8 @@ class ProgressIter(object):
             self.lbl,
             ' %4d/', str(nTotal),
             '...  rate=%3.3f seconds per iter.' if self.invert_rate else '...  rate=%4.2f iters per second.',
-            ' est_timeunit_left=%4.2f,',
-            ' total_timeunit=%4.2f,',
+            ' est ' + self.report_unit + ' left: %4.2f,',
+            ' total ' + self.report_unit + ': %4.2f,',
         ))
         if not self.backspace:
             fmt_msg += '\n'
@@ -336,7 +337,7 @@ class ProgressIter(object):
                         print('[prog] Adusting frequency to: %r' % freq)
                         print('L___')
                 msg = fmt_msg % (self.count + 1,
-                                 iters_per_second if self.invert_rate else 1.0 / iters_per_second,
+                                 1.0 / iters_per_second if self.invert_rate else iters_per_second,
                                  est_timeunit_left,
                                  total_timeunit)
                 PROGRESS_WRITE(msg)
@@ -345,7 +346,7 @@ class ProgressIter(object):
         est_timeunit_left = 0
         now_time = time.time()
         total_timeunit = (now_time - start_time) / timeunit_scale
-        msg = fmt_msg % (nTotal, iters_per_second if self.invert_rate else 1.0 / iters_per_second, est_timeunit_left, total_timeunit)
+        msg = fmt_msg % (nTotal, 1.0 / iters_per_second if self.invert_rate else iters_per_second, est_timeunit_left, total_timeunit)
         PROGRESS_WRITE(msg)
         PROGRESS_WRITE('\n')
         PROGRESS_FLUSH()

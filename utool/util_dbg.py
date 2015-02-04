@@ -1188,6 +1188,7 @@ class EmbedOnException(object):
             print('[util_dbg] %r in context manager!: %s ' % (type_, str(value)))
             import utool
             import traceback
+            #traceback.print_stack(type_, value, trace)
             traceback.print_exception(type_, value, trace)
             #parent_locals = utool.get_parent_locals()
             #execstr_parent = utool.execstr_dict(parent_locals, 'parent_locals')

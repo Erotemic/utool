@@ -835,28 +835,28 @@ def get_stats(list_, axis=None, use_nan=False):
         nMin = np.sum(nparr == min_val, axis=axis)
         # number of entries with min val
         nMax = np.sum(nparr == max_val, axis=axis)
-        stat_dict = OrderedDict([
+        stats_list = [
             ('max',   np.float32(max_val)),
             ('min',   np.float32(min_val)),
             ('mean',  np.float32(mean_)),
             ('std',   np.float32(std_)),
             ('nMin',  np.int32(nMin)),
             ('nMax',  np.int32(nMax)),
-            ('shape', repr(nparr.shape)),
-            ('num_nan', 0,),
-        ])
+            ('shape', nparr.shape),  # repr(nparr.shape)),
+        ]
         if use_nan:
-            stat_dict['num_nan'] = np.isnan(nparr).sum()
-        else:
-            del stat_dict['num_nan']
+            import utool as ut
+            with ut.EmbedOnException():
+                stats_list.append(('num_nan', np.isnan(nparr).sum()))
 
+    stat_dict = OrderedDict(stats_list)
     return stat_dict
 
 # --- Info Strings ---
 
 
 def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=None,
-                  precision=None, axis=0, stat_dict=None):
+                  precision=None, axis=0, stat_dict=None, use_nan=False):
     """
     Returns the string version of get_stats
 
@@ -889,7 +889,7 @@ def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=No
     import utool as ut
     # Get stats dict
     if stat_dict is None:
-        stat_dict = get_stats(list_, axis=axis)
+        stat_dict = get_stats(list_, axis=axis, use_nan=use_nan)
     else:
         stat_dict = stat_dict.copy()
     # Keep only included keys if specified
@@ -909,7 +909,14 @@ def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=No
         float_fmtstr = '%.' + str(precision) + 'f'
         for key in list(six.iterkeys(statstr_dict)):
             val = statstr_dict[key]
-            if ut.is_float(val):
+            isfloat = ut.is_float(val)
+            if not isfloat and isinstance(val, list):
+                type_list = list(map(type, val))
+                if len(type_list) > 0 and ut.list_allsame(type_list):
+                    if ut.is_float(val[0]):
+                        isfloat = True
+                        val = np.array(val)
+            if isfloat:
                 if isinstance(val, np.ndarray):
                     strval = str([float_fmtstr % v for v in val]).replace('\'', '')
                     #np.array_str((val), precision=precision)
@@ -969,7 +976,7 @@ def npArrInfo(arr):
     """
     OLD update and refactor
     """
-    from .DynamicStruct import DynStruct
+    from utool.DynamicStruct import DynStruct
     info = DynStruct()
     info.shapestr  = '[' + ' x '.join([str(x) for x in arr.shape]) + ']'
     info.dtypestr  = str(arr.dtype)
