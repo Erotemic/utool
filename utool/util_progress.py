@@ -177,6 +177,7 @@ class ProgressIter(object):
         self.invert_rate    = kwargs.get('invert_rate', False)
         #self.report_unit    = kwargs.get('report_unit', 'minutes')
         self.report_unit    = kwargs.get('report_unit', 'seconds')
+        self.autoadjust  = kwargs.get('autoadjust', True)  # autoadjust frequency of reporting
         self.with_totaltime = False
         if self.use_rate:
             # Hacky so hacky. this needs major cleanup
@@ -213,7 +214,7 @@ class ProgressIter(object):
         #        state.freq = 1
         #        pass
         DEBUG_FREQ_ADJUST = False
-        ENABLE_ADJUST_FREQ = True
+        autoadjust = self.autoadjust
         # SETUP VARIABLES
         timeunit_scale = {
             'minutes': 60.0,
@@ -248,6 +249,7 @@ class ProgressIter(object):
         iters_per_second = -1
         est_timeunit_left = -1
 
+        # Write initial message
         msg = fmt_msg % (0, -1, -1, 0)
         PROGRESS_WRITE(msg)
         PROGRESS_FLUSH()
@@ -256,52 +258,7 @@ class ProgressIter(object):
         last_time     = start_time
 
         # Wrap the for loop with a generator
-        enumiter = enumerate(self.iterable)
-        ## yeild first element
-        #self.count, item = six.next(enumiter)
-        #yield item
-
-        ## dont update after the first, let two iterations happen at least
-        #if (self.count) % freq == 0:
-        #    # UPDATE INFO
-        #    now_time          = time.time()
-        #    total_timeunit    = (now_time - start_time) / timeunit_scale
-        #    between_time      = (now_time - last_time)
-        #    between_count     = self.count - last_count
-        #    iters_per_second  = between_count / (float(between_time) + 1E-9)
-        #    iters_left        = nTotal - self.count
-        #    est_seconds_left  = iters_left / (iters_per_second + 1E-9)
-        #    est_timeunit_left = est_seconds_left / timeunit_scale
-        #    last_count        = self.count
-        #    last_time         = now_time
-        #    # ADJUST FREQ IF NEEDED
-        #    # Adjust frequency if printing too quickly
-        #    # so progress doesnt slow down actual function
-        #    # TODO: better adjust algorithm
-        #    if ENABLE_ADJUST_FREQ and between_time < time_thresh:
-        #        max_between_time = max(max(max_between_time, between_time), 1E-9)
-        #        max_between_count = max(max_between_count, between_count)
-        #        if DEBUG_FREQ_ADJUST:
-        #            print('\n+---')
-        #            print('[prog] between_count = %r' % between_count)
-        #            print('[prog] between_time = %r' % between_time)
-        #            print('[prog] time_thresh = %r' % time_thresh)
-        #            print('[prog] max_between_count = %r' % max_between_count)
-        #            print('[prog] max_between_time = %r' % max_between_time)
-        #            print('[prog] Adusting frequency from: %r' % freq)
-        #        freq = max(int(1.3 * time_thresh * max_between_count / max_between_time), 1)
-        #        if DEBUG_FREQ_ADJUST:
-        #            print('[prog] Adusting frequency to: %r' % freq)
-        #            print('L___')
-        #    msg = fmt_msg % (self.count + 1,
-        #                     iters_per_second if self.invert_rate else 1.0 / iters_per_second,
-        #                     est_timeunit_left,
-        #                     total_timeunit)
-        #    PROGRESS_WRITE(msg)
-        #    PROGRESS_FLUSH()
-
-        # yeild the rest
-        for self.count, item in enumiter:
+        for self.count, item in enumerate(self.iterable):
             # GENERATE
             yield item
             # DO PROGRESS INFO
@@ -321,7 +278,7 @@ class ProgressIter(object):
                 # Adjust frequency if printing too quickly
                 # so progress doesnt slow down actual function
                 # TODO: better adjust algorithm
-                if ENABLE_ADJUST_FREQ and between_time < time_thresh:
+                if autoadjust and between_time < time_thresh:
                     max_between_time = max(max(max_between_time, between_time), 1E-9)
                     max_between_count = max(max_between_count, between_count)
                     if DEBUG_FREQ_ADJUST:
