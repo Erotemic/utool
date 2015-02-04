@@ -457,6 +457,7 @@ def preserve_sig(wrapper, orig_func, force=False):
     Decorates a wrapper function.
 
     It seems impossible to presever signatures in python 2 without eval
+    (Maybe another option is to write to a temporary module?)
 
     Args:
         wrapper: the function wrapping orig_func to change the signature of
@@ -508,10 +509,12 @@ def preserve_sig(wrapper, orig_func, force=False):
         parent_orig_utinfo = orig_func._utinfo
         _utinfo['parent_orig_utinfo'] = parent_orig_utinfo
 
+    # environment variable is set if you are building documentation
     # preserve sig if building docs
     building_docs = os.environ.get('UTOOL_AUTOGEN_SPHINX_RUNNING', 'OFF') == 'ON'
 
     if force or SIG_PRESERVE or building_docs:
+        # PRESERVES ALL SIGNATURES WITH EXECS
         src_fmt = r'''
         def _wrp_preserve{defsig}:
             """ {orig_docstr} """
@@ -526,15 +529,15 @@ def preserve_sig(wrapper, orig_func, force=False):
         # Put wrapped function into a scope
         globals_ =  {'wrapper': wrapper}
         locals_ = {}
-        # Extract argspec from orig function
-        argspec = inspect.getargspec(orig_func)
         # argspec is :ArgSpec(args=['bar', 'baz'], varargs=None, keywords=None, defaults=(True,))
-        (args, varargs, varkw, defaults) = argspec
-        # Get the function definition signature
-        defsig = inspect.formatargspec(*argspec)
+        # get orig functions argspec
+        # get functions signature
         # Get function call signature (no defaults)
-        callsig = inspect.formatargspec(*argspec[0:3])
         # Define an exec function
+        argspec = inspect.getargspec(orig_func)
+        (args, varargs, varkw, defaults) = argspec
+        defsig = inspect.formatargspec(*argspec)
+        callsig = inspect.formatargspec(*argspec[0:3])
         src_fmtdict = dict(defsig=defsig, callsig=callsig, orig_docstr=orig_docstr)
         src = textwrap.dedent(src_fmt).format(**src_fmtdict)
         # Define the new function on the fly
@@ -548,20 +551,30 @@ def preserve_sig(wrapper, orig_func, force=False):
         # Set an internal sig variable that we may use
         #_wrp_preserve.__sig__ = defsig
     else:
+        # PRESERVES SOME SIGNATURES NO EXEC
         # signature preservation is turned off. just preserve the name.
         # Does not use any exec or eval statments.
         import utool as ut
         _wrp_preserve = functools.update_wrapper(wrapper, orig_func)
         # Just do something to preserve signature
-    new_docstr_fmtstr = ut.codeblock(
-        '''
-        Wrapped function {wrap_name}({orig_name})
 
-        orig_argspec = {orig_argspec}
+    DEBUG_WRAPPED_DOCSTRING = False
+    if DEBUG_WRAPPED_DOCSTRING:
+        new_docstr_fmtstr = ut.codeblock(
+            '''
+            Wrapped function {wrap_name}({orig_name})
 
-        orig_docstr = {orig_docstr}
-        '''
-    )
+            orig_argspec = {orig_argspec}
+
+            orig_docstr = {orig_docstr}
+            '''
+        )
+    else:
+        new_docstr_fmtstr = ut.codeblock(
+            '''
+            {orig_docstr}
+            '''
+        )
     new_docstr = new_docstr_fmtstr.format(wrap_name=wrap_name,
                                           orig_name=orig_name, orig_docstr=orig_docstr,
                                           orig_argspec=orig_argspec)

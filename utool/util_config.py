@@ -1,5 +1,7 @@
 """
 util_config
+
+TODO: FINISH ME AND ALLOW FOR CUSTOM SETTINGS BASED OFF OF A USER PROFILE
 """
 from __future__ import absolute_import, division, print_function
 
@@ -77,3 +79,16 @@ def write_default_repo_config():
     config_str = utool.dict_str(CONFIG_DICT, strvals=True, newlines=True,
                                 recursive=True)
     print(config_str)
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m utool.util_config
+        python -m utool.util_config --allexamples
+        python -m utool.util_config --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

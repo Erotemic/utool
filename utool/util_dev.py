@@ -27,6 +27,20 @@ else:
     INDEXABLE_TYPES = (list, tuple)
 
 
+class ClassNoParam(object):
+    """
+    # class used in place of None when None might be a valid value
+    # probably should just make None not a valid value
+    """
+    def __init__(self):
+        pass
+    def __call__(self, default):
+        pass
+
+# Used instance of NoParam
+NoParam = ClassNoParam()
+
+
 def DEPRICATED(func):
     """ deprication decorator """
     warn_msg = 'Depricated call to: %s' % func.__name__

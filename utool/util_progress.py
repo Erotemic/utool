@@ -150,7 +150,7 @@ class ProgressIter(object):
         self.nTotal         = kwargs.get('nTotal', 0)
         self.backspace      = kwargs.get('backspace', True)
         self.freq           = kwargs.get('freq', 1)
-        self.message_type   = kwargs.get('message_type', 1)
+        self.invert_rate    = kwargs.get('invert_rate', False)
         self.with_totaltime = False
         if self.use_rate:
             # Hacky so hacky. this needs major cleanup
@@ -204,7 +204,7 @@ class ProgressIter(object):
         last_count = -1
         #self.nTotal = len(self.iterable)
         nTotal = self.nTotal
-        if self.message_type == 2:
+        if self.invert_rate:
             msg_parts = (
                 '\r',
                 self.lbl,

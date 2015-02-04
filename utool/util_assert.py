@@ -233,3 +233,16 @@ def assert_eq(var1, var2, msg='', var1_name=None, var2_name=None, verbose=True):
         raise AssertionError(msg)
     else:
         print('ASSERT_EQ_PASSED: {var1_name} == {var2_name} == {var1_repr}'.format(**fmtdict))
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m utool.util_assert
+        python -m utool.util_assert --allexamples
+        python -m utool.util_assert --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
