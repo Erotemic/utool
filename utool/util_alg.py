@@ -488,10 +488,10 @@ def enumerate_primes(max_prime=4100):
     return primes
 
 
-def get_nth_prime(n, max_prime=4100):
-    """ horribly inefficient but convinient for small tests """
+def get_nth_prime(n, max_prime=4100, safe=True):
+    """ hacky but still brute force algorithm for finding nth prime for small tests """
     if n <= 100:
-        first_100_primes = [
+        first_100_primes = (
             2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61,
             67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137,
             139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199,
@@ -499,11 +499,29 @@ def get_nth_prime(n, max_prime=4100):
             281, 283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 353, 359,
             367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439,
             443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521,
-            523, 541, ]
-        nth_prime = first_100_primes[n]
+            523, 541, )
+        print(len(first_100_primes))
+        nth_prime = first_100_primes[n - 1]
     else:
-        primes = [num for num in range(2, max_prime) if is_prime(num)]
-        nth_prime = primes[n]
+        if safe:
+            primes = [num for num in range(2, max_prime) if is_prime(num)]
+            nth_prime = primes[n]
+        else:
+            # This can run for a while... get it? while?
+            nth_prime = get_nth_prime_bruteforce(n)
+    return nth_prime
+
+
+def get_nth_prime_bruteforce(n):
+    num = 2
+    num_primes_found = 0
+    while True:
+        if is_prime(num):
+            num_primes_found += 1
+        if num_primes_found == n:
+            nth_prime = num
+            break
+        num += 1
     return nth_prime
 
 

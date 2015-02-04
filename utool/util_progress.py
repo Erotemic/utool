@@ -10,7 +10,7 @@ from utool import util_logging
 from utool import util_inject
 from utool import util_arg
 from utool import util_time
-import six
+import six  # NOQA
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[progress]')
 
 
@@ -33,13 +33,16 @@ PROGRESS_FLUSH = util_logging.__UTOOL_FLUSH__
 
 def test_progress():
     """
+    CommandLine:
+        python -m utool.util_progress --test-test_progress
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> test_progress()
     """
     import utool as ut
     #import time
-    ut.rrrr()
+    #ut.rrrr()
 
     print('_________________')
 
@@ -83,6 +86,10 @@ def test_progress():
 
 
 def progress_chunks(list_, chunksize, **kwargs):
+    """
+    Yeilds an iterator in chunks and computes progress
+    Progress version of ut.ichunks
+    """
     import utool as ut
     chunk_iter = ut.ichunks(list_, chunksize)
     nTotal = ut.iceil(len(list_) / chunksize)
@@ -101,6 +108,9 @@ class ProgressIter(object):
     repl=False, approx=False, disable=False, writefreq=1, with_time=False,
     backspace=True, separate=False, wfreq=None, ffreq=None, freq=None,
     total=None, num=None, with_totaltime=None
+
+    Referencs:
+        https://github.com/verigak/progress/blob/master/progress/__init__.py
 
     Args:
         iterable (): iterable normally passed to for loop
@@ -121,15 +131,29 @@ class ProgressIter(object):
         total (None): alias for nTotal
         num (None):   alias for nTotal
 
+    CommandLine:
+        python -m utool.util_progress --test-ProgressIter:0
+        python -m utool.util_progress --test-ProgressIter:1
+
     Example:
         >>> # ENABLE_DOCTEST
-        >>> import utool
+        >>> import utool as ut
         >>> from six.moves import range
-        >>> results1 = [x for x in utool.ProgressIter(range(10000), wfreq=10)]
-        >>> results4 = [x for x in utool.ProgressIter(range(10000), wfreq=1)]
+        >>> results1 = [x for x in ut.ProgressIter(range(10000), wfreq=10)]
+        >>> results4 = [x for x in ut.ProgressIter(range(10000), wfreq=1)]
         >>> results2 = [x for x in range(10000)]
-        >>> results3 = [x for x in utool.progiter((y + 1 for y in range(1000001)), nTotal=1000001, wfreq=1000, backspace=True)]
+        >>> results3 = [x for x in ut.progiter((y + 1 for y in range(1000001)), nTotal=1000001, wfreq=1000, backspace=True)]
         >>> assert results1 == results2
+
+    Example1:
+        >>> # SLOW_DOCTEST
+        >>> import utool as ut
+        >>> from six.moves import range
+        >>> progiter = ut.ProgressIter(range(100000), lbl='testing primes',
+        >>>                            report_unit='seconds', freq=1,
+        >>>                            time_thresh=1)
+        >>> results1 = [ut.get_nth_prime_bruteforce(20) for x in progiter]
+        >>> print(ut.truncate_str(str(results1)))
 
     """
     def new_init(self, iterable=None, lbl='ProgIter', nTotal=None, freq=4,
@@ -151,6 +175,7 @@ class ProgressIter(object):
         self.backspace      = kwargs.get('backspace', True)
         self.freq           = kwargs.get('freq', 1)
         self.invert_rate    = kwargs.get('invert_rate', False)
+        self.report_unit    = kwargs.get('report_unit', 'minutes')
         self.with_totaltime = False
         if self.use_rate:
             # Hacky so hacky. this needs major cleanup
@@ -174,6 +199,186 @@ class ProgressIter(object):
         else:
             return self.iter_without_rate()
 
+    @profile
+    def iter_rate(self):
+        """
+        # TODO: record iteration times for analysis
+        # TODO Incorporate this better
+        # FIXME; separate into subfunctions
+        """
+        #class IterState(object):
+        #    def __init__(state):
+        #        state.freq = 1
+        #        state.freq = 1
+        #        pass
+        DEBUG_FREQ_ADJUST = False
+        ENABLE_ADJUST_FREQ = True
+        # SETUP VARIABLES
+        timeunit_scale = {
+            'minutes': 60.0,
+            'seconds': 1.0,
+        }[self.report_unit]
+        # HACK: reaquire logging print funcs in case they have changed
+        PROGRESS_WRITE = util_logging.__UTOOL_WRITE__
+        PROGRESS_FLUSH = util_logging.__UTOOL_FLUSH__
+
+        nTotal        = self.nTotal
+        fmt_msg = ''.join((
+            '\r',
+            self.lbl,
+            ' %4d/', str(nTotal),
+            '...  rate=%3.3f seconds per iter.' if self.invert_rate else '...  rate=%4.2f iters per second.',
+            ' est_timeunit_left=%4.2f,',
+            ' total_timeunit=%4.2f,',
+        ))
+        if not self.backspace:
+            fmt_msg += '\n'
+        freq          = self.freq
+        self.count    = -1
+        between_count = 0
+        last_count    = -1
+
+        # how long iterations should be before a flush
+        time_thresh = self._get_timethresh_heuristics() if self.time_thresh is None else self.time_thresh
+
+        #time_thresh = 0.5
+        max_between_time = -1.0
+        max_between_count = -1.0  # why is this different? # becuase frequency varies
+        iters_per_second = -1
+        est_timeunit_left = -1
+
+        msg = fmt_msg % (0, -1, -1, 0)
+        PROGRESS_WRITE(msg)
+        PROGRESS_FLUSH()
+
+        start_time    = time.time()
+        last_time     = start_time
+
+        # Wrap the for loop with a generator
+        enumiter = enumerate(self.iterable)
+        ## yeild first element
+        #self.count, item = six.next(enumiter)
+        #yield item
+
+        ## dont update after the first, let two iterations happen at least
+        #if (self.count) % freq == 0:
+        #    # UPDATE INFO
+        #    now_time          = time.time()
+        #    total_timeunit    = (now_time - start_time) / timeunit_scale
+        #    between_time      = (now_time - last_time)
+        #    between_count     = self.count - last_count
+        #    iters_per_second  = between_count / (float(between_time) + 1E-9)
+        #    iters_left        = nTotal - self.count
+        #    est_seconds_left  = iters_left / (iters_per_second + 1E-9)
+        #    est_timeunit_left = est_seconds_left / timeunit_scale
+        #    last_count        = self.count
+        #    last_time         = now_time
+        #    # ADJUST FREQ IF NEEDED
+        #    # Adjust frequency if printing too quickly
+        #    # so progress doesnt slow down actual function
+        #    # TODO: better adjust algorithm
+        #    if ENABLE_ADJUST_FREQ and between_time < time_thresh:
+        #        max_between_time = max(max(max_between_time, between_time), 1E-9)
+        #        max_between_count = max(max_between_count, between_count)
+        #        if DEBUG_FREQ_ADJUST:
+        #            print('\n+---')
+        #            print('[prog] between_count = %r' % between_count)
+        #            print('[prog] between_time = %r' % between_time)
+        #            print('[prog] time_thresh = %r' % time_thresh)
+        #            print('[prog] max_between_count = %r' % max_between_count)
+        #            print('[prog] max_between_time = %r' % max_between_time)
+        #            print('[prog] Adusting frequency from: %r' % freq)
+        #        freq = max(int(1.3 * time_thresh * max_between_count / max_between_time), 1)
+        #        if DEBUG_FREQ_ADJUST:
+        #            print('[prog] Adusting frequency to: %r' % freq)
+        #            print('L___')
+        #    msg = fmt_msg % (self.count + 1,
+        #                     iters_per_second if self.invert_rate else 1.0 / iters_per_second,
+        #                     est_timeunit_left,
+        #                     total_timeunit)
+        #    PROGRESS_WRITE(msg)
+        #    PROGRESS_FLUSH()
+
+        # yeild the rest
+        for self.count, item in enumiter:
+            # GENERATE
+            yield item
+            # DO PROGRESS INFO
+            if (self.count) % freq == 0:
+                # UPDATE INFO
+                now_time          = time.time()
+                total_timeunit    = (now_time - start_time) / timeunit_scale
+                between_time      = (now_time - last_time)
+                between_count     = self.count - last_count
+                iters_per_second  = between_count / (float(between_time) + 1E-9)
+                iters_left        = nTotal - self.count
+                est_seconds_left  = iters_left / (iters_per_second + 1E-9)
+                est_timeunit_left = est_seconds_left / timeunit_scale
+                last_count        = self.count
+                last_time         = now_time
+                # ADJUST FREQ IF NEEDED
+                # Adjust frequency if printing too quickly
+                # so progress doesnt slow down actual function
+                # TODO: better adjust algorithm
+                if ENABLE_ADJUST_FREQ and between_time < time_thresh:
+                    max_between_time = max(max(max_between_time, between_time), 1E-9)
+                    max_between_count = max(max_between_count, between_count)
+                    if DEBUG_FREQ_ADJUST:
+                        print('\n+---')
+                        print('[prog] between_count = %r' % between_count)
+                        print('[prog] between_time = %r' % between_time)
+                        print('[prog] time_thresh = %r' % time_thresh)
+                        print('[prog] max_between_count = %r' % max_between_count)
+                        print('[prog] max_between_time = %r' % max_between_time)
+                        print('[prog] Adusting frequency from: %r' % freq)
+                    freq = max(int(1.3 * time_thresh * max_between_count / max_between_time), 1)
+                    if DEBUG_FREQ_ADJUST:
+                        print('[prog] Adusting frequency to: %r' % freq)
+                        print('L___')
+                msg = fmt_msg % (self.count + 1,
+                                 iters_per_second if self.invert_rate else 1.0 / iters_per_second,
+                                 est_timeunit_left,
+                                 total_timeunit)
+                PROGRESS_WRITE(msg)
+                PROGRESS_FLUSH()
+        # FINISH PROGRESS INFO
+        est_timeunit_left = 0
+        now_time = time.time()
+        total_timeunit = (now_time - start_time) / timeunit_scale
+        msg = fmt_msg % (nTotal, iters_per_second if self.invert_rate else 1.0 / iters_per_second, est_timeunit_left, total_timeunit)
+        PROGRESS_WRITE(msg)
+        PROGRESS_WRITE('\n')
+        PROGRESS_FLUSH()
+        #cumrate = 1E-9
+        #self.nTotal = len(self.iterable)
+        # for:
+        #    if:
+        #         if:
+        #            print('')
+        #            freq = max(int(1.3 * between_count * time_thresh / between_time), 1)
+        #            # There has to be a standard way to do this.
+        #            # Refer to: https://github.com/verigak/progress/blob/master/progress/__init__.py
+        #            freq = max(int((between_count * between_time) / time_thresh), 1)
+        #            freq = max(int((between_count) / time_thresh), 1)
+        #            freq = max(int((between_time) / time_thresh), 1)
+        #            freq = max(int(time_thresh / between_count), 1)
+        #            print('[prog] Adusting frequency to: %r' % freq)
+        #            print('')
+        #        cumrate += between_time
+        #        rate = (self.count + 1.0) / float(cumrate)
+        #        if False and __debug__:
+        #            print('<!!!!!!!!!!!!!>')
+        #            print('iters_left = %r' % iters_left)
+        #            print('between_time = %r' % between_time)
+        #            print('between_count = %r' % between_count)
+        #            print('est_seconds_left = %r' % est_seconds_left)
+        #            print('iters_per_second = %r' % iters_per_second)
+        #            print('</!!!!!!!!!!!!!>')
+        #PROGRESS_WRITE('\n')
+        #msg = fmt_msg % (self.count + 1, iters_per_second, est_timeunit_left)
+        #print('freq = %r' % freq)
+        #self.end(self.count + 1)
+
     def iter_without_rate(self):
         if self.mark is None:
             # Continuation of hacking
@@ -189,143 +394,20 @@ class ProgressIter(object):
     def mark_current(self):
         self.mark(self.count)
 
-    @profile
-    def iter_rate(self):
-        # TODO Incorporate this better
-        # FIXME; separate into subfunctions
-        start_time = time.time()
-        last_time = start_time
-        #mark = self.mark
-        # Wrap the for loop with a generator
-        self.count = -1
-        freq = self.freq
-        #cumrate = 1E-9
-        between_count = 0
-        last_count = -1
-        #self.nTotal = len(self.iterable)
-        nTotal = self.nTotal
-        if self.invert_rate:
-            msg_parts = (
-                '\r',
-                self.lbl,
-                ' %4d/', str(nTotal),
-                '...  rate=%3.3f seconds per iter.',
-                ' est_min_left=%4.2f,',
-                ' total_min=%4.2f,',
-            )
+    def _get_timethresh_heuristics(self):
+        """
+        resonably decent hueristics for how much time to wait before
+        updating progress.
+        """
+        if self.nTotal > 1E5:
+            time_thresh = 2.5
+        elif self.nTotal > 1E4:
+            time_thresh = 2.0
+        elif self.nTotal > 1E3:
+            time_thresh = 1.0
         else:
-            msg_parts = (
-                '\r',
-                self.lbl,
-                ' %4d/', str(nTotal),
-                '...  rate=%4.2f iters per second.',
-                ' est_min_left=%4.2f,',
-                ' total_min=%4.2f,',
-            )
-        fmt_msg = ''.join(msg_parts)
-
-        if not self.backspace:
-            fmt_msg += '\n'
-
-        # how long iterations should be before a flush
-        if self.time_thresh is None:
-            if self.nTotal > 1E5:
-                time_thresh = 4.0
-            elif self.nTotal > 1E4:
-                time_thresh = 2.0
-            elif self.nTotal > 1E3:
-                time_thresh = 1.0
-            else:
-                time_thresh = 0.5
-        else:
-            time_thresh = self.time_thresh
-        #time_thresh = 0.5
-        max_between_time = -1.0
-        max_between_count = -1.0  # why is this different? # becuase frequency varies
-        iters_per_second = -1
-        est_min_left = -1
-
-        #with util_time.Timer(self.lbl, verbose=self.with_totaltime):
-
-        # HACK: reaquire logging print funcs in case they have changed
-        PROGRESS_WRITE = util_logging.__UTOOL_WRITE__
-        PROGRESS_FLUSH = util_logging.__UTOOL_FLUSH__
-
-        msg = fmt_msg % (0, -1, -1, 0)
-        PROGRESS_WRITE(msg)
-        PROGRESS_FLUSH()
-
-        # yeild first element
-        enumiter = enumerate(self.iterable)
-        self.count, item = six.next(enumiter)
-        yield item
-
-        # yeild the rest
-        for self.count, item in enumiter:
-            #mark(self.count)
-            # GENERATE
-            yield item
-            # DO PROGRESS INFO
-            if (self.count) % freq == 0:
-                between_count = self.count - last_count
-                now_time = time.time()
-                total_min = (now_time - start_time) / 60.0
-                between_time = (now_time - last_time)
-                # Adjust frequency if printing too quickly
-                # so progress doesnt slow down actual function
-                # TODO: better adjust algorithm
-                if between_time < time_thresh:
-                    #print('')
-                    #print('[prog] Adusting frequency from: %r' % freq)
-                    #print('between_count = %r' % between_count)
-                    #print('between_time = %r' % between_time)
-                    # There has to be a standard way to do this.
-                    # Refer to: https://github.com/verigak/progress/blob/master/progress/__init__.py
-                    max_between_time = max(max(max_between_time, between_time), 1E-9)
-                    max_between_count = max(max_between_count, between_count)
-                    #freq = max(int(1.3 * between_count * time_thresh / between_time), 1)
-                    freq = max(int(1.3 * max_between_count * time_thresh / max_between_time), 1)
-                    #freq = max(int((between_count * between_time) / time_thresh), 1)
-                    #freq = max(int((between_count) / time_thresh), 1)
-                    #freq = max(int((between_time) / time_thresh), 1)
-                    #freq = max(int(time_thresh / between_count), 1)
-                    #print('[prog] Adusting frequency to: %r' % freq)
-                    #print('')
-                iters_per_second = between_count / (float(between_time) + 1E-9)
-                #cumrate += between_time
-                #rate = (self.count + 1.0) / float(cumrate)
-                iters_left = nTotal - self.count
-                est_seconds_left = iters_left / (iters_per_second + 1E-9)
-                est_min_left = est_seconds_left / 60.0
-                if self.invert_rate:
-                    seconds_per_iter = 1.0 / iters_per_second
-                    msg = fmt_msg % (self.count + 1, seconds_per_iter, est_min_left, total_min)
-                else:
-                    msg = fmt_msg % (self.count + 1, iters_per_second, est_min_left, total_min)
-                #if False and __debug__:
-                #    print('<!!!!!!!!!!!!!>')
-                #    print('iters_left = %r' % iters_left)
-                #    print('between_time = %r' % between_time)
-                #    print('between_count = %r' % between_count)
-                #    print('est_seconds_left = %r' % est_seconds_left)
-                #    print('iters_per_second = %r' % iters_per_second)
-                #    print('</!!!!!!!!!!!!!>')
-                PROGRESS_WRITE(msg)
-                PROGRESS_FLUSH()
-                last_count = self.count
-                last_time = now_time
-        # FINISH PROGRESS INFO
-        est_min_left = 0
-        #PROGRESS_WRITE('\n')
-        #msg = fmt_msg % (self.count + 1, iters_per_second, est_min_left)
-        now_time = time.time()
-        total_min = (now_time - start_time) / 60.0
-        msg = fmt_msg % (nTotal, iters_per_second, est_min_left, total_min)
-        PROGRESS_WRITE(msg)
-        #print('freq = %r' % freq)
-        PROGRESS_WRITE('\n')
-        PROGRESS_FLUSH()
-        #self.end(self.count + 1)
+            time_thresh = 0.5
+        return time_thresh
 
 
 progiter = ProgressIter
