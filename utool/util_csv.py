@@ -17,7 +17,7 @@ def numpy_to_csv(arr, col_lbls=None, header='', col_type=None):
 
 def make_csv_table(column_list=[], column_lbls=None, header='',
                    column_type=None, row_lbls=None, transpose=False,
-                   precision=2):
+                   precision=2, use_lbl_width=True):
     """
     Creates a csv table with aligned columns
 
@@ -115,27 +115,31 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
         return ('%d') % int(c)
 
     try:
+        # Loop over every column
         for col, lbl, coltype in zip(column_list, column_lbls, column_type):
+            # Loop over every row in the column (using list comprehension)
             if coltype is list or is_list(coltype):
                 #print('list')
                 #col_str = [str(c).replace(',', '<comma>').replace('.', '<dot>') for c in iter(col)]
                 col_str = [str(c).replace(',', ' ').replace('.', '<dot>') for c in col]
-            elif coltype is float or is_float(coltype) or coltype == np.float32 or util_type.is_valid_floattype(coltype):
-                #print('float')
+            elif (coltype is float or
+                  is_float(coltype) or
+                  coltype == np.float32 or
+                  util_type.is_valid_floattype(coltype)):
                 precision_fmtstr = '%.' + str(precision) + 'f'
                 col_str = ['None' if r is None else precision_fmtstr % float(r) for r in col]
             elif coltype is int or is_int(coltype):
-                #print('is_int')
                 col_str = [_toint(c) for c in iter(col)]
             elif coltype is str or is_str(coltype):
-                #print('is_str')
                 col_str = [str(c).replace(',', '<comma>') for c in col]
             else:
                 print('[csv] is_unknown coltype=%r' % (coltype,))
                 col_str = [str(c) for c in iter(col)]
             col_lens = [len(s) for s in iter(col_str)]
             max_len  = max(col_lens)
-            max_len  = max(len(lbl), max_len)
+            if use_lbl_width:
+                # The column label counts towards the column width
+                max_len  = max(len(lbl), max_len)
             column_maxlen.append(max_len)
             column_str_list.append(col_str)
     except Exception as ex:

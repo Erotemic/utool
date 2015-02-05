@@ -5,6 +5,7 @@ from itertools import product as iprod
 from six.moves import zip
 from collections import OrderedDict
 from utool import util_inject
+from utool import util_list
 import six
 try:
     import numpy as np
@@ -344,6 +345,8 @@ def dict_to_keyvals(dict_):
 
 def dict_setdiff(dict_, negative_keys):
     r"""
+    returns a copy of dict_ without keys in the negative_keys list
+
     Args:
         dict_ (dict):
         negative_keys (list):
@@ -356,7 +359,7 @@ def dict_setdiff(dict_, negative_keys):
 
 def delete_dict_keys(dict_, key_list):
     r"""
-    in place deletion if  keys exist
+    in place deletion if keys exist
 
     Args:
         dict_ (?):
@@ -497,10 +500,42 @@ def dict_assign(dict_, keys, vals):
 
 
 def dict_where_len0(dict_):
+    """
+    Accepts a dict of lists. Returns keys that have vals with no length
+    """
     keys = np.array(dict_.keys())
     flags = np.array(list(map(len, dict_.values()))) == 0
     indices = np.where(flags)[0]
     return keys[indices]
+
+
+def order_dict_by(dict_, key_order):
+    sorted_item_list = [(key, dict_[key]) for key in key_order if key in dict_]
+    sorted_dict = OrderedDict(sorted_item_list)
+    return sorted_dict
+
+
+def get_dict_column(dict_, colx):
+    r"""
+    Args:
+        dict_ (dict_):  a dictionary
+        colx (?):
+
+    CommandLine:
+        python -m utool.util_dict --test-get_dict_column
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> dict_ = {'a': [0, 1, 2], 'b': [3, 4, 5], 'c': [6, 7, 8]}
+        >>> colx = [2, 0]
+        >>> retdict_ = get_dict_column(dict_, colx)
+        >>> result = str(retdict_)
+        >>> print(result)
+        {'a': [2, 0], 'c': [8, 6], 'b': [5, 3]}
+    """
+    retdict_ = {key: util_list.list_take(val, colx) for key, val in six.iteritems(dict_)}
+    return retdict_
 
 
 def dictinfo(dict_):

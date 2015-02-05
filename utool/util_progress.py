@@ -241,8 +241,10 @@ class ProgressIter(object):
         last_count    = -1
 
         # how long iterations should be before a flush
-        time_thresh = self._get_timethresh_heuristics() if self.time_thresh is None else self.time_thresh
-
+        # (used for freq adjustment)
+        time_thresh = (self._get_timethresh_heuristics()
+                       if self.time_thresh is None else
+                       self.time_thresh)
         #time_thresh = 0.5
         max_between_time = -1.0
         max_between_count = -1.0  # why is this different? # becuase frequency varies

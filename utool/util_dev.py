@@ -724,8 +724,50 @@ def tuples_to_unique_scalars(tup_list):
     scalar_list = [seen[tup] if tup in seen else addval(tup) for tup in tup_list]
     return scalar_list
 
+STAT_KEY_ORDER = ['max', 'min', 'mean', 'sum', 'std', 'nMin', 'nMax', 'shape', 'num_nan']
 
-def get_jagged_stats(arr_list, use_nan=False):
+
+def find_interesting_stats(stat_dict, col_lbls=None, lbl=None):
+    #argfind = np.argmax
+    import utool as ut
+    # select indicies of interest
+    sel_indicies = []
+    #statstr_kw = dict(precision=3, newlines=True, lbl=lbl, align=True)
+    for key in ['max', 'mean', 'sum']:
+        if key not in stat_dict:
+            continue
+        sortx  = np.argsort(stat_dict[key])
+        sel_sortx = sortx.take([0, 1, -2, -1])
+        sel_indicies.extend(sel_sortx)
+    sel_indicies = ut.unique_keep_order2(sel_indicies)
+    sel_stat_dict = ut.get_dict_column(stat_dict, sel_indicies)
+    sel_stat_dict = ut.order_dict_by(sel_stat_dict, STAT_KEY_ORDER)
+    return sel_stat_dict, sel_indicies
+
+
+#def jagged_stats_str(arr, use_nan=True, lbl=None):
+#    """
+#    builds stats over all columns in arr. Can find interesting column labels
+
+#    Args:
+#        arr (?):  list of potentially non-parallel lists
+#        use_nan (bool):
+#        lbl (None):
+#    """
+#    stat_dict = get_jagged_stats(arr, use_nan=use_nan)
+#    statstr_kw = dict(precision=3, newlines=True, lbl=lbl, align=True)
+#    stat_str =  get_stats_str(stat_dict=stat_dict, **statstr_kw)
+#    REPORT_INTERESTING = True
+#    if REPORT_INTERESTING and col_lbls is not None:
+#        pass
+
+#    #import utool as ut
+#    #ut.embed()
+
+#    return stat_str
+
+
+def get_jagged_stats(arr_list, **kwargs):
     r"""
     Args:
         arr_list (list):
@@ -741,10 +783,10 @@ def get_jagged_stats(arr_list, use_nan=False):
         >>> from utool.util_dev import *  # NOQA
         >>> import utool as ut
         >>> # build test data
-        >>> use_nan = True
+        >>> kwargs = dict(use_nan=True)
         >>> arr_list = [[1, 2, 3, 4], [3, 10], [np.nan, 3, 3, 3]]
         >>> # execute function
-        >>> stats_dict = get_jagged_stats(arr_list, use_nan=use_nan)
+        >>> stats_dict = get_jagged_stats(arr_list, **kwargs)
         >>> # verify results
         >>> result = ut.align(str(ut.dict_str(stats_dict)), ':')
         >>> print(result)
@@ -761,15 +803,14 @@ def get_jagged_stats(arr_list, use_nan=False):
 
     """
     import functools
-    stats_dict_list = list(map(functools.partial(get_stats, use_nan=use_nan), arr_list))
+    stats_dict_list = list(map(functools.partial(get_stats, **kwargs), arr_list))
     stats_dict_ = util_dict.dict_stack(stats_dict_list)
     # Fix order
-    key_order = ['max', 'min', 'mean', 'std', 'nMin', 'nMax', 'shape', 'num_nan']
-    stats_dict = OrderedDict([(key, stats_dict_[key]) for key in key_order])
+    stats_dict = util_dict.order_dict_by(stats_dict_, STAT_KEY_ORDER)
     return stats_dict
 
 
-def get_stats(list_, axis=None, use_nan=False):
+def get_stats(list_, axis=None, use_nan=False, use_sum=False):
     """
     Args:
         list_ (listlike): values to get statistics of
@@ -845,10 +886,10 @@ def get_stats(list_, axis=None, use_nan=False):
             ('shape', nparr.shape),  # repr(nparr.shape)),
         ]
         if use_nan:
-            import utool as ut
-            with ut.EmbedOnException():
-                stats_list.append(('num_nan', np.isnan(nparr).sum()))
-
+            stats_list.append(('num_nan', np.isnan(nparr).sum()))
+        if use_sum:
+            sumfunc = np.nansum if use_nan else np.sum
+            stats_list.append(('sum', sumfunc(nparr, axis=axis)))
     stat_dict = OrderedDict(stats_list)
     return stat_dict
 
@@ -856,7 +897,8 @@ def get_stats(list_, axis=None, use_nan=False):
 
 
 def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=None,
-                  precision=None, axis=0, stat_dict=None, use_nan=False):
+                  precision=None, axis=0, stat_dict=None, use_nan=False,
+                  align=False):
     """
     Returns the string version of get_stats
 
@@ -939,7 +981,9 @@ def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=No
     if lbl is True:
         lbl = ut.get_varname_from_stack(list_, N=1)  # fancy
     if lbl is not None:
-        stat_str = 'stats(' + lbl + ') = ' + stat_str
+        stat_str = 'stats_' + lbl + ' = ' + stat_str
+    if align:
+        stat_str = ut.align(stat_str, ':')
     return stat_str
 
 

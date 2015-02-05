@@ -696,6 +696,7 @@ def num_images_in_dir(path):
 
 
 def matches_image(fname):
+    """ returns true if a filename matches an image pattern """
     fname_ = fname.lower()
     img_pats = ['*' + ext for ext in IMG_EXTENSIONS]
     return any([fnmatch.fnmatch(fname_, pat) for pat in img_pats])

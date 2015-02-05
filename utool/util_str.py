@@ -91,13 +91,29 @@ def tupstr(tuple_):
 # --- Strings ----
 
 
-def remove_chars(instr, illegals_chars):
+def remove_chars(str_, char_list):
     """
-    replaces all illegal characters in instr with ''
+    removes all chars in char_list from str_
+
+    Args:
+        str_ (str):
+        char_list (list):
+
+    Returns:
+        str: outstr
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> str_ = '1, 2, 3, 4'
+        >>> char_list = [',']
+        >>> result = remove_chars(str_, char_list)
+        >>> print(result)
+        1234
     """
-    outstr = instr
-    for ill_char in iter(illegals_chars):
-        outstr = outstr.replace(ill_char, '')
+    outstr = str_[:]
+    for char in char_list:
+        outstr = outstr.replace(char, '')
     return outstr
 
 
@@ -178,7 +194,7 @@ def indentjoin(strlist, indent='\n    ', suffix=''):
         suffix  (str):
 
     Returns:
-        str: joineed list
+        str: joined list
     """
     indent_ = indent
     strlist = list(strlist)
@@ -588,6 +604,7 @@ def dict_str(dict_, strvals=False, sorted_=False, newlines=True, recursive=True,
     """
     Returns:
         str: a human-readable and execable string representation of a dictionary
+
     Example:
         >>> from utool.util_str import dict_str, dict_itemstr_list
         >>> import utool
@@ -821,6 +838,8 @@ def get_freespace_str(dir_='.'):
 # FIXME: HASHLEN is a global var in util_hash
 def long_fname_format(fmt_str, fmt_dict, hashable_keys=[], max_len=64, hashlen=16, ABS_MAX_LEN=255):
     """
+    Formats a string and hashes certain parts if the resulting string becomes
+    too long. Used for making filenames fit onto disk.
 
     Args:
         fmt_str (str): format of fname

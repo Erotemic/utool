@@ -115,18 +115,22 @@ def get_dev_hints():
         ('dsize'    , ('tuple', 'width, height')),
         ('chipsize'    , ('tuple', 'width, height')),
 
-        # My coding style hints
+        # Standard Python Hints for my coding style
+        ('str_' , ('str', None)),
+        ('.*_str' , ('str', None)),
+        ('.*_?list_?' , ('list', None)),
+        ('.*_tup' , ('tuple', None)),
+        ('.*_sublist' , ('list', None)),
+        ('fpath[0-9]?' , ('str', 'file path string')),
+        ('verbose', ('bool', 'verbosity flag')),
+
+        # Other hints for my coding style
         ('wx2_'    , ('dict', None)),
         ('qfx2_' + VAL_FIELD,
          ('ndarray',
           'mapping from query feature index to ' + VAL_BREF)),
         ('.*x2_.*' , ('ndarray', None)),
         ('.+2_.*'  , ('dict', None)),
-        ('.*_?list_?' , ('list', None)),
-        ('.*_tup' , ('tuple', None)),
-        ('.*_sublist' , ('list', None)),
-        ('fpath[0-9]?' , ('str', 'file path string')),
-        ('verbose', ('bool', 'verbosity flag')),
     ])
     return registered_hints
 

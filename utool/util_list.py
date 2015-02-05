@@ -86,9 +86,12 @@ def ensure_list_size(list_, size_):
 
 def get_list_column(list_, colx):
     r"""
+    accepts a list of (indexables) and returns a list of indexables
+    can also return a list of list of indexables if colx is a list
+
     Args:
         list_ (list):  list of lists
-        colx (int):  position in each sublist get item
+        colx (int or list): index or key in each sublist get item
 
     Returns:
         list: list of selected items
@@ -114,11 +117,12 @@ def get_list_column(list_, colx):
     Example2:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
-        >>> list_ = [{'spam': 'eggs', 'ham': 'spam'}, {'spam': 'eggs', 'ham': 'spam'},]
-        >>> colx = [1, 0]
+        >>> list_ = [{'spam': 'EGGS', 'ham': 'SPAM'}, {'spam': 'JAM', 'ham': 'PRAM'},]
+        >>> # colx can be a key or list of keys as well
+        >>> colx = ['spam']
         >>> result = get_list_column(list_, colx)
         >>> print(result)
-        [['b', 'a'], ['d', 'c']]
+        [['EGGS'], ['JAM']]
     """
     if isinstance(colx, list):
         # multi select
@@ -890,8 +894,42 @@ def list_argsort(*args, **kwargs):
 
 
 def list_take(list_, index_list):
-    """ like np.take but for lists """
-    return [list_[ix] for ix in index_list]
+    """ like np.take but for lists
+
+    Args:
+        list_ (list):
+        index_list (list):
+
+    Returns:
+        list or scalar:
+
+    CommandLine:
+        python -m utool.util_list --test-list_take
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [0, 1, 2, 3]
+        >>> index_list = [2, 0]
+        >>> result = list_take(list_, index_list)
+        >>> print(result)
+        [2, 0]
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [0, 1, 2, 3]
+        >>> index = 2
+        >>> result = list_take(list_, index)
+        >>> print(result)
+        2
+    """
+    try:
+        return [list_[index] for index in index_list]
+    except TypeError:
+        return list_[index_list]
+    #if util_iter.isiterable(index_list):
+    #else:
 
 
 def list_where(flag_list):
