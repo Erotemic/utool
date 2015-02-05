@@ -56,47 +56,45 @@
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="c">#import six</span>
 <span class="kn">import</span> <span class="nn">argparse</span>
-<span class="kn">from</span> <span class="nn">utool.util_type</span> <span class="kn">import</span> <span class="n">try_cast</span>
-<span class="kn">from</span> <span class="nn">utool.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
-<span class="kn">from</span> <span class="nn">utool.util_print</span> <span class="kn">import</span> <span class="n">Indenter</span>
-<span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span><span class="p">,</span> <span class="n">set_funcname</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[arg]&#39;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_type</span>
+<span class="c">#from utool import util_print</span>
+<span class="kn">from</span> <span class="nn">utool._internal</span> <span class="kn">import</span> <span class="n">meta_util_six</span><span class="p">,</span> <span class="n">meta_util_arg</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[arg]&#39;</span><span class="p">)</span>
 
 <span class="c">#STRICT = &#39;--nostrict&#39; not in sys.argv</span>
-<span class="n">DEBUG2</span> <span class="o">=</span> <span class="s">&#39;--debug2&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
-<span class="n">NO_ASSERTS</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;--no-assert&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
-<span class="n">QUIET</span> <span class="o">=</span> <span class="s">&#39;--quiet&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
-<span class="n">SILENT</span> <span class="o">=</span> <span class="s">&#39;--silent&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
-<span class="n">SAFE</span> <span class="o">=</span> <span class="s">&#39;--safe&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
-<span class="n">STRICT</span> <span class="o">=</span> <span class="s">&#39;--strict&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
-<span class="n">REPORT</span> <span class="o">=</span> <span class="s">&#39;--report&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
-<span class="n">SUPER_STRICT</span> <span class="o">=</span> <span class="s">&#39;--super-strict&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="ow">or</span> <span class="s">&#39;--superstrict&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
-<span class="n">TRACE</span> <span class="o">=</span> <span class="s">&#39;--trace&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
-<span class="n">USE_ASSERT</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">NO_ASSERTS</span>
-<span class="n">VERBOSE</span> <span class="o">=</span> <span class="s">&#39;--verbose&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
-<span class="n">VERYVERBOSE</span> <span class="o">=</span> <span class="s">&#39;--very-verbose&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="ow">or</span> <span class="s">&#39;-veryverbose&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
-<span class="n">NOT_QUIET</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">QUIET</span>
+<span class="n">DEBUG2</span>       <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">DEBUG2</span>
+<span class="n">NO_ASSERTS</span>   <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">NO_ASSERTS</span>
+<span class="n">SAFE</span>         <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">SAFE</span>
+<span class="n">STRICT</span>       <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">STRICT</span>
+<span class="n">REPORT</span>       <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">REPORT</span>
+<span class="n">SUPER_STRICT</span> <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">SUPER_STRICT</span>
+<span class="n">TRACE</span>        <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">TRACE</span>
+<span class="n">USE_ASSERT</span>   <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">USE_ASSERT</span>
+<span class="n">SILENT</span>       <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">SILENT</span>
+<span class="n">VERBOSE</span>      <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">VERBOSE</span>
+<span class="n">VERYVERBOSE</span>  <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">VERYVERBOSE</span>
+<span class="n">NOT_QUIET</span>    <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">NOT_QUIET</span>
+<span class="n">QUIET</span>        <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">QUIET</span>
 
 
 <span class="c"># TODO: rectify with meta_util_arg</span>
 <span class="c"># This has diverged and is now better</span>
-<span class="c">#from ._internal.meta_util_arg import get_argval</span>
+<span class="c">#from utool._internal.meta_util_arg import get_argval</span>
 <div class="viewcode-block" id="get_argval"><a class="viewcode-back" href="../../utool.html#utool.util_arg.get_argval">[docs]</a><span class="k">def</span> <span class="nf">get_argval</span><span class="p">(</span><span class="n">argstr_</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">help_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Returns a value of an argument specified on the command line after some flag</span>
-
 
 <span class="sd">    Examples:</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_arg import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import sys</span>
 <span class="sd">        &gt;&gt;&gt; sys.argv.extend([&#39;--spam&#39;, &#39;eggs&#39;, &#39;--quest=holy grail&#39;, &#39;--ans=42&#39;])</span>
-<span class="sd">        &gt;&gt;&gt; get_argval(&#39;--spam&#39;, type_=str, default=None)</span>
-<span class="sd">        eggs</span>
-<span class="sd">        &gt;&gt;&gt; get_argval(&#39;--quest&#39;, type_=str, default=None)</span>
-<span class="sd">        holy grail</span>
-<span class="sd">        &gt;&gt;&gt; get_argval(&#39;--ans&#39;, type_=int, default=None)</span>
-<span class="sd">        42</span>
+<span class="sd">        &gt;&gt;&gt; res1 = get_argval(&#39;--spam&#39;, type_=str, default=None)</span>
+<span class="sd">        &gt;&gt;&gt; res2 = get_argval(&#39;--quest&#39;, type_=str, default=None)</span>
+<span class="sd">        &gt;&gt;&gt; res3 = get_argval(&#39;--ans&#39;, type_=int, default=None)</span>
+<span class="sd">        &gt;&gt;&gt; result = &#39;, &#39;.join((res1, res2, res3))</span>
+<span class="sd">        eggs, holy grail, 42</span>
 
-
+<span class="sd">    CommandLine:</span>
 <span class="sd">        python -c &quot;import utool; print([(type(x), x) for x in [utool.get_argval(&#39;--quest&#39;)]])&quot; --quest=&quot;holy grail&quot;</span>
 <span class="sd">        python -c &quot;import utool; print([(type(x), x) for x in [utool.get_argval(&#39;--quest&#39;)]])&quot; --quest=&quot;42&quot;</span>
 <span class="sd">        python -c &quot;import utool; print([(type(x), x) for x in [utool.get_argval(&#39;--quest&#39;)]])&quot; --quest=42</span>
@@ -114,6 +112,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="c"># HACK FOR LIST. TODO INTEGRATE</span>
             <span class="n">argstr_list</span> <span class="o">=</span> <span class="n">argstr_</span>
+
         <span class="k">for</span> <span class="n">argx</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">argstr</span> <span class="ow">in</span> <span class="n">argstr_list</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">item</span> <span class="o">==</span> <span class="n">argstr</span><span class="p">:</span>
@@ -124,18 +123,54 @@
                             <span class="c"># HACK FOR LIST. TODO INTEGRATE</span>
                             <span class="n">arg_after</span> <span class="o">=</span> <span class="n">parse_arglist_hack</span><span class="p">(</span><span class="n">argx</span><span class="p">)</span>
                         <span class="k">else</span><span class="p">:</span>
-                            <span class="n">arg_after</span> <span class="o">=</span> <span class="n">try_cast</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">argx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">type_</span><span class="p">)</span>
+                            <span class="n">arg_after</span> <span class="o">=</span> <span class="n">util_type</span><span class="o">.</span><span class="n">try_cast</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">argx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">type_</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">argstr</span> <span class="o">+</span> <span class="s">&#39;=&#39;</span><span class="p">):</span>
                     <span class="n">val_after</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:])</span>
                     <span class="k">if</span> <span class="n">type_</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+                        <span class="c">#import utool as ut</span>
+                        <span class="c">#ut.embed()</span>
                         <span class="c"># HACK FOR LIST. TODO INTEGRATE</span>
-                        <span class="n">arg_after</span> <span class="o">=</span> <span class="n">val_after</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+                        <span class="n">val_after_</span> <span class="o">=</span> <span class="n">val_after</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s">&#39;]&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s">&#39;[&#39;</span><span class="p">)</span>
+                        <span class="n">arg_after</span> <span class="o">=</span> <span class="n">val_after_</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">arg_after</span> <span class="o">=</span> <span class="n">try_cast</span><span class="p">(</span><span class="n">val_after</span><span class="p">,</span> <span class="n">type_</span><span class="p">)</span>
+                        <span class="n">arg_after</span> <span class="o">=</span> <span class="n">util_type</span><span class="o">.</span><span class="n">try_cast</span><span class="p">(</span><span class="n">val_after</span><span class="p">,</span> <span class="n">type_</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="k">pass</span>
     <span class="k">return</span> <span class="n">arg_after</span>
+
+</div>
+<div class="viewcode-block" id="parse_cfgstr_list"><a class="viewcode-back" href="../../utool.html#utool.util_arg.parse_cfgstr_list">[docs]</a><span class="k">def</span> <span class="nf">parse_cfgstr_list</span><span class="p">(</span><span class="n">cfgstr_list</span><span class="p">,</span> <span class="n">smartcast</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses a list of items in the format</span>
+<span class="sd">    [&#39;var1:val1&#39;, &#39;var2:val2&#39;, &#39;var3:val3&#39;]</span>
+<span class="sd">    the &#39;=&#39; character can be used instead of the &#39;:&#39; character if desired</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        cfgstr_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: cfgdict</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_arg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; cfgstr_list = [&#39;var1:val1&#39;, &#39;var2:1&#39;, &#39;var3:1.0&#39;, &#39;var4:None&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; smartcast = True</span>
+<span class="sd">        &gt;&gt;&gt; cfgdict = parse_cfgstr_list(cfgstr_list, smartcast)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(cfgdict)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        {&#39;var4&#39;: None, &#39;var1&#39;: &#39;val1&#39;, &#39;var3&#39;: 1.0, &#39;var2&#39;: 1}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cfgdict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">cfgstr_list</span><span class="p">:</span>
+        <span class="n">keyval_tup</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">keyval_tup</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&#39;[!] Invalid cfgitem=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">item</span><span class="p">,)</span>
+        <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="o">=</span> <span class="n">keyval_tup</span>
+        <span class="k">if</span> <span class="n">smartcast</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">util_type</span><span class="o">.</span><span class="n">smart_cast2</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+        <span class="n">cfgdict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="k">return</span> <span class="n">cfgdict</span>
 
 </div>
 <div class="viewcode-block" id="parse_arglist_hack"><a class="viewcode-back" href="../../utool.html#utool.util_arg.parse_arglist_hack">[docs]</a><span class="k">def</span> <span class="nf">parse_arglist_hack</span><span class="p">(</span><span class="n">argx</span><span class="p">):</span>
@@ -151,9 +186,11 @@
 </div>
 <div class="viewcode-block" id="get_argflag"><a class="viewcode-back" href="../../utool.html#utool.util_arg.get_argflag">[docs]</a><span class="k">def</span> <span class="nf">get_argflag</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">help_</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Checks if the commandline has a flag or a corresponding noflag &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">default</span><span class="p">,</span> <span class="nb">bool</span><span class="p">),</span> <span class="s">&#39;default must be boolean&#39;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
         <span class="n">arg_list</span> <span class="o">=</span> <span class="n">arg</span>
     <span class="k">else</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">),</span> <span class="s">&#39;arg is not tuple or string&#39;</span>
         <span class="n">arg_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">arg</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">arg_list</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;--&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)):</span>
@@ -366,7 +403,6 @@
 <span class="sd">    the decorated function does not execute without its corresponding</span>
 <span class="sd">    flag</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">__argv_flag_dec</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 </div>
@@ -375,27 +411,92 @@
 
 </div>
 <span class="k">def</span> <span class="nf">__argv_flag_dec</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="n">QUIET</span><span class="p">):</span>
-    <span class="n">flag</span> <span class="o">=</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="n">flag</span> <span class="o">=</span> <span class="n">meta_util_six</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">flag</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;no&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">flag</span> <span class="o">=</span> <span class="n">flag</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span>
     <span class="n">flag</span> <span class="o">=</span> <span class="s">&#39;--&#39;</span> <span class="o">+</span> <span class="n">flag</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="s">&#39;-&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">GaurdWrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="c"># FIXME: the --print-all is a hack</span>
-        <span class="k">if</span> <span class="n">get_argflag</span><span class="p">(</span><span class="n">flag</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span> <span class="ow">or</span> <span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--print-all&#39;</span><span class="p">):</span>
+        <span class="n">default_</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;default&#39;</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">get_argflag</span><span class="p">(</span><span class="n">flag</span><span class="p">,</span> <span class="n">default_</span><span class="p">)</span> <span class="ow">or</span> <span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--print-all&#39;</span><span class="p">):</span>
             <span class="n">indent_lbl</span> <span class="o">=</span> <span class="n">flag</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;--&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;print-&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">+++ &#39;</span> <span class="o">+</span> <span class="n">indent_lbl</span> <span class="o">+</span> <span class="s">&#39; +++&#39;</span><span class="p">)</span>
-            <span class="k">with</span> <span class="n">Indenter</span><span class="p">(</span><span class="s">&#39;[</span><span class="si">%s</span><span class="s">]&#39;</span> <span class="o">%</span> <span class="n">indent_lbl</span><span class="p">):</span>
-                <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="c">#with util_print.Indenter(&#39;[%s]&#39; % indent_lbl):</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">quiet</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">~~~ </span><span class="si">%s</span><span class="s"> ~~~&#39;</span> <span class="o">%</span> <span class="n">flag</span><span class="p">)</span>
-    <span class="n">set_funcname</span><span class="p">(</span><span class="n">GaurdWrapper</span><span class="p">,</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
+    <span class="n">meta_util_six</span><span class="o">.</span><span class="n">set_funcname</span><span class="p">(</span><span class="n">GaurdWrapper</span><span class="p">,</span> <span class="n">meta_util_six</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">GaurdWrapper</span>
 
 
+<div class="viewcode-block" id="get_dict_vals_from_commandline"><a class="viewcode-back" href="../../utool.html#utool.util_arg.get_dict_vals_from_commandline">[docs]</a><span class="k">def</span> <span class="nf">get_dict_vals_from_commandline</span><span class="p">(</span><span class="n">default_dict_</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Gets values for a dict based on the command line</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        default_dict_ (?):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict_: dict_ -  a dictionary</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_arg --test-get_dict_vals_from_commandline</span>
+<span class="sd">        python -m utool.util_arg --test-get_dict_vals_from_commandline --flag1</span>
+<span class="sd">        python -m utool.util_arg --test-get_dict_vals_from_commandline --flag2</span>
+<span class="sd">        python -m utool.util_arg --test-get_dict_vals_from_commandline --noflag2</span>
+<span class="sd">        python -m utool.util_arg --test-get_dict_vals_from_commandline --thresh=43</span>
+<span class="sd">        python -m utool.util_arg --test-get_dict_vals_from_commandline --bins=-10</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_arg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; default_dict_ = {</span>
+<span class="sd">        ...    &#39;thresh&#39;: -5.333,</span>
+<span class="sd">        ...    &#39;neg&#39;: -5,</span>
+<span class="sd">        ...    &#39;bins&#39;: 8,</span>
+<span class="sd">        ...    &#39;max&#39;: 0.2,</span>
+<span class="sd">        ...    &#39;flag1&#39;: False,</span>
+<span class="sd">        ...    &#39;flag2&#39;: True,</span>
+<span class="sd">        ... }</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; dict_ = get_dict_vals_from_commandline(default_dict_)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.dict_str(dict_)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">get_dictkey_cmdline_val</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
+        <span class="n">type_</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">default</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">default</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">default</span>
+            <span class="n">falsekeys</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;--no&#39;</span> <span class="o">+</span> <span class="n">key</span><span class="p">,</span> <span class="s">&#39;--no-&#39;</span> <span class="o">+</span> <span class="n">key</span><span class="p">,</span> <span class="p">)</span>
+            <span class="n">truekeys</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;--&#39;</span> <span class="o">+</span> <span class="n">key</span><span class="p">,)</span>
+            <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="bp">True</span> <span class="ow">and</span> <span class="n">get_argflag</span><span class="p">(</span><span class="n">falsekeys</span><span class="p">):</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="k">elif</span> <span class="n">default</span> <span class="ow">is</span> <span class="bp">False</span> <span class="ow">and</span> <span class="n">get_argflag</span><span class="p">(</span><span class="n">truekeys</span><span class="p">):</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">argstr1_</span> <span class="o">=</span> <span class="s">&#39;--&#39;</span> <span class="o">+</span> <span class="n">key</span>
+            <span class="n">argstr2_</span> <span class="o">=</span> <span class="s">&#39;--&#39;</span> <span class="o">+</span> <span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="s">&#39;-&#39;</span><span class="p">)</span>
+            <span class="n">argtup</span> <span class="o">=</span> <span class="p">(</span><span class="n">argstr1_</span><span class="p">,</span> <span class="n">argstr2_</span><span class="p">,)</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">get_argval</span><span class="p">(</span><span class="n">argtup</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="n">type_</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="k">if</span> <span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--help&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--helpx&#39;</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;COMMAND LINE IS ACCEPTING THESE PARAMS WITH DEFAULTS:&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">default_dict_</span><span class="p">),</span> <span class="s">&#39;:&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--helpx&#39;</span><span class="p">):</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">dict_</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">get_dictkey_cmdline_val</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">default_dict_</span><span class="p">)}</span>
+    <span class="k">return</span> <span class="n">dict_</span>
+</div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
@@ -442,7 +543,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

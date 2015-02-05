@@ -68,17 +68,17 @@
     <span class="n">subst</span> <span class="o">=</span> <span class="n">subst_</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="nb">min</span><span class="p">(</span><span class="n">subset_size</span><span class="p">,</span> <span class="n">max_index</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">subst</span>
 
-</div>
-<div class="viewcode-block" id="list_index"><a class="viewcode-back" href="../../utool.html#utool.util_numpy.list_index">[docs]</a><span class="k">def</span> <span class="nf">list_index</span><span class="p">(</span><span class="n">search_list</span><span class="p">,</span> <span class="n">to_find_list</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Keep this function</span>
-<span class="sd">    Searches search_list for each element in to_find_list&quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">toret</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">search_list</span> <span class="o">==</span> <span class="n">item</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">to_find_list</span><span class="p">]</span>
-    <span class="k">except</span> <span class="ne">IndexError</span> <span class="k">as</span> <span class="n">ex1</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;ERROR: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ex1</span><span class="p">))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;item = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">item</span><span class="p">,))</span>
-        <span class="k">raise</span>
-    <span class="k">return</span> <span class="n">toret</span>
+
+<span class="c">#def list_index(search_list, to_find_list):</span>
+<span class="c">#    &quot;&quot;&quot; Keep this function</span>
+<span class="c">#    Searches search_list for each element in to_find_list&quot;&quot;&quot;</span>
+<span class="c">#    try:</span>
+<span class="c">#        toret = [np.where(search_list == item)[0][0] for item in to_find_list]</span>
+<span class="c">#    except IndexError as ex1:</span>
+<span class="c">#        print(&#39;ERROR: &#39; + str(ex1))</span>
+<span class="c">#        print(&#39;item = %r&#39; % (item,))</span>
+<span class="c">#        raise</span>
+<span class="c">#    return toret</span>
 
 </div>
 <div class="viewcode-block" id="npfind"><a class="viewcode-back" href="../../utool.html#utool.util_numpy.npfind">[docs]</a><span class="k">def</span> <span class="nf">npfind</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
@@ -120,30 +120,13 @@
     <span class="k">return</span> <span class="n">flag</span>
 
 </div>
-<div class="viewcode-block" id="intersect2d_numpy"><a class="viewcode-back" href="../../utool.html#utool.util_numpy.intersect2d_numpy">[docs]</a><span class="k">def</span> <span class="nf">intersect2d_numpy</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    References::</span>
-<span class="sd">        http://stackoverflow.com/questions/8317022/get-intersecting-rows-across-two-2d-numpy-arrays/8317155#8317155</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># TODO: MOVE to numpy libs</span>
-    <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span>
-    <span class="c"># HACK to get consistent dtypes</span>
-    <span class="k">assert</span> <span class="n">A</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">is</span> <span class="n">B</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="s">&#39;A and B must have the same dtypes&#39;</span>
-    <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">([(</span><span class="s">&#39;f</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">,</span> <span class="n">A</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ncols</span><span class="p">)])</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">dtype</span><span class="p">),</span> <span class="n">B</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">dtype</span><span class="p">))</span>
-    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-        <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">dtype</span><span class="p">),</span> <span class="n">B</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">dtype</span><span class="p">))</span>
-    <span class="c"># This last bit is optional if you&#39;re okay with &quot;C&quot; being a structured array...</span>
-    <span class="n">C</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">ncols</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">C</span>
-
-</div>
 <div class="viewcode-block" id="intersect2d"><a class="viewcode-back" href="../../utool.html#utool.util_numpy.intersect2d">[docs]</a><span class="k">def</span> <span class="nf">intersect2d</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    intersect2d</span>
 
 <span class="sd">    intersect rows of 2d numpy arrays</span>
+
+<span class="sd">    DEPRICATE: use intersect2d in vtool instead</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        A (ndarray[ndim=2]):</span>
@@ -159,9 +142,10 @@
 <span class="sd">        &gt;&gt;&gt; A = np.array([[1, 2, 3], [1, 1, 1]])</span>
 <span class="sd">        &gt;&gt;&gt; B = np.array([[1, 2, 3], [1, 2, 14]])</span>
 <span class="sd">        &gt;&gt;&gt; (C, Ax, Bx) = ut.intersect2d(A, B)</span>
-<span class="sd">        &gt;&gt;&gt; print((C, Ax, Bx))</span>
+<span class="sd">        &gt;&gt;&gt; result = str((C, Ax, Bx))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        (array([[1, 2, 3]]), array([0]), array([0]))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># TODO: MOVE to numpy libs</span>
     <span class="n">Cset</span>  <span class="o">=</span>  <span class="nb">set</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">A</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">B</span><span class="p">))</span>
     <span class="n">Ax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="k">if</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="ow">in</span> <span class="n">Cset</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
     <span class="n">Bx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">B</span><span class="p">)</span> <span class="k">if</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="ow">in</span> <span class="n">Cset</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
@@ -263,8 +247,8 @@
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -c &quot;import utool, utool.util_numpy; utool.doctest_funcs(utool.util_numpy, allexamples=True)&quot;</span>
 <span class="sd">        python -c &quot;import utool, utool.util_numpy; utool.doctest_funcs(utool.util_numpy)&quot;</span>
-<span class="sd">        python utool/util_numpy.py</span>
-<span class="sd">        python utool/util_numpy.py --allexamples</span>
+<span class="sd">        python -m utool.util_numpy</span>
+<span class="sd">        python -m utool.util_numpy --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
@@ -309,7 +293,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

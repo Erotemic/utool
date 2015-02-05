@@ -51,7 +51,7 @@
 <span class="c"># Licence:</span>
 <span class="c">#</span>
 <span class="c"># TODO: Rename</span>
-<span class="c"># util_science</span>
+<span class="c"># util_science?</span>
 <span class="c">#</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="k">try</span><span class="p">:</span>
@@ -62,13 +62,120 @@
     <span class="c"># TODO remove numpy</span>
     <span class="k">pass</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
-<span class="c">#import six</span>
+<span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_type</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[alg]&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="estimate_pdf"><a class="viewcode-back" href="../../utool.html#utool.util_alg.estimate_pdf">[docs]</a><span class="k">def</span> <span class="nf">estimate_pdf</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">gridsize</span><span class="o">=</span><span class="mi">1024</span><span class="p">):</span>
+<span class="n">PHI</span> <span class="o">=</span> <span class="mf">1.61803398875</span>
+<span class="n">PHI_A</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">PHI</span><span class="p">)</span>
+<span class="n">PHI_B</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">PHI_A</span>
+
+
+<div class="viewcode-block" id="greedy_max_inden_setcover"><a class="viewcode-back" href="../../utool.html#utool.util_alg.greedy_max_inden_setcover">[docs]</a><span class="k">def</span> <span class="nf">greedy_max_inden_setcover</span><span class="p">(</span><span class="n">candidate_sets_dict</span><span class="p">,</span> <span class="n">items</span><span class="p">,</span> <span class="n">max_covers</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    greedy algorithm for maximum independent set cover</span>
+
+<span class="sd">    Covers items with sets from candidate sets. Could be made faster.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_alg --test-greedy_max_inden_setcover</span>
+
+<span class="sd">    Example0:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_alg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; candidate_sets_dict = {&#39;a&#39;: [5, 3], &#39;b&#39;: [2, 3, 5],</span>
+<span class="sd">        ...                        &#39;c&#39;: [4, 8], &#39;d&#39;: [7, 6, 2, 1]}</span>
+<span class="sd">        &gt;&gt;&gt; items = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]</span>
+<span class="sd">        &gt;&gt;&gt; max_covers = None</span>
+<span class="sd">        &gt;&gt;&gt; tup = greedy_max_inden_setcover(candidate_sets_dict, items, max_covers)</span>
+<span class="sd">        &gt;&gt;&gt; (uncovered_items, covered_items_list, accepted_keys) = tup</span>
+<span class="sd">        &gt;&gt;&gt; result = str((uncovered_items, accepted_keys))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        ([0, 9], set([&#39;a&#39;, &#39;c&#39;, &#39;d&#39;]))</span>
+
+<span class="sd">    Example1:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_alg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; candidate_sets_dict = {&#39;a&#39;: [5, 3], &#39;b&#39;: [2, 3, 5],</span>
+<span class="sd">        ...                        &#39;c&#39;: [4, 8], &#39;d&#39;: [7, 6, 2, 1]}</span>
+<span class="sd">        &gt;&gt;&gt; items = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]</span>
+<span class="sd">        &gt;&gt;&gt; max_covers = 1</span>
+<span class="sd">        &gt;&gt;&gt; tup = greedy_max_inden_setcover(candidate_sets_dict, items, max_covers)</span>
+<span class="sd">        &gt;&gt;&gt; (uncovered_items, covered_items_list, accepted_keys) = tup</span>
+<span class="sd">        &gt;&gt;&gt; result = str((uncovered_items, accepted_keys))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        ([0, 3, 4, 5, 8, 9], set([&#39;d&#39;]))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">uncovered_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
+    <span class="n">rejected_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">accepted_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">covered_items_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="c"># Break if we have enough covers</span>
+        <span class="k">if</span> <span class="n">max_covers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">covered_items_list</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">max_covers</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="n">maxkey</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">maxlen</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="c"># Loop over candidates to find the biggested unadded cover set</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">candidate_items</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">candidate_sets_dict</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">rejected_keys</span> <span class="ow">or</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">accepted_keys</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="c">#print(&#39;Checking %r&#39; % (key,))</span>
+            <span class="n">lenval</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidate_items</span><span class="p">)</span>
+            <span class="c"># len(uncovered_set.intersection(candidate_items)) == lenval:</span>
+            <span class="k">if</span> <span class="n">uncovered_set</span><span class="o">.</span><span class="n">issuperset</span><span class="p">(</span><span class="n">candidate_items</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">lenval</span> <span class="o">&gt;</span> <span class="n">maxlen</span><span class="p">:</span>
+                    <span class="n">maxkey</span> <span class="o">=</span> <span class="n">key</span>
+                    <span class="n">maxlen</span> <span class="o">=</span> <span class="n">lenval</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">rejected_keys</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="c"># Add the set to the cover</span>
+        <span class="k">if</span> <span class="n">maxkey</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="n">maxval</span> <span class="o">=</span> <span class="n">candidate_sets_dict</span><span class="p">[</span><span class="n">maxkey</span><span class="p">]</span>
+        <span class="n">accepted_keys</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">maxkey</span><span class="p">)</span>
+        <span class="n">covered_items_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">maxval</span><span class="p">))</span>
+        <span class="c"># Add values in this key to the cover</span>
+        <span class="n">uncovered_set</span><span class="o">.</span><span class="n">difference_update</span><span class="p">(</span><span class="n">maxval</span><span class="p">)</span>
+    <span class="n">uncovered_items</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">uncovered_set</span><span class="p">)</span>
+    <span class="n">covertup</span> <span class="o">=</span> <span class="n">uncovered_items</span><span class="p">,</span> <span class="n">covered_items_list</span><span class="p">,</span> <span class="n">accepted_keys</span>
+    <span class="k">return</span> <span class="n">covertup</span>
+
+</div>
+<div class="viewcode-block" id="bayes_rule"><a class="viewcode-back" href="../../utool.html#utool.util_alg.bayes_rule">[docs]</a><span class="k">def</span> <span class="nf">bayes_rule</span><span class="p">(</span><span class="n">b_given_a</span><span class="p">,</span> <span class="n">prob_a</span><span class="p">,</span> <span class="n">prob_b</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    bayes_rule</span>
+
+<span class="sd">    P(A | B) = \frac{ P(B | A) P(A) }{ P(B) }</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        b_given_a (ndarray or float):</span>
+<span class="sd">        prob_a (ndarray or float):</span>
+<span class="sd">        prob_b (ndarray or float):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ndarray or float: a_given_b</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_alg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; b_given_a = .1</span>
+<span class="sd">        &gt;&gt;&gt; prob_a = .3</span>
+<span class="sd">        &gt;&gt;&gt; prob_b = .4</span>
+<span class="sd">        &gt;&gt;&gt; a_given_b = bayes_rule(b_given_a, prob_a, prob_b)</span>
+<span class="sd">        &gt;&gt;&gt; result = a_given_b</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        0.075</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">a_given_b</span> <span class="o">=</span> <span class="p">(</span><span class="n">b_given_a</span> <span class="o">*</span> <span class="n">prob_a</span><span class="p">)</span> <span class="o">/</span> <span class="n">prob_b</span>
+    <span class="k">return</span> <span class="n">a_given_b</span>
+
+</div>
+<div class="viewcode-block" id="estimate_pdf"><a class="viewcode-back" href="../../utool.html#utool.util_alg.estimate_pdf">[docs]</a><span class="k">def</span> <span class="nf">estimate_pdf</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">gridsize</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    estimate_pdf</span>
 
@@ -105,7 +212,7 @@
                      <span class="n">bw</span><span class="o">=</span><span class="n">bw</span><span class="p">,</span>
                      <span class="n">fft</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                      <span class="n">weights</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                     <span class="n">adjust</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                     <span class="n">adjust</span><span class="o">=</span><span class="n">adjust</span><span class="p">,</span>
                      <span class="n">cut</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
                      <span class="n">gridsize</span><span class="o">=</span><span class="n">gridsize</span><span class="p">,</span>
                      <span class="n">clip</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">),)</span>
@@ -125,15 +232,37 @@
     <span class="k">return</span> <span class="n">norm_zero_one</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="norm_zero_one"><a class="viewcode-back" href="../../utool.html#utool.util_alg.norm_zero_one">[docs]</a><span class="k">def</span> <span class="nf">norm_zero_one</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="norm_zero_one"><a class="viewcode-back" href="../../utool.html#utool.util_alg.norm_zero_one">[docs]</a><span class="k">def</span> <span class="nf">norm_zero_one</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    normalizes a numpy array from 0 to 1</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    normalizes a numpy array from 0 to 1 based in its extent</span>
 
+<span class="sd">    Args:</span>
+<span class="sd">        array (ndarray):</span>
+<span class="sd">        dim   (int):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ndarray:</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_alg --test-norm_zero_one</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_alg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; array = np.array([ 22, 1, 3, 2, 10, 42, ])</span>
+<span class="sd">        &gt;&gt;&gt; dim = None</span>
+<span class="sd">        &gt;&gt;&gt; array_norm = norm_zero_one(array, dim)</span>
+<span class="sd">        &gt;&gt;&gt; result = np.array_str(array_norm, precision=3)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [ 0.512  0.     0.049  0.024  0.22   1.   ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">util_type</span><span class="o">.</span><span class="n">is_float</span><span class="p">(</span><span class="n">array</span><span class="p">):</span>
+        <span class="n">array</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
     <span class="n">array_max</span>  <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
     <span class="n">array_min</span>  <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
     <span class="n">array_exnt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">array_max</span><span class="p">,</span> <span class="n">array_min</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">array_min</span><span class="p">),</span> <span class="n">array_exnt</span><span class="p">)</span>
+    <span class="n">array_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">array_min</span><span class="p">),</span> <span class="n">array_exnt</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">array_norm</span>
 
 </div>
 <div class="viewcode-block" id="find_std_inliers"><a class="viewcode-back" href="../../utool.html#utool.util_alg.find_std_inliers">[docs]</a><span class="k">def</span> <span class="nf">find_std_inliers</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
@@ -185,17 +314,9 @@
     <span class="k">return</span> <span class="n">out</span>
 
 </div>
-<div class="viewcode-block" id="almost_eq"><a class="viewcode-back" href="../../utool.html#utool.util_alg.almost_eq">[docs]</a><span class="k">def</span> <span class="nf">almost_eq</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">thresh</span><span class="o">=</span><span class="mf">1E-11</span><span class="p">,</span> <span class="n">ret_error</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; checks if floating point number are equal to a threshold</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">a</span> <span class="o">-</span> <span class="n">b</span><span class="p">)</span>
-    <span class="n">passed</span> <span class="o">=</span> <span class="n">error</span> <span class="o">&lt;</span> <span class="n">thresh</span>
-    <span class="k">if</span> <span class="n">ret_error</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">passed</span><span class="p">,</span> <span class="n">error</span>
-    <span class="k">return</span> <span class="n">passed</span>
-
-</div>
-<div class="viewcode-block" id="euclidean_dist"><a class="viewcode-back" href="../../utool.html#utool.util_alg.euclidean_dist">[docs]</a><span class="k">def</span> <span class="nf">euclidean_dist</span><span class="p">(</span><span class="n">vecs1</span><span class="p">,</span> <span class="n">vec2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
+<div class="viewcode-block" id="euclidean_dist"><a class="viewcode-back" href="../../utool.html#utool.util_alg.euclidean_dist">[docs]</a><span class="k">def</span> <span class="nf">euclidean_dist</span><span class="p">(</span><span class="n">vecs1</span><span class="p">,</span> <span class="n">vec2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(((</span><span class="n">vecs1</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span> <span class="o">-</span> <span class="n">vec2</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
 
 </div>
@@ -262,7 +383,7 @@
 <span class="sd">        &gt;&gt;&gt; item_list    = [ &#39;ham&#39;,      &#39;jam&#39;,    &#39;spam&#39;,     &#39;eggs&#39;, &#39;cheese&#39;, &#39;bannana&#39;]</span>
 <span class="sd">        &gt;&gt;&gt; groupid_list = [&#39;protein&#39;, &#39;fruit&#39;, &#39;protein&#39;,  &#39;protein&#39;,  &#39;dairy&#39;,   &#39;fruit&#39;]</span>
 <span class="sd">        &gt;&gt;&gt; groupid2_items = ut.group_items(item_list, groupid_list)</span>
-<span class="sd">        &gt;&gt;&gt; result = ut.dict_str(groupid2_items, newlines=False)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.dict_str(groupid2_items, newlines=False, strvals=False)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        {&#39;protein&#39;: [&#39;eggs&#39;, &#39;ham&#39;, &#39;spam&#39;], &#39;fruit&#39;: [&#39;bannana&#39;, &#39;jam&#39;], &#39;dairy&#39;: [&#39;cheese&#39;],}</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -283,6 +404,7 @@
 
 </div>
 <div class="viewcode-block" id="item_hist"><a class="viewcode-back" href="../../utool.html#utool.util_alg.item_hist">[docs]</a><span class="k">def</span> <span class="nf">item_hist</span><span class="p">(</span><span class="n">list_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; counts the number of times each item appears in the dictionary &quot;&quot;&quot;</span>
     <span class="n">dict_hist</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="c"># Insert each item into the correct group</span>
     <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">list_</span><span class="p">:</span>
@@ -351,40 +473,75 @@
     <span class="sd">&quot;&quot;&quot; Golden Ratio: phi = 1 / sqrt(5) / 2.0 = 1.61803398875 &quot;&quot;&quot;</span>
     <span class="c">#phi = (1.0 + np.sqrt(5)) / 2.0 = 1.61803398875</span>
     <span class="c"># return phi</span>
-    <span class="k">return</span> <span class="mf">1.61803398875</span>
+    <span class="k">return</span> <span class="n">PHI</span>
 
 </div>
 <div class="viewcode-block" id="get_phi_ratio1"><a class="viewcode-back" href="../../utool.html#utool.util_alg.get_phi_ratio1">[docs]</a><span class="k">def</span> <span class="nf">get_phi_ratio1</span><span class="p">():</span>
     <span class="k">return</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">get_phi</span><span class="p">()</span>
 
 </div>
-<span class="n">PHI</span> <span class="o">=</span> <span class="n">get_phi</span><span class="p">()</span>
-<span class="n">PHI_A</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">PHI</span><span class="p">)</span>
-<span class="n">PHI_B</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">PHI_A</span>
+<div class="viewcode-block" id="iceil"><a class="viewcode-back" href="../../utool.html#utool.util_alg.iceil">[docs]</a><span class="k">def</span> <span class="nf">iceil</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Integer ceiling. (because numpy doesn&#39;t seem to have it!)</span>
 
+<span class="sd">    Args:</span>
+<span class="sd">        num (ndarray or scalar):</span>
 
-<div class="viewcode-block" id="iceil"><a class="viewcode-back" href="../../utool.html#utool.util_alg.iceil">[docs]</a><span class="k">def</span> <span class="nf">iceil</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Integer ceiling. (because numpy doesn&#39;t have it! &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">num</span><span class="p">))</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        ndarray or scalar:</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_alg --test-iceil</span>
+
+<span class="sd">    Example0:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_alg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; num = 1.5</span>
+<span class="sd">        &gt;&gt;&gt; result = iceil(num)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        2</span>
+
+<span class="sd">    Example1:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_alg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; num = [1.5, 2.9]</span>
+<span class="sd">        &gt;&gt;&gt; result = iceil(num)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [2, 3]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">num</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="iround"><a class="viewcode-back" href="../../utool.html#utool.util_alg.iround">[docs]</a><span class="k">def</span> <span class="nf">iround</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Integer round. (because numpy doesn&#39;t have it! &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">num</span><span class="p">))</span>
+<div class="viewcode-block" id="iround"><a class="viewcode-back" href="../../utool.html#utool.util_alg.iround">[docs]</a><span class="k">def</span> <span class="nf">iround</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Integer round. (because numpy doesn&#39;t seem to have it!) &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">num</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="is_prime"><a class="viewcode-back" href="../../utool.html#utool.util_alg.is_prime">[docs]</a><span class="k">def</span> <span class="nf">is_prime</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; http://thelivingpearl.com/2013/01/06/how-to-find-prime-numbers-in-python/ &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    References:</span>
+<span class="sd">        http://thelivingpearl.com/2013/01/06/how-to-find-prime-numbers-in-python/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">num</span> <span class="o">%</span> <span class="n">j</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">False</span>
     <span class="k">return</span> <span class="bp">True</span>
 
 </div>
-<div class="viewcode-block" id="get_nth_prime"><a class="viewcode-back" href="../../utool.html#utool.util_alg.get_nth_prime">[docs]</a><span class="k">def</span> <span class="nf">get_nth_prime</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">max_prime</span><span class="o">=</span><span class="mi">4100</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; horribly inefficient but convinient for small tests &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="deg_to_rad"><a class="viewcode-back" href="../../utool.html#utool.util_alg.deg_to_rad">[docs]</a><span class="k">def</span> <span class="nf">deg_to_rad</span><span class="p">(</span><span class="n">degree</span><span class="p">):</span>
+    <span class="n">degree</span> <span class="o">%=</span> <span class="mf">360.0</span>
+    <span class="n">tau</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">degree</span> <span class="o">/</span> <span class="mf">360.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">tau</span>
+
+</div>
+<div class="viewcode-block" id="enumerate_primes"><a class="viewcode-back" href="../../utool.html#utool.util_alg.enumerate_primes">[docs]</a><span class="k">def</span> <span class="nf">enumerate_primes</span><span class="p">(</span><span class="n">max_prime</span><span class="o">=</span><span class="mi">4100</span><span class="p">):</span>
+    <span class="n">primes</span> <span class="o">=</span> <span class="p">[</span><span class="n">num</span> <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_prime</span><span class="p">)</span> <span class="k">if</span> <span class="n">is_prime</span><span class="p">(</span><span class="n">num</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">primes</span>
+
+</div>
+<div class="viewcode-block" id="get_nth_prime"><a class="viewcode-back" href="../../utool.html#utool.util_alg.get_nth_prime">[docs]</a><span class="k">def</span> <span class="nf">get_nth_prime</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">max_prime</span><span class="o">=</span><span class="mi">4100</span><span class="p">,</span> <span class="n">safe</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; hacky but still brute force algorithm for finding nth prime for small tests &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;=</span> <span class="mi">100</span><span class="p">:</span>
-        <span class="n">first_100_primes</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">first_100_primes</span> <span class="o">=</span> <span class="p">(</span>
             <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">17</span><span class="p">,</span> <span class="mi">19</span><span class="p">,</span> <span class="mi">23</span><span class="p">,</span> <span class="mi">29</span><span class="p">,</span> <span class="mi">31</span><span class="p">,</span> <span class="mi">37</span><span class="p">,</span> <span class="mi">41</span><span class="p">,</span> <span class="mi">43</span><span class="p">,</span> <span class="mi">47</span><span class="p">,</span> <span class="mi">53</span><span class="p">,</span> <span class="mi">59</span><span class="p">,</span> <span class="mi">61</span><span class="p">,</span>
             <span class="mi">67</span><span class="p">,</span> <span class="mi">71</span><span class="p">,</span> <span class="mi">73</span><span class="p">,</span> <span class="mi">79</span><span class="p">,</span> <span class="mi">83</span><span class="p">,</span> <span class="mi">89</span><span class="p">,</span> <span class="mi">97</span><span class="p">,</span> <span class="mi">101</span><span class="p">,</span> <span class="mi">103</span><span class="p">,</span> <span class="mi">107</span><span class="p">,</span> <span class="mi">109</span><span class="p">,</span> <span class="mi">113</span><span class="p">,</span> <span class="mi">127</span><span class="p">,</span> <span class="mi">131</span><span class="p">,</span> <span class="mi">137</span><span class="p">,</span>
             <span class="mi">139</span><span class="p">,</span> <span class="mi">149</span><span class="p">,</span> <span class="mi">151</span><span class="p">,</span> <span class="mi">157</span><span class="p">,</span> <span class="mi">163</span><span class="p">,</span> <span class="mi">167</span><span class="p">,</span> <span class="mi">173</span><span class="p">,</span> <span class="mi">179</span><span class="p">,</span> <span class="mi">181</span><span class="p">,</span> <span class="mi">191</span><span class="p">,</span> <span class="mi">193</span><span class="p">,</span> <span class="mi">197</span><span class="p">,</span> <span class="mi">199</span><span class="p">,</span>
@@ -392,20 +549,78 @@
             <span class="mi">281</span><span class="p">,</span> <span class="mi">283</span><span class="p">,</span> <span class="mi">293</span><span class="p">,</span> <span class="mi">307</span><span class="p">,</span> <span class="mi">311</span><span class="p">,</span> <span class="mi">313</span><span class="p">,</span> <span class="mi">317</span><span class="p">,</span> <span class="mi">331</span><span class="p">,</span> <span class="mi">337</span><span class="p">,</span> <span class="mi">347</span><span class="p">,</span> <span class="mi">349</span><span class="p">,</span> <span class="mi">353</span><span class="p">,</span> <span class="mi">359</span><span class="p">,</span>
             <span class="mi">367</span><span class="p">,</span> <span class="mi">373</span><span class="p">,</span> <span class="mi">379</span><span class="p">,</span> <span class="mi">383</span><span class="p">,</span> <span class="mi">389</span><span class="p">,</span> <span class="mi">397</span><span class="p">,</span> <span class="mi">401</span><span class="p">,</span> <span class="mi">409</span><span class="p">,</span> <span class="mi">419</span><span class="p">,</span> <span class="mi">421</span><span class="p">,</span> <span class="mi">431</span><span class="p">,</span> <span class="mi">433</span><span class="p">,</span> <span class="mi">439</span><span class="p">,</span>
             <span class="mi">443</span><span class="p">,</span> <span class="mi">449</span><span class="p">,</span> <span class="mi">457</span><span class="p">,</span> <span class="mi">461</span><span class="p">,</span> <span class="mi">463</span><span class="p">,</span> <span class="mi">467</span><span class="p">,</span> <span class="mi">479</span><span class="p">,</span> <span class="mi">487</span><span class="p">,</span> <span class="mi">491</span><span class="p">,</span> <span class="mi">499</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="mi">509</span><span class="p">,</span> <span class="mi">521</span><span class="p">,</span>
-            <span class="mi">523</span><span class="p">,</span> <span class="mi">541</span><span class="p">,</span> <span class="p">]</span>
-        <span class="n">nth_prime</span> <span class="o">=</span> <span class="n">first_100_primes</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
+            <span class="mi">523</span><span class="p">,</span> <span class="mi">541</span><span class="p">,</span> <span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">first_100_primes</span><span class="p">))</span>
+        <span class="n">nth_prime</span> <span class="o">=</span> <span class="n">first_100_primes</span><span class="p">[</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">primes</span> <span class="o">=</span> <span class="p">[</span><span class="n">num</span> <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_prime</span><span class="p">)</span> <span class="k">if</span> <span class="n">is_prime</span><span class="p">(</span><span class="n">num</span><span class="p">)]</span>
-        <span class="n">nth_prime</span> <span class="o">=</span> <span class="n">primes</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">safe</span><span class="p">:</span>
+            <span class="n">primes</span> <span class="o">=</span> <span class="p">[</span><span class="n">num</span> <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_prime</span><span class="p">)</span> <span class="k">if</span> <span class="n">is_prime</span><span class="p">(</span><span class="n">num</span><span class="p">)]</span>
+            <span class="n">nth_prime</span> <span class="o">=</span> <span class="n">primes</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># This can run for a while... get it? while?</span>
+            <span class="n">nth_prime</span> <span class="o">=</span> <span class="n">get_nth_prime_bruteforce</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">nth_prime</span>
+
+</div>
+<div class="viewcode-block" id="get_nth_prime_bruteforce"><a class="viewcode-back" href="../../utool.html#utool.util_alg.get_nth_prime_bruteforce">[docs]</a><span class="k">def</span> <span class="nf">get_nth_prime_bruteforce</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">num_primes_found</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">is_prime</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
+            <span class="n">num_primes_found</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">num_primes_found</span> <span class="o">==</span> <span class="n">n</span><span class="p">:</span>
+            <span class="n">nth_prime</span> <span class="o">=</span> <span class="n">num</span>
+            <span class="k">break</span>
+        <span class="n">num</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">nth_prime</span>
+
+</div>
+<div class="viewcode-block" id="inbounds"><a class="viewcode-back" href="../../utool.html#utool.util_alg.inbounds">[docs]</a><span class="k">def</span> <span class="nf">inbounds</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">,</span> <span class="n">eq</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">operator</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="n">less</span>    <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">le</span> <span class="k">if</span> <span class="n">eq</span> <span class="k">else</span> <span class="n">operator</span><span class="o">.</span><span class="n">lt</span>
+        <span class="n">greater</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">ge</span> <span class="k">if</span> <span class="n">eq</span> <span class="k">else</span> <span class="n">operator</span><span class="o">.</span><span class="n">gt</span>
+        <span class="n">and_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">less</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">le</span> <span class="k">if</span> <span class="n">eq</span> <span class="k">else</span> <span class="n">operator</span><span class="o">.</span><span class="n">lt</span>
+        <span class="n">greater</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">ge</span> <span class="k">if</span> <span class="n">eq</span> <span class="k">else</span> <span class="n">operator</span><span class="o">.</span><span class="n">gt</span>
+        <span class="n">and_</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">and_</span>
+    <span class="n">is_inbounds</span> <span class="o">=</span> <span class="n">and_</span><span class="p">(</span><span class="n">greater</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">low</span><span class="p">),</span> <span class="n">less</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">high</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">is_inbounds</span>
+
+
+<span class="c">#def inbounds(arr, min_, max_):</span>
+<span class="c">#    if min_ &gt; 0 and max_ is not None:</span>
+<span class="c">#        #if max_ is not None and min</span>
+<span class="c">#        islt_max = np.less_equal(arr, max_)</span>
+<span class="c">#        isgt_min = np.greater_equal(arr, min_)</span>
+<span class="c">#        is_inbounds = np.logical_and(islt_max, isgt_min)</span>
+<span class="c">#    elif min_ == 0:</span>
+<span class="c">#        is_inbounds = np.less_equal(arr, max_)</span>
+<span class="c">#    elif max_ is None:</span>
+<span class="c">#        is_inbounds = np.greater_equal(arr, min_)</span>
+<span class="c">#    else:</span>
+<span class="c">#        assert False</span>
+<span class="c">#    return is_inbounds</span>
+
+</div>
+<div class="viewcode-block" id="almost_eq"><a class="viewcode-back" href="../../utool.html#utool.util_alg.almost_eq">[docs]</a><span class="k">def</span> <span class="nf">almost_eq</span><span class="p">(</span><span class="n">arr1</span><span class="p">,</span> <span class="n">arr2</span><span class="p">,</span> <span class="n">thresh</span><span class="o">=</span><span class="mf">1E-11</span><span class="p">,</span> <span class="n">ret_error</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; checks if floating point number are equal to a threshold</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">arr1</span> <span class="o">-</span> <span class="n">arr2</span><span class="p">)</span>
+    <span class="n">passed</span> <span class="o">=</span> <span class="n">error</span> <span class="o">&lt;</span> <span class="n">thresh</span>
+    <span class="k">if</span> <span class="n">ret_error</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">passed</span><span class="p">,</span> <span class="n">error</span>
+    <span class="k">return</span> <span class="n">passed</span>
+
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -c &quot;import utool, utool.util_alg; utool.doctest_funcs(utool.util_alg, allexamples=True)&quot;</span>
 <span class="sd">        python -c &quot;import utool, utool.util_alg; utool.doctest_funcs(utool.util_alg)&quot;</span>
-<span class="sd">        python utool/util_alg.py</span>
-<span class="sd">        python utool/util_alg.py --allexamples</span>
+<span class="sd">        python -m utool.util_alg</span>
+<span class="sd">        python -m utool.util_alg --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
@@ -450,7 +665,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

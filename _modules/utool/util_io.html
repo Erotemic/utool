@@ -50,18 +50,19 @@
   <h1>Source code for utool.util_io</h1><div class="highlight"><pre>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">cPickle</span>
+<span class="kn">import</span> <span class="nn">lockfile</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_path</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[io]&#39;</span><span class="p">)</span>
 
 
 <span class="n">__PRINT_IO__</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="n">__PRINT_WRITES__</span> <span class="o">=</span> <span class="bp">False</span> <span class="ow">or</span> <span class="n">__PRINT_IO__</span>
-<span class="n">__PRINT_READS__</span>  <span class="o">=</span> <span class="bp">False</span> <span class="ow">or</span> <span class="n">__PRINT_IO__</span>
+<span class="n">__PRINT_WRITES__</span> <span class="o">=</span> <span class="n">__PRINT_IO__</span>
+<span class="n">__PRINT_READS__</span>  <span class="o">=</span>  <span class="n">__PRINT_IO__</span>
 
 
-<div class="viewcode-block" id="write_to"><a class="viewcode-back" href="../../utool.html#utool.util_io.write_to">[docs]</a><span class="k">def</span> <span class="nf">write_to</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">to_write</span><span class="p">,</span> <span class="n">aslines</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">__PRINT_WRITES__</span><span class="p">,</span>
-                <span class="n">onlyifdiff</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="write_to"><a class="viewcode-back" href="../../utool.html#utool.util_io.write_to">[docs]</a><span class="k">def</span> <span class="nf">write_to</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">to_write</span><span class="p">,</span> <span class="n">aslines</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+             <span class="n">onlyifdiff</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;w&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Writes text to a file</span>
 
 <span class="sd">    Args:</span>
@@ -77,16 +78,16 @@
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr</span><span class="p">(</span><span class="n">read_from</span><span class="p">(</span><span class="n">fpath</span><span class="p">))</span> <span class="o">==</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr</span><span class="p">(</span><span class="n">to_write</span><span class="p">):</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] * no difference&#39;</span><span class="p">)</span>
             <span class="k">return</span>
-    <span class="k">if</span> <span class="n">__PRINT_WRITES__</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="n">__PRINT_WRITES__</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] * Writing to text file: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">util_path</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">fpath</span><span class="p">))</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">aslines</span><span class="p">:</span>
             <span class="n">file_</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">to_write</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">to_write</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="read_from"><a class="viewcode-back" href="../../utool.html#utool.util_io.read_from">[docs]</a><span class="k">def</span> <span class="nf">read_from</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">__PRINT_READS__</span><span class="p">,</span> <span class="n">aslines</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="read_from"><a class="viewcode-back" href="../../utool.html#utool.util_io.read_from">[docs]</a><span class="k">def</span> <span class="nf">read_from</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">aslines</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Reads text from a file</span>
 
 <span class="sd">    Args:</span>
@@ -97,7 +98,7 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        text from fpath</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="n">__PRINT_READS__</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] * Reading text file: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">util_path</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">fpath</span><span class="p">))</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">util_path</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
@@ -116,20 +117,199 @@
         <span class="k">if</span> <span class="n">strict</span><span class="p">:</span>
             <span class="k">raise</span>
 
-</div>
-<div class="viewcode-block" id="save_cPkl"><a class="viewcode-back" href="../../utool.html#utool.util_io.save_cPkl">[docs]</a><span class="k">def</span> <span class="nf">save_cPkl</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">__PRINT_WRITES__</span><span class="p">:</span>
+
+<span class="c"># aliases</span></div>
+<span class="n">readfrom</span> <span class="o">=</span> <span class="n">read_from</span>
+<span class="n">writeto</span> <span class="o">=</span> <span class="n">write_to</span>
+
+
+<div class="viewcode-block" id="save_cPkl"><a class="viewcode-back" href="../../utool.html#utool.util_io.save_cPkl">[docs]</a><span class="k">def</span> <span class="nf">save_cPkl</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="n">__PRINT_WRITES__</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] * save_cPkl(</span><span class="si">%r</span><span class="s">, data)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">util_path</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">fpath</span><span class="p">),))</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
         <span class="n">cPickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">file_</span><span class="p">,</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="load_cPkl"><a class="viewcode-back" href="../../utool.html#utool.util_io.load_cPkl">[docs]</a><span class="k">def</span> <span class="nf">load_cPkl</span><span class="p">(</span><span class="n">fpath</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">__PRINT_READS__</span><span class="p">:</span>
+<div class="viewcode-block" id="load_cPkl"><a class="viewcode-back" href="../../utool.html#utool.util_io.load_cPkl">[docs]</a><span class="k">def</span> <span class="nf">load_cPkl</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="n">__PRINT_READS__</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] * load_cPkl(</span><span class="si">%r</span><span class="s">, data)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">util_path</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">fpath</span><span class="p">),))</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file_</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">data</span>
+
+</div>
+<div class="viewcode-block" id="lock_and_load_cPkl"><a class="viewcode-back" href="../../utool.html#utool.util_io.lock_and_load_cPkl">[docs]</a><span class="k">def</span> <span class="nf">lock_and_load_cPkl</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">lockfile</span><span class="o">.</span><span class="n">LockFile</span><span class="p">(</span><span class="n">fpath</span> <span class="o">+</span> <span class="s">&#39;.lock&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">load_cPkl</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="lock_and_save_cPkl"><a class="viewcode-back" href="../../utool.html#utool.util_io.lock_and_save_cPkl">[docs]</a><span class="k">def</span> <span class="nf">lock_and_save_cPkl</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">lockfile</span><span class="o">.</span><span class="n">LockFile</span><span class="p">(</span><span class="n">fpath</span> <span class="o">+</span> <span class="s">&#39;.lock&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">save_cPkl</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="save_hdf5"><a class="viewcode-back" href="../../utool.html#utool.util_io.save_hdf5">[docs]</a><span class="k">def</span> <span class="nf">save_hdf5</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s">&#39;gzip&#39;</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        fpath (?):</span>
+<span class="sd">        data (ndarray):</span>
+<span class="sd">        compression (str):</span>
+<span class="sd">            DEFLATE/GZIP - standard</span>
+<span class="sd">            LZF  - fast</span>
+<span class="sd">            SHUFFLE - compression ratio</span>
+<span class="sd">            FLETCHER32 - error detection</span>
+<span class="sd">            Scale-offset - integer / float scaling and truncation</span>
+<span class="sd">            SZIP - fast and patented</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_io --test-save_hdf5</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://docs.h5py.org/en/latest/quick.html</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_io import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; fpath = &#39;myfile.hdf5&#39;</span>
+<span class="sd">        &gt;&gt;&gt; np.random.seed(0)</span>
+<span class="sd">        &gt;&gt;&gt; compression = &#39;gzip&#39;</span>
+<span class="sd">        &gt;&gt;&gt; data = (np.random.rand(100000, 128) * 255).astype(np.uint8).copy()</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; ut.delete(fpath)</span>
+<span class="sd">        &gt;&gt;&gt; save_hdf5(fpath, data, verbose, compression)</span>
+<span class="sd">        &gt;&gt;&gt; data2 = load_hdf5(fpath, verbose)</span>
+<span class="sd">        &gt;&gt;&gt; assert data is not data2</span>
+<span class="sd">        &gt;&gt;&gt; assert np.all(data == data2)</span>
+<span class="sd">        &gt;&gt;&gt; assert ut.delete(fpath)</span>
+
+<span class="sd">    Timeit:</span>
+<span class="sd">        cPkl seems to be faster with this initial implementation</span>
+
+<span class="sd">        %timeit save_hdf5(fpath, data, verbose=False, compression=&#39;gzip&#39;)</span>
+<span class="sd">        %timeit save_hdf5(fpath, data, verbose=False, compression=&#39;lzf&#39;)</span>
+<span class="sd">        %timeit save_cPkl(fpath + &#39;.cPkl&#39;, data, verbose=False)</span>
+<span class="sd">        %timeit save_pytables(fpath + &#39;.tables&#39;, data, verbose=False)</span>
+<span class="sd">        1 loops, best of 3: 258 ms per loop</span>
+<span class="sd">        10 loops, best of 3: 111 ms per loop</span>
+<span class="sd">        10 loops, best of 3: 53.1 ms per loop</span>
+<span class="sd">        10 loops, best of 3: 96.5 ms per loop</span>
+
+
+<span class="sd">        save_hdf5(fpath, data, verbose=False, compression=&#39;gzip&#39;)</span>
+<span class="sd">        %timeit load_hdf5(fpath, verbose=False)</span>
+<span class="sd">        save_hdf5(fpath, data, verbose=False, compression=&#39;lzf&#39;)</span>
+<span class="sd">        %timeit load_hdf5(fpath, verbose=False)</span>
+<span class="sd">        %timeit load_cPkl(fpath + &#39;.cPkl&#39;, verbose=False)</span>
+<span class="sd">        %timeit load_pytables(fpath + &#39;.tables&#39;, verbose=False)</span>
+<span class="sd">        100 loops, best of 3: 19.4 ms per loop</span>
+<span class="sd">        100 loops, best of 3: 14.4 ms per loop</span>
+<span class="sd">        100 loops, best of 3: 3.92 ms per loop</span>
+<span class="sd">        100 loops, best of 3: 6.22 ms per loop</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">h5py</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span>
+    <span class="n">chunks</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">dtype</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span>
+    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="n">__PRINT_WRITES__</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] * save_hdf5(</span><span class="si">%r</span><span class="s">, data)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">util_path</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">fpath</span><span class="p">),))</span>
+    <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+        <span class="n">dset</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span>  <span class="n">dtype</span><span class="p">,</span> <span class="n">chunks</span><span class="o">=</span><span class="n">chunks</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="n">compression</span><span class="p">)</span>
+        <span class="n">dset</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
+
+</div>
+<div class="viewcode-block" id="load_hdf5"><a class="viewcode-back" href="../../utool.html#utool.util_io.load_hdf5">[docs]</a><span class="k">def</span> <span class="nf">load_hdf5</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">h5py</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+    <span class="c">#file_ = h5py.File(fpath, &#39;r&#39;)</span>
+    <span class="c">#file_.values()</span>
+    <span class="c">#file_.keys()</span>
+    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="n">__PRINT_READS__</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] * load_hdf5(</span><span class="si">%r</span><span class="s">, data)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">util_path</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">fpath</span><span class="p">),))</span>
+    <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+        <span class="n">dset</span> <span class="o">=</span> <span class="n">file_</span><span class="p">[</span><span class="n">fname</span><span class="p">]</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">dset</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="n">dset</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">dset</span><span class="o">.</span><span class="n">read_direct</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data</span>
+
+</div>
+<div class="viewcode-block" id="save_pytables"><a class="viewcode-back" href="../../utool.html#utool.util_io.save_pytables">[docs]</a><span class="k">def</span> <span class="nf">save_pytables</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    sudo pip install numexpr</span>
+<span class="sd">    sudo pip install tables</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        https://pytables.github.io/cookbook/py2exe_howto.html</span>
+<span class="sd">        https://gist.github.com/andrewgiessel/7515520</span>
+<span class="sd">        http://stackoverflow.com/questions/8843062/python-how-to-store-a-numpy-multidimensional-array-in-pytables</span>
+<span class="sd">        http://pytables.github.io/usersguide/tutorials.html#creating-new-array-objects</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_io import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; fpath = &#39;myfile.pytables.hdf5&#39;</span>
+<span class="sd">        &gt;&gt;&gt; np.random.seed(0)</span>
+<span class="sd">        &gt;&gt;&gt; compression = &#39;gzip&#39;</span>
+<span class="sd">        &gt;&gt;&gt; data = (np.random.rand(100000, 128) * 255).astype(np.uint8).copy()</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; ut.delete(fpath)</span>
+<span class="sd">        &gt;&gt;&gt; save_pytables(fpath, data, verbose)</span>
+<span class="sd">        &gt;&gt;&gt; data2 = load_pytables(fpath, verbose)</span>
+<span class="sd">        &gt;&gt;&gt; assert data is not data2</span>
+<span class="sd">        &gt;&gt;&gt; assert np.all(data == data2)</span>
+<span class="sd">        &gt;&gt;&gt; assert ut.delete(fpath)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">tables</span>
+    <span class="c">#from os.path import basename</span>
+    <span class="c">#fname = basename(fpath)</span>
+    <span class="c">#shape = data.shape</span>
+    <span class="c">#dtype = data.dtype</span>
+    <span class="c">#file_ = tables.open_file(fpath)</span>
+    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="n">__PRINT_WRITES__</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] * save_pytables(</span><span class="si">%r</span><span class="s">, data)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">util_path</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">fpath</span><span class="p">),))</span>
+    <span class="k">with</span> <span class="n">tables</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+        <span class="n">atom</span> <span class="o">=</span> <span class="n">tables</span><span class="o">.</span><span class="n">Atom</span><span class="o">.</span><span class="n">from_dtype</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">filters</span> <span class="o">=</span> <span class="n">tables</span><span class="o">.</span><span class="n">Filters</span><span class="p">(</span><span class="n">complib</span><span class="o">=</span><span class="s">&#39;blosc&#39;</span><span class="p">,</span> <span class="n">complevel</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        <span class="n">dset</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">createCArray</span><span class="p">(</span><span class="n">file_</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="n">atom</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">)</span>
+        <span class="c"># save w/o compressive filter</span>
+        <span class="c">#dset = file_.createCArray(file_.root, &#39;all_data&#39;, atom, all_data.shape)</span>
+        <span class="n">dset</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">data</span>
+
+</div>
+<div class="viewcode-block" id="load_pytables"><a class="viewcode-back" href="../../utool.html#utool.util_io.load_pytables">[docs]</a><span class="k">def</span> <span class="nf">load_pytables</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">tables</span>
+    <span class="c">#from os.path import basename</span>
+    <span class="c">#fname = basename(fpath)</span>
+    <span class="c">#file_ = tables.open_file(fpath)</span>
+    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="n">__PRINT_READS__</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] * load_pytables(</span><span class="si">%r</span><span class="s">, data)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">util_path</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">fpath</span><span class="p">),))</span>
+    <span class="k">with</span> <span class="n">tables</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">data</span>
+
+
+<span class="c">#def save_capnp(fpath, data, verbose=False):</span>
+<span class="c">#    r&quot;&quot;&quot;</span>
+<span class="c">#    Refernces:</span>
+<span class="c">#        http://jparyani.github.io/pycapnp/quickstart.html#dictionaries</span>
+<span class="c">#    &quot;&quot;&quot;</span>
+<span class="c">#    import capnp</span>
+<span class="c">#    if verbose or __PRINT_WRITES__:</span>
+<span class="c">#        print(&#39;[util_io] * save_capnp(%r, data)&#39; % (util_path.tail(fpath),))</span>
 
 </div>
 <div class="viewcode-block" id="try_decode"><a class="viewcode-back" href="../../utool.html#utool.util_io.try_decode">[docs]</a><span class="k">def</span> <span class="nf">try_decode</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
@@ -201,7 +381,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

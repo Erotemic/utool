@@ -59,9 +59,10 @@
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_io</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_str</span>
 <span class="c">#from utool import util_dev</span>
-<span class="kn">from</span> <span class="nn">.util_dbg</span> <span class="kn">import</span> <span class="n">printex</span>
+<span class="kn">from</span> <span class="nn">utool.util_dbg</span> <span class="kn">import</span> <span class="n">printex</span>
+<span class="kn">from</span> <span class="nn">utool._internal</span> <span class="kn">import</span> <span class="n">meta_util_arg</span>
 
-<span class="n">VERBOSE</span> <span class="o">=</span> <span class="s">&#39;--verbose&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<span class="n">VERBOSE</span> <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">VERBOSE</span>
 
 
 <div class="viewcode-block" id="SETUP_PATTERNS"><a class="viewcode-back" href="../../utool.html#utool.util_setup.SETUP_PATTERNS">[docs]</a><span class="k">class</span> <span class="nc">SETUP_PATTERNS</span><span class="p">():</span>
@@ -241,9 +242,14 @@
 
 </div>
 <div class="viewcode-block" id="get_cmdclass"><a class="viewcode-back" href="../../utool.html#utool.util_setup.get_cmdclass">[docs]</a><span class="k">def</span> <span class="nf">get_cmdclass</span><span class="p">():</span>
-    <span class="kn">from</span> <span class="nn">Cython.Distutils</span> <span class="kn">import</span> <span class="n">build_ext</span>
-    <span class="n">cmdclass</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;build_ext&#39;</span><span class="p">:</span> <span class="n">build_ext</span><span class="p">}</span>
-    <span class="k">return</span> <span class="n">cmdclass</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">Cython.Distutils</span> <span class="kn">import</span> <span class="n">build_ext</span>
+        <span class="n">cmdclass</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;build_ext&#39;</span><span class="p">:</span> <span class="n">build_ext</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">cmdclass</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: Cython is not installed. This is only a problem if you are building C extensions&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{}</span>
 
 </div>
 <div class="viewcode-block" id="parse_author"><a class="viewcode-back" href="../../utool.html#utool.util_setup.parse_author">[docs]</a><span class="k">def</span> <span class="nf">parse_author</span><span class="p">():</span>
@@ -363,6 +369,7 @@
 
 <span class="sd">        # Dont parse IBEIS args</span>
 <span class="sd">        os.environ[&#39;IBIES_PARSE_ARGS&#39;] = &#39;OFF&#39;</span>
+<span class="sd">        os.environ[&#39;UTOOL_AUTOGEN_SPHINX_RUNNING&#39;] = &#39;ON&#39;</span>
 
 <span class="sd">        sys.path.append(&#39;{modpath}&#39;)</span>
 <span class="sd">        sys.path.append(sys.path.insert(0, os.path.abspath(&quot;../&quot;)))</span>
@@ -608,7 +615,7 @@
 <span class="sd">        platforms          list of strings  (&#39;a list of platforms&#39;)</span>
 <span class="sd">        license            short string     (&#39;license for the package&#39;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject_colored_exceptions</span>
+    <span class="kn">from</span> <span class="nn">utool.util_inject</span> <span class="kn">import</span> <span class="n">inject_colored_exceptions</span>
     <span class="n">inject_colored_exceptions</span><span class="p">()</span>  <span class="c"># Fluffly, but nice</span>
     <span class="k">if</span> <span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="n">util_str</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">kwargs</span><span class="p">))</span>
@@ -656,7 +663,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

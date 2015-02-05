@@ -131,6 +131,55 @@
     <span class="k">return</span> <span class="n">type_</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
 
 </div>
+<div class="viewcode-block" id="smart_cast2"><a class="viewcode-back" href="../../utool.html#utool.util_type.smart_cast2">[docs]</a><span class="k">def</span> <span class="nf">smart_cast2</span><span class="p">(</span><span class="n">var</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    if the variable is a string tries to cast it to a reasonable value.</span>
+<span class="sd">    maybe can just use eval. FIXME: funcname</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        var (unknown):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        unknown: some var</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_type --test-smart_cast2</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_type import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; var_list = [&#39;?&#39;, 1, &#39;1&#39;, &#39;1.0&#39;, &#39;1.2&#39;, &#39;True&#39;, None, &#39;None&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; castvar_list = [smart_cast2(var) for var in var_list]</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = str(castvar_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [&#39;?&#39;, 1, 1, 1.0, 1.2, True, None, None]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">var</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+        <span class="n">castvar</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">lower</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">lower</span> <span class="o">==</span> <span class="s">&#39;true&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">elif</span> <span class="n">lower</span> <span class="o">==</span> <span class="s">&#39;false&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">elif</span> <span class="n">lower</span> <span class="o">==</span> <span class="s">&#39;none&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="n">type_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">type_</span> <span class="ow">in</span> <span class="n">type_list</span><span class="p">:</span>
+            <span class="n">castvar</span> <span class="o">=</span> <span class="n">try_cast</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">type_</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">castvar</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">if</span> <span class="n">castvar</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">castvar</span> <span class="o">=</span> <span class="n">var</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">castvar</span> <span class="o">=</span> <span class="n">var</span>
+    <span class="k">return</span> <span class="n">castvar</span>
+
+</div>
 <div class="viewcode-block" id="bool_from_str"><a class="viewcode-back" href="../../utool.html#utool.util_type.bool_from_str">[docs]</a><span class="k">def</span> <span class="nf">bool_from_str</span><span class="p">(</span><span class="n">str_</span><span class="p">):</span>
     <span class="n">lower</span> <span class="o">=</span> <span class="n">str_</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">lower</span> <span class="o">==</span> <span class="s">&#39;true&#39;</span><span class="p">:</span>
@@ -180,6 +229,26 @@
 
 </div>
 <div class="viewcode-block" id="is_float"><a class="viewcode-back" href="../../utool.html#utool.util_type.is_float">[docs]</a><span class="k">def</span> <span class="nf">is_float</span><span class="p">(</span><span class="n">var</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        var (ndarray or scalar):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        var:</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_type --test-is_float</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_type import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; var = np.array([1.0, 2.0, 3.0])</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; assert is_float(var) is True, &#39;var is a float&#39;</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">is_type</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">VALID_FLOAT_TYPES</span><span class="p">)</span>
 
 </div>
@@ -222,7 +291,19 @@
 
 </div>
 <div class="viewcode-block" id="is_funclike"><a class="viewcode-back" href="../../utool.html#utool.util_type.is_funclike">[docs]</a><span class="k">def</span> <span class="nf">is_funclike</span><span class="p">(</span><span class="n">var</span><span class="p">):</span>
-    <span class="k">return</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="s">&#39;__call__&#39;</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="s">&#39;__call__&#39;</span><span class="p">)</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_type</span>
+<span class="sd">        python -m utool.util_type --allexamples</span>
+<span class="sd">        python -m utool.util_type --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -262,7 +343,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

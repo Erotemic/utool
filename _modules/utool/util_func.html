@@ -49,9 +49,11 @@
             
   <h1>Source code for utool.util_func</h1><div class="highlight"><pre>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="kn">from</span> <span class="nn">utool.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[func]&#39;</span><span class="p">)</span>
 
+
+<span class="c"># DEPRICATE WHOLE FILE</span>
 
 <div class="viewcode-block" id="uinput_1to1"><a class="viewcode-back" href="../../utool.html#utool.util_func.uinput_1to1">[docs]</a><span class="k">def</span> <span class="nf">uinput_1to1</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">input_</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; universal input (really just accept list or tuple as input to a list</span>
@@ -122,7 +124,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

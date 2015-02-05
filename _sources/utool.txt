@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
 
     utool._internal
+    utool.tests
 
 Submodules
 ----------
@@ -55,6 +56,22 @@ utool.util_arg module
 ---------------------
 
 .. automodule:: utool.util_arg
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_assert module
+------------------------
+
+.. automodule:: utool.util_assert
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_autogen module
+-------------------------
+
+.. automodule:: utool.util_autogen
     :members:
     :undoc-members:
     :show-inheritance:
@@ -159,6 +176,14 @@ utool.util_grabdata module
 --------------------------
 
 .. automodule:: utool.util_grabdata
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_gridsearch module
+----------------------------
+
+.. automodule:: utool.util_gridsearch
     :members:
     :undoc-members:
     :show-inheritance:
