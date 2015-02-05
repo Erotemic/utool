@@ -5,9 +5,10 @@ Useful Utility Tools For You!
 
 Documenation: http://erotemic.github.io/utool
 
-Utool is a collection of tools that I've found useful. I've written most of 
-them from scratch, but there are a few I've taken or partially taken from 
-stackoverflow. 
+Utool is a collection of tools that I've found useful. I've written most of them
+from scratch, but there are a few I've taken or partially taken from
+stackoverflow. References are given in most locations. Some of the older parts
+of the module may not have it, but I fix a missed reference whenever I see it.
 
 The module contains mostly standalone functions that could easilly be
 copy/pasted into your project as you see fit. I not to introduce too many
@@ -31,3 +32,5 @@ to be taken before that would be: eliminate me-sepcific code and introduce some
 configuration file, clean up depricated or useless functions, reorganize
 functions, introduce more documentaion and doctests, and clean up all the (or
 most of the) TODOs and FIXMEs.
+
+Utool is released under the Apache License Version 2.0

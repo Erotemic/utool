@@ -1,4 +1,7 @@
 #!/usr/bin/env python2.7
+# Utool is released under the Apache License Version 2.0
+# no warenty liability blah blah blah blah legal blah
+# just use the software, don't be a jerk, and write kickass code.
 from __future__ import absolute_import, division, print_function
 from setuptools import setup
 import sys
