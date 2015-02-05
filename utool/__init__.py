@@ -15,6 +15,7 @@ __version__ = '1.0.0.dev1'
 
 __DYNAMIC__ = not '--nodyn' in sys.argv
 #__DYNAMIC__ = '--dyn' in sys.argv
+# THESE COMMANDS WILL WRITE THE IMPORT FILE
 """
 python -c "import utool" --dump-utool-init
 python -c "import utool" --update-utool-init
@@ -162,7 +163,8 @@ if DOELSE:
                                 choose, defaultdict, deg_to_rad, 
                                 enumerate_primes, estimate_pdf, euclidean_dist, 
                                 find_std_inliers, flatten_membership_mapping, 
-                                get_nth_prime, get_phi, get_phi_ratio1, 
+                                get_nth_prime, get_nth_prime_bruteforce, 
+                                get_phi, get_phi_ratio1, 
                                 greedy_max_inden_setcover, group_items, iceil, 
                                 inbounds, iround, is_prime, item_hist, 
                                 negative_minclamp_inplace, norm_zero_one, 
@@ -173,19 +175,20 @@ if DOELSE:
                                 void_rowview_numpy, xywh_to_tlbr,) 
     from utool.util_aliases import (OrderedDict, ddict, iprod, namedtuple, 
                                     odict, product,) 
-    from utool.util_arg import (ArgumentParser2, DEBUG2, Indenter, NOT_QUIET, 
-                                NO_ASSERTS, QUIET, REPORT, SAFE, SILENT, 
-                                STRICT, SUPER_STRICT, TRACE, USE_ASSERT, 
-                                VERBOSE, VERYVERBOSE, argv_flag_dec, 
-                                argv_flag_dec_true, autogen_argparse2, 
-                                fuzzy_int, get_arg, get_argflag, get_argval, 
-                                get_flag, get_fpath_args, inject, 
-                                make_argparse2, parse_arglist_hack, 
-                                parse_cfgstr_list, switch_sanataize, try_cast,) 
+    from utool.util_arg import (ArgumentParser2, DEBUG2, NOT_QUIET, NO_ASSERTS, 
+                                QUIET, REPORT, SAFE, SILENT, STRICT, 
+                                SUPER_STRICT, TRACE, USE_ASSERT, VERBOSE, 
+                                VERYVERBOSE, argv_flag_dec, argv_flag_dec_true, 
+                                autogen_argparse2, fuzzy_int, get_arg, 
+                                get_argflag, get_argval, 
+                                get_dict_vals_from_commandline, get_flag, 
+                                get_fpath_args, make_argparse2, 
+                                parse_arglist_hack, parse_cfgstr_list, 
+                                switch_sanataize,) 
     from utool.util_assert import (assert_all_not_None, assert_almost_eq, 
-                                   assert_eq, assert_inbounds, assert_lists_eq, 
-                                   assert_same_len, assert_scalar_list, 
-                                   assert_unflat_level, 
+                                   assert_eq, assert_inbounds, assert_lessthan, 
+                                   assert_lists_eq, assert_same_len, 
+                                   assert_scalar_list, assert_unflat_level, 
                                    get_first_None_position, lists_eq,) 
     from utool.util_autogen import (PythonStatement, auto_docstr, 
                                     autofix_codeblock, deque, make_args_docstr, 
@@ -219,15 +222,15 @@ if DOELSE:
                                   get_free_diskbytes, get_install_dirs, 
                                   get_lib_ext, get_path_dirs, get_pylib_ext, 
                                   get_python_dynlib, get_resource_dir, 
-                                  get_user_name, geteditor, getroot, 
+                                  get_user_name, geteditor, getroot, inject, 
                                   ipython_paste, is64bit_python, ls_libs, 
                                   print_dir_diskspace, print_path, 
                                   print_system_users, python_executable, 
                                   run_realtime_process, search_env_paths, 
                                   send_keyboard_input, set_process_title, 
                                   shell, spawn_delayed_ipython_paste, 
-                                  startfile, truepath, unixpath, vd, 
-                                  view_directory,) 
+                                  startfile, truepath, unixpath, unload_module, 
+                                  vd, view_directory,) 
     from utool.util_class import (QUIET_CLASS, ReloadingMetaclass, 
                                   VERBOSE_CLASS, decorate_class_method, 
                                   decorate_postinject, get_comparison_methods, 
@@ -242,7 +245,7 @@ if DOELSE:
                                    get_default_repo_config, read_repo_config, 
                                    write_default_repo_config,) 
     from utool.util_dbg import (EmbedOnException, FORCE_TB, IPYTHON_EMBED_STR, 
-                                RAISE_ALL, all_rrr, debug_exception, 
+                                Indenter, RAISE_ALL, all_rrr, debug_exception, 
                                 debug_hstack, debug_list, debug_npstack, 
                                 debug_vstack, dict_dbgstr, embed, 
                                 execstr_attr_list, execstr_dict, execstr_embed, 
@@ -272,26 +275,28 @@ if DOELSE:
                                 search_stack_for_localvar, 
                                 search_stack_for_var, split, super_print, 
                                 truncate_str, varname_regex,) 
-    from utool.util_dev import (DEPRICATED, INDEXABLE_TYPES, InteractiveIter, 
-                                MemoryTracker, are_you_sure, compile_cython, 
+    from utool.util_dev import (ClassNoParam, DEPRICATED, INDEXABLE_TYPES, 
+                                InteractiveIter, MemoryTracker, NoParam, 
+                                STAT_KEY_ORDER, are_you_sure, compile_cython, 
                                 copy_text_to_clipboard, 
                                 disable_garbage_collection, 
-                                enable_garbage_collection, find_exe, 
+                                enable_garbage_collection, ensure_str_list, 
+                                find_exe, find_interesting_stats, 
                                 garbage_collect, get_clipboard, get_cython_exe, 
-                                get_nonconflicting_path, 
+                                get_jagged_stats, get_nonconflicting_path, 
                                 get_nonconflicting_string, get_object_base, 
                                 get_object_size, get_object_size_str, 
                                 get_stats, get_stats_str, info, 
                                 init_catch_ctrl_c, input, input_timeout, 
-                                is_developer, listinfo, make_call_graph, 
+                                is_developer, iup, listinfo, make_call_graph, 
                                 make_object_graph, memory_dump, myprint, 
                                 npArrInfo, npinfo, numpy_list_num_bits, 
                                 print_object_size, print_object_size_tree, 
                                 print_stats, printableType, printableVal, 
                                 report_memsize, reset_catch_ctrl_c, 
-                                set_clipboard, strip_line_comments, testit, 
-                                timeit_compare, tuples_to_unique_scalars, 
-                                user_cmdline_prompt,) 
+                                set_clipboard, show_was_requested, 
+                                strip_line_comments, testit, timeit_compare, 
+                                tuples_to_unique_scalars, user_cmdline_prompt,) 
     from utool.util_decor import (IGNORE_TRACEBACK, NOINDENT_DECOR, 
                                   ONEX_REPORT_INPUT, PROFILING, SIG_PRESERVE, 
                                   UNIQUE_NUMPY, accepts_numpy, 
@@ -307,15 +312,17 @@ if DOELSE:
                                  all_dict_combinations_lbls, 
                                  all_dict_combinations_ordered, 
                                  build_conflict_dict, count_dict_vals, 
-                                 delete_dict_keys, dict_find_keys, 
+                                 delete_dict_keys, dict_assign, dict_find_keys, 
                                  dict_find_other_sameval_keys, dict_setdiff, 
-                                 dict_subset, dict_take, dict_take_gen, 
-                                 dict_take_list, dict_union, dict_union2, 
+                                 dict_stack, dict_subset, dict_take, 
+                                 dict_take_gen, dict_take_list, dict_take_pop, 
+                                 dict_to_keyvals, dict_union, dict_union2, 
                                  dict_update_newkeys, dict_where_len0, 
-                                 dictinfo, get_dict_hashid, invert_dict, 
-                                 is_dicteq, items_sorted_by_value, 
+                                 dictinfo, get_dict_column, get_dict_hashid, 
+                                 invert_dict, is_dicteq, items_sorted_by_value, 
                                  iter_all_dict_combinations_ordered, 
-                                 keys_sorted_by_value, updateif_haskey,) 
+                                 keys_sorted_by_value, order_dict_by, 
+                                 updateif_haskey,) 
     from utool.util_func import (general_get, general_set, identity, 
                                  uinput_1to1,) 
     from utool.util_grabdata import (BadZipfile, TESTIMG_URL_DICT, 
@@ -326,7 +333,13 @@ if DOELSE:
                                      split_archive_ext, unarchive_file, 
                                      untar_file, unzip_file,) 
     from utool.util_gridsearch import (DimensionBasis, GridSearch, 
+                                       constrain_cfgdict_list, 
+                                       get_cfgdict_lbl_list_subset, 
+                                       get_cfgdict_list_subset, 
                                        grid_search_generator, 
+                                       interact_gridsearch_result_images, 
+                                       make_cfglbls, 
+                                       make_constrained_cfg_and_lbl_list, 
                                        testdata_grid_search,) 
     from utool.util_git import (CODE_DIR, PROJECT_REPO_DIRS, PROJECT_REPO_URLS, 
                                 checkout_repos, ensure_project_repos, 
@@ -352,12 +365,13 @@ if DOELSE:
                                    highlight, inject, inject_all, 
                                    inject_colored_exceptions, 
                                    inject_print_functions, 
-                                   inject_profile_function, 
+                                   inject_profile_function, inject_python_code, 
                                    inject_reload_function, memprof, noinject, 
-                                   wraps,) 
-    from utool.util_io import (load_cPkl, load_hdf5, load_pytables, read_from, 
-                               save_cPkl, save_hdf5, save_pytables, try_decode, 
-                               write_to,) 
+                                   split_python_text_into_lines, wraps,) 
+    from utool.util_io import (load_cPkl, load_hdf5, load_pytables, 
+                               lock_and_load_cPkl, lock_and_save_cPkl, 
+                               read_from, readfrom, save_cPkl, save_hdf5, 
+                               save_pytables, try_decode, write_to, writeto,) 
     from utool.util_iter import (cycle, ensure_iterable, ichunks, ichunks_list, 
                                  ifilter_Nones, ifilter_items, 
                                  ifilterfalse_items, iflatten, 
@@ -382,8 +396,8 @@ if DOELSE:
                                  and_lists, debug_consec_list, 
                                  debug_duplicate_items, depth_profile, 
                                  duplicates_exist, ensure_list_size, 
-                                 filter_Nones, filter_items, filterfalse_items, 
-                                 find_duplicate_items, 
+                                 filter_Nones, filter_items, filter_startswith, 
+                                 filterfalse_items, find_duplicate_items, 
                                  find_first_true_indicies, 
                                  find_next_true_indicies, 
                                  find_nonconsec_indicies, flag_None_items, 
@@ -398,9 +412,10 @@ if DOELSE:
                                  list_issuperset, list_replace, list_set_equal, 
                                  list_take, list_where, listclip, listfind, 
                                  make_sortby_func, or_lists, partial_imap_1to1, 
-                                 print_duplicate_map, safe_listget, safe_slice, 
-                                 sample_lists, sample_zip, scalar_input_map, 
-                                 setdiff_ordered, sortedby, sortedby2, tuplize, 
+                                 print_duplicate_map, replace_nones, 
+                                 safe_listget, safe_slice, sample_lists, 
+                                 sample_zip, scalar_input_map, setdiff_ordered, 
+                                 sortedby, sortedby2, strided_sample, tuplize, 
                                  unflat_unique_rowid_map, unflatten, 
                                  unflatten2, unique_keep_order2, 
                                  unique_ordered, unique_unordered,) 
@@ -465,12 +480,16 @@ if DOELSE:
                                      spawn_background_process, 
                                      spawn_background_thread,) 
     from utool.util_resources import (available_memory, byte_str2, 
-                                      current_memory_usage, 
-                                      get_resource_limits, memstats, num_cpus, 
-                                      peak_memory, print_resource_usage, 
-                                      time_in_systemmode, time_in_usermode, 
-                                      time_str2, total_memory, used_memory,) 
-    from utool.util_str import (GLOBAL_TYPE_ALIASES, TAU, TAUFMTSTR, TAUSTR, 
+                                      current_memory_usage, get_memstats_str, 
+                                      get_resource_limits, 
+                                      get_resource_usage_str, memstats, 
+                                      num_cpus, peak_memory, 
+                                      print_resource_usage, time_in_systemmode, 
+                                      time_in_usermode, time_str2, 
+                                      total_memory, used_memory,) 
+    from utool.util_str import (DOUBLE_QUOTE, GLOBAL_TYPE_ALIASES, NEWLINE, 
+                                SINGLE_QUOTE, TAU, TAUFMTSTR, TAUSTR, 
+                                TRIPLE_DOUBLE_QUOTE, TRIPLE_SINGLE_QUOTE, 
                                 align, align_lines, bbox_str, byte_str, 
                                 byte_str2, clipstr, codeblock, cond_phrase, 
                                 dict_aliased_repr, dict_itemstr_list, dict_str, 
@@ -520,7 +539,7 @@ if DOELSE:
                                  is_func_or_method, 
                                  is_func_or_method_or_partial, is_funclike, 
                                  is_tuple, is_type, is_valid_floattype, 
-                                 smart_cast, type_str,) 
+                                 smart_cast, smart_cast2, try_cast, type_str,) 
     from utool.util_tests import (BIGFACE, HAPPY_FACE, HAPPY_FACE_BIG, 
                                   HAPPY_FACE_SMALL, ModuleDoctestTup, 
                                   PRINT_FACE, PRINT_SRC, SAD_FACE, 
