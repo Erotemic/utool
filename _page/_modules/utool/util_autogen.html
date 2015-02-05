@@ -1,0 +1,642 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>utool.util_autogen &mdash; utool 1.0.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html" />
+    <link rel="up" title="utool" href="../utool.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" accesskey="U">utool</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for utool.util_autogen</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">deque</span>  <span class="c"># NOQA</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[alg]&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="PythonStatement"><a class="viewcode-back" href="../../utool.html#utool.util_autogen.PythonStatement">[docs]</a><span class="k">class</span> <span class="nc">PythonStatement</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Thin wrapper around a string representing executable python code &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stmt</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stmt</span> <span class="o">=</span> <span class="n">stmt</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stmt</span>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stmt</span>
+
+</div>
+<div class="viewcode-block" id="write_modscript_alias"><a class="viewcode-back" href="../../utool.html#utool.util_autogen.write_modscript_alias">[docs]</a><span class="k">def</span> <span class="nf">write_modscript_alias</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">modname</span><span class="p">,</span> <span class="n">pyscript</span><span class="o">=</span><span class="s">&#39;python&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    convinience function because $@ is annoying to paste into the terminal</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">fmtstr</span> <span class="o">=</span> <span class="s">&#39;{pyscript} -m {modname} $@&#39;</span>
+    <span class="n">cmdstr</span> <span class="o">=</span> <span class="n">fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pyscript</span><span class="o">=</span><span class="n">pyscript</span><span class="p">,</span> <span class="n">modname</span><span class="o">=</span><span class="n">modname</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">cmdstr</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">&#39;chmod +x &#39;</span> <span class="o">+</span> <span class="n">fpath</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="autofix_codeblock"><a class="viewcode-back" href="../../utool.html#utool.util_autogen.autofix_codeblock">[docs]</a><span class="k">def</span> <span class="nf">autofix_codeblock</span><span class="p">(</span><span class="n">codeblock</span><span class="p">,</span> <span class="n">max_line_len</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
+                      <span class="n">aggressive</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                      <span class="n">very_aggressive</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                      <span class="n">experimental</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Uses autopep8 to format a block of code</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; import utool</span>
+<span class="sd">        &gt;&gt;&gt; codeblock = utool.codeblock(</span>
+<span class="sd">            &#39;&#39;&#39;</span>
+<span class="sd">            def func( with , some = &#39;Problems&#39; ):</span>
+
+
+<span class="sd">             syntax =&#39;Ok&#39;</span>
+<span class="sd">             but = &#39;Its very messy&#39;</span>
+<span class="sd">             if None:</span>
+<span class="sd">                    # syntax might not be perfect due to being cut off</span>
+<span class="sd">                    ommiting_this_line_still_works=   True</span>
+<span class="sd">            &#39;&#39;&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; fixed_codeblock = utool.autofix_codeblock(codeblock)</span>
+<span class="sd">        &gt;&gt;&gt; print(fixed_codeblock)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># FIXME idk how to remove the blank line following the function with</span>
+    <span class="c"># autopep8. It seems to not be supported by them, but it looks bad.</span>
+    <span class="kn">import</span> <span class="nn">autopep8</span>
+    <span class="n">arglist</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;--max-line-length&#39;</span><span class="p">,</span> <span class="s">&#39;80&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">aggressive</span><span class="p">:</span>
+        <span class="n">arglist</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s">&#39;-a&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">very_aggressive</span><span class="p">:</span>
+        <span class="n">arglist</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s">&#39;-a&#39;</span><span class="p">,</span> <span class="s">&#39;-a&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">experimental</span><span class="p">:</span>
+        <span class="n">arglist</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s">&#39;--experimental&#39;</span><span class="p">])</span>
+    <span class="n">arglist</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s">&#39;&#39;</span><span class="p">])</span>
+    <span class="n">autopep8_options</span> <span class="o">=</span> <span class="n">autopep8</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">arglist</span><span class="p">)</span>
+    <span class="n">fixed_codeblock</span> <span class="o">=</span> <span class="n">autopep8</span><span class="o">.</span><span class="n">fix_code</span><span class="p">(</span><span class="n">codeblock</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">autopep8_options</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fixed_codeblock</span>
+
+</div>
+<div class="viewcode-block" id="auto_docstr"><a class="viewcode-back" href="../../utool.html#utool.util_autogen.auto_docstr">[docs]</a><span class="k">def</span> <span class="nf">auto_docstr</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">funcname</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">moddir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        modname (str):</span>
+<span class="sd">        funcname (str):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        docstr</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; import utool</span>
+<span class="sd">        &gt;&gt;&gt; utool.util_autogen.rrr(verbose=False)</span>
+<span class="sd">        &gt;&gt;&gt; #docstr = utool.auto_docstr(&#39;ibeis.model.hots.smk.smk_index&#39;, &#39;compute_negentropy_names&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; modname = &#39;utool.util_autogen&#39;</span>
+<span class="sd">        &gt;&gt;&gt; funcname = &#39;auto_docstr&#39;</span>
+<span class="sd">        &gt;&gt;&gt; docstr = utool.util_autogen.auto_docstr(modname, funcname)</span>
+<span class="sd">        &gt;&gt;&gt; print(docstr)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">docstr</span> <span class="o">=</span> <span class="s">&#39;error&#39;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">module</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span>
+        <span class="kn">import</span> <span class="nn">imp</span>
+        <span class="n">imp</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c"># FIXME: PYTHON 3</span>
+            <span class="n">execstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+                <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">                try:</span>
+<span class="sd">                    import {modname}</span>
+<span class="sd">                    module = {modname}</span>
+<span class="sd">                    imp.reload(module)</span>
+<span class="sd">                except Exception:</span>
+<span class="sd">                    # If it fails maybe the module is not in the path</span>
+<span class="sd">                    if moddir is not None:</span>
+<span class="sd">                        try:</span>
+<span class="sd">                            import imp</span>
+<span class="sd">                            import os</span>
+<span class="sd">                            orig_dir = os.getcwd()</span>
+<span class="sd">                            os.chdir(moddir)</span>
+<span class="sd">                            modname_str = &#39;{modname}&#39;</span>
+<span class="sd">                            modinfo = imp.find_module(modname_str, [moddir])</span>
+<span class="sd">                            module = imp.load_module(modname_str, *modinfo)</span>
+<span class="sd">                            #print(&#39;loaded module=%r&#39; % (module,))</span>
+<span class="sd">                        except Exception as ex:</span>
+<span class="sd">                            ut.printex(ex, &#39;failed to imp.load_module&#39;)</span>
+<span class="sd">                            pass</span>
+<span class="sd">                        finally:</span>
+<span class="sd">                            os.chdir(orig_dir)</span>
+<span class="sd">                import imp</span>
+<span class="sd">                import utool</span>
+<span class="sd">                imp.reload(utool.util_autogen)</span>
+<span class="sd">                imp.reload(utool.util_inspect)</span>
+<span class="sd">                func = module.{funcname}</span>
+<span class="sd">                docstr = utool.util_autogen.make_default_docstr(func, **kwargs)</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+            <span class="n">exec_globals</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()</span>
+            <span class="n">exec_locals</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
+            <span class="k">exec</span><span class="p">(</span><span class="n">execstr</span><span class="p">,</span> <span class="n">exec_globals</span><span class="p">,</span> <span class="n">exec_locals</span><span class="p">)</span>
+            <span class="n">docstr</span> <span class="o">=</span> <span class="n">exec_locals</span><span class="p">[</span><span class="s">&#39;docstr&#39;</span><span class="p">]</span>
+            <span class="c">#, globals(), locals())</span>
+            <span class="c">#return &#39;BARFOOO&#39; +  docstr</span>
+            <span class="k">return</span> <span class="n">docstr</span>
+            <span class="c">#print(execstr)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex2</span><span class="p">:</span>
+            <span class="n">docstr</span> <span class="o">=</span> <span class="s">&#39;error &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ex2</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">utool</span>
+                <span class="c">#utool.printex(ex1, &#39;ex1&#39;)</span>
+                <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex2</span><span class="p">,</span> <span class="s">&#39;ex2&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">testcmd</span> <span class="o">=</span> <span class="s">&#39;python -c &quot;import utool; print(utool.auto_docstr(</span><span class="se">\&#39;</span><span class="si">%s</span><span class="se">\&#39;</span><span class="s">, </span><span class="se">\&#39;</span><span class="si">%s</span><span class="se">\&#39;</span><span class="s">))&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">funcname</span><span class="p">)</span>
+            <span class="n">error_str</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">formatex</span><span class="p">(</span><span class="n">ex2</span><span class="p">,</span> <span class="s">&#39;ex2&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;modname&#39;</span><span class="p">,</span> <span class="s">&#39;funcname&#39;</span><span class="p">,</span> <span class="s">&#39;testcmd&#39;</span><span class="p">])</span>
+            <span class="n">error_str</span> <span class="o">+=</span> <span class="s">&#39;---&#39;</span> <span class="o">+</span> <span class="n">execstr</span>
+            <span class="k">return</span> <span class="n">error_str</span>
+            <span class="c">#return docstr + &#39;\n&#39; + execstr</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">docstr</span> <span class="o">=</span> <span class="s">&#39;error&#39;</span>
+    <span class="k">return</span> <span class="n">docstr</span>
+
+</div>
+<div class="viewcode-block" id="print_auto_docstr"><a class="viewcode-back" href="../../utool.html#utool.util_autogen.print_auto_docstr">[docs]</a><span class="k">def</span> <span class="nf">print_auto_docstr</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">funcname</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    python -c &quot;import utool; utool.print_auto_docstr(&#39;ibeis.model.hots.smk.smk_index&#39;, &#39;compute_negentropy_names&#39;)&quot;</span>
+<span class="sd">    python -c &quot;import utool;</span>
+<span class="sd">    utool.print_auto_docstr(&#39;ibeis.model.hots.smk.smk_index&#39;, &#39;compute_negentropy_names&#39;)&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">docstr</span> <span class="o">=</span> <span class="n">auto_docstr</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">funcname</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">docstr</span><span class="p">)</span>
+
+
+<span class="c"># &lt;INVIDIAL DOCSTR COMPONENTS&gt;</span>
+</div>
+<div class="viewcode-block" id="make_args_docstr"><a class="viewcode-back" href="../../utool.html#utool.util_autogen.make_args_docstr">[docs]</a><span class="k">def</span> <span class="nf">make_args_docstr</span><span class="p">(</span><span class="n">argname_list</span><span class="p">,</span> <span class="n">argtype_list</span><span class="p">,</span> <span class="n">argdesc_list</span><span class="p">,</span> <span class="n">ismethod</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    make_args_docstr</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        argname_list (list): names</span>
+<span class="sd">        argtype_list (list): types</span>
+<span class="sd">        argdesc_list (list): descriptions</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: arg_docstr</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_autogen import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; argname_list = [&#39;argname_list&#39;, &#39;argtype_list&#39;, &#39;argdesc_list&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; argtype_list = [&#39;list&#39;, &#39;list&#39;, &#39;list&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; argdesc_list = [&#39;names&#39;, &#39;types&#39;, &#39;descriptions&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; ismethod = False</span>
+<span class="sd">        &gt;&gt;&gt; arg_docstr = make_args_docstr(argname_list, argtype_list, argdesc_list, ismethod)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(arg_docstr)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        argname_list (list): names</span>
+<span class="sd">        argtype_list (list): types</span>
+<span class="sd">        argdesc_list (list): descriptions</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="k">if</span> <span class="n">ismethod</span><span class="p">:</span>
+        <span class="n">argname_list</span> <span class="o">=</span> <span class="n">argname_list</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">argtype_list</span> <span class="o">=</span> <span class="n">argtype_list</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">argdesc_list</span> <span class="o">=</span> <span class="n">argdesc_list</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">argdoc_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">arg</span> <span class="o">+</span> <span class="s">&#39; (</span><span class="si">%s</span><span class="s">): </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_type</span><span class="p">,</span> <span class="n">desc</span><span class="p">)</span>
+                   <span class="k">for</span> <span class="n">arg</span><span class="p">,</span> <span class="n">_type</span><span class="p">,</span> <span class="n">desc</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">argname_list</span><span class="p">,</span> <span class="n">argtype_list</span><span class="p">,</span> <span class="n">argdesc_list</span><span class="p">)]</span>
+    <span class="c"># align?</span>
+    <span class="n">align_args</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">if</span> <span class="n">align_args</span><span class="p">:</span>
+        <span class="n">argdoc_aligned_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">align_lines</span><span class="p">(</span><span class="n">argdoc_list</span><span class="p">,</span> <span class="n">character</span><span class="o">=</span><span class="s">&#39;(&#39;</span><span class="p">)</span>
+        <span class="n">arg_docstr</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">argdoc_aligned_list</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">arg_docstr</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">argdoc_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">arg_docstr</span>
+
+</div>
+<div class="viewcode-block" id="make_returns_or_yeilds_docstr"><a class="viewcode-back" href="../../utool.html#utool.util_autogen.make_returns_or_yeilds_docstr">[docs]</a><span class="k">def</span> <span class="nf">make_returns_or_yeilds_docstr</span><span class="p">(</span><span class="n">return_type</span><span class="p">,</span> <span class="n">return_name</span><span class="p">,</span> <span class="n">return_desc</span><span class="p">):</span>
+    <span class="n">return_doctr</span> <span class="o">=</span> <span class="n">return_type</span> <span class="o">+</span> <span class="s">&#39;: &#39;</span>
+    <span class="k">if</span> <span class="n">return_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">return_doctr</span> <span class="o">+=</span> <span class="n">return_name</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">return_desc</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">return_doctr</span> <span class="o">+=</span> <span class="s">&#39; - &#39;</span>
+    <span class="n">return_doctr</span> <span class="o">+=</span> <span class="n">return_desc</span>
+    <span class="k">return</span> <span class="n">return_doctr</span>
+
+</div>
+<div class="viewcode-block" id="make_example_docstr"><a class="viewcode-back" href="../../utool.html#utool.util_autogen.make_example_docstr">[docs]</a><span class="k">def</span> <span class="nf">make_example_docstr</span><span class="p">(</span><span class="n">funcname</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">modname</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">argname_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">defaults</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">return_type</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">return_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">ismethod</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates skeleton code to build an example doctest</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        funcname (str):  function name</span>
+<span class="sd">        modname (str):  module name</span>
+<span class="sd">        argname_list (str):  list of argument names</span>
+<span class="sd">        defaults (None):</span>
+<span class="sd">        return_type (None):</span>
+<span class="sd">        return_name (str):  return variable name</span>
+<span class="sd">        ismethod (bool):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: examplecode</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_autogen --test-make_example_docstr</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_autogen import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; funcname = &#39;make_example_docstr&#39;</span>
+<span class="sd">        &gt;&gt;&gt; modname = &#39;utool.util_autogen&#39;</span>
+<span class="sd">        &gt;&gt;&gt; argname_list = [&#39;qaids&#39;, &#39;qreq_&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; defaults = None</span>
+<span class="sd">        &gt;&gt;&gt; return_type = None</span>
+<span class="sd">        &gt;&gt;&gt; return_name = None</span>
+<span class="sd">        &gt;&gt;&gt; ismethod = False</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; examplecode = make_example_docstr(funcname, modname, argname_list, defaults, return_type, return_name, ismethod)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = str(examplecode)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+
+    <span class="n">examplecode_lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">top_import_fmstr</span> <span class="o">=</span> <span class="s">&#39;from {modname} import *  # NOQA&#39;</span>
+    <span class="n">top_import</span> <span class="o">=</span> <span class="n">top_import_fmstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">modname</span><span class="o">=</span><span class="n">modname</span><span class="p">)</span>
+    <span class="n">import_lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">top_import</span><span class="p">]</span>
+
+    <span class="c"># TODO: Externally register these</span>
+    <span class="n">default_argval_map</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;ibs&#39;</span><span class="p">:</span>      <span class="s">&#39;ibeis.opendb(</span><span class="se">\&#39;</span><span class="s">testdb1</span><span class="se">\&#39;</span><span class="s">)&#39;</span><span class="p">,</span>
+        <span class="s">&#39;qreq_&#39;</span><span class="p">:</span>      <span class="s">&#39;ibs.new_query_request(qaids, daids)&#39;</span><span class="p">,</span>
+        <span class="s">&#39;qaid2_qres&#39;</span><span class="p">:</span>  <span class="s">&#39;ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())&#39;</span><span class="p">,</span>
+        <span class="s">&#39;qres&#39;</span><span class="p">:</span>  <span class="s">&#39;ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())[1]&#39;</span><span class="p">,</span>
+        <span class="s">&#39;aid_list&#39;</span><span class="p">:</span> <span class="s">&#39;ibs.get_valid_aids()&#39;</span><span class="p">,</span>
+        <span class="s">&#39;nid_list&#39;</span><span class="p">:</span> <span class="s">&#39;ibs._get_all_known_nids()&#39;</span><span class="p">,</span>
+        <span class="s">&#39;qaids&#39;</span><span class="p">:</span> <span class="s">&#39;ibs.get_valid_aids(species=species)&#39;</span><span class="p">,</span>
+        <span class="s">&#39;daids&#39;</span><span class="p">:</span> <span class="s">&#39;ibs.get_valid_aids(species=species)&#39;</span><span class="p">,</span>
+        <span class="s">&#39;species&#39;</span><span class="p">:</span> <span class="s">&#39;ibeis.const.Species.ZEB_PLAIN&#39;</span><span class="p">,</span>
+        <span class="s">&#39;kpts&#39;</span><span class="p">:</span> <span class="s">&#39;vt.dummy.get_dummy_kpts()&#39;</span>
+    <span class="p">}</span>
+    <span class="n">import_depends_map</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;ibs&#39;</span><span class="p">:</span>      <span class="s">&#39;import ibeis&#39;</span><span class="p">,</span>
+        <span class="s">&#39;kpts&#39;</span><span class="p">:</span>     <span class="s">&#39;import vtool as vt&#39;</span><span class="p">,</span>
+        <span class="s">&#39;species&#39;</span><span class="p">:</span>  <span class="s">&#39;import ibeis&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">var_depends_map</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;qreq_&#39;</span><span class="p">:</span>     <span class="p">[</span><span class="s">&#39;ibs&#39;</span><span class="p">,</span> <span class="s">&#39;species&#39;</span><span class="p">,</span> <span class="s">&#39;daids&#39;</span><span class="p">,</span> <span class="s">&#39;qaids&#39;</span><span class="p">],</span>
+        <span class="s">&#39;qaids&#39;</span><span class="p">:</span>     <span class="p">[</span><span class="s">&#39;ibs&#39;</span><span class="p">],</span>
+        <span class="s">&#39;daids&#39;</span><span class="p">:</span>     <span class="p">[</span><span class="s">&#39;ibs&#39;</span><span class="p">],</span>
+        <span class="s">&#39;qaids&#39;</span><span class="p">:</span>     <span class="p">[</span><span class="s">&#39;species&#39;</span><span class="p">],</span>
+        <span class="s">&#39;daids&#39;</span><span class="p">:</span>     <span class="p">[</span><span class="s">&#39;species&#39;</span><span class="p">],</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">find_arg_defaultval</span><span class="p">(</span><span class="n">argname</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="o">==</span> <span class="s">&#39;?&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">argname</span> <span class="ow">in</span> <span class="n">default_argval_map</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">PythonStatement</span><span class="p">(</span><span class="n">default_argval_map</span><span class="p">[</span><span class="n">argname</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">argname</span> <span class="ow">in</span> <span class="n">import_depends_map</span><span class="p">:</span>
+                    <span class="n">import_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">import_depends_map</span><span class="p">[</span><span class="n">argname</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="c"># augment argname list with dependencies</span>
+    <span class="n">dependant_argnames</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># deque()</span>
+    <span class="k">def</span> <span class="nf">append_dependant_argnames</span><span class="p">(</span><span class="n">argnames</span><span class="p">,</span> <span class="n">dependant_argnames</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; use hints to add known dependencies for certain argument inputs &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">argname</span> <span class="ow">in</span> <span class="n">argnames</span><span class="p">:</span>
+            <span class="c"># Check if argname was already added as dependency</span>
+            <span class="k">if</span> <span class="n">argname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dependant_argnames</span> <span class="ow">and</span> <span class="n">argname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">argname_list</span><span class="p">:</span>
+                <span class="n">dependant_argnames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">argname</span><span class="p">)</span>
+            <span class="c"># Check if argname has dependants</span>
+            <span class="k">if</span> <span class="n">argname</span> <span class="ow">in</span> <span class="n">var_depends_map</span><span class="p">:</span>
+                <span class="n">argdeps</span> <span class="o">=</span> <span class="n">var_depends_map</span><span class="p">[</span><span class="n">argname</span><span class="p">]</span>
+                <span class="c"># RECURSIVE CALL</span>
+                <span class="n">append_dependant_argnames</span><span class="p">(</span><span class="n">argdeps</span><span class="p">,</span> <span class="n">dependant_argnames</span><span class="p">)</span>
+    <span class="n">append_dependant_argnames</span><span class="p">(</span><span class="n">argname_list</span><span class="p">,</span> <span class="n">dependant_argnames</span><span class="p">)</span>
+
+    <span class="c"># Define argnames and dependencies in example code</span>
+    <span class="c"># argnames prefixed with dependeancies</span>
+    <span class="n">argname_list_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">dependant_argnames</span><span class="p">)</span> <span class="o">+</span> <span class="n">argname_list</span>
+
+    <span class="c"># Default example values</span>
+    <span class="n">defaults_</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">defaults</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">defaults</span>
+    <span class="n">num_unknown</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">argname_list_</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">defaults_</span><span class="p">))</span>
+    <span class="n">default_vals</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;?&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">num_unknown</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">defaults_</span><span class="p">)</span>
+    <span class="n">arg_val_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">argname_list_</span><span class="p">,</span> <span class="n">default_vals</span><span class="p">)</span>
+    <span class="n">infered_defaults</span> <span class="o">=</span> <span class="p">[</span><span class="n">find_arg_defaultval</span><span class="p">(</span><span class="n">argname</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">argname</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">arg_val_iter</span><span class="p">]</span>
+    <span class="n">arg_inferval_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">argname_list_</span><span class="p">,</span> <span class="n">infered_defaults</span><span class="p">)</span>
+    <span class="n">argdef_lines</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">argname</span><span class="p">,</span> <span class="n">inferval</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">argname</span><span class="p">,</span> <span class="n">inferval</span> <span class="ow">in</span> <span class="n">arg_inferval_iter</span><span class="p">]</span>
+    <span class="n">import_lines</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">(</span><span class="n">import_lines</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="n">inferval</span> <span class="o">==</span> <span class="s">&#39;?&#39;</span> <span class="k">for</span> <span class="n">inferval</span> <span class="ow">in</span> <span class="n">infered_defaults</span><span class="p">]):</span>
+        <span class="n">examplecode_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;# DISABLE_DOCTEST&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># Enable the test if it can be run immediately</span>
+        <span class="n">examplecode_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;# ENABLE_DOCTEST&#39;</span><span class="p">)</span>
+
+    <span class="n">examplecode_lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">import_lines</span><span class="p">)</span>
+    <span class="n">examplecode_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;# build test data&#39;</span><span class="p">)</span>
+    <span class="n">examplecode_lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">argdef_lines</span><span class="p">)</span>
+    <span class="c"># Default example result assignment</span>
+    <span class="n">result_assign</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="n">result_print</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="s">&#39;return_name&#39;</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">return_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">return_name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">return_name</span> <span class="o">=</span> <span class="s">&#39;result&#39;</span>
+            <span class="n">result_assign</span> <span class="o">=</span> <span class="n">return_name</span> <span class="o">+</span> <span class="s">&#39; = &#39;</span>
+            <span class="n">result_print</span> <span class="o">=</span> <span class="s">&#39;print(result)&#39;</span>  <span class="c"># + return_name + &#39;)&#39;</span>
+    <span class="c"># Default example call</span>
+    <span class="k">if</span> <span class="n">ismethod</span><span class="p">:</span>
+        <span class="n">selfname</span> <span class="o">=</span> <span class="n">argname_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">methodargs</span> <span class="o">=</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">argname_list</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="n">tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">selfname</span><span class="p">,</span> <span class="s">&#39;.&#39;</span><span class="p">,</span> <span class="n">funcname</span><span class="p">,</span> <span class="s">&#39;(&#39;</span><span class="p">,</span> <span class="n">methodargs</span><span class="p">,</span> <span class="s">&#39;)&#39;</span><span class="p">)</span>
+        <span class="n">example_call</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">funcargs</span> <span class="o">=</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">argname_list</span><span class="p">)</span>
+        <span class="n">tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">funcname</span><span class="p">,</span> <span class="s">&#39;(&#39;</span><span class="p">,</span> <span class="n">funcargs</span><span class="p">,</span> <span class="s">&#39;)&#39;</span><span class="p">)</span>
+        <span class="n">example_call</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span>
+    <span class="c"># Append call line</span>
+    <span class="n">examplecode_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;# execute function&#39;</span><span class="p">)</span>
+    <span class="n">examplecode_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result_assign</span> <span class="o">+</span> <span class="n">example_call</span><span class="p">)</span>
+    <span class="n">examplecode_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;# verify results&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">result_print</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">return_name</span> <span class="o">!=</span> <span class="s">&#39;result&#39;</span><span class="p">:</span>
+            <span class="n">examplecode_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;result = str(&#39;</span> <span class="o">+</span> <span class="n">return_name</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span><span class="p">)</span>
+        <span class="n">examplecode_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result_print</span><span class="p">)</span>
+    <span class="n">examplecode</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">examplecode_lines</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">examplecode</span>
+
+</div>
+<div class="viewcode-block" id="make_cmdline_docstr"><a class="viewcode-back" href="../../utool.html#utool.util_autogen.make_cmdline_docstr">[docs]</a><span class="k">def</span> <span class="nf">make_cmdline_docstr</span><span class="p">(</span><span class="n">funcname</span><span class="p">,</span> <span class="n">modname</span><span class="p">):</span>
+    <span class="n">cmdline_fmtstr</span> <span class="o">=</span> <span class="s">&#39;python -m {modname} --test-{funcname}&#39;</span>  <span class="c"># --enableall&#39;</span>
+    <span class="k">return</span> <span class="n">cmdline_fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+
+<span class="c"># &lt;/INVIDIAL DOCSTR COMPONENTS&gt;</span>
+
+</div>
+<div class="viewcode-block" id="make_docstr_block"><a class="viewcode-back" href="../../utool.html#utool.util_autogen.make_docstr_block">[docs]</a><span class="k">def</span> <span class="nf">make_docstr_block</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="n">block</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">indented_block</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
+    <span class="n">docstr_block</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">header</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">,</span> <span class="n">indented_block</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">docstr_block</span>
+
+</div>
+<div class="viewcode-block" id="make_default_docstr"><a class="viewcode-back" href="../../utool.html#utool.util_autogen.make_default_docstr">[docs]</a><span class="k">def</span> <span class="nf">make_default_docstr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span>
+                        <span class="n">with_args</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                        <span class="n">with_ret</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                        <span class="n">with_commandline</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                        <span class="n">with_example</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                        <span class="n">with_header</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                        <span class="n">with_debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                        <span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Tries to make a sensible default docstr so the user</span>
+<span class="sd">    can fill things in without typing too much</span>
+
+<span class="sd">    # TODO: Interleave old documentation with new documentation</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        func (function): live python function</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (argname, val)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_autogen import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; func = ut.make_default_docstr</span>
+<span class="sd">        &gt;&gt;&gt; func = ut.make_args_docstr</span>
+<span class="sd">        &gt;&gt;&gt; default_docstr = make_default_docstr(func)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(default_docstr)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">funcinfo</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">infer_function_info</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+
+    <span class="n">argname_list</span>   <span class="o">=</span> <span class="n">funcinfo</span><span class="o">.</span><span class="n">argname_list</span>
+    <span class="n">argtype_list</span>   <span class="o">=</span> <span class="n">funcinfo</span><span class="o">.</span><span class="n">argtype_list</span>
+    <span class="n">argdesc_list</span>   <span class="o">=</span> <span class="n">funcinfo</span><span class="o">.</span><span class="n">argdesc_list</span>
+    <span class="n">return_header</span>  <span class="o">=</span> <span class="n">funcinfo</span><span class="o">.</span><span class="n">return_header</span>
+    <span class="n">return_type</span>    <span class="o">=</span> <span class="n">funcinfo</span><span class="o">.</span><span class="n">return_type</span>
+    <span class="n">return_name</span>    <span class="o">=</span> <span class="n">funcinfo</span><span class="o">.</span><span class="n">return_name</span>
+    <span class="n">return_desc</span>    <span class="o">=</span> <span class="n">funcinfo</span><span class="o">.</span><span class="n">return_desc</span>
+    <span class="n">funcname</span>       <span class="o">=</span> <span class="n">funcinfo</span><span class="o">.</span><span class="n">funcname</span>
+    <span class="n">modname</span>        <span class="o">=</span> <span class="n">funcinfo</span><span class="o">.</span><span class="n">modname</span>
+    <span class="n">defaults</span>       <span class="o">=</span> <span class="n">funcinfo</span><span class="o">.</span><span class="n">defaults</span>
+    <span class="n">num_indent</span>     <span class="o">=</span> <span class="n">funcinfo</span><span class="o">.</span><span class="n">num_indent</span>
+    <span class="n">needs_surround</span> <span class="o">=</span> <span class="n">funcinfo</span><span class="o">.</span><span class="n">needs_surround</span>
+    <span class="n">funcname</span>       <span class="o">=</span> <span class="n">funcinfo</span><span class="o">.</span><span class="n">funcname</span>
+    <span class="n">ismethod</span>       <span class="o">=</span> <span class="n">funcinfo</span><span class="o">.</span><span class="n">ismethod</span>
+
+    <span class="n">docstr_parts</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c"># Header part</span>
+    <span class="k">if</span> <span class="n">with_header</span><span class="p">:</span>
+        <span class="n">header_block</span> <span class="o">=</span> <span class="n">funcname</span>
+        <span class="n">docstr_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">header_block</span><span class="p">)</span>
+
+    <span class="c"># Args part</span>
+    <span class="k">if</span> <span class="n">with_args</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">argname_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">argheader</span> <span class="o">=</span> <span class="s">&#39;Args&#39;</span>
+        <span class="n">arg_docstr</span> <span class="o">=</span> <span class="n">make_args_docstr</span><span class="p">(</span><span class="n">argname_list</span><span class="p">,</span> <span class="n">argtype_list</span><span class="p">,</span> <span class="n">argdesc_list</span><span class="p">,</span> <span class="n">ismethod</span><span class="p">)</span>
+        <span class="n">argsblock</span> <span class="o">=</span> <span class="n">make_docstr_block</span><span class="p">(</span><span class="n">argheader</span><span class="p">,</span> <span class="n">arg_docstr</span><span class="p">)</span>
+        <span class="n">docstr_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">argsblock</span><span class="p">)</span>
+
+    <span class="c"># Return / Yeild part</span>
+    <span class="k">if</span> <span class="n">with_ret</span> <span class="ow">and</span> <span class="n">return_header</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">return_header</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">return_doctr</span> <span class="o">=</span> <span class="n">make_returns_or_yeilds_docstr</span><span class="p">(</span><span class="n">return_type</span><span class="p">,</span> <span class="n">return_name</span><span class="p">,</span> <span class="n">return_desc</span><span class="p">)</span>
+            <span class="n">returnblock</span> <span class="o">=</span> <span class="n">make_docstr_block</span><span class="p">(</span><span class="n">return_header</span><span class="p">,</span> <span class="n">return_doctr</span><span class="p">)</span>
+            <span class="n">docstr_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">returnblock</span><span class="p">)</span>
+
+    <span class="c"># Example part</span>
+    <span class="c"># try to generate a simple and unit testable example</span>
+    <span class="k">if</span> <span class="n">with_commandline</span><span class="p">:</span>
+        <span class="n">cmdlineheader</span> <span class="o">=</span> <span class="s">&#39;CommandLine&#39;</span>
+        <span class="n">cmdlinecode</span> <span class="o">=</span> <span class="n">make_cmdline_docstr</span><span class="p">(</span><span class="n">funcname</span><span class="p">,</span> <span class="n">modname</span><span class="p">)</span>
+        <span class="n">cmdlineblock</span> <span class="o">=</span> <span class="n">make_docstr_block</span><span class="p">(</span><span class="n">cmdlineheader</span><span class="p">,</span> <span class="n">cmdlinecode</span><span class="p">)</span>
+        <span class="n">docstr_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cmdlineblock</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">with_example</span><span class="p">:</span>
+        <span class="n">exampleheader</span> <span class="o">=</span> <span class="s">&#39;Example&#39;</span>
+        <span class="n">examplecode</span> <span class="o">=</span> <span class="n">make_example_docstr</span><span class="p">(</span><span class="n">funcname</span><span class="p">,</span> <span class="n">modname</span><span class="p">,</span> <span class="n">argname_list</span><span class="p">,</span>
+                                          <span class="n">defaults</span><span class="p">,</span> <span class="n">return_type</span><span class="p">,</span> <span class="n">return_name</span><span class="p">,</span>
+                                          <span class="n">ismethod</span><span class="p">)</span>
+        <span class="n">examplecode_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">examplecode</span><span class="p">,</span> <span class="s">&#39;&gt;&gt;&gt; &#39;</span><span class="p">)</span>
+        <span class="n">exampleblock</span> <span class="o">=</span> <span class="n">make_docstr_block</span><span class="p">(</span><span class="n">exampleheader</span><span class="p">,</span> <span class="n">examplecode_</span><span class="p">)</span>
+        <span class="n">docstr_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">exampleblock</span><span class="p">)</span>
+
+    <span class="c"># DEBUG part (in case something goes wrong)</span>
+    <span class="k">if</span> <span class="n">with_debug</span><span class="p">:</span>
+        <span class="n">debugheader</span> <span class="o">=</span> <span class="s">&#39;Debug&#39;</span>
+        <span class="n">debugblock</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            num_indent = {num_indent}</span>
+<span class="sd">            &#39;&#39;&#39;</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">num_indent</span><span class="o">=</span><span class="n">num_indent</span><span class="p">)</span>
+        <span class="n">debugblock</span> <span class="o">=</span> <span class="n">make_docstr_block</span><span class="p">(</span><span class="n">debugheader</span><span class="p">,</span> <span class="n">debugblock</span><span class="p">)</span>
+        <span class="n">docstr_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">debugblock</span><span class="p">)</span>
+
+    <span class="c"># Enclosure / Indentation Parts</span>
+    <span class="k">if</span> <span class="n">needs_surround</span><span class="p">:</span>
+        <span class="n">docstr_parts</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;r&quot;&quot;&quot;&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">docstr_parts</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span><span class="s">&#39;&quot;&quot;&quot;&#39;</span><span class="p">]</span>
+        <span class="n">default_docstr</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">docstr_parts</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">default_docstr</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">docstr_parts</span><span class="p">)</span>
+
+    <span class="n">docstr_indent</span> <span class="o">=</span> <span class="s">&#39; &#39;</span> <span class="o">*</span> <span class="p">(</span><span class="n">num_indent</span> <span class="o">+</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="n">default_docstr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">default_docstr</span><span class="p">,</span> <span class="n">docstr_indent</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">default_docstr</span>
+
+</div>
+<div class="viewcode-block" id="make_default_module_maintest"><a class="viewcode-back" href="../../utool.html#utool.util_autogen.make_default_module_maintest">[docs]</a><span class="k">def</span> <span class="nf">make_default_module_maintest</span><span class="p">(</span><span class="n">modname</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    make_default_module_maintest</span>
+
+<span class="sd">    TODO: use path relative to home dir if the file is a script</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        modname (str):  module name</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: text</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://legacy.python.org/dev/peps/pep-0338/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_autogen import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; modname = &#39;utool.util_autogen&#39;</span>
+<span class="sd">        &gt;&gt;&gt; text = make_default_module_maintest(modname)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(text)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="c"># Need to use python -m to run a module</span>
+    <span class="c"># otherwise their could be odd platform specific errors.</span>
+    <span class="c">#python -c &quot;import utool, {modname};</span>
+    <span class="c"># utool.doctest_funcs({modname}, allexamples=True)&quot;</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        if __name__ == &#39;__main__&#39;:</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+<span class="sd">            CommandLine:</span>
+<span class="sd">                python -m {modname}</span>
+<span class="sd">                python -m {modname} --allexamples</span>
+<span class="sd">                python -m {modname} --allexamples --noface --nosrc</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+<span class="sd">            import multiprocessing</span>
+<span class="sd">            multiprocessing.freeze_support()  # for win32</span>
+<span class="sd">            import utool as ut  # NOQA</span>
+<span class="sd">            ut.doctest_funcs()</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">modname</span><span class="o">=</span><span class="n">modname</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">text</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python ibeis/control/template_generator.py --tbls annotations --Tflags getters native</span>
+<span class="sd">        python -c &quot;import utool, utool.util_autogen; utool.doctest_funcs(utool.util_autogen, allexamples=True)&quot;</span>
+<span class="sd">        python -m utool.util_autogen</span>
+<span class="sd">        python -m utool.util_autogen --allexamples</span>
+<span class="sd">        python -m utool.util_autogen --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../utool.html" >utool</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

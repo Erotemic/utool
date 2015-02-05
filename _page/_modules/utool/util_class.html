@@ -63,13 +63,29 @@
 
 <span class="c"># Registers which classes have which attributes</span>
 <span class="c"># FIXME: this might cause memory leaks</span>
+<span class="c"># FIXME: this does cause weird reimport behavior</span>
 <span class="n">__CLASSTYPE_ATTRIBUTES__</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="n">oset</span><span class="p">)</span>
 <span class="n">__CLASSTYPE_POSTINJECT_FUNCS__</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="n">oset</span><span class="p">)</span>
 
-<span class="n">VERBOSE_CLASS</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--verbose-class&#39;</span><span class="p">,</span> <span class="s">&#39;--verbclass&#39;</span><span class="p">))</span> <span class="ow">or</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">VERYVERBOSE</span>
+
+<span class="c">#_rrr = rrr</span>
+<span class="c">#def rrr(verbose=True):</span>
+<span class="c">#    &quot;&quot;&quot; keep registered functions through reloads ? &quot;&quot;&quot;</span>
+<span class="c">#    global __CLASSTYPE_ATTRIBUTES__</span>
+<span class="c">#    global __CLASSTYPE_POSTINJECT_FUNCS__</span>
+<span class="c">#    cta = __CLASSTYPE_ATTRIBUTES__.copy()</span>
+<span class="c">#    ctpif = __CLASSTYPE_POSTINJECT_FUNCS__.copy()</span>
+<span class="c">#    rrr_(verbose=verbose)</span>
+<span class="c">#    __CLASSTYPE_ATTRIBUTES__ = cta</span>
+<span class="c">#    __CLASSTYPE_POSTINJECT_FUNCS__ = ctpif</span>
 
 
-<div class="viewcode-block" id="inject_instance"><a class="viewcode-back" href="../../utool.html#utool.util_class.inject_instance">[docs]</a><span class="k">def</span> <span class="nf">inject_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">classtype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">allow_override</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERBOSE_CLASS</span><span class="p">):</span>
+<span class="n">QUIET_CLASS</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--quiet-class&#39;</span><span class="p">,</span> <span class="s">&#39;--quietclass&#39;</span><span class="p">))</span>
+<span class="n">VERBOSE_CLASS</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--verbose-class&#39;</span><span class="p">,</span> <span class="s">&#39;--verbclass&#39;</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">QUIET_CLASS</span> <span class="ow">and</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="inject_instance"><a class="viewcode-back" href="../../utool.html#utool.util_class.inject_instance">[docs]</a><span class="k">def</span> <span class="nf">inject_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">classtype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">allow_override</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                    <span class="n">verbose</span><span class="o">=</span><span class="n">VERBOSE_CLASS</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Injects an instance (self) of type (classtype)</span>
 <span class="sd">    with all functions registered to (classtype)</span>
@@ -85,52 +101,65 @@
 <span class="sd">        make_class_method_decorator</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; DOCTEST = False</span>
+<span class="sd">        &gt;&gt;&gt; # DOCTEST_DISABLE</span>
 <span class="sd">        &gt;&gt;&gt; utool.make_class_method_decorator(InvertedIndex)(smk_debug.invindex_dbgstr)</span>
 <span class="sd">        &gt;&gt;&gt; utool.inject_instance(invindex)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">classtype</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-        <span class="n">classtype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span>
-        <span class="k">if</span> <span class="n">classtype</span> <span class="o">==</span> <span class="s">&#39;ibeis.gui.models_and_views.IBEISTableView&#39;</span><span class="p">:</span>
-            <span class="c"># HACK HACK HACK</span>
-            <span class="kn">from</span> <span class="nn">guitool.__PYQT__</span> <span class="kn">import</span> <span class="n">QtGui</span>
-            <span class="n">classtype</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QAbstractItemView</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">__CLASSTYPE_ATTRIBUTES__</span><span class="p">[</span><span class="n">classtype</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Warning: no classes of type </span><span class="si">%r</span><span class="s"> are registered&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">classtype</span><span class="p">,))</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] type(self)=</span><span class="si">%r</span><span class="s">, self=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="bp">self</span><span class="p">)),</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Checking to see if anybody else was registered...&#39;</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] __CLASSTYPE_ATTRIBUTES__ = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">__CLASSTYPE_ATTRIBUTES__</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
-            <span class="k">for</span> <span class="n">classtype_</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">__CLASSTYPE_ATTRIBUTES__</span><span class="p">):</span>
-                <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">classtype_</span><span class="p">)</span>
-                <span class="n">classtype</span> <span class="o">=</span> <span class="n">classtype_</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Warning: using subclass=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">classtype_</span><span class="p">,))</span>
-                <span class="k">break</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] injecting methods into </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,))</span>
-    <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">__CLASSTYPE_ATTRIBUTES__</span><span class="p">[</span><span class="n">classtype</span><span class="p">]:</span>
-        <span class="k">if</span> <span class="n">VERBOSE_CLASS</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] * injecting </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">func</span><span class="p">,))</span>
-        <span class="n">method_name</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="c"># Allow user to register tuples for aliases</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
-            <span class="n">func</span><span class="p">,</span> <span class="n">method_name</span> <span class="o">=</span> <span class="n">func</span>
-        <span class="n">inject_func_as_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">method_name</span><span class="o">=</span><span class="n">method_name</span><span class="p">,</span> <span class="n">allow_override</span><span class="o">=</span><span class="n">allow_override</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] Running postinject functions on </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,))</span>
-    <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">__CLASSTYPE_POSTINJECT_FUNCS__</span><span class="p">[</span><span class="n">classtype</span><span class="p">]:</span>
-        <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] Finished injecting instance self=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] begin inject_instance&#39;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">classtype</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># Probably should depricate this block of code</span>
+            <span class="c"># It tries to do too much</span>
+            <span class="n">classtype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span>
+            <span class="k">if</span> <span class="n">classtype</span> <span class="o">==</span> <span class="s">&#39;ibeis.gui.models_and_views.IBEISTableView&#39;</span><span class="p">:</span>
+                <span class="c"># HACK HACK HACK</span>
+                <span class="kn">from</span> <span class="nn">guitool.__PYQT__</span> <span class="kn">import</span> <span class="n">QtGui</span>
+                <span class="n">classtype</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QAbstractItemView</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">__CLASSTYPE_ATTRIBUTES__</span><span class="p">[</span><span class="n">classtype</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Warning: no classes of type </span><span class="si">%r</span><span class="s"> are registered&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">classtype</span><span class="p">,))</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] type(self)=</span><span class="si">%r</span><span class="s">, self=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="bp">self</span><span class="p">)),</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Checking to see if anybody else was registered...&#39;</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] __CLASSTYPE_ATTRIBUTES__ = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">__CLASSTYPE_ATTRIBUTES__</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+                <span class="k">for</span> <span class="n">classtype_</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">__CLASSTYPE_ATTRIBUTES__</span><span class="p">):</span>
+                    <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">classtype_</span><span class="p">)</span>
+                    <span class="n">classtype</span> <span class="o">=</span> <span class="n">classtype_</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Warning: using subclass=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">classtype_</span><span class="p">,))</span>
+                    <span class="k">break</span>
+        <span class="n">func_list</span> <span class="o">=</span> <span class="n">__CLASSTYPE_ATTRIBUTES__</span><span class="p">[</span><span class="n">classtype</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">verbose</span> <span class="ow">or</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] injecting </span><span class="si">%d</span><span class="s"> methods</span><span class="se">\n</span><span class="s">   with classtype=</span><span class="si">%r</span><span class="se">\n</span><span class="s">   into </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">func_list</span><span class="p">),</span> <span class="n">classtype</span><span class="p">,</span> <span class="bp">self</span><span class="p">,))</span>
+        <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">func_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">VERBOSE_CLASS</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] * injecting </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">func</span><span class="p">,))</span>
+            <span class="n">method_name</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="c"># Allow user to register tuples for aliases</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="n">func</span><span class="p">,</span> <span class="n">method_name</span> <span class="o">=</span> <span class="n">func</span>
+            <span class="n">inject_func_as_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">method_name</span><span class="o">=</span><span class="n">method_name</span><span class="p">,</span> <span class="n">allow_override</span><span class="o">=</span><span class="n">allow_override</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] Running postinject functions on </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,))</span>
+        <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">__CLASSTYPE_POSTINJECT_FUNCS__</span><span class="p">[</span><span class="n">classtype</span><span class="p">]:</span>
+            <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] Finished injecting instance self=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,))</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;ISSUE WHEN INJECTING </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">classtype</span><span class="p">,),</span>
+                      <span class="n">iswarning</span><span class="o">=</span><span class="ow">not</span> <span class="n">strict</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">strict</span><span class="p">:</span>
+            <span class="k">raise</span>
 
 </div>
-<div class="viewcode-block" id="make_class_method_decorator"><a class="viewcode-back" href="../../utool.html#utool.util_class.make_class_method_decorator">[docs]</a><span class="k">def</span> <span class="nf">make_class_method_decorator</span><span class="p">(</span><span class="n">classtype</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; register a class to be injectable</span>
-<span class="sd">    classtype is a key which should be a type</span>
+<div class="viewcode-block" id="make_class_method_decorator"><a class="viewcode-back" href="../../utool.html#utool.util_class.make_class_method_decorator">[docs]</a><span class="k">def</span> <span class="nf">make_class_method_decorator</span><span class="p">(</span><span class="n">classtype</span><span class="p">,</span> <span class="n">modname</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    register a class to be injectable</span>
+<span class="sd">    classtype is a key that identifies the injected class</span>
+<span class="sd">    REMEMBER to call inject_instance in __init__</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        classtype : the class to be injected into</span>
-<span class="sd">            REMEMBER to call inject_instance in __init__</span>
+<span class="sd">        modname : the global __name__ of the module youa re injecting from</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        closure_decorate_class_method (func): decorator for injectable methods</span>
@@ -149,16 +178,22 @@
 <span class="sd">        &gt;&gt;&gt; shop = CheeseShop()</span>
 <span class="sd">        &gt;&gt;&gt; assert shop.has_cheese() is False</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">VERBOSE_CLASS</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] register make_class_method_decorator=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">make_class_method_decorator</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">VERBOSE_CLASS</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] register make_class_method_decorator classtype=</span><span class="si">%r</span><span class="s">, modname=</span><span class="si">%r</span><span class="s">&#39;</span>
+              <span class="o">%</span> <span class="p">(</span><span class="n">classtype</span><span class="p">,</span> <span class="n">modname</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">modname</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+        <span class="c"># skips reinjects into main</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: cannot register class functions as __main__&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="k">lambda</span> <span class="n">func</span><span class="p">:</span> <span class="n">func</span>
     <span class="n">closure_decorate_class_method</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">decorate_class_method</span><span class="p">,</span> <span class="n">classtype</span><span class="o">=</span><span class="n">classtype</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">closure_decorate_class_method</span>
 
 </div>
-<div class="viewcode-block" id="make_class_postinject_decorator"><a class="viewcode-back" href="../../utool.html#utool.util_class.make_class_postinject_decorator">[docs]</a><span class="k">def</span> <span class="nf">make_class_postinject_decorator</span><span class="p">(</span><span class="n">classtype</span><span class="p">):</span>
+<div class="viewcode-block" id="make_class_postinject_decorator"><a class="viewcode-back" href="../../utool.html#utool.util_class.make_class_postinject_decorator">[docs]</a><span class="k">def</span> <span class="nf">make_class_postinject_decorator</span><span class="p">(</span><span class="n">classtype</span><span class="p">,</span> <span class="n">modname</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
 <span class="sd">        classtype : the class to be injected into</span>
+<span class="sd">        modname : the global __name__ of the module youa re injecting from</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        closure_decorate_postinject (func): decorator for injectable methods</span>
@@ -166,30 +201,43 @@
 <span class="sd">    SeeAlso:</span>
 <span class="sd">        make_class_method_decorator</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">VERBOSE_CLASS</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] register class_postinject=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">make_class_method_decorator</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">VERBOSE_CLASS</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] register class_postinject classtype=</span><span class="si">%r</span><span class="s">, modname=</span><span class="si">%r</span><span class="s">&#39;</span>
+              <span class="o">%</span> <span class="p">(</span><span class="n">classtype</span><span class="p">,</span> <span class="n">modname</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">modname</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: cannot register class functions as __main__&#39;</span><span class="p">)</span>
+        <span class="c"># skips reinjects into main</span>
+        <span class="k">return</span> <span class="k">lambda</span> <span class="n">func</span><span class="p">:</span> <span class="n">func</span>
     <span class="n">closure_decorate_postinject</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">decorate_postinject</span><span class="p">,</span> <span class="n">classtype</span><span class="o">=</span><span class="n">classtype</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">closure_decorate_postinject</span>
 
 </div>
-<div class="viewcode-block" id="decorate_class_method"><a class="viewcode-back" href="../../utool.html#utool.util_class.decorate_class_method">[docs]</a><span class="k">def</span> <span class="nf">decorate_class_method</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">classtype</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="decorate_class_method"><a class="viewcode-back" href="../../utool.html#utool.util_class.decorate_class_method">[docs]</a><span class="k">def</span> <span class="nf">decorate_class_method</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">classtype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">skipmain</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Will inject all decorated function as methods of classtype</span>
 
+<span class="sd">    classtype is some identifying string, tuple, or object</span>
+
 <span class="sd">    func can also be a tuple</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">assert</span> <span class="n">classtype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;must specify classtype&#39;</span>
+    <span class="c">#import utool as ut</span>
     <span class="k">global</span> <span class="n">__CLASSTYPE_ATTRIBUTES__</span>
+    <span class="k">assert</span> <span class="n">classtype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;must specify classtype&#39;</span>
+    <span class="c">#if not (skipmain and ut.get_caller_modname() == &#39;__main__&#39;):</span>
     <span class="n">__CLASSTYPE_ATTRIBUTES__</span><span class="p">[</span><span class="n">classtype</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">func</span>
 
 </div>
-<div class="viewcode-block" id="decorate_postinject"><a class="viewcode-back" href="../../utool.html#utool.util_class.decorate_postinject">[docs]</a><span class="k">def</span> <span class="nf">decorate_postinject</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">classtype</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="decorate_postinject"><a class="viewcode-back" href="../../utool.html#utool.util_class.decorate_postinject">[docs]</a><span class="k">def</span> <span class="nf">decorate_postinject</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">classtype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">skipmain</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Will perform func with argument self after inject_instance is called on classtype</span>
+
+<span class="sd">    classtype is some identifying string, tuple, or object</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">assert</span> <span class="n">classtype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;must specify classtype&#39;</span>
+    <span class="c">#import utool as ut</span>
     <span class="k">global</span> <span class="n">__CLASSTYPE_POSTINJECT_FUNCS__</span>
+    <span class="k">assert</span> <span class="n">classtype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;must specify classtype&#39;</span>
+    <span class="c">#if not (skipmain and ut.get_caller_modname() == &#39;__main__&#39;):</span>
     <span class="n">__CLASSTYPE_POSTINJECT_FUNCS__</span><span class="p">[</span><span class="n">classtype</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">func</span>
 
@@ -205,16 +253,32 @@
 <span class="sd">       func : some function whos first arugment is a class instance</span>
 <span class="sd">       method_name (str) : default=func.__name__, if specified renames the method</span>
 <span class="sd">       class_ (type) : if func is an unbound method of this class</span>
+
+
+<span class="sd">    References:</span>
+<span class="sd">        http://stackoverflow.com/questions/1015307/python-bind-an-unbound-method</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">method_name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">method_name</span> <span class="o">=</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="c">#printDBG(&#39;Injecting method_name=%r&#39; % method_name)</span>
-    <span class="n">new_method</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">MethodType</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
     <span class="n">old_method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="c">#import utool as ut</span>
+    <span class="c">#ut.embed()</span>
+
+    <span class="c"># Bind function to the class instance</span>
+    <span class="c">#new_method = types.MethodType(func, self, self.__class__)</span>
+    <span class="n">new_method</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">)</span>
+    <span class="c">#new_method = profile(func.__get__(self, self.__class__))</span>
+
     <span class="k">if</span> <span class="n">old_method</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="c">#if old_method is new_method or old_method.im_func is new_method.im_func:</span>
-        <span class="c">#    print(&#39;WARNING: Injecting the same function twice: %r&#39; % new_method)</span>
-        <span class="k">if</span> <span class="n">allow_override</span> <span class="ow">is</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">old_method</span><span class="o">.</span><span class="n">im_func</span><span class="o">.</span><span class="n">func_globals</span><span class="p">[</span><span class="s">&#39;__name__&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;__main__&#39;</span> <span class="ow">and</span>
+                <span class="n">new_method</span><span class="o">.</span><span class="n">im_func</span><span class="o">.</span><span class="n">func_globals</span><span class="p">[</span><span class="s">&#39;__name__&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">True</span> <span class="ow">or</span> <span class="n">VERBOSE_CLASS</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] skipping re-inject of </span><span class="si">%r</span><span class="s"> from __main__&#39;</span> <span class="o">%</span> <span class="n">method_name</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="n">old_method</span> <span class="ow">is</span> <span class="n">new_method</span> <span class="ow">or</span> <span class="n">old_method</span><span class="o">.</span><span class="n">im_func</span> <span class="ow">is</span> <span class="n">new_method</span><span class="o">.</span><span class="n">im_func</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: Injecting the same function twice: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">new_method</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">allow_override</span> <span class="ow">is</span> <span class="bp">False</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;Overrides are not allowed. Already have method_name=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method_name</span><span class="p">))</span>
         <span class="k">elif</span> <span class="n">allow_override</span> <span class="o">==</span> <span class="s">&#39;warn&#39;</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: Overrides are not allowed. Already have method_name=</span><span class="si">%r</span><span class="s">. Skipping&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method_name</span><span class="p">))</span>
@@ -222,9 +286,11 @@
         <span class="k">elif</span> <span class="n">allow_override</span> <span class="o">==</span> <span class="s">&#39;override+warn&#39;</span><span class="p">:</span>
             <span class="c">#import utool as ut</span>
             <span class="c">#ut.embed()</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: Overrides are allowed, but dangerous. Already have method_name=</span><span class="si">%r</span><span class="s">.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method_name</span><span class="p">))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: Overrides are allowed, but dangerous. method_name=</span><span class="si">%r</span><span class="s">.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method_name</span><span class="p">))</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;old_method = </span><span class="si">%r</span><span class="s">, im_func=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">old_method</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">old_method</span><span class="o">.</span><span class="n">im_func</span><span class="p">)))</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;new_method = </span><span class="si">%r</span><span class="s">, im_func=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_method</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">new_method</span><span class="o">.</span><span class="n">im_func</span><span class="p">)))</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">old_method</span><span class="o">.</span><span class="n">im_func</span><span class="o">.</span><span class="n">func_globals</span><span class="p">[</span><span class="s">&#39;__name__&#39;</span><span class="p">])</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">new_method</span><span class="o">.</span><span class="n">im_func</span><span class="o">.</span><span class="n">func_globals</span><span class="p">[</span><span class="s">&#39;__name__&#39;</span><span class="p">])</span>
         <span class="c"># TODO: does this actually decrement the refcount enough?</span>
         <span class="k">del</span> <span class="n">old_method</span>
     <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="n">new_method</span><span class="p">)</span>
@@ -267,13 +333,12 @@
 </div>
 <div class="viewcode-block" id="ReloadingMetaclass"><a class="viewcode-back" href="../../utool.html#utool.util_class.ReloadingMetaclass">[docs]</a><span class="k">class</span> <span class="nc">ReloadingMetaclass</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    __init__</span>
+<span class="sd">    Classes with this metaclass will be able to reload themselves</span>
+<span class="sd">    on a per-instance basis using the rrr function.</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        metaself (?):</span>
-<span class="sd">        name (?):</span>
-<span class="sd">        bases (?):</span>
-<span class="sd">        dct (?):</span>
+<span class="sd">    If the functions _on_reload and _initialize_self exist</span>
+<span class="sd">    they will be called after and before reload respectively. Any</span>
+<span class="sd">    inject_instance functions should be handled there.</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # DIABLE_DOCTEST</span>
@@ -310,6 +375,8 @@
                 <span class="n">modname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__module__</span>
                 <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
                     <span class="k">print</span><span class="p">(</span><span class="s">&#39;reloading &#39;</span> <span class="o">+</span> <span class="n">classname</span> <span class="o">+</span> <span class="s">&#39; from &#39;</span> <span class="o">+</span> <span class="n">modname</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;_on_reload&#39;</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_on_reload</span><span class="p">()</span>
                 <span class="n">module</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">modname</span><span class="p">]</span>
                 <span class="k">if</span> <span class="n">modname</span> <span class="o">!=</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
                     <span class="c"># Reload the parent module</span>
@@ -322,6 +389,8 @@
                 <span class="n">class_</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">classname</span><span class="p">)</span>
                 <span class="c"># TODO: handle injected definitions</span>
                 <span class="n">reload_class_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;_initialize_self&#39;</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_self</span><span class="p">()</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
                 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Error Reloading Class&#39;</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span>
@@ -398,7 +467,7 @@
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    python -c &quot;import utool; utool.doctest_funcs(utool.util_class, allexamples=True)&quot;</span>
-<span class="sd">    python utool/util_class.py --allexamples</span>
+<span class="sd">    python -m utool.util_class --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>
@@ -443,7 +512,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

@@ -344,7 +344,8 @@
                 <span class="k">pass</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="kn">import</span> <span class="nn">utool</span>
-                <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Pref object missing named attribute&#39;</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;self._intern.name&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+                    <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Pref object missing named attribute&#39;</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;self._intern.name&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">],</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
                 <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s">&#39;Pref object is missing named attribute: name=</span><span class="si">%r</span><span class="s">&#39;</span>  <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
                 <span class="c">#raise</span>
 </div>
@@ -386,38 +387,43 @@
 </div>
 <div class="viewcode-block" id="Pref.save"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="s">&#39;Saves prefs to disk in dict format&#39;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">fpath</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">]:</span>
+        <span class="n">fpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fpath</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">]:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="c">#printDBG(&#39;[save] Can my parent save me?&#39;)  # ...to disk</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
             <span class="c">#printDBG(&#39;[save] I cannot be saved. I have no parents.&#39;)</span>
             <span class="k">return</span> <span class="bp">False</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[pref] Saving to &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">fpath</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[pref] Saving to &#39;</span> <span class="o">+</span> <span class="n">fpath</span><span class="p">)</span>
             <span class="n">pref_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
             <span class="n">cPickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">pref_dict</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">True</span>
 </div>
+<div class="viewcode-block" id="Pref.get_fpath"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.get_fpath">[docs]</a>    <span class="k">def</span> <span class="nf">get_fpath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">fpath</span>
+</div>
 <div class="viewcode-block" id="Pref.load"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c">#printDBG(&#39;[pref.load()]&#39;)</span>
         <span class="sd">&quot;&quot;&quot; Read pref dict stored on disk. Overwriting current values. &quot;&quot;&quot;</span>
+        <span class="c">#printDBG(&#39;[pref.load()]&#39;)</span>
         <span class="c">#if not os.path.exists(self._intern.fpath):</span>
         <span class="c">#    msg = &#39;[pref] fpath=%r does not exist&#39; % (self._intern.fpath)</span>
         <span class="c">#    #printDBG(msg)</span>
         <span class="c">#    return msg</span>
+        <span class="n">fpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fpath</span><span class="p">()</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="c">#printDBG(&#39;load: %r&#39; % self._intern.fpath)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="c">#printDBG(&#39;load: %r&#39; % fpath)</span>
                 <span class="n">pref_dict</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">EOFError</span> <span class="k">as</span> <span class="n">ex1</span><span class="p">:</span>
             <span class="n">printex</span><span class="p">(</span><span class="n">ex1</span><span class="p">,</span> <span class="s">&#39;did not load pref fpath=</span><span class="si">%r</span><span class="s"> correctly&#39;</span> <span class="o">%</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">fpath</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                    <span class="n">fpath</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
             <span class="c">#warnings.warn(msg)</span>
             <span class="k">raise</span>
             <span class="c">#return msg</span>
         <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex2</span><span class="p">:</span>
             <span class="n">printex</span><span class="p">(</span><span class="n">ex2</span><span class="p">,</span> <span class="s">&#39;did not load pref fpath=</span><span class="si">%r</span><span class="s"> correctly&#39;</span> <span class="o">%</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">fpath</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                    <span class="n">fpath</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
             <span class="c">#warnings.warn(msg)</span>
             <span class="k">raise</span>
             <span class="c">#return msg</span>
@@ -643,7 +649,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

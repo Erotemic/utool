@@ -53,15 +53,36 @@
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">split</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">utool.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="kn">from</span> <span class="nn">utool._internal</span> <span class="kn">import</span> <span class="n">meta_util_arg</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[sysreq]&#39;</span><span class="p">)</span>
 
 
-<span class="n">DEBUG</span> <span class="o">=</span> <span class="s">&#39;--debug&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
-<span class="n">VERBOSE</span> <span class="o">=</span> <span class="s">&#39;--verbose&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<span class="n">VERBOSE</span> <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">VERBOSE</span>
+<span class="n">DEBUG</span> <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">DEBUG</span>
 
 
+<div class="viewcode-block" id="in_virtual_env"><a class="viewcode-back" href="../../utool.html#utool.util_sysreq.in_virtual_env">[docs]</a><span class="k">def</span> <span class="nf">in_virtual_env</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    returns True if you are running inside a python virtual environment</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://stackoverflow.com/questions/1871549/python-determine-if-running-inside-virtualenv</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">sys</span>
+    <span class="k">return</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">sys</span><span class="p">,</span> <span class="s">&#39;real_prefix&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="is_running_as_root"><a class="viewcode-back" href="../../utool.html#utool.util_sysreq.is_running_as_root">[docs]</a><span class="k">def</span> <span class="nf">is_running_as_root</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    References:</span>
+<span class="sd">        http://stackoverflow.com/questions/5721529/running-python-script-as-root-with-sudo-what-is-the-username-of-the-effectiv</span>
+<span class="sd">        http://stackoverflow.com/questions/2806897/what-is-the-best-practices-for-checking-if-the-user-of-a-python-script-has-root</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s">&#39;USER&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;root&#39;</span>
+
+</div>
 <div class="viewcode-block" id="locate_path"><a class="viewcode-back" href="../../utool.html#utool.util_sysreq.locate_path">[docs]</a><span class="k">def</span> <span class="nf">locate_path</span><span class="p">(</span><span class="n">dname</span><span class="p">,</span> <span class="n">recurse_down</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-    <span class="s">&#39;Search for a path&#39;</span>
+    <span class="sd">&quot;&quot;&quot; Search for a path &quot;&quot;&quot;</span>
     <span class="n">tried_fpaths</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">root_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
     <span class="k">while</span> <span class="n">root_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
@@ -132,7 +153,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

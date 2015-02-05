@@ -56,14 +56,15 @@
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">utool._internal</span> <span class="kn">import</span> <span class="n">meta_util_arg</span>
 <span class="kn">from</span> <span class="nn">utool.util_str</span> <span class="kn">import</span> <span class="n">horiz_string</span><span class="p">,</span> <span class="n">filesize_str</span>
 <span class="kn">from</span> <span class="nn">utool.util_inject</span> <span class="kn">import</span> <span class="n">inject</span><span class="p">,</span> <span class="n">get_injected_modules</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[print]&#39;</span><span class="p">)</span>
 
-<span class="n">QUIET</span> <span class="o">=</span> <span class="s">&#39;--quiet&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
-<span class="n">VERBOSE</span> <span class="o">=</span> <span class="s">&#39;--verbose&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
-<span class="n">SILENT</span> <span class="o">=</span> <span class="s">&#39;--silent&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
-<span class="n">NO_INDENT</span> <span class="o">=</span> <span class="s">&#39;--noindent&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="ow">or</span> <span class="s">&#39;--no-indent&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="ow">or</span> <span class="n">SILENT</span>
+<span class="n">QUIET</span>        <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">QUIET</span>
+<span class="n">VERBOSE</span>      <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">VERBOSE</span>
+<span class="n">NO_INDENT</span>    <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">NO_INDENT</span>
+<span class="n">SILENT</span>       <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">SILENT</span>
 
 
 <div class="viewcode-block" id="horiz_print"><a class="viewcode-back" href="../../utool.html#utool.util_print.horiz_print">[docs]</a><span class="k">def</span> <span class="nf">horiz_print</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
@@ -79,10 +80,16 @@
 
 </div>
 <div class="viewcode-block" id="Indenter"><a class="viewcode-back" href="../../utool.html#utool.util_print.Indenter">[docs]</a><span class="k">class</span> <span class="nc">Indenter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Works with utool.inject to allow for prefixing of all within-context</span>
+<span class="sd">    print statements in a semi-dynamic manner. There seem to be some bugs</span>
+<span class="sd">    but it works pretty well.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># THIS IS MUCH BETTER</span>
     <span class="c">#@profile</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;    &#39;</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">NO_INDENT</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;    &#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="n">enabled</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">NO_INDENT</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span><span class="p">:</span>
             <span class="c">#self.modules = modules</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">modules</span> <span class="o">=</span> <span class="n">get_injected_modules</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">old_print_dict</span> <span class="o">=</span> <span class="p">{}</span>
@@ -91,10 +98,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">lbl</span> <span class="o">=</span> <span class="n">lbl</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">INDENT_PRINT_</span> <span class="o">=</span> <span class="bp">False</span>
 
-    <span class="c">#@profile</span>
+    <span class="nd">@profile</span>
 <div class="viewcode-block" id="Indenter.start"><a class="viewcode-back" href="../../utool.html#utool.util_print.Indenter.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c"># Chain functions together rather than overwriting stdout</span>
-        <span class="k">if</span> <span class="n">NO_INDENT</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">NO_INDENT</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span><span class="p">:</span>
             <span class="k">return</span>
         <span class="k">def</span> <span class="nf">indent_msg</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
             <span class="n">mgs</span> <span class="o">=</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
@@ -124,10 +131,10 @@
             <span class="c">#def indent_printDBG(msg):</span>
             <span class="c">#    self.old_printDBG_dict[mod](indent_msg(msg))</span>
             <span class="c">#setattr(mod, &#39;printDBG&#39;, indent_printDBG)</span>
-
-    <span class="c">#@profile</span></div>
+</div>
+    <span class="nd">@profile</span>
 <div class="viewcode-block" id="Indenter.stop"><a class="viewcode-back" href="../../utool.html#utool.util_print.Indenter.stop">[docs]</a>    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">NO_INDENT</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">NO_INDENT</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span><span class="p">:</span>
             <span class="k">return</span>
         <span class="k">def</span> <span class="nf">pop_module_functions</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">funcname</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">mod</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">dict_</span><span class="p">):</span>
@@ -139,10 +146,12 @@
         <span class="c">#for mod in six.iterkeys(self.old_printDBG_dict):</span>
         <span class="c">#    setattr(mod, &#39;printDBG&#39;, self.old_printDBG_dict[mod])</span>
 </div>
+    <span class="nd">@profile</span>
     <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span>
 
+    <span class="nd">@profile</span>
     <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">trace</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">trace</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
@@ -156,6 +165,24 @@
         <span class="k">print</span><span class="p">(</span><span class="n">arr_name</span> <span class="o">+</span> <span class="s">&#39;.shape = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;len(</span><span class="si">%s</span><span class="s">) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">arr_name</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="p">)))</span>
+
+</div>
+<div class="viewcode-block" id="PrintStartEndContext"><a class="viewcode-back" href="../../utool.html#utool.util_print.PrintStartEndContext">[docs]</a><span class="k">class</span> <span class="nc">PrintStartEndContext</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    prints on open and close of some section of interest</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span>
+
+    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;+--- START &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_traceback</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;L___ END &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="NpPrintOpts"><a class="viewcode-back" href="../../utool.html#utool.util_print.NpPrintOpts">[docs]</a><span class="k">class</span> <span class="nc">NpPrintOpts</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -252,7 +279,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

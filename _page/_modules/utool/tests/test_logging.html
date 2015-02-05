@@ -1,0 +1,184 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>utool.tests.test_logging &mdash; utool 1.0.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../../index.html" />
+    <link rel="up" title="utool" href="../../utool.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../utool.html" accesskey="U">utool</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for utool.tests.test_logging</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python2.7</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">builtins</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[test_logging]&#39;</span><span class="p">)</span>
+
+
+<span class="nd">@utool.indent_func</span>
+<div class="viewcode-block" id="func1"><a class="viewcode-back" href="../../../utool.tests.html#utool.tests.test_logging.func1">[docs]</a><span class="k">def</span> <span class="nf">func1</span><span class="p">():</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;enter func1&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;exit  func1&#39;</span><span class="p">)</span>
+
+</div>
+<span class="nd">@utool.indent_func</span>
+<div class="viewcode-block" id="func2"><a class="viewcode-back" href="../../../utool.tests.html#utool.tests.test_logging.func2">[docs]</a><span class="k">def</span> <span class="nf">func2</span><span class="p">():</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;enter func2&#39;</span><span class="p">)</span>
+    <span class="n">func1</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;exit  func2&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="remove_timestamp"><a class="viewcode-back" href="../../../utool.tests.html#utool.tests.test_logging.remove_timestamp">[docs]</a><span class="k">def</span> <span class="nf">remove_timestamp</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">re</span>
+    <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&#39;\[\d\d:\d\d:\d\d\]&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">string</span><span class="p">)</span>
+
+</div>
+<span class="nd">@utool.indent_func</span>
+<div class="viewcode-block" id="test"><a class="viewcode-back" href="../../../utool.tests.html#utool.tests.test_logging.test">[docs]</a><span class="k">def</span> <span class="nf">test</span><span class="p">():</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;enter test&#39;</span><span class="p">)</span>
+    <span class="n">log_fpath1</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="s">&#39;utool&#39;</span><span class="p">,</span> <span class="s">&#39;test_logfile1.txt&#39;</span><span class="p">)</span>
+    <span class="n">log_fpath2</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="s">&#39;utool&#39;</span><span class="p">,</span> <span class="s">&#39;test_logfile2.txt&#39;</span><span class="p">)</span>
+
+    <span class="n">utool</span><span class="o">.</span><span class="n">start_logging</span><span class="p">(</span><span class="n">log_fpath1</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+    <span class="n">func1</span><span class="p">()</span>
+    <span class="n">func2</span><span class="p">()</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">stop_logging</span><span class="p">()</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;This line is NOT logged&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+    <span class="n">utool</span><span class="o">.</span><span class="n">start_logging</span><span class="p">(</span><span class="n">log_fpath2</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;This line is logged&#39;</span><span class="p">)</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">stop_logging</span><span class="p">()</span>
+
+    <span class="n">log1</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="n">log_fpath1</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">log2</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="n">log_fpath2</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+    <span class="n">target1</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">unindent</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">    &lt;__LOG_START__&gt;</span>
+<span class="s">    logging to log_fpath=</span><span class="si">%r</span><span class="s"></span>
+<span class="s">    [test][func1]enter func1</span>
+<span class="s">    [test][func1]exit  func1</span>
+<span class="s">    [test][func2]enter func2</span>
+<span class="s">    [test][func2][func1]enter func1</span>
+<span class="s">    [test][func2][func1]exit  func1</span>
+<span class="s">    [test][func2]exit  func2</span>
+<span class="s">    &lt;__LOG_STOP__&gt;&#39;&#39;&#39;</span> <span class="o">%</span> <span class="n">log_fpath1</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+    <span class="n">target2</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">unindent</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">    &lt;__LOG_START__&gt;</span>
+<span class="s">    logging to log_fpath=</span><span class="si">%r</span><span class="s"></span>
+<span class="s">    [test]This line is logged</span>
+<span class="s">    &lt;__LOG_STOP__&gt;&#39;&#39;&#39;</span> <span class="o">%</span> <span class="n">log_fpath2</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+    <span class="n">output1</span> <span class="o">=</span> <span class="n">remove_timestamp</span><span class="p">(</span><span class="n">log1</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">output2</span> <span class="o">=</span> <span class="n">remove_timestamp</span><span class="p">(</span><span class="n">log2</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">target1</span> <span class="o">==</span> <span class="n">output1</span><span class="p">,</span> <span class="s">&#39;target1 failed&#39;</span>
+        <span class="k">assert</span> <span class="n">target2</span> <span class="o">==</span> <span class="n">output2</span><span class="p">,</span> <span class="s">&#39;target2 failed&#39;</span>
+        <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="s">&#39;TEST PASSED&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
+        <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&lt;!!! TEST FAILED !!!&gt;&#39;</span><span class="p">)</span>
+
+        <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">target1:&#39;</span><span class="p">)</span>
+        <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="n">target1</span><span class="p">)</span>
+        <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">output1:&#39;</span><span class="p">)</span>
+        <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="n">output1</span><span class="p">)</span>
+
+        <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">target2:&#39;</span><span class="p">)</span>
+        <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="n">target2</span><span class="p">)</span>
+        <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">output2:&#39;</span><span class="p">)</span>
+        <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="n">output2</span><span class="p">)</span>
+
+        <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="s">&#39;&lt;/!!! TEST FAILED !!!&gt;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="k">raise</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">test</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../utool.html" >utool</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

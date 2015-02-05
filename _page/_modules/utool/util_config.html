@@ -50,6 +50,8 @@
   <h1>Source code for utool.util_config</h1><div class="highlight"><pre>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">util_config</span>
+
+<span class="sd">TODO: FINISH ME AND ALLOW FOR CUSTOM SETTINGS BASED OFF OF A USER PROFILE</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 
@@ -68,8 +70,8 @@
 <span class="c">#from utool import util_io</span>
 <span class="c">#from utool import util_str</span>
 <span class="c">#from utool import util_cplat</span>
-<span class="c">#from ._internal.meta_util_six import get_funcname</span>
-<span class="c">#from ._internal.meta_util_constants import (global_cache_fname,</span>
+<span class="c">#from utool._internal.meta_util_six import get_funcname</span>
+<span class="c">#from utool._internal.meta_util_constants import (global_cache_fname,</span>
 <span class="c">#                                            global_cache_dname,</span>
 <span class="c">#                                            default_appname)</span>
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[config]&#39;</span><span class="p">)</span>
@@ -126,7 +128,20 @@
     <span class="n">CONFIG_DICT</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_default_repo_config</span><span class="p">()</span>
     <span class="n">config_str</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">CONFIG_DICT</span><span class="p">,</span> <span class="n">strvals</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                                 <span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">config_str</span><span class="p">)</span></div>
+    <span class="k">print</span><span class="p">(</span><span class="n">config_str</span><span class="p">)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_config</span>
+<span class="sd">        python -m utool.util_config --allexamples</span>
+<span class="sd">        python -m utool.util_config --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -166,7 +181,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

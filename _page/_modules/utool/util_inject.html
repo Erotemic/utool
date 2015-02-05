@@ -48,22 +48,36 @@
           <div class="body">
             
   <h1>Source code for utool.util_inject</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Injects code into live modules or into text source files</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">builtins</span>
 <span class="c">#import builtins</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+<span class="kn">from</span> <span class="nn">utool._internal</span> <span class="kn">import</span> <span class="n">meta_util_six</span>
+<span class="kn">from</span> <span class="nn">utool._internal</span> <span class="kn">import</span> <span class="n">meta_util_arg</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_logging</span>
-<span class="kn">from</span> <span class="nn">._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
-<span class="kn">from</span> <span class="nn">._internal.meta_util_arg</span> <span class="kn">import</span> <span class="n">get_argval</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">traceback</span>
+    <span class="kn">from</span> <span class="nn">pygments</span> <span class="kn">import</span> <span class="n">highlight</span>
+    <span class="kn">from</span> <span class="nn">pygments.lexers</span> <span class="kn">import</span> <span class="n">get_lexer_by_name</span>
+    <span class="kn">from</span> <span class="nn">pygments.formatters</span> <span class="kn">import</span> <span class="n">TerminalFormatter</span>
+    <span class="n">HAS_PYGMENTS</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">HAS_PYGMENTS</span> <span class="o">=</span> <span class="bp">False</span>
 
 
 <span class="n">__AGGROFLUSH__</span> <span class="o">=</span> <span class="s">&#39;--aggroflush&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
 <span class="n">__LOGGING__</span>    <span class="o">=</span> <span class="s">&#39;--logging&#39;</span>    <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
 <span class="n">__DEBUG_ALL__</span>  <span class="o">=</span> <span class="s">&#39;--debug-all&#39;</span>  <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
 <span class="n">__DEBUG_PROF__</span> <span class="o">=</span> <span class="s">&#39;--debug-prof&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="ow">or</span> <span class="s">&#39;--debug-profile&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<span class="n">DEBUG_PRINT</span> <span class="o">=</span> <span class="s">&#39;--debug-print&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
 <span class="n">QUIET</span> <span class="o">=</span> <span class="s">&#39;--quiet&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
 <span class="n">SILENT</span> <span class="o">=</span> <span class="s">&#39;--silent&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<span class="n">VERYVERBOSE</span> <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">VERYVERBOSE</span>
+<span class="n">PRINT_INJECT_ORDER</span> <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">PRINT_INJECT_ORDER</span>
 
 
 <span class="k">if</span> <span class="n">__LOGGING__</span><span class="p">:</span>
@@ -99,8 +113,8 @@
                 <span class="n">module</span><span class="o">.</span><span class="n">__name__</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">__INJECT_BLACKLIST__</span> <span class="ow">and</span>
                 <span class="ow">not</span> <span class="n">module</span><span class="o">.</span><span class="n">__name__</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;six&#39;</span><span class="p">)</span> <span class="ow">and</span>
                 <span class="ow">not</span> <span class="n">module</span><span class="o">.</span><span class="n">__name__</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;sys&#39;</span><span class="p">)):</span>
-            <span class="c">#print(&#39;setting: %s.%s = %r&#39; % (module.__name__, get_funcname(func), func))</span>
-            <span class="nb">setattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">),</span> <span class="n">func</span><span class="p">)</span>
+            <span class="c">#print(&#39;setting: %s.%s = %r&#39; % (module.__name__, meta_util_six.get_funcname(func), func))</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">meta_util_six</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">),</span> <span class="n">func</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_add_injected_module</span><span class="p">(</span><span class="n">module</span><span class="p">):</span>
@@ -137,19 +151,17 @@
 
 <span class="sd">    Hooks into sys.excepthook</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#COLORED_INJECTS = &#39;--nocolorex&#39; not in sys.argv</span>
+    <span class="c">#COLORED_INJECTS = &#39;--colorex&#39; in sys.argv</span>
     <span class="k">def</span> <span class="nf">myexcepthook</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">tb</span><span class="p">):</span>
         <span class="c">#https://stackoverflow.com/questions/14775916/coloring-exceptions-from-python-on-a-terminal</span>
-        <span class="kn">import</span> <span class="nn">traceback</span>
-        <span class="kn">from</span> <span class="nn">pygments</span> <span class="kn">import</span> <span class="n">highlight</span>
-        <span class="kn">from</span> <span class="nn">pygments.lexers</span> <span class="kn">import</span> <span class="n">get_lexer_by_name</span>
-        <span class="kn">from</span> <span class="nn">pygments.formatters</span> <span class="kn">import</span> <span class="n">TerminalFormatter</span>
         <span class="n">tbtext</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exception</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">tb</span><span class="p">))</span>
         <span class="n">lexer</span> <span class="o">=</span> <span class="n">get_lexer_by_name</span><span class="p">(</span><span class="s">&#39;pytb&#39;</span><span class="p">,</span> <span class="n">stripall</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">formatter</span> <span class="o">=</span> <span class="n">TerminalFormatter</span><span class="p">(</span><span class="n">bg</span><span class="o">=</span><span class="s">&#39;dark&#39;</span><span class="p">)</span>
         <span class="n">formatted_text</span> <span class="o">=</span> <span class="n">highlight</span><span class="p">(</span><span class="n">tbtext</span><span class="p">,</span> <span class="n">lexer</span><span class="p">,</span> <span class="n">formatter</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">formatted_text</span><span class="p">)</span>
     <span class="c"># Ignore colored exceptions on win32</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;win32&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">HAS_PYGMENTS</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;win32&#39;</span><span class="p">):</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">excepthook</span> <span class="o">=</span> <span class="n">myexcepthook</span>
 
 </div>
@@ -160,23 +172,35 @@
     <span class="n">module</span> <span class="o">=</span> <span class="n">_get_module</span><span class="p">(</span><span class="n">module_name</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">SILENT</span><span class="p">:</span>
         <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot; silent print &quot;&quot;&quot;</span>
+            <span class="sd">&quot;&quot;&quot; silent builtins.print &quot;&quot;&quot;</span>
             <span class="k">pass</span>
         <span class="k">def</span> <span class="nf">printDBG</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot; silent debug print &quot;&quot;&quot;</span>
             <span class="k">pass</span>
         <span class="k">def</span> <span class="nf">print_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot; silent stdout.write &quot;&quot;&quot;</span>
             <span class="k">pass</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot; logging print &quot;&quot;&quot;</span>
-            <span class="n">util_logging</span><span class="o">.</span><span class="n">__UTOOL_PRINT__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">DEBUG_PRINT</span><span class="p">:</span>
+            <span class="c"># Turns on printing where a message came from</span>
+            <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; debugging logging builtins.print &quot;&quot;&quot;</span>
+                <span class="kn">from</span> <span class="nn">utool._internal.meta_util_dbg</span> <span class="kn">import</span> <span class="n">get_caller_name</span>
+                <span class="n">calltag</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="s">&#39;[caller:&#39;</span><span class="p">,</span> <span class="n">get_caller_name</span><span class="p">(),</span> <span class="s">&#39;]&#39;</span> <span class="p">))</span>
+                <span class="n">util_logging</span><span class="o">.</span><span class="n">__UTOOL_PRINT__</span><span class="p">(</span><span class="n">calltag</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; logging builtins.print &quot;&quot;&quot;</span>
+                <span class="n">util_logging</span><span class="o">.</span><span class="n">__UTOOL_PRINT__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">__AGGROFLUSH__</span><span class="p">:</span>
             <span class="k">def</span> <span class="nf">print_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; aggressive logging stdout.write &quot;&quot;&quot;</span>
                 <span class="n">util_logging</span><span class="o">.</span><span class="n">__UTOOL_WRITE__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
                 <span class="n">util_logging</span><span class="o">.</span><span class="n">__UTOOL_FLUSH__</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">def</span> <span class="nf">print_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; logging stdout.write &quot;&quot;&quot;</span>
                 <span class="n">util_logging</span><span class="o">.</span><span class="n">__UTOOL_WRITE__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
 
         <span class="c"># turn on module debugging with command line flags</span>
@@ -196,13 +220,16 @@
         <span class="k">if</span> <span class="n">__DEBUG_ALL__</span> <span class="ow">or</span> <span class="n">DEBUG</span> <span class="ow">or</span> <span class="n">DEBUG_FLAG</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;INJECT_PRINT: </span><span class="si">%r</span><span class="s"> == </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">module_name</span><span class="p">,</span> <span class="n">module_prefix</span><span class="p">))</span>
             <span class="k">def</span> <span class="nf">printDBG</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; debug logging print &quot;&quot;&quot;</span>
                 <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
                 <span class="n">util_logging</span><span class="o">.</span><span class="n">__UTOOL_PRINTDBG__</span><span class="p">(</span><span class="n">module_prefix</span> <span class="o">+</span> <span class="s">&#39; DEBUG &#39;</span> <span class="o">+</span> <span class="n">msg</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">def</span> <span class="nf">printDBG</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; silent debug logging print &quot;&quot;&quot;</span>
                 <span class="k">pass</span>
     <span class="n">_inject_funcs</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">)</span>
-    <span class="k">return</span> <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span>
+    <span class="n">print_funcs</span> <span class="o">=</span> <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">print_funcs</span>
 
 </div>
 <div class="viewcode-block" id="inject_reload_function"><a class="viewcode-back" href="../../utool.html#utool.util_inject.inject_reload_function">[docs]</a><span class="k">def</span> <span class="nf">inject_reload_function</span><span class="p">(</span><span class="n">module_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">module_prefix</span><span class="o">=</span><span class="s">&#39;[???]&#39;</span><span class="p">,</span> <span class="n">module</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
@@ -243,7 +270,7 @@
     <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">prof_wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">utool</span>
-        <span class="k">with</span> <span class="n">utool</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)):</span>
+        <span class="k">with</span> <span class="n">utool</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="n">meta_util_six</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)):</span>
             <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="c">#return ret</span>
     <span class="k">return</span> <span class="n">prof_wrapper</span>
@@ -265,9 +292,9 @@
 <span class="c">#    try:</span>
 <span class="c">#        kernprof_func = getattr(builtins, &#39;profile&#39;)</span>
 <span class="c">#        #def profile(func):</span>
-<span class="c">#        #    #print(&#39;decorate: %r&#39; % get_funcname(func))</span>
+<span class="c">#        #    #print(&#39;decorate: %r&#39; % meta_util_six.get_funcname(func))</span>
 <span class="c">#        #    # hack to filter profiled functions</span>
-<span class="c">#        #    if get_funcname(func)).startswith(&#39;get_affine&#39;):</span>
+<span class="c">#        #    if meta_util_six.get_funcname(func)).startswith(&#39;get_affine&#39;):</span>
 <span class="c">#        #        return kernprof_func(func)</span>
 <span class="c">#        #    return func</span>
 <span class="c">#        profile = kernprof_func</span>
@@ -276,7 +303,7 @@
 <span class="c">#    except AttributeError:</span>
 <span class="c">#        # Create dummy kernprof_func</span>
 <span class="c">#        def profile(func):</span>
-<span class="c">#            #print(&#39;decorate: %r&#39; % get_funcname(func)))</span>
+<span class="c">#            #print(&#39;decorate: %r&#39; % meta_util_six.get_funcname(func)))</span>
 <span class="c">#            return func</span>
 <span class="c">#        if __DEBUG_PROF__:</span>
 <span class="c">#            print(&#39;[util_inject] PROFILE OFF: %r&#39; % module)</span>
@@ -289,19 +316,26 @@
 <span class="c">#PROF_MOD_PAT_LIST = [&#39;spatial&#39;, &#39;linalg&#39;, &#39;keypoint&#39;]</span>
 
 <span class="c"># Look in command line for functions to profile</span>
-<span class="n">PROF_FUNC_PAT_LIST</span> <span class="o">=</span> <span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--prof-func&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="n">PROF_FUNC_PAT_LIST</span> <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--prof-func&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
 <span class="k">if</span> <span class="n">PROF_FUNC_PAT_LIST</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
     <span class="n">PROF_FUNC_PAT_LIST</span> <span class="o">=</span> <span class="n">PROF_FUNC_PAT_LIST</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_inject] PROF_FUNC_PAT_LIST: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">PROF_FUNC_PAT_LIST</span><span class="p">,))</span>
 
 <span class="c"># Look in command line for modules to profile</span>
-<span class="n">PROF_MOD_PAT_LIST</span> <span class="o">=</span> <span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--prof-mod&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="n">PROF_MOD_PAT_LIST</span> <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--prof-mod&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
 <span class="k">if</span> <span class="n">PROF_MOD_PAT_LIST</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
     <span class="n">PROF_MOD_PAT_LIST</span> <span class="o">=</span> <span class="n">PROF_MOD_PAT_LIST</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_inject] PROF_MOD_PAT_LIST: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">PROF_MOD_PAT_LIST</span><span class="p">,))</span>
 
 
 <div class="viewcode-block" id="memprof"><a class="viewcode-back" href="../../utool.html#utool.util_inject.memprof">[docs]</a><span class="k">def</span> <span class="nf">memprof</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; requires memory_profiler</span>
+<span class="sd">    pip install memory_profiler</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        https://pypi.python.org/pypi/memory_profiler</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">memory_profiler</span>
     <span class="k">return</span> <span class="n">memory_profiler</span><span class="o">.</span><span class="n">profile</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
 
@@ -337,7 +371,7 @@
 
     <span class="k">def</span> <span class="nf">profile_withfuncname_filter</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
         <span class="c"># Test to see if this function is specified</span>
-        <span class="k">if</span> <span class="n">_profile_func_flag</span><span class="p">(</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">_profile_func_flag</span><span class="p">(</span><span class="n">meta_util_six</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)):</span>
             <span class="k">return</span> <span class="n">KERNPROF_FUNC</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">func</span>
     <span class="c">#profile = KERNPROF_FUNC</span>
@@ -355,9 +389,22 @@
     <span class="k">return</span> <span class="n">profile_withfuncname_filter</span>
 
 </div>
-<span class="n">PRINT_INJECT_ORDER</span> <span class="o">=</span> <span class="s">&#39;--veryverbose&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="ow">or</span> <span class="s">&#39;--print-inject-order&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<div class="viewcode-block" id="noinject"><a class="viewcode-back" href="../../utool.html#utool.util_inject.noinject">[docs]</a><span class="k">def</span> <span class="nf">noinject</span><span class="p">(</span><span class="n">module_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">module_prefix</span><span class="o">=</span><span class="s">&#39;[???]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">module</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Use in modules that do not have inject in them</span>
 
+<span class="sd">    Does not inject anything into the module. Just lets utool know that a module</span>
+<span class="sd">    is being imported so the import order can be debuged</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">PRINT_INJECT_ORDER</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">utool._internal</span> <span class="kn">import</span> <span class="n">meta_util_dbg</span>
+        <span class="n">callername</span> <span class="o">=</span> <span class="n">meta_util_dbg</span><span class="o">.</span><span class="n">get_caller_name</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">2</span> <span class="o">+</span> <span class="n">N</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">lineno</span> <span class="o">=</span> <span class="n">meta_util_dbg</span><span class="o">.</span><span class="n">get_caller_lineno</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">2</span> <span class="o">+</span> <span class="n">N</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">fmtdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="n">N</span><span class="p">,</span> <span class="n">lineno</span><span class="o">=</span><span class="n">lineno</span><span class="p">,</span> <span class="n">callername</span><span class="o">=</span><span class="n">callername</span><span class="p">,</span> <span class="n">modname</span><span class="o">=</span><span class="n">module_name</span><span class="p">)</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;[util_inject] N={N} {modname} is imported by {callername} at lineno={lineno}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">fmtdict</span><span class="p">)</span>
+        <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
+</div>
 <div class="viewcode-block" id="inject"><a class="viewcode-back" href="../../utool.html#utool.util_inject.inject">[docs]</a><span class="k">def</span> <span class="nf">inject</span><span class="p">(</span><span class="n">module_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">module_prefix</span><span class="o">=</span><span class="s">&#39;[???]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">module</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Injects your module with utool magic</span>
@@ -385,10 +432,7 @@
 <span class="sd">        &gt;&gt;&gt; from util.util_inject import inject</span>
 <span class="sd">        &gt;&gt;&gt; print, print_, printDBG, rrr, profile = inject(__name__, &#39;[mod]&#39;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">PRINT_INJECT_ORDER</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">._internal</span> <span class="kn">import</span> <span class="n">meta_util_dbg</span>
-        <span class="n">callername</span> <span class="o">=</span> <span class="n">meta_util_dbg</span><span class="o">.</span><span class="n">get_caller_name</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-        <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_inject] {callername} is importing {modname}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">callername</span><span class="o">=</span><span class="n">callername</span><span class="p">,</span> <span class="n">modname</span><span class="o">=</span><span class="n">module_name</span><span class="p">))</span>
+    <span class="n">noinject</span><span class="p">(</span><span class="n">module_name</span><span class="p">,</span> <span class="n">module_prefix</span><span class="p">,</span> <span class="n">DEBUG</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">module</span> <span class="o">=</span> <span class="n">_get_module</span><span class="p">(</span><span class="n">module_name</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>
     <span class="n">rrr</span>         <span class="o">=</span> <span class="n">inject_reload_function</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">module_prefix</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>
     <span class="n">profile_</span>    <span class="o">=</span> <span class="n">inject_profile_function</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">module_prefix</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>
@@ -418,6 +462,94 @@
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_inject] module=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">module</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;&lt;/!!!&gt;&#39;</span><span class="p">)</span>
             <span class="k">raise</span>
+
+</div>
+<div class="viewcode-block" id="split_python_text_into_lines"><a class="viewcode-back" href="../../utool.html#utool.util_inject.split_python_text_into_lines">[docs]</a><span class="k">def</span> <span class="nf">split_python_text_into_lines</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    # TODO: make it so this function returns text so one statment is on one line</span>
+<span class="sd">    # that means no splitting up things like function definitions into multiple</span>
+<span class="sd">    # lines</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#import jedi</span>
+    <span class="c">#script = jedi.Script(text, line=1, column=None, path=&#39;&#39;)</span>
+    <span class="k">def</span> <span class="nf">parentesis_are_balanced</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        helper</span>
+
+<span class="sd">        References:</span>
+<span class="sd">            http://stackoverflow.com/questions/18007995/recursive-method-for-parentheses-balancing-python</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">balanced</span><span class="p">(</span><span class="n">str_</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cnt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="s">&#39;(&#39;</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="s">&#39;)&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">str_</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">cnt</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="n">cnt</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">if</span> <span class="n">str_</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">left</span><span class="p">:</span>
+                <span class="k">return</span>  <span class="n">balanced</span><span class="p">(</span><span class="n">str_</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">cnt</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">str_</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">right</span><span class="p">:</span>
+                <span class="k">return</span>  <span class="n">balanced</span><span class="p">(</span><span class="n">str_</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">cnt</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">balanced</span><span class="p">(</span><span class="n">str_</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">cnt</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">balanced</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="n">new_lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">current_line</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+        <span class="n">current_line</span> <span class="o">+=</span> <span class="n">line</span>
+        <span class="k">if</span> <span class="n">parentesis_are_balanced</span><span class="p">(</span><span class="n">current_line</span><span class="p">):</span>
+            <span class="n">new_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_line</span><span class="p">)</span>
+            <span class="n">current_line</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">lines</span>
+
+</div>
+<div class="viewcode-block" id="inject_python_code"><a class="viewcode-back" href="../../utool.html#utool.util_inject.inject_python_code">[docs]</a><span class="k">def</span> <span class="nf">inject_python_code</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">patch_code</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">inject_location</span><span class="o">=</span><span class="s">&#39;after_imports&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; puts code into files on disk &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="k">assert</span> <span class="n">tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;TAG MUST BE SPECIFIED IN INJECTED CODETEXT&#39;</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+    <span class="n">comment_start_tag</span> <span class="o">=</span> <span class="s">&#39;# &lt;util_inject:</span><span class="si">%s</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="n">tag</span>
+    <span class="n">comment_end_tag</span>  <span class="o">=</span> <span class="s">&#39;# &lt;/util_inject:</span><span class="si">%s</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="n">tag</span>
+
+    <span class="n">tagstart_txtpos</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">comment_start_tag</span><span class="p">)</span>
+    <span class="n">tagend_txtpos</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">comment_end_tag</span><span class="p">)</span>
+
+    <span class="n">text_lines</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">split_python_text_into_lines</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+    <span class="c"># split the file into two parts and inject code between them</span>
+    <span class="k">if</span> <span class="n">tagstart_txtpos</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">or</span> <span class="n">tagend_txtpos</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">tagstart_txtpos</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;both tags must not be found&#39;</span>
+        <span class="k">assert</span> <span class="n">tagend_txtpos</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;both tags must not be found&#39;</span>
+
+        <span class="k">for</span> <span class="n">pos</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">text_lines</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">comment_start_tag</span><span class="p">):</span>
+                <span class="n">tagstart_pos</span> <span class="o">=</span> <span class="n">pos</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">comment_end_tag</span><span class="p">):</span>
+                <span class="n">tagend_pos</span> <span class="o">=</span> <span class="n">pos</span>
+        <span class="n">part1</span> <span class="o">=</span> <span class="n">text_lines</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">tagstart_pos</span><span class="p">]</span>
+        <span class="n">part2</span> <span class="o">=</span> <span class="n">text_lines</span><span class="p">[</span><span class="n">tagend_pos</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">inject_location</span> <span class="o">==</span> <span class="s">&#39;after_imports&#39;</span><span class="p">:</span>
+            <span class="n">first_nonimport_pos</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">text_lines</span><span class="p">:</span>
+                <span class="n">list_</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;import &#39;</span><span class="p">,</span> <span class="s">&#39;from &#39;</span><span class="p">,</span> <span class="s">&#39;#&#39;</span><span class="p">,</span> <span class="s">&#39; &#39;</span><span class="p">]</span>
+                <span class="n">isvalid</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">([</span><span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">str_</span><span class="p">)</span> <span class="k">for</span> <span class="n">str_</span> <span class="ow">in</span> <span class="n">list_</span><span class="p">])</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">isvalid</span><span class="p">:</span>
+                    <span class="k">break</span>
+                <span class="n">first_nonimport_pos</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">part1</span> <span class="o">=</span> <span class="n">text_lines</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">first_nonimport_pos</span><span class="p">]</span>
+            <span class="n">part2</span> <span class="o">=</span> <span class="n">text_lines</span><span class="p">[</span><span class="n">first_nonimport_pos</span><span class="p">:]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;Unknown inject location&#39;</span><span class="p">)</span>
+
+    <span class="n">newtext</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">part1</span> <span class="o">+</span> <span class="p">[</span><span class="n">comment_start_tag</span><span class="p">])</span> <span class="o">+</span>
+        <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">patch_code</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span>
+        <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="p">[</span><span class="n">comment_end_tag</span><span class="p">]</span> <span class="o">+</span> <span class="n">part2</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">text_backup_fname</span> <span class="o">=</span> <span class="n">fpath</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_timestamp</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;.bak&#39;</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="n">text_backup_fname</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">newtext</span><span class="p">)</span>
+    <span class="c">#print(newtext)</span>
 
 </div>
 <span class="k">if</span> <span class="s">&#39;--inject-color&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
@@ -464,7 +596,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

@@ -54,8 +54,8 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">isdir</span>
-<span class="kn">from</span> <span class="nn">._internal</span> <span class="kn">import</span> <span class="n">meta_util_git</span> <span class="k">as</span> <span class="n">mu</span>  <span class="c"># NOQA</span>
-<span class="kn">from</span> <span class="nn">._internal.meta_util_git</span> <span class="kn">import</span> <span class="n">get_repo_dirs</span><span class="p">,</span> <span class="n">get_repo_dname</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">utool._internal</span> <span class="kn">import</span> <span class="n">meta_util_git</span> <span class="k">as</span> <span class="n">mu</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">utool._internal.meta_util_git</span> <span class="kn">import</span> <span class="n">get_repo_dirs</span><span class="p">,</span> <span class="n">get_repo_dname</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[git]&#39;</span><span class="p">)</span>
 
@@ -69,8 +69,14 @@
 <span class="c">#except ImportError:</span>
 <span class="n">PROJECT_REPO_DIRS</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="n">PROJECT_REPO_URLS</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">CODE_DIR</span> <span class="o">=</span> <span class="bp">None</span>
 
 
+<div class="viewcode-block" id="set_code_dir"><a class="viewcode-back" href="../../utool.html#utool.util_git.set_code_dir">[docs]</a><span class="k">def</span> <span class="nf">set_code_dir</span><span class="p">(</span><span class="n">code_dir</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">CODE_DIR</span>
+    <span class="n">CODE_DIR</span> <span class="o">=</span> <span class="n">code_dir</span>
+
+</div>
 <div class="viewcode-block" id="set_project_repos"><a class="viewcode-back" href="../../utool.html#utool.util_git.set_project_repos">[docs]</a><span class="k">def</span> <span class="nf">set_project_repos</span><span class="p">(</span><span class="n">repo_urls</span><span class="p">,</span> <span class="n">repo_dirs</span><span class="p">):</span>
     <span class="k">global</span> <span class="n">PROJECT_REPO_DIRS</span>
     <span class="k">global</span> <span class="n">PROJECT_REPO_URLS</span>
@@ -78,13 +84,21 @@
     <span class="n">PROJECT_REPO_DIRS</span> <span class="o">=</span> <span class="n">repo_dirs</span>
 
 </div>
-<div class="viewcode-block" id="gitcmd"><a class="viewcode-back" href="../../utool.html#utool.util_git.gitcmd">[docs]</a><span class="k">def</span> <span class="nf">gitcmd</span><span class="p">(</span><span class="n">repo</span><span class="p">,</span> <span class="n">command</span><span class="p">):</span>
+<div class="viewcode-block" id="get_project_repo_dirs"><a class="viewcode-back" href="../../utool.html#utool.util_git.get_project_repo_dirs">[docs]</a><span class="k">def</span> <span class="nf">get_project_repo_dirs</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">PROJECT_REPO_DIRS</span>
+    <span class="k">return</span> <span class="n">PROJECT_REPO_DIRS</span>
+
+</div>
+<div class="viewcode-block" id="gitcmd"><a class="viewcode-back" href="../../utool.html#utool.util_git.gitcmd">[docs]</a><span class="k">def</span> <span class="nf">gitcmd</span><span class="p">(</span><span class="n">repo</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">sudo</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&quot;************&quot;</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">repo</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;repo=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">repo</span><span class="p">)</span>
     <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">repo</span><span class="p">)</span>
     <span class="c">#if command.find(&#39;git&#39;) != 0:</span>
     <span class="c">#    command = &#39;git &#39; + command</span>
-    <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">sudo</span> <span class="ow">or</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;win32&#39;</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">&#39;sudo &#39;</span> <span class="o">+</span> <span class="n">command</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&quot;************&quot;</span><span class="p">)</span>
 
 </div>
@@ -93,27 +107,33 @@
 
 <span class="sd">    Calls mingw_build.bat on windows and unix_build.sh  on unix</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&quot;************&quot;</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;+**** stdbuild *******&quot;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">repo</span><span class="p">)</span>
-    <span class="n">WIN32</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;win32&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">WIN32</span><span class="p">:</span>
-        <span class="n">scriptname</span> <span class="o">=</span> <span class="s">&#39;./mingw_build.sh&#39;</span>
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;win32&#39;</span><span class="p">):</span>
+        <span class="n">scriptname</span> <span class="o">=</span> <span class="s">&#39;./mingw_build.bat&#39;</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">scriptname</span> <span class="o">=</span> <span class="s">&#39;./unix_build.sh&#39;</span>
+    <span class="n">normbuild_flag</span> <span class="o">=</span> <span class="s">&#39;--no-rmbuild&#39;</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="n">normbuild_flag</span><span class="p">):</span>
+        <span class="n">scriptname</span> <span class="o">+=</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="n">normbuild_flag</span>
+
     <span class="c"># Execute build</span>
     <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">repo</span><span class="p">)</span>
-    <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">scriptname</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&quot;************&quot;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="n">scriptname</span><span class="p">)</span>
+    <span class="c">#os.system(scriptname)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;L**** stdbuild *******&quot;</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="gg_command"><a class="viewcode-back" href="../../utool.html#utool.util_git.gg_command">[docs]</a><span class="k">def</span> <span class="nf">gg_command</span><span class="p">(</span><span class="n">command</span><span class="p">):</span>
+<div class="viewcode-block" id="gg_command"><a class="viewcode-back" href="../../utool.html#utool.util_git.gg_command">[docs]</a><span class="k">def</span> <span class="nf">gg_command</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">sudo</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Runs a command on all of your PROJECT_REPO_DIRS &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&#39;ensure&#39;</span><span class="p">:</span>
-        <span class="n">ensure_repos</span><span class="p">(</span><span class="n">PROJECT_REPO_URLS</span><span class="p">,</span> <span class="n">PROJECT_REPO_DIRS</span><span class="p">)</span>
-        <span class="k">return</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;+------- GG_COMMAND -------&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;| sudo=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">sudo</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;| command=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">command</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">repo</span> <span class="ow">in</span> <span class="n">PROJECT_REPO_DIRS</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">repo</span><span class="p">):</span>
-            <span class="n">gitcmd</span><span class="p">(</span><span class="n">repo</span><span class="p">,</span> <span class="n">command</span><span class="p">)</span>
+            <span class="n">gitcmd</span><span class="p">(</span><span class="n">repo</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">sudo</span><span class="o">=</span><span class="n">sudo</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;L___ FINISHED GG_COMMAND ___&#39;</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="checkout_repos"><a class="viewcode-back" href="../../utool.html#utool.util_git.checkout_repos">[docs]</a><span class="k">def</span> <span class="nf">checkout_repos</span><span class="p">(</span><span class="n">repo_urls</span><span class="p">,</span> <span class="n">repo_dirs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">checkout_dir</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
@@ -127,6 +147,10 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">repodir</span><span class="p">):</span>
             <span class="n">mu</span><span class="o">.</span><span class="n">cd</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">repodir</span><span class="p">))</span>
             <span class="n">mu</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="s">&#39;git clone &#39;</span> <span class="o">+</span> <span class="n">repourl</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="ensure_project_repos"><a class="viewcode-back" href="../../utool.html#utool.util_git.ensure_project_repos">[docs]</a><span class="k">def</span> <span class="nf">ensure_project_repos</span><span class="p">():</span>
+    <span class="n">ensure_repos</span><span class="p">(</span><span class="n">PROJECT_REPO_URLS</span><span class="p">,</span> <span class="n">PROJECT_REPO_DIRS</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="ensure_repos"><a class="viewcode-back" href="../../utool.html#utool.util_git.ensure_repos">[docs]</a><span class="k">def</span> <span class="nf">ensure_repos</span><span class="p">(</span><span class="n">repo_urls</span><span class="p">,</span> <span class="n">repo_dirs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">checkout_dir</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
@@ -213,7 +237,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

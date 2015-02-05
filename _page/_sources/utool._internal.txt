@@ -84,6 +84,14 @@ utool._internal.util_importer module
     :undoc-members:
     :show-inheritance:
 
+utool._internal.win32_send_keys module
+--------------------------------------
+
+.. automodule:: utool._internal.win32_send_keys
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

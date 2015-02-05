@@ -50,10 +50,9 @@
   <h1>Source code for utool.util_resources</h1><div class="highlight"><pre>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="c"># Python</span>
-<span class="kn">import</span> <span class="nn">psutil</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
-<span class="kn">from</span> <span class="nn">.util_str</span> <span class="kn">import</span> <span class="n">byte_str2</span>
+<span class="kn">from</span> <span class="nn">utool.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="kn">from</span> <span class="nn">utool.util_str</span> <span class="kn">import</span> <span class="n">byte_str2</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[print]&#39;</span><span class="p">)</span>
 
 <span class="k">try</span><span class="p">:</span>
@@ -143,19 +142,30 @@
 
 </div>
 <div class="viewcode-block" id="print_resource_usage"><a class="viewcode-back" href="../../utool.html#utool.util_resources.print_resource_usage">[docs]</a><span class="k">def</span> <span class="nf">print_resource_usage</span><span class="p">():</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;+______________________&#39;</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;|    RESOURCE_USAGE    &#39;</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;|  * current_memory = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">byte_str2</span><span class="p">(</span><span class="n">current_memory_usage</span><span class="p">()))</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">get_resource_usage_str</span><span class="p">())</span>
+
+</div>
+<div class="viewcode-block" id="get_resource_usage_str"><a class="viewcode-back" href="../../utool.html#utool.util_resources.get_resource_usage_str">[docs]</a><span class="k">def</span> <span class="nf">get_resource_usage_str</span><span class="p">():</span>
+    <span class="n">usage_str_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s">&#39;+______________________&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;|    RESOURCE_USAGE    &#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;|  * current_memory = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">byte_str2</span><span class="p">(</span><span class="n">current_memory_usage</span><span class="p">())),</span>
+    <span class="p">]</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;|  * peak_memory    = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">byte_str2</span><span class="p">(</span><span class="n">peak_memory</span><span class="p">()))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;|  * user_time      = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">time_str2</span><span class="p">(</span><span class="n">time_in_usermode</span><span class="p">()))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;|  * system_time    = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">time_str2</span><span class="p">(</span><span class="n">time_in_systemmode</span><span class="p">()))</span>
+        <span class="n">usage_str_list</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+            <span class="p">(</span><span class="s">&#39;|  * peak_memory    = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">byte_str2</span><span class="p">(</span><span class="n">peak_memory</span><span class="p">())),</span>
+            <span class="p">(</span><span class="s">&#39;|  * user_time      = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">time_str2</span><span class="p">(</span><span class="n">time_in_usermode</span><span class="p">())),</span>
+            <span class="p">(</span><span class="s">&#39;|  * system_time    = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">time_str2</span><span class="p">(</span><span class="n">time_in_systemmode</span><span class="p">())),</span>
+        <span class="p">])</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="k">pass</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;L______________________&#39;</span><span class="p">)</span>
+    <span class="n">usage_str_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;L______________________&#39;</span><span class="p">)</span>
+    <span class="n">usage_str</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">usage_str_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">usage_str</span>
 
 </div>
 <div class="viewcode-block" id="current_memory_usage"><a class="viewcode-back" href="../../utool.html#utool.util_resources.current_memory_usage">[docs]</a><span class="k">def</span> <span class="nf">current_memory_usage</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">psutil</span>
     <span class="n">meminfo</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">())</span><span class="o">.</span><span class="n">get_memory_info</span><span class="p">()</span>
     <span class="n">rss</span> <span class="o">=</span> <span class="n">meminfo</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c"># Resident Set Size / Mem Usage</span>
     <span class="n">vms</span> <span class="o">=</span> <span class="n">meminfo</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="c"># Virtual Memory Size / VM Size  # NOQA</span>
@@ -163,14 +173,17 @@
 
 </div>
 <div class="viewcode-block" id="num_cpus"><a class="viewcode-back" href="../../utool.html#utool.util_resources.num_cpus">[docs]</a><span class="k">def</span> <span class="nf">num_cpus</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">psutil</span>
     <span class="k">return</span> <span class="n">psutil</span><span class="o">.</span><span class="n">NUM_CPUS</span>
 
 </div>
 <div class="viewcode-block" id="available_memory"><a class="viewcode-back" href="../../utool.html#utool.util_resources.available_memory">[docs]</a><span class="k">def</span> <span class="nf">available_memory</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">psutil</span>
     <span class="k">return</span> <span class="n">psutil</span><span class="o">.</span><span class="n">virtual_memory</span><span class="p">()</span><span class="o">.</span><span class="n">available</span>
 
 </div>
 <div class="viewcode-block" id="total_memory"><a class="viewcode-back" href="../../utool.html#utool.util_resources.total_memory">[docs]</a><span class="k">def</span> <span class="nf">total_memory</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">psutil</span>
     <span class="k">return</span> <span class="n">psutil</span><span class="o">.</span><span class="n">virtual_memory</span><span class="p">()</span><span class="o">.</span><span class="n">total</span>
 
 </div>
@@ -179,10 +192,16 @@
 
 </div>
 <div class="viewcode-block" id="memstats"><a class="viewcode-back" href="../../utool.html#utool.util_resources.memstats">[docs]</a><span class="k">def</span> <span class="nf">memstats</span><span class="p">():</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[psutil] total     = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">byte_str2</span><span class="p">(</span><span class="n">total_memory</span><span class="p">()))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[psutil] available = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">byte_str2</span><span class="p">(</span><span class="n">available_memory</span><span class="p">()))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[psutil] used      = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">byte_str2</span><span class="p">(</span><span class="n">used_memory</span><span class="p">()))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[psutil] current   = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">byte_str2</span><span class="p">(</span><span class="n">current_memory_usage</span><span class="p">()))</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">get_memstats_str</span><span class="p">())</span>
+
+</div>
+<div class="viewcode-block" id="get_memstats_str"><a class="viewcode-back" href="../../utool.html#utool.util_resources.get_memstats_str">[docs]</a><span class="k">def</span> <span class="nf">get_memstats_str</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+        <span class="p">(</span><span class="s">&#39;[psutil] total     = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">byte_str2</span><span class="p">(</span><span class="n">total_memory</span><span class="p">())),</span>
+        <span class="p">(</span><span class="s">&#39;[psutil] available = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">byte_str2</span><span class="p">(</span><span class="n">available_memory</span><span class="p">())),</span>
+        <span class="p">(</span><span class="s">&#39;[psutil] used      = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">byte_str2</span><span class="p">(</span><span class="n">used_memory</span><span class="p">())),</span>
+        <span class="p">(</span><span class="s">&#39;[psutil] current   = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">byte_str2</span><span class="p">(</span><span class="n">current_memory_usage</span><span class="p">())),</span>
+    <span class="p">])</span>
 
 
 <span class="c">#psutil.virtual_memory()</span>
@@ -233,7 +252,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

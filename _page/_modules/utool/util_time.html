@@ -73,6 +73,10 @@
         <span class="k">return</span> <span class="n">ellapsed</span>
 
 </div>
+<div class="viewcode-block" id="get_printable_timestamp"><a class="viewcode-back" href="../../utool.html#utool.util_time.get_printable_timestamp">[docs]</a><span class="k">def</span> <span class="nf">get_printable_timestamp</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">get_timestamp</span><span class="p">(</span><span class="s">&#39;printable&#39;</span><span class="p">)</span>
+
+</div>
 <div class="viewcode-block" id="get_timestamp"><a class="viewcode-back" href="../../utool.html#utool.util_time.get_timestamp">[docs]</a><span class="k">def</span> <span class="nf">get_timestamp</span><span class="p">(</span><span class="n">format_</span><span class="o">=</span><span class="s">&#39;filename&#39;</span><span class="p">,</span> <span class="n">use_second</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">delta_seconds</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    get_timestamp</span>
@@ -165,21 +169,44 @@
     <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">trace</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ellapsed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">toc</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">trace</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_time] Error in context manager!: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+            <span class="c">#print(&#39;[util_time] Error in context manager!: &#39; + str(value))</span>
+            <span class="k">pass</span>
             <span class="k">return</span> <span class="bp">False</span>  <span class="c"># return a falsey value on error</span>
         <span class="c">#return self.ellapsed</span>
 
 </div>
-<div class="viewcode-block" id="exiftime_to_unixtime"><a class="viewcode-back" href="../../utool.html#utool.util_time.exiftime_to_unixtime">[docs]</a><span class="k">def</span> <span class="nf">exiftime_to_unixtime</span><span class="p">(</span><span class="n">datetime_str</span><span class="p">,</span> <span class="n">timestamp_format</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<div class="viewcode-block" id="exiftime_to_unixtime"><a class="viewcode-back" href="../../utool.html#utool.util_time.exiftime_to_unixtime">[docs]</a><span class="k">def</span> <span class="nf">exiftime_to_unixtime</span><span class="p">(</span><span class="n">datetime_str</span><span class="p">,</span> <span class="n">timestamp_format</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    converts a datetime string to posixtime (unixtime)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        datetime_str     (str):</span>
+<span class="sd">        timestamp_format (int):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        int: unixtime seconds from 1970</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_time --test-exiftime_to_unixtime</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_time import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; datetime_str = &#39;0000:00:00 00:00:00&#39;</span>
+<span class="sd">        &gt;&gt;&gt; timestamp_format = 1</span>
+<span class="sd">        &gt;&gt;&gt; result = exiftime_to_unixtime(datetime_str, timestamp_format)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="c"># Normal format, or non-standard year first data</span>
         <span class="k">if</span> <span class="n">timestamp_format</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
             <span class="n">timefmt</span> <span class="o">=</span> <span class="s">&#39;%m/</span><span class="si">%d</span><span class="s">/%Y %H:%M:%S&#39;</span>
-        <span class="k">else</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">timestamp_format</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">timefmt</span> <span class="o">=</span> <span class="s">&#39;%Y:%m:</span><span class="si">%d</span><span class="s"> %H:%M:%S&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">timestamp_format</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span>
+            <span class="n">timefmt</span> <span class="o">=</span> <span class="n">timestamp_format</span>
+            <span class="c">#raise AssertionError(&#39;unknown timestamp_format=%r&#39; % (timestamp_format,))</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">datetime_str</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">19</span><span class="p">:</span>
             <span class="n">datetime_str_</span> <span class="o">=</span> <span class="n">datetime_str</span><span class="p">[:</span><span class="mi">19</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
@@ -191,15 +218,14 @@
             <span class="c">#return -1</span>
         <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
     <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">utool.util_arg</span> <span class="kn">import</span> <span class="n">STRICT</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">datetime_str_</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+        <span class="c">#from utool.util_arg import STRICT</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">datetime_str</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">datetime_str_</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;No EXIF Data&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
             <span class="k">if</span> <span class="n">datetime_str_</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Invalid&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
             <span class="k">if</span> <span class="n">datetime_str_</span> <span class="o">==</span> <span class="s">&#39;0000:00:00 00:00:00&#39;</span><span class="p">:</span>
                 <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
-
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;&lt;!!! ValueError !!!&gt;&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_time] Caught Error: &#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_time] type(datetime_str)  = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">datetime_str</span><span class="p">))</span>
@@ -209,7 +235,7 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_time] repr(datetime_str_) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">datetime_str_</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_time]  len(datetime_str_) = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">datetime_str_</span><span class="p">))</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;&lt;/!!! ValueError !!!&gt;&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">STRICT</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">strict</span><span class="p">:</span>
             <span class="k">raise</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;Supressed ValueError&#39;</span><span class="p">)</span>
@@ -219,6 +245,8 @@
 <div class="viewcode-block" id="unixtime_to_datetime"><a class="viewcode-back" href="../../utool.html#utool.util_time.unixtime_to_datetime">[docs]</a><span class="k">def</span> <span class="nf">unixtime_to_datetime</span><span class="p">(</span><span class="n">unixtime</span><span class="p">,</span> <span class="n">timefmt</span><span class="o">=</span><span class="s">&#39;%Y/%m/</span><span class="si">%d</span><span class="s"> %H:%M:%S&#39;</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">unixtime</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
         <span class="k">return</span> <span class="s">&#39;NA&#39;</span>
+    <span class="k">if</span> <span class="n">unixtime</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span>
     <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">unixtime</span><span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">timefmt</span><span class="p">)</span>
 
 </div>
@@ -320,8 +348,8 @@
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -c &quot;import utool, utool.util_time; utool.doctest_funcs(utool.util_time, allexamples=True)&quot;</span>
 <span class="sd">        python -c &quot;import utool, utool.util_time; utool.doctest_funcs(utool.util_time)&quot;</span>
-<span class="sd">        python utool/util_time.py</span>
-<span class="sd">        python utool/util_time.py --allexamples</span>
+<span class="sd">        python -m utool.util_time</span>
+<span class="sd">        python -m utool.util_time --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
@@ -366,7 +394,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

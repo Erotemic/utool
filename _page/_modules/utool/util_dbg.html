@@ -54,6 +54,7 @@
 <span class="kn">import</span> <span class="nn">fnmatch</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">import</span> <span class="nn">time</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -66,7 +67,7 @@
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">types</span>
 <span class="kn">import</span> <span class="nn">functools</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">split</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">basename</span><span class="p">,</span> <span class="n">dirname</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
 <span class="kn">from</span> <span class="nn">utool.util_arg</span> <span class="kn">import</span> <span class="n">get_argflag</span>
 <span class="kn">from</span> <span class="nn">utool.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
@@ -77,7 +78,8 @@
 <span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[dbg]&#39;</span><span class="p">)</span>
 
-<span class="n">RAISE_ALL</span> <span class="o">=</span> <span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--raise-all&#39;</span><span class="p">)</span>
+<span class="n">RAISE_ALL</span> <span class="o">=</span> <span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--raise-all&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;Causes ut.printex to always reraise errors&#39;</span><span class="p">)</span>
+<span class="n">FORCE_TB</span> <span class="o">=</span> <span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--force-tb&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;Causes ut.printex to always print traceback&#39;</span><span class="p">)</span>
 
 <span class="c"># --- Exec Strings ---</span>
 <span class="n">IPYTHON_EMBED_STR</span> <span class="o">=</span> <span class="s">r&#39;&#39;&#39;</span>
@@ -334,6 +336,52 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Starts interactive session. Similar to keyboard command in matlab.</span>
 <span class="sd">    Wrapper around IPython.embed</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        parent_locals (None):</span>
+<span class="sd">        parent_globals (None):</span>
+<span class="sd">        exec_lines (None):</span>
+<span class="sd">        remove_pyqt_hook (bool):</span>
+<span class="sd">        N (int):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_dbg --test-embed</span>
+
+<span class="sd">    References:</span>
+<span class="sd">       http://stackoverflow.com/questions/27911570/can-you-specify-a-command-to-run-after-you-embed-into-ipython/27914204#27914204</span>
+<span class="sd">       http://stackoverflow.com/questions/15167200/how-do-i-embed-an-ipython-interpreter-into-an-application-running-in-an-ipython</span>
+
+<span class="sd">    TODO:</span>
+<span class="sd">        try:</span>
+<span class="sd">            get_ipython</span>
+<span class="sd">        except NameError:</span>
+<span class="sd">            banner=exit_msg=&#39;&#39;</span>
+<span class="sd">        else:</span>
+<span class="sd">            banner = &#39;*** Nested interpreter ***&#39;</span>
+<span class="sd">            exit_msg = &#39;*** Back in main IPython ***&#39;</span>
+
+<span class="sd">        # First import the embed function</span>
+<span class="sd">        from IPython.frontend.terminal.embed import InteractiveShellEmbed</span>
+<span class="sd">        # Now create the IPython shell instance. Put ipshell() anywhere in your code</span>
+<span class="sd">        # where you want it to open.</span>
+<span class="sd">        ipshell = InteractiveShellEmbed(banner1=banner, exit_msg=exit_msg)</span>
+<span class="sd">        #Then use ipshell() whenever you want to be dropped into an IPython shell. This</span>
+<span class="sd">        #will allow you to embed (and even nest) IPython interpreters in your code and</span>
+<span class="sd">        #inspect objects or the state of the program.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dbg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; parent_locals = None</span>
+<span class="sd">        &gt;&gt;&gt; parent_globals = None</span>
+<span class="sd">        &gt;&gt;&gt; exec_lines = None</span>
+<span class="sd">        &gt;&gt;&gt; remove_pyqt_hook = True</span>
+<span class="sd">        &gt;&gt;&gt; N = 0</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; result = embed(parent_locals, parent_globals, exec_lines, remove_pyqt_hook, N)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">parent_globals</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">parent_globals</span> <span class="o">=</span> <span class="n">get_parent_globals</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
@@ -350,6 +398,9 @@
     <span class="k">exec</span><span class="p">(</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">parent_globals</span><span class="p">,</span> <span class="s">&#39;parent_globals&#39;</span><span class="p">))</span>
     <span class="k">exec</span><span class="p">(</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">parent_locals</span><span class="p">,</span>  <span class="s">&#39;parent_locals&#39;</span><span class="p">))</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;================&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">bubbletext</span><span class="p">(</span><span class="s">&#39;EMBEDING&#39;</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;================&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util] embedding&#39;</span><span class="p">)</span>
     <span class="kn">import</span> <span class="nn">IPython</span>
     <span class="k">try</span><span class="p">:</span>
@@ -364,18 +415,71 @@
             <span class="c"># make qt not loop forever (I had qflag loop forever with this off)</span>
     <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
-    <span class="c">#from IPython.config.loader import Config</span>
-    <span class="c"># cfg = Config()</span>
-    <span class="c">#config_dict = {}</span>
-    <span class="c">#if exec_lines is not None:</span>
-    <span class="c">#    config_dict[&#39;exec_lines&#39;] = exec_lines</span>
-    <span class="c">#IPython.embed(**config_dict)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;set EXIT_NOW or qqq to True to hard exit on unembed&#39;</span><span class="p">)</span>
-    <span class="n">IPython</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
-    <span class="c"># Exit python immediately if specifed</span>
-    <span class="k">if</span> <span class="nb">vars</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;EXIT_NOW&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">vars</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;qqq&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool.embed] EXIT_NOW specified&#39;</span><span class="p">)</span>
-        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">NEW_METHOD</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">if</span> <span class="n">NEW_METHOD</span><span class="p">:</span>
+        <span class="n">user_ns</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()</span>
+        <span class="n">user_ns</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">user_ns</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">locals</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">parent_globals</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">user_ns</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">parent_globals</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">parent_locals</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">user_ns</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">parent_locals</span><span class="p">)</span>
+        <span class="n">orig_argv</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>  <span class="c"># NOQA</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;About to start_ipython&#39;</span><span class="p">)</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">IPython</span><span class="o">.</span><span class="n">Config</span><span class="p">()</span>
+        <span class="n">exec_lines_</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s">&#39;%pylab qt4&#39;</span><span class="p">,</span>
+            <span class="s">&#39;print(&quot;Entered IPYTHON via utool&quot;)&#39;</span><span class="p">,</span>
+            <span class="s">&#39;print(&quot;Entry Point: </span><span class="si">%r</span><span class="s">&quot; % (ut.get_caller_stack_frame(N=11).f_code.co_name,))&#39;</span><span class="p">,</span>
+            <span class="c">#&#39;print(&quot;Entry Point: %r&quot; % (ut.get_caller_stack_frame(N=10).f_code.co_name,))&#39;,</span>
+            <span class="c">#&#39;print(&quot;Entry Point: %r&quot; % (ut.get_caller_stack_frame(N=9).f_code.co_name,))&#39;,</span>
+            <span class="c">#&#39;print(&quot;Entry Point: %r&quot; % (ut.get_caller_stack_frame(N=8).f_code.co_name,))&#39;,</span>
+            <span class="c">#&#39;print(&quot;Entry Point: %r&quot; % (ut.get_caller_stack_frame(N=7).f_code.co_name,))&#39;,</span>
+            <span class="c">#&#39;print(&quot;Entry Point: %r&quot; % (ut.get_caller_stack_frame(N=6).f_code.co_name,))&#39;,</span>
+            <span class="c">#&#39;print(&quot;Entry Point: %r&quot; % (ut.get_caller_stack_frame(N=5).f_code.co_name,))&#39;,</span>
+            <span class="c">#execstr_dict(parent_locals)</span>
+        <span class="p">]</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_str_list</span><span class="p">(</span><span class="n">exec_lines</span> <span class="k">if</span> <span class="n">exec_lines</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="p">[])</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">InteractiveShellApp</span><span class="o">.</span><span class="n">exec_lines</span> <span class="o">=</span> <span class="n">exec_lines_</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Exec Lines: &#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="n">exec_lines_</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">    &gt;&gt;&gt; &#39;</span><span class="p">))</span>
+        <span class="n">IPython</span><span class="o">.</span><span class="n">start_ipython</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">argv</span><span class="o">=</span><span class="p">[],</span> <span class="n">user_ns</span><span class="o">=</span><span class="n">user_ns</span><span class="p">)</span>
+        <span class="c"># Exit python immediately if specifed</span>
+        <span class="k">if</span> <span class="n">user_ns</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;qqq&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">vars</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;qqq&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span> <span class="ow">or</span> <span class="n">user_ns</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;EXIT_NOW&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool.embed] EXIT_NOW or qqq specified&#39;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c">#from IPython.config.loader import Config</span>
+        <span class="c"># cfg = Config()</span>
+        <span class="c">#config_dict = {}</span>
+        <span class="c">#if exec_lines is not None:</span>
+        <span class="c">#    config_dict[&#39;exec_lines&#39;] = exec_lines</span>
+        <span class="c">#IPython.embed(**config_dict)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Get stack location with: &#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;ut.get_caller_stack_frame(N=8).f_code.co_name&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;set EXIT_NOW or qqq to True to hard exit on unembed&#39;</span><span class="p">)</span>
+        <span class="c">#print(&#39;set iup to True to draw plottool stuff&#39;)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;call %pylab qt4 to get plottool stuff working&#39;</span><span class="p">)</span>
+        <span class="n">once</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="c"># Allow user to set iup and redo the loop</span>
+        <span class="k">while</span> <span class="n">once</span> <span class="ow">or</span> <span class="nb">vars</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;iup&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">once</span><span class="p">:</span>
+                <span class="c"># SUPER HACKY WAY OF GETTING FIGURES ON THE SCREEN BETWEEN UPDATES</span>
+                <span class="c">#vars()[&#39;iup&#39;] = False</span>
+                <span class="c"># ALL YOU NEED TO DO IS %pylab qt4</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;re-emebeding&#39;</span><span class="p">)</span>
+                <span class="c">#import plottool as pt</span>
+                <span class="c">#pt.update()</span>
+                <span class="c">#(pt.present())</span>
+                <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
+                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="o">.</span><span class="mo">01</span><span class="p">)</span>
+
+            <span class="n">once</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="c">#vars().get(&#39;iup&#39;, False):</span>
+            <span class="n">IPython</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
+            <span class="c"># Exit python immediately if specifed</span>
+            <span class="k">if</span> <span class="nb">vars</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;EXIT_NOW&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">vars</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;qqq&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool.embed] EXIT_NOW specified&#39;</span><span class="p">)</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="quitflag"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.quitflag">[docs]</a><span class="k">def</span> <span class="nf">quitflag</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">embed_</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">parent_locals</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parent_globals</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
@@ -430,15 +534,15 @@
 </div>
 <div class="viewcode-block" id="print_frame"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.print_frame">[docs]</a><span class="k">def</span> <span class="nf">print_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">):</span>
     <span class="n">frame</span> <span class="o">=</span> <span class="n">frame</span> <span class="k">if</span> <span class="s">&#39;frame&#39;</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">()</span> <span class="k">else</span> <span class="n">inspect</span><span class="o">.</span><span class="n">currentframe</span><span class="p">()</span>
-    <span class="n">attr_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;f_code.co_name&#39;</span><span class="p">,</span> <span class="s">&#39;f_back&#39;</span><span class="p">,</span> <span class="s">&#39;f_lineno&#39;</span><span class="p">,</span>
-                 <span class="s">&#39;f_code.co_names&#39;</span><span class="p">,</span> <span class="s">&#39;f_code.co_filename&#39;</span><span class="p">]</span>
+    <span class="n">attr_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;f_code.co_name&#39;</span><span class="p">,</span> <span class="s">&#39;f_code.co_filename&#39;</span><span class="p">,</span> <span class="s">&#39;f_back&#39;</span><span class="p">,</span> <span class="s">&#39;f_lineno&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;f_code.co_names&#39;</span><span class="p">]</span>
     <span class="n">obj_name</span> <span class="o">=</span> <span class="s">&#39;frame&#39;</span>
     <span class="n">execstr_print_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;print(&quot;</span><span class="si">%r</span><span class="s">=</span><span class="si">%%</span><span class="s">r&quot; </span><span class="si">%%</span><span class="s"> (</span><span class="si">%s</span><span class="s">,))&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_execstr</span><span class="p">,</span> <span class="n">_execstr</span><span class="p">)</span>
                           <span class="k">for</span> <span class="n">_execstr</span> <span class="ow">in</span> <span class="n">execstr_attr_list</span><span class="p">(</span><span class="n">obj_name</span><span class="p">,</span> <span class="n">attr_list</span><span class="p">)]</span>
     <span class="n">execstr</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">execstr_print_list</span><span class="p">)</span>
     <span class="k">exec</span><span class="p">(</span><span class="n">execstr</span><span class="p">)</span>
     <span class="n">local_varnames</span> <span class="o">=</span> <span class="n">pack_into</span><span class="p">(</span><span class="s">&#39;; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">f_locals</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">local_varnames</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Local varnames: &#39;</span> <span class="o">+</span> <span class="n">local_varnames</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;--- End Frame ---&#39;</span><span class="p">)</span>
 
 </div>
@@ -495,13 +599,16 @@
 <span class="n">get_localvar_from_stack</span> <span class="o">=</span> <span class="n">search_stack_for_localvar</span>
 
 
-<div class="viewcode-block" id="get_stack_frame"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.get_stack_frame">[docs]</a><span class="k">def</span> <span class="nf">get_stack_frame</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="get_stack_frame"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.get_stack_frame">[docs]</a><span class="k">def</span> <span class="nf">get_stack_frame</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="n">frame_level0</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">currentframe</span><span class="p">()</span>
     <span class="n">frame_cur</span> <span class="o">=</span> <span class="n">frame_level0</span>
     <span class="k">for</span> <span class="n">_ix</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
         <span class="n">frame_next</span> <span class="o">=</span> <span class="n">frame_cur</span><span class="o">.</span><span class="n">f_back</span>
         <span class="k">if</span> <span class="n">frame_next</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;Frame level </span><span class="si">%r</span><span class="s"> is root&#39;</span> <span class="o">%</span> <span class="n">_ix</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">strict</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;Frame level </span><span class="si">%r</span><span class="s"> is root&#39;</span> <span class="o">%</span> <span class="n">_ix</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">break</span>
         <span class="n">frame_cur</span> <span class="o">=</span> <span class="n">frame_next</span>
     <span class="k">return</span> <span class="n">frame_cur</span>
 
@@ -565,6 +672,12 @@
     <span class="k">return</span> <span class="n">prefix</span>
 
 </div>
+<div class="viewcode-block" id="get_caller_lineno"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.get_caller_lineno">[docs]</a><span class="k">def</span> <span class="nf">get_caller_lineno</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="n">parent_frame</span> <span class="o">=</span> <span class="n">get_parent_frame</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">lineno</span> <span class="o">=</span>  <span class="n">parent_frame</span><span class="o">.</span><span class="n">f_lineno</span>
+    <span class="k">return</span> <span class="n">lineno</span>
+
+</div>
 <div class="viewcode-block" id="get_caller_name"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.get_caller_name">[docs]</a><span class="k">def</span> <span class="nf">get_caller_name</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    get the name of the function that called you</span>
@@ -575,7 +688,7 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        str: a function name</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">range</span><span class="p">)):</span>
         <span class="n">name_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">N_</span> <span class="ow">in</span> <span class="n">N</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
@@ -593,7 +706,22 @@
     <span class="k">if</span> <span class="n">caller_name</span> <span class="o">==</span> <span class="s">&#39;&lt;module&gt;&#39;</span><span class="p">:</span>
         <span class="n">co_filename</span> <span class="o">=</span> <span class="n">parent_frame</span><span class="o">.</span><span class="n">f_code</span><span class="o">.</span><span class="n">co_filename</span>
         <span class="n">caller_name</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">split</span><span class="p">(</span><span class="n">co_filename</span><span class="p">)[</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">caller_name</span> <span class="o">==</span> <span class="s">&#39;__init__&#39;</span><span class="p">:</span>
+        <span class="n">caller_name</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">co_filename</span><span class="p">))</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="n">caller_name</span>
     <span class="k">return</span> <span class="n">caller_name</span>
+
+</div>
+<div class="viewcode-block" id="get_caller_modname"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.get_caller_modname">[docs]</a><span class="k">def</span> <span class="nf">get_caller_modname</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">allowmain</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="n">parent_frame</span> <span class="o">=</span> <span class="n">get_stack_frame</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="n">N</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">allowmain</span> <span class="ow">is</span> <span class="bp">True</span>
+    <span class="n">caller_modname</span> <span class="o">=</span> <span class="n">parent_frame</span><span class="o">.</span><span class="n">f_globals</span><span class="p">[</span><span class="s">&#39;__name__&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">caller_modname</span>
+
+</div>
+<div class="viewcode-block" id="get_current_stack_depth"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.get_current_stack_depth">[docs]</a><span class="k">def</span> <span class="nf">get_current_stack_depth</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">traceback</span>
+    <span class="n">stack</span> <span class="o">=</span> <span class="n">traceback</span><span class="o">.</span><span class="n">extract_stack</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">stack</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="module_functions"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.module_functions">[docs]</a><span class="k">def</span> <span class="nf">module_functions</span><span class="p">(</span><span class="n">module</span><span class="p">):</span>
@@ -780,6 +908,10 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="ne">MemoryError</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">print_resource_usage</span><span class="p">()</span>
+    <span class="c">#ut.embed()</span>
     <span class="k">if</span> <span class="n">keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="c"># shorthand for key_list</span>
         <span class="n">key_list</span> <span class="o">=</span> <span class="n">keys</span>
@@ -815,18 +947,22 @@
 
 </div>
 <div class="viewcode-block" id="formatex"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.formatex">[docs]</a><span class="k">def</span> <span class="nf">formatex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s">&#39;[!?] Caught exception&#39;</span><span class="p">,</span>
-             <span class="n">prefix</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">locals_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+             <span class="n">prefix</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">locals_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+             <span class="n">N</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Formats an exception with relevant info &quot;&quot;&quot;</span>
     <span class="c"># Get error prefix and local info</span>
     <span class="k">if</span> <span class="n">prefix</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">prefix</span> <span class="o">=</span> <span class="n">get_caller_prefix</span><span class="p">(</span><span class="n">aserror</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">locals_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">locals_</span> <span class="o">=</span> <span class="n">get_caller_locals</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c"># shorthand for key_list</span>
+        <span class="n">key_list</span> <span class="o">=</span> <span class="n">keys</span>
     <span class="c"># build exception message</span>
     <span class="n">errstr_list</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># list of exception strings</span>
     <span class="n">ex_tag</span> <span class="o">=</span> <span class="s">&#39;WARNING&#39;</span> <span class="k">if</span> <span class="n">iswarning</span> <span class="k">else</span> <span class="s">&#39;EXCEPTION&#39;</span>
     <span class="n">errstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;!!! </span><span class="si">%s</span><span class="s"> !!!&gt;&#39;</span> <span class="o">%</span> <span class="n">ex_tag</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">tb</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">tb</span> <span class="ow">or</span> <span class="n">FORCE_TB</span><span class="p">:</span>
         <span class="n">errstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
     <span class="n">errstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prefix</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="si">%r</span><span class="s">: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">)))</span>
     <span class="n">parse_locals_keylist</span><span class="p">(</span><span class="n">locals_</span><span class="p">,</span> <span class="n">key_list</span><span class="p">,</span> <span class="n">errstr_list</span><span class="p">,</span> <span class="n">prefix</span><span class="p">)</span>
@@ -834,8 +970,8 @@
     <span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">errstr_list</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="get_varname_from_stack"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.get_varname_from_stack">[docs]</a><span class="k">def</span> <span class="nf">get_varname_from_stack</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">get_varname_from_locals</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">get_caller_locals</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="n">N</span><span class="p">))</span>
+<div class="viewcode-block" id="get_varname_from_stack"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.get_varname_from_stack">[docs]</a><span class="k">def</span> <span class="nf">get_varname_from_stack</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">get_varname_from_locals</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">get_caller_locals</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="n">N</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="get_varname_from_locals"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.get_varname_from_locals">[docs]</a><span class="k">def</span> <span class="nf">get_varname_from_locals</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">locals_</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;varname-not-found&#39;</span><span class="p">,</span>
@@ -855,6 +991,9 @@
 <span class="sd">        str: the varname which is Val (if it exists)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)):</span>
+        <span class="c"># Cannot work on primative types</span>
+        <span class="k">return</span> <span class="n">default</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">val_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">locals_</span><span class="p">)):</span>
             <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="n">val_</span><span class="p">:</span>
@@ -1099,6 +1238,7 @@
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_dbg] </span><span class="si">%r</span><span class="s"> in context manager!: </span><span class="si">%s</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">type_</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)))</span>
             <span class="kn">import</span> <span class="nn">utool</span>
             <span class="kn">import</span> <span class="nn">traceback</span>
+            <span class="c">#traceback.print_stack(type_, value, trace)</span>
             <span class="n">traceback</span><span class="o">.</span><span class="n">print_exception</span><span class="p">(</span><span class="n">type_</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">trace</span><span class="p">)</span>
             <span class="c">#parent_locals = utool.get_parent_locals()</span>
             <span class="c">#execstr_parent = utool.execstr_dict(parent_locals, &#39;parent_locals&#39;)</span>
@@ -1113,8 +1253,8 @@
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -c &quot;import utool, utool.util_dbg; utool.doctest_funcs(utool.util_dbg, allexamples=True)&quot;</span>
 <span class="sd">        python -c &quot;import utool, utool.util_dbg; utool.doctest_funcs(utool.util_dbg)&quot;</span>
-<span class="sd">        python utool/util_dbg.py</span>
-<span class="sd">        python utool/util_dbg.py --allexamples</span>
+<span class="sd">        python -m utool.util_dbg</span>
+<span class="sd">        python -m utool.util_dbg --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
@@ -1159,7 +1299,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

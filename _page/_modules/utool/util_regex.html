@@ -55,7 +55,6 @@
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">parse</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">split</span><span class="p">,</span> <span class="n">relpath</span>
 <span class="kn">from</span> <span class="nn">utool.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[str]&#39;</span><span class="p">)</span>
@@ -112,10 +111,17 @@
     <span class="k">return</span> <span class="s">r&#39;(?P&lt;</span><span class="si">%s</span><span class="s">&gt;</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">regex</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="repl_field"><a class="viewcode-back" href="../../utool.html#utool.util_regex.repl_field">[docs]</a><span class="k">def</span> <span class="nf">repl_field</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+<div class="viewcode-block" id="whole_word"><a class="viewcode-back" href="../../utool.html#utool.util_regex.whole_word">[docs]</a><span class="k">def</span> <span class="nf">whole_word</span><span class="p">(</span><span class="n">regex</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">r&#39;\b</span><span class="si">%s</span><span class="s">\b&#39;</span> <span class="o">%</span> <span class="n">regex</span>
+
+</div>
+<div class="viewcode-block" id="backref_field"><a class="viewcode-back" href="../../utool.html#utool.util_regex.backref_field">[docs]</a><span class="k">def</span> <span class="nf">backref_field</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
     <span class="k">return</span> <span class="s">r&#39;\g&lt;</span><span class="si">%s</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
 </div>
+<span class="n">bref_field</span> <span class="o">=</span> <span class="n">backref_field</span>
+
+
 <div class="viewcode-block" id="regex_replace"><a class="viewcode-back" href="../../utool.html#utool.util_regex.regex_replace">[docs]</a><span class="k">def</span> <span class="nf">regex_replace</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">repl</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    thin wrapper around re.sub</span>
@@ -131,7 +137,7 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        str: modified text</span>
 
-<span class="sd">    Example:</span>
+<span class="sd">    Example1:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_regex import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; regex = r&#39;\(.*\):&#39;</span>
@@ -143,6 +149,18 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        def foo(*args)</span>
 
+<span class="sd">    Example2:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_regex import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; regex = ut.named_field_regex([(&#39;keyword&#39;, &#39;def&#39;), &#39; &#39;, (&#39;funcname&#39;, &#39;.*&#39;), &#39;\(.*\):&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; repl = ut.named_field_repl([(&#39;funcname&#39;,), (&#39;keyword&#39;,)])</span>
+<span class="sd">        &gt;&gt;&gt; text = &#39;&#39;&#39;def foo(param1,</span>
+<span class="sd">        ...                   param2,</span>
+<span class="sd">        ...                   param3):&#39;&#39;&#39;</span>
+<span class="sd">        &gt;&gt;&gt; result = regex_replace(regex, repl, text)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        foodef</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">repl</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="o">**</span><span class="n">RE_KWARGS</span><span class="p">)</span>
 
@@ -152,7 +170,8 @@
 <span class="sd">    named_field_regex</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        keypat_tups (list): tuples of (name, pattern)</span>
+<span class="sd">        keypat_tups (list): tuples of (name, pattern) or a string for an unnamed</span>
+<span class="sd">        pattern</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        str: regex</span>
@@ -167,14 +186,44 @@
 <span class="sd">        ...    ( None,   r&#39;\.&#39;),</span>
 <span class="sd">        ...    (&#39;ext&#39;,   r&#39;\w+&#39;),</span>
 <span class="sd">        ... ]</span>
-<span class="sd">        &gt;&gt;&gt; parse_dict = named_field_regex(keypat_tups)</span>
-<span class="sd">        &gt;&gt;&gt; result = (parse_dict)</span>
+<span class="sd">        &gt;&gt;&gt; regex = named_field_regex(keypat_tups)</span>
+<span class="sd">        &gt;&gt;&gt; result = (regex)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        (?P&lt;name&gt;G\d+)(?P&lt;under&gt;_)(?P&lt;id&gt;\d+)\.(?P&lt;ext&gt;\w+)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">named_fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">named_field</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">pat</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">pat</span> <span class="ow">in</span> <span class="n">keypat_tups</span><span class="p">]</span>
+    <span class="c"># Allow for unnamed patterns</span>
+    <span class="n">keypat_tups_</span> <span class="o">=</span> <span class="p">[(</span><span class="bp">None</span><span class="p">,</span> <span class="n">tup</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tup</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="k">else</span> <span class="n">tup</span>
+                    <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">keypat_tups</span><span class="p">]</span>
+    <span class="n">named_fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">named_field</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">pat</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">pat</span> <span class="ow">in</span> <span class="n">keypat_tups_</span><span class="p">]</span>
     <span class="n">regex</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">named_fields</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">regex</span>
+
+</div>
+<div class="viewcode-block" id="named_field_repl"><a class="viewcode-back" href="../../utool.html#utool.util_regex.named_field_repl">[docs]</a><span class="k">def</span> <span class="nf">named_field_repl</span><span class="p">(</span><span class="n">field_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        field_list (list): list of either a tuples to denote a keyword, or a</span>
+<span class="sd">            strings for relacement t3ext</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: repl for regex</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_regex import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; field_list = [(&#39;key&#39;,), &#39;unspecial string&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; repl = named_field_repl(field_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = repl</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        \g&lt;key&gt;unspecial string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Allow for unnamed patterns</span>
+    <span class="n">bref_field_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">backref_field</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span> <span class="n">key</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">field_list</span>
+    <span class="p">]</span>
+    <span class="n">repl</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bref_field_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">repl</span>
 
 </div>
 <div class="viewcode-block" id="regex_get_match"><a class="viewcode-back" href="../../utool.html#utool.util_regex.regex_get_match">[docs]</a><span class="k">def</span> <span class="nf">regex_get_match</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">fromstart</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
@@ -209,6 +258,48 @@
     <span class="n">singlequote_comment</span> <span class="o">=</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">QuotedString</span><span class="p">(</span><span class="n">quoteChar</span><span class="o">=</span><span class="s">&#39;</span><span class="se">\&#39;\&#39;\&#39;</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">escChar</span><span class="o">=</span><span class="s">&#39;</span><span class="se">\\</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">multiline</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">docblock_parser</span>  <span class="o">=</span> <span class="n">doublequote_comment</span> <span class="o">|</span> <span class="n">singlequote_comment</span>
     <span class="n">docblock_parser</span><span class="o">.</span><span class="n">parseString</span><span class="p">(</span><span class="n">func_code</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="parse_python_syntax"><a class="viewcode-back" href="../../utool.html#utool.util_regex.parse_python_syntax">[docs]</a><span class="k">def</span> <span class="nf">parse_python_syntax</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    step1: split lines</span>
+
+<span class="sd">    step2: parse enclosure pairity for each line to find unended lines</span>
+
+<span class="sd">    for each unending line, is there a valid merge line?</span>
+<span class="sd">    (a line that could snytatically finish this runnon statement?</span>
+<span class="sd">    If no then error. Else try to join the two lines.</span>
+
+<span class="sd">    step3: perform context_sensitive_edit</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_regex import *   # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool</span>
+<span class="sd">        &gt;&gt;&gt; from os.path import normpath</span>
+<span class="sd">        &gt;&gt;&gt; text = utool.read_from(utool.util_regex.__file__)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="k">def</span> <span class="nf">find_all</span><span class="p">(</span><span class="n">a_str</span><span class="p">,</span> <span class="n">sub</span><span class="p">):</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">a_str</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">sub</span><span class="p">,</span> <span class="n">start</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">start</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span>
+            <span class="k">yield</span> <span class="n">start</span>
+            <span class="n">start</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>  <span class="c"># use start += 1 to find overlapping matches</span>
+    <span class="n">line_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">text</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()]</span>  <span class="c"># NOQA</span>
+    <span class="kn">import</span> <span class="nn">re</span>  <span class="c"># NOQA</span>
+    <span class="n">line_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;#&#39;</span><span class="p">)]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">line_list_</span><span class="p">]</span>
+    <span class="n">open_tokens</span>  <span class="o">=</span> <span class="p">[</span><span class="s">&#39;</span><span class="se">\&#39;\&#39;\&#39;</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&quot;&quot;&quot;&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s">&#39;(&#39;</span><span class="p">,</span> <span class="s">&#39;[&#39;</span><span class="p">]</span>   <span class="c"># ,  &#39;#&#39;]</span>
+    <span class="n">close_tokens</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;</span><span class="se">\&#39;\&#39;\&#39;</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&quot;&quot;&quot;&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s">&#39;)&#39;</span><span class="p">,</span> <span class="s">&#39;]&#39;</span><span class="p">]</span>   <span class="c"># , &#39;\n&#39;]</span>
+    <span class="k">def</span> <span class="nf">find_token_pos</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">find_all</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">token</span><span class="p">))</span>
+    <span class="n">open_tokenxs</span>  <span class="o">=</span> <span class="p">[[</span><span class="n">find_token_pos</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">token</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">line_list</span><span class="p">]</span> <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">open_tokens</span><span class="p">]</span>
+    <span class="n">close_tokenxs</span> <span class="o">=</span> <span class="p">[[</span><span class="n">find_token_pos</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">token</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">line_list</span><span class="p">]</span> <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">close_tokens</span><span class="p">]</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">open_tokenxs</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">close_tokenxs</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">open_tokenxs</span><span class="p">))))</span>
+    <span class="k">print</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">close_tokenxs</span><span class="p">))))</span>
 
 </div>
 <div class="viewcode-block" id="modify_quoted_strs"><a class="viewcode-back" href="../../utool.html#utool.util_regex.modify_quoted_strs">[docs]</a><span class="k">def</span> <span class="nf">modify_quoted_strs</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">modify_func</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
@@ -260,8 +351,11 @@
 
 </div>
 <div class="viewcode-block" id="padded_parse"><a class="viewcode-back" href="../../utool.html#utool.util_regex.padded_parse">[docs]</a><span class="k">def</span> <span class="nf">padded_parse</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+    <span class="c"># TODO: move to util_parse</span>
+    <span class="kn">import</span> <span class="nn">parse</span>
     <span class="n">padded_pattern</span> <span class="o">=</span> <span class="s">&#39;{_prefix}&#39;</span> <span class="o">+</span> <span class="n">pattern</span> <span class="o">+</span> <span class="s">&#39;{_suffix}&#39;</span>
-    <span class="n">parse_result</span> <span class="o">=</span> <span class="n">parse</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">padded_pattern</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+    <span class="n">padded_text</span> <span class="o">=</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="n">text</span> <span class="o">+</span> <span class="s">&#39; &#39;</span>
+    <span class="n">parse_result</span> <span class="o">=</span> <span class="n">parse</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">padded_pattern</span><span class="p">,</span> <span class="n">padded_text</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">parse_result</span>
 
 </div>
@@ -270,8 +364,8 @@
 <span class="sd">    regex_parse</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        regex (?):</span>
-<span class="sd">        text (?):</span>
+<span class="sd">        regex (str):</span>
+<span class="sd">        text (str):</span>
 <span class="sd">        fromstart (bool):</span>
 
 <span class="sd">    Returns:</span>
@@ -387,8 +481,8 @@
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -c &quot;import utool, utool.util_regex; utool.doctest_funcs(utool.util_regex, allexamples=True)&quot;</span>
 <span class="sd">        python -c &quot;import utool, utool.util_regex; utool.doctest_funcs(utool.util_regex)&quot;</span>
-<span class="sd">        python utool/util_regex.py</span>
-<span class="sd">        python utool/util_regex.py --allexamples</span>
+<span class="sd">        python -m utool.util_regex</span>
+<span class="sd">        python -m utool.util_regex --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
@@ -433,7 +527,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

@@ -67,6 +67,48 @@
 <span class="n">BadZipfile</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">BadZipfile</span>
 
 
+<div class="viewcode-block" id="archive_files"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.archive_files">[docs]</a><span class="k">def</span> <span class="nf">archive_files</span><span class="p">(</span><span class="n">archive_fpath</span><span class="p">,</span> <span class="n">fpath_list</span><span class="p">,</span> <span class="n">small</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">allowZip64</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                  <span class="n">overwrite</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        archive_fpath (str): path to zipfile to create</span>
+<span class="sd">        fpath_list (list): path of files to add to the zipfile</span>
+<span class="sd">        small (bool): if True uses compression but the zipfile will take more time to write</span>
+<span class="sd">        allowZip64 (bool): use if a file is over 2GB</span>
+<span class="sd">        overwrite (bool):</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        https://docs.python.org/2/library/zipfile.html</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_grabdata --test-archive_files</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_grabdata import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; archive_fpath = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; fpath_list = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; small = True</span>
+<span class="sd">        &gt;&gt;&gt; allowZip64 = False</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; result = archive_files(archive_fpath, fpath_list, small, allowZip64)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">relpath</span><span class="p">,</span> <span class="n">dirname</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">archive_fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;cannot overrwite archive_fpath=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">archive_fpath</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Archiving </span><span class="si">%d</span><span class="s"> files&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">fpath_list</span><span class="p">))</span>
+    <span class="n">compression</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZIP_DEFLATED</span> <span class="k">if</span> <span class="n">small</span> <span class="k">else</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZIP_STORED</span>
+    <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">archive_fpath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">,</span> <span class="n">compression</span><span class="p">,</span> <span class="n">allowZip64</span><span class="p">)</span> <span class="k">as</span> <span class="n">myzip</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">fpath_list</span><span class="p">:</span>
+            <span class="n">arcname</span> <span class="o">=</span> <span class="n">relpath</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">dirname</span><span class="p">(</span><span class="n">archive_fpath</span><span class="p">))</span>
+            <span class="n">myzip</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">arcname</span><span class="p">)</span>
+
+</div>
 <div class="viewcode-block" id="unarchive_file"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.unarchive_file">[docs]</a><span class="k">def</span> <span class="nf">unarchive_file</span><span class="p">(</span><span class="n">archive_fpath</span><span class="p">,</span> <span class="n">force_commonprefix</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;Unarchive: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">archive_fpath</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">is_tarfile</span><span class="p">(</span><span class="n">archive_fpath</span><span class="p">):</span>
@@ -74,7 +116,7 @@
     <span class="k">elif</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">is_zipfile</span><span class="p">(</span><span class="n">archive_fpath</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">unzip_file</span><span class="p">(</span><span class="n">archive_fpath</span><span class="p">,</span> <span class="n">force_commonprefix</span><span class="o">=</span><span class="n">force_commonprefix</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;unknown archive format&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;unknown archive format: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">archive_fpath</span><span class="p">,))</span>
 
 </div>
 <div class="viewcode-block" id="untar_file"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.untar_file">[docs]</a><span class="k">def</span> <span class="nf">untar_file</span><span class="p">(</span><span class="n">targz_fpath</span><span class="p">,</span> <span class="n">force_commonprefix</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
@@ -203,8 +245,70 @@
     <span class="k">return</span> <span class="n">name</span><span class="p">,</span> <span class="n">ext</span>
 
 </div>
+<span class="n">TESTIMG_URL_DICT</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;grace.jpg&#39;</span> <span class="p">:</span> <span class="s">&#39;http://i.imgur.com/rgQyu7r.jpg&#39;</span><span class="p">,</span>
+    <span class="s">&#39;jeff.png&#39;</span>  <span class="p">:</span> <span class="s">&#39;http://i.imgur.com/l00rECD.png&#39;</span><span class="p">,</span>
+    <span class="s">&#39;ada2.jpg&#39;</span>  <span class="p">:</span> <span class="s">&#39;http://i.imgur.com/zHOpTCb.jpg&#39;</span><span class="p">,</span>
+    <span class="s">&#39;ada.jpg&#39;</span>   <span class="p">:</span> <span class="s">&#39;http://i.imgur.com/iXNf4Me.jpg&#39;</span><span class="p">,</span>
+    <span class="s">&#39;lena.png&#39;</span>  <span class="p">:</span> <span class="s">&#39;http://i.imgur.com/JGrqMnV.png&#39;</span><span class="p">,</span>
+    <span class="s">&#39;carl.jpg&#39;</span>  <span class="p">:</span> <span class="s">&#39;http://i.imgur.com/flTHWFD.jpg&#39;</span><span class="p">,</span>
+    <span class="s">&#39;easy1.png&#39;</span> <span class="p">:</span> <span class="s">&#39;http://i.imgur.com/Qqd0VNq.png&#39;</span><span class="p">,</span>
+    <span class="s">&#39;easy2.png&#39;</span> <span class="p">:</span> <span class="s">&#39;http://i.imgur.com/BDP8MIu.png&#39;</span><span class="p">,</span>
+    <span class="s">&#39;easy3.png&#39;</span> <span class="p">:</span> <span class="s">&#39;http://i.imgur.com/zBcm5mS.png&#39;</span><span class="p">,</span>
+    <span class="s">&#39;hard3.png&#39;</span> <span class="p">:</span> <span class="s">&#39;http://i.imgur.com/ST91yBf.png&#39;</span><span class="p">,</span>
+    <span class="s">&#39;zebra.png&#39;</span> <span class="p">:</span> <span class="s">&#39;http://i.imgur.com/58hbGcd.png&#39;</span><span class="p">,</span>
+    <span class="s">&#39;star.png&#39;</span>  <span class="p">:</span> <span class="s">&#39;http://i.imgur.com/d2FHuIU.png&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="get_valid_test_imgkeys"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.get_valid_test_imgkeys">[docs]</a><span class="k">def</span> <span class="nf">get_valid_test_imgkeys</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; returns valid keys for grab_test_imgpath &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">TESTIMG_URL_DICT</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+</div>
+<div class="viewcode-block" id="grab_test_imgpath"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.grab_test_imgpath">[docs]</a><span class="k">def</span> <span class="nf">grab_test_imgpath</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">allow_external</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Gets paths to standard / fun test images.</span>
+<span class="sd">    Downloads them if they dont exits</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        key (str): one of the standard test images, e.g. lena.png, carl.jpg, ...</span>
+<span class="sd">        allow_external (bool): if True you can specify existing fpaths</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: testimg_fpath - filepath to the downloaded or cached test image.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_grabdata --test-grab_test_imgpath</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_grabdata import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; key = &#39;carl.jpg&#39;</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; testimg_fpath = grab_test_imgpath(key)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; ut.assertpath(testimg_fpath)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">allow_external</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">TESTIMG_URL_DICT</span><span class="p">:</span>
+        <span class="n">testimg_fpath</span> <span class="o">=</span> <span class="n">key</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">util_path</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">testimg_fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+            <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
+                <span class="s">&#39;testimg_fpath=</span><span class="si">%r</span><span class="s"> not found did you mean </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">testimg_fpath</span><span class="p">,</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">cond_phrase</span><span class="p">(</span><span class="n">get_valid_test_imgkeys</span><span class="p">(),</span> <span class="s">&#39;or&#39;</span><span class="p">)))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">testimg_fname</span> <span class="o">=</span> <span class="n">key</span>
+        <span class="n">testimg_url</span> <span class="o">=</span> <span class="n">TESTIMG_URL_DICT</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="n">testimg_fpath</span> <span class="o">=</span> <span class="n">grab_file_url</span><span class="p">(</span><span class="n">testimg_url</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="n">testimg_fname</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">testimg_fpath</span>
+
+</div>
 <div class="viewcode-block" id="grab_file_url"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.grab_file_url">[docs]</a><span class="k">def</span> <span class="nf">grab_file_url</span><span class="p">(</span><span class="n">file_url</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s">&#39;utool&#39;</span><span class="p">,</span> <span class="n">download_dir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                  <span class="n">delay</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">spoof</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+                  <span class="n">delay</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">spoof</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    grab_file_url</span>
 
@@ -253,11 +357,15 @@
         <span class="n">util_path</span><span class="o">.</span><span class="n">ensurepath</span><span class="p">(</span><span class="n">download_dir</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">fpath</span><span class="p">):</span>
             <span class="c"># Download testdata</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Downloading file </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fpath</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Downloading file </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fpath</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">delay</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] delay download by </span><span class="si">%r</span><span class="s"> seconds&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">delay</span><span class="p">,))</span>
                 <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
             <span class="n">download_url</span><span class="p">(</span><span class="n">file_url</span><span class="p">,</span> <span class="n">fpath</span><span class="p">,</span> <span class="n">spoof</span><span class="o">=</span><span class="n">spoof</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Already have file </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fpath</span><span class="p">)</span>
     <span class="n">util_path</span><span class="o">.</span><span class="n">assert_exists</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">fpath</span>
 
@@ -271,6 +379,7 @@
 <span class="sd">        zipped_url (str): url which must be either a .zip of a .tar.gz file</span>
 
 <span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_grabdata import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; zipped_url = &#39;https://dl.dropboxusercontent.com/s/of2s82ed4xf86m6/testdata.zip&#39;</span>
 <span class="sd">        &gt;&gt;&gt; zipped_url = &#39;http://www.spam.com/eggs/data.zip&#39;</span>
 
@@ -293,7 +402,8 @@
             <span class="c">#                                  download_dir=download_dir,</span>
             <span class="c">#                                  appname=appname)</span>
             <span class="c">#data_dir = unarchive_file(true_zipped_fpath, force_commonprefix)</span>
-            <span class="n">download_url</span><span class="p">(</span><span class="n">zipped_url</span><span class="p">,</span> <span class="n">zip_fpath</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">):</span>
+                <span class="n">download_url</span><span class="p">(</span><span class="n">zipped_url</span><span class="p">,</span> <span class="n">zip_fpath</span><span class="p">)</span>
             <span class="n">unarchive_file</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">,</span> <span class="n">force_commonprefix</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">cleanup</span><span class="p">:</span>
                 <span class="n">util_path</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">)</span>  <span class="c"># Cleanup</span>
@@ -308,8 +418,8 @@
 <span class="sd">        sh -c &quot;python ~/code/utool/utool/util_grabdata.py --all-examples&quot;</span>
 <span class="sd">        python -c &quot;import utool, utool.util_grabdata; utool.doctest_funcs(utool.util_grabdata, allexamples=True)&quot;</span>
 <span class="sd">        python -c &quot;import utool, utool.util_grabdata; utool.doctest_funcs(utool.util_grabdata)&quot;</span>
-<span class="sd">        python utool/util_grabdata.py</span>
-<span class="sd">        python utool/util_grabdata.py --allexamples</span>
+<span class="sd">        python -m utool.util_grabdata</span>
+<span class="sd">        python -m utool.util_grabdata --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
@@ -354,7 +464,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
+        &copy; Copyright 2015, Jon Crall.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>
