@@ -329,11 +329,11 @@ def dict_subset(dict_, keys):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
-        >>> dict_ = {'K': 3, 'clip_fraction': 0.2, 'p': 0.1}
-        >>> keys = ['K', 'clip_fraction']
+        >>> dict_ = {'K': 3, 'dcvs_clip_max': 0.2, 'p': 0.1}
+        >>> keys = ['K', 'dcvs_clip_max']
         >>> result = dict_subset(dict_, keys)
         >>> print(result)
-        {'K': 3, 'clip_fraction': 0.2}
+        {'K': 3, 'dcvs_clip_max': 0.2}
     """
     subdict_ = {key: dict_[key] for key in keys}
     return subdict_

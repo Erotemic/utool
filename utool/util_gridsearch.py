@@ -19,12 +19,12 @@ def testdata_grid_search():
     grid_basis = [
         ut.DimensionBasis('p', [.5, .8, .9, 1.0]),
         ut.DimensionBasis('K', [2, 3, 4, 5]),
-        ut.DimensionBasis('clip_fraction', [.1, .2, .5, 1.0]),
+        ut.DimensionBasis('dcvs_clip_max', [.1, .2, .5, 1.0]),
     ]
     gridsearch = ut.GridSearch(grid_basis, label='testdata_gridsearch')
     for cfgdict in gridsearch:
         tp_score = cfgdict['p'] + (cfgdict['K'] ** .5)
-        tn_score = (cfgdict['p'] * (cfgdict['K'])) / cfgdict['clip_fraction']
+        tn_score = (cfgdict['p'] * (cfgdict['K'])) / cfgdict['dcvs_clip_max']
         gridsearch.append_result(tp_score, tn_score)
     return gridsearch
 
@@ -40,12 +40,12 @@ class GridSearch(object):
         >>> grid_basis = [
         ...     ut.DimensionBasis('p', [.5, .8, .9, 1.0]),
         ...     ut.DimensionBasis('K', [2, 3, 4, 5]),
-        ...     ut.DimensionBasis('clip_fraction', [.1, .2, .5, 1.0]),
+        ...     ut.DimensionBasis('dcvs_clip_max', [.1, .2, .5, 1.0]),
         ... ]
         >>> gridsearch = ut.GridSearch(grid_basis, label='testdata_gridsearch')
         >>> for cfgdict in gridsearch:
         ...    tp_score = cfgdict['p'] + (cfgdict['K'] ** .5)
-        ...    tn_score = (cfgdict['p'] * (cfgdict['K'])) / cfgdict['clip_fraction']
+        ...    tn_score = (cfgdict['p'] * (cfgdict['K'])) / cfgdict['dcvs_clip_max']
         ...    gridsearch.append_result(tp_score, tn_score)
     """
     def __init__(gridsearch, grid_basis, label=None):
@@ -249,7 +249,7 @@ class GridSearch(object):
             >>> self = gridsearch
             >>> self.plot_dimension('p', score_lbl, fnum=1, pnum=(1, 3, 1))
             >>> self.plot_dimension('K', score_lbl, fnum=1, pnum=(1, 3, 2))
-            >>> self.plot_dimension('clip_fraction', score_lbl, fnum=1, pnum=(1, 3, 3))
+            >>> self.plot_dimension('dcvs_clip_max', score_lbl, fnum=1, pnum=(1, 3, 3))
             >>> pt.show_if_requested()
         """
         import plottool as pt
@@ -327,7 +327,7 @@ def make_constrained_cfg_and_lbl_list(varied_dict, constraint_func=None):
         >>> # build test data
         >>> varied_dict = {
         ...     'p': [.1, .3, 1.0, 2.0],
-        ...     'clip_fraction': [.1, .2, .5],
+        ...     'dcvs_clip_max': [.1, .2, .5],
         ...     'K': [3, 5],
         ... }
         >>> constraint_func = None
@@ -373,23 +373,23 @@ def get_cfgdict_list_subset(cfgdict_list, keys):
         >>> import utool as ut
         >>> # build test data
         >>> cfgdict_list = [
-        ...    {'K': 3, 'clip_fraction': 0.1, 'p': 0.1},
-        ...    {'K': 5, 'clip_fraction': 0.1, 'p': 0.1},
-        ...    {'K': 5, 'clip_fraction': 0.1, 'p': 0.2},
-        ...    {'K': 3, 'clip_fraction': 0.2, 'p': 0.1},
-        ...    {'K': 5, 'clip_fraction': 0.2, 'p': 0.1},
-        ...    {'K': 3, 'clip_fraction': 0.2, 'p': 0.1}]
-        >>> keys = ['K', 'clip_fraction']
+        ...    {'K': 3, 'dcvs_clip_max': 0.1, 'p': 0.1},
+        ...    {'K': 5, 'dcvs_clip_max': 0.1, 'p': 0.1},
+        ...    {'K': 5, 'dcvs_clip_max': 0.1, 'p': 0.2},
+        ...    {'K': 3, 'dcvs_clip_max': 0.2, 'p': 0.1},
+        ...    {'K': 5, 'dcvs_clip_max': 0.2, 'p': 0.1},
+        ...    {'K': 3, 'dcvs_clip_max': 0.2, 'p': 0.1}]
+        >>> keys = ['K', 'dcvs_clip_max']
         >>> # execute function
         >>> cfgdict_sublist = get_cfgdict_list_subset(cfgdict_list, keys)
         >>> # verify results
         >>> result = ut.list_str(cfgdict_sublist)
         >>> print(result)
         [
-            {'K': 3, 'clip_fraction': 0.1},
-            {'K': 5, 'clip_fraction': 0.1},
-            {'K': 3, 'clip_fraction': 0.2},
-            {'K': 5, 'clip_fraction': 0.2},
+            {'K': 3, 'dcvs_clip_max': 0.1},
+            {'K': 5, 'dcvs_clip_max': 0.1},
+            {'K': 3, 'dcvs_clip_max': 0.2},
+            {'K': 5, 'dcvs_clip_max': 0.2},
         ]
     """
     import utool as ut
