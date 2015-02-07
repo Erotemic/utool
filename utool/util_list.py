@@ -1256,9 +1256,12 @@ def list_deep_types(list_):
     return type_list
 
 
-def depth_profile(list_, max_depth=None):
+def depth_profile(list_, max_depth=None, compress_homogenous_shape=True):
     """
     Returns a nested list corresponding the shape of the nested structures
+
+    CommandLine:
+        python -m utool.util_list --test-depth_profile
 
     Example0:
         >>> # ENABLE_DOCTEST
@@ -1266,7 +1269,9 @@ def depth_profile(list_, max_depth=None):
         >>> list_ = [[[[[1]]], [3, 4, 33]], [[1], [2, 3], [4, [5, 5]]], [1, 3]]
         >>> result = depth_profile(list_)
         >>> print(result)
-        [[[[1]], 3], [1, 2, [2]], 2]
+        [[(1, 1, 1), 3], [1, 2, (1, 2)], 2]
+
+    [[[[1]], 3], [1, 2, [2]], 2]
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -1274,7 +1279,9 @@ def depth_profile(list_, max_depth=None):
         >>> list_ = [[[[[1]]], [3, 4, 33]], [[1], [2, 3], [4, [5, 5]]], [1, 3]]
         >>> result = depth_profile(list_, 1)
         >>> print(result)
-        [['1', '3'], ['1', '2', '2'], 2]
+        [[(1, '1'), 3], [1, 2, (1, '2')], 2]
+
+    [['1', '3'], ['1', '2', '2'], 2]
     """
     level_shape_list = []
     # For a pure bottom level list return the length
@@ -1289,6 +1296,17 @@ def depth_profile(list_, max_depth=None):
                     level_shape_list.append(depth_profile(item, max_depth - 1))
                 else:
                     level_shape_list.append(str(len(item)))
+
+    if compress_homogenous_shape:
+        # removes redudant information by returning a shape duple
+        if list_allsame(level_shape_list):
+            dim_ = level_shape_list[0]
+            len_ = len(level_shape_list)
+            if isinstance(dim_, tuple):
+                level_shape_list = tuple([len_] + list(dim_))
+            else:
+                level_shape_list = tuple([len_, dim_])
+
     return level_shape_list
 
 
