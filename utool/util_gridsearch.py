@@ -309,11 +309,15 @@ def grid_search_generator(grid_basis=[], *args, **kwargs):
         yield grid_point
 
 
-def make_constrained_cfg_and_lbl_list(varied_dict, constraint_func=None):
+def make_constrained_cfg_and_lbl_list(varied_dict, constraint_func=None,
+                                      slice_dict=None,
+                                      defaultslice=slice(0, 1)):
     r"""
     Args:
-        varied_dict (?):
-        constraint_func (None):
+        varied_dict (dict):  parameters to vary with possible variations
+        constraint_func (func): function to restirct parameter variations
+        slice_dict (dict):  dict of slices for each param of valid possible values
+        defaultslice (slice): default slice used if slice is not specified in slice_dict
 
     Returns:
         tuple: (cfgdict_list, cfglbl_list)
@@ -337,11 +341,22 @@ def make_constrained_cfg_and_lbl_list(varied_dict, constraint_func=None):
         >>> result = str((cfgdict_list, cfglbl_list))
         >>> print(result)
     """
-    cfgdict_list_ = util_dict.all_dict_combinations(varied_dict)
+    # Restrict via slices
+    if slice_dict is None:
+        varied_dict_ = varied_dict
+    else:
+        varied_dict_ = {
+            key: val[slice_dict.get(key, defaultslice)]
+            for key, val in six.iteritems(varied_dict)
+        }
+    # Enumerate all combinations
+    cfgdict_list_ = util_dict.all_dict_combinations(varied_dict_)
     if constraint_func is not None:
+        # Remove invalid combinations
         cfgdict_list = constrain_cfgdict_list(cfgdict_list_, constraint_func)
     else:
         cfgdict_list = cfgdict_list_
+    # Get labels and return
     cfglbl_list = make_cfglbls(cfgdict_list, varied_dict)
     return cfgdict_list, cfglbl_list
 
@@ -416,14 +431,20 @@ def make_cfglbls(cfgdict_list, varied_dict):
     import textwrap
     wrapper = textwrap.TextWrapper(width=50)
     cfglbl_list =  []
-    for cfgdict in cfgdict_list:
-        cfgdict = cfgdict.copy()
-        for key, val in six.iteritems(varied_dict):
-            # Dont print label if not varied
-            if len(val) == 1:
-                del cfgdict[key]
-            # Dont print label if it is None (irrelevant)
-            elif cfgdict[key] is None:
+    for cfgdict_ in cfgdict_list:
+        cfgdict = cfgdict_.copy()
+        for key in six.iterkeys(cfgdict_):
+            try:
+                vals = varied_dict[key]
+                # Dont print label if not varied
+                if len(vals) == 1:
+                    del cfgdict[key]
+                else:
+                    # Dont print label if it is None (irrelevant)
+                    if cfgdict[key] is None:
+                        del cfgdict[key]
+            except KeyError:
+                # Don't print keys not in varydict
                 del cfgdict[key]
         cfglbl = str(cfgdict)
         search_repl_list = [('\'', ''), ('}', ''),
@@ -475,7 +496,7 @@ def interact_gridsearch_result_images(show_result_func, cfgdict_list,
             show_result_func(cfgresult, fnum=fnum, pnum=next_pnum())
         #pt.imshow(255 * cfgresult, fnum=fnum, pnum=next_pnum(), title=cfglbl)
         ax = pt.gca()
-        ax.set_title(cfglbl)
+        pt.set_title(cfglbl, ax=ax)  # , size)
         ph.set_plotdat(ax, 'cfgdict', cfgdict)
         ph.set_plotdat(ax, 'cfglbl', cfglbl)
     # Define clicked callback
@@ -491,7 +512,7 @@ def interact_gridsearch_result_images(show_result_func, cfgdict_list,
             infostr_list = [
                 ('cfglbl = ' + str(cfglbl)),
                 '',
-                ('cfgdict = ' + ut.dict_str(cfgdict)),
+                ('cfgdict = ' + ut.dict_str(cfgdict, sorted_=True)),
             ]
             infostr = ut.msgblock('CLICKED', '\n'.join(infostr_list))
             print(infostr)

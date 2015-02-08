@@ -21,6 +21,10 @@ def count_dict_vals(dict_of_lists):
     return count_dict
 
 
+def dict_keysubset(dict_, keys):
+    return [key for key in keys if key in dict_]
+
+
 def get_dict_hashid(dict_):
     r"""
     Args:
