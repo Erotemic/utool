@@ -5,6 +5,10 @@ This module contains a more sane reimplementation of doctest functionality.
 (I.E. asserts work and you don't have to worry about standard out mucking things
 up) The code isn't super clean though due to time constriaints. Many functions
 probably belong elsewhere and the parsers need a big cleanup.
+
+TODO:
+    report the line of the doctest in the file when reporting errors as well as
+    the relative line
 """
 from __future__ import absolute_import, division, print_function
 import six

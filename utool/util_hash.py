@@ -91,6 +91,9 @@ def hashstr_arr(arr, lbl='arr', **kwargs):
 
 @profile
 def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
+    """
+    python -c "import utool as ut; print(ut.hashstr('abcd'))"
+    """
     if isinstance(data, tuple):
         data = repr(data)
     if six.PY3:
