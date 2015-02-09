@@ -1256,7 +1256,7 @@ def list_deep_types(list_):
     return type_list
 
 
-def depth_profile(list_, max_depth=None, compress_homogenous_shape=True):
+def depth_profile(list_, max_depth=None, compress_homogenous=True):
     """
     Returns a nested list corresponding the shape of the nested structures
 
@@ -1297,7 +1297,7 @@ def depth_profile(list_, max_depth=None, compress_homogenous_shape=True):
                 else:
                     level_shape_list.append(str(len(item)))
 
-    if compress_homogenous_shape:
+    if compress_homogenous:
         # removes redudant information by returning a shape duple
         if list_allsame(level_shape_list):
             dim_ = level_shape_list[0]
@@ -1308,6 +1308,31 @@ def depth_profile(list_, max_depth=None, compress_homogenous_shape=True):
                 level_shape_list = tuple([len_, dim_])
 
     return level_shape_list
+
+
+def list_type_profile(sequence, compress_homogenous=True):
+    """ similar to depth_profile but reports types """
+    # For a pure bottom level list return the length
+    if not any(map(is_listlike, sequence)) or (isinstance(sequence, np.ndarray) and sequence.dtype != object):
+        typename = str(type(sequence)).replace('<type \'', '').replace('\'>', '')
+        level_type_str = typename
+        return level_type_str
+
+    level_type_list = []
+    for item in sequence:
+        if is_listlike(item):
+            level_type_list.append(list_type_profile(item))
+
+    if compress_homogenous:
+        # removes redudant information by returning a type and number
+        if list_allsame(level_type_list):
+            type_ = level_type_list[0]
+            level_type_str = str(type_) + '*' + str(len(level_type_list))
+        else:
+            level_type_str = ', '.join(level_type_list)
+    typename = str(type(sequence)).replace('<type \'', '').replace('\'>', '')
+    level_type_str = typename + '(' + str(level_type_str) + ')'
+    return level_type_str
 
 
 def list_cover(list1, list2):
