@@ -554,7 +554,8 @@ def numpy_str(arr, strvals=False, precision=8):
             valstr = valstr.replace(npval, 'np.' + npval)
     if valstr.find('\n') >= 0:
         # Align multiline arrays
-        valstr = valstr.replace('\n', '\n       ')
+        valstr = valstr.replace('\n', '\n   ')
+        pass
     return valstr
 
 
@@ -617,18 +618,26 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True,
         fmtstr = indent_ + '%r: %s,'
         itemstr_list = [fmtstr % (key, _valstr(val)) for (key, val) in iteritems(dict_)]
     else:
-        import utool as ut
         def make_item_str(key, val, indent_):
             repr_str = repr(key) + ': '
             val_str = _valstr(val)
-            #val_indent = min(len(repr_str), 4)
-            #val_str = ut.indent(, ' ' * val_indent).lstrip(' ')
-            item_str = ut.indent(repr_str + val_str, indent_) + ','
+            #print('2)-----------')
+            #print(val_str)
+            # valstr is fine at this point
+            padded_indent = ' ' * min(len(indent_), len(repr_str))
+            val_str = val_str.replace('\n', '\n' + padded_indent)  # ' ' * val_indent)
+            #val_str = ut.indent(val_str, ' ' * val_indent)
+            item_str = repr_str + val_str + ','
+            #print('3)-----------')
+            #print(val_str)
+            #print('4)===========')
+            #print(item_str)
+            #print('===========')
             return item_str
 
         #if isinstance(dict_, dict)
-        itemstr_list = [make_item_str(key, val, indent_)
-                        for (key, val) in iteritems(dict_)]
+        itemstr_list = [make_item_str(key, val, indent_) for (key, val) in iteritems(dict_)]
+        # itemstr_list is fine too. weird
     #import utool as ut
     #ut.embed()
     #itemstr_list = [fmtstr % (key, _valstr(val)) for (key, val) in iteritems(dict_)]
@@ -642,7 +651,6 @@ def get_itemstr_list(list_, strvals=False, newlines=True,
     it. have it make two itemstr lists over keys and values and then combine
     them.
     """
-    import utool as ut
     if strvals:
         valfunc = str
     else:
@@ -667,12 +675,12 @@ def get_itemstr_list(list_, strvals=False, newlines=True,
 
     _valstr = recursive_valfunc if recursive else valfunc
 
-    def make_item_str(item, indent_):
+    def make_item_str(item):
         val_str = _valstr(item)
-        item_str = ut.indent(val_str, indent_) + ','
+        item_str = val_str + ','
         return item_str
 
-    itemstr_list = [make_item_str(item, indent_) for item in list_]
+    itemstr_list = [make_item_str(item) for item in list_]
     return itemstr_list
 
 
@@ -692,7 +700,10 @@ def list_str(list_, indent_='', newlines=1, *args, **kwargs):
         leftbrace, rightbrace  = '[', ']'
 
     if newlines:
-        return (leftbrace + indentjoin(itemstr_list) + '\n' + indent_ + rightbrace)
+        import utool as ut
+        body_str = '\n'.join([ut.indent(itemstr) for itemstr in itemstr_list])
+        return (leftbrace + '\n' + body_str + '\n' + rightbrace)
+        #return (leftbrace + indentjoin(itemstr_list) + '\n' + indent_ + rightbrace)
     else:
         # hack away last comma
         sequence_str = ' '.join(itemstr_list)
@@ -703,6 +714,7 @@ def list_str(list_, indent_='', newlines=1, *args, **kwargs):
 def dict_str(dict_, strvals=False, sorted_=False, newlines=True, recursive=True,
              indent_='', precision=8):
     """
+    FIXME: ALL LIST DICT STRINGS ARE VERY SPAGEHETTI RIGHT NOW
     Returns:
         str: a human-readable and execable string representation of a dictionary
 
@@ -710,14 +722,22 @@ def dict_str(dict_, strvals=False, sorted_=False, newlines=True, recursive=True,
         >>> from utool.util_str import dict_str, dict_itemstr_list
         >>> import utool
         >>> REPO_CONFIG = utool.get_default_repo_config()
-        >>> repo_cfgstr   = dict_str(REPO_CONFIG, strvals=True)
+        >>> repo_cfgstr   = dict_str(REPO_CONFIG, strvals=True)'
         >>> print(repo_cfgstr)
     """
+    if len(dict_) == 0:
+        return '{}'
     itemstr_list = dict_itemstr_list(dict_, strvals, sorted_, newlines, recursive, indent_, precision)
+    leftbrace, rightbrace  = '{', '}'
     if newlines:
-        return ('{%s\n' + indent_ + '}') % indentjoin(itemstr_list)
+        import utool as ut
+        body_str = '\n'.join([ut.indent(itemstr, '    ') for itemstr in itemstr_list])
+        retstr =  (leftbrace + '\n' + body_str + '\n' + rightbrace)
+        return retstr
+    #if newlines:
+    #    return ('{%s\n' + indent_ + '}') % indentjoin(itemstr_list)
     else:
-        return '{%s}' % ' '.join(itemstr_list)
+        return leftbrace + ' '.join(itemstr_list) + rightbrace
 
 
 def horiz_string(*args, **kwargs):
