@@ -98,6 +98,9 @@ def get_dev_hints():
         ('fnum', ('int', 'figure number')),
         ('title', ('str', '')),
 
+        # Matching Hints
+        ('ratio_thresh'       , ('float', None)),
+
         # utool hints
         ('funcname'       , ('str', 'function name')),
         ('modname'        , ('str', 'module name')),
@@ -105,7 +108,6 @@ def get_dev_hints():
         ('return_name'    , ('str', 'return variable name')),
         ('dict_'          , ('dict_', 'a dictionary')),
         ('examplecode'    , ('str', None)),
-
 
         # Numpy Hints
         ('shape'    , ('tuple', 'array dimensions')),

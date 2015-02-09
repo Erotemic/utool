@@ -145,6 +145,9 @@ def all_dict_combinations(varied_dict, ):
     Returns:
         list: dict_list a list of dicts correpsonding to all combinations of params settings
 
+    CommandLine:
+        python -m utool.util_dict --test-all_dict_combinations
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
@@ -154,13 +157,19 @@ def all_dict_combinations(varied_dict, ):
         >>> result = str(ut.list_str(dict_list))
         >>> print(result)
         [
-            {'pipeline_root': 'vsmany', 'sv_on': True, 'logdist_weight': 0.0},
-            {'pipeline_root': 'vsmany', 'sv_on': True, 'logdist_weight': 1.0},
-            {'pipeline_root': 'vsmany', 'sv_on': False, 'logdist_weight': 0.0},
-            {'pipeline_root': 'vsmany', 'sv_on': False, 'logdist_weight': 1.0},
-            {'pipeline_root': 'vsmany', 'sv_on': None, 'logdist_weight': 0.0},
-            {'pipeline_root': 'vsmany', 'sv_on': None, 'logdist_weight': 1.0},
+            {'pipeline_root': 'vsmany', 'sv_on': True, 'logdist_weight': 0.0,},
+            {'pipeline_root': 'vsmany', 'sv_on': True, 'logdist_weight': 1.0,},
+            {'pipeline_root': 'vsmany', 'sv_on': False, 'logdist_weight': 0.0,},
+            {'pipeline_root': 'vsmany', 'sv_on': False, 'logdist_weight': 1.0,},
+            {'pipeline_root': 'vsmany', 'sv_on': None, 'logdist_weight': 0.0,},
+            {'pipeline_root': 'vsmany', 'sv_on': None, 'logdist_weight': 1.0,},
         ]
+
+    Ignore:
+        print(x)
+        print(y)
+
+        print(ut.hz_str('\n'.join(list(x)), '\n'.join(list(y))))
     """
     tups_list = [[(key, val) for val in val_list] if isinstance(val_list, (list, tuple)) else [(key, val_list)]
                  for (key, val_list) in six.iteritems(varied_dict)]
@@ -176,6 +185,9 @@ def all_dict_combinations_lbls(varied_dict):
     It tries to not be oververbose and returns only what parameters are varied
     in each label.
 
+    CommandLine:
+        python -m utool.util_dict --test-all_dict_combinations_lbls
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> import utool
@@ -184,14 +196,15 @@ def all_dict_combinations_lbls(varied_dict):
         >>> result = (utool.list_str(comb_lbls))
         >>> print(result)
         [
-            (('sv_on', True), ('logdist_weight', 0.0)),
-            (('sv_on', True), ('logdist_weight', 1.0)),
-            (('sv_on', False), ('logdist_weight', 0.0)),
-            (('sv_on', False), ('logdist_weight', 1.0)),
-            (('sv_on', None), ('logdist_weight', 0.0)),
-            (('sv_on', None), ('logdist_weight', 1.0)),
+            "(('sv_on', True), ('logdist_weight', 0.0))",
+            "(('sv_on', True), ('logdist_weight', 1.0))",
+            "(('sv_on', False), ('logdist_weight', 0.0))",
+            "(('sv_on', False), ('logdist_weight', 1.0))",
+            "(('sv_on', None), ('logdist_weight', 0.0))",
+            "(('sv_on', None), ('logdist_weight', 1.0))",
         ]
 
+    #ut.list_type_profile(comb_lbls)
     """
     multitups_list = [[(key, val) for val in val_list]
                       for key, val_list in six.iteritems(varied_dict)

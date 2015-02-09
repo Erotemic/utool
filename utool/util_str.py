@@ -543,6 +543,21 @@ def func_str(func, args=[], kwargs={}, type_aliases=[], packed=False,
     return func_str
 
 
+def numpy_str(arr, strvals=False, precision=8):
+    # TODO: make this a util_str func for numpy reprs
+    if strvals:
+        valstr = np.array_str(arr, precision=precision)
+    else:
+        valstr = np.array_repr(arr, precision=precision)
+        numpy_vals = itertools.chain(util_type.NUMPY_SCALAR_NAMES, ['array'])
+        for npval in numpy_vals:
+            valstr = valstr.replace(npval, 'np.' + npval)
+    if valstr.find('\n') >= 0:
+        # Align multiline arrays
+        valstr = valstr.replace('\n', '\n       ')
+    return valstr
+
+
 def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True,
                       recursive=True, indent_='', precision=8):
     """
@@ -582,15 +597,7 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True,
                             newlines=newlines, recursive=recursive,
                             indent_=indent_ + '    ', precision=precision)
         elif util_type.HAS_NUMPY and isinstance(val, np.ndarray):
-            # TODO: make this a util_str func for numpy reprs
-            if strvals:
-                valstr = np.array_str(val, precision=precision)
-            else:
-                valstr = np.array_repr(val, precision=precision)
-                numpy_vals = itertools.chain(util_type.NUMPY_SCALAR_NAMES, ['array'])
-                for npval in numpy_vals:
-                    valstr = valstr.replace(npval, 'np.' + npval)
-            return valstr
+            return numpy_str(val, strvals=strvals, precision=precision)
         else:
             # base case
             return valfunc(val)
@@ -601,13 +608,13 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True,
     #        return six.iteritems(x)
     #    except AttributeError:
     #        return iter(x.items())
-    fmtstr = indent_ + '%r: %s,'
     if sorted_:
         iteritems = lambda iter_: iter(sorted(six.iteritems(iter_)))
 
     _valstr = recursive_valfunc if recursive else valfunc
     OLD = False
     if OLD:
+        fmtstr = indent_ + '%r: %s,'
         itemstr_list = [fmtstr % (key, _valstr(val)) for (key, val) in iteritems(dict_)]
     else:
         import utool as ut
@@ -619,6 +626,7 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True,
             item_str = ut.indent(repr_str + val_str, indent_) + ','
             return item_str
 
+        #if isinstance(dict_, dict)
         itemstr_list = [make_item_str(key, val, indent_)
                         for (key, val) in iteritems(dict_)]
     #import utool as ut
@@ -627,8 +635,69 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True,
     return itemstr_list
 
 
-def list_str(list_):
-    return '[%s\n]' % indentjoin(list(list_), suffix=',')
+def get_itemstr_list(list_, strvals=False, newlines=True,
+                      recursive=True, indent_='', precision=8):
+    """
+    TODO: have this replace dict_itemstr list or at least most functionality in
+    it. have it make two itemstr lists over keys and values and then combine
+    them.
+    """
+    import utool as ut
+    if strvals:
+        valfunc = str
+    else:
+        valfunc = repr
+
+    def recursive_valfunc(val):
+        new_indent = indent_ + '    ' if newlines else indent_
+        if isinstance(val, dict):
+            # recursive call
+            return dict_str(val, strvals=strvals, newlines=newlines,
+                            recursive=recursive, indent_=new_indent,
+                            precision=precision)
+        if isinstance(val, (tuple, list)):
+            return list_str(val, strvals=strvals, newlines=newlines,
+                            recursive=recursive, indent_=new_indent,
+                            precision=precision)
+        elif util_type.HAS_NUMPY and isinstance(val, np.ndarray):
+            return numpy_str(val, strvals=strvals, precision=precision)
+        else:
+            # base case
+            return valfunc(val)
+
+    _valstr = recursive_valfunc if recursive else valfunc
+
+    def make_item_str(item, indent_):
+        val_str = _valstr(item)
+        item_str = ut.indent(val_str, indent_) + ','
+        return item_str
+
+    itemstr_list = [make_item_str(item, indent_) for item in list_]
+    return itemstr_list
+
+
+def list_str(list_, indent_='', newlines=1, *args, **kwargs):
+    #return '[%s\n]' % indentjoin(list(list_), suffix=',')
+    if isinstance(newlines, int):
+        new_newlines = newlines - 1
+    elif newlines is True:
+        new_newlines = newlines
+    else:
+        new_newlines = False
+
+    itemstr_list = get_itemstr_list(list_, indent_=indent_, newlines=new_newlines, *args, **kwargs)
+    if isinstance(list_, tuple):
+        leftbrace, rightbrace  = '(', ')'
+    else:
+        leftbrace, rightbrace  = '[', ']'
+
+    if newlines:
+        return (leftbrace + indentjoin(itemstr_list) + '\n' + indent_ + rightbrace)
+    else:
+        # hack away last comma
+        sequence_str = ' '.join(itemstr_list)
+        sequence_str = sequence_str.rstrip(',')
+        return (leftbrace + sequence_str +  rightbrace)
 
 
 def dict_str(dict_, strvals=False, sorted_=False, newlines=True, recursive=True,

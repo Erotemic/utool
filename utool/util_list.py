@@ -1313,15 +1313,16 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True):
 def list_type_profile(sequence, compress_homogenous=True):
     """ similar to depth_profile but reports types """
     # For a pure bottom level list return the length
-    if not any(map(is_listlike, sequence)) or (isinstance(sequence, np.ndarray) and sequence.dtype != object):
+    #if not any(map(is_listlike, sequence)) or (isinstance(sequence, np.ndarray) and sequence.dtype != object):
+    if not is_listlike(sequence) or (isinstance(sequence, np.ndarray) and sequence.dtype != object):
         typename = str(type(sequence)).replace('<type \'', '').replace('\'>', '')
         level_type_str = typename
         return level_type_str
 
     level_type_list = []
     for item in sequence:
-        if is_listlike(item):
-            level_type_list.append(list_type_profile(item))
+        #if is_listlike(item):
+        level_type_list.append(list_type_profile(item))
 
     if compress_homogenous:
         # removes redudant information by returning a type and number

@@ -401,10 +401,10 @@ def get_cfgdict_list_subset(cfgdict_list, keys):
         >>> result = ut.list_str(cfgdict_sublist)
         >>> print(result)
         [
-            {'K': 3, 'dcvs_clip_max': 0.1},
-            {'K': 5, 'dcvs_clip_max': 0.1},
-            {'K': 3, 'dcvs_clip_max': 0.2},
-            {'K': 5, 'dcvs_clip_max': 0.2},
+            {'K': 3, 'dcvs_clip_max': 0.1,},
+            {'K': 5, 'dcvs_clip_max': 0.1,},
+            {'K': 3, 'dcvs_clip_max': 0.2,},
+            {'K': 5, 'dcvs_clip_max': 0.2,},
         ]
     """
     import utool as ut
