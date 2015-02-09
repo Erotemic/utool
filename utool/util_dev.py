@@ -890,7 +890,7 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False):
         if use_sum:
             sumfunc = np.nansum if use_nan else np.sum
             stats_list.append(('sum', sumfunc(nparr, axis=axis)))
-    stat_dict = OrderedDict(stats_list)
+        stat_dict = OrderedDict(stats_list)
     return stat_dict
 
 # --- Info Strings ---
