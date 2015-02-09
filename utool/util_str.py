@@ -6,15 +6,20 @@ import sys
 import six
 import textwrap
 from six.moves import map, range
+import itertools
 import math
 from os.path import split
-from utool.util_inject import inject
-from utool.util_time import get_unix_timedelta
-from utool._internal.meta_util_six import get_funcname
-print, print_, printDBG, rrr, profile = inject(__name__, '[str]')
+from utool import util_type
+from utool import util_inject
+from utool import util_time  # import get_unix_timedelta
+from utool._internal import meta_util_six  # import get_funcname
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[str]')
 
-
-TAU = (2 * math.pi)  # References: tauday.com
+if util_type.HAS_NUMPY:
+    import numpy as np
+    TAU = (2 * np.pi)  # References: tauday.com
+else:
+    TAU = (2 * math.pi)  # References: tauday.com
 
 TRIPLE_DOUBLE_QUOTE = r'"' * 3
 TRIPLE_SINGLE_QUOTE = r"'" * 3
@@ -109,7 +114,7 @@ def remove_chars(str_, char_list):
         >>> char_list = [',']
         >>> result = remove_chars(str_, char_list)
         >>> print(result)
-        1234
+        1 2 3 4
     """
     outstr = str_[:]
     for char in char_list:
@@ -529,7 +534,7 @@ def func_str(func, args=[], kwargs={}, type_aliases=[], packed=False,
     """
     repr_list = list_aliased_repr(args, type_aliases) + dict_aliased_repr(kwargs)
     argskwargs_str = newlined_list(repr_list, ', ', textwidth=80)
-    func_str = '%s(%s)' % (get_funcname(func), argskwargs_str)
+    func_str = '%s(%s)' % (meta_util_six.get_funcname(func), argskwargs_str)
     if packed:
         packkw_ = dict(textwidth=80, nlprefix='    ', break_words=False)
         if packkw is not None:
@@ -538,7 +543,8 @@ def func_str(func, args=[], kwargs={}, type_aliases=[], packed=False,
     return func_str
 
 
-def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True, recursive=True, indent_=''):
+def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True,
+                      recursive=True, indent_='', precision=8):
     """
     Returns:
         list: a list of human-readable dictionary items
@@ -574,7 +580,17 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True, recurs
             # recursive call
             return dict_str(val, strvals=strvals, sorted_=sorted_,
                             newlines=newlines, recursive=recursive,
-                            indent_=indent_ + '    ')
+                            indent_=indent_ + '    ', precision=precision)
+        elif util_type.HAS_NUMPY and isinstance(val, np.ndarray):
+            # TODO: make this a util_str func for numpy reprs
+            if strvals:
+                valstr = np.array_str(val, precision=precision)
+            else:
+                valstr = np.array_repr(val, precision=precision)
+                numpy_vals = itertools.chain(util_type.NUMPY_SCALAR_NAMES, ['array'])
+                for npval in numpy_vals:
+                    valstr = valstr.replace(npval, 'np.' + npval)
+            return valstr
         else:
             # base case
             return valfunc(val)
@@ -589,10 +605,25 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True, recurs
     if sorted_:
         iteritems = lambda iter_: iter(sorted(six.iteritems(iter_)))
 
-    if recursive:
-        itemstr_list = [fmtstr % (key, recursive_valfunc(val)) for (key, val) in iteritems(dict_)]
+    _valstr = recursive_valfunc if recursive else valfunc
+    OLD = False
+    if OLD:
+        itemstr_list = [fmtstr % (key, _valstr(val)) for (key, val) in iteritems(dict_)]
     else:
-        itemstr_list = [fmtstr % (key, valfunc(val)) for (key, val) in iteritems(dict_)]
+        import utool as ut
+        def make_item_str(key, val, indent_):
+            repr_str = repr(key) + ': '
+            val_str = _valstr(val)
+            #val_indent = min(len(repr_str), 4)
+            #val_str = ut.indent(, ' ' * val_indent).lstrip(' ')
+            item_str = ut.indent(repr_str + val_str, indent_) + ','
+            return item_str
+
+        itemstr_list = [make_item_str(key, val, indent_)
+                        for (key, val) in iteritems(dict_)]
+    #import utool as ut
+    #ut.embed()
+    #itemstr_list = [fmtstr % (key, _valstr(val)) for (key, val) in iteritems(dict_)]
     return itemstr_list
 
 
@@ -600,7 +631,8 @@ def list_str(list_):
     return '[%s\n]' % indentjoin(list(list_), suffix=',')
 
 
-def dict_str(dict_, strvals=False, sorted_=False, newlines=True, recursive=True, indent_=''):
+def dict_str(dict_, strvals=False, sorted_=False, newlines=True, recursive=True,
+             indent_='', precision=8):
     """
     Returns:
         str: a human-readable and execable string representation of a dictionary
@@ -612,7 +644,7 @@ def dict_str(dict_, strvals=False, sorted_=False, newlines=True, recursive=True,
         >>> repo_cfgstr   = dict_str(REPO_CONFIG, strvals=True)
         >>> print(repo_cfgstr)
     """
-    itemstr_list = dict_itemstr_list(dict_, strvals, sorted_, newlines, recursive, indent_)
+    itemstr_list = dict_itemstr_list(dict_, strvals, sorted_, newlines, recursive, indent_, precision)
     if newlines:
         return ('{%s\n' + indent_ + '}') % indentjoin(itemstr_list)
     else:
@@ -713,7 +745,7 @@ def str2(obj):
 
 def get_unix_timedelta_str(unixtime_diff):
     """ string representation of time deltas """
-    timedelta = get_unix_timedelta(unixtime_diff)
+    timedelta = util_time.get_unix_timedelta(unixtime_diff)
     sign = '+' if unixtime_diff >= 0 else '-'
     timedelta_str = sign + str(timedelta)
     return timedelta_str
@@ -738,7 +770,7 @@ def padded_str_range(start, end):
 def get_callable_name(func):
     """ Works on must functionlike objects including str, which has no func_name """
     try:
-        return get_funcname(func)
+        return meta_util_six.get_funcname(func)
     except AttributeError:
         builtin_function_name_dict = {
             len:    'len',

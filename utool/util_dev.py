@@ -835,13 +835,13 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False):
         >>> result = str(utool.dict_str(stat_dict))
         >>> print(result)
         {
-            'max': array([ 0.96366274,  0.92559665], dtype=float32),
-            'min': array([ 0.0202184,  0.0871293], dtype=float32),
-            'mean': array([ 0.52056623,  0.64254338], dtype=float32),
-            'std': array([ 0.28543401,  0.25168759], dtype=float32),
-            'nMin': array([1, 1], dtype=int32),
-            'nMax': array([1, 1], dtype=int32),
-            'shape': '(10, 2)',
+            'max': np.array([ 0.96366274,  0.92559665], dtype=np.float32),
+            'min': np.array([ 0.0202184,  0.0871293], dtype=np.float32),
+            'mean': np.array([ 0.52056623,  0.64254338], dtype=np.float32),
+            'std': np.array([ 0.28543401,  0.25168759], dtype=np.float32),
+            'nMin': np.array([1, 1], dtype=np.int32),
+            'nMax': np.array([1, 1], dtype=np.int32),
+            'shape': (10, 2),
         }
 
     SeeAlso:

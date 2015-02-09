@@ -538,12 +538,20 @@ def get_func_sourcecode(func, stripdef=False, stripret=False):
         >>> print(result)
     """
     import utool as ut
+    #try:
     sourcefile = inspect.getsourcefile(func)
+    #except IOError:
+    #    sourcefile = None
     if hasattr(func, '_utinfo'):
-        #return func._utinfo['src']
-        sourcecode = get_func_sourcecode(func._utinfo['orig_func'])
+        #if 'src' in func._utinfo:
+        #    sourcecode = func._utinfo['src']
+        #else:
+        func2 = func._utinfo['orig_func']
+        sourcecode = get_func_sourcecode(func2)
     elif sourcefile is not None:
         sourcecode = inspect.getsource(func)
+    else:
+        sourcecode = None
     #orig_source = sourcecode
     #print(orig_source)
     if stripdef:

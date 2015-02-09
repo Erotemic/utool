@@ -5,11 +5,13 @@ everything but ProgressIter in this file should be depricated
 """
 from __future__ import absolute_import, division, print_function
 import time
+import math
 import sys
 from utool import util_logging
 from utool import util_inject
 from utool import util_arg
 from utool import util_time
+from utool import util_iter
 import six  # NOQA
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[progress]')
 
@@ -90,9 +92,8 @@ def progress_chunks(list_, chunksize, **kwargs):
     Yeilds an iterator in chunks and computes progress
     Progress version of ut.ichunks
     """
-    import utool as ut
-    chunk_iter = ut.ichunks(list_, chunksize)
-    nTotal = ut.iceil(len(list_) / chunksize)
+    chunk_iter = util_iter.ichunks(list_, chunksize)
+    nTotal = int(math.ceil(len(list_) / chunksize))
     if 'freq' not in kwargs:
         kwargs['freq'] = 1
     kwargs['nTotal'] = nTotal

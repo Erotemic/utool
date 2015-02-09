@@ -21,7 +21,7 @@ def get_first_None_position(list_):
     return None
 
 
-def assert_all_not_None(list_, list_name='some_list', key_list=[], verbose=True,
+def assert_all_not_None(list_, list_name='some_list', key_list=[], verbose=not util_arg.QUIET,
                         veryverbose=False):
     if util_arg.NO_ASSERTS:
         return
@@ -127,7 +127,7 @@ def assert_lists_eq(list1, list2, failmsg='', verbose=False):
         raise ex
 
 
-def assert_inbounds(num, low, high, msg=''):
+def assert_inbounds(num, low, high, msg='', eq=False, verbose=not util_arg.QUIET):
     r"""
     Args:
         num (scalar):
@@ -137,9 +137,13 @@ def assert_inbounds(num, low, high, msg=''):
     """
     if util_arg.NO_ASSERTS:
         return
-    if not util_alg.inbounds(num, low, high):
+    if not util_alg.inbounds(num, low, high, eq=eq):
         msg_ = 'num=%r is out of bounds=(%r, %r)' % (num, low, high)
         raise AssertionError(msg_ + '\n' + msg)
+    else:
+        op = '<=' if eq else '<'
+        fmtstr = 'Passed assert_inbounds: {low} {op} {num} {op} {high}'
+        print(fmtstr.format(low=low, op=op, num=num, high=high))
 
 
 def assert_almost_eq(arr_test, arr_target, thresh=1E-11):
@@ -205,7 +209,7 @@ def assert_lessthan(arr_test, arr_max, msg=''):
     return error
 
 
-def assert_eq(var1, var2, msg='', var1_name=None, var2_name=None, verbose=True):
+def assert_eq(var1, var2, msg='', var1_name=None, var2_name=None, verbose=not util_arg.QUIET):
     import utool as ut
     failed = var1 != var2
     if var1_name is None:

@@ -15,8 +15,16 @@ from utool._internal.meta_util_six import IntType, LongType, FloatType, BooleanT
 print, print_, printDBG, rrr, profile = inject(__name__, '[type]')
 
 
+def type_str(type_):
+    return str(type_).replace('<type \'', '').replace('\'>', '')
+
+
 # Very odd that I have to put in dtypes in two different ways.
 if HAS_NUMPY:
+    NUMPY_SCALAR_NAMES = [str_.replace('numpy.', '')
+                          for str_ in (type_str(type_) for type_ in np.ScalarType)
+                          if str_.startswith('numpy.')]
+
     VALID_INT_TYPES = (IntType, LongType,
                        np.typeDict['int64'],
                        np.typeDict['int32'],
@@ -225,10 +233,6 @@ def is_listlike(var):
 
 def is_tuple(var):
     return isinstance(var, tuple)
-
-
-def type_str(type_):
-    return str(type_).replace('<type \'', '').replace('\'>', '')
 
 
 def is_func_or_method(var):

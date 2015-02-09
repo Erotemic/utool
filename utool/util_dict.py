@@ -79,7 +79,7 @@ def dict_stack(dict_list):
         >>> dict1_ = {'a': 1, 'b': 2}
         >>> dict2_ = {'a': 2, 'b': 3, 'c': 4}
         >>> # execute function
-        >>> dict_stacked = dict_stack(dict1_, dict2_)
+        >>> dict_stacked = dict_stack([dict1_, dict2_])
         >>> # verify results
         >>> result = str(dict_stacked)
         >>> print(result)
@@ -462,6 +462,7 @@ def dict_take_pop(dict_, keys, *d):
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> dict_ = {1: 'a', 'other': None, 'another': 'foo', 2: 'b', 3: 'c'}
         >>> keys = [1, 2, 3, 4, 5]
         >>> print('before: ' + ut.dict_str(dict_))
@@ -474,6 +475,7 @@ def dict_take_pop(dict_, keys, *d):
     Example2:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> dict_ = {1: 'a', 2: 'b', 3: 'c'}
         >>> keys = [1, 2, 3, 4, 5]
         >>> print('before: ' + ut.dict_str(dict_))
