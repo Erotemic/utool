@@ -3,6 +3,7 @@ There are a lot of fancier things we can do here.
 A good thing to do would be to keep similar function calls
 and use multiprocessing.Queues for the backend.
 This way we can print out progress.
+
 """
 from __future__ import absolute_import, division, print_function
 import multiprocessing
@@ -51,6 +52,19 @@ elif BACKEND == 'zeromq':
     raise NotImplementedError('no zeromq yet')
     pass
 elif BACKEND == 'multiprocessing':
+    """
+    expecting
+    multiprocessing.__file__ = /usr/lib/python2.7/multiprocessing/__init__.pyc
+    multiprocessing.__version__ >= 0.70a1
+
+    BUT PIP SAYS:
+        INSTALLED: 2.6.2.1 (latest)
+
+    because multiprocessing on pip is: Backport of the multiprocessing package to Python 2.4 and 2.5
+
+    ut.editfile(multiprocessing.__file__)
+    from multiprocessing.pool import ThreadPool
+    """
     def new_pool(num_procs, init_worker, maxtasksperchild):
         return multiprocessing.Pool(processes=num_procs,
                                     initializer=init_worker,
@@ -266,6 +280,9 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
 
     Returns:
         generator which yeilds result of applying func to args in args_list
+
+    CommandLine:
+        python -m utool.util_parallel --test-generate
 
     Example:
         >>> # SLOW_DOCTEST
