@@ -559,6 +559,52 @@ def numpy_str(arr, strvals=False, precision=8):
     return valstr
 
 
+def numeric_str(num, precision=8, **kwargs):
+    """
+    Args:
+        num (scalar or array):
+        precision (int):
+
+    Returns:
+        str:
+
+    CommandLine:
+        python -m utool.util_str --test-numeric_str
+
+    References:
+        http://stackoverflow.com/questions/4541155/check-if-a-number-is-int-or-float
+
+    Notes:
+        isinstance(np.array([3], dtype=np.uint8)[0], numbers.Integral)
+        isinstance(np.array([3], dtype=np.int32)[0], numbers.Integral)
+        isinstance(np.array([3], dtype=np.uint64)[0], numbers.Integral)
+        isinstance(np.array([3], dtype=object)[0], numbers.Integral)
+        isinstance(np.array([3], dtype=np.float32)[0], numbers.Integral)
+        isinstance(np.array([3], dtype=np.float64)[0], numbers.Integral)
+
+    CommandLine:
+        python -m utool.util_str --test-numeric_str
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> precision = 2
+        >>> result = [numeric_str(num, precision) for num in [1, 2.0, 3.43343,4432]]
+        >>> print(result)
+        ['1', '2.00', '3.43', '4432']
+    """
+    import numbers
+    if np.isscalar(num):
+        if not isinstance(num, numbers.Integral):
+            fmtstr = ('%.' + str(precision) + 'f')
+            return fmtstr  % num
+        else:
+            return '%d' % (num)
+        return
+    else:
+        return numpy_str(num, precision=precision, **kwargs)
+
+
 def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True,
                       recursive=True, indent_='', precision=8):
     """

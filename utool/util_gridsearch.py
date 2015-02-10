@@ -420,9 +420,9 @@ def constrain_cfgdict_list(cfgdict_list_, constraint_func):
     cfgdict_list = []
     for cfg_ in cfgdict_list_:
         cfg = cfg_.copy()
-        constraint_func(cfg)
-        if cfg not in cfgdict_list:
-            cfgdict_list.append(cfg)
+        if constraint_func(cfg) is not False and len(cfg) > 0:
+            if cfg not in cfgdict_list:
+                cfgdict_list.append(cfg)
     return cfgdict_list
 
 
@@ -460,7 +460,8 @@ def make_cfglbls(cfgdict_list, varied_dict):
 def interact_gridsearch_result_images(show_result_func, cfgdict_list,
                                       cfglbl_list, cfgresult_list,
                                       score_list=None, fnum=None, figtitle='',
-                                      unpack=False, max_plots=25, verbose=True):
+                                      unpack=False, max_plots=25, verbose=True,
+                                      precision=3, scorelbl='score'):
     """ helper function for visualizing results of gridsearch """
     import utool as ut
     import plottool as pt
@@ -489,7 +490,7 @@ def interact_gridsearch_result_images(show_result_func, cfgdict_list,
                                                   cfgresult_list,
                                                   score_list):
         if score is not None:
-            cfglbl += '\nscore=%r' % (score,)
+            cfglbl += '\n' + scorelbl + '=' + ut.numeric_str(score, precision=precision)
         if unpack:
             show_result_func(*cfgresult, fnum=fnum, pnum=next_pnum())
         else:
