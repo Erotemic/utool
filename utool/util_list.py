@@ -1401,8 +1401,10 @@ def find_first_true_indicies(flags_list):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> # build test data
-        >>> flags_list = [[True, False, True], [False, False, False],
-        ...               [False, True, True], [False, False, True]]
+        >>> flags_list = [[True, False, True],
+        ...               [False, False, False],
+        ...               [False, True, True],
+        ...               [False, False, True]]
         >>> # execute function
         >>> index_list = find_first_true_indicies(flags_list)
         >>> # verify results
@@ -1433,8 +1435,10 @@ def find_next_true_indicies(flags_list, offset_list):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> # build test data
-        >>> flags_list = [[True, False, True], [False, False, False],
-        ...               [False, True, True], [False, False, True]]
+        >>> flags_list = [[True, False, True],
+        ...               [False, False, False],
+        ...               [False, True, True],
+        ...               [False, False, True]]
         >>> offset_list = find_first_true_indicies(flags_list)
         >>> # execute function
         >>> index_list = find_next_true_indicies(flags_list, offset_list)

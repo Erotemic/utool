@@ -12,6 +12,7 @@ except ImportError:
     # TODO remove numpy
     pass
 from collections import defaultdict
+import operator
 import six
 from six.moves import zip, range
 from utool import util_type
@@ -490,15 +491,42 @@ def get_nth_prime_bruteforce(n):
 
 
 def inbounds(num, low, high, eq=False):
-    import operator
-    if isinstance(num, np.ndarray):
-        less    = operator.le if eq else operator.lt
-        greater = operator.ge if eq else operator.gt
-        and_ = np.logical_and
-    else:
-        less = operator.le if eq else operator.lt
-        greater = operator.ge if eq else operator.gt
-        and_ = operator.and_
+    r"""
+    Args:
+        num (?):
+        low (?):
+        high (?):
+        eq (bool):
+
+    Returns:
+        ?: is_inbounds
+
+    CommandLine:
+        python -m utool.util_alg --test-inbounds
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> # build test data
+        >>> num = np.array([[ 0.   ,  0.431,  0.279],
+        ...                 [ 0.204,  0.352,  0.08 ],
+        ...                 [ 0.107,  0.325,  0.179]])
+        >>> low  = .1
+        >>> high = .4
+        >>> eq = False
+        >>> # execute function
+        >>> is_inbounds = inbounds(num, low, high, eq)
+        >>> # verify results
+        >>> result = ut.numpy_str(is_inbounds)
+        >>> print(result)
+        np.array([[False, False,  True],
+                  [ True,  True, False],
+                  [ True,  True,  True]], dtype=bool)
+
+    """
+    less    = operator.le if eq else operator.lt
+    greater = operator.ge if eq else operator.gt
+    and_ = np.logical_and if isinstance(num, np.ndarray) else operator.and_
     is_inbounds = and_(greater(num, low), less(num, high))
     return is_inbounds
 

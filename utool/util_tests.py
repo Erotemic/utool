@@ -731,7 +731,7 @@ def run_test(func, *args, **kwargs):
                 print(SAD_FACE)
             if func_is_text:
                 print('Failed in module: %r' % frame_fpath)
-                DEBUG_SRC = True
+                DEBUG_SRC = not ut.get_argflag('--nosrc')
                 if DEBUG_SRC:
                     src_with_lineno = ut.number_text_lines(src)
                     print(ut.msgblock('FAILED DOCTEST IN %s' % (funcname,), src_with_lineno))
