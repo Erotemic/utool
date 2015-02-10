@@ -187,7 +187,7 @@ if DOELSE:
                                 VERYVERBOSE, argv_flag_dec, argv_flag_dec_true,
                                 autogen_argparse2, fuzzy_int, get_arg,
                                 get_argflag, get_argval,
-                                get_dict_vals_from_commandline, get_flag,
+                                argparse_dict, get_flag,
                                 get_fpath_args, make_argparse2,
                                 parse_arglist_hack, parse_cfgstr_list,
                                 switch_sanataize,)

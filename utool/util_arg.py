@@ -383,7 +383,7 @@ def __argv_flag_dec(func, default=False, quiet=QUIET):
     return GaurdWrapper
 
 
-def get_dict_vals_from_commandline(default_dict_):
+def argparse_dict(default_dict_, lbl=None):
     r"""
     Gets values for a dict based on the command line
 
@@ -394,12 +394,12 @@ def get_dict_vals_from_commandline(default_dict_):
         dict_: dict_ -  a dictionary
 
     CommandLine:
-        python -m utool.util_arg --test-get_dict_vals_from_commandline
-        python -m utool.util_arg --test-get_dict_vals_from_commandline --flag1
-        python -m utool.util_arg --test-get_dict_vals_from_commandline --flag2
-        python -m utool.util_arg --test-get_dict_vals_from_commandline --noflag2
-        python -m utool.util_arg --test-get_dict_vals_from_commandline --thresh=43
-        python -m utool.util_arg --test-get_dict_vals_from_commandline --bins=-10
+        python -m utool.util_arg --test-argparse_dict
+        python -m utool.util_arg --test-argparse_dict --flag1
+        python -m utool.util_arg --test-argparse_dict --flag2
+        python -m utool.util_arg --test-argparse_dict --noflag2
+        python -m utool.util_arg --test-argparse_dict --thresh=43
+        python -m utool.util_arg --test-argparse_dict --bins=-10
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -415,7 +415,7 @@ def get_dict_vals_from_commandline(default_dict_):
         ...    'flag2': True,
         ... }
         >>> # execute function
-        >>> dict_ = get_dict_vals_from_commandline(default_dict_)
+        >>> dict_ = argparse_dict(default_dict_)
         >>> # verify results
         >>> result = ut.dict_str(dict_)
         >>> print(result)
@@ -437,15 +437,22 @@ def get_dict_vals_from_commandline(default_dict_):
             val = get_argval(argtup, type_=type_, default=default)
         return val
 
-    if get_argflag('--help') or get_argflag('--helpx'):
+    if get_argflag(('--help', '--helpx')):
         import utool as ut
         print('COMMAND LINE IS ACCEPTING THESE PARAMS WITH DEFAULTS:')
+        if lbl is not None:
+            print(lbl)
         print(ut.align(ut.dict_str(default_dict_), ':'))
         if get_argflag('--helpx'):
             sys.exit(1)
 
     dict_ = {key: get_dictkey_cmdline_val(key, default) for key, default in six.iteritems(default_dict_)}
     return dict_
+
+# alias
+parse_dict_from_argv = argparse_dict
+get_dict_vals_from_commandline = argparse_dict
+
 
 if __name__ == '__main__':
     """
