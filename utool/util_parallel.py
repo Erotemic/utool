@@ -320,6 +320,9 @@ def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__,
     Returns:
         result of parallel map(func, args_list)
 
+    CommandLine:
+        python -m utool.util_parallel --test-process
+
     Example:
         >>> # SLOW_DOCTEST
         >>> import utool as ut

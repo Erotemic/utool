@@ -463,6 +463,8 @@ def interact_gridsearch_result_images(show_result_func, cfgdict_list,
                                       unpack=False, max_plots=25, verbose=True,
                                       precision=3, scorelbl='score'):
     """ helper function for visualizing results of gridsearch """
+    assert hasattr(show_result_func, '__call__'), 'NEED FUNCTION GOT: %r' % (show_result_func,)
+
     import utool as ut
     import plottool as pt
     from plottool import plot_helpers as ph
@@ -491,10 +493,19 @@ def interact_gridsearch_result_images(show_result_func, cfgdict_list,
                                                   score_list):
         if score is not None:
             cfglbl += '\n' + scorelbl + '=' + ut.numeric_str(score, precision=precision)
-        if unpack:
-            show_result_func(*cfgresult, fnum=fnum, pnum=next_pnum())
-        else:
-            show_result_func(cfgresult, fnum=fnum, pnum=next_pnum())
+        pnum = next_pnum()
+        try:
+            if unpack:
+                show_result_func(*cfgresult, fnum=fnum, pnum=pnum)
+            else:
+                show_result_func(cfgresult, fnum=fnum, pnum=pnum)
+        except Exception as ex:
+            if isinstance(cfgresult, tuple):
+                #print(ut.list_str(cfgresult))
+                print(ut.depth_profile(cfgresult))
+                print(ut.list_type_profile(cfgresult))
+            ut.printex(ex, 'error showing', keys=['cfgresult', 'fnum', 'pnum'])
+            raise
         #pt.imshow(255 * cfgresult, fnum=fnum, pnum=next_pnum(), title=cfglbl)
         ax = pt.gca()
         pt.set_title(cfglbl, ax=ax)  # , size)

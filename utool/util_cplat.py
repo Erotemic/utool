@@ -179,14 +179,17 @@ def getroot():
     return root
 
 
-def startfile(fpath, detatch=True):
+def startfile(fpath, detatch=True, quote=False):
     """ Uses default program defined by the system to open a file. """
     print('[cplat] startfile(%r)' % fpath)
     if not exists(fpath):
         raise Exception('Cannot start nonexistant file: %r' % fpath)
+    if quote:
+        fpath = '"%s"' % (fpath,)
     if LINUX:
         #out, err, ret = cmd(['xdg-open', fpath], detatch=True)
         outtup = cmd(('xdg-open', fpath), detatch=detatch)
+        #outtup = cmd('xdg-open', fpath, detatch=detatch)
     elif DARWIN:
         outtup = cmd(('open', fpath), detatch=detatch)
     else:
