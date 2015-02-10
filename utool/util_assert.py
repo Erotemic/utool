@@ -137,8 +137,16 @@ def assert_inbounds(num, low, high, msg='', eq=False, verbose=not util_arg.QUIET
     """
     if util_arg.NO_ASSERTS:
         return
-    if not util_alg.inbounds(num, low, high, eq=eq):
-        msg_ = 'num=%r is out of bounds=(%r, %r)' % (num, low, high)
+    passed = util_alg.inbounds(num, low, high, eq=eq)
+    if isinstance(passed, np.ndarray):
+        passflag = np.all(passed)
+    else:
+        passflag = passed
+    if not passflag:
+        failednum = num.compress(~passed) if isinstance(num, np.ndarray) else num
+        failedlow = low.compress(~passed) if isinstance(low, np.ndarray) else low
+        failedhigh = high.compress(~passed) if isinstance(high, np.ndarray) else high
+        msg_ = 'num=%r is out of bounds=(%r, %r)' % (failednum, failedlow, failedhigh)
         raise AssertionError(msg_ + '\n' + msg)
     else:
         op = '<=' if eq else '<'
