@@ -543,12 +543,50 @@ def func_str(func, args=[], kwargs={}, type_aliases=[], packed=False,
     return func_str
 
 
+def array_repr2(arr, max_line_width=None, precision=None, suppress_small=None, force_dtype=False):
+    """ extended version of numpy.array_repr """
+    from numpy.core.numeric import _typelessdata
+
+    if arr.__class__ is not np.ndarray:
+        cName = arr.__class__.__name__
+    else:
+        cName = 'array'
+
+    prefix = cName + '('
+
+    if arr.size > 0 or arr.shape == (0,):
+        lst = np.array2string(arr, max_line_width, precision, suppress_small, ', ', prefix)
+    else:
+        # show zero-length shape unless it is (0,)
+        lst = '[], shape=%s' % (repr(arr.shape),)
+
+    skipdtype = ((arr.dtype.type in _typelessdata) and arr.size > 0)
+
+    if skipdtype and not force_dtype:
+        return '%s(%s)' % (cName, lst)
+    else:
+        typename = arr.dtype.name
+        # Quote typename in the output if it is 'complex'.
+        if typename and not (typename[0].isalpha() and typename.isalnum()):
+            typename = '\'%s\'' % typename
+
+        lf = ''
+        if issubclass(arr.dtype.type, np.flexible):
+            if arr.dtype.names:
+                typename = '%s' % str(arr.dtype)
+            else:
+                typename = '\'%s\'' % str(arr.dtype)
+            lf = '\n' + ' ' * len(prefix)
+        return cName + '(%s, %sdtype=%s)' % (lst, lf, typename)
+
+
 def numpy_str(arr, strvals=False, precision=8):
     # TODO: make this a util_str func for numpy reprs
     if strvals:
         valstr = np.array_str(arr, precision=precision)
     else:
-        valstr = np.array_repr(arr, precision=precision)
+        #valstr = np.array_repr(arr, precision=precision)
+        valstr = array_repr2(arr, precision=precision, force_dtype=True)
         numpy_vals = itertools.chain(util_type.NUMPY_SCALAR_NAMES, ['array'])
         for npval in numpy_vals:
             valstr = valstr.replace(npval, 'np.' + npval)
