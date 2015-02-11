@@ -493,13 +493,13 @@ def get_nth_prime_bruteforce(n):
 def inbounds(num, low, high, eq=False):
     r"""
     Args:
-        num (?):
-        low (?):
-        high (?):
+        num (scalar or ndarray):
+        low (scalar or ndarray):
+        high (scalar or ndarray):
         eq (bool):
 
     Returns:
-        ?: is_inbounds
+        scalar or ndarray: is_inbounds
 
     CommandLine:
         python -m utool.util_alg --test-inbounds
@@ -507,6 +507,7 @@ def inbounds(num, low, high, eq=False):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
         >>> # build test data
         >>> num = np.array([[ 0.   ,  0.431,  0.279],
         ...                 [ 0.204,  0.352,  0.08 ],

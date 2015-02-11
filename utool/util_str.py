@@ -1,5 +1,5 @@
 """
-python -c "import utool, doctest; print(doctest.testmod(utool.util_str))"
+Module that handles string formating and manipulation of varoius data
 """
 from __future__ import absolute_import, division, print_function
 import sys
@@ -245,6 +245,8 @@ def __OLD_pack_into(instr, textwidth=160, breakchars=' ', break_words=True,
 def pack_into(instr, textwidth=160, breakchars=' ', break_words=True,
               newline_prefix='', wordsep=' ', remove_newlines=True):
     r"""
+
+    DEPRICATE IN FAVOR OF textwrap.wrap
 
     TODO: Look into textwrap.wrap
 
@@ -547,6 +549,25 @@ def array_repr2(arr, max_line_width=None, precision=None, suppress_small=None, f
     """ extended version of numpy.array_repr
 
     ut.editfile(np.core.numeric.__file__)
+
+    On linux:
+    _typelessdata [numpy.int64, numpy.float64, numpy.complex128, numpy.int64]
+
+    On BakerStreet
+    _typelessdata [numpy.int32, numpy.float64, numpy.complex128, numpy.int32]
+
+    # WEIRD
+    np.int64 is np.int64
+    _typelessdata[0] is _typelessdata[-1]
+    _typelessdata[0] == _typelessdata[-1]
+
+
+    id(_typelessdata[-1])
+    id(_typelessdata[0])
+
+
+    from numpy.core.numeric import _typelessdata
+    _typelessdata
 
     """
     from numpy.core.numeric import _typelessdata

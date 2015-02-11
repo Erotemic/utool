@@ -7,7 +7,7 @@ import six
 import sys
 import platform
 import subprocess
-import shlex
+#import shlex
 from os.path import exists, normpath, basename
 from .util_inject import inject
 from utool._internal import meta_util_cplat
@@ -300,6 +300,7 @@ def __parse_cmd_args(args, sudo, shell):
         I'm not quite sure what those are yet. Plain old string seem to work
         well? But I remember needing shlex at some point.
     """
+    import shlex
     #from .util_arg import VERBOSE
     #args = ' '.join(args)
     #if VERBOSE:
@@ -366,7 +367,6 @@ def __parse_cmd_args(args, sudo, shell):
     # python -c "import utool as ut; ut.cmd('build\\hesaffexe.exe', ut.grab_test_imgpath('star.png'))"
     if WIN32:
         if len(args) == 1 and isinstance(args[0], six.string_types):
-            import shlex
             args = shlex.split(args[0], posix=not WIN32)
     return args
 
