@@ -31,7 +31,7 @@ QUIET        = meta_util_arg.QUIET
 # TODO: rectify with meta_util_arg
 # This has diverged and is now better
 #from utool._internal.meta_util_arg import get_argval
-def get_argval(argstr_, type_=None, default=None, help_=None):
+def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True):
     """ Returns a value of an argument specified on the command line after some flag
 
     Examples:
@@ -41,7 +41,8 @@ def get_argval(argstr_, type_=None, default=None, help_=None):
         >>> res1 = get_argval('--spam', type_=str, default=None)
         >>> res2 = get_argval('--quest', type_=str, default=None)
         >>> res3 = get_argval('--ans', type_=int, default=None)
-        >>> result = ', '.join((res1, res2, res3))
+        >>> result = ', '.join(map(str, (res1, res2, res3)))
+        >>> print(result)
         eggs, holy grail, 42
 
     CommandLine:
@@ -71,8 +72,9 @@ def get_argval(argstr_, type_=None, default=None, help_=None):
                             arg_after = True
                         elif type_ is list:
                             # HACK FOR LIST. TODO INTEGRATE
-                            arg_after_ = parse_arglist_hack(argx)
-                            arg_after = list(map(util_type.smart_cast2, arg_after_))
+                            arg_after = parse_arglist_hack(argx)
+                            if smartcast:
+                                arg_after = list(map(util_type.smart_cast2, arg_after))
                         else:
                             arg_after = util_type.try_cast(sys.argv[argx + 1], type_)
 
@@ -83,8 +85,9 @@ def get_argval(argstr_, type_=None, default=None, help_=None):
                         #ut.embed()
                         # HACK FOR LIST. TODO INTEGRATE
                         val_after_ = val_after.rstrip(']').lstrip('[')
-                        arg_after_ = val_after_.split(',')
-                        arg_after = list(map(util_type.smart_cast2, arg_after_))
+                        arg_after = val_after_.split(',')
+                        if smartcast:
+                            arg_after = list(map(util_type.smart_cast2, arg_after))
                     else:
                         arg_after = util_type.try_cast(val_after, type_)
     except Exception:

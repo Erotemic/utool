@@ -544,7 +544,11 @@ def func_str(func, args=[], kwargs={}, type_aliases=[], packed=False,
 
 
 def array_repr2(arr, max_line_width=None, precision=None, suppress_small=None, force_dtype=False):
-    """ extended version of numpy.array_repr """
+    """ extended version of numpy.array_repr
+
+    ut.editfile(np.core.numeric.__file__)
+
+    """
     from numpy.core.numeric import _typelessdata
 
     if arr.__class__ is not np.ndarray:
