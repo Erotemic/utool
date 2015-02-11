@@ -569,6 +569,8 @@ def array_repr2(arr, max_line_width=None, precision=None, suppress_small=None, f
     from numpy.core.numeric import _typelessdata
     _typelessdata
 
+    Referencs:
+        http://stackoverflow.com/questions/28455982/why-are-there-two-np-int64s-in-numpy-core-numeric-typelessdata-why-is-numpy-in/28461928#28461928
     """
     from numpy.core.numeric import _typelessdata
 

@@ -18,6 +18,14 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[list]')
 
 # --- List Allocations ---
 
+def lmap(func, iter_):
+    """
+    list map - eagerly evaulates map like in python2
+    (but you aren't using that right?)
+    """
+    return list(map(func, iter_))
+
+
 def replace_nones(list_, repl=-1):
     r"""
     Recursively removes Nones in all lists and sublists and replaces them with

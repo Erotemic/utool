@@ -17,7 +17,7 @@ def numpy_to_csv(arr, col_lbls=None, header='', col_type=None):
 
 def make_csv_table(column_list=[], column_lbls=None, header='',
                    column_type=None, row_lbls=None, transpose=False,
-                   precision=2, use_lbl_width=True):
+                   precision=2, use_lbl_width=True, comma_repl='<comma>'):
     """
     Creates a csv table with aligned columns
 
@@ -54,6 +54,7 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
               3,      C
     """
     import utool as ut
+    assert comma_repl.find(',') == -1, 'comma_repl cannot contain a comma!'
     if transpose:
         column_lbls, row_lbls = row_lbls, column_lbls
         column_list = list(map(list, zip(*column_list)))
@@ -120,7 +121,7 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
             # Loop over every row in the column (using list comprehension)
             if coltype is list or is_list(coltype):
                 #print('list')
-                #col_str = [str(c).replace(',', '<comma>').replace('.', '<dot>') for c in iter(col)]
+                #col_str = [str(c).replace(',', comma_repl).replace('.', '<dot>') for c in iter(col)]
                 col_str = [str(c).replace(',', ' ').replace('.', '<dot>') for c in col]
             elif (coltype is float or
                   is_float(coltype) or
@@ -128,10 +129,10 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
                   util_type.is_valid_floattype(coltype)):
                 precision_fmtstr = '%.' + str(precision) + 'f'
                 col_str = ['None' if r is None else precision_fmtstr % float(r) for r in col]
-            elif coltype is int or is_int(coltype):
+            elif coltype is int or is_int(coltype) or coltype == np.int64:
                 col_str = [_toint(c) for c in iter(col)]
             elif coltype is str or is_str(coltype):
-                col_str = [str(c).replace(',', '<comma>') for c in col]
+                col_str = [str(c).replace(',', comma_repl) for c in col]
             else:
                 print('[csv] is_unknown coltype=%r' % (coltype,))
                 col_str = [str(c) for c in iter(col)]
