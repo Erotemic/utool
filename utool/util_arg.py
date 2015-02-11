@@ -71,7 +71,8 @@ def get_argval(argstr_, type_=None, default=None, help_=None):
                             arg_after = True
                         elif type_ is list:
                             # HACK FOR LIST. TODO INTEGRATE
-                            arg_after = parse_arglist_hack(argx)
+                            arg_after_ = parse_arglist_hack(argx)
+                            arg_after = list(map(util_type.smart_cast2, arg_after_))
                         else:
                             arg_after = util_type.try_cast(sys.argv[argx + 1], type_)
 
@@ -82,7 +83,8 @@ def get_argval(argstr_, type_=None, default=None, help_=None):
                         #ut.embed()
                         # HACK FOR LIST. TODO INTEGRATE
                         val_after_ = val_after.rstrip(']').lstrip('[')
-                        arg_after = val_after_.split(',')
+                        arg_after_ = val_after_.split(',')
+                        arg_after = list(map(util_type.smart_cast2, arg_after_))
                     else:
                         arg_after = util_type.try_cast(val_after, type_)
     except Exception:
@@ -125,6 +127,8 @@ def parse_cfgstr_list(cfgstr_list, smartcast=False):
 
 def parse_arglist_hack(argx):
     arglist = []
+    #import utool as ut
+    #ut.embed()
     for argx2 in range(argx + 1, len(sys.argv)):
         listarg = sys.argv[argx2]
         if listarg.startswith('-'):
