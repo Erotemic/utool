@@ -737,7 +737,10 @@ def find_interesting_stats(stat_dict, col_lbls=None, lbl=None):
         if key not in stat_dict:
             continue
         sortx  = np.argsort(stat_dict[key])
-        sel_sortx = sortx.take([0, 1, -2, -1])
+        if len(sortx) > 4:
+            sel_sortx = sortx.take([0, 1, -2, -1])
+        else:
+            sel_sortx = sortx
         sel_indicies.extend(sel_sortx)
     sel_indicies = ut.unique_keep_order2(sel_indicies)
     sel_stat_dict = ut.get_dict_column(stat_dict, sel_indicies)
@@ -860,6 +863,9 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False):
     if len(list_) == 0:
         stat_dict = {'empty_list': True}
     else:
+        #import utool as ut
+        #if np.any(np.isnan(nparr)):
+        #    ut.embed()
         # Compute stats
         if use_nan:
             min_val = np.nanmin(nparr, axis=axis)

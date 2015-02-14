@@ -42,7 +42,7 @@ HAPPY_FACE_BIG = r'''
             /   O      O   \
            :                :
            |                |
-           : ',          ,' :
+       True ',          ,' :
             \  '-......-'  /
              '.          .'
                '-......-'
@@ -123,8 +123,12 @@ def parse_docblocks_from_docstr(docstr):
     import parse
     import utool as ut
     initial_docblocks = docstr.split('\n\n')
-    #print('__________')
-    #print('\n---\n'.join(initial_docblocks))
+
+    if VERBOSE_TEST:
+        if ut.VERBOSE:
+            print('__________')
+            print('__Initial Docblocks__')
+            print('\n---\n'.join(initial_docblocks))
     docstr_blocks = []
     for docblock in initial_docblocks:
         docblock = docblock.strip('\n')
@@ -136,6 +140,17 @@ def parse_docblocks_from_docstr(docstr):
             header = ''
         docstr_blocks.append((header, docblock))
     #print(docstr_blocks)
+
+    docblock_headers = ut.get_list_column(docstr_blocks, 0)
+    docblock_bodys = ut.get_list_column(docstr_blocks, 1)
+
+    if VERBOSE_TEST:
+        print('[util_test] * found %d docstr_blocks' % (len(docstr_blocks),))
+        print('[util_test] * docblock_headers = %r' % (docblock_headers,))
+        if ut.VERBOSE:
+            print('[util_test] * docblock_bodys:')
+            print('\n-=-\n'.join(docblock_bodys))
+
     return docstr_blocks
 
 
@@ -201,7 +216,9 @@ def parse_doctest_from_docstr(docstr):
     """
     import utool as ut
     docstr_blocks = parse_docblocks_from_docstr(docstr)
+
     example_docblocks = []
+
     for header, docblock in docstr_blocks:
         if header.startswith('Example'):
             example_docblocks.append((header, docblock))
@@ -267,6 +284,8 @@ def get_doctest_examples(func_or_class):
     #    else:
     testheader_list, testsrc_list, testwant_list = parse_doctest_from_docstr(docstr)
     #       shelf[docstr] = testsrc_list, testwant_list
+    if VERBOSE_TEST:
+        print('[util_test] * found %d doctests' % (len(testsrc_list),))
     return testsrc_list, testwant_list, docstr
     # doctest doesnt do what i want. so I wrote my own primative but effective
     # parser.
@@ -441,6 +460,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     try:
         if verbose or VERBOSE_TEST:
             print('[util_test] Iterating over module funcs')
+            print('[util_test] module =%r' % (module,))
 
         for key, val in ut.iter_module_doctestable(module):
             docstr = inspect.getdoc(val)

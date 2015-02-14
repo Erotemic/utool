@@ -2,9 +2,9 @@ from __future__ import absolute_import, division, print_function
 import shelve
 import six
 #import atexit
-import inspect
+#import inspect
 import contextlib
-from six.moves import range, zip
+from six.moves import range, zip  # NOQA
 from os.path import join, normpath, basename, exists
 import functools
 from itertools import chain
@@ -230,20 +230,6 @@ class Cacher(object):
         save_cache(self.dpath, self.fname, cfgstr, data)
 
 
-def get_kwdefaults(func):
-    argspec = inspect.getargspec(func)
-    if argspec.keywords is None or argspec.defaults is None:
-        return {}
-    kwdefaults = dict(zip(argspec.keywords, argspec.defaults))
-    return kwdefaults
-
-
-def get_argnames(func):
-    argspec = inspect.getargspec(func)
-    argnames = argspec.args
-    return argnames
-
-
 def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults, argnames):
     """
     Dev:
@@ -389,8 +375,9 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
     """
     def cached_closure(func):
         fname_ = get_funcname(func) if fname is None else fname
-        kwdefaults = get_kwdefaults(func)
-        argnames   = get_argnames(func)
+        from utool import util_inspect
+        kwdefaults = util_inspect.get_kwdefaults(func)
+        argnames   = util_inspect.get_argnames(func)
         cacher = Cacher(fname_, cache_dir=cache_dir, appname=appname)
         if use_cache is None:
             use_cache_ = not util_arg.get_argflag('--nocache-' + fname)

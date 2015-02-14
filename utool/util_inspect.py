@@ -4,6 +4,7 @@ import types
 import six
 import re
 import functools
+from six.moves import range, zip  # NOQA
 from utool import util_regex
 from utool import util_arg
 from utool import util_inject
@@ -92,7 +93,7 @@ def get_dev_hints():
         ('invVR_mats2x2', ('ndarray[float32_t, ndim=3]', 'keypoint shape and rotations')),
         ('invV_mats', ('ndarray[float32_t, ndim=3]',  'keypoint shapes (possibly translation)')),
         ('invVR_mats', ('ndarray[float32_t, ndim=3]', 'keypoint shape and rotations (possibly translation)')),
-        ('img', ('ndarray[uint8_t, ndim=2]', 'image data')),
+        ('img\d*', ('ndarray[uint8_t, ndim=2]', 'image data')),
         ('imgBGR', ('ndarray[uint8_t, ndim=2]', 'image data in opencv format (blue, green, red)')),
         ('pnum', ('tuple', 'plot number')),
         ('fnum', ('int', 'figure number')),
@@ -337,6 +338,87 @@ def list_global_funcnames(fname, blank_pats=['    #']):
 
 
 # grep is in util_path. Thats pretty inspecty
+
+def get_kwargs(func):
+    """
+    Args:
+        func (?):
+
+    Returns:
+        ?:
+
+    CommandLine:
+        python -m utool.util_inspect --test-get_kwargs
+
+
+    def func1(a, b, c):
+        pass
+    def func2(a, b, c, *args):
+        pass
+    def func3(a, b, c, *args, **kwargs):
+        pass
+    def func4(a, b=1, c=2):
+        pass
+    def func5(a, b=1, c=2, *args):
+        pass
+    def func6(a, b=1, c=2, **kwargs):
+        pass
+    def func7(a, b=1, c=2, *args, **kwargs):
+        pass
+    for func in [locals()['func' + str(x)] for x in range(1, 8)]:
+        print(inspect.getargspec(func))
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_inspect import *  # NOQA
+        >>> # build test data
+        >>> func = '?'
+        >>> # execute function
+        >>> result = get_kwargs(func)
+        >>> # verify results
+        >>> print(result)
+    """
+    #if argspec.keywords is None:
+    import utool as ut
+    argspec = inspect.getargspec(func)
+    if argspec.defaults is not None:
+        num_args = len(argspec.args)
+        num_keys = len(argspec.defaults)
+        keys = ut.list_take(argspec.args, range(num_args - num_keys, num_args))
+    else:
+        keys = []
+    is_arbitrary = argspec.keywords is not None
+    RECURSIVE = False
+    if RECURSIVE and argspec.keywords is not None:
+        pass
+        # TODO: look inside function at the functions that the kwargs object is being
+        # passed to
+    return keys, is_arbitrary
+
+
+def filter_valid_kwargs(func, dict_):
+    import utool as ut
+    keys, is_arbitrary = ut.get_kwargs(func)
+    if is_arbitrary:
+        valid_dict_ = dict_
+    else:
+        key_subset = ut.dict_keysubset(dict_, keys)
+        valid_dict_ = ut.dict_subset(dict_, key_subset)
+    return valid_dict_
+
+
+def get_kwdefaults(func):
+    argspec = inspect.getargspec(func)
+    if argspec.keywords is None or argspec.defaults is None:
+        return {}
+    kwdefaults = dict(zip(argspec.keywords, argspec.defaults))
+    return kwdefaults
+
+
+def get_argnames(func):
+    argspec = inspect.getargspec(func)
+    argnames = argspec.args
+    return argnames
 
 
 def get_funcname(func):

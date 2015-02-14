@@ -53,6 +53,7 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True):
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest', float)]])" --quest 42
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--nAssign'), int)]])" --nAssign 42
     """
+    print(argstr_)
     arg_after = default
     if type_ is bool:
         arg_after = False if default is None else default
@@ -95,7 +96,7 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True):
     return arg_after
 
 
-def parse_cfgstr_list(cfgstr_list, smartcast=False):
+def parse_cfgstr_list(cfgstr_list, smartcast=True):
     """
     Parses a list of items in the format
     ['var1:val1', 'var2:val2', 'var3:val3']
@@ -376,7 +377,11 @@ def __argv_flag_dec(func, default=False, quiet=QUIET):
     def GaurdWrapper(*args, **kwargs):
         # FIXME: the --print-all is a hack
         default_ = kwargs.pop('default', default)
-        if get_argflag(flag, default_) or get_argflag('--print-all'):
+        alias_flags = kwargs.pop('alias_flags', [])
+        is_flagged = (get_argflag(flag, default_) or
+                      get_argflag('--print-all') or
+                      any([get_argflag(_) for _ in alias_flags]))
+        if is_flagged:
             indent_lbl = flag.replace('--', '').replace('print-', '')
             print('')
             print('\n+++ ' + indent_lbl + ' +++')

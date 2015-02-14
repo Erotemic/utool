@@ -174,9 +174,17 @@ class Pref(PrefNode):
                 child.change_combo_val(attr)
             else:
                 child_type = child._intern.get_type()
+                if isinstance(attr, six.string_types) and issubclass(child_type, six.string_types):
+                    #import utool as ut
+                    #ut.embed()
+                    attr = child_type(attr)
                 attr_type  = type(attr)
-                if child_type is not attr_type:
-                    #print('WARNING TYPE DIFFERENCE! %r, %r' % (child_type, attr_type))
+                if attr is not None and child_type is not attr_type:
+                    print('[pref] WARNING TYPE DIFFERENCE!')
+                    print('[pref] * expected child_type = %r' % (child_type,))
+                    print('[pref] * got attr_type = %r' % (attr_type,))
+                    print('[pref] * name = %r' % (name,))
+                    print('[pref] * attr = %r' % (attr,))
                     attr = try_cast(attr, child_type, attr)
                 child._intern.value = attr
             self.__dict__[name] = child.value()

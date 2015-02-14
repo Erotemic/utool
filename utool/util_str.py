@@ -589,7 +589,7 @@ def array_repr2(arr, max_line_width=None, precision=None, suppress_small=None, f
 
     skipdtype = ((arr.dtype.type in _typelessdata) and arr.size > 0)
 
-    if skipdtype and not force_dtype:
+    if skipdtype and not (cName == 'array' and force_dtype):
         return '%s(%s)' % (cName, lst)
     else:
         typename = arr.dtype.name
@@ -607,7 +607,9 @@ def array_repr2(arr, max_line_width=None, precision=None, suppress_small=None, f
         return cName + '(%s, %sdtype=%s)' % (lst, lf, typename)
 
 
-def numpy_str(arr, strvals=False, precision=8):
+def numpy_str(arr, strvals=False, precision=8, pr=None):
+    if pr is not None:
+        precision = pr
     # TODO: make this a util_str func for numpy reprs
     if strvals:
         valstr = np.array_str(arr, precision=precision)

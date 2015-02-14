@@ -58,7 +58,7 @@ def get_dict_hashid(dict_):
     return hashid
 
 
-def dict_stack(dict_list):
+def dict_stack(dict_list, key_prefix=''):
     r"""
     stacks values from two dicts into a new dict where the values are list of
     the input values. the keys are the same.
@@ -89,7 +89,7 @@ def dict_stack(dict_list):
     dict_stacked_ = defaultdict(list)
     for dict_ in dict_list:
         for key, val in six.iteritems(dict_):
-            dict_stacked_[key].append(val)
+            dict_stacked_[key_prefix + key].append(val)
     dict_stacked = dict(dict_stacked_)
     return dict_stacked
 

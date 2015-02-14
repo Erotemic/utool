@@ -15,13 +15,25 @@ class PythonStatement(object):
         return self.stmt
 
 
-def write_modscript_alias(fpath, modname, pyscript='python'):
+def write_modscript_alias(fpath, modname, args='', pyscript='python'):
     """
     convinience function because $@ is annoying to paste into the terminal
     """
     import utool as ut
-    fmtstr = '{pyscript} -m {modname} $@'
-    cmdstr = fmtstr.format(pyscript=pyscript, modname=modname)
+    from os.path import splitext
+    allargs_dict = {
+        '.sh': ' $@',
+        '.bat': ' %1', }
+    _, script_ext = splitext(fpath)
+    if script_ext not in ['.sh', '.bat']:
+        script_ext = '.bat' if ut.WIN32 else 'sh'
+    allargs = (args + allargs_dict[script_ext]).strip(' ')
+    if not modname.endswith('.py'):
+        fmtstr = '{pyscript} -m {modname} {allargs}'
+    else:
+        fmtstr = '{pyscript} {modname} {allargs}'
+
+    cmdstr = fmtstr.format(pyscript=pyscript, modname=modname, allargs=allargs)
     ut.write_to(fpath, cmdstr)
     os.system('chmod +x ' + fpath)
 
