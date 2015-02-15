@@ -30,11 +30,14 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[tests]')
 
 VERBOSE_TEST = util_arg.get_argflag(('--verb-test', '--verbose-test'))
 #PRINT_SRC = not util_arg.get_argflag(('--noprintsrc', '--nosrc'))
+DEBUG_SRC = not util_arg.get_argflag('--nodbgsrc')
 PRINT_SRC = util_arg.get_argflag(('--printsrc', '--src'))
 PRINT_FACE = not util_arg.get_argflag(('--noprintface', '--noface'))
 #BIGFACE = False
 BIGFACE = util_arg.get_argflag('--bigface')
 SYSEXIT_ON_FAIL = util_arg.get_argflag('--sysexitonfail')
+
+ModuleDoctestTup = namedtuple('ModuleDoctestTup', ('enabled_testtup_list', 'frame_fpath', 'all_testflags', 'module'))
 
 HAPPY_FACE_BIG = r'''
                .-""""""-.
@@ -83,6 +86,10 @@ else:
 
 
 def _get_testable_name(testable):
+    """
+    Depth 3)
+    called by get_module_doctest_tup
+    """
     import utool
     try:
         testable_name = testable.func_name
@@ -94,64 +101,6 @@ def _get_testable_name(testable):
             utool.printex(ex2, utool.list_str(dir(testable)))
             raise
     return testable_name
-
-
-def parse_docblocks_from_docstr(docstr):
-    """
-    parse_docblocks_from_docstr
-
-    Args:
-        docstr (str):
-
-    Returns:
-        list: docstr_blocks
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from utool.util_tests import *  # NOQA
-        >>> import utool as ut
-        >>> #import ibeis
-        >>> #import ibeis.model.hots.query_request
-        >>> #func_or_class = ibeis.model.hots.query_request.QueryParams
-        >>> func_or_class = ut.parse_docblocks_from_docstr
-        >>> docstr = ut.get_docstr(func_or_class)
-        >>> docstr_blocks = parse_docblocks_from_docstr(docstr)
-        >>> result = str(docstr_blocks)
-        >>> print(result)
-    """
-    # FIXME Requires tags to be separated by two spaces
-    import parse
-    import utool as ut
-    initial_docblocks = docstr.split('\n\n')
-
-    if VERBOSE_TEST:
-        if ut.VERBOSE:
-            print('__________')
-            print('__Initial Docblocks__')
-            print('\n---\n'.join(initial_docblocks))
-    docstr_blocks = []
-    for docblock in initial_docblocks:
-        docblock = docblock.strip('\n')
-        indent = ' ' * ut.get_indentation(docblock)
-        parse_result = parse.parse(indent + '{tag}:\n{rest}', docblock)
-        if parse_result is not None:
-            header = parse_result['tag']
-        else:
-            header = ''
-        docstr_blocks.append((header, docblock))
-    #print(docstr_blocks)
-
-    docblock_headers = ut.get_list_column(docstr_blocks, 0)
-    docblock_bodys = ut.get_list_column(docstr_blocks, 1)
-
-    if VERBOSE_TEST:
-        print('[util_test] * found %d docstr_blocks' % (len(docstr_blocks),))
-        print('[util_test] * docblock_headers = %r' % (docblock_headers,))
-        if ut.VERBOSE:
-            print('[util_test] * docblock_bodys:')
-            print('\n-=-\n'.join(docblock_bodys))
-
-    return docstr_blocks
 
 
 def dev_ipython_copypaster(func):
@@ -196,9 +145,102 @@ def get_func_source(func):
     return source_text
 
 
+def get_module_testlines(module_list, remove_pyc=True, verbose=True,
+                         pythoncmd=None, **kwargs):
+    """
+    Builds test commands for autogen tests
+    called by autogen test scripts
+    """
+    import utool as ut  # NOQA
+    if pythoncmd is None:
+        pythoncmd = sys.executable
+        #'python'
+    testcmd_list = []
+    for module in module_list:
+        mod_doctest_tup = get_module_doctest_tup(module=module, allexamples=True,
+                                                 verbose=verbose, **kwargs)
+        enabled_testtup_list, frame_fpath, all_testflags, module_ = mod_doctest_tup
+        for testtup in enabled_testtup_list:
+            testflag = testtup[-1]
+            if remove_pyc:
+                # FIXME python 3 __pycache__/*.pyc
+                frame_fpath = frame_fpath.replace('.pyc', '.py')
+            frame_rel_fpath = ut.get_relative_modpath(frame_fpath)
+            testcmd = ' '.join((pythoncmd, frame_rel_fpath, testflag))
+            testcmd_list.append(testcmd)
+    return testcmd_list
+
+
+def parse_docblocks_from_docstr(docstr):
+    """
+    parse_docblocks_from_docstr
+    Depth 5)
+    called by parse_doctest_from_docstr
+
+    Args:
+        docstr (str):
+
+    Returns:
+        list: docstr_blocks
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_tests import *  # NOQA
+        >>> import utool as ut
+        >>> #import ibeis
+        >>> #import ibeis.model.hots.query_request
+        >>> #func_or_class = ibeis.model.hots.query_request.QueryParams
+        >>> func_or_class = ut.parse_docblocks_from_docstr
+        >>> docstr = ut.get_docstr(func_or_class)
+        >>> docstr_blocks = parse_docblocks_from_docstr(docstr)
+        >>> result = str(docstr_blocks)
+        >>> print(result)
+    """
+    # FIXME Requires tags to be separated by two spaces
+    import parse
+    import utool as ut
+    import itertools
+    initial_docblocks = docstr.split('\n\n')
+    docblock_len_list = [str_.count('\n') + 2 for str_ in initial_docblocks]
+    offset_iter = itertools.chain([0], ut.cumsum(docblock_len_list)[:-1])
+    initial_line_offsets = [offset for offset in offset_iter]
+
+    if VERBOSE_TEST:
+        if ut.VERBOSE:
+            print('__________')
+            print('__Initial Docblocks__')
+            print('\n---\n'.join(initial_docblocks))
+    docstr_blocks = []
+    for docblock, line_offset in zip(initial_docblocks, initial_line_offsets):
+        docblock = docblock.strip('\n')
+        indent = ' ' * ut.get_indentation(docblock)
+        parse_result = parse.parse(indent + '{tag}:\n{rest}', docblock)
+        if parse_result is not None:
+            header = parse_result['tag']
+        else:
+            header = ''
+        docstr_blocks.append((header, docblock, line_offset))
+    #print(docstr_blocks)
+
+    docblock_headers = ut.get_list_column(docstr_blocks, 0)
+    docblock_bodys = ut.get_list_column(docstr_blocks, 1)
+    docblock_offsets = ut.get_list_column(docstr_blocks, 2)
+
+    if VERBOSE_TEST:
+        print('[util_test] * found %d docstr_blocks' % (len(docstr_blocks),))
+        print('[util_test] * docblock_headers = %r' % (docblock_headers,))
+        print('[util_test] * docblock_offsets = %r' % (docblock_offsets,))
+        if ut.VERBOSE:
+            print('[util_test] * docblock_bodys:')
+            print('\n-=-\n'.join(docblock_bodys))
+    return docstr_blocks
+
+
 def parse_doctest_from_docstr(docstr):
     r"""
     because doctest itself doesnt do what I want it to do
+    called by get_doctest_examples
+    Depth 4)
 
     CAREFUL, IF YOU GET BACK WRONG RESULTS MAKE SURE YOUR DOCSTR IS PREFFIXED
     WITH R
@@ -209,7 +251,7 @@ def parse_doctest_from_docstr(docstr):
         >>> from ibeis.model.hots import score_normalization
         >>> func_or_class = score_normalization.cached_ibeis_score_normalizer
         >>> docstr = ut.get_docstr(func_or_class)
-        >>> testsrc_list, testwant_list, docstr = get_doctest_examples(func_or_class)
+        >>> testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr = get_doctest_examples(func_or_class)
         >>> result = str(len(testsrc_list) + len(testwant_list))
         >>> print(result)
         2
@@ -219,14 +261,15 @@ def parse_doctest_from_docstr(docstr):
 
     example_docblocks = []
 
-    for header, docblock in docstr_blocks:
+    for header, docblock, line_offset in docstr_blocks:
         if header.startswith('Example'):
-            example_docblocks.append((header, docblock))
+            example_docblocks.append((header, docblock, line_offset))
 
-    testheader_list = []
-    testsrc_list    = []
-    testwant_list   = []
-    for header, docblock in example_docblocks:
+    testheader_list     = []
+    testsrc_list        = []
+    testwant_list       = []
+    testlineoffset_list = []
+    for header, docblock, line_offset in example_docblocks:
         nonheader_src = ut.unindent('\n'.join(docblock.splitlines()[1:]))
         nonheader_lines = nonheader_src.splitlines()
         reversed_src_lines = []
@@ -248,14 +291,18 @@ def parse_doctest_from_docstr(docstr):
         testheader_list.append(header)
         testsrc_list.append(test_src)
         testwant_list.append(test_want)
+        testlineoffset_list.append(line_offset)
         #print('Parsed header=%r' % header)
         #print('Parsed src=%r' % test_src)
-    return testheader_list, testsrc_list, testwant_list
+    return testheader_list, testsrc_list, testwant_list, testlineoffset_list
 
 
 def get_doctest_examples(func_or_class):
     """
     get_doctest_examples
+
+    Depth 3)
+    called by get_module_doctest_tup
 
     Args:
         func_or_class (function)
@@ -263,12 +310,46 @@ def get_doctest_examples(func_or_class):
     Returns:
         tuple (list, list): example_list, want_list
 
-    Example:
+    CommandLine:
+        python -m utool.util_tests --test-get_doctest_examples
+
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_tests import *  # NOQA
         >>> func_or_class = get_doctest_examples
-        >>> testsrc_list, testwant_list, docstr = get_doctest_examples(func_or_class)
+        >>> testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr = get_doctest_examples(func_or_class)
         >>> result = str(len(testsrc_list) + len(testwant_list))
+        >>> print(testsrc_list)
+        >>> print(testlinenum_list)
+        >>> print(func_lineno)
+        >>> print(testwant_list)
+        >>> print(result)
+        6
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_tests import *  # NOQA
+        >>> func_or_class = tryimport
+        >>> testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr = get_doctest_examples(func_or_class)
+        >>> result = str(len(testsrc_list) + len(testwant_list))
+        >>> print(testsrc_list)
+        >>> print(testlinenum_list)
+        >>> print(func_lineno)
+        >>> print(testwant_list)
+        >>> print(result)
+        4
+
+    Example2:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_tests import *  # NOQA
+        >>> import ibeis
+        >>> func_or_class = ibeis.control.manual_annot_funcs.add_annots
+        >>> testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr = get_doctest_examples(func_or_class)
+        >>> result = str(len(testsrc_list) + len(testwant_list))
+        >>> print(testsrc_list)
+        >>> print(testlinenum_list)
+        >>> print(func_lineno)
+        >>> print(testwant_list)
         >>> print(result)
         2
     """
@@ -276,17 +357,39 @@ def get_doctest_examples(func_or_class):
     if VERBOSE_TEST:
         print('[util_test] parsing %r for doctest' % (func_or_class))
 
+    try:
+        raise NotImplementedError('FIXME')
+        #func_or_class._utinfo['orig_func']
+        func_lineno = func_or_class.func_code.co_firstlineno
+        # FIXME: doesn't handle decorators well
+        #
+        # ~~FIXME doesn't account for multiline function definitions
+        # actually parse this out~~
+        # TODO: rectify with util_insepct get_funcsource with stip def line
+        sourcecode = inspect.getsource(func_or_class)
+        match = ut.regex_get_match('def [^)]*\\):\n', sourcecode)
+        if match is not None:
+            num_funcdef_lines = match.group().count('\n')
+        else:
+            num_funcdef_lines = 1
+    except Exception as ex:
+        func_lineno = 0
+        num_funcdef_lines = 1
+        if ut.DEBUG2:
+            ut.printex(ex, '[util-test] error getting function line number')
+
     docstr = ut.get_docstr(func_or_class)
     # Cache because my janky parser is slow
     #with ut.GlobalShelfContext('utool') as shelf:
     #    if False and docstr in shelf:
     #        testsrc_list, testwant_list = shelf[docstr]
     #    else:
-    testheader_list, testsrc_list, testwant_list = parse_doctest_from_docstr(docstr)
+    testheader_list, testsrc_list, testwant_list, testlineoffset_list = parse_doctest_from_docstr(docstr)
+    testlinenum_list = [func_lineno + num_funcdef_lines + offset for offset in testlineoffset_list]
     #       shelf[docstr] = testsrc_list, testwant_list
     if VERBOSE_TEST:
         print('[util_test] * found %d doctests' % (len(testsrc_list),))
-    return testsrc_list, testwant_list, docstr
+    return testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr
     # doctest doesnt do what i want. so I wrote my own primative but effective
     # parser.
     '''
@@ -334,6 +437,9 @@ def get_doctest_examples(func_or_class):
 def doctest_module_list(module_list):
     """
     Runs many module tests
+
+    Entry point for batch run
+    Depth 0)
     """
     import utool as ut
     nPass_list = []
@@ -368,37 +474,14 @@ def doctest_module_list(module_list):
         print('\n'.join(failed_cmd_list))
 
 
-def get_module_testlines(module_list, remove_pyc=True, verbose=True,
-                         pythoncmd=None, **kwargs):
-    """
-    Builds test commands for autogen tests
-    """
-    import utool as ut  # NOQA
-    if pythoncmd is None:
-        pythoncmd = sys.executable
-        #'python'
-    testcmd_list = []
-    for module in module_list:
-        mod_doctest_tup = get_module_doctest_tup(module=module, allexamples=True,
-                                                 verbose=verbose, **kwargs)
-        enabled_testtup_list, frame_fpath, all_testflags, module_ = mod_doctest_tup
-        for testtup in enabled_testtup_list:
-            testflag = testtup[-1]
-            if remove_pyc:
-                # FIXME python 3 __pycache__/*.pyc
-                frame_fpath = frame_fpath.replace('.pyc', '.py')
-            frame_rel_fpath = ut.get_relative_modpath(frame_fpath)
-            testcmd = ' '.join((pythoncmd, frame_rel_fpath, testflag))
-            testcmd_list.append(testcmd)
-    return testcmd_list
-
-ModuleDoctestTup = namedtuple('ModuleDoctestTup', ('enabled_testtup_list', 'frame_fpath', 'all_testflags', 'module'))
-
-
 def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                              allexamples=None, needs_enable=None, N=0,
                              verbose=True, testslow=False):
     """
+    Parses module for testable doctesttups
+    Depth 2)
+    called by doctest_funcs and get_module_testlines
+
     Returns:
         ModuleDoctestTup : (enabled_testtup_list, frame_fpath, all_testflags, module)
             enabled_testtup_list (list): a list of testtup
@@ -415,6 +498,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
             all_testflags (list):
                 the command line arguments that will enable different tests
     """
+    #+------------------------
     import utool as ut  # NOQA
     if needs_enable is None:
         needs_enable = not ut.get_argflag('--enableall')
@@ -426,9 +510,9 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     if isinstance(testable_list, types.ModuleType):
         module = testable_list
         testable_list = []
-    # ----------------------------------------
+    #L________________________
+    #+------------------------
     # Inspect caller module for testable names
-    # ----------------------------------------
     if module is None:
         frame_fpath = '???'
         try:
@@ -454,9 +538,9 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     else:
         frame_fpath = module.__file__
         allexamples = True
-    # ----------------------------------------
+    #L________________________
+    #+------------------------
     # Get testable functions
-    # ----------------------------------------
     try:
         if verbose or VERBOSE_TEST:
             print('[util_test] Iterating over module funcs')
@@ -464,9 +548,9 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
 
         for key, val in ut.iter_module_doctestable(module):
             docstr = inspect.getdoc(val)
-            # FIXME: BUG: We need to verify that this function actually belongs
-            # to this module. In util_type ndarray is imported and we try to
-            # parse it
+            # FIXME:
+            # BUG: We need to verify that this function actually belongs to this
+            # module. In util_type ndarray is imported and we try to parse it
             if docstr is not None and docstr.find('Example') >= 0:
                 testable_name_list.append(key)
                 testable_list.append(val)
@@ -480,9 +564,9 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     #if verbose:
     #    for val in testable_list:
     #        print('[util_dev] DOCTEST ENABLED: %s' % val)
-    # ----------------------------------------
+    #L________________________
+    #+------------------------
     # Get testable function examples
-    # ----------------------------------------
     test_sentinals = [
         'ENABLE_DOCTEST',
         #'ENABLE_TEST',
@@ -493,20 +577,18 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     ]
     if testslow or ut.get_argflag(('--testall', '--testslow')):
         test_sentinals.append('SLOW_DOCTEST')
-
     force_enable_testnames = []
     for arg in sys.argv:
         if arg.startswith('--test-'):
             testname = arg[7:].split(':')[0].replace('-', '_')
             force_enable_testnames.append(testname)
     #print(force_enable_testnames)
-
     sorted_testable = sorted(list(set(testable_list)), key=_get_testable_name)
     testtup_list = []
     # Append each testable example
     for testable in sorted_testable:
         testname = _get_testable_name(testable)
-        examples, wants, docstr = get_doctest_examples(testable)
+        examples, wants, linenums, func_lineno, docstr = get_doctest_examples(testable)
         if len(examples) > 0:
             for testno , srcwant_tup in enumerate(zip(examples, wants)):
                 src, want = srcwant_tup
@@ -527,9 +609,9 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                 print(examples)
                 print(wants)
                 print(docstr)
-    # ----------------------------------------
+    #L________________________
+    #+------------------------
     # Get enabled (requested) examples
-    # ----------------------------------------
     all_testflags = []
     enabled_testtup_list = []
     distabled_testflags  = []
@@ -554,6 +636,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
             distabled_testflags.append(flag1)
 
     mod_doctest_tup = ModuleDoctestTup(enabled_testtup_list, frame_fpath, all_testflags, module)
+    #L________________________
     return mod_doctest_tup
 
 
@@ -561,6 +644,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
                   needs_enable=None, strict=False, verbose=True):
     """
     Main entry point into utools main module doctest harness
+    Depth 1)
 
     Args:
         testable_list (list):
@@ -595,22 +679,20 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     import multiprocessing
     import utool as ut  # NOQA
     multiprocessing.freeze_support()  # just in case
-    #
+    #+-------------------
     if verbose:
         print('[util_test.doctest_funcs] Running doctest funcs')
-
+    # parse out testable doctesttups
     mod_doctest_tup = get_module_doctest_tup(testable_list, check_flags, module,
                                              allexamples, needs_enable, N=1, verbose=verbose)
-
     enabled_testtup_list, frame_fpath, all_testflags, module  = mod_doctest_tup
+    #L__________________
+    #+-------------------
+    # Run enabled examles
     nPass = 0
     nFail = 0
     failed_flag_list = []
     nTotal = len(enabled_testtup_list)
-
-    # ----------------------------------------
-    # Run enabled examles
-    # ----------------------------------------
     for testtup in enabled_testtup_list:
         name, num, src, want, flag = testtup
         print('\n\n')
@@ -619,12 +701,11 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
         print(' ---- DOCTEST ' + name.upper() + ':' + str(num) + '---')
         if PRINT_SRC:
             print(ut.msgblock('EXEC SRC', src))
-        # --- EXEC STATMENT ---
         test_globals = module.__dict__.copy()
         try:
-            test_locals = ut.run_test((name,  src, frame_fpath),
-                                      globals=test_globals,
-                                      want=want)
+            testkw = dict(globals=test_globals, want=want)
+            testtup
+            test_locals = ut.run_test((name,  src, frame_fpath), **testkw)
             is_pass = (test_locals is not False)
             if is_pass:
                 nPass += 1
@@ -636,7 +717,8 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
             if strict:
                 raise
             pass
-    # -------
+    #L__________________
+    #+-------------------
     # Print Results
     if nTotal == 0:
         print('No test flags sepcified.')
@@ -657,75 +739,50 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
         #                    for flag_ in failed_flag_list]
         print('Failed Tests:')
         print('\n'.join(failed_cmd_list))
+    #L__________________
     return (nPass, nTotal, failed_cmd_list)
 
 
-def exec_doctest(src, kwargs):
-    """
-    block of code that runs doctest and was too big to be in run_test
-    """
-    # TEST INPUT IS PYTHON CODE TEXT
-    test_locals = {}
-    test_globals = kwargs.get('globals', {})
-    want = kwargs.get('want', None)
-    #test_globals['print'] = doctest_print
-    # EXEC FUNC
-    #six.exec_(src, test_globals, test_locals)
-    exec(src, test_globals, test_locals)
-    if want is None or want == '':
-        print('warning test does not want anything')
-    else:
-        if want.endswith('\n'):
-            want = want[:-1]
-        result = str(test_locals.get('result', 'NO VARIABLE NAMED result'))
-        #print('!! RESULT LINES: ')
-        #print(result)
-        if result != want:
-            errmsg1 = ''
-            errmsg1 += ('REPR_GOT: result=\n%r\n' % (result))
-            errmsg1 += ('REPR_EXPECTED: want=\n%r\n' % (want))
-            errmsg1 += ''
-            errmsg1 += ('STR_GOT: result=\n%s\n' % (result))
-            errmsg1 += ('STR_EXPECTED: want=\n%s\n' % (want))
-            raise AssertionError('result != want\n' + errmsg1)
-        assert result == want, 'result is not the same as want'
-    return test_locals
-    #print('\n'.join(output_lines))
-
-
-def run_test(func, *args, **kwargs):
+def run_test(func_or_doctesttup, *args, **kwargs):
     """
     Runs the test function with success / failure printing
 
-    Input:
-        Anything that needs to be passed to <func>
+    Args:
+        func_or_doctesttup (func or tuple): function or doctest tuple
+
+    Varargs/Kwargs:
+        Anything that needs to be passed to <func_>
     """
     import utool as ut
-    func_is_text = isinstance(func, types.TupleType)
+    func_is_text = isinstance(func_or_doctesttup, types.TupleType)
     if func_is_text:
-        (funcname, src, frame_fpath) = func
+        (funcname, src, frame_fpath) = func_or_doctesttup
     else:
-        funcname = get_funcname(func)
-        frame_fpath = ut.get_funcfpath(func)
+        func_ = func_or_doctesttup
+        funcname = get_funcname(func_)
+        frame_fpath = ut.get_funcfpath(func_)
     upper_funcname = funcname.upper()
     if ut.VERBOSE:
         printTEST('[TEST.BEGIN] %s ' % (sys.executable))
         printTEST('[TEST.BEGIN] %s ' % (funcname,))
     VERBOSE_TIMER = True
-    INDENT_TEST = False
+    INDENT_TEST   = False
     #print('  <funcname>  ')
     #print('  <' + funcname + '>  ')
     #short_funcname = ut.clipstr(funcname, 8)
     with util_print.Indenter('  <' + funcname + '>  ', enabled=INDENT_TEST):
         try:
+            #+----------------
             # RUN THE TEST WITH A TIMER
             with util_time.Timer(upper_funcname, verbose=VERBOSE_TIMER) as timer:
                 if func_is_text:
-                    test_locals = exec_doctest(src, kwargs)
+                    test_locals = _exec_doctest(src, kwargs)
                 else:
                     # TEST INPUT IS A LIVE PYTHON FUNCTION
-                    test_locals = func(*args, **kwargs)
+                    test_locals = func_(*args, **kwargs)
                 print('')
+            #L________________
+            #+----------------
             # LOG PASSING TEST
             printTEST('[TEST.FINISH] %s -- SUCCESS' % (funcname,))
             if PRINT_FACE:
@@ -738,6 +795,7 @@ def run_test(func, *args, **kwargs):
                 #    file_.write(msg)
             except IOError as ex:
                 ut.printex(ex, '[util_test] IOWarning')
+            #L________________
             # RETURN VALID TEST LOCALS
             return test_locals
 
@@ -751,7 +809,6 @@ def run_test(func, *args, **kwargs):
                 print(SAD_FACE)
             if func_is_text:
                 print('Failed in module: %r' % frame_fpath)
-                DEBUG_SRC = not ut.get_argflag('--nosrc')
                 if DEBUG_SRC:
                     src_with_lineno = ut.number_text_lines(src)
                     print(ut.msgblock('FAILED DOCTEST IN %s' % (funcname,), src_with_lineno))
@@ -792,6 +849,41 @@ def run_test(func, *args, **kwargs):
             return False
 
 
+def _exec_doctest(src, kwargs):
+    """
+    Helper for run_test
+
+    block of code that runs doctest and was too big to be in run_test
+    """
+    # TEST INPUT IS PYTHON CODE TEXT
+    test_locals = {}
+    test_globals = kwargs.get('globals', {})
+    want = kwargs.get('want', None)
+    #test_globals['print'] = doctest_print
+    # EXEC FUNC
+    #six.exec_(src, test_globals, test_locals)  # adds stack to debug trace
+    exec(src, test_globals, test_locals)
+    if want is None or want == '':
+        print('warning test does not want anything')
+    else:
+        if want.endswith('\n'):
+            want = want[:-1]
+        result = str(test_locals.get('result', 'NO VARIABLE NAMED result'))
+        #print('!! RESULT LINES: ')
+        #print(result)
+        if result != want:
+            errmsg1 = ''
+            errmsg1 += ('REPR_GOT: result=\n%r\n' % (result))
+            errmsg1 += ('REPR_EXPECTED: want=\n%r\n' % (want))
+            errmsg1 += ''
+            errmsg1 += ('STR_GOT: result=\n%s\n' % (result))
+            errmsg1 += ('STR_EXPECTED: want=\n%s\n' % (want))
+            raise AssertionError('result != want\n' + errmsg1)
+        assert result == want, 'result is not the same as want'
+    return test_locals
+    #print('\n'.join(output_lines))
+
+
 def printTEST(msg, wait=False):
     builtins.print('\n=============================')
     builtins.print('**' + msg)
@@ -801,7 +893,6 @@ def printTEST(msg, wait=False):
 
 def tryimport(modname, pipiname=None, ensure=False):
     """
-
     CommandLine:
         python -m utool.util_tests --test-tryimport
 

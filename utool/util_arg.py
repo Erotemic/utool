@@ -9,7 +9,7 @@ import argparse
 from utool import util_inject
 from utool import util_type
 #from utool import util_print
-from utool._internal import meta_util_six, meta_util_arg
+from utool._internal import meta_util_six, meta_util_arg, meta_util_iter
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[arg]')
 
 #STRICT = '--nostrict' not in sys.argv
@@ -26,6 +26,30 @@ VERBOSE      = meta_util_arg.VERBOSE
 VERYVERBOSE  = meta_util_arg.VERYVERBOSE
 NOT_QUIET    = meta_util_arg.NOT_QUIET
 QUIET        = meta_util_arg.QUIET
+
+
+#(switch, type, default, help)
+__REGISTERED_ARGS__ = []
+
+
+def get_argflag(argstr_, default=False, help_='', **kwargs):
+    """ Checks if the commandline has a flag or a corresponding noflag """
+    global __REGISTERED_ARGS__
+    assert isinstance(default, bool), 'default must be boolean'
+    argstr_list = meta_util_iter.ensure_iterable(argstr_)
+    # arg registration
+    __REGISTERED_ARGS__.append((argstr_list, bool, default, help_))
+    for argstr in argstr_list:
+        if not (argstr.find('--') == 0 or (argstr.find('-') == 0 and len(argstr) == 2)):
+            raise AssertionError('Invalid argstr: %r' % (argstr,))
+        #if argstr.find('--no') == 0:
+            #argstr = argstr.replace('--no', '--')
+        noarg = argstr.replace('--', '--no')
+        if argstr in sys.argv:
+            return True
+        elif noarg in sys.argv:
+            return False
+    return default
 
 
 # TODO: rectify with meta_util_arg
@@ -53,17 +77,16 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True):
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest', float)]])" --quest 42
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--nAssign'), int)]])" --nAssign 42
     """
-    print(argstr_)
+    global __REGISTERED_ARGS__
+    #print(argstr_)
     arg_after = default
     if type_ is bool:
         arg_after = False if default is None else default
     try:
         # New for loop way (accounts for =)
-        if isinstance(argstr_, six.string_types):
-            argstr_list = (argstr_,)
-        else:
-            # HACK FOR LIST. TODO INTEGRATE
-            argstr_list = argstr_
+        argstr_list = meta_util_iter.ensure_iterable(argstr_)
+        # arg registration
+        __REGISTERED_ARGS__.append((argstr_list, type_, default, help_))
 
         for argx, item in enumerate(sys.argv):
             for argstr in argstr_list:
@@ -91,7 +114,9 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True):
                             arg_after = list(map(util_type.smart_cast2, arg_after))
                     else:
                         arg_after = util_type.try_cast(val_after, type_)
-    except Exception:
+    except Exception as ex:
+        import utool as ut
+        ut.printex(ex, 'problem in arg_val')
         pass
     return arg_after
 
@@ -140,27 +165,6 @@ def parse_arglist_hack(argx):
         else:
             arglist.append(listarg)
     return arglist
-
-
-def get_argflag(arg, default=False, help_='', **kwargs):
-    """ Checks if the commandline has a flag or a corresponding noflag """
-    assert isinstance(default, bool), 'default must be boolean'
-    if isinstance(arg, (tuple, list)):
-        arg_list = arg
-    else:
-        assert isinstance(arg, six.string_types), 'arg is not tuple or string'
-        arg_list = [arg]
-    for arg in arg_list:
-        if not (arg.find('--') == 0 or (arg.find('-') == 0 and len(arg) == 2)):
-            raise AssertionError(arg)
-        #if arg.find('--no') == 0:
-            #arg = arg.replace('--no', '--')
-        noarg = arg.replace('--', '--no')
-        if arg in sys.argv:
-            return True
-        elif noarg in sys.argv:
-            return False
-    return default
 
 
 # Backwards Compatibility Aliases

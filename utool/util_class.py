@@ -1,8 +1,19 @@
+"""
+In this module:
+    * a metaclass allowing for reloading of single class instances
+    * functions to autoinject methods into a class upon instance creation.
+    * A wrapper class allowing an object's properties to be used as kwargs
+    * a metaclass to forward properties to another class
+
+    ReloadingMetaclass
+    KwargsWrapper
+"""
 from __future__ import absolute_import, division, print_function
 import sys
 import six
 import types
 import functools
+import collections
 from collections import defaultdict
 from utool.util_inject import inject
 from utool.util_set import oset
@@ -412,6 +423,24 @@ def get_comparison_methods():
         return self.__hash__() >= (other.__hash__())
 
     return method_list
+
+
+class KwargsWrapper(collections.Mapping):
+    """
+    Allows an arbitrary object attributes to be passed as a **kwargs
+    argument
+    """
+    def __init__(self, obj):
+        self.obj = obj
+
+    def __getitem__(self, key):
+        return self.obj.__dict__[key]
+
+    def __iter__(self):
+        return iter(self.obj.__dict__)
+
+    def __len__(self):
+        return len(self.obj.__dict__)
 
 
 if __name__ == '__main__':

@@ -1,13 +1,17 @@
 from __future__ import absolute_import, division, print_function
-try:
-    import numpy as np
-except ImportError as ex:
-    pass
+#try:
+#    import numpy as np
+#except ImportError as ex:
+#    pass
 import six
 from six.moves import zip, range
 from itertools import chain, cycle, islice, izip_longest
 from utool.util_inject import inject
+from utool._internal import meta_util_iter
 print, print_, printDBG, rrr, profile = inject(__name__, '[iter]')
+
+ensure_iterable = meta_util_iter.ensure_iterable
+isiterable = meta_util_iter.isiterable
 
 
 def itertwo(iterable):
@@ -15,29 +19,6 @@ def itertwo(iterable):
     iter2 = iter(iterable)
     six.next(iter2)
     return zip(iter1, iter2)
-
-
-def ensure_iterable(obj):
-    if np.iterable(obj):
-        return obj
-    else:
-        return [obj]
-
-
-def isiterable(obj):
-    """
-    Returns if the object can be iterated over and is NOT a string
-    # TODO: implement isscalar similar to numpy
-    """
-    try:
-        iter(obj)
-        return not isinstance(obj, six.string_types)
-    except:
-        return False
-    #return np.iterable(obj) and not isinstance(obj, six.string_types)
-
-
-#def isscalar(obj):
 
 
 def ifilter_items(item_iter, flag_iter):

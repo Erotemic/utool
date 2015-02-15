@@ -14,7 +14,7 @@ except ImportError:
 from collections import defaultdict
 import operator
 import six
-from six.moves import zip, range
+from six.moves import zip, range, reduce  # NOQA
 from utool import util_type
 from utool import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
@@ -556,6 +556,14 @@ def almost_eq(arr1, arr2, thresh=1E-11, ret_error=False):
         return passed, error
     return passed
 
+
+def cumsum(num_list):
+    """ python cumsum
+
+    References:
+        http://stackoverflow.com/questions/9258602/elegant-pythonic-cumsum
+    """
+    return reduce(lambda acc, itm: operator.iadd(acc, [acc[-1] + itm]), num_list, [0])[1:]
 
 if __name__ == '__main__':
     """
