@@ -1,7 +1,8 @@
 """
 progress handler.
 
-everything but ProgressIter in this file should be depricated
+Old progress funcs needto be depricated ProgressIter and progress_chunks are
+pretty much the only useful things here.
 """
 from __future__ import absolute_import, division, print_function
 import time
@@ -21,6 +22,7 @@ SILENT = util_arg.SILENT
 VALID_PROGRESS_TYPES = ['none', 'dots', 'fmtstr', 'simple']
 AGGROFLUSH = util_arg.get_argflag('--aggroflush')
 PROGGRESS_BACKSPACE = not util_arg.get_argflag(('--screen', '--progress-backspace'))
+NO_PROGRESS = util_arg.get_argflag(('--no-progress', '--noprogress'))
 #('--screen' not in sys.argv and '--progress-backspace' not in sys.argv)
 
 
@@ -136,6 +138,52 @@ class ProgressIter(object):
         python -m utool.util_progress --test-ProgressIter:0
         python -m utool.util_progress --test-ProgressIter:1
 
+    Timeit::
+        import utool as ut
+        setup = ut.codeblock(
+        '''
+        import utool as ut
+        from six.moves import range, zip
+        import time
+        def time_append(size):
+            start_time    = time.time()
+            last_time     = start_time
+            list2 = []
+            for x in range(size):
+                now_time    = time.time()
+                between = now_time - last_time
+                last_time   = now_time
+                list2.append(between)
+
+        def time_assign(size):
+            start_time    = time.time()
+            last_time     = start_time
+            list1 = ut.alloc_nones(size)
+            for x in range(size):
+                now_time    = time.time()
+                between = now_time - last_time
+                last_time   = now_time
+                list1[x] = between
+
+        def time_baseline(size):
+            start_time    = time.time()
+            last_time     = start_time
+            for x in range(size):
+                now_time    = time.time()
+                between = now_time - last_time
+                last_time   = now_time
+
+        def time_null(size):
+            for x in range(size):
+                pass
+        ''')
+
+        input_sizes = [2 ** count for count in range(7, 12)]
+        stmt_list = ['time_assign', 'time_append', 'time_baseline', 'time_null']
+        input_sizes=[100, 1000, 10000]
+        ut.timeit_grid(stmt_list, setup, input_sizes=input_sizes, show=True)
+
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
@@ -197,17 +245,27 @@ class ProgressIter(object):
         return self
 
     def __iter__(self):
-        if self.use_rate:
-            return self.iter_rate()
+        if NO_PROGRESS:
+            # IF PROGRESS IS TURNED OFF
+            msg = 'Iterating ' + self.lbl + ' with no progress'
+            if not util_arg.QUIET:
+                print(msg)
+            #with ut.Timer(msg):
+            return iter(self.iterable)
         else:
-            return self.iter_without_rate()
+            if self.use_rate:
+                # STANDARD CALL CASE
+                return self.iter_rate()
+            else:
+                return self.iter_without_rate()
 
     def build_msg_fmtstr(self, nTotal, report_unit, lbl, invert_rate, backspace):
         msg_fmtstr = ''.join((
             '\r',
             lbl,
             ' %4d/', str(nTotal),
-            '...  rate=%3.3f seconds per iter.' if invert_rate else '...  rate=%4.2f iters per second.',
+            #'...  rate=%3.3f seconds per iter.' if invert_rate else '...  rate=%4.2f iters per second.',
+            '...  rate=%3.3f seconds/iter.' if invert_rate else '...  rate=%4.2f Hz.',
             ' est ' + report_unit + ' left: %4.2f,',
             ' total ' + report_unit + ': %4.2f,',
         ))

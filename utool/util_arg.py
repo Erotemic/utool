@@ -32,13 +32,16 @@ QUIET        = meta_util_arg.QUIET
 __REGISTERED_ARGS__ = []
 
 
-def get_argflag(argstr_, default=False, help_='', **kwargs):
+@profile
+def get_argflag(argstr_, default=False, help_='', return_was_specified=False, **kwargs):
     """ Checks if the commandline has a flag or a corresponding noflag """
     global __REGISTERED_ARGS__
     assert isinstance(default, bool), 'default must be boolean'
     argstr_list = meta_util_iter.ensure_iterable(argstr_)
     # arg registration
     __REGISTERED_ARGS__.append((argstr_list, bool, default, help_))
+    parsed_val = default
+    was_specified = False
     for argstr in argstr_list:
         if not (argstr.find('--') == 0 or (argstr.find('-') == 0 and len(argstr) == 2)):
             raise AssertionError('Invalid argstr: %r' % (argstr,))
@@ -46,16 +49,24 @@ def get_argflag(argstr_, default=False, help_='', **kwargs):
             #argstr = argstr.replace('--no', '--')
         noarg = argstr.replace('--', '--no')
         if argstr in sys.argv:
-            return True
+            parsed_val = True
+            was_specified = True
+            break
         elif noarg in sys.argv:
-            return False
-    return default
+            parsed_val = False
+            was_specified = True
+            break
+    if return_was_specified:
+        return parsed_val, was_specified
+    else:
+        return parsed_val
 
 
 # TODO: rectify with meta_util_arg
 # This has diverged and is now better
 #from utool._internal.meta_util_arg import get_argval
-def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True):
+@profile
+def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True, return_was_specified=False):
     """ Returns a value of an argument specified on the command line after some flag
 
     Examples:
@@ -79,6 +90,7 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True):
     """
     global __REGISTERED_ARGS__
     #print(argstr_)
+    was_specified = False
     arg_after = default
     if type_ is bool:
         arg_after = False if default is None else default
@@ -91,18 +103,21 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True):
         for argx, item in enumerate(sys.argv):
             for argstr in argstr_list:
                 if item == argstr:
+                    if type_ is bool:
+                        arg_after = True
+                        was_specified = True
+                        break
                     if argx < len(sys.argv):
-                        if type_ is bool:
-                            arg_after = True
-                        elif type_ is list:
+                        if type_ is list:
                             # HACK FOR LIST. TODO INTEGRATE
                             arg_after = parse_arglist_hack(argx)
                             if smartcast:
                                 arg_after = list(map(util_type.smart_cast2, arg_after))
                         else:
                             arg_after = util_type.try_cast(sys.argv[argx + 1], type_)
-
-                if item.startswith(argstr + '='):
+                        was_specified = True
+                        break
+                elif item.startswith(argstr + '='):
                     val_after = ''.join(item.split('=')[1:])
                     if type_ is list:
                         #import utool as ut
@@ -114,13 +129,19 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True):
                             arg_after = list(map(util_type.smart_cast2, arg_after))
                     else:
                         arg_after = util_type.try_cast(val_after, type_)
+                    was_specified = True
+                    break
     except Exception as ex:
         import utool as ut
         ut.printex(ex, 'problem in arg_val')
         pass
-    return arg_after
+    if return_was_specified:
+        return arg_after, was_specified
+    else:
+        return arg_after
 
 
+@profile
 def parse_cfgstr_list(cfgstr_list, smartcast=True):
     """
     Parses a list of items in the format
@@ -399,12 +420,15 @@ def __argv_flag_dec(func, default=False, quiet=QUIET):
     return GaurdWrapper
 
 
-def argparse_dict(default_dict_, lbl=None):
+@profile
+def argparse_dict(default_dict_, lbl=None, verbose=VERBOSE,
+                  only_specified=False, force_keys={}):
     r"""
     Gets values for a dict based on the command line
 
     Args:
         default_dict_ (?):
+        only_specified (bool): if True only returns keys that are specified on commandline. no defaults.
 
     Returns:
         dict_: dict_ -  a dictionary
@@ -437,32 +461,45 @@ def argparse_dict(default_dict_, lbl=None):
         >>> print(result)
     """
     def get_dictkey_cmdline_val(key, default):
+        # see if the user gave a commandline value for this dict key
         type_ = type(default)
+        was_specified = False
         if isinstance(default, bool):
             val = default
             falsekeys = ('--no' + key, '--no-' + key, )
             truekeys = ('--' + key,)
-            if default is True and get_argflag(falsekeys):
-                val = False
-            elif default is False and get_argflag(truekeys):
-                val = True
+            if default is True:
+                notval, was_specified = get_argflag(falsekeys, return_was_specified=True)
+                val = not notval
+            elif default is False:
+                val, was_specified = get_argflag(truekeys, return_was_specified=True)
         else:
             argstr1_ = '--' + key
             argstr2_ = '--' + key.replace('_', '-')
             argtup = (argstr1_, argstr2_,)
-            val = get_argval(argtup, type_=type_, default=default)
-        return val
+            val, was_specified = get_argval(argtup, type_=type_, default=default, return_was_specified=True)
+        return val, was_specified
+
+    dict_  = {}
+    for key, default in six.iteritems(default_dict_):
+        val, was_specified = get_dictkey_cmdline_val(key, default)
+        if not only_specified or was_specified or key in force_keys:
+            dict_[key] = val
+    #dict_ = {key: get_dictkey_cmdline_val(key, default) for key, default in six.iteritems(default_dict_)}
+
+    if verbose:
+        for key in dict_:
+            if dict_[key] != default_dict_[key]:
+                print('[argparse_dict] GOT ARGUMENT: cfgdict[%r] = %r' % (key, dict_[key]))
 
     if get_argflag(('--help', '--helpx')):
         import utool as ut
         print('COMMAND LINE IS ACCEPTING THESE PARAMS WITH DEFAULTS:')
         if lbl is not None:
             print(lbl)
-        print(ut.align(ut.dict_str(default_dict_), ':'))
+        print(ut.align(ut.dict_str(default_dict_, sorted_=True), ':'))
         if get_argflag('--helpx'):
             sys.exit(1)
-
-    dict_ = {key: get_dictkey_cmdline_val(key, default) for key, default in six.iteritems(default_dict_)}
     return dict_
 
 # alias

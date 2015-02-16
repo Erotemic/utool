@@ -231,6 +231,83 @@ def strip_line_comments(code_text, comment_char='#'):
     return code_text
 
 
+def timeit_grid(stmt_list, setup='', iterations=10000, input_sizes=None,
+                verbose=True, show=False):
+    """
+    Timeit::
+        import utool as ut
+        setup = ut.codeblock(
+        '''
+        import utool as ut
+        from six.moves import range, zip
+        import time
+        def time_append(size):
+            start_time    = time.time()
+            last_time     = start_time
+            list2 = []
+            for x in range(size):
+                now_time    = time.time()
+                between = now_time - last_time
+                last_time   = now_time
+                list2.append(between)
+
+        def time_assign(size):
+            start_time    = time.time()
+            last_time     = start_time
+            list1 = ut.alloc_nones(size)
+            for x in range(size):
+                now_time    = time.time()
+                between = now_time - last_time
+                last_time   = now_time
+                list1[x] = between
+
+        def time_baseline(size):
+            start_time    = time.time()
+            last_time     = start_time
+            for x in range(size):
+                now_time    = time.time()
+                between = now_time - last_time
+                last_time   = now_time
+
+        def time_null(size):
+            for x in range(size):
+                pass
+        ''')
+
+        input_sizes = [2 ** count for count in range(7, 12)]
+        stmt_list = ['time_assign', 'time_append', 'time_baseline', 'time_null']
+        input_sizes=[100, 1000, 10000]
+        ut.timeit_grid(stmt_list, setup, input_sizes=input_sizes, show=True)
+    """
+    import timeit
+    #iterations = timeit.default_number
+    if input_sizes is None:
+        input_sizes = [2 ** count for count in range(7, 14)]
+    time_grid = []
+    for size in input_sizes:
+        time_list = []
+        for stmt in stmt_list:
+            stmt_ = stmt + '(' + str(size) + ')'
+            if verbose:
+                print('running stmt_=%r' % (stmt_,))
+            time = timeit.timeit(stmt_, setup=setup, number=iterations)
+            if verbose:
+                print('... took %r seconds' % (time,))
+            time_list.append(time)
+        time_grid.append(time_list)
+
+    if show:
+        time_grid = np.array(time_grid)
+        import plottool as pt
+        color_list = pt.distinct_colors(len(stmt_list))
+        for count, (stmt, color) in enumerate(zip(stmt_list, color_list)):
+            pt.plot(input_sizes, time_grid.T[count], 'x-', color=color, label=stmt)
+        pt.dark_background()
+        pt.legend()
+        pt.show_if_requested()
+    return time_grid
+
+
 def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
                    strict=False):
     """

@@ -4,11 +4,103 @@ from collections import namedtuple, OrderedDict
 from utool import util_class
 from utool import util_inject
 from utool import util_dict
+from utool import util_dev
 import six
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[gridsearch]')
 
 
 DimensionBasis = namedtuple('DimensionBasis', ('dimension_name', 'dimension_point_list'))
+
+
+@six.add_metaclass(util_class.ReloadingMetaclass)
+class ParamInfo(object):
+    """ small class for individual paramater information """
+    def __init__(pi, varname, default, shortprefix=util_dev.NoParam,
+                 type_=util_dev.NoParam, varyvals=[], varyslice=None):
+        r"""
+        Args:
+            varname (?):
+            default (?):
+            shortprefix (ClassNoParam):
+            type_ (ClassNoParam):
+            varyvals (list):
+
+        CommandLine:
+            python -m utool.util_gridsearch --test-__init__
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from utool.util_gridsearch import *  # NOQA
+            >>> # build test data
+            >>> pi = '?'
+            >>> varname = '?'
+            >>> default = '?'
+            >>> shortprefix = <utool.util_dev.ClassNoParam object at 0x7f2826164490>
+            >>> type_ = <utool.util_dev.ClassNoParam object at 0x7f2826164490>
+            >>> varyvals = []
+            >>> # execute function
+            >>> result = pi.__init__(varname, default, shortprefix, type_, varyvals)
+            >>> # verify results
+            >>> print(result)
+        """
+        pi.varname = varname
+        pi.default = default
+        pi.shortprefix = shortprefix
+        pi.type_ = type(default) if type_ is util_dev.NoParam else type_
+        # for gridsearch
+        pi.varyvals = varyvals
+        pi.varyslice = varyslice
+
+    def get_itemstr(pi, cfg):
+        varstr = str(getattr(cfg,  pi.varname))
+        if pi.shortprefix is not util_dev.NoParam:
+            itemstr = pi.shortprefix + varstr
+        else:
+            itemstr =  pi.varname + '=' + varstr
+        return itemstr
+
+
+@six.add_metaclass(util_class.ReloadingMetaclass)
+class ParamInfoList(object):
+    """ small class for ut.Pref-less configurations """
+    def __init__(self, name, param_info_list=[], constraint_func=None):
+        self.name = name
+        self.param_info_list = param_info_list
+        self.constraint_func = constraint_func
+
+    def aslist(self):
+        return self.param_info_list
+
+    def updated_cfgdict(self, dict_):
+        return {pi.varname: dict_.get(pi.varname, pi.default) for pi in self.param_info_list}
+
+    def get_varnames(self):
+        return [pi.varname for pi in self.param_info_list]
+
+    def get_varydict(self):
+        """ for gridsearch """
+        varied_dict = {pi.varname: pi.varyvals for pi in self.param_info_list}
+        return varied_dict
+
+    def get_slicedict(self):
+        """ for gridsearch """
+        slice_dict = {pi.varname: pi.varyslice for pi in self.param_info_list if pi.varyslice is not None}
+        if len(slice_dict) == 0:
+            slice_dict = None
+        return slice_dict
+
+    def get_gridsearch_input(self, defaultslice=slice(0, 1)):
+        """ for gridsearch """
+        varied_dict = self.get_varydict()
+        slice_dict = self.get_slicedict()
+        constraint_func = self.constraint_func
+        cfgdict_list, cfglbl_list = make_constrained_cfg_and_lbl_list(
+            varied_dict,
+            constraint_func=constraint_func,
+            slice_dict=slice_dict,
+            defaultslice=defaultslice
+        )
+        return cfgdict_list, cfglbl_list
 
 
 def testdata_grid_search():
