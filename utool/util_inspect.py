@@ -237,7 +237,9 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
     scalar_types = ([dict, list, tuple, set, frozenset, bool, float, int] +
                     list(six.string_types))
     scalar_types += list(six.string_types)
-    other_types = [types.InstanceType, functools.partial, types.ModuleType]
+    import ctypes
+    other_types = [types.InstanceType, functools.partial, types.ModuleType,
+                   ctypes.CDLL]
     invalid_types = tuple(scalar_types + other_types)
 
     for key, val in six.iteritems(module.__dict__):

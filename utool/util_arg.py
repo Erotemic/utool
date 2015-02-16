@@ -460,23 +460,27 @@ def argparse_dict(default_dict_, lbl=None, verbose=VERBOSE,
         >>> result = ut.dict_str(dict_)
         >>> print(result)
     """
+    def make_argstrs(key, prefix_list):
+        for prefix in prefix_list:
+            yield prefix + key
+            yield prefix + key.replace('-', '_')
+            yield prefix + key.replace('_', '-')
+
     def get_dictkey_cmdline_val(key, default):
         # see if the user gave a commandline value for this dict key
         type_ = type(default)
         was_specified = False
         if isinstance(default, bool):
             val = default
-            falsekeys = ('--no' + key, '--no-' + key, )
-            truekeys = ('--' + key,)
             if default is True:
+                falsekeys = list(set(make_argstrs(key, ['--no', '--no-'])))
                 notval, was_specified = get_argflag(falsekeys, return_was_specified=True)
                 val = not notval
             elif default is False:
+                truekeys = list(set(make_argstrs(key, ['--'])))
                 val, was_specified = get_argflag(truekeys, return_was_specified=True)
         else:
-            argstr1_ = '--' + key
-            argstr2_ = '--' + key.replace('_', '-')
-            argtup = (argstr1_, argstr2_,)
+            argtup = list(set(make_argstrs(key, ['--'])))
             val, was_specified = get_argval(argtup, type_=type_, default=default, return_was_specified=True)
         return val, was_specified
 

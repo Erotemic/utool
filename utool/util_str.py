@@ -1202,7 +1202,7 @@ def msgblock(key, text):
     blocked_text = ''.join(
         [' + --- ', key, ' ---\n'] +
         [' | ' + line + '\n' for line in text.split('\n')] +
-        [' L --- ', key, ' ---\n']
+        [' L ___ ', key, ' ___\n']
     )
     return blocked_text
 
