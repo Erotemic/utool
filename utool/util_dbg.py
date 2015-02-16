@@ -1198,6 +1198,9 @@ class EmbedOnException(object):
             exec(execstr_trace)
             utool.embed()
 
+# maybe this will be easier to type?
+embed_on_exception_context = EmbedOnException()
+
 if __name__ == '__main__':
     """
     CommandLine:

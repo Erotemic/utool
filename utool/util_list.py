@@ -862,6 +862,8 @@ def sortedby2(item_list, *args, **kwargs):
 
     Args:
         item_list (list): list to sort
+
+    Varargs:
         *args (list): multiple lists to sort by
 
     Kwargs:
@@ -896,7 +898,14 @@ def sortedby2(item_list, *args, **kwargs):
 
 
 def list_argsort(*args, **kwargs):
-    """ like np.argsort but for lists """
+    """ like np.argsort but for lists
+
+    Varargs:
+        *args (list): multiple lists to sort by
+
+    Kwargs:
+        reverse (bool): sort order is descending if True else acscending
+    """
     index_list = list(range(len(args[0])))
     return sortedby2(index_list, *args, **kwargs)
 

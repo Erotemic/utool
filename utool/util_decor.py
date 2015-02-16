@@ -371,6 +371,17 @@ def interested(func):
     return wrp_interested
 
 
+def tracefunc(func):
+    lbl = '[trace.' + meta_util_six.get_funcname(func) + ']'
+    def wrp_tracefunc(*args, **kwargs):
+        print(lbl + ' +--- ENTER ---')
+        with util_print.Indenter(lbl + ' |'):
+            ret = func(*args, **kwargs)
+        print(lbl + ' L___ EXIT ____')
+        return ret
+    return wrp_tracefunc
+
+
 def show_return_value(func):
     from .util_str import func_str
     #@wraps(func)
