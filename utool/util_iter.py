@@ -14,6 +14,15 @@ ensure_iterable = meta_util_iter.ensure_iterable
 isiterable = meta_util_iter.isiterable
 
 
+def iget_list_column(list_, colx):
+    """ iterator version of get_list_column """
+    if isinstance(colx, list):
+        # multi select
+        return ([row[colx_] for colx_ in colx] for row in list_)
+    else:
+        return (row[colx] for row in list_)
+
+
 def itertwo(iterable):
     iter1 = iter(iterable)
     iter2 = iter(iterable)

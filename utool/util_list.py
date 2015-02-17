@@ -117,6 +117,9 @@ def get_list_column(list_, colx):
     Returns:
         list: list of selected items
 
+    CommandLine:
+        python -m utool.util_list --test-get_list_column
+
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
@@ -145,11 +148,12 @@ def get_list_column(list_, colx):
         >>> print(result)
         [['EGGS'], ['JAM']]
     """
-    if isinstance(colx, list):
-        # multi select
-        return [[row[colx_] for colx_ in colx] for row in list_]
-    else:
-        return [row[colx] for row in list_]
+    return list(util_iter.iget_list_column(list_, colx))
+    #if isinstance(colx, list):
+    #    # multi select
+    #    return [[row[colx_] for colx_ in colx] for row in list_]
+    #else:
+    #    return [row[colx] for row in list_]
 
 
 #def get_list_row(list_, rowx):
