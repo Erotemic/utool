@@ -180,12 +180,19 @@ def getroot():
 
 
 def startfile(fpath, detatch=True, quote=False):
-    """ Uses default program defined by the system to open a file. """
+    """ Uses default program defined by the system to open a file.
+
+    References:
+        http://stackoverflow.com/questions/2692873/quote-posix-shell-special-characters-in-python-output
+
+    """
     print('[cplat] startfile(%r)' % fpath)
     if not exists(fpath):
         raise Exception('Cannot start nonexistant file: %r' % fpath)
-    if quote:
-        fpath = '"%s"' % (fpath,)
+    #if quote:
+    #    fpath = '"%s"' % (fpath,)
+    import pipes
+    fpath = pipes.quote(fpath)
     if LINUX:
         #out, err, ret = cmd(['xdg-open', fpath], detatch=True)
         outtup = cmd(('xdg-open', fpath), detatch=detatch)
