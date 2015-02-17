@@ -134,10 +134,6 @@ class ProgressIter(object):
         total (None): alias for nTotal
         num (None):   alias for nTotal
 
-    CommandLine:
-        python -m utool.util_progress --test-ProgressIter:0
-        python -m utool.util_progress --test-ProgressIter:1
-
     Timeit::
         import utool as ut
         setup = ut.codeblock(
@@ -183,6 +179,10 @@ class ProgressIter(object):
         input_sizes=[100, 1000, 10000]
         ut.timeit_grid(stmt_list, setup, input_sizes=input_sizes, show=True)
 
+    CommandLine:
+        python -m utool.util_progress --test-ProgressIter:0
+        python -m utool.util_progress --test-ProgressIter:1
+
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -201,7 +201,7 @@ class ProgressIter(object):
         >>> progiter = ut.ProgressIter(range(100000), lbl='testing primes',
         >>>                            report_unit='seconds', freq=1,
         >>>                            time_thresh=1)
-        >>> results1 = [ut.get_nth_prime_bruteforce(20) for x in progiter]
+        >>> results1 = [ut.get_nth_prime_bruteforce(29) for x in progiter]
         >>> print(ut.truncate_str(str(results1)))
 
     """
@@ -238,7 +238,7 @@ class ProgressIter(object):
             self.end = None
         else:
             self.mark, self.end = log_progress(*args, **kwargs)
-        self.count = -1
+        self.count = 0
 
     def __call__(self, iterable):
         self.iterable = iterable
@@ -298,9 +298,9 @@ class ProgressIter(object):
 
         nTotal        = self.nTotal
         freq          = self.freq
-        self.count    = -1
+        self.count    = 0
         between_count = 0
-        last_count    = -1
+        last_count    = 0
 
         # how long iterations should be before a flush
         # (used for freq adjustment)
@@ -316,7 +316,7 @@ class ProgressIter(object):
         # Write initial message
         msg_fmtstr = self.build_msg_fmtstr(nTotal, self.report_unit, self.lbl,
                                            self.invert_rate, self.backspace)
-        msg = msg_fmtstr % (0, -1, -1, 0)
+        msg = msg_fmtstr % (self.count, -1, -1, 0)
         PROGRESS_WRITE(msg)
         PROGRESS_FLUSH()
 
@@ -324,7 +324,7 @@ class ProgressIter(object):
         last_time     = start_time
 
         # Wrap the for loop with a generator
-        for self.count, item in enumerate(self.iterable):
+        for self.count, item in enumerate(self.iterable, start=1):
             # GENERATE
             yield item
             # DO PROGRESS INFO
@@ -360,7 +360,7 @@ class ProgressIter(object):
                     if DEBUG_FREQ_ADJUST:
                         print('[prog] Adusting frequency to: %r' % freq)
                         print('L___')
-                msg = msg_fmtstr % (self.count + 1,
+                msg = msg_fmtstr % (self.count,
                                     1.0 / iters_per_second if self.invert_rate else iters_per_second,
                                     est_timeunit_left,
                                     total_timeunit)

@@ -64,6 +64,19 @@ def replace_nones(list_, repl=-1):
     return repl_list
 
 
+def recursive_replace(list_, target, repl=-1):
+    r"""
+    Recursively removes target in all lists and sublists and replaces them with
+    the repl variable
+    """
+    repl_list = [
+        recursive_replace(item, target, repl) if isinstance(item, (list, np.ndarray)) else
+        (repl if item == target else item)
+        for item in list_
+    ]
+    return repl_list
+
+
 def alloc_lists(num_alloc):
     """ allocates space for a ``list`` of lists """
     return [[] for _ in range(num_alloc)]
