@@ -553,7 +553,8 @@ def interact_gridsearch_result_images(show_result_func, cfgdict_list,
                                       cfglbl_list, cfgresult_list,
                                       score_list=None, fnum=None, figtitle='',
                                       unpack=False, max_plots=25, verbose=True,
-                                      precision=3, scorelbl='score'):
+                                      precision=3, scorelbl='score',
+                                      onclick_func=None):
     """ helper function for visualizing results of gridsearch """
     assert hasattr(show_result_func, '__call__'), 'NEED FUNCTION GOT: %r' % (show_result_func,)
 
@@ -603,6 +604,7 @@ def interact_gridsearch_result_images(show_result_func, cfgdict_list,
         pt.set_title(cfglbl, ax=ax)  # , size)
         ph.set_plotdat(ax, 'cfgdict', cfgdict)
         ph.set_plotdat(ax, 'cfglbl', cfglbl)
+        ph.set_plotdat(ax, 'cfgresult', cfgresult)
     # Define clicked callback
     def on_clicked(event):
         print('\n[pt] clicked gridsearch axes')
@@ -611,13 +613,22 @@ def interact_gridsearch_result_images(show_result_func, cfgdict_list,
             pass
         else:
             ax = event.inaxes
+            plotdat_dict = ph.get_plotdat_dict(ax)
+            print(ut.dict_str(plotdat_dict))
             cfglbl = ph.get_plotdat(ax, 'cfglbl', None)
             cfgdict = ph.get_plotdat(ax, 'cfgdict', {})
+            cfgresult = ph.get_plotdat(ax, 'cfgresult', {})
             infostr_list = [
                 ('cfglbl = ' + str(cfglbl)),
                 '',
                 ('cfgdict = ' + ut.dict_str(cfgdict, sorted_=True)),
             ]
+            # Call a user defined function if given
+            if onclick_func is not None:
+                if unpack:
+                    onclick_func(*cfgresult)
+                else:
+                    onclick_func(cfgresult)
             infostr = ut.msgblock('CLICKED', '\n'.join(infostr_list))
             print(infostr)
     # Connect callbacks
