@@ -286,7 +286,7 @@ def flatten(list_):
     return list(util_iter.iflatten(list_))
 
 
-def invertable_flatten(unflat_list):
+def invertible_flatten(unflat_list):
     """
     Flattens ``list`` but remember how to reconstruct the unflat ``list``
     Returns flat ``list`` and the unflat ``list`` with indexes into the flat
@@ -310,7 +310,7 @@ def invertable_flatten(unflat_list):
 
 
 def unflatten(flat_list, reverse_list):
-    """ Rebuilds unflat list from invertable_flatten
+    """ Rebuilds unflat list from invertible_flatten
 
     Args:
         flat_list (list): the flattened list
@@ -321,8 +321,8 @@ def unflatten(flat_list, reverse_list):
 
 
     SeeAlso:
-        invertable_flatten
-        invertable_flatten2
+        invertible_flatten
+        invertible_flatten2
         unflatten2
 
     """
@@ -330,9 +330,9 @@ def unflatten(flat_list, reverse_list):
     return unflat_list2
 
 
-def invertable_flatten2(unflat_list):
+def invertible_flatten2(unflat_list):
     """
-    An alternative to invertable_flatten which uses cumsum
+    An alternative to invertible_flatten which uses cumsum
 
     TODO: This flatten is faster fix it to be used everywhere
 
@@ -346,7 +346,7 @@ def invertable_flatten2(unflat_list):
         >>> import utool
         >>> utool.util_list
         >>> unflat_list = [[5], [2, 3, 12, 3, 3], [9], [13, 3], [5]]
-        >>> flat_list, cumlen_list = invertable_flatten2(unflat_list)
+        >>> flat_list, cumlen_list = invertible_flatten2(unflat_list)
         >>> unflat_list2 = unflatten2(flat_list, cumlen_list)
         >>> assert unflat_list2 == unflat_list
         >>> result = ((flat_list, cumlen_list))
@@ -354,15 +354,15 @@ def invertable_flatten2(unflat_list):
         ([5, 2, 3, 12, 3, 3, 9, 13, 3, 5], [1, 6, 7, 9, 10])
 
     SeeAlso:
-        invertable_flatten
+        invertible_flatten
         unflatten
         unflatten2
 
     Timeits:
         import utool
         unflat_list = aids_list1
-        flat_aids1, reverse_list = utool.invertable_flatten(unflat_list)
-        flat_aids2, cumlen_list = utool.invertable_flatten2(unflat_list)
+        flat_aids1, reverse_list = utool.invertible_flatten(unflat_list)
+        flat_aids2, cumlen_list = utool.invertible_flatten2(unflat_list)
         unflat_list1 = utool.unflatten(flat_aids1, reverse_list)
         unflat_list2 = utool.unflatten2(flat_aids2, cumlen_list)
         assert list(map(list, unflat_list1)) == unflat_list2
@@ -374,10 +374,10 @@ def invertable_flatten2(unflat_list):
         print(utool.get_object_size_str(unflat_list1, 'unflat_list1 '))
         print(utool.get_object_size_str(unflat_list2, 'unflat_list2 '))
         print('Timings 1:)
-        %timeit utool.invertable_flatten(unflat_list)
+        %timeit utool.invertible_flatten(unflat_list)
         %timeit utool.unflatten(flat_aids1, reverse_list)
         print('Timings 2:)
-        %timeit utool.invertable_flatten2(unflat_list)
+        %timeit utool.invertible_flatten2(unflat_list)
         %timeit utool.unflatten2(flat_aids2, cumlen_list)
     """
     sublen_list = list(map(len, unflat_list))
@@ -402,7 +402,7 @@ def accumulate(iterator):
 
 
 def unflatten2(flat_list, cumlen_list):
-    """ Rebuilds unflat list from invertable_flatten
+    """ Rebuilds unflat list from invertible_flatten
 
     Args:
         flat_list (list): the flattened list
@@ -413,8 +413,8 @@ def unflatten2(flat_list, cumlen_list):
 
 
     SeeAlso:
-        invertable_flatten
-        invertable_flatten2
+        invertible_flatten
+        invertible_flatten2
         unflatten2
 
     Example:
@@ -488,7 +488,7 @@ def unflat_unique_rowid_map(func, unflat_rowids, **kwargs):
     """
     import utool as ut
     # First flatten the list, and remember the original dimensions
-    flat_rowids, reverse_list = ut.invertable_flatten2(unflat_rowids)
+    flat_rowids, reverse_list = ut.invertible_flatten2(unflat_rowids)
     # Then make the input unique
     flat_rowids_arr = np.array(flat_rowids)
     unique_flat_rowids, inverse_unique = np.unique(flat_rowids_arr, return_inverse=True)

@@ -415,7 +415,7 @@ if DOELSE:
                                  flag_unique_items, flatten, flattenize, 
                                  get_callable_name, get_dirty_items, 
                                  get_list_column, intersect_ordered, 
-                                 invertable_flatten, invertable_flatten2, 
+                                 invertible_flatten, invertible_flatten2, 
                                  is_subset_of_any, issorted, isunique, 
                                  list_all_eq_to, list_argsort, list_cover, 
                                  list_deep_types, list_depth, 
