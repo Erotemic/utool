@@ -89,6 +89,14 @@ class ParamInfoList(object):
             slice_dict = None
         return slice_dict
 
+    def get_grid_basis(self):
+        """ DEPRICATE """
+        grid_basis = [
+            DimensionBasis(pi.varname, pi.varyvals)
+            for pi in self.param_info_list
+        ]
+        return grid_basis
+
     def get_gridsearch_input(self, defaultslice=slice(0, 1)):
         """ for gridsearch """
         varied_dict = self.get_varydict()
