@@ -807,8 +807,8 @@ STAT_KEY_ORDER = ['max', 'min', 'mean', 'sum', 'std', 'nMin', 'nMax', 'shape', '
 def find_interesting_stats(stat_dict, col_lbls=None, lbl=None):
     #argfind = np.argmax
     import utool as ut
-    # select indicies of interest
-    sel_indicies = []
+    # select indices of interest
+    sel_indices = []
     #statstr_kw = dict(precision=3, newlines=True, lbl=lbl, align=True)
     for key in ['max', 'mean', 'sum']:
         if key not in stat_dict:
@@ -818,11 +818,11 @@ def find_interesting_stats(stat_dict, col_lbls=None, lbl=None):
             sel_sortx = sortx.take([0, 1, -2, -1])
         else:
             sel_sortx = sortx
-        sel_indicies.extend(sel_sortx)
-    sel_indicies = ut.unique_keep_order2(sel_indicies)
-    sel_stat_dict = ut.get_dict_column(stat_dict, sel_indicies)
+        sel_indices.extend(sel_sortx)
+    sel_indices = ut.unique_keep_order2(sel_indices)
+    sel_stat_dict = ut.get_dict_column(stat_dict, sel_indices)
     sel_stat_dict = ut.order_dict_by(sel_stat_dict, STAT_KEY_ORDER)
-    return sel_stat_dict, sel_indicies
+    return sel_stat_dict, sel_indices
 
 
 #def jagged_stats_str(arr, use_nan=True, lbl=None):

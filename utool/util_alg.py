@@ -325,7 +325,7 @@ def group_items(item_list, groupid_list):
         dict: groupid2_items mapping groupids to a list of items
 
     SeeAlso:
-        vtool.group_indicies - much faster numpy grouping algorithm
+        vtool.group_indices - much faster numpy grouping algorithm
         vtool.apply_gropuing - second part to faster numpy grouping algorithm
 
     Example:

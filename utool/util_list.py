@@ -1107,7 +1107,7 @@ def issorted(list_, op=operator.le):
     return all(op(list_[ix], list_[ix + 1]) for ix in range(len(list_) - 1))
 
 
-def find_nonconsec_indicies(unique_vals, consec_vals):
+def find_nonconsec_indices(unique_vals, consec_vals):
     """
     # TODO: rectify with above function
 
@@ -1127,7 +1127,7 @@ def find_nonconsec_indicies(unique_vals, consec_vals):
         >>> min_ = unique_vals.min()
         >>> range_ = max_ - min_
         >>> consec_vals = np.linspace(min_, max_ + 1, range_ + 2)
-        >>> missing_ixs = find_nonconsec_indicies(unique_vals, consec_vals)
+        >>> missing_ixs = find_nonconsec_indices(unique_vals, consec_vals)
         >>> result = (consec_vals[missing_ixs])
         [ 0.  3.  4.  5.  6.  7.  8.  9.]
     """
@@ -1146,20 +1146,20 @@ def find_nonconsec_indicies(unique_vals, consec_vals):
 def debug_consec_list(list_):
     """
     Returns:
-        tuple of (missing_items, missing_indicies, duplicate_items)
+        tuple of (missing_items, missing_indices, duplicate_items)
     """
     if not issorted(list_):
-        print('warning list is not sorted. indicies will not match')
+        print('warning list is not sorted. indices will not match')
     sortedlist = sorted(list_)
     start = sortedlist[0]
     last = start - 1
     missing_vals = []
-    missing_indicies = []
+    missing_indices = []
     duplicate_items = []
     for count, item in enumerate(sortedlist):
         diff = item - last
         if diff > 1:
-            missing_indicies.append(count)
+            missing_indices.append(count)
             for miss in range(last + 1, last + diff):
                 missing_vals.append(miss)
         elif diff == 0:
@@ -1170,7 +1170,7 @@ def debug_consec_list(list_):
         else:
             raise AssertionError('We sorted the list. diff can not be negative')
         last = item
-    return missing_vals, missing_indicies, duplicate_items
+    return missing_vals, missing_indices, duplicate_items
 
 
 def find_duplicate_items(items):
@@ -1225,7 +1225,7 @@ def print_duplicate_map(duplicate_map, *args, **kwargs):
     printfn = kwargs.get('printfn', print)
     printfn('There are %d duplicates' % (len(duplicate_map)))
     for key, index_list in six.iteritems(duplicate_map):
-        printfn('item=%s appears %d times at indicies: %r' % (key, len(index_list), index_list))
+        printfn('item=%s appears %d times at indices: %r' % (key, len(index_list), index_list))
         for argx, arg in enumerate(args):
             #argname = 'arg%d' % (argx)
             argname = ut.get_varname_from_stack(arg, N=2)
@@ -1418,7 +1418,7 @@ def make_sortby_func(item_list, reverse=False):
     return sortby_func
 
 
-def find_first_true_indicies(flags_list):
+def find_first_true_indices(flags_list):
     """
     returns a list of indexes where the index is the first True position
     in the corresponding sublist or None if it does not exist
@@ -1429,7 +1429,7 @@ def find_first_true_indicies(flags_list):
         flags_list (list): list of lists of booleans
 
     CommandLine:
-        python -m utool.util_list --test-find_first_true_indicies
+        python -m utool.util_list --test-find_first_true_indices
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1440,7 +1440,7 @@ def find_first_true_indicies(flags_list):
         ...               [False, True, True],
         ...               [False, False, True]]
         >>> # execute function
-        >>> index_list = find_first_true_indicies(flags_list)
+        >>> index_list = find_first_true_indices(flags_list)
         >>> # verify results
         >>> result = str(index_list)
         >>> print(result)
@@ -1454,16 +1454,16 @@ def find_first_true_indicies(flags_list):
     return index_list
 
 
-def find_next_true_indicies(flags_list, offset_list):
+def find_next_true_indices(flags_list, offset_list):
     """
-    Uses output of either this function or find_first_true_indicies
+    Uses output of either this function or find_first_true_indices
     to find the next index of true flags
 
     Args:
         flags_list (list): list of lists of booleans
 
     CommandLine:
-        python -m utool.util_list --test-find_next_true_indicies
+        python -m utool.util_list --test-find_next_true_indices
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1473,9 +1473,9 @@ def find_next_true_indicies(flags_list, offset_list):
         ...               [False, False, False],
         ...               [False, True, True],
         ...               [False, False, True]]
-        >>> offset_list = find_first_true_indicies(flags_list)
+        >>> offset_list = find_first_true_indices(flags_list)
         >>> # execute function
-        >>> index_list = find_next_true_indicies(flags_list, offset_list)
+        >>> index_list = find_next_true_indices(flags_list, offset_list)
         >>> # verify results
         >>> result = str(index_list)
         >>> print(result)
