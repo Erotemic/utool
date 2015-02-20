@@ -235,6 +235,30 @@ def hashable_to_uuid(hashable_):
            that expect binary data, such as compression, saving to a binary file
            or sending over a socket. Some operations need the binary data to be
            mutable, in which case not all bytes-like objects can apply.
+
+    Returns:
+        UUID: uuid_
+
+    CommandLine:
+        python -m utool.util_hash --test-hashable_to_uuid
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_hash import *  # NOQA
+        >>> hashable_ = 'foobar'
+        >>> uuid_ = hashable_to_uuid(hashable_)
+        >>> result = str(uuid_)
+        >>> print(result)
+        8843d7f9-2416-211d-e9eb-b963ff4ce281
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_hash import *  # NOQA
+        >>> hashable_ = 10
+        >>> uuid_ = hashable_to_uuid(hashable_)
+        >>> result = str(uuid_)
+        >>> print(result)
+        b1d57811-11d8-4f7b-3fe4-5a0852e59758
     """
     # Hash the bytes
     try:
@@ -257,6 +281,8 @@ def hashable_to_uuid(hashable_):
                 bytes_ = hashable_
             elif isinstance(hashable_, str):
                 bytes_ = hashable_.encode('utf-8')
+            else:
+                bytes_ = bytes(hashable_)
             #print('bytes=%r' % (bytes_,))
         bytes_sha1 = hashlib.sha1(bytes_)
     except Exception as ex:
@@ -297,3 +323,16 @@ def get_zero_uuid():
 # Cleanup namespace
 del ALPHABET_41
 del ALPHABET_54
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m utool.util_hash
+        python -m utool.util_hash --allexamples
+        python -m utool.util_hash --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
