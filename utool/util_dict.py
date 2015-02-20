@@ -104,6 +104,9 @@ def invert_dict(dict_):
     Returns:
         dict: inverted_dict
 
+    CommandLine:
+        python -m utool.util_dict --test-invert_dict
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
@@ -112,8 +115,19 @@ def invert_dict(dict_):
         >>> result = inverted_dict
         >>> print(result)
         {1: 'a', 2: 'b'}
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> dict_ = OrderedDict([(2, 'good',), (1, 'ok',), (0, 'junk',), (None, 'UNKNOWN',),])
+        >>> inverted_dict = invert_dict(dict_)
+        >>> result = inverted_dict
+        >>> print(result)
+        OrderedDict([('good', 2), ('ok', 1), ('junk', 0), ('UNKNOWN', None)])
+
     """
-    inverted_dict = {val: key for key, val in six.iteritems(dict_)}
+    inverted_items = [(val, key) for key, val in six.iteritems(dict_)]
+    inverted_dict = type(dict_)(inverted_items)
     return inverted_dict
 
 
