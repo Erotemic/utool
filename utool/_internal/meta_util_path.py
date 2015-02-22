@@ -22,6 +22,9 @@ def unixpath(path):
 
 
 def unixjoin(*args):
+    """
+    Like os.path.join, but uses forward slashes on win32
+    """
     isabs_list = list(map(isabs, args))
     if any(isabs_list):
         poslist = [count for count, flag in enumerate(isabs_list) if flag]

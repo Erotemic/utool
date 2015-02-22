@@ -8,7 +8,8 @@ from __future__ import absolute_import, division, print_function
 from six.moves import zip, filter, filterfalse, map, range
 import six
 from os.path import (join, basename, relpath, normpath, split, isdir, isfile,
-                     exists, islink, ismount, dirname, splitext, realpath)
+                     exists, islink, ismount, dirname, splitext, realpath,
+                     splitdrive)
 import os
 import re
 import sys
@@ -1428,6 +1429,29 @@ def find_lib_fpath(libname, root_dir, recurse_down=True, verbose=False, debug=Fa
     print(msg)
     print('\n[c!] Checked: '.join(tried_fpaths))
     raise ImportError(msg)
+
+
+def ensure_mingw_drive(win32_path):
+    r""" replaces windows drives with mingw style drives
+
+    Args:
+        path (?):
+
+    CommandLine:
+        python -m utool.util_path --test-ensure_mingw_drive
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> win32_path = r'C:/Program Files/Foobar'
+        >>> result = ensure_mingw_drive(win32_path)
+        >>> print(result)
+        /c/Program Files/Foobar
+    """
+    win32_drive, _path = splitdrive(win32_path)
+    mingw_drive = '/' + win32_drive[:-1].lower()
+    mingw_path = mingw_drive + _path
+    return mingw_path
 
 
 if __name__ == '__main__':
