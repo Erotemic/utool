@@ -455,8 +455,8 @@ if __name__ == '__main__':
     Ignore:
        timing things
        python reset_dbs.py --time-generate
-       python reset_dbs.py --time-generate --preinit
        python reset_dbs.py --time-generate --force-serial
+       python reset_dbs.py --time-generate --preinit
        python reset_dbs.py --time-generate --force-serial
 
     CommandLine:
