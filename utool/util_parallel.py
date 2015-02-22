@@ -35,11 +35,11 @@ if SILENT:
         pass
 
 __POOL__ = None
-__EAGER_JOIN__      = not util_arg.get_flag('--noclose-pool')
-__TIME_GENERATE__   = util_arg.get_flag('--time-generate')
+__EAGER_JOIN__      = not util_arg.get_argflag('--noclose-pool')
+__TIME_GENERATE__   = util_arg.get_argflag('--time-generate')
 __NUM_PROCS__       = util_arg.get_argval('--num-procs', int, default=None)
 __FORCE_SERIAL__    = util_arg.get_argflag(('--utool-force-serial', '--force-serial', '--serial'))
-__SERIAL_FALLBACK__ = not util_arg.get_flag('--noserial-fallback')
+__SERIAL_FALLBACK__ = not util_arg.get_argflag('--noserial-fallback')
 
 
 BACKEND = 'multiprocessing'
