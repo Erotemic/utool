@@ -218,6 +218,8 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
         util_progress.ProgressIter(raw_generator, nTotal=nTasks, lbl=get_funcname(func) + ': ')
         if prog else raw_generator
     )
+    if __TIME_GENERATE__:
+        tt = util_time.tic('_generate_parallel func=' + get_funcname(func))
     try:
         for result in result_generator:
             yield result
@@ -236,6 +238,8 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
                 yield result
         else:
             raise
+    if __TIME_GENERATE__:
+        util_time.toc(tt)
 
 
 def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None):
@@ -251,9 +255,13 @@ def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None):
         util_progress.ProgressIter(args_list, nTotal=nTasks, lbl=get_funcname(func) + ': ')
         if prog else args_list
     )
+    if __TIME_GENERATE__:
+        tt = util_time.tic('_generate_serial func=' + get_funcname(func))
     for args in args_iter:
         result = func(args)
         yield result
+    if __TIME_GENERATE__:
+        util_time.toc(tt)
 
 
 def ensure_pool(warn=False):
@@ -312,8 +320,6 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
     force_serial_ = nTasks == 1 or force_serial
     if not force_serial_:
         ensure_pool()
-    if __TIME_GENERATE__:
-        tt = util_time.tic(get_funcname(func))
     if force_serial_ or isinstance(__POOL__, int):
         if VERBOSE and verbose:
             print('[util_parallel.generate] generate_serial')
@@ -324,8 +330,6 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
         return _generate_parallel(func, args_list, ordered=ordered,
                                   chunksize=chunksize, prog=prog,
                                   verbose=verbose, nTasks=nTasks)
-    if __TIME_GENERATE__:
-        util_time.toc(tt)
 
 
 def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__,
