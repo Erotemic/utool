@@ -44,7 +44,7 @@ __SERIAL_FALLBACK__ = not util_arg.get_argflag('--noserial-fallback')
 
 MIN_PARALLEL_TASKS = 2
 if util_cplat.WIN32:
-    MIN_PARALLEL_TASKS = 13
+    MIN_PARALLEL_TASKS = 16
 
 
 BACKEND = 'multiprocessing'
