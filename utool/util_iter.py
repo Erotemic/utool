@@ -14,6 +14,12 @@ ensure_iterable = meta_util_iter.ensure_iterable
 isiterable = meta_util_iter.isiterable
 
 
+def evaluate_generator(iter_):
+    """ for evaluating each item in a generator and ignoring output """
+    for _ in iter_:  # NOQA
+        pass
+
+
 def iget_list_column(list_, colx):
     """ iterator version of get_list_column """
     if isinstance(colx, list):

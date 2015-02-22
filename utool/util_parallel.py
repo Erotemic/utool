@@ -35,6 +35,7 @@ if SILENT:
         pass
 
 __POOL__ = None
+__EAGER_JOIN__      = not util_arg.get_flag('--noclose-pool')
 __TIME_GENERATE__   = util_arg.get_flag('--time-generate')
 __NUM_PROCS__       = util_arg.get_argval('--num-procs', int, default=None)
 __FORCE_SERIAL__    = util_arg.get_argflag(('--utool-force-serial', '--force-serial', '--serial'))
@@ -99,7 +100,10 @@ def init_worker():
 
 
 def init_pool(num_procs=None, maxtasksperchild=None):
+    """ warning this might not be the right hting to do """
     global __POOL__
+    if util_arg.VERBOSE:
+        print('[util_parallel] init_pool()')
     if num_procs is None:
         # Get number of cpu cores
         num_procs = get_default_numprocs()
@@ -123,6 +127,9 @@ def init_pool(num_procs=None, maxtasksperchild=None):
 @atexit.register
 def close_pool(terminate=False):
     global __POOL__
+    if util_arg.VERBOSE:
+        print('[util_parallel] close_pool()')
+
     if __POOL__ is not None:
         if not QUIET:
             if terminate:
@@ -141,6 +148,8 @@ def close_pool(terminate=False):
 def _process_serial(func, args_list, args_dict={}, nTasks=None):
     """
     Serial process map
+
+    Use generate instead
     """
     if nTasks is None:
         nTasks = len(args_list)
@@ -160,6 +169,8 @@ def _process_serial(func, args_list, args_dict={}, nTasks=None):
 def _process_parallel(func, args_list, args_dict={}, nTasks=None):
     """
     Parallel process map
+
+    Use generate instead
     """
     # Define progress observers
     if nTasks is None:
@@ -181,6 +192,8 @@ def _process_parallel(func, args_list, args_dict={}, nTasks=None):
     end_prog()
     # Get the results
     result_list = [ap.get() for ap in apply_results]
+    if __EAGER_JOIN__:
+        close_pool()
     return result_list
 
 
@@ -195,35 +208,34 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
     if chunksize is None:
         chunksize = max(1, nTasks // (__POOL__._processes ** 2))
     if verbose:
-        print('[util_parallel._generate_parallel] executing %d %s tasks using %d processes with chunksize=%r' %
-                (nTasks, get_funcname(func), __POOL__._processes, chunksize))
-    #assert isinstance(__POOL__, multiprocessing.Pool),\
-    #        '%r __POOL__ = %r' % (type(__POOL__), __POOL__,)
-    if ordered:
-        generator = __POOL__.imap(func, args_list, chunksize)
-    else:
-        generator = __POOL__.imap_unordered(func, args_list, chunksize)
+        prefix = '[util_parallel._generate_parallel]'
+        fmtstr = prefix + 'executing %d %s tasks using %d processes with chunksize=%r'
+        print(fmtstr % (nTasks, get_funcname(func), __POOL__._processes, chunksize))
+    pmap_func = __POOL__.imap if ordered else __POOL__.imap_unordered
+    raw_generator = pmap_func(func, args_list, chunksize)
+    # Get iterator with or without progress
+    result_generator = (
+        util_progress.ProgressIter(raw_generator, nTotal=nTasks, lbl=get_funcname(func) + ': ')
+        if prog else raw_generator
+    )
     try:
-        if prog:
-            # New way of doing progress
-            prog_generator = util_progress.ProgressIter(
-                generator, nTotal=nTasks, lbl=get_funcname(func) + ': ')
-            for result in prog_generator:
-                yield result
-        else:
-            # No Progress
-            for result in generator:
-                yield result
+        for result in result_generator:
+            yield result
+        if __EAGER_JOIN__:
+            close_pool()
     except Exception as ex:
         util_dbg.printex(ex, 'Parallel Generation Failed!', '[utool]')
+        if __EAGER_JOIN__:
+            close_pool()
         print('__SERIAL_FALLBACK__ = %r' % __SERIAL_FALLBACK__)
         if __SERIAL_FALLBACK__:
-            for result in _generate_serial(func, args_list, prog=prog,
-                                           verbose=verbose, nTasks=nTasks):
+            print('Trying to handle error by falling back to serial')
+            serial_generator = _generate_serial(
+                func, args_list, prog=prog, verbose=verbose, nTasks=nTasks)
+            for result in serial_generator:
                 yield result
         else:
             raise
-    #close_pool()
 
 
 def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None):
@@ -234,25 +246,14 @@ def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None):
         print('[util_parallel._generate_serial] executing %d %s tasks in serial' %
                 (nTasks, get_funcname(func)))
     prog = prog and verbose and nTasks > 1
-    if prog:
-        # New way of doing progress
-        prog_generator = util_progress.ProgressIter(
-            args_list, nTotal=nTasks, lbl=get_funcname(func) + ': ')
-        for args in prog_generator:
-            result = func(args)
-            yield result
-    else:
-        # No Progress
-        for args in args_list:
-            result = func(args)
-            yield result
-    #for count, args in enumerate(args_list):
-    #    if prog:
-    #        mark_prog(count)
-    #    result = func(args)
-    #    yield result
-    #if prog:
-    #    end_prog()
+    # Get iterator with or without progress
+    args_iter = (
+        util_progress.ProgressIter(args_list, nTotal=nTasks, lbl=get_funcname(func) + ': ')
+        if prog else args_list
+    )
+    for args in args_iter:
+        result = func(args)
+        yield result
 
 
 def ensure_pool(warn=False):
@@ -283,15 +284,19 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
 
     CommandLine:
         python -m utool.util_parallel --test-generate
+        python -m utool.util_parallel --test-generate --verbose
 
     Example:
-        >>> # SLOW_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> import utool as ut
         >>> num = 8700  # parallel is slower for smaller numbers
+        >>> print('TESTING SERIAL')
         >>> flag_generator0 = ut.generate(ut.is_prime, range(0, num), force_serial=True)
         >>> flag_list0 = list(flag_generator0)
+        >>> print('TESTING PARALLEL')
         >>> flag_generator1 = ut.generate(ut.is_prime, range(0, num))
         >>> flag_list1 = list(flag_generator1)
+        >>> print('ASSERTING')
         >>> assert flag_list0 == flag_list1
 
     """
