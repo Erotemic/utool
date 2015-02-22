@@ -452,6 +452,13 @@ def _spawn_background_thread0(func, *args, **kwargs):
 
 if __name__ == '__main__':
     """
+    Ignore:
+       timing things
+       python reset_dbs.py --time-generate
+       python reset_dbs.py --time-generate --preinit
+       python reset_dbs.py --time-generate --force-serial
+       python reset_dbs.py --time-generate --force-serial
+
     CommandLine:
         python -m utool.util_parallel
         python -m utool.util_parallel --allexamples
