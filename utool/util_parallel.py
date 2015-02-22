@@ -22,7 +22,7 @@ from utool import util_time
 from utool import util_arg
 from utool import util_dbg
 from utool import util_inject
-#from utool.util_cplat import WIN32
+from utool import util_cplat
 util_inject.noinject('[parallel]')
 
 QUIET   = util_arg.QUIET
@@ -40,6 +40,11 @@ __TIME_GENERATE__   = util_arg.get_argflag('--time-generate')
 __NUM_PROCS__       = util_arg.get_argval('--num-procs', int, default=None)
 __FORCE_SERIAL__    = util_arg.get_argflag(('--utool-force-serial', '--force-serial', '--serial'))
 __SERIAL_FALLBACK__ = not util_arg.get_argflag('--noserial-fallback')
+
+
+MIN_PARALLEL_TASKS = 2
+if util_cplat.WIN32:
+    MIN_PARALLEL_TASKS = 13
 
 
 BACKEND = 'multiprocessing'
@@ -317,7 +322,8 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
     if VERBOSE and verbose:
         print('[util_parallel.generate] ordered=%r' % ordered)
         print('[util_parallel.generate] force_serial=%r' % force_serial)
-    force_serial_ = nTasks == 1 or force_serial
+    # Check conditions under which we force serial
+    force_serial_ = nTasks == 1 or nTasks < MIN_PARALLEL_TASKS or force_serial
     if not force_serial_:
         ensure_pool()
     if force_serial_ or isinstance(__POOL__, int):
