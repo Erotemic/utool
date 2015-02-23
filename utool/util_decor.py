@@ -345,7 +345,9 @@ def accepts_numpy(func):
 def memorize(func):
     """
     Memoization decorator for functions taking one or more arguments.
-    # http://code.activestate.com/recipes/578231-probably-the-fastest-memoization-decorator-in-the-/
+
+    References:
+        # http://code.activestate.com/recipes/578231-probably-the-fastest-memoization-decorator-in-the-/
     """
     class _memorizer(dict):
         def __init__(self, func):

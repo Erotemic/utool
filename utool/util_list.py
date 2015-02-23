@@ -1406,6 +1406,29 @@ def and_lists(*args):
     return [all(tup) for tup in zip(*args)]
 
 
+def xor_lists(*args):
+    r"""
+    Returns:
+        list:
+
+    CommandLine:
+        python -m utool.util_list --test-xor_lists
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> args = ([True, False, False, True], [True, True, False, False])
+        >>> result = xor_lists(*args)
+        >>> print(result)
+        [False, True, False, True]
+    """
+    return [reduce(operator.xor, tup) for tup in zip(*args)]
+
+
+def not_list(flag_list):
+    return [not flag for flag in flag_list]
+
+
 def or_lists(*args):
     return [any(tup) for tup in zip(*args)]
 

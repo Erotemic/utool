@@ -557,6 +557,62 @@ def almost_eq(arr1, arr2, thresh=1E-11, ret_error=False):
     return passed
 
 
+def knapsack(items, maxweight):
+    """
+    Solve the knapsack problem by finding the most valuable
+    subsequence of `items` subject that weighs no more than
+    `maxweight`.
+
+    Args:
+        `items` (tuple): is a sequence of tuples `(value, weight, id_)`, where `value`
+            is a number and `weight` is a non-negative integer, and `id_` is an
+            item identifier.
+
+        `maxweight` (scalar):  is a non-negative integer.
+
+    Returns:
+        tuple: a pair whose first element is the sum of values in the most
+            valuable subsequence, and whose second element is the subsequence.
+
+    References:
+        http://codereview.stackexchange.com/questions/20569/dynamic-programming-solution-to-knapsack-problem
+
+    CommandLine:
+        python -m utool.util_alg --test-knapsack
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> items = [(4, 12, 0), (2, 1, 1), (6, 4, 2), (1, 1, 3), (2, 2, 4)]
+        >>> result = knapsack(items, 15)
+        >>> print(result)
+        (11, [(2, 1, 1), (6, 4, 2), (1, 1, 3), (2, 2, 4)])
+    """
+
+    # Return the value of the most valuable subsequence of the first i
+    # elements in items whose weights sum to no more than j.
+    from utool import util_decor
+    @util_decor.memorize
+    def bestvalue(i, j):
+        if i == 0:
+            return 0
+        value, weight = items[i - 1][0:2]
+        if weight > j:
+            return bestvalue(i - 1, j)
+        else:
+            return max(bestvalue(i - 1, j),
+                       bestvalue(i - 1, j - weight) + value)
+
+    j = maxweight
+    result = []
+    for i in range(len(items), 0, -1):
+        if bestvalue(i, j) != bestvalue(i - 1, j):
+            result.append(items[i - 1])
+            j -= items[i - 1][1]
+    result.reverse()
+    return bestvalue(len(items), maxweight), result
+
+
 def cumsum(num_list):
     """ python cumsum
 

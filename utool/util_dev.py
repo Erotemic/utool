@@ -43,7 +43,7 @@ NoParam = ClassNoParam()
 
 def DEPRICATED(func):
     """ deprication decorator """
-    warn_msg = 'Depricated call to: %s' % func.__name__
+    warn_msg = 'Deprecated call to: %s' % func.__name__
 
     def __DEP_WRAPPER(*args, **kwargs):
         raise Exception('dep')
