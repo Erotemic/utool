@@ -673,7 +673,8 @@ def numeric_str(num, precision=8, **kwargs):
 
 
 def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True,
-                      recursive=True, indent_='', precision=8):
+                      recursive=True, indent_='', precision=8,
+                      hack_liststr=False):
     """
     Returns:
         list: a list of human-readable dictionary items
@@ -712,6 +713,8 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True,
                             indent_=indent_ + '    ', precision=precision)
         elif util_type.HAS_NUMPY and isinstance(val, np.ndarray):
             return numpy_str(val, strvals=strvals, precision=precision)
+        if hack_liststr and isinstance(val, list):
+            return list_str(val)
         else:
             # base case
             return valfunc(val)
@@ -825,7 +828,7 @@ def list_str(list_, indent_='', newlines=1, *args, **kwargs):
 
 
 def dict_str(dict_, strvals=False, sorted_=False, newlines=True, recursive=True,
-             indent_='', precision=8):
+             indent_='', precision=8, hack_liststr=False):
     """
     FIXME: ALL LIST DICT STRINGS ARE VERY SPAGEHETTI RIGHT NOW
     Returns:
@@ -840,7 +843,8 @@ def dict_str(dict_, strvals=False, sorted_=False, newlines=True, recursive=True,
     """
     if len(dict_) == 0:
         return '{}'
-    itemstr_list = dict_itemstr_list(dict_, strvals, sorted_, newlines, recursive, indent_, precision)
+    itemstr_list = dict_itemstr_list(dict_, strvals, sorted_, newlines,
+                                     recursive, indent_, precision, hack_liststr)
     leftbrace, rightbrace  = '{', '}'
     if newlines:
         import utool as ut
