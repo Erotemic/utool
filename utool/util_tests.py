@@ -873,8 +873,13 @@ def _exec_doctest(src, kwargs):
         #print(result)
         if result != want:
             errmsg1 = ''
-            errmsg1 += ('REPR_GOT: result=\n%r\n' % (result))
-            errmsg1 += ('REPR_EXPECTED: want=\n%r\n' % (want))
+            try:
+                import utool as ut
+                errmsg1 += ('GOT/EXPECTED/DIFF\n' + ut.get_textdiff(result, want))
+            except ImportError:
+                errmsg1 += ('REPR_GOT: result=\n%r\n' % (result))
+                errmsg1 += ('REPR_EXPECTED: want=\n%r\n' % (want))
+                pass
             errmsg1 += ''
             errmsg1 += ('STR_GOT: result=\n%s\n' % (result))
             errmsg1 += ('STR_EXPECTED: want=\n%s\n' % (want))
