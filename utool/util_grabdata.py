@@ -362,6 +362,29 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool', download_dir=None,
     return util_path.unixpath(data_dir)
 
 
+def geo_locate(default='Unknown', timeout=1):
+    try:
+        import urllib2
+        import json
+        req = urllib2.Request('http://freegeoip.net/json/', headers={ 'User-Agent': 'Mozilla/5.0' })
+        f = urllib2.urlopen(req, timeout=timeout)
+        json_string = f.read()
+        f.close()
+        location = json.loads(json_string)
+        location_city    = location['city']
+        location_state   = location['region_name']
+        location_country = location['country_name']
+        location_zip     = location['zipcode']
+        success = True
+    except:
+        success = False
+        location_city    = default
+        location_state   = default
+        location_zip     = default
+        location_country = default
+    return success, location_city, location_state, location_country, location_zip
+
+
 if __name__ == '__main__':
     """
     CommandLine:

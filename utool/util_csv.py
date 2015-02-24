@@ -131,7 +131,7 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
                 col_str = ['None' if r is None else precision_fmtstr % float(r) for r in col]
             elif coltype is int or is_int(coltype) or coltype == np.int64:
                 col_str = [_toint(c) for c in iter(col)]
-            elif coltype is str or is_str(coltype):
+            elif coltype is str or coltype is unicode or  is_str(coltype):
                 col_str = [str(c).replace(',', comma_repl) for c in col]
             else:
                 print('[csv] is_unknown coltype=%r' % (coltype,))
