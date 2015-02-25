@@ -415,10 +415,30 @@ def cmd(*args, **kwargs):
     CommandLine:
         python -m utool.util_cplat --test-cmd
 
-    Example:
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
         >>> (out, err, ret) = ut.cmd('echo hello world')
+        >>> result = ut.list_str(list(zip(('out', 'err', 'ret'), (out, err, ret))), nobraces=True)
+        >>> print(result)
+        ('out', 'hello world\n'),
+        ('err', None),
+        ('ret', 0),
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> import utool as ut
+        >>> (out, err, ret) = ut.cmd('echo', 'hello world')
+        >>> result = ut.list_str(list(zip(('out', 'err', 'ret'), (out, err, ret))), nobraces=True)
+        >>> print(result)
+        ('out', 'hello world\n'),
+        ('err', None),
+        ('ret', 0),
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> import utool as ut
+        >>> (out, err, ret) = ut.cmd(('echo', 'hello world'))
         >>> result = ut.list_str(list(zip(('out', 'err', 'ret'), (out, err, ret))), nobraces=True)
         >>> print(result)
         ('out', 'hello world\n'),
