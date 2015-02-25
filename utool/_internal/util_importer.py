@@ -54,7 +54,7 @@ def __execute_fromimport_star(module, modname, IMPORT_TUPLES, ignore_list=[],
                      'map', 'range', 'list', 'zip_longest', 'filter', 'filterfalse',
                      'dirname', 'realpath', 'join', 'exists', 'normpath',
                      'splitext', 'expanduser', 'relpath', 'isabs',
-                     'commonprefix', 'basename',
+                     'commonprefix', 'basename', 'input', 'reduce',
                      #'OrderedDict',
                      #'product',
                      ] + ignore_list)
