@@ -304,72 +304,73 @@ def __parse_cmd_kwargs(kwargs):
 
 def __parse_cmd_args(args, sudo, shell):
     """
+    When shell is True, Popen will only accept strings. No tuples
+    Shell really should not be true.
+
     Returns:
         args suitable for subprocess.Popen
 
         I'm not quite sure what those are yet. Plain old string seem to work
         well? But I remember needing shlex at some point.
+
+    CommandLine:
+        python -m utool.util_cplat --test-__parse_cmd_args
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_cplat import *  # NOQA
+        >>> # build test data
+        >>> args = 'echo "hello world"'
+        >>> sudo = False
+        >>> shell = False
+        >>> # execute function
+        >>> args = __parse_cmd_args(args, sudo, shell)
+        >>> # verify results
+        >>> result = str(args)
+        >>> print(result)
     """
     import shlex
-    #from .util_arg import VERBOSE
-    #args = ' '.join(args)
-    #if VERBOSE:
-    #    print('[cplat] Joined args:')
-    #    print(' '.join(args))
-    print(type(args))
-    print(args)
-
     # Case where tuple is passed in as only argument
     if isinstance(args, tuple) and len(args) == 1 and isinstance(args[0], tuple):
         args = args[0]
 
-    #print(shlex)
     if shell:
-        # Popen only accepts strings is shell is True, which
-        # it really shouldn't be.
-        if  isinstance(args, (list, tuple)) and len(args) > 1:
-            # Input is ['cmd', 'arg1', 'arg2']
+        # When shell is False, ensure args is a string
+        if isinstance(args, six.string_types):
+            pass
+        elif  isinstance(args, (list, tuple)) and len(args) > 1:
             args = ' '.join(args)
         elif isinstance(args, (list, tuple)) and len(args) == 1:
             if isinstance(args[0], (tuple, list)):
-                # input got nexted
                 args = ' '.join(args)
             elif isinstance(args[0], six.string_types):
-                # input is just nested string
                 args = args[0]
-        elif isinstance(args, six.string_types):
-            pass
+    else:
+        # When shell is False, ensure args is a tuple
+        if isinstance(args, six.string_types):
+            args = shlex.split(args, posix=not WIN32)
+        elif isinstance(args, (list, tuple)):
+            if len(args) > 1:
+                args = tuple(args)
+            elif len(args) == 1:
+                if isinstance(args[0], (tuple, list)):
+                    args = tuple(args[0])
+                elif isinstance(args[0], six.string_types):
+                    args = shlex.split(args[0], posix=not WIN32)
     if sudo is True:
         if not WIN32:
-            if isinstance(args, six.string_types):
-                args = shlex.split(args)
-            args = ['sudo'] + args
-            # using sudo means we need to use a single string I believe
-            args = ' '.join(args)
+            if shell:
+                args = 'sudo ' + args
+            else:
+                args = tuple(['sudo']) + tuple(args)
+            #if isinstance(args, six.string_types):
+            #    args = shlex.split(args)
+            #args = ['sudo'] + args
+            ## using sudo means we need to use a single string I believe
+            #args = ' '.join(args)
         else:
             # TODO: strip out sudos
             pass
-
-    #if isinstance(args, (list, tuple)):
-    #    if len(args) == 1:
-    #        print('HERE1')
-    #        if isinstance(args[0], list):
-    #            print('HERE5')
-    #            args = args[0]
-    #        elif isinstance(args[0], str):
-    #            print('HERE2')
-    #            if WIN32:
-    #                args = shlex.split(args[0])
-    #    #else:
-    #        #if LINUX:
-    #        #    args = ' '.join(args)
-    #if isinstance(args, six.string_types):
-    #    print('HERE3')
-    #    #if os.name == 'posix':
-    #    #    args = shlex.split(args)
-    #    #else:
-    #        #args = [args]
-
     # HACK FOR WINDOWS AGAIN
     # makes  this command work:
     # python -c "import utool as ut; ut.cmd('build\\hesaffexe.exe ' + ut.grab_test_imgpath('star.png'))"
@@ -413,26 +414,11 @@ def cmd(*args, **kwargs):
         tuple: (None, None, None)
 
     CommandLine:
-        python -m utool.util_cplat --test-cmd
         python -m utool.util_cplat --test-cmd:0
+        python -m utool.util_cplat --test-cmd:1
+        python -m utool.util_cplat --test-cmd:1 --test-sudo
 
     Example0:
-        >>> # ENABLE_DOCTEST
-        >>> import utool as ut
-        >>> target = ut.codeblock(
-        ...     r'''
-                ('out', 'hello world\n'),
-                ('err', None),
-                ('ret', 0),
-                ''')
-        >>> varydict = {'shell': [True]}
-        >>> for kw in ut.all_dict_combinations(varydict):
-        >>>     restup = ut.cmd('echo hello world', **kw)
-        >>>     tupfields = ('out', 'err', 'ret')
-        >>>     output = ut.list_str(list(zip(tupfields, restup)), nobraces=True)
-        >>>     ut.assert_eq(output, target)
-
-    Example1:
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
         >>> (out, err, ret) = ut.cmd('echo', 'hello world')
@@ -442,22 +428,36 @@ def cmd(*args, **kwargs):
         ('err', None),
         ('ret', 0),
 
-    Example2:
+    Example1:
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
-        >>> (out, err, ret) = ut.cmd(('echo', 'hello world'))
-        >>> result = ut.list_str(list(zip(('out', 'err', 'ret'), (out, err, ret))), nobraces=True)
-        >>> print(result)
-        ('out', 'hello world\n'),
-        ('err', None),
-        ('ret', 0),
+        >>> target = ut.codeblock(
+        ...     r'''
+                ('out', 'hello world\n'),
+                ('err', None),
+                ('ret', 0),
+                ''')
+        >>> varydict = {
+        ...    'shell': [True, False],
+        ...    'sudo': [True, False] if ut.get_argflag('--test-sudo') else [False],
+        ...    'args': ['echo hello world', ('echo', 'hello world')],
+        ... }
+        >>> for count, kw in enumerate(ut.all_dict_combinations(varydict), start=1):
+        >>>     print('+ --- TEST CMD %d ---' % (count,))
+        >>>     print('testing cmd with params ' + ut.dict_str(kw))
+        >>>     args = kw.pop('args')
+        >>>     restup = ut.cmd('echo hello world', pad_stdout=False, **kw)
+        >>>     tupfields = ('out', 'err', 'ret')
+        >>>     output = ut.list_str(list(zip(tupfields, restup)), nobraces=True)
+        >>>     ut.assert_eq(output, target)
+        >>>     print('L ___ TEST CMD %d ___\n' % (count,))
     """
     try:
         sys.stdout.flush()
         # Parse the keyword arguments
         verbose, detatch, shell, sudo, pad_stdout = __parse_cmd_kwargs(kwargs)
         if pad_stdout:
-            print('\n+--------------')
+            print('\n+--------')
         args = __parse_cmd_args(args, sudo, shell)
         # Print what you are about to do
         print('[ut.cmd] RUNNING: %r' % (args,))
@@ -488,7 +488,7 @@ def cmd(*args, **kwargs):
         ret = proc.wait()
         print('[ut.cmd] PROCESS FINISHED')
         if pad_stdout:
-            print('L--------------\n')
+            print('L________\n')
         return out, err, ret
     except Exception as ex:
         import utool as ut
