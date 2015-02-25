@@ -1228,12 +1228,35 @@ def number_text_lines(text):
 
 
 def get_textdiff(text1, text2):
-    """
+    r"""
     Uses difflib to return a difference string between two
     similar texts
 
     References:
         http://www.java2s.com/Code/Python/Utility/IntelligentdiffbetweentextfilesTimPeters.htm
+
+    Args:
+        text1 (?):
+        text2 (?):
+
+    Returns:
+        ?:
+
+    CommandLine:
+        python -m utool.util_str --test-get_textdiff
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> # build test data
+        >>> text1 = 'one\ntwo\nthree'
+        >>> text2 = 'one\ntwo\nfive'
+        >>> # execute function
+        >>> result = get_textdiff(text1, text2)
+        >>> # verify results
+        >>> print(result)
+        - three
+        + five
     """
     import difflib
     text1_lines = text1.splitlines()

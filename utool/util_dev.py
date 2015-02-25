@@ -19,6 +19,7 @@ except ImportError as ex:
 from os.path import splitext, exists, join, split, relpath
 from utool import util_inject
 from utool import util_dict
+from utool import util_arg
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[dev]')
 
 if HAS_NUMPY:
@@ -1669,8 +1670,17 @@ def reset_catch_ctrl_c():
     signal.signal(signal.SIGINT, signal.SIG_DFL)  # reset ctrl+c behavior
 
 
+USER_MODE      =  util_arg.get_argflag(('--user-mode', '--no-developer', '--nodev', '--nodeveloper'))
+DEVELOPER_MODE =  util_arg.get_argflag(('--dev-mode', '--developer-mode'))
+#USER_MODE = not DEVELOPER_MODE
+
+
 def is_developer(mycomputers=None):
     import utool
+    if USER_MODE:
+        return False
+    if DEVELOPER_MODE:
+        return True
     if mycomputers is None:
         mycomputers = ['hyrule', 'ooo', 'bakerstreet']
     compname_lower = utool.get_computer_name().lower()
