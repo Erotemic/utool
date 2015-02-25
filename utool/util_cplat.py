@@ -399,13 +399,28 @@ def _run_process(proc):
 
 
 def cmd(*args, **kwargs):
-    """ A really roundabout way to issue a system call
+    r""" A really roundabout way to issue a system call
 
     # FIXME: This function needs some work
     # It should work without a hitch on windows or unix.
     # It should be able to spit out stdout in realtime.
     # Should be able to configure detatchment, shell, and sudo.
 
+    Returns:
+        tuple: (None, None, None)
+
+    CommandLine:
+        python -m utool.util_cplat --test-cmd
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import utool as ut
+        >>> (out, err, ret) = ut.cmd('echo "hello world"')
+        >>> result = ut.list_str(list(zip(('out', 'err', 'ret'), (out, err, ret))), nobraces=True)
+        >>> print(result)
+        ('out', '"hello world"\n'),
+        ('err', None),
+        ('ret', 0),
     """
     try:
         sys.stdout.flush()
@@ -426,9 +441,10 @@ def cmd(*args, **kwargs):
             logged_out = []
             for line in _run_process(proc):
                 line_ = line if six.PY2 else line.decode('utf-8')
-                sys.stdout.write(line_)
-                sys.stdout.flush()
-                logged_out.append(line)
+                if len(line_) > 0:
+                    sys.stdout.write(line_)
+                    sys.stdout.flush()
+                    logged_out.append(line)
             out = '\n'.join(logged_out)
             (out_, err) = proc.communicate()
             #print('[ut.cmd] out: %s' % (out,))
