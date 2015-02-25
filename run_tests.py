@@ -21,11 +21,17 @@ def run_tests():
     dpath_list = ['utool']
     doctest_modname_list = ut.find_doctestable_modnames(
         dpath_list, exclude_doctests_fnames, exclude_dirs)
+    # Finding weird error
+    # util cache and util inspect
+    #doctest_modname_list = (doctest_modname_list[4:5] + doctest_modname_list[17:18])
+    #doctest_modname_list = doctest_modname_list[17:18]
 
     for modname in doctest_modname_list:
         exec('import ' + modname, globals(), locals())
     module_list = [sys.modules[name] for name in doctest_modname_list]
     ut.doctest_module_list(module_list)
+    #print(ut.list_str(doctest_modname_list))
+
 
 if __name__ == '__main__':
     import multiprocessing

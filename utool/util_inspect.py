@@ -217,18 +217,8 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
         >>> doctestable_list = list(iter_module_doctestable(module))
         >>> func_names = ut.get_list_column(doctestable_list, 0)
         >>> print('\n'.join(func_names))
-
-    Example2:
-        >>> # ENABLE_DOCTEST
-        >>> from utool.util_inspect import *   # NOQA
-        >>> import utool as ut
-        >>> import ibeis
-        >>> import ibeis.control.IBEISControl
-        >>> module = ibeis.control.IBEISControl
-        >>> doctestable_list = list(iter_module_doctestable(module))
-        >>> func_names = ut.get_list_column(doctestable_list, 0)
-        >>> print('\n'.join(func_names))
     """
+    import ctypes
     valid_func_types = (types.FunctionType, types.BuiltinFunctionType,
                         #types.MethodType, types.BuiltinMethodType,
                         )
@@ -237,12 +227,21 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
     scalar_types = ([dict, list, tuple, set, frozenset, bool, float, int] +
                     list(six.string_types))
     scalar_types += list(six.string_types)
-    import ctypes
     other_types = [types.InstanceType, functools.partial, types.ModuleType,
                    ctypes.CDLL]
     invalid_types = tuple(scalar_types + other_types)
 
+    #modpath = ut.get_modname_from_modpath(module.__file__)
+
     for key, val in six.iteritems(module.__dict__):
+        if hasattr(val, '__module__'):
+            # HACK: todo. figure out true parent module
+            if val.__module__ == 'numpy':
+                continue
+            #if key == 'NP_NDARRAY':
+            #    import utool as ut
+            #    ut.embed()
+
         if val is None:
             pass
         elif isinstance(val, valid_func_types):

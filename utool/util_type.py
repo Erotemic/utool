@@ -249,6 +249,7 @@ def is_func_or_method_or_partial(var):
 def is_funclike(var):
     return hasattr(var, '__call__')
 
+
 if __name__ == '__main__':
     """
     CommandLine:
