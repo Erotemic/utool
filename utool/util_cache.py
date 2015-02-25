@@ -322,7 +322,7 @@ def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults, arg
     #        [argfmter] map(type, args)) = %r
     #        [argfmter] %s
     #        ''') % (argx, len(args), map(type, args), utool.func_str(func),)
-    #        utool.printex(ex, msg, separate=True)
+    #        utool.printex(ex, msg, pad_stdout=True)
     #        raise
     #def kwdfmter(key):
     #    return fmt_str % (key, hashrepr(kwdval(key)))
@@ -340,7 +340,7 @@ def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults, arg
     #    except Exception:
     #        pass
     #    utool.printex(ex, keys=['key_argsx', 'key_kwds', 'kwdefaults',
-    #                            dbg_cfgstr], separate=True)
+    #                            dbg_cfgstr], pad_stdout=True)
     #    raise
     return cfgstr
 

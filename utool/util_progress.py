@@ -109,7 +109,7 @@ class ProgressIter(object):
 
     lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1, start=True,
     repl=False, approx=False, disable=False, writefreq=1, with_time=False,
-    backspace=True, separate=False, wfreq=None, ffreq=None, freq=None,
+    backspace=True, pad_stdout=False, wfreq=None, ffreq=None, freq=None,
     total=None, num=None, with_totaltime=None
 
     Referencs:
@@ -128,7 +128,7 @@ class ProgressIter(object):
         writefreq (int):
         with_totaltime (bool):
         backspace (bool):
-        separate (bool):
+        pad_stdout (bool):
         wfreq (None): alias for write_freq
         ffreq (None): alias for flush_freq
         total (None): alias for nTotal
@@ -278,7 +278,7 @@ class ProgressIter(object):
         """
         # TODO: record iteration times for analysis
         # TODO Incorporate this better
-        # FIXME; separate into subfunctions
+        # FIXME; pad_stdout into subfunctions
         """
         #class IterState(object):
         #    def __init__(state):
@@ -476,7 +476,7 @@ def progress_str(max_val, lbl='Progress: ', repl=False, approx=False, backspace=
 def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
                  start=True, repl=False, approx=False, disable=False,
                  writefreq=1, with_time=False, backspace=True,
-                 separate=False, wfreq=None, ffreq=None, freq=None, total=None,
+                 pad_stdout=False, wfreq=None, ffreq=None, freq=None, total=None,
                  num=None, with_totaltime=None):
     """
     Returns two functions (mark_progress, end_progress) which will handle
@@ -496,7 +496,7 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
         writefreq (int):
         with_totaltime (bool):
         backspace (bool):
-        separate (bool):
+        pad_stdout (bool):
         wfreq (None): alias for write_freq
         ffreq (None): alias for flush_freq
         freq (None):  alias for flush_freq and write_freq (prefered)
@@ -578,7 +578,7 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
                     if count_ % flushfreq == 0:
                         flush_fn()
 
-        if separate:
+        if pad_stdout:
             write_fn('\n')
             write_fn('\n')
             flush_fn()
@@ -592,7 +592,7 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
             flush_fn()
             if with_time:
                 util_time.toc(tt)
-            if separate:
+            if pad_stdout:
                 write_fn('\n\n')
                 flush_fn()
         #mark_progress(0)

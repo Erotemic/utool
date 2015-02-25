@@ -800,7 +800,7 @@ def get_itemstr_list(list_, strvals=False, newlines=True,
     return itemstr_list
 
 
-def list_str(list_, indent_='', newlines=1, *args, **kwargs):
+def list_str(list_, indent_='', newlines=1, nobraces=False, *args, **kwargs):
     #return '[%s\n]' % indentjoin(list(list_), suffix=',')
     if isinstance(newlines, int):
         new_newlines = newlines - 1
@@ -817,8 +817,13 @@ def list_str(list_, indent_='', newlines=1, *args, **kwargs):
 
     if newlines:
         import utool as ut
-        body_str = '\n'.join([ut.indent(itemstr) for itemstr in itemstr_list])
-        return (leftbrace + '\n' + body_str + '\n' + rightbrace)
+        if nobraces:
+            body_str = '\n'.join(itemstr_list)
+            return body_str
+        else:
+            body_str = '\n'.join([ut.indent(itemstr) for itemstr in itemstr_list])
+            braced_body_str = (leftbrace + '\n' + body_str + '\n' + rightbrace)
+            return braced_body_str
         #return (leftbrace + indentjoin(itemstr_list) + '\n' + indent_ + rightbrace)
     else:
         # hack away last comma
@@ -1228,12 +1233,35 @@ def number_text_lines(text):
 
 
 def get_textdiff(text1, text2):
-    """
+    r"""
     Uses difflib to return a difference string between two
     similar texts
 
     References:
         http://www.java2s.com/Code/Python/Utility/IntelligentdiffbetweentextfilesTimPeters.htm
+
+    Args:
+        text1 (?):
+        text2 (?):
+
+    Returns:
+        ?:
+
+    CommandLine:
+        python -m utool.util_str --test-get_textdiff
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> # build test data
+        >>> text1 = 'one\ntwo\nthree'
+        >>> text2 = 'one\ntwo\nfive'
+        >>> # execute function
+        >>> result = get_textdiff(text1, text2)
+        >>> # verify results
+        >>> print(result)
+        - three
+        + five
     """
     import difflib
     text1_lines = text1.splitlines()

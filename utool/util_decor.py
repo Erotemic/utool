@@ -129,7 +129,7 @@ def on_exception_report_input(func):
             msg = ('\nERROR: funcname=%r,\n * args=%s,\n * kwargs=%r\n' % (meta_util_six.get_funcname(func), arg_strs, kwarg_strs))
             msg += ' * len(args) = %r\n' % len(args)
             msg += ' * len(kwargs) = %r\n' % len(kwargs)
-            util_dbg.printex(ex, msg, separate=True)
+            util_dbg.printex(ex, msg, pad_stdout=True)
             raise
     wrp_onexceptreport = preserve_sig(wrp_onexceptreport, func)
     return wrp_onexceptreport
@@ -345,7 +345,9 @@ def accepts_numpy(func):
 def memorize(func):
     """
     Memoization decorator for functions taking one or more arguments.
-    # http://code.activestate.com/recipes/578231-probably-the-fastest-memoization-decorator-in-the-/
+
+    References:
+        # http://code.activestate.com/recipes/578231-probably-the-fastest-memoization-decorator-in-the-/
     """
     class _memorizer(dict):
         def __init__(self, func):

@@ -1,9 +1,5 @@
 """
-There are a lot of fancier things we can do here.
-A good thing to do would be to keep similar function calls
-and use multiprocessing.Queues for the backend.
-This way we can print out progress.
-
+Module to executes the same function with different arguments in parallel.
 """
 from __future__ import absolute_import, division, print_function
 import multiprocessing

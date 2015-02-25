@@ -1236,8 +1236,8 @@ def print_duplicate_map(duplicate_map, *args, **kwargs):
 
 def debug_duplicate_items(items, *args, **kwargs):
     import utool as ut
-    separate = kwargs.get('separate', True)
-    if separate:
+    pad_stdout = kwargs.get('pad_stdout', True)
+    if pad_stdout:
         print('')
 
     print('[util_list] +--- DEBUG DUPLICATE ITEMS  %r ---' % ut.get_varname_from_locals(items, ut.get_caller_locals()))
@@ -1248,7 +1248,7 @@ def debug_duplicate_items(items, *args, **kwargs):
     printkw = {'printfn': printfn}
     ut.print_duplicate_map(duplicate_map, *args, **printkw)
     print('[util_list] L--- FINISH DEBUG DUPLICATE ITEMS ---')
-    if separate:
+    if pad_stdout:
         print('')
     return duplicate_map
 
@@ -1404,6 +1404,29 @@ def list_cover(list1, list2):
 
 def and_lists(*args):
     return [all(tup) for tup in zip(*args)]
+
+
+def xor_lists(*args):
+    r"""
+    Returns:
+        list:
+
+    CommandLine:
+        python -m utool.util_list --test-xor_lists
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> args = ([True, False, False, True], [True, True, False, False])
+        >>> result = xor_lists(*args)
+        >>> print(result)
+        [False, True, False, True]
+    """
+    return [reduce(operator.xor, tup) for tup in zip(*args)]
+
+
+def not_list(flag_list):
+    return [not flag for flag in flag_list]
 
 
 def or_lists(*args):
