@@ -13,8 +13,7 @@ def utool_setup():
         'psutil >= 2.1.3',
         'parse >= 1.6.6',
         'lockfile >= 0.10.2',
-        'lru-dict >= 1.1.1'
-
+        'lru-dict >= 1.1.1',  # import as lru
         #'decorator',
     ]
 

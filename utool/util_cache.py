@@ -1,6 +1,8 @@
 from __future__ import absolute_import, division, print_function
 import shelve
 import six
+#import lru
+#git+https://github.com/amitdev/lru-dict
 #import atexit
 #import inspect
 import contextlib

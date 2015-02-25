@@ -433,11 +433,11 @@ def cmd(*args, **kwargs):
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
         >>> target = ut.codeblock(
-        ...     r'''
-                ('out', 'hello world\n'),
-                ('err', None),
-                ('ret', 0),
-                ''')
+        ...      r'''
+                 ('out', 'hello world\n'),
+                 ('err', None),
+                 ('ret', 0),
+                 ''')
         >>> varydict = {
         ...    'shell': [True, False],
         ...    'detatch': [False],
@@ -492,7 +492,9 @@ def cmd(*args, **kwargs):
         # Print what you are about to do
         print('[ut.cmd] RUNNING: %r' % (args,))
         # Open a subprocess with a pipe
-        proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=shell)
+        proc = subprocess.Popen(args, stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT, shell=shell,
+                                universal_newlines=True)
         if detatch:
             print('[ut.cmd] PROCESS DETATCHING. No stdoutput can be reported...')
             # There is no immediate confirmation as to whether or not the script
@@ -833,7 +835,7 @@ def unload_module(modname):
         python -m utool.util_cplat --test-unload_module
 
     Example:
-        >>> import sys, gc
+        >>> import sys, gc  # NOQA
         >>> import pyhesaff
         >>> import utool as ut
         >>> modname = 'pyhesaff'
