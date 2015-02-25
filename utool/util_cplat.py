@@ -414,16 +414,23 @@ def cmd(*args, **kwargs):
 
     CommandLine:
         python -m utool.util_cplat --test-cmd
+        python -m utool.util_cplat --test-cmd:0
 
     Example0:
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
-        >>> (out, err, ret) = ut.cmd('echo hello world')
-        >>> result = ut.list_str(list(zip(('out', 'err', 'ret'), (out, err, ret))), nobraces=True)
-        >>> print(result)
-        ('out', 'hello world\n'),
-        ('err', None),
-        ('ret', 0),
+        >>> target = ut.codeblock(
+        ...     r'''
+                ('out', 'hello world\n'),
+                ('err', None),
+                ('ret', 0),
+                ''')
+        >>> varydict = {'shell': [True, False]}
+        >>> for kw in ut.all_dict_combinations(varydict):
+        >>>     restup = ut.cmd('echo hello world', **kw)
+        >>>     tupfields = ('out', 'err', 'ret')
+        >>>     output = ut.list_str(list(zip(tupfields, restup)), nobraces=True)
+        >>>     ut.assert_eq(output, target)
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -435,7 +442,7 @@ def cmd(*args, **kwargs):
         ('err', None),
         ('ret', 0),
 
-    Example1:
+    Example2:
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
         >>> (out, err, ret) = ut.cmd(('echo', 'hello world'))
