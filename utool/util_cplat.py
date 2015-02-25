@@ -293,8 +293,11 @@ def __parse_cmd_kwargs(kwargs):
     #shell   = kwargs.get('shell', False)
     # seems like linux needs the shell to work well
     # maybe thats because I'm a windows admin
+    # FIXME: Turn shell off by default and fix __parse_cmd_args
     shell   = kwargs.get('shell', LINUX or DARWIN)
     sudo    = kwargs.get('sudo', False)
+    # pads stdout of cmd before and after
+    # TODO: rename separate to something else
     separate    = kwargs.get('separate', True)
     return verbose, detatch, shell, sudo, separate
 
