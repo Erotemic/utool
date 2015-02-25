@@ -50,41 +50,41 @@ def test_progress():
 
     print('_________________')
 
-    numiter = 100
-    rate = .001
+    numiter = 50
+    sleeptime = 1E-4
 
     with ut.Timer():
         for x in ut.ProgressIter(range(0, numiter), freq=4):
-            time.sleep(rate)
+            time.sleep(sleeptime)
 
     print('_________________')
     print('No frequncy run:')
 
     with ut.Timer():
         for x in range(0, numiter):
-            time.sleep(rate)
+            time.sleep(sleeptime)
 
     print('_________________')
 
-    numiter = 1000
-    rate = .0000008
+    numiter = 500
+    sleeptime = 8E-7
 
     with ut.Timer():
         for x in ut.ProgressIter(range(0, numiter), freq=4):
-            time.sleep(rate)
+            time.sleep(sleeptime)
 
     print('_________________')
 
     with ut.Timer():
         for x in ut.ProgressIter(range(0, numiter), freq=100):
-            time.sleep(rate)
+            time.sleep(sleeptime)
 
     print('_________________')
     print('No frequncy run:')
 
     with ut.Timer():
         for x in range(0, numiter):
-            time.sleep(rate)
+            time.sleep(sleeptime)
 
     print('_________________')
 
@@ -180,6 +180,7 @@ class ProgressIter(object):
         ut.timeit_grid(stmt_list, setup, input_sizes=input_sizes, show=True)
 
     CommandLine:
+        python -m utool.util_progress --test-ProgressIter
         python -m utool.util_progress --test-ProgressIter:0
         python -m utool.util_progress --test-ProgressIter:1
 
@@ -188,17 +189,20 @@ class ProgressIter(object):
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
         >>> from six.moves import range
-        >>> results1 = [x for x in ut.ProgressIter(range(10000), wfreq=10)]
-        >>> results4 = [x for x in ut.ProgressIter(range(10000), wfreq=1)]
-        >>> results2 = [x for x in range(10000)]
-        >>> results3 = [x for x in ut.progiter((y + 1 for y in range(1000001)), nTotal=1000001, wfreq=1000, backspace=True)]
+        >>> num = 1000
+        >>> num2 = 10001
+        >>> results1 = [x for x in ut.ProgressIter(range(num), wfreq=10)]
+        >>> results4 = [x for x in ut.ProgressIter(range(num), wfreq=1)]
+        >>> results2 = [x for x in range(num)]
+        >>> results3 = [x for x in ut.progiter((y + 1 for y in range(num2)), nTotal=num2, wfreq=1000, backspace=True)]
         >>> assert results1 == results2
 
     Example1:
         >>> # SLOW_DOCTEST
         >>> import utool as ut
         >>> from six.moves import range
-        >>> progiter = ut.ProgressIter(range(100000), lbl='testing primes',
+        >>> num2 = 10001
+        >>> progiter = ut.ProgressIter(range(num2), lbl='testing primes',
         >>>                            report_unit='seconds', freq=1,
         >>>                            time_thresh=1)
         >>> results1 = [ut.get_nth_prime_bruteforce(29) for x in progiter]
