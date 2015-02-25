@@ -417,6 +417,7 @@ def cmd(*args, **kwargs):
         python -m utool.util_cplat --test-cmd:0
         python -m utool.util_cplat --test-cmd:1
         python -m utool.util_cplat --test-cmd:1 --test-sudo
+        python -m utool.util_cplat --test-cmd:2 --test-sudo
 
     Example0:
         >>> # ENABLE_DOCTEST
@@ -439,6 +440,7 @@ def cmd(*args, **kwargs):
                 ''')
         >>> varydict = {
         ...    'shell': [True, False],
+        ...    'detatch': [False],
         ...    'sudo': [True, False] if ut.get_argflag('--test-sudo') else [False],
         ...    'args': ['echo hello world', ('echo', 'hello world')],
         ... }
@@ -446,17 +448,45 @@ def cmd(*args, **kwargs):
         >>>     print('+ --- TEST CMD %d ---' % (count,))
         >>>     print('testing cmd with params ' + ut.dict_str(kw))
         >>>     args = kw.pop('args')
-        >>>     restup = ut.cmd('echo hello world', pad_stdout=False, **kw)
+        >>>     restup = ut.cmd(args, pad_stdout=False, **kw)
         >>>     tupfields = ('out', 'err', 'ret')
         >>>     output = ut.list_str(list(zip(tupfields, restup)), nobraces=True)
         >>>     ut.assert_eq(output, target)
         >>>     print('L ___ TEST CMD %d ___\n' % (count,))
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_cplat import *  # NOQA
+        >>> import utool as ut
+        >>> target = ut.codeblock(
+        ...     r'''
+                ('out', 'hello world\n'),
+                ('err', None),
+                ('ret', 0),
+                ''')
+        >>> varydict = {
+        ...    'shell': [True, False],
+        ...    'detatch': [True],
+        ...    'args': ['ping localhost', ('ping', 'localhost')],
+        ... }
+        >>> proc_list = []
+        >>> for count, kw in enumerate(ut.all_dict_combinations(varydict), start=1):
+        >>>     print('+ --- TEST CMD %d ---' % (count,))
+        >>>     print('testing cmd with params ' + ut.dict_str(kw))
+        >>>     args = kw.pop('args')
+        >>>     restup = ut.cmd(args, pad_stdout=False, **kw)
+        >>>     out, err, proc = restup
+        >>>     proc_list.append(proc)
+        >>>     print(proc)
+        >>>     print(proc)
+        >>>     print(proc.poll())
+        >>>     print('L ___ TEST CMD %d ___\n' % (count,))
     """
     try:
-        sys.stdout.flush()
         # Parse the keyword arguments
         verbose, detatch, shell, sudo, pad_stdout = __parse_cmd_kwargs(kwargs)
         if pad_stdout:
+            sys.stdout.flush()
             print('\n+--------')
         args = __parse_cmd_args(args, sudo, shell)
         # Print what you are about to do
@@ -464,32 +494,35 @@ def cmd(*args, **kwargs):
         # Open a subprocess with a pipe
         proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=shell)
         if detatch:
-            print('[ut.cmd] PROCESS DETATCHING')
-            return None, None, 1
-        if verbose and not detatch:
-            print('[ut.cmd] RUNNING WITH VERBOSE OUTPUT')
-            logged_out = []
-            for line in _run_process(proc):
-                line_ = line if six.PY2 else line.decode('utf-8')
-                if len(line_) > 0:
-                    sys.stdout.write(line_)
-                    sys.stdout.flush()
-                    logged_out.append(line)
-            out = '\n'.join(logged_out)
-            (out_, err) = proc.communicate()
-            #print('[ut.cmd] out: %s' % (out,))
-            print('[ut.cmd] stdout: %s' % (out_,))
-            print('[ut.cmd] stderr: %s' % (err,))
+            print('[ut.cmd] PROCESS DETATCHING. No stdoutput can be reported...')
+            # There is no immediate confirmation as to whether or not the script
+            # finished. It might still be running for all you know
+            return None, None, proc
         else:
-            # Surpress output
-            #print('[ut.cmd] RUNNING WITH SUPRESSED OUTPUT')
-            (out, err) = proc.communicate()
-        # Make sure process if finished
-        ret = proc.wait()
-        print('[ut.cmd] PROCESS FINISHED')
-        if pad_stdout:
-            print('L________\n')
-        return out, err, ret
+            if verbose and not detatch:
+                print('[ut.cmd] RUNNING WITH VERBOSE OUTPUT')
+                logged_out = []
+                for line in _run_process(proc):
+                    line_ = line if six.PY2 else line.decode('utf-8')
+                    if len(line_) > 0:
+                        sys.stdout.write(line_)
+                        sys.stdout.flush()
+                        logged_out.append(line)
+                out = '\n'.join(logged_out)
+                (out_, err) = proc.communicate()
+                #print('[ut.cmd] out: %s' % (out,))
+                print('[ut.cmd] stdout: %s' % (out_,))
+                print('[ut.cmd] stderr: %s' % (err,))
+            else:
+                # Surpress output
+                #print('[ut.cmd] RUNNING WITH SUPRESSED OUTPUT')
+                (out, err) = proc.communicate()
+            # Make sure process if finished
+            ret = proc.wait()
+            print('[ut.cmd] PROCESS FINISHED')
+            if pad_stdout:
+                print('L________\n')
+            return out, err, ret
     except Exception as ex:
         import utool as ut
         #if isinstance(args, tuple):
