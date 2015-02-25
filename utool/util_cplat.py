@@ -298,8 +298,8 @@ def __parse_cmd_kwargs(kwargs):
     sudo    = kwargs.get('sudo', False)
     # pads stdout of cmd before and after
     # TODO: rename separate to something else
-    separate    = kwargs.get('separate', True)
-    return verbose, detatch, shell, sudo, separate
+    pad_stdout    = kwargs.get('pad_stdout', True)
+    return verbose, detatch, shell, sudo, pad_stdout
 
 
 def __parse_cmd_args(args, sudo, shell):
@@ -425,7 +425,7 @@ def cmd(*args, **kwargs):
                 ('err', None),
                 ('ret', 0),
                 ''')
-        >>> varydict = {'shell': [True, False]}
+        >>> varydict = {'shell': [True]}
         >>> for kw in ut.all_dict_combinations(varydict):
         >>>     restup = ut.cmd('echo hello world', **kw)
         >>>     tupfields = ('out', 'err', 'ret')
@@ -455,8 +455,8 @@ def cmd(*args, **kwargs):
     try:
         sys.stdout.flush()
         # Parse the keyword arguments
-        verbose, detatch, shell, sudo, separate = __parse_cmd_kwargs(kwargs)
-        if separate:
+        verbose, detatch, shell, sudo, pad_stdout = __parse_cmd_kwargs(kwargs)
+        if pad_stdout:
             print('\n+--------------')
         args = __parse_cmd_args(args, sudo, shell)
         # Print what you are about to do
@@ -487,7 +487,7 @@ def cmd(*args, **kwargs):
         # Make sure process if finished
         ret = proc.wait()
         print('[ut.cmd] PROCESS FINISHED')
-        if separate:
+        if pad_stdout:
             print('L--------------\n')
         return out, err, ret
     except Exception as ex:
@@ -497,7 +497,7 @@ def cmd(*args, **kwargs):
         #elif isinstance(args, six.string_types):
         #    print(ut.unixpath(args))
         ut.printex(ex, 'Exception running ut.cmd',
-                   keys=['verbose', 'detatch', 'shell', 'sudo', 'separate'],
+                   keys=['verbose', 'detatch', 'shell', 'sudo', 'pad_stdout'],
                    tb=True)
 
 

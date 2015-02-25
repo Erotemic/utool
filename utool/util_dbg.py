@@ -835,7 +835,7 @@ def debug_exception(func):
 
 
 def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
-            locals_=None, iswarning=False, tb=False, separate=True, N=0,
+            locals_=None, iswarning=False, tb=False, pad_stdout=True, N=0,
             use_stdout=False, reraise=False, msg_=None, keys=None):
     """
     Prints (and/or logs) an exception with relevant info
@@ -846,7 +846,7 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
         keys (None): a list of strings denoting variables or expressions of interest
         iswarning (bool): prints as a warning rather than an error if True (defaults to False)
         tb (bool): if True prints the traceback in the error message
-        separate (bool): separate the error message from the rest of stdout with newlines
+        pad_stdout (bool): separate the error message from the rest of stdout with newlines
         prefix (None):
         locals_ (None):
         N (int):
@@ -883,11 +883,11 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
             sys.stdout.flush()
     else:
         print_func = print
-    if separate:
+    if pad_stdout:
         print_func('\n+------\n')
     # print the execption
     print_func(exstr)
-    if separate:
+    if pad_stdout:
         print_func('\nL______\n')
     # If you dont know where an error is coming from raise-all
     if (reraise and not iswarning) or RAISE_ALL:
@@ -983,17 +983,17 @@ def get_varval_from_locals(key, locals_, strict=False):
     return val
 
 
-def get_varstr(val, separate=True, locals_=None):
+def get_varstr(val, pad_stdout=True, locals_=None):
     # TODO: combine with printex functionality
     if locals_ is None:
         locals_ = get_parent_locals()
     name = get_varname_from_locals(val, locals_)
     varstr_list = []
-    if separate:
+    if pad_stdout:
         varstr_list.append('\n\n+==========')
     varstr_list.append(repr(type(val)) + ' ' + name + ' = ')
     varstr_list.append(str(val))
-    if separate:
+    if pad_stdout:
         varstr_list.append('L==========')
     varstr = '\n'.join(varstr_list)
     return varstr

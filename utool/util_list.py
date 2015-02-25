@@ -1236,8 +1236,8 @@ def print_duplicate_map(duplicate_map, *args, **kwargs):
 
 def debug_duplicate_items(items, *args, **kwargs):
     import utool as ut
-    separate = kwargs.get('separate', True)
-    if separate:
+    pad_stdout = kwargs.get('pad_stdout', True)
+    if pad_stdout:
         print('')
 
     print('[util_list] +--- DEBUG DUPLICATE ITEMS  %r ---' % ut.get_varname_from_locals(items, ut.get_caller_locals()))
@@ -1248,7 +1248,7 @@ def debug_duplicate_items(items, *args, **kwargs):
     printkw = {'printfn': printfn}
     ut.print_duplicate_map(duplicate_map, *args, **printkw)
     print('[util_list] L--- FINISH DEBUG DUPLICATE ITEMS ---')
-    if separate:
+    if pad_stdout:
         print('')
     return duplicate_map
 
