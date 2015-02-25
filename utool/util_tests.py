@@ -82,8 +82,8 @@ if BIGFACE:
     SAD_FACE = SAD_FACE_BIG
 else:
     HAPPY_FACE = HAPPY_FACE_SMALL
-    SAD_FACE = SAD_FACE_BIG
-    #SAD_FACE = SAD_FACE_SMALL
+    #SAD_FACE = SAD_FACE_BIG
+    SAD_FACE = SAD_FACE_SMALL
 
 
 def _get_testable_name(testable):
