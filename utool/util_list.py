@@ -1521,6 +1521,30 @@ def filter_startswith(list_, str_):
     return list(filter(item_startswith, list_))
 
 
+def list_rotate(list_, n):
+    """
+    Args:
+        list_ (list):
+        n (int):
+
+    Returns:
+        list:
+
+    References:
+        http://stackoverflow.com/questions/9457832/python-list-rotation
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [1, 2, 3, 4, 5]
+        >>> n = 2
+        >>> result = list_rotate(list_, n)
+        >>> print(result)
+        [3, 4, 5, 1, 2]
+    """
+    return list_[n:] + list_[:n]
+
+
 if __name__ == '__main__':
     """
     CommandLine:
