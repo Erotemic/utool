@@ -125,7 +125,7 @@ def remove_file(fpath, verbose=True, dryrun=False, ignore_errors=True, **kwargs)
             if verbose and not QUIET:
                 print('[util_path] Removed %r' % fpath)
         except OSError:
-            print('[util_path] Misrem %r' % fpath)
+            print('[util_path.remove_file] Misrem %r' % fpath)
             #warnings.warn('OSError: %s,\n Could not delete %s' % (str(e), fpath))
             if not ignore_errors:
                 raise

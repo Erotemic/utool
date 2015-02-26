@@ -281,7 +281,8 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
         'qaids': 'ibs.get_valid_aids(species=species)',
         'daids': 'ibs.get_valid_aids(species=species)',
         'species': 'ibeis.const.Species.ZEB_PLAIN',
-        'kpts': 'vt.dummy.get_dummy_kpts()'
+        'kpts': 'vt.dummy.get_dummy_kpts()',
+        'dodraw': 'ut.show_was_requested()',
     }
     import_depends_map = {
         'ibs':      'import ibeis',
