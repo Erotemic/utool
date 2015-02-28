@@ -453,6 +453,9 @@ def time_func(func):
 
 
 def lazyfunc(func):
+    """
+    Returns a memcached version of a function
+    """
     closuremem_ = [{}]
     def wrapper(*args, **kwargs):
         mem = closuremem_[0]
