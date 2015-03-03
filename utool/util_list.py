@@ -1293,6 +1293,8 @@ def list_deep_types(list_):
 def depth_profile(list_, max_depth=None, compress_homogenous=True):
     """
     Returns a nested list corresponding the shape of the nested structures
+    lists represent depth, tuples represent shape. The values of the items do
+    not matter. only the lengths.
 
     CommandLine:
         python -m utool.util_list --test-depth_profile
@@ -1300,12 +1302,18 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True):
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
+        >>> list_ = [[[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]], [[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]]]
+        >>> result = depth_profile(list_)
+        >>> print(result)
+        (2, 3, 4)
+
+    Example0:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
         >>> list_ = [[[[[1]]], [3, 4, 33]], [[1], [2, 3], [4, [5, 5]]], [1, 3]]
         >>> result = depth_profile(list_)
         >>> print(result)
-        [[(1, 1, 1), 3], [1, 2, (1, 2)], 2]
-
-    [[[[1]], 3], [1, 2, [2]], 2]
+        [[(1, 1, 1), 3], [1, 2, [1, 2]], 2]
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -1313,9 +1321,16 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True):
         >>> list_ = [[[[[1]]], [3, 4, 33]], [[1], [2, 3], [4, [5, 5]]], [1, 3]]
         >>> result = depth_profile(list_, 1)
         >>> print(result)
-        [[(1, '1'), 3], [1, 2, (1, '2')], 2]
+        [[(1, '1'), 3], [1, 2, [1, '2']], 2]
 
-    [['1', '3'], ['1', '2', '2'], 2]
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [[[1, 2], [1, 2, 3]], None]
+        >>> result = depth_profile(list_, compress_homogenous=True)
+        >>> print(result)
+        [[2, 3], 1]
+
     """
     level_shape_list = []
     # For a pure bottom level list return the length
@@ -1330,6 +1345,8 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True):
                     level_shape_list.append(depth_profile(item, max_depth - 1))
                 else:
                     level_shape_list.append(str(len(item)))
+        else:
+            level_shape_list.append(1)
 
     if compress_homogenous:
         # removes redudant information by returning a shape duple
@@ -1543,6 +1560,14 @@ def list_rotate(list_, n):
         [3, 4, 5, 1, 2]
     """
     return list_[n:] + list_[:n]
+
+
+def list_argmax(list_):
+    return np.argmax(np.array(list_))
+
+
+def make_index_lookup(list_):
+    return dict(zip(list_, range(len(list_))))
 
 
 if __name__ == '__main__':

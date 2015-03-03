@@ -941,7 +941,7 @@ def get_varname_from_locals(val, locals_, default='varname-not-found',
         str: the varname which is Val (if it exists)
 
     """
-    if isinstance(val, (int, float, bool)):
+    if val is None or isinstance(val, (int, float, bool)):
         # Cannot work on primative types
         return default
     try:

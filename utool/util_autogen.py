@@ -272,29 +272,36 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
 
     # TODO: Externally register these
     default_argval_map = {
-        'ibs':      'ibeis.opendb(\'testdb1\')',
-        'qreq_':      'ibs.new_query_request(qaids, daids)',
-        'qaid2_qres':  'ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())',
-        'qres':  'ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())[1]',
-        'aid_list': 'ibs.get_valid_aids()',
-        'nid_list': 'ibs._get_all_known_nids()',
-        'qaids': 'ibs.get_valid_aids(species=species)',
-        'daids': 'ibs.get_valid_aids(species=species)',
-        'species': 'ibeis.const.Species.ZEB_PLAIN',
-        'kpts': 'vt.dummy.get_dummy_kpts()',
-        'dodraw': 'ut.show_was_requested()',
+        'ibs'        : 'ibeis.opendb(\'testdb1\')',
+        'qreq_'      : 'ibs.new_query_request(qaids, daids)',
+        'qaid2_qres' : 'ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())',
+        'qres'       : 'ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())[1]',
+        'aid_list'   : 'ibs.get_valid_aids()',
+        'nid_list'   : 'ibs._get_all_known_nids()',
+        'qaids'      : 'ibs.get_valid_aids(species=species)',
+        'daids'      : 'ibs.get_valid_aids(species=species)',
+        'species'    : 'ibeis.const.Species.ZEB_PLAIN',
+        'kpts'       : 'vt.dummy.get_dummy_kpts()',
+        'dodraw'     : 'ut.show_was_requested()',
+        'img_fpath'  : 'ut.grab_test_imgpath(\'carl.jpg\')',
+        'img'        : 'vt.imread(img_fpath)',
     }
     import_depends_map = {
-        'ibs':      'import ibeis',
-        'kpts':     'import vtool as vt',
+        'ibeis':    'import ibeis',
+        'vt':       'import vtool as vt',
+        'img':      'import vtool as vt',  # TODO: remove. fix dependency
         'species':  'import ibeis',
     }
     var_depends_map = {
+        'species':    ['ibeis'],
+        'ibs':       ['ibeis'],
+        'kpts':      ['vt'],
         'qreq_':     ['ibs', 'species', 'daids', 'qaids'],
         'qaids':     ['ibs'],
         'daids':     ['ibs'],
         'qaids':     ['species'],
         'daids':     ['species'],
+        'img':       ['img_fpath', 'vt'],
     }
 
     def find_arg_defaultval(argname, val):

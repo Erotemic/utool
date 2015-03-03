@@ -16,7 +16,8 @@ DimensionBasis = namedtuple('DimensionBasis', ('dimension_name', 'dimension_poin
 class ParamInfo(object):
     """ small class for individual paramater information """
     def __init__(pi, varname, default, shortprefix=util_dev.NoParam,
-                 type_=util_dev.NoParam, varyvals=[], varyslice=None):
+                 type_=util_dev.NoParam, varyvals=[], varyslice=None,
+                 hideif=util_dev.NoParam):
         r"""
         Args:
             varname (?):
@@ -24,6 +25,7 @@ class ParamInfo(object):
             shortprefix (ClassNoParam):
             type_ (ClassNoParam):
             varyvals (list):
+            hideif (var): if the variable value of config is this the itemstr is empty
 
         CommandLine:
             python -m utool.util_gridsearch --test-__init__
@@ -50,13 +52,41 @@ class ParamInfo(object):
         # for gridsearch
         pi.varyvals = varyvals
         pi.varyslice = varyslice
+        pi.hideif = hideif
 
     def get_itemstr(pi, cfg):
-        varstr = str(getattr(cfg,  pi.varname))
-        if pi.shortprefix is not util_dev.NoParam:
-            itemstr = pi.shortprefix + varstr
+        varval = getattr(cfg,  pi.varname)
+        if varval == pi.hideif:
+            itemstr = ''
         else:
-            itemstr =  pi.varname + '=' + varstr
+            varstr = str(varval)
+            if pi.shortprefix is not util_dev.NoParam:
+                itemstr = pi.shortprefix + varstr
+            else:
+                itemstr =  pi.varname + '=' + varstr
+        return itemstr
+
+
+@six.add_metaclass(util_class.ReloadingMetaclass)
+class ParamInfoBool(ParamInfo):
+    def __init__(pi, varname, default=False, shortprefix=util_dev.NoParam, type_=bool, varyvals=[], varyslice=None, hideif=False):
+        super(ParamInfoBool, pi).__init__(
+            varname, default=default, shortprefix=shortprefix, type_=bool,
+            varyvals=varyvals, varyslice=varyslice, hideif=hideif)
+
+    def get_itemstr(pi, cfg):
+        varval = getattr(cfg,  pi.varname)
+        if varval == pi.hideif:
+            itemstr = ''
+        else:
+            if pi.shortprefix is not util_dev.NoParam:
+                itemstr = pi.shortprefix
+            else:
+                itemstr =  pi.varname.replace('_on', '')
+            if varval is False:
+                itemstr = 'no' + itemstr
+            elif varval is not True:
+                raise AssertionError('Not a boolean pi.varname=%r, varval=%r' % (pi.varname, varval,))
         return itemstr
 
 
