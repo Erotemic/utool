@@ -12,8 +12,8 @@ import sys
 import six
 import time
 import datetime
-from utool.util_inject import inject
-print, print_, printDBG, rrr, profile = inject(__name__, '[time]')
+from utool import util_inject
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[time]')
 
 
 # --- Timing ---

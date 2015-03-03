@@ -6,11 +6,6 @@ import six
 import sys
 import functools
 import os
-try:
-    import numpy as np
-    HAS_NUMPY = True
-except ImportError:
-    HAS_NUMPY = False
 from utool import util_print
 from utool import util_time
 from utool import util_iter
@@ -18,6 +13,11 @@ from utool import util_dbg
 from utool import util_arg
 from utool import util_inject
 from utool._internal import meta_util_six
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
 (print, print_, printDBG, rrr, profile) = util_inject.inject(__name__, '[decor]')
 
 # Commandline to toggle certain convinience decorators

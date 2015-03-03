@@ -1,14 +1,10 @@
 from __future__ import absolute_import, division, print_function
 import sys
-from os.path import split, exists, join, dirname
 import os
-from utool.util_inject import inject
+from os.path import split, exists, join, dirname
+from utool import util_inject
 from utool._internal import meta_util_arg
-print, print_, printDBG, rrr, profile = inject(__name__, '[sysreq]')
-
-
-VERBOSE = meta_util_arg.VERBOSE
-DEBUG = meta_util_arg.DEBUG
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[sysreq]')
 
 
 def in_virtual_env():
@@ -59,8 +55,8 @@ def ensure_in_pythonpath(dname):
     dname_list = [split(dpath)[1] for dpath in sys.path]
     if dname not in dname_list:
         dpath = locate_path(dname)
-        if VERBOSE:
+        if meta_util_arg.VERBOSE:
             print('[sysreq] appending %r to PYTHONPATH' % dpath)
         sys.path.append(dpath)
-    elif DEBUG:
+    elif meta_util_arg.DEBUG:
         print('[sysreq] PYTHONPATH has %r' % dname)

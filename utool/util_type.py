@@ -10,9 +10,9 @@ except ImportError:
     # TODO remove numpy
     HAS_NUMPY = False
     pass
-from utool.util_inject import inject
+from utool import util_inject
 from utool._internal.meta_util_six import IntType, LongType, FloatType, BooleanType
-print, print_, printDBG, rrr, profile = inject(__name__, '[type]')
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[type]')
 
 
 def type_str(type_):

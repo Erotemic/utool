@@ -4,8 +4,8 @@ import copy
 import six
 import uuid
 import random
-from utool.util_inject import inject
-(print, print_, printDBG, rrr, profile) = inject(__name__, '[hash]')
+from utool import util_inject
+(print, print_, printDBG, rrr, profile) = util_inject.inject(__name__, '[hash]')
 
 # default length of hash codes
 HASH_LEN = 16

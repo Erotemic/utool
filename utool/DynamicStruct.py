@@ -1,10 +1,10 @@
 from __future__ import absolute_import, division, print_function
 import copy
 import six
-from utool.Printable import AbstractPrintable
+from utool import Printable
 
 
-class DynStruct(AbstractPrintable):
+class DynStruct(Printable.AbstractPrintable):
     """ dynamically add and remove members """
     def __init__(self, child_exclude_list=[], copy_dict=None, copy_class=None):
         super(DynStruct, self).__init__(child_print_exclude=child_exclude_list)

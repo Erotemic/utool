@@ -23,9 +23,9 @@ from utool import util_print  # NOQA
 from utool import util_arg
 from utool import util_path
 from utool import util_time
-from utool.util_inject import inject
+from utool import util_inject
 from utool._internal.meta_util_six import get_funcname
-print, print_, printDBG, rrr, profile = inject(__name__, '[tests]')
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[tests]')
 
 
 VERBOSE_TEST = util_arg.get_argflag(('--verb-test', '--verbose-test'))

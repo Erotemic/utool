@@ -607,7 +607,7 @@ def array_repr2(arr, max_line_width=None, precision=None, suppress_small=None, f
         return cName + '(%s, %sdtype=%s)' % (lst, lf, typename)
 
 
-def numpy_str(arr, strvals=False, precision=8, pr=None):
+def numpy_str(arr, strvals=False, precision=8, pr=None, force_dtype=True):
     if pr is not None:
         precision = pr
     # TODO: make this a util_str func for numpy reprs
@@ -615,7 +615,7 @@ def numpy_str(arr, strvals=False, precision=8, pr=None):
         valstr = np.array_str(arr, precision=precision)
     else:
         #valstr = np.array_repr(arr, precision=precision)
-        valstr = array_repr2(arr, precision=precision, force_dtype=True)
+        valstr = array_repr2(arr, precision=precision, force_dtype=force_dtype)
         numpy_vals = itertools.chain(util_type.NUMPY_SCALAR_NAMES, ['array'])
         for npval in numpy_vals:
             valstr = valstr.replace(npval, 'np.' + npval)

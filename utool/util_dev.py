@@ -10,16 +10,16 @@ import itertools
 from collections import OrderedDict
 from six.moves import input
 from utool import util_progress
+from os.path import splitext, exists, join, split, relpath
+from utool import util_inject
+from utool import util_dict
+from utool import util_arg
 try:
     import numpy as np
     HAS_NUMPY = True
 except ImportError as ex:
     HAS_NUMPY = False
     pass
-from os.path import splitext, exists, join, split, relpath
-from utool import util_inject
-from utool import util_dict
-from utool import util_arg
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[dev]')
 
 if HAS_NUMPY:

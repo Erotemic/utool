@@ -5,9 +5,8 @@ except ImportError as ex:
     pass
 from six.moves import zip, map
 from utool import util_type
-from utool.util_type import is_list, is_int, is_str, is_float
-from utool.util_inject import inject
-print, print_, printDBG, rrr, profile = inject(__name__, '[csv]')
+from utool import util_inject
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[csv]')
 
 
 def numpy_to_csv(arr, col_lbls=None, header='', col_type=None):
@@ -119,19 +118,19 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
         # Loop over every column
         for col, lbl, coltype in zip(column_list, column_lbls, column_type):
             # Loop over every row in the column (using list comprehension)
-            if coltype is list or is_list(coltype):
+            if coltype is list or util_type.is_list(coltype):
                 #print('list')
                 #col_str = [str(c).replace(',', comma_repl).replace('.', '<dot>') for c in iter(col)]
                 col_str = [str(c).replace(',', ' ').replace('.', '<dot>') for c in col]
             elif (coltype is float or
-                  is_float(coltype) or
+                  util_type.is_float(coltype) or
                   coltype == np.float32 or
                   util_type.is_valid_floattype(coltype)):
                 precision_fmtstr = '%.' + str(precision) + 'f'
                 col_str = ['None' if r is None else precision_fmtstr % float(r) for r in col]
-            elif coltype is int or is_int(coltype) or coltype == np.int64:
+            elif coltype is int or util_type.is_int(coltype) or coltype == np.int64:
                 col_str = [_toint(c) for c in iter(col)]
-            elif coltype is str or coltype is unicode or  is_str(coltype):
+            elif coltype is str or coltype is unicode or  util_type.is_str(coltype):
                 col_str = [str(c).replace(',', comma_repl) for c in col]
             else:
                 print('[csv] is_unknown coltype=%r' % (coltype,))

@@ -6,9 +6,9 @@ from __future__ import absolute_import, division, print_function
 import six
 from six.moves import zip, range
 from itertools import chain, cycle, islice, izip_longest
-from utool.util_inject import inject
+from utool import util_inject
 from utool._internal import meta_util_iter
-print, print_, printDBG, rrr, profile = inject(__name__, '[iter]')
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[iter]')
 
 ensure_iterable = meta_util_iter.ensure_iterable
 isiterable = meta_util_iter.isiterable

@@ -5,9 +5,9 @@ try:
 except ImportError as ex:
     pass
 import decimal
-from utool.util_type import is_float, is_int
-from utool.util_inject import inject
-print, print_, printDBG, rrr, profile = inject(__name__, '[num]')
+from utool import util_type
+from utool import util_inject
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[num]')
 
 
 def order_of_magnitude_ceil(num):
@@ -24,7 +24,7 @@ def format_(num, n=8):
     """
     if num is None:
         return 'None'
-    if is_float(num):
+    if util_type.is_float(num):
         ret = ('%.' + str(n) + 'E') % num
         exp_pos  = ret.find('E')
         exp_part = ret[(exp_pos + 1):]
@@ -111,9 +111,9 @@ def num_fmt(num, max_digits=None):
         else:
             max_digits = 1
 
-    if is_float(num):
+    if util_type.is_float(num):
         return ('%.' + str(max_digits) + 'f') % num
-    elif is_int(num):
+    elif util_type.is_int(num):
         return int_comma_str(num)
     else:
         return '%r'
@@ -145,7 +145,7 @@ def fewest_digits_float_str(num, n=8):
 
 
 def commas(num, n=8):
-    if is_float(num):
+    if util_type.is_float(num):
         #ret = sigfig_str(num, n=2)
         ret = '%.3f' % num
         return ret
