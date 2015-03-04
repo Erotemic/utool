@@ -264,14 +264,22 @@ class ProgressIter(object):
                 return self.iter_without_rate()
 
     def build_msg_fmtstr(self, nTotal, report_unit, lbl, invert_rate, backspace):
+        #msg_fmtstr = ''.join((
+        #    '\r',
+        #    lbl,
+        #    ' %4d/', str(nTotal),
+        #    #'...  rate=%3.3f seconds per iter.' if invert_rate else '...  rate=%4.2f iters per second.',
+        #    '...  rate=%3.3f seconds/iter.' if invert_rate else '...  rate=%4.2f Hz.',
+        #    ' est ' + report_unit + ' left: %4.2f,',
+        #    ' total ' + report_unit + ': %4.2f,',
+        #))
         msg_fmtstr = ''.join((
             '\r',
             lbl,
             ' %4d/', str(nTotal),
-            #'...  rate=%3.3f seconds per iter.' if invert_rate else '...  rate=%4.2f iters per second.',
-            '...  rate=%3.3f seconds/iter.' if invert_rate else '...  rate=%4.2f Hz.',
-            ' est ' + report_unit + ' left: %4.2f,',
-            ' total ' + report_unit + ': %4.2f,',
+            '...  rate=%3.3f seconds/iter.' if invert_rate else '...  rate=%4.2f Hz, ',
+            'eta: %4.2f ' + report_unit + ', ',
+            'ellapsed: %4.2f ' + report_unit + ',',
         ))
         if not backspace:
             msg_fmtstr += '\n'
