@@ -228,6 +228,9 @@ def grab_test_imgpath(key, allow_external=True):
     Returns:
         str: testimg_fpath - filepath to the downloaded or cached test image.
 
+    SeeAlso:
+        ut.get_valid_test_imgkeys
+
     CommandLine:
         python -m utool.util_grabdata --test-grab_test_imgpath
 
