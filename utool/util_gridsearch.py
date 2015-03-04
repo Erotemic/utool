@@ -52,19 +52,36 @@ class ParamInfo(object):
         # for gridsearch
         pi.varyvals = varyvals
         pi.varyslice = varyslice
-        pi.hideif = hideif
+        pi.hideif_list = []
+        if hideif is not util_dev.NoParam:
+            pi.append_hideif(hideif)
+
+    def append_hideif(pi, hideif):
+        pi.hideif_list.append(hideif)
+
+    def is_hidden(pi, cfg):
+        for hideif in pi.hideif_list:
+            if hasattr(hideif, '__call__'):
+                hide = hideif(cfg)
+            else:
+                hide = getattr(cfg,  pi.varname) == hideif
+            if hide:
+                return True
+
+    def make_itemstr(pi, cfg):
+        varval = getattr(cfg,  pi.varname)
+        varstr = str(varval)
+        if pi.shortprefix is not util_dev.NoParam:
+            itemstr = pi.shortprefix + varstr
+        else:
+            itemstr =  pi.varname + '=' + varstr
+        return itemstr
 
     def get_itemstr(pi, cfg):
-        varval = getattr(cfg,  pi.varname)
-        if varval == pi.hideif:
-            itemstr = ''
+        if pi.is_hidden(cfg):
+            return ''
         else:
-            varstr = str(varval)
-            if pi.shortprefix is not util_dev.NoParam:
-                itemstr = pi.shortprefix + varstr
-            else:
-                itemstr =  pi.varname + '=' + varstr
-        return itemstr
+            return pi.make_itemstr(cfg)
 
 
 @six.add_metaclass(util_class.ReloadingMetaclass)
@@ -74,31 +91,37 @@ class ParamInfoBool(ParamInfo):
             varname, default=default, shortprefix=shortprefix, type_=bool,
             varyvals=varyvals, varyslice=varyslice, hideif=hideif)
 
-    def get_itemstr(pi, cfg):
+    def make_itemstr(pi, cfg):
         varval = getattr(cfg,  pi.varname)
-        if varval == pi.hideif:
-            itemstr = ''
+        if pi.shortprefix is not util_dev.NoParam:
+            itemstr = pi.shortprefix
         else:
-            if pi.shortprefix is not util_dev.NoParam:
-                itemstr = pi.shortprefix
-            else:
-                itemstr =  pi.varname.replace('_on', '')
-            if varval is False:
-                itemstr = 'no' + itemstr
-            elif varval is not True:
-                raise AssertionError('Not a boolean pi.varname=%r, varval=%r' % (pi.varname, varval,))
+            itemstr =  pi.varname.replace('_on', '')
+        if varval is False:
+            itemstr = 'no' + itemstr
+        elif varval is not True:
+            raise AssertionError('Not a boolean pi.varname=%r, varval=%r' % (pi.varname, varval,))
         return itemstr
 
 
 @six.add_metaclass(util_class.ReloadingMetaclass)
 class ParamInfoList(object):
     """ small class for ut.Pref-less configurations """
-    def __init__(self, name, param_info_list=[], constraint_func=None):
+    def __init__(self, name, param_info_list=[], constraint_func=None, hideif=None):
         self.name = name
         self.param_info_list = param_info_list
         self.constraint_func = constraint_func
+        if hideif is not None:
+            self.append_hideif(hideif)
 
-    def aslist(self):
+    def append_hideif(self, hideif):
+        # apply hideif to all children
+        for pi in self.param_info_list:
+            pi.append_hideif(hideif)
+
+    def aslist(self, hideif=None):
+        if hideif is not None:
+            self.append_hideif(hideif)
         return self.param_info_list
 
     def updated_cfgdict(self, dict_):

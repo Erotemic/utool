@@ -863,7 +863,11 @@ def _exec_doctest(src, kwargs):
     #test_globals['print'] = doctest_print
     # EXEC FUNC
     #six.exec_(src, test_globals, test_locals)  # adds stack to debug trace
-    exec(src, test_globals, test_locals)
+    try:
+        exec(src, test_globals, test_locals)
+    except ExitTestException:
+        print('Test exited before show')
+        pass
     if want is None or want == '':
         print('warning test does not want anything')
     else:
@@ -1289,6 +1293,30 @@ def find_untested_modpaths(dpath_list=None, exclude_doctests_fnames=[], exclude_
 def def_test(header, pat=None, dpath=None, modname=None, default=False, testcmds=None):
     """ interface to make test tuple """
     return (header, default, modname, dpath, pat, testcmds)
+
+
+def show_was_requested():
+    """
+    returns True if --show is specified on the commandline or you are in
+    IPython (and presumably want some sort of interaction
+    """
+    import utool as ut
+    return ut.get_argflag('--show') or ut.inIPython()
+
+
+class ExitTestException(Exception):
+    pass
+
+
+def quit_if_noshow():
+    import utool as ut
+    if not (ut.get_argflag('--show') or ut.inIPython()):
+        raise ExitTestException('This should be caught gracefully by ut.run_test')
+
+
+def show_if_requested():
+    import plottool as pt
+    pt.show_if_requested()
 
 
 if __name__ == '__main__':
