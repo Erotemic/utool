@@ -477,7 +477,10 @@ def dict_take_list(dict_, keys, *d):
 
 def dict_take(dict_, keys, *d):
     """ alias """
-    return dict_take_list(dict_, keys, *d)
+    try:
+        return dict_take_list(dict_, keys, *d)
+    except TypeError:
+        return dict_take_list(dict_, [keys], *d)[0]
 
 
 def dict_take_pop(dict_, keys, *d):
