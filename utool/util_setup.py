@@ -215,6 +215,8 @@ def autogen_sphinx_apidoc():
 
     Ignore:
         C:\Python27\Scripts\autogen_sphinx_docs.py
+        autogen_sphinx_docs.py
+
         pip uninstall sphinx
         pip install sphinx
         pip install sphinxcontrib-napoleon
@@ -222,7 +224,7 @@ def autogen_sphinx_apidoc():
         cd C:\Python27\Scripts
         ls C:\Python27\Scripts
     """
-    import utool
+    import utool as ut
     # TODO: assert sphinx-apidoc exe is found
     # TODO: make find_exe word?
     print('')
@@ -230,7 +232,7 @@ def autogen_sphinx_apidoc():
     print('')
     winprefix = 'C:/Python27/Scripts/'
     apidoc = 'sphinx-apidoc'
-    sphinx_apidoc_exe = apidoc if not utool.WIN32 else winprefix + apidoc + '.exe'
+    sphinx_apidoc_exe = apidoc if not ut.WIN32 else winprefix + apidoc + '.exe'
     apidoc_argfmt_list = [
         sphinx_apidoc_exe,
         '--force',
@@ -245,16 +247,16 @@ def autogen_sphinx_apidoc():
         '{pkgdir}',
     ]
     outputdir = '_doc'
-    author = utool.parse_author()
-    packages = utool.find_packages(maxdepth=1)
+    author = ut.parse_author()
+    packages = ut.find_packages(maxdepth=1)
     assert len(packages) != 0, 'directory must contain at least one package'
     if len(packages) > 1:
         assert len(packages) == 1,\
             ('FIXME I dont know what to do with more than one root package: %r'
              % (packages,))
     pkgdir = packages[0]
-    version = utool.parse_package_for_version(pkgdir)
-    modpath = dirname(utool.truepath(pkgdir))
+    version = ut.parse_package_for_version(pkgdir)
+    modpath = dirname(ut.truepath(pkgdir))
 
     apidoc_fmtdict = {
         'author': author,
@@ -264,16 +266,16 @@ def autogen_sphinx_apidoc():
         'doc_release': version,
         'outputdir': outputdir,
     }
-    utool.assert_exists('setup.py')
-    utool.ensuredir('_doc')
+    ut.assert_exists('setup.py')
+    ut.ensuredir('_doc')
     apidoc_fmtstr = ' '.join(apidoc_argfmt_list)
     apidoc_cmdstr = apidoc_fmtstr.format(**apidoc_fmtdict)
 
     # sphinx-apidoc outputs conf.py to <outputdir>, add custom commands
     print('[util_setup] autogenerate sphinx docs for %r' % (pkgdir,))
-    if utool.VERBOSE:
-        print(utool.dict_str(apidoc_fmtdict))
-    utool.cmd(apidoc_cmdstr, shell=True)
+    if ut.VERBOSE:
+        print(ut.dict_str(apidoc_fmtdict))
+    ut.cmd(apidoc_cmdstr, shell=True)
     #
     # Change dir to <outputdir>
     print('chdir' + outputdir)
@@ -281,17 +283,17 @@ def autogen_sphinx_apidoc():
     #
     # Make custom edits to conf.py
     # FIXME:
-    #search_text = utool.unindent(
+    #ext_search_text = ut.unindent(
     #    r'''
     #    extensions = [
     #    [^\]]*
     #    ]
     #    ''')
-    search_text = r'extensions = \[[^/]*\]'
+    ext_search_text = r'extensions = \[[^/]*\]'
     # TODO: http://sphinx-doc.org/ext/math.html#module-sphinx.ext.pngmath
     #'sphinx.ext.mathjax',
     exclude_modules = []  # ['ibeis.all_imports']
-    repl_text = utool.codeblock(
+    ext_repl_text = ut.codeblock(
         '''
         MOCK_MODULES = {exclude_modules}
         if len(MOCK_MODULES) > 0:
@@ -311,9 +313,17 @@ def autogen_sphinx_apidoc():
         ]
         '''
     ).format(exclude_modules=str(exclude_modules))
-    head_text = utool.codeblock(
+    theme_search = 'html_theme = \'default\''
+    theme_repl = ut.codeblock(
+        '''
+        import sphinx_rtd_theme
+        html_theme = "sphinx_rtd_theme"
+        html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+        ''')
+    head_text = ut.codeblock(
         '''
         from sphinx.ext.autodoc import between
+        import sphinx_rtd_theme
         import sys
         import os
 
@@ -328,8 +338,8 @@ def autogen_sphinx_apidoc():
 
         modindex_common_prefix = ['_']
         '''
-    ).format(modpath=utool.truepath(modpath))
-    tail_text = utool.codeblock(
+    ).format(modpath=ut.truepath(modpath))
+    tail_text = ut.codeblock(
         '''
         def setup(app):
             # Register a sphinx.ext.autodoc.between listener to ignore everything
@@ -339,18 +349,19 @@ def autogen_sphinx_apidoc():
         '''
     )
     conf_fname = 'conf.py'
-    conf_text = utool.read_from(conf_fname)
+    conf_text = ut.read_from(conf_fname)
     conf_text = conf_text.replace('import sys', 'import sys  # NOQA')
     conf_text = conf_text.replace('import os', 'import os  # NOQA')
-    conf_text = utool.regex_replace(search_text, repl_text, conf_text)
+    conf_text = ut.regex_replace(theme_search, theme_repl, conf_text)
+    conf_text = ut.regex_replace(ext_search_text, ext_repl_text, conf_text)
     conf_text = head_text + '\n' + conf_text + tail_text
-    utool.write_to(conf_fname, conf_text)
+    ut.write_to(conf_fname, conf_text)
     # Make the documentation
-    #if utool.LINUX:
-    #    utool.cmd('make html', shell=True)
-    #if utool.WIN32:
+    #if ut.LINUX:
+    #    ut.cmd('make html', shell=True)
+    #if ut.WIN32:
     #raw_input('waiting')
-    utool.cmd('make', 'html', shell=True)
+    ut.cmd('make', 'html', shell=True)
 
 
 def NOOP():
