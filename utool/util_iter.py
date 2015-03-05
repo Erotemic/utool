@@ -142,7 +142,10 @@ def ichunks(iterable, chunksize):
 
 
 def ichunks_list(list_, chunksize):
-    """ input must be a list. SeeAlso ichunks
+    """ input must be a list.
+
+    SeeAlso:
+        ichunks
 
     References:
         http://stackoverflow.com/questions/434287/what-is-the-most-pythonic-way-to-iterate-over-a-list-in-chunks

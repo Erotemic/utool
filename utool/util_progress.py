@@ -89,16 +89,21 @@ def test_progress():
     print('_________________')
 
 
+def get_nTotalChunks(nTotal, chunksize):
+    nTotalChunks = int(math.ceil(nTotal / chunksize))
+    return nTotalChunks
+
+
 def progress_chunks(list_, chunksize, **kwargs):
     """
     Yeilds an iterator in chunks and computes progress
     Progress version of ut.ichunks
     """
     chunk_iter = util_iter.ichunks(list_, chunksize)
-    nTotal = int(math.ceil(len(list_) / chunksize))
+    nTotalChunks = get_nTotalChunks(len(list_), chunksize)
     if 'freq' not in kwargs:
         kwargs['freq'] = 1
-    kwargs['nTotal'] = nTotal
+    kwargs['nTotal'] = nTotalChunks
     progiter_ = ProgressIter(chunk_iter, **kwargs)
     return progiter_
 
@@ -263,26 +268,21 @@ class ProgressIter(object):
             else:
                 return self.iter_without_rate()
 
-    def build_msg_fmtstr(self, nTotal, report_unit, lbl, invert_rate, backspace):
-        #msg_fmtstr = ''.join((
-        #    '\r',
-        #    lbl,
-        #    ' %4d/', str(nTotal),
-        #    #'...  rate=%3.3f seconds per iter.' if invert_rate else '...  rate=%4.2f iters per second.',
-        #    '...  rate=%3.3f seconds/iter.' if invert_rate else '...  rate=%4.2f Hz.',
-        #    ' est ' + report_unit + ' left: %4.2f,',
-        #    ' total ' + report_unit + ': %4.2f,',
-        #))
-        msg_fmtstr = ''.join((
-            '\r',
-            lbl,
-            ' %4d/', str(nTotal),
-            '...  rate=%3.3f seconds/iter.' if invert_rate else '...  rate=%4.2f Hz, ',
+    def build_msg_fmtstr_index(self, nTotal, lbl):
+        msg_fmtstr_index = ''.join(('\r', lbl, ' %4d/', str(nTotal), '...  ',))
+        return msg_fmtstr_index
+
+    def build_msg_fmtstr_time(self, report_unit, lbl, invert_rate, backspace):
+        msg_fmtstr_time = ''.join((
+            'rate=%3.3f seconds/iter, ' if invert_rate else 'rate=%4.2f Hz, ',
             'eta: %4.2f ' + report_unit + ', ',
             'ellapsed: %4.2f ' + report_unit + ',',
+            '\n' if backspace else '',
         ))
-        if not backspace:
-            msg_fmtstr += '\n'
+        return msg_fmtstr_time
+
+    def build_msg_fmtstr(self, nTotal, lbl, report_unit, invert_rate, backspace):
+        msg_fmtstr = self.build_msg_fmtstr_index(nTotal, lbl) + self.build_msg_fmtstr_time(report_unit, lbl, invert_rate, backspace)
         return msg_fmtstr
 
     @profile
@@ -291,6 +291,9 @@ class ProgressIter(object):
         # TODO: record iteration times for analysis
         # TODO Incorporate this better
         # FIXME; pad_stdout into subfunctions
+
+        import dis
+        dis.dis(ut.ProgressIter.iter_rate)
         """
         #class IterState(object):
         #    def __init__(state):
@@ -326,12 +329,12 @@ class ProgressIter(object):
         est_timeunit_left = -1
 
         # Write initial message
-        msg_fmtstr = self.build_msg_fmtstr(nTotal, self.report_unit, self.lbl,
-                                           self.invert_rate, self.backspace)
-        msg = msg_fmtstr % (self.count, -1, -1, 0)
-        PROGRESS_WRITE(msg)
+        PROGRESS_WRITE(self.build_msg_fmtstr_index(nTotal, self.lbl) % (self.count))
         PROGRESS_FLUSH()
 
+        # Prepare for iteration
+        msg_fmtstr = self.build_msg_fmtstr(nTotal, self.lbl, self.report_unit,
+                                           self.invert_rate, self.backspace)
         start_time    = time.time()
         last_time     = start_time
 
