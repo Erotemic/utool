@@ -1,51 +1,149 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>utool.util_list &mdash; utool 1.0.0.dev1 documentation</title>
-    
-    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '1.0.0.dev1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html" />
-    <link rel="up" title="utool" href="../utool.html" /> 
-  </head>
-  <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
-          <li><a href="../index.html" >Module code</a> &raquo;</li>
-          <li><a href="../utool.html" accesskey="U">utool</a> &raquo;</li> 
-      </ul>
-    </div>  
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>utool.util_list &mdash; utool 1.0.0.dev1 documentation</title>
+  
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body">
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html"/>
+        <link rel="up" title="utool" href="../utool.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../index.html" class="fa fa-home"> utool</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../utool.html">utool package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.DynamicStruct">utool.DynamicStruct module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.Preferences">utool.Preferences module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.Printable">utool.Printable module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_alg">utool.util_alg module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_aliases">utool.util_aliases module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_arg">utool.util_arg module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_assert">utool.util_assert module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_autogen">utool.util_autogen module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_cache">utool.util_cache module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_class">utool.util_class module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_config">utool.util_config module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_cplat">utool.util_cplat module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_csv">utool.util_csv module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_dbg">utool.util_dbg module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_decor">utool.util_decor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_dev">utool.util_dev module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_dict">utool.util_dict module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_distances">utool.util_distances module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_func">utool.util_func module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_git">utool.util_git module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_grabdata">utool.util_grabdata module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_gridsearch">utool.util_gridsearch module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_hash">utool.util_hash module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_inject">utool.util_inject module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_inspect">utool.util_inspect module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_io">utool.util_io module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_iter">utool.util_iter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_latex">utool.util_latex module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_list">utool.util_list module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_logging">utool.util_logging module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_num">utool.util_num module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_numpy">utool.util_numpy module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_parallel">utool.util_parallel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_path">utool.util_path module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_print">utool.util_print module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_progress">utool.util_progress module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_regex">utool.util_regex module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_resources">utool.util_resources module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_set">utool.util_set module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_setup">utool.util_setup module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_six">utool.util_six module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_str">utool.util_str module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_sysreq">utool.util_sysreq module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_tests">utool.util_tests module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_time">utool.util_time module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_type">utool.util_type module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">utool</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../utool.html">utool</a> &raquo;</li>
+      
+    <li>utool.util_list</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
             
   <h1>Source code for utool.util_list</h1><div class="highlight"><pre>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
@@ -68,6 +166,14 @@
 
 <span class="c"># --- List Allocations ---</span>
 
+<div class="viewcode-block" id="lmap"><a class="viewcode-back" href="../../utool.html#utool.util_list.lmap">[docs]</a><span class="k">def</span> <span class="nf">lmap</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">iter_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    list map - eagerly evaulates map like in python2</span>
+<span class="sd">    (but you aren&#39;t using that right?)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">iter_</span><span class="p">))</span>
+
+</div>
 <div class="viewcode-block" id="replace_nones"><a class="viewcode-back" href="../../utool.html#utool.util_list.replace_nones">[docs]</a><span class="k">def</span> <span class="nf">replace_nones</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">repl</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Recursively removes Nones in all lists and sublists and replaces them with</span>
@@ -101,6 +207,19 @@
         <span class="n">repl</span> <span class="k">if</span> <span class="n">item</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="p">(</span>
             <span class="n">replace_nones</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">repl</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="n">item</span>
         <span class="p">)</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">list_</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">repl_list</span>
+
+</div>
+<div class="viewcode-block" id="recursive_replace"><a class="viewcode-back" href="../../utool.html#utool.util_list.recursive_replace">[docs]</a><span class="k">def</span> <span class="nf">recursive_replace</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">repl</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Recursively removes target in all lists and sublists and replaces them with</span>
+<span class="sd">    the repl variable</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">repl_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">recursive_replace</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">repl</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">))</span> <span class="k">else</span>
+        <span class="p">(</span><span class="n">repl</span> <span class="k">if</span> <span class="n">item</span> <span class="o">==</span> <span class="n">target</span> <span class="k">else</span> <span class="n">item</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">list_</span>
     <span class="p">]</span>
     <span class="k">return</span> <span class="n">repl_list</span>
@@ -146,6 +265,9 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        list: list of selected items</span>
 
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_list --test-get_list_column</span>
+
 <span class="sd">    Example0:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_list import *  # NOQA</span>
@@ -174,11 +296,12 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        [[&#39;EGGS&#39;], [&#39;JAM&#39;]]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">colx</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-        <span class="c"># multi select</span>
-        <span class="k">return</span> <span class="p">[[</span><span class="n">row</span><span class="p">[</span><span class="n">colx_</span><span class="p">]</span> <span class="k">for</span> <span class="n">colx_</span> <span class="ow">in</span> <span class="n">colx</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">list_</span><span class="p">]</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="n">colx</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">list_</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">util_iter</span><span class="o">.</span><span class="n">iget_list_column</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">colx</span><span class="p">))</span>
+    <span class="c">#if isinstance(colx, list):</span>
+    <span class="c">#    # multi select</span>
+    <span class="c">#    return [[row[colx_] for colx_ in colx] for row in list_]</span>
+    <span class="c">#else:</span>
+    <span class="c">#    return [row[colx] for row in list_]</span>
 
 
 <span class="c">#def get_list_row(list_, rowx):</span>
@@ -311,7 +434,7 @@
     <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">util_iter</span><span class="o">.</span><span class="n">iflatten</span><span class="p">(</span><span class="n">list_</span><span class="p">))</span>
 
 </div>
-<div class="viewcode-block" id="invertable_flatten"><a class="viewcode-back" href="../../utool.html#utool.util_list.invertable_flatten">[docs]</a><span class="k">def</span> <span class="nf">invertable_flatten</span><span class="p">(</span><span class="n">unflat_list</span><span class="p">):</span>
+<div class="viewcode-block" id="invertible_flatten"><a class="viewcode-back" href="../../utool.html#utool.util_list.invertible_flatten">[docs]</a><span class="k">def</span> <span class="nf">invertible_flatten</span><span class="p">(</span><span class="n">unflat_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Flattens ``list`` but remember how to reconstruct the unflat ``list``</span>
 <span class="sd">    Returns flat ``list`` and the unflat ``list`` with indexes into the flat</span>
@@ -335,7 +458,7 @@
 
 </div>
 <div class="viewcode-block" id="unflatten"><a class="viewcode-back" href="../../utool.html#utool.util_list.unflatten">[docs]</a><span class="k">def</span> <span class="nf">unflatten</span><span class="p">(</span><span class="n">flat_list</span><span class="p">,</span> <span class="n">reverse_list</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Rebuilds unflat list from invertable_flatten</span>
+    <span class="sd">&quot;&quot;&quot; Rebuilds unflat list from invertible_flatten</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        flat_list (list): the flattened list</span>
@@ -346,8 +469,8 @@
 
 
 <span class="sd">    SeeAlso:</span>
-<span class="sd">        invertable_flatten</span>
-<span class="sd">        invertable_flatten2</span>
+<span class="sd">        invertible_flatten</span>
+<span class="sd">        invertible_flatten2</span>
 <span class="sd">        unflatten2</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -355,9 +478,9 @@
     <span class="k">return</span> <span class="n">unflat_list2</span>
 
 </div>
-<div class="viewcode-block" id="invertable_flatten2"><a class="viewcode-back" href="../../utool.html#utool.util_list.invertable_flatten2">[docs]</a><span class="k">def</span> <span class="nf">invertable_flatten2</span><span class="p">(</span><span class="n">unflat_list</span><span class="p">):</span>
+<div class="viewcode-block" id="invertible_flatten2"><a class="viewcode-back" href="../../utool.html#utool.util_list.invertible_flatten2">[docs]</a><span class="k">def</span> <span class="nf">invertible_flatten2</span><span class="p">(</span><span class="n">unflat_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    An alternative to invertable_flatten which uses cumsum</span>
+<span class="sd">    An alternative to invertible_flatten which uses cumsum</span>
 
 <span class="sd">    TODO: This flatten is faster fix it to be used everywhere</span>
 
@@ -371,7 +494,7 @@
 <span class="sd">        &gt;&gt;&gt; import utool</span>
 <span class="sd">        &gt;&gt;&gt; utool.util_list</span>
 <span class="sd">        &gt;&gt;&gt; unflat_list = [[5], [2, 3, 12, 3, 3], [9], [13, 3], [5]]</span>
-<span class="sd">        &gt;&gt;&gt; flat_list, cumlen_list = invertable_flatten2(unflat_list)</span>
+<span class="sd">        &gt;&gt;&gt; flat_list, cumlen_list = invertible_flatten2(unflat_list)</span>
 <span class="sd">        &gt;&gt;&gt; unflat_list2 = unflatten2(flat_list, cumlen_list)</span>
 <span class="sd">        &gt;&gt;&gt; assert unflat_list2 == unflat_list</span>
 <span class="sd">        &gt;&gt;&gt; result = ((flat_list, cumlen_list))</span>
@@ -379,15 +502,15 @@
 <span class="sd">        ([5, 2, 3, 12, 3, 3, 9, 13, 3, 5], [1, 6, 7, 9, 10])</span>
 
 <span class="sd">    SeeAlso:</span>
-<span class="sd">        invertable_flatten</span>
+<span class="sd">        invertible_flatten</span>
 <span class="sd">        unflatten</span>
 <span class="sd">        unflatten2</span>
 
 <span class="sd">    Timeits:</span>
 <span class="sd">        import utool</span>
 <span class="sd">        unflat_list = aids_list1</span>
-<span class="sd">        flat_aids1, reverse_list = utool.invertable_flatten(unflat_list)</span>
-<span class="sd">        flat_aids2, cumlen_list = utool.invertable_flatten2(unflat_list)</span>
+<span class="sd">        flat_aids1, reverse_list = utool.invertible_flatten(unflat_list)</span>
+<span class="sd">        flat_aids2, cumlen_list = utool.invertible_flatten2(unflat_list)</span>
 <span class="sd">        unflat_list1 = utool.unflatten(flat_aids1, reverse_list)</span>
 <span class="sd">        unflat_list2 = utool.unflatten2(flat_aids2, cumlen_list)</span>
 <span class="sd">        assert list(map(list, unflat_list1)) == unflat_list2</span>
@@ -399,10 +522,10 @@
 <span class="sd">        print(utool.get_object_size_str(unflat_list1, &#39;unflat_list1 &#39;))</span>
 <span class="sd">        print(utool.get_object_size_str(unflat_list2, &#39;unflat_list2 &#39;))</span>
 <span class="sd">        print(&#39;Timings 1:)</span>
-<span class="sd">        %timeit utool.invertable_flatten(unflat_list)</span>
+<span class="sd">        %timeit utool.invertible_flatten(unflat_list)</span>
 <span class="sd">        %timeit utool.unflatten(flat_aids1, reverse_list)</span>
 <span class="sd">        print(&#39;Timings 2:)</span>
-<span class="sd">        %timeit utool.invertable_flatten2(unflat_list)</span>
+<span class="sd">        %timeit utool.invertible_flatten2(unflat_list)</span>
 <span class="sd">        %timeit utool.unflatten2(flat_aids2, cumlen_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">sublen_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">unflat_list</span><span class="p">))</span>
@@ -427,7 +550,7 @@
 
 </div>
 <div class="viewcode-block" id="unflatten2"><a class="viewcode-back" href="../../utool.html#utool.util_list.unflatten2">[docs]</a><span class="k">def</span> <span class="nf">unflatten2</span><span class="p">(</span><span class="n">flat_list</span><span class="p">,</span> <span class="n">cumlen_list</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Rebuilds unflat list from invertable_flatten</span>
+    <span class="sd">&quot;&quot;&quot; Rebuilds unflat list from invertible_flatten</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        flat_list (list): the flattened list</span>
@@ -438,8 +561,8 @@
 
 
 <span class="sd">    SeeAlso:</span>
-<span class="sd">        invertable_flatten</span>
-<span class="sd">        invertable_flatten2</span>
+<span class="sd">        invertible_flatten</span>
+<span class="sd">        invertible_flatten2</span>
 <span class="sd">        unflatten2</span>
 
 <span class="sd">    Example:</span>
@@ -513,7 +636,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
     <span class="c"># First flatten the list, and remember the original dimensions</span>
-    <span class="n">flat_rowids</span><span class="p">,</span> <span class="n">reverse_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invertable_flatten2</span><span class="p">(</span><span class="n">unflat_rowids</span><span class="p">)</span>
+    <span class="n">flat_rowids</span><span class="p">,</span> <span class="n">reverse_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invertible_flatten2</span><span class="p">(</span><span class="n">unflat_rowids</span><span class="p">)</span>
     <span class="c"># Then make the input unique</span>
     <span class="n">flat_rowids_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">flat_rowids</span><span class="p">)</span>
     <span class="n">unique_flat_rowids</span><span class="p">,</span> <span class="n">inverse_unique</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">flat_rowids_arr</span><span class="p">,</span> <span class="n">return_inverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
@@ -904,6 +1027,8 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        item_list (list): list to sort</span>
+
+<span class="sd">    Varargs:</span>
 <span class="sd">        *args (list): multiple lists to sort by</span>
 
 <span class="sd">    Kwargs:</span>
@@ -938,7 +1063,14 @@
 
 </div>
 <div class="viewcode-block" id="list_argsort"><a class="viewcode-back" href="../../utool.html#utool.util_list.list_argsort">[docs]</a><span class="k">def</span> <span class="nf">list_argsort</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; like np.argsort but for lists &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot; like np.argsort but for lists</span>
+
+<span class="sd">    Varargs:</span>
+<span class="sd">        *args (list): multiple lists to sort by</span>
+
+<span class="sd">    Kwargs:</span>
+<span class="sd">        reverse (bool): sort order is descending if True else acscending</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">index_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span>
     <span class="k">return</span> <span class="n">sortedby2</span><span class="p">(</span><span class="n">index_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
@@ -1123,7 +1255,7 @@
     <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">op</span><span class="p">(</span><span class="n">list_</span><span class="p">[</span><span class="n">ix</span><span class="p">],</span> <span class="n">list_</span><span class="p">[</span><span class="n">ix</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
 
 </div>
-<div class="viewcode-block" id="find_nonconsec_indicies"><a class="viewcode-back" href="../../utool.html#utool.util_list.find_nonconsec_indicies">[docs]</a><span class="k">def</span> <span class="nf">find_nonconsec_indicies</span><span class="p">(</span><span class="n">unique_vals</span><span class="p">,</span> <span class="n">consec_vals</span><span class="p">):</span>
+<div class="viewcode-block" id="find_nonconsec_indices"><a class="viewcode-back" href="../../utool.html#utool.util_list.find_nonconsec_indices">[docs]</a><span class="k">def</span> <span class="nf">find_nonconsec_indices</span><span class="p">(</span><span class="n">unique_vals</span><span class="p">,</span> <span class="n">consec_vals</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    # TODO: rectify with above function</span>
 
@@ -1143,7 +1275,7 @@
 <span class="sd">        &gt;&gt;&gt; min_ = unique_vals.min()</span>
 <span class="sd">        &gt;&gt;&gt; range_ = max_ - min_</span>
 <span class="sd">        &gt;&gt;&gt; consec_vals = np.linspace(min_, max_ + 1, range_ + 2)</span>
-<span class="sd">        &gt;&gt;&gt; missing_ixs = find_nonconsec_indicies(unique_vals, consec_vals)</span>
+<span class="sd">        &gt;&gt;&gt; missing_ixs = find_nonconsec_indices(unique_vals, consec_vals)</span>
 <span class="sd">        &gt;&gt;&gt; result = (consec_vals[missing_ixs])</span>
 <span class="sd">        [ 0.  3.  4.  5.  6.  7.  8.  9.]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1162,20 +1294,20 @@
 <div class="viewcode-block" id="debug_consec_list"><a class="viewcode-back" href="../../utool.html#utool.util_list.debug_consec_list">[docs]</a><span class="k">def</span> <span class="nf">debug_consec_list</span><span class="p">(</span><span class="n">list_</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        tuple of (missing_items, missing_indicies, duplicate_items)</span>
+<span class="sd">        tuple of (missing_items, missing_indices, duplicate_items)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">issorted</span><span class="p">(</span><span class="n">list_</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;warning list is not sorted. indicies will not match&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;warning list is not sorted. indices will not match&#39;</span><span class="p">)</span>
     <span class="n">sortedlist</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span>
     <span class="n">start</span> <span class="o">=</span> <span class="n">sortedlist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">last</span> <span class="o">=</span> <span class="n">start</span> <span class="o">-</span> <span class="mi">1</span>
     <span class="n">missing_vals</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">missing_indicies</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">missing_indices</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">duplicate_items</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sortedlist</span><span class="p">):</span>
         <span class="n">diff</span> <span class="o">=</span> <span class="n">item</span> <span class="o">-</span> <span class="n">last</span>
         <span class="k">if</span> <span class="n">diff</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">missing_indicies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+            <span class="n">missing_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">miss</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">last</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">last</span> <span class="o">+</span> <span class="n">diff</span><span class="p">):</span>
                 <span class="n">missing_vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">miss</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">diff</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -1186,7 +1318,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;We sorted the list. diff can not be negative&#39;</span><span class="p">)</span>
         <span class="n">last</span> <span class="o">=</span> <span class="n">item</span>
-    <span class="k">return</span> <span class="n">missing_vals</span><span class="p">,</span> <span class="n">missing_indicies</span><span class="p">,</span> <span class="n">duplicate_items</span>
+    <span class="k">return</span> <span class="n">missing_vals</span><span class="p">,</span> <span class="n">missing_indices</span><span class="p">,</span> <span class="n">duplicate_items</span>
 
 </div>
 <div class="viewcode-block" id="find_duplicate_items"><a class="viewcode-back" href="../../utool.html#utool.util_list.find_duplicate_items">[docs]</a><span class="k">def</span> <span class="nf">find_duplicate_items</span><span class="p">(</span><span class="n">items</span><span class="p">):</span>
@@ -1241,7 +1373,7 @@
     <span class="n">printfn</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;printfn&#39;</span><span class="p">,</span> <span class="k">print</span><span class="p">)</span>
     <span class="n">printfn</span><span class="p">(</span><span class="s">&#39;There are </span><span class="si">%d</span><span class="s"> duplicates&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">duplicate_map</span><span class="p">)))</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">index_list</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">duplicate_map</span><span class="p">):</span>
-        <span class="n">printfn</span><span class="p">(</span><span class="s">&#39;item=</span><span class="si">%s</span><span class="s"> appears </span><span class="si">%d</span><span class="s"> times at indicies: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">index_list</span><span class="p">),</span> <span class="n">index_list</span><span class="p">))</span>
+        <span class="n">printfn</span><span class="p">(</span><span class="s">&#39;item=</span><span class="si">%s</span><span class="s"> appears </span><span class="si">%d</span><span class="s"> times at indices: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">index_list</span><span class="p">),</span> <span class="n">index_list</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">argx</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
             <span class="c">#argname = &#39;arg%d&#39; % (argx)</span>
             <span class="n">argname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_varname_from_stack</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
@@ -1252,8 +1384,8 @@
 </div>
 <div class="viewcode-block" id="debug_duplicate_items"><a class="viewcode-back" href="../../utool.html#utool.util_list.debug_duplicate_items">[docs]</a><span class="k">def</span> <span class="nf">debug_duplicate_items</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-    <span class="n">separate</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;separate&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">separate</span><span class="p">:</span>
+    <span class="n">pad_stdout</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;pad_stdout&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pad_stdout</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
 
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_list] +--- DEBUG DUPLICATE ITEMS  </span><span class="si">%r</span><span class="s"> ---&#39;</span> <span class="o">%</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_varname_from_locals</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_caller_locals</span><span class="p">()))</span>
@@ -1264,7 +1396,7 @@
     <span class="n">printkw</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;printfn&#39;</span><span class="p">:</span> <span class="n">printfn</span><span class="p">}</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">print_duplicate_map</span><span class="p">(</span><span class="n">duplicate_map</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">printkw</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_list] L--- FINISH DEBUG DUPLICATE ITEMS ---&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">separate</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">pad_stdout</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">duplicate_map</span>
 
@@ -1306,9 +1438,22 @@
     <span class="k">return</span> <span class="n">type_list</span>
 
 </div>
-<div class="viewcode-block" id="depth_profile"><a class="viewcode-back" href="../../utool.html#utool.util_list.depth_profile">[docs]</a><span class="k">def</span> <span class="nf">depth_profile</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">max_depth</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="depth_profile"><a class="viewcode-back" href="../../utool.html#utool.util_list.depth_profile">[docs]</a><span class="k">def</span> <span class="nf">depth_profile</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">max_depth</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">compress_homogenous</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a nested list corresponding the shape of the nested structures</span>
+<span class="sd">    lists represent depth, tuples represent shape. The values of the items do</span>
+<span class="sd">    not matter. only the lengths.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_list --test-depth_profile</span>
+
+<span class="sd">    Example0:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_list import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; list_ = [[[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]], [[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]]]</span>
+<span class="sd">        &gt;&gt;&gt; result = depth_profile(list_)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        (2, 3, 4)</span>
 
 <span class="sd">    Example0:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
@@ -1316,7 +1461,7 @@
 <span class="sd">        &gt;&gt;&gt; list_ = [[[[[1]]], [3, 4, 33]], [[1], [2, 3], [4, [5, 5]]], [1, 3]]</span>
 <span class="sd">        &gt;&gt;&gt; result = depth_profile(list_)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        [[[[1]], 3], [1, 2, [2]], 2]</span>
+<span class="sd">        [[(1, 1, 1), 3], [1, 2, [1, 2]], 2]</span>
 
 <span class="sd">    Example1:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
@@ -1324,7 +1469,16 @@
 <span class="sd">        &gt;&gt;&gt; list_ = [[[[[1]]], [3, 4, 33]], [[1], [2, 3], [4, [5, 5]]], [1, 3]]</span>
 <span class="sd">        &gt;&gt;&gt; result = depth_profile(list_, 1)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        [[&#39;1&#39;, &#39;3&#39;], [&#39;1&#39;, &#39;2&#39;, &#39;2&#39;], 2]</span>
+<span class="sd">        [[(1, &#39;1&#39;), 3], [1, 2, [1, &#39;2&#39;]], 2]</span>
+
+<span class="sd">    Example2:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_list import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; list_ = [[[1, 2], [1, 2, 3]], None]</span>
+<span class="sd">        &gt;&gt;&gt; result = depth_profile(list_, compress_homogenous=True)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [[2, 3], 1]</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">level_shape_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="c"># For a pure bottom level list return the length</span>
@@ -1339,7 +1493,46 @@
                     <span class="n">level_shape_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">depth_profile</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">max_depth</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">level_shape_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">item</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">level_shape_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">compress_homogenous</span><span class="p">:</span>
+        <span class="c"># removes redudant information by returning a shape duple</span>
+        <span class="k">if</span> <span class="n">list_allsame</span><span class="p">(</span><span class="n">level_shape_list</span><span class="p">):</span>
+            <span class="n">dim_</span> <span class="o">=</span> <span class="n">level_shape_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">len_</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">level_shape_list</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dim_</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="n">level_shape_list</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">len_</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">dim_</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">level_shape_list</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">len_</span><span class="p">,</span> <span class="n">dim_</span><span class="p">])</span>
+
     <span class="k">return</span> <span class="n">level_shape_list</span>
+
+</div>
+<div class="viewcode-block" id="list_type_profile"><a class="viewcode-back" href="../../utool.html#utool.util_list.list_type_profile">[docs]</a><span class="k">def</span> <span class="nf">list_type_profile</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">compress_homogenous</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; similar to depth_profile but reports types &quot;&quot;&quot;</span>
+    <span class="c"># For a pure bottom level list return the length</span>
+    <span class="c">#if not any(map(is_listlike, sequence)) or (isinstance(sequence, np.ndarray) and sequence.dtype != object):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_listlike</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="n">sequence</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="nb">object</span><span class="p">):</span>
+        <span class="n">typename</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">sequence</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&lt;type </span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&gt;&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">level_type_str</span> <span class="o">=</span> <span class="n">typename</span>
+        <span class="k">return</span> <span class="n">level_type_str</span>
+
+    <span class="n">level_type_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">sequence</span><span class="p">:</span>
+        <span class="c">#if is_listlike(item):</span>
+        <span class="n">level_type_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">list_type_profile</span><span class="p">(</span><span class="n">item</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">compress_homogenous</span><span class="p">:</span>
+        <span class="c"># removes redudant information by returning a type and number</span>
+        <span class="k">if</span> <span class="n">list_allsame</span><span class="p">(</span><span class="n">level_type_list</span><span class="p">):</span>
+            <span class="n">type_</span> <span class="o">=</span> <span class="n">level_type_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">level_type_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">type_</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;*&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">level_type_list</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">level_type_str</span> <span class="o">=</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">level_type_list</span><span class="p">)</span>
+    <span class="n">typename</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">sequence</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&lt;type </span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&gt;&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">level_type_str</span> <span class="o">=</span> <span class="n">typename</span> <span class="o">+</span> <span class="s">&#39;(&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">level_type_str</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span>
+    <span class="k">return</span> <span class="n">level_type_str</span>
 
 </div>
 <div class="viewcode-block" id="list_cover"><a class="viewcode-back" href="../../utool.html#utool.util_list.list_cover">[docs]</a><span class="k">def</span> <span class="nf">list_cover</span><span class="p">(</span><span class="n">list1</span><span class="p">,</span> <span class="n">list2</span><span class="p">):</span>
@@ -1378,6 +1571,29 @@
     <span class="k">return</span> <span class="p">[</span><span class="nb">all</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)]</span>
 
 </div>
+<div class="viewcode-block" id="xor_lists"><a class="viewcode-back" href="../../utool.html#utool.util_list.xor_lists">[docs]</a><span class="k">def</span> <span class="nf">xor_lists</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list:</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_list --test-xor_lists</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_list import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; args = ([True, False, False, True], [True, True, False, False])</span>
+<span class="sd">        &gt;&gt;&gt; result = xor_lists(*args)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [False, True, False, True]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nb">reduce</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">xor</span><span class="p">,</span> <span class="n">tup</span><span class="p">)</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)]</span>
+
+</div>
+<div class="viewcode-block" id="not_list"><a class="viewcode-back" href="../../utool.html#utool.util_list.not_list">[docs]</a><span class="k">def</span> <span class="nf">not_list</span><span class="p">(</span><span class="n">flag_list</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span><span class="ow">not</span> <span class="n">flag</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">flag_list</span><span class="p">]</span>
+
+</div>
 <div class="viewcode-block" id="or_lists"><a class="viewcode-back" href="../../utool.html#utool.util_list.or_lists">[docs]</a><span class="k">def</span> <span class="nf">or_lists</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
     <span class="k">return</span> <span class="p">[</span><span class="nb">any</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)]</span>
 
@@ -1390,7 +1606,7 @@
     <span class="k">return</span> <span class="n">sortby_func</span>
 
 </div>
-<div class="viewcode-block" id="find_first_true_indicies"><a class="viewcode-back" href="../../utool.html#utool.util_list.find_first_true_indicies">[docs]</a><span class="k">def</span> <span class="nf">find_first_true_indicies</span><span class="p">(</span><span class="n">flags_list</span><span class="p">):</span>
+<div class="viewcode-block" id="find_first_true_indices"><a class="viewcode-back" href="../../utool.html#utool.util_list.find_first_true_indices">[docs]</a><span class="k">def</span> <span class="nf">find_first_true_indices</span><span class="p">(</span><span class="n">flags_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    returns a list of indexes where the index is the first True position</span>
 <span class="sd">    in the corresponding sublist or None if it does not exist</span>
@@ -1401,16 +1617,18 @@
 <span class="sd">        flags_list (list): list of lists of booleans</span>
 
 <span class="sd">    CommandLine:</span>
-<span class="sd">        python -m utool.util_list --test-find_first_true_indicies</span>
+<span class="sd">        python -m utool.util_list --test-find_first_true_indices</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_list import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; # build test data</span>
-<span class="sd">        &gt;&gt;&gt; flags_list = [[True, False, True], [False, False, False],</span>
-<span class="sd">        ...               [False, True, True], [False, False, True]]</span>
+<span class="sd">        &gt;&gt;&gt; flags_list = [[True, False, True],</span>
+<span class="sd">        ...               [False, False, False],</span>
+<span class="sd">        ...               [False, True, True],</span>
+<span class="sd">        ...               [False, False, True]]</span>
 <span class="sd">        &gt;&gt;&gt; # execute function</span>
-<span class="sd">        &gt;&gt;&gt; index_list = find_first_true_indicies(flags_list)</span>
+<span class="sd">        &gt;&gt;&gt; index_list = find_first_true_indices(flags_list)</span>
 <span class="sd">        &gt;&gt;&gt; # verify results</span>
 <span class="sd">        &gt;&gt;&gt; result = str(index_list)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
@@ -1424,26 +1642,28 @@
     <span class="k">return</span> <span class="n">index_list</span>
 
 </div>
-<div class="viewcode-block" id="find_next_true_indicies"><a class="viewcode-back" href="../../utool.html#utool.util_list.find_next_true_indicies">[docs]</a><span class="k">def</span> <span class="nf">find_next_true_indicies</span><span class="p">(</span><span class="n">flags_list</span><span class="p">,</span> <span class="n">offset_list</span><span class="p">):</span>
+<div class="viewcode-block" id="find_next_true_indices"><a class="viewcode-back" href="../../utool.html#utool.util_list.find_next_true_indices">[docs]</a><span class="k">def</span> <span class="nf">find_next_true_indices</span><span class="p">(</span><span class="n">flags_list</span><span class="p">,</span> <span class="n">offset_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Uses output of either this function or find_first_true_indicies</span>
+<span class="sd">    Uses output of either this function or find_first_true_indices</span>
 <span class="sd">    to find the next index of true flags</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        flags_list (list): list of lists of booleans</span>
 
 <span class="sd">    CommandLine:</span>
-<span class="sd">        python -m utool.util_list --test-find_next_true_indicies</span>
+<span class="sd">        python -m utool.util_list --test-find_next_true_indices</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_list import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; # build test data</span>
-<span class="sd">        &gt;&gt;&gt; flags_list = [[True, False, True], [False, False, False],</span>
-<span class="sd">        ...               [False, True, True], [False, False, True]]</span>
-<span class="sd">        &gt;&gt;&gt; offset_list = find_first_true_indicies(flags_list)</span>
+<span class="sd">        &gt;&gt;&gt; flags_list = [[True, False, True],</span>
+<span class="sd">        ...               [False, False, False],</span>
+<span class="sd">        ...               [False, True, True],</span>
+<span class="sd">        ...               [False, False, True]]</span>
+<span class="sd">        &gt;&gt;&gt; offset_list = find_first_true_indices(flags_list)</span>
 <span class="sd">        &gt;&gt;&gt; # execute function</span>
-<span class="sd">        &gt;&gt;&gt; index_list = find_next_true_indicies(flags_list, offset_list)</span>
+<span class="sd">        &gt;&gt;&gt; index_list = find_next_true_indices(flags_list, offset_list)</span>
 <span class="sd">        &gt;&gt;&gt; # verify results</span>
 <span class="sd">        &gt;&gt;&gt; result = str(index_list)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
@@ -1466,6 +1686,38 @@
     <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="n">item_startswith</span><span class="p">,</span> <span class="n">list_</span><span class="p">))</span>
 
 </div>
+<div class="viewcode-block" id="list_rotate"><a class="viewcode-back" href="../../utool.html#utool.util_list.list_rotate">[docs]</a><span class="k">def</span> <span class="nf">list_rotate</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        list_ (list):</span>
+<span class="sd">        n (int):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list:</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://stackoverflow.com/questions/9457832/python-list-rotation</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_list import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; list_ = [1, 2, 3, 4, 5]</span>
+<span class="sd">        &gt;&gt;&gt; n = 2</span>
+<span class="sd">        &gt;&gt;&gt; result = list_rotate(list_, n)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [3, 4, 5, 1, 2]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">list_</span><span class="p">[</span><span class="n">n</span><span class="p">:]</span> <span class="o">+</span> <span class="n">list_</span><span class="p">[:</span><span class="n">n</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="list_argmax"><a class="viewcode-back" href="../../utool.html#utool.util_list.list_argmax">[docs]</a><span class="k">def</span> <span class="nf">list_argmax</span><span class="p">(</span><span class="n">list_</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">list_</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="make_index_lookup"><a class="viewcode-back" href="../../utool.html#utool.util_list.make_index_lookup">[docs]</a><span class="k">def</span> <span class="nf">make_index_lookup</span><span class="p">(</span><span class="n">list_</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">list_</span><span class="p">))))</span>
+
+</div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
@@ -1481,44 +1733,58 @@
 </pre></div>
 
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-<div id="searchbox" style="display: none">
-  <h3>Quick search</h3>
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
-          <li><a href="../index.html" >Module code</a> &raquo;</li>
-          <li><a href="../utool.html" >utool</a> &raquo;</li> 
-      </ul>
-    </div>
-    <div class="footer">
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
         &copy; Copyright 2015, Jon Crall.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
-    </div>
-  </body>
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.0.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
 </html>

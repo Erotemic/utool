@@ -60,6 +60,14 @@ utool._internal.meta_util_git module
     :undoc-members:
     :show-inheritance:
 
+utool._internal.meta_util_iter module
+-------------------------------------
+
+.. automodule:: utool._internal.meta_util_iter
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 utool._internal.meta_util_path module
 -------------------------------------
 
