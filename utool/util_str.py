@@ -1328,9 +1328,26 @@ def cond_phrase(list_, cond='or'):
         return ', '.join((', '.join(list_[:-2]), condstr.join(list_[-2:])))
 
 
-def doctest_code_line(line_str):
-    doctest_line_str = '>>> ' + '\n... '.join(line_str.split('\n'))
+def doctest_code_line(line_str, varname=None, verbose=True):
+    varprefix = varname + ' = ' if varname is not None else ''
+    prefix1 = '>>> ' + varprefix
+    prefix2 = '\n... ' + (' ' * len(varprefix))
+    doctest_line_str = prefix1 + prefix2.join(line_str.split('\n'))
+    if verbose:
+        print(doctest_line_str)
     return doctest_line_str
+
+
+def doctest_repr(var, varname=None, precision=2, verbose=True):
+    import utool as ut
+    varname_ = ut.get_varname_from_stack(var, N=1) if varname is None else varname
+    if isinstance(var, np.ndarray):
+        line_str = ut.numpy_str(var, precision=precision)
+    else:
+        line_str = repr(var)
+    doctest_line_str = doctest_code_line(line_str, varname=varname_, verbose=verbose)
+    return doctest_line_str
+
 
 if __name__ == '__main__':
     """

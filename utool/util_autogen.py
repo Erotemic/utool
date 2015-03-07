@@ -292,11 +292,11 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
     import_depends_map = {
         'ibeis':    'import ibeis',
         'vt':       'import vtool as vt',
-        'img':      'import vtool as vt',  # TODO: remove. fix dependency
-        'species':  'import ibeis',
+        #'img':      'import vtool as vt',  # TODO: remove. fix dependency
+        #'species':  'import ibeis',
     }
     var_depends_map = {
-        'species':    ['ibeis'],
+        'species':   ['ibeis'],
         'ibs':       ['ibeis'],
         'kpts':      ['vt'],
         'qreq_':     ['ibs', 'species', 'daids', 'qaids'],
@@ -320,6 +320,9 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
     def append_dependant_argnames(argnames, dependant_argnames):
         """ use hints to add known dependencies for certain argument inputs """
         for argname in argnames:
+            # Check if argname just implies an import
+            if argname in import_depends_map:
+                import_lines.append(import_depends_map[argname])
             # Check if argname was already added as dependency
             if argname not in dependant_argnames and argname not in argname_list:
                 dependant_argnames.append(argname)
