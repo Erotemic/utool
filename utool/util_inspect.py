@@ -40,6 +40,10 @@ def get_dev_hints():
         ('use_cache', ('bool', 'turns on disk based caching')),
         ('qreq_vsmany_', ('QueryRequest', 'persistant vsmany query request')),
         ('qnid'    , ('int', 'query name id')),
+        #
+        ('gfpath[0-9]?' , ('str', 'image file path string')),
+        ('bbox' , ('tuple', 'bounding box in the format (x, y, w, h)')),
+        ('theta' , ('float', 'angle in radians')),
 
         # Pipeline hints
         ('qaid2_nns',
@@ -125,6 +129,7 @@ def get_dev_hints():
         ('.*_tup' , ('tuple', None)),
         ('.*_sublist' , ('list', None)),
         ('fpath[0-9]?' , ('str', 'file path string')),
+        ('chip[A-Z]*' , ('ndarray', 'cropped image')),
         ('verbose', ('bool', 'verbosity flag')),
 
         # Other hints for my coding style

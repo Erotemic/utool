@@ -1327,6 +1327,11 @@ def cond_phrase(list_, cond='or'):
         condstr = ''.join((', ' + cond, ' '))
         return ', '.join((', '.join(list_[:-2]), condstr.join(list_[-2:])))
 
+
+def doctest_code_line(line_str):
+    doctest_line_str = '>>> ' + '\n... '.join(line_str.split('\n'))
+    return doctest_line_str
+
 if __name__ == '__main__':
     """
     CommandLine:
