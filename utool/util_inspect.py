@@ -123,6 +123,7 @@ def get_dev_hints():
         ('chipsize'    , ('tuple', 'width, height')),
 
         # Standard Python Hints for my coding style
+        ('.*_fn' , ('func', None)),
         ('str_' , ('str', None)),
         ('.*_str' , ('str', None)),
         ('.*_?list_?' , ('list', None)),

@@ -16,8 +16,14 @@ if __name__ == '__main__':
         argvx = sys.argv.index(modname) + 1
         argv = [modpath] + sys.argv[argvx:]
     else:
-        argvx = sys.argv.index('utprof.py')
-        argv = sys.argv[argvx:]
+        try:
+            argvx = sys.argv.index('utprof.py')
+        except ValueError:
+            for argvx, arg in enumerate(sys.argv):
+                if 'utprof.py' in arg:
+                    break
+            #print('sys.argv = %r' % (sys.argv,))
+        argv = sys.argv[(argvx + 1):]
     cmd = 'utprof.sh ' + ' '.join(argv)
     print(cmd)
     os.system(cmd)
