@@ -105,34 +105,39 @@ def ignores_exc_tb(*args, **kwargs):
         return ignores_exc_tb_closure
 
 
-def on_exception_report_input(func):
+def on_exception_report_input(func_=None, force=False):
     """
     If an error is thrown in the scope of this function's stack frame then the
     decorated function name and the arguments passed to it will be printed to
     the utool print function.
     """
-    if not ONEX_REPORT_INPUT:
-        return func
-    @ignores_exc_tb(outer_wrapper=False)
-    #@wraps(func)
-    def wrp_onexceptreport(*args, **kwargs):
-        try:
-            #import utool
-            #if utool.DEBUG:
-            #    print('[IN EXCPRPT] args=%r' % (args,))
-            #    print('[IN EXCPRPT] kwargs=%r' % (kwargs,))
-            return func(*args, **kwargs)
-        except Exception as ex:
-            from utool import util_str
-            arg_strs = ', '.join([repr(util_str.truncate_str(str(arg))) for arg in args])
-            kwarg_strs = ', '.join([util_str.truncate_str('%s=%r' % (key, val)) for key, val in six.iteritems(kwargs)])
-            msg = ('\nERROR: funcname=%r,\n * args=%s,\n * kwargs=%r\n' % (meta_util_six.get_funcname(func), arg_strs, kwarg_strs))
-            msg += ' * len(args) = %r\n' % len(args)
-            msg += ' * len(kwargs) = %r\n' % len(kwargs)
-            util_dbg.printex(ex, msg, pad_stdout=True)
-            raise
-    wrp_onexceptreport = preserve_sig(wrp_onexceptreport, func)
-    return wrp_onexceptreport
+    def _closure_onexceptreport(func):
+        if not ONEX_REPORT_INPUT and not force:
+            return func
+        @ignores_exc_tb(outer_wrapper=False)
+        #@wraps(func)
+        def wrp_onexceptreport(*args, **kwargs):
+            try:
+                #import utool
+                #if utool.DEBUG:
+                #    print('[IN EXCPRPT] args=%r' % (args,))
+                #    print('[IN EXCPRPT] kwargs=%r' % (kwargs,))
+                return func(*args, **kwargs)
+            except Exception as ex:
+                from utool import util_str
+                arg_strs = ', '.join([repr(util_str.truncate_str(str(arg))) for arg in args])
+                kwarg_strs = ', '.join([util_str.truncate_str('%s=%r' % (key, val)) for key, val in six.iteritems(kwargs)])
+                msg = ('\nERROR: funcname=%r,\n * args=%s,\n * kwargs=%r\n' % (meta_util_six.get_funcname(func), arg_strs, kwarg_strs))
+                msg += ' * len(args) = %r\n' % len(args)
+                msg += ' * len(kwargs) = %r\n' % len(kwargs)
+                util_dbg.printex(ex, msg, pad_stdout=True)
+                raise
+        wrp_onexceptreport = preserve_sig(wrp_onexceptreport, func)
+        return wrp_onexceptreport
+    if func_ is None:
+        return _closure_onexceptreport
+    else:
+        return _closure_onexceptreport(func_)
 
 
 def _indent_decor(lbl):
