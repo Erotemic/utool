@@ -1,11 +1,15 @@
+"""
+# TODO DEPRICATE AND MOVE TO VTOOL
+"""
 from __future__ import absolute_import, division, print_function
 try:
     import numpy as np
 except ImportError:
     pass
+from collections import OrderedDict
 from six.moves import zip
-from .util_inject import inject
-print, print_, printDBG, rrr, profile = inject(__name__, '[dist]')
+from utool import util_inject
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[dist]')
 
 
 # TODO DEPRICATE AND MOVE TO VTOOL
@@ -32,7 +36,7 @@ def compute_distances(hist1, hist2, dist_list=['L1', 'L2']):
     dtype_ = np.float64
     hist1 = np.array(hist1, dtype=dtype_)
     hist2 = np.array(hist2, dtype=dtype_)
-    return {type_: globals()[type_](hist1, hist2) for type_ in dist_list}
+    return OrderedDict([(type_, globals()[type_](hist1, hist2)) for type_ in dist_list])
 
 
 def L1(hist1, hist2):
@@ -50,6 +54,40 @@ def L2_sqrd(hist1, hist2):
 def L2(hist1, hist2):
     """ returns L2 (aka euclidean or standard) distance between two histograms """
     return np.sqrt((np.abs(hist1 - hist2) ** 2).sum(-1))
+
+
+def bar_L2_sift(hist1, hist2):
+    """  1 - Normalized SIFT L2 """
+    return 1.0 - L2_sift(hist1, hist2)
+
+
+def bar_cos_sift(hist1, hist2):
+    """  1 - Normalized SIFT L2 """
+    return 1.0 - cos_sift(hist1, hist2)
+
+
+def L2_sift(hist1, hist2):
+    """  1 - Normalized SIFT L2 """
+    psuedo_max = 512.0
+    sift1 = hist1 / psuedo_max
+    sift2 = hist2 / psuedo_max
+    sift1 /= np.linalg.norm(sift1)
+    sift2 /= np.linalg.norm(sift2)
+    return L2(sift1, sift2)
+
+
+def cos_sift(hist1, hist2):
+    """ returns the squared L2 distance
+    seealso L2
+    """
+    psuedo_max = 512.0
+    sift1 = hist1 / psuedo_max
+    sift2 = hist2 / psuedo_max
+    sift1 /= np.linalg.norm(sift1)
+    sift2 /= np.linalg.norm(sift2)
+    #import utool as ut
+    #ut.embed()
+    return (sift1 * sift2).sum(-1)
 
 
 def hist_isect(hist1, hist2):

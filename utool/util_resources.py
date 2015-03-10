@@ -92,16 +92,26 @@ def time_str2(seconds):
 
 
 def print_resource_usage():
-    print('+______________________')
-    print('|    RESOURCE_USAGE    ')
-    print('|  * current_memory = %s' % byte_str2(current_memory_usage()))
+    print(get_resource_usage_str())
+
+
+def get_resource_usage_str():
+    usage_str_list = [
+        ('+______________________'),
+        ('|    RESOURCE_USAGE    '),
+        ('|  * current_memory = %s' % byte_str2(current_memory_usage())),
+    ]
     try:
-        print('|  * peak_memory    = %s' % byte_str2(peak_memory()))
-        print('|  * user_time      = %s' % time_str2(time_in_usermode()))
-        print('|  * system_time    = %s' % time_str2(time_in_systemmode()))
+        usage_str_list.extend([
+            ('|  * peak_memory    = %s' % byte_str2(peak_memory())),
+            ('|  * user_time      = %s' % time_str2(time_in_usermode())),
+            ('|  * system_time    = %s' % time_str2(time_in_systemmode())),
+        ])
     except Exception:
         pass
-    print('L______________________')
+    usage_str_list.append('L______________________')
+    usage_str = '\n'.join(usage_str_list)
+    return usage_str
 
 
 def current_memory_usage():
@@ -132,11 +142,53 @@ def used_memory():
 
 
 def memstats():
-    print('[psutil] total     = %s' % byte_str2(total_memory()))
-    print('[psutil] available = %s' % byte_str2(available_memory()))
-    print('[psutil] used      = %s' % byte_str2(used_memory()))
-    print('[psutil] current   = %s' % byte_str2(current_memory_usage()))
+    print(get_memstats_str())
 
+
+def get_memstats_str():
+    return '\n'.join([
+        ('[psutil] total     = %s' % byte_str2(total_memory())),
+        ('[psutil] available = %s' % byte_str2(available_memory())),
+        ('[psutil] used      = %s' % byte_str2(used_memory())),
+        ('[psutil] current   = %s' % byte_str2(current_memory_usage())),
+    ])
+
+
+def get_python_datastructure_sizes():
+    """
+    References:
+        http://stackoverflow.com/questions/1331471/in-memory-size-of-python-stucture
+
+    CommandLine:
+        python -m utool.util_resources --test-get_python_datastructure_sizes
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_resources import *  # NOQA
+        >>> import utool as ut  # NOQA
+        >>> type_sizes = get_python_datastructure_sizes()
+        >>> result = ut.dict_str(type_sizes, sorted_=True)
+        >>> print(result)
+    """
+    import sys
+    import decimal
+    import six
+
+    empty_types = {
+        'int'     : 0,
+        'float'   : 0.0,
+        'dict'    : dict(),
+        'set'     : set(),
+        'tuple'   : tuple(),
+        'list'    : list(),
+        'str'     : '',
+        'unicode' : u'',
+        'decimal' : decimal.Decimal(0),
+        'object'  : object(),
+    }
+    type_sizes = {key: sys.getsizeof(val)
+                  for key, val in six.iteritems(empty_types)}
+    return type_sizes
 
 #psutil.virtual_memory()
 #psutil.swap_memory()
@@ -147,3 +199,15 @@ def memstats():
 #psutil.get_users()
 #psutil.get_boot_time()
 #psutil.get_pid_list()
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m utool.util_resources
+        python -m utool.util_resources --allexamples
+        python -m utool.util_resources --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

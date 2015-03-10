@@ -8,7 +8,8 @@ from __future__ import absolute_import, division, print_function
 from six.moves import zip, filter, filterfalse, map, range
 import six
 from os.path import (join, basename, relpath, normpath, split, isdir, isfile,
-                     exists, islink, ismount, dirname, splitext, realpath)
+                     exists, islink, ismount, dirname, splitext, realpath,
+                     splitdrive)
 import os
 import re
 import sys
@@ -16,7 +17,7 @@ import shutil
 import fnmatch
 import warnings
 from utool.util_regex import extend_regex
-from utool.util_dbg import get_caller_name, printex
+from utool import util_dbg
 from utool.util_progress import progress_func
 from utool._internal import meta_util_path
 from utool import util_inject
@@ -124,7 +125,7 @@ def remove_file(fpath, verbose=True, dryrun=False, ignore_errors=True, **kwargs)
             if verbose and not QUIET:
                 print('[util_path] Removed %r' % fpath)
         except OSError:
-            print('[util_path] Misrem %r' % fpath)
+            print('[util_path.remove_file] Misrem %r' % fpath)
             #warnings.warn('OSError: %s,\n Could not delete %s' % (str(e), fpath))
             if not ignore_errors:
                 raise
@@ -286,7 +287,7 @@ def remove_existing_fpaths(fpath_list, verbose=VERBOSE, quiet=QUIET,
     """ checks existance before removing. then tries to remove exisint paths """
     import utool as ut
     if print_caller:
-        print(get_caller_name(range(1, 4)) + ' called remove_existing_fpaths')
+        print(util_dbg.get_caller_name(range(1, 4)) + ' called remove_existing_fpaths')
     fpath_list_ = ut.filter_Nones(fpath_list)
     exists_list = list(map(exists, fpath_list_))
     if verbose:
@@ -304,7 +305,7 @@ def remove_existing_fpaths(fpath_list, verbose=VERBOSE, quiet=QUIET,
 
 def remove_fpaths(fpath_list, verbose=VERBOSE, quiet=QUIET, strict=False, print_caller=PRINT_CALLER, lbl='files'):
     if print_caller:
-        print(get_caller_name(range(1, 4)) + ' called remove_fpaths')
+        print(util_dbg.get_caller_name(range(1, 4)) + ' called remove_fpaths')
     nTotal = len(fpath_list)
     _verbose = (not quiet and nTotal > 0) or VERYVERBOSE
     if _verbose:
@@ -318,7 +319,7 @@ def remove_fpaths(fpath_list, verbose=VERBOSE, quiet=QUIET, strict=False, print_
             if VERYVERBOSE:
                 print('WARNING: Could not remove fpath = %r' % (fpath,))
             if strict:
-                printex(ex, 'Could not remove fpath = %r' % (fpath,), iswarning=False)
+                util_dbg.printex(ex, 'Could not remove fpath = %r' % (fpath,), iswarning=False)
                 raise
             pass
     if _verbose:
@@ -344,6 +345,19 @@ def longest_existing_path(_path):
     return _path
 
 
+def get_path_type(path_):
+    path_type = ''
+    if isfile(path_):
+        path_type += 'file'
+    if isdir(path_):
+        path_type += 'directory'
+    if islink(path_):
+        path_type += 'link'
+    if ismount(path_):
+        path_type += 'mount'
+    return path_type
+
+
 def checkpath(path_, verbose=VERYVERBOSE, n=None, info=VERYVERBOSE):
     """ verbose wrapper around ``os.path.exists``
 
@@ -354,26 +368,21 @@ def checkpath(path_, verbose=VERYVERBOSE, n=None, info=VERYVERBOSE):
     if verbose:
         #print_('[utool] checkpath(%r)' % (path_))
         pretty_path = path_ndir_split(path_, n)
-        caller_name = get_caller_name()
+        caller_name = util_dbg.get_caller_name()
         print('[%s] checkpath(%r)' % (caller_name, pretty_path))
         if exists(path_):
-            path_type = ''
-            if isfile(path_):
-                path_type += 'file'
-            if isdir(path_):
-                path_type += 'directory'
-            if islink(path_):
-                path_type += 'link'
-            if ismount(path_):
-                path_type += 'mount'
-            path_type = 'file' if isfile(path_) else 'directory'
+            path_type = get_path_type(path_)
+            #path_type = 'file' if isfile(path_) else 'directory'
             print('[%s] ...(%s) exists' % (caller_name, path_type,))
         else:
             print('[%s] ... does not exist' % (caller_name))
             if info:
-                print('[util_path]  ! Does not exist')
+                #print('[util_path]  ! Does not exist')
                 _longest_path = longest_existing_path(path_)
+                _longest_path_type = get_path_type(_longest_path)
                 print('[util_path] ... The longest existing path is: %r' % _longest_path)
+                print('[util_path] ... and has type %r' % (_longest_path_type,))
+
             return False
         return True
     else:
@@ -385,12 +394,17 @@ def ensurepath(path_, verbose=VERYVERBOSE):
     return ensuredir(path_, verbose=verbose)
 
 
-def ensuredir(path_, verbose=VERYVERBOSE):
+def ensuredir(path_, verbose=VERYVERBOSE, info=False):
     """ Ensures that directory will exist """
-    if not checkpath(path_):
+    if not checkpath(path_, verbose=verbose, info=info):
         if verbose:
             print('[util_path] mkdir(%r)' % path_)
-        os.makedirs(path_)
+        #os.makedirs(path_)
+        try:
+            os.makedirs(normpath(path_))
+        except WindowsError as ex:
+            util_dbg.printex(ex, 'check that the longest existing path is not a bad windows symlink.')
+            raise
     return True
 
 
@@ -696,6 +710,7 @@ def num_images_in_dir(path):
 
 
 def matches_image(fname):
+    """ returns true if a filename matches an image pattern """
     fname_ = fname.lower()
     img_pats = ['*' + ext for ext in IMG_EXTENSIONS]
     return any([fnmatch.fnmatch(fname_, pat) for pat in img_pats])
@@ -1193,7 +1208,7 @@ def get_win32_short_path_name(long_name):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_path import *  # NOQA
-        >>> import utool as ut
+        >>> import utool as ut  # NOQA
         >>> # build test data
         >>> #long_name = unicode(normpath(ut.get_resource_dir()))
         >>> long_name = unicode(r'C:/Program Files (x86)')
@@ -1238,7 +1253,7 @@ def fixwin32_shortname(path1):
             path2 = buf.value if len(buf.value) > 0 else path1
     except Exception as ex:
         print(ex)
-        printex(ex, 'cannot fix win32 shortcut', keys=['path1', 'path2'])
+        util_dbg.printex(ex, 'cannot fix win32 shortcut', keys=['path1', 'path2'])
         path2 = path1
         #raise
     return path2
@@ -1266,18 +1281,18 @@ def platform_path(path):
         >>> path2 = platform_path(path)
         >>> result = str(path2)
         >>> if ut.WIN32:
-        >>>     ut.assert_eq(path2, r'some\weird\path')
-        >>> else:
-        >>>     ut.assert_eq(path2, r'some/weird/path')
+        ...     ut.assert_eq(path2, r'some\weird\path')
+        ... else:
+        ...     ut.assert_eq(path2, r'some/weird/path')
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_path import *  # NOQA
-        >>> import utool as ut
+        >>> import utool as ut    # NOQA
         >>> if ut.WIN32:
-        >>>     path = 'C:/PROGRA~2'
-        >>>     path2 = platform_path(path)
-        >>>     assert path2 == u'..\\..\\..\\..\\Program Files (x86)'
+        ...     path = 'C:/PROGRA~2'
+        ...     path2 = platform_path(path)
+        ...     assert path2 == u'..\\..\\..\\..\\Program Files (x86)'
     """
     try:
         if path == '':
@@ -1289,8 +1304,7 @@ def platform_path(path):
         else:
             path2 = path1
     except Exception as ex:
-        import utool as ut
-        ut.printex(ex, keys=['path', 'path1', 'path2'])
+        util_dbg.printex(ex, keys=['path', 'path1', 'path2'])
         raise
     return path2
 
@@ -1427,6 +1441,29 @@ def find_lib_fpath(libname, root_dir, recurse_down=True, verbose=False, debug=Fa
     print(msg)
     print('\n[c!] Checked: '.join(tried_fpaths))
     raise ImportError(msg)
+
+
+def ensure_mingw_drive(win32_path):
+    r""" replaces windows drives with mingw style drives
+
+    Args:
+        path (?):
+
+    CommandLine:
+        python -m utool.util_path --test-ensure_mingw_drive
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> win32_path = r'C:/Program Files/Foobar'
+        >>> result = ensure_mingw_drive(win32_path)
+        >>> print(result)
+        /c/Program Files/Foobar
+    """
+    win32_drive, _path = splitdrive(win32_path)
+    mingw_drive = '/' + win32_drive[:-1].lower()
+    mingw_path = mingw_drive + _path
+    return mingw_path
 
 
 if __name__ == '__main__':

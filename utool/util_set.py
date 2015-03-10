@@ -1,9 +1,9 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range  # NOQA
-from .util_inject import inject
 import collections
-from weakref import proxy
-print, print_, printDBG, rrr, profile = inject(__name__, '[set]')
+import weakref
+from utool import util_inject
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[set]')
 
 
 class _Link(object):
@@ -46,7 +46,7 @@ class OrderedSet(collections.MutableSet):
             root = self.__root
             last = root.prev
             link.prev, link.next, link.key = last, root, key
-            last.next = root.prev = proxy(link)
+            last.next = root.prev = weakref.proxy(link)
 
     def append(self, key):
         # Alias for add

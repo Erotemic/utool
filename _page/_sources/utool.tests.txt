@@ -1,0 +1,70 @@
+utool.tests package
+===================
+
+Submodules
+----------
+
+utool.tests.test_decor module
+-----------------------------
+
+.. automodule:: utool.tests.test_decor
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.tests.test_hash module
+----------------------------
+
+.. automodule:: utool.tests.test_hash
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.tests.test_logging module
+-------------------------------
+
+.. automodule:: utool.tests.test_logging
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.tests.test_reloading module
+---------------------------------
+
+.. automodule:: utool.tests.test_reloading
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.tests.test_resources module
+---------------------------------
+
+.. automodule:: utool.tests.test_resources
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.tests.test_utool_list module
+----------------------------------
+
+.. automodule:: utool.tests.test_utool_list
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.tests.test_utool_prefs module
+-----------------------------------
+
+.. automodule:: utool.tests.test_utool_prefs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: utool.tests
+    :members:
+    :undoc-members:
+    :show-inheritance:

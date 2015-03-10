@@ -1,8 +1,5 @@
 """
-There are a lot of fancier things we can do here.
-A good thing to do would be to keep similar function calls
-and use multiprocessing.Queues for the backend.
-This way we can print out progress.
+Module to executes the same function with different arguments in parallel.
 """
 from __future__ import absolute_import, division, print_function
 import multiprocessing
@@ -21,7 +18,7 @@ from utool import util_time
 from utool import util_arg
 from utool import util_dbg
 from utool import util_inject
-#from utool.util_cplat import WIN32
+from utool import util_cplat
 util_inject.noinject('[parallel]')
 
 QUIET   = util_arg.QUIET
@@ -34,10 +31,16 @@ if SILENT:
         pass
 
 __POOL__ = None
-__TIME_GENERATE__   = util_arg.get_flag('--time-generate')
+__EAGER_JOIN__      = not util_arg.get_argflag('--noclose-pool')
+__TIME_GENERATE__   = util_arg.get_argflag('--time-generate')
 __NUM_PROCS__       = util_arg.get_argval('--num-procs', int, default=None)
 __FORCE_SERIAL__    = util_arg.get_argflag(('--utool-force-serial', '--force-serial', '--serial'))
-__SERIAL_FALLBACK__ = not util_arg.get_flag('--noserial-fallback')
+__SERIAL_FALLBACK__ = not util_arg.get_argflag('--noserial-fallback')
+
+
+MIN_PARALLEL_TASKS = 2
+if util_cplat.WIN32:
+    MIN_PARALLEL_TASKS = 16
 
 
 BACKEND = 'multiprocessing'
@@ -51,6 +54,19 @@ elif BACKEND == 'zeromq':
     raise NotImplementedError('no zeromq yet')
     pass
 elif BACKEND == 'multiprocessing':
+    """
+    expecting
+    multiprocessing.__file__ = /usr/lib/python2.7/multiprocessing/__init__.pyc
+    multiprocessing.__version__ >= 0.70a1
+
+    BUT PIP SAYS:
+        INSTALLED: 2.6.2.1 (latest)
+
+    because multiprocessing on pip is: Backport of the multiprocessing package to Python 2.4 and 2.5
+
+    ut.editfile(multiprocessing.__file__)
+    from multiprocessing.pool import ThreadPool
+    """
     def new_pool(num_procs, init_worker, maxtasksperchild):
         return multiprocessing.Pool(processes=num_procs,
                                     initializer=init_worker,
@@ -85,7 +101,10 @@ def init_worker():
 
 
 def init_pool(num_procs=None, maxtasksperchild=None):
+    """ warning this might not be the right hting to do """
     global __POOL__
+    if util_arg.VERBOSE:
+        print('[util_parallel] init_pool()')
     if num_procs is None:
         # Get number of cpu cores
         num_procs = get_default_numprocs()
@@ -109,6 +128,9 @@ def init_pool(num_procs=None, maxtasksperchild=None):
 @atexit.register
 def close_pool(terminate=False):
     global __POOL__
+    if util_arg.VERBOSE:
+        print('[util_parallel] close_pool()')
+
     if __POOL__ is not None:
         if not QUIET:
             if terminate:
@@ -127,6 +149,8 @@ def close_pool(terminate=False):
 def _process_serial(func, args_list, args_dict={}, nTasks=None):
     """
     Serial process map
+
+    Use generate instead
     """
     if nTasks is None:
         nTasks = len(args_list)
@@ -146,6 +170,8 @@ def _process_serial(func, args_list, args_dict={}, nTasks=None):
 def _process_parallel(func, args_list, args_dict={}, nTasks=None):
     """
     Parallel process map
+
+    Use generate instead
     """
     # Define progress observers
     if nTasks is None:
@@ -167,6 +193,8 @@ def _process_parallel(func, args_list, args_dict={}, nTasks=None):
     end_prog()
     # Get the results
     result_list = [ap.get() for ap in apply_results]
+    if __EAGER_JOIN__:
+        close_pool()
     return result_list
 
 
@@ -181,35 +209,38 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
     if chunksize is None:
         chunksize = max(1, nTasks // (__POOL__._processes ** 2))
     if verbose:
-        print('[util_parallel._generate_parallel] executing %d %s tasks using %d processes with chunksize=%r' %
-                (nTasks, get_funcname(func), __POOL__._processes, chunksize))
-    #assert isinstance(__POOL__, multiprocessing.Pool),\
-    #        '%r __POOL__ = %r' % (type(__POOL__), __POOL__,)
-    if ordered:
-        generator = __POOL__.imap(func, args_list, chunksize)
-    else:
-        generator = __POOL__.imap_unordered(func, args_list, chunksize)
+        prefix = '[util_parallel._generate_parallel]'
+        fmtstr = prefix + 'executing %d %s tasks using %d processes with chunksize=%r'
+        print(fmtstr % (nTasks, get_funcname(func), __POOL__._processes, chunksize))
+    pmap_func = __POOL__.imap if ordered else __POOL__.imap_unordered
+    raw_generator = pmap_func(func, args_list, chunksize)
+    # Get iterator with or without progress
+    result_generator = (
+        util_progress.ProgressIter(raw_generator, nTotal=nTasks, lbl=get_funcname(func) + ': ')
+        if prog else raw_generator
+    )
+    if __TIME_GENERATE__:
+        tt = util_time.tic('_generate_parallel func=' + get_funcname(func))
     try:
-        if prog:
-            # New way of doing progress
-            prog_generator = util_progress.ProgressIter(
-                generator, nTotal=nTasks, lbl=get_funcname(func) + ': ')
-            for result in prog_generator:
-                yield result
-        else:
-            # No Progress
-            for result in generator:
-                yield result
+        for result in result_generator:
+            yield result
+        if __EAGER_JOIN__:
+            close_pool()
     except Exception as ex:
         util_dbg.printex(ex, 'Parallel Generation Failed!', '[utool]')
+        if __EAGER_JOIN__:
+            close_pool()
         print('__SERIAL_FALLBACK__ = %r' % __SERIAL_FALLBACK__)
         if __SERIAL_FALLBACK__:
-            for result in _generate_serial(func, args_list, prog=prog,
-                                           verbose=verbose, nTasks=nTasks):
+            print('Trying to handle error by falling back to serial')
+            serial_generator = _generate_serial(
+                func, args_list, prog=prog, verbose=verbose, nTasks=nTasks)
+            for result in serial_generator:
                 yield result
         else:
             raise
-    #close_pool()
+    if __TIME_GENERATE__:
+        util_time.toc(tt)
 
 
 def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None):
@@ -220,25 +251,18 @@ def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None):
         print('[util_parallel._generate_serial] executing %d %s tasks in serial' %
                 (nTasks, get_funcname(func)))
     prog = prog and verbose and nTasks > 1
-    if prog:
-        # New way of doing progress
-        prog_generator = util_progress.ProgressIter(
-            args_list, nTotal=nTasks, lbl=get_funcname(func) + ': ')
-        for args in prog_generator:
-            result = func(args)
-            yield result
-    else:
-        # No Progress
-        for args in args_list:
-            result = func(args)
-            yield result
-    #for count, args in enumerate(args_list):
-    #    if prog:
-    #        mark_prog(count)
-    #    result = func(args)
-    #    yield result
-    #if prog:
-    #    end_prog()
+    # Get iterator with or without progress
+    args_iter = (
+        util_progress.ProgressIter(args_list, nTotal=nTasks, lbl=get_funcname(func) + ': ')
+        if prog else args_list
+    )
+    if __TIME_GENERATE__:
+        tt = util_time.tic('_generate_serial func=' + get_funcname(func))
+    for args in args_iter:
+        result = func(args)
+        yield result
+    if __TIME_GENERATE__:
+        util_time.toc(tt)
 
 
 def ensure_pool(warn=False):
@@ -267,14 +291,22 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
     Returns:
         generator which yeilds result of applying func to args in args_list
 
+    CommandLine:
+        python -m utool.util_parallel --test-generate
+        python -m utool.util_parallel --test-generate --verbose
+
     Example:
-        >>> # SLOW_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> import utool as ut
-        >>> num = 8700  # parallel is slower for smaller numbers
+        >>> #num = 8700  # parallel is slower for smaller numbers
+        >>> num = 700  # parallel has an initial (~.1 second startup overhead)
+        >>> print('TESTING SERIAL')
         >>> flag_generator0 = ut.generate(ut.is_prime, range(0, num), force_serial=True)
         >>> flag_list0 = list(flag_generator0)
+        >>> print('TESTING PARALLEL')
         >>> flag_generator1 = ut.generate(ut.is_prime, range(0, num))
         >>> flag_list1 = list(flag_generator1)
+        >>> print('ASSERTING')
         >>> assert flag_list0 == flag_list1
 
     """
@@ -287,11 +319,10 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
     if VERBOSE and verbose:
         print('[util_parallel.generate] ordered=%r' % ordered)
         print('[util_parallel.generate] force_serial=%r' % force_serial)
-    force_serial_ = nTasks == 1 or force_serial
+    # Check conditions under which we force serial
+    force_serial_ = nTasks == 1 or nTasks < MIN_PARALLEL_TASKS or force_serial
     if not force_serial_:
         ensure_pool()
-    if __TIME_GENERATE__:
-        tt = util_time.tic(get_funcname(func))
     if force_serial_ or isinstance(__POOL__, int):
         if VERBOSE and verbose:
             print('[util_parallel.generate] generate_serial')
@@ -302,8 +333,6 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
         return _generate_parallel(func, args_list, ordered=ordered,
                                   chunksize=chunksize, prog=prog,
                                   verbose=verbose, nTasks=nTasks)
-    if __TIME_GENERATE__:
-        util_time.toc(tt)
 
 
 def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__,
@@ -319,6 +348,9 @@ def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__,
 
     Returns:
         result of parallel map(func, args_list)
+
+    CommandLine:
+        python -m utool.util_parallel --test-process
 
     Example:
         >>> # SLOW_DOCTEST
@@ -423,6 +455,13 @@ def _spawn_background_thread0(func, *args, **kwargs):
 
 if __name__ == '__main__':
     """
+    Ignore:
+       timing things
+       python reset_dbs.py --time-generate
+       python reset_dbs.py --time-generate --force-serial
+       python reset_dbs.py --time-generate --preinit
+       python reset_dbs.py --time-generate --force-serial
+
     CommandLine:
         python -m utool.util_parallel
         python -m utool.util_parallel --allexamples

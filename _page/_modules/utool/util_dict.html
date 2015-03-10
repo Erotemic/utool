@@ -1,58 +1,159 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>utool.util_dict &mdash; utool 1.0.0.dev1 documentation</title>
-    
-    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '1.0.0.dev1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html" />
-    <link rel="up" title="utool" href="../utool.html" /> 
-  </head>
-  <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
-          <li><a href="../index.html" >Module code</a> &raquo;</li>
-          <li><a href="../utool.html" accesskey="U">utool</a> &raquo;</li> 
-      </ul>
-    </div>  
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>utool.util_dict &mdash; utool 1.0.0.dev1 documentation</title>
+  
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body">
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html"/>
+        <link rel="up" title="utool" href="../utool.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../index.html" class="fa fa-home"> utool</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../utool.html">utool package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.DynamicStruct">utool.DynamicStruct module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.Preferences">utool.Preferences module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.Printable">utool.Printable module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_alg">utool.util_alg module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_aliases">utool.util_aliases module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_arg">utool.util_arg module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_assert">utool.util_assert module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_autogen">utool.util_autogen module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_cache">utool.util_cache module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_class">utool.util_class module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_config">utool.util_config module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_cplat">utool.util_cplat module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_csv">utool.util_csv module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_dbg">utool.util_dbg module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_decor">utool.util_decor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_dev">utool.util_dev module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_dict">utool.util_dict module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_distances">utool.util_distances module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_func">utool.util_func module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_git">utool.util_git module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_grabdata">utool.util_grabdata module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_gridsearch">utool.util_gridsearch module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_hash">utool.util_hash module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_inject">utool.util_inject module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_inspect">utool.util_inspect module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_io">utool.util_io module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_iter">utool.util_iter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_latex">utool.util_latex module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_list">utool.util_list module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_logging">utool.util_logging module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_num">utool.util_num module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_numpy">utool.util_numpy module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_parallel">utool.util_parallel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_path">utool.util_path module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_print">utool.util_print module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_progress">utool.util_progress module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_regex">utool.util_regex module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_resources">utool.util_resources module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_set">utool.util_set module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_setup">utool.util_setup module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_six">utool.util_six module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_str">utool.util_str module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_sysreq">utool.util_sysreq module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_tests">utool.util_tests module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_time">utool.util_time module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_type">utool.util_type module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">utool</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../utool.html">utool</a> &raquo;</li>
+      
+    <li>utool.util_dict</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
             
   <h1>Source code for utool.util_dict</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot; convinience functions for dictionaries &quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span> <span class="k">as</span> <span class="n">iprod</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
-<span class="kn">from</span> <span class="nn">utool.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_list</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
@@ -60,9 +161,87 @@
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="n">HAS_NUMPY</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="k">pass</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[dict]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[dict]&#39;</span><span class="p">)</span>
 
 
+<div class="viewcode-block" id="count_dict_vals"><a class="viewcode-back" href="../../utool.html#utool.util_dict.count_dict_vals">[docs]</a><span class="k">def</span> <span class="nf">count_dict_vals</span><span class="p">(</span><span class="n">dict_of_lists</span><span class="p">):</span>
+    <span class="n">count_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;len(</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,):</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">dict_of_lists</span><span class="p">)}</span>
+    <span class="k">return</span> <span class="n">count_dict</span>
+
+</div>
+<div class="viewcode-block" id="dict_keysubset"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_keysubset">[docs]</a><span class="k">def</span> <span class="nf">dict_keysubset</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">dict_</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="get_dict_hashid"><a class="viewcode-back" href="../../utool.html#utool.util_dict.get_dict_hashid">[docs]</a><span class="k">def</span> <span class="nf">get_dict_hashid</span><span class="p">(</span><span class="n">dict_</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        dict_ (?):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ?: inverted_dict</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_dict --test-get_dict_hashid</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://stackoverflow.com/questions/5884066/hashing-a-python-dictionary</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dict import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; dict_ = {}</span>
+<span class="sd">        &gt;&gt;&gt; dict_ = {&#39;a&#39;: &#39;b&#39;}</span>
+<span class="sd">        &gt;&gt;&gt; dict_ = {&#39;a&#39;: {&#39;c&#39;: &#39;d&#39;}}</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; hashid = get_dict_hashid(dict_)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = str(hashid)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_hash</span>
+    <span class="c">#hashid = hash(frozenset(dict_.items()))</span>
+    <span class="n">hashid</span> <span class="o">=</span> <span class="n">util_hash</span><span class="o">.</span><span class="n">make_hash</span><span class="p">(</span><span class="n">dict_</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">hashid</span>
+
+</div>
+<div class="viewcode-block" id="dict_stack"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_stack">[docs]</a><span class="k">def</span> <span class="nf">dict_stack</span><span class="p">(</span><span class="n">dict_list</span><span class="p">,</span> <span class="n">key_prefix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    stacks values from two dicts into a new dict where the values are list of</span>
+<span class="sd">    the input values. the keys are the same.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dict_list (list): list of dicts with similar keys</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict dict_stacked</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_dict --test-dict_stack</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dict import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; dict1_ = {&#39;a&#39;: 1, &#39;b&#39;: 2}</span>
+<span class="sd">        &gt;&gt;&gt; dict2_ = {&#39;a&#39;: 2, &#39;b&#39;: 3, &#39;c&#39;: 4}</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; dict_stacked = dict_stack([dict1_, dict2_])</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = str(dict_stacked)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        {&#39;a&#39;: [1, 2], &#39;c&#39;: [4], &#39;b&#39;: [2, 3]}</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dict_stacked_</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">dict_</span> <span class="ow">in</span> <span class="n">dict_list</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">dict_</span><span class="p">):</span>
+            <span class="n">dict_stacked_</span><span class="p">[</span><span class="n">key_prefix</span> <span class="o">+</span> <span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+    <span class="n">dict_stacked</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">dict_stacked_</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dict_stacked</span>
+
+</div>
 <div class="viewcode-block" id="invert_dict"><a class="viewcode-back" href="../../utool.html#utool.util_dict.invert_dict">[docs]</a><span class="k">def</span> <span class="nf">invert_dict</span><span class="p">(</span><span class="n">dict_</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    invert_dict</span>
@@ -73,6 +252,9 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        dict: inverted_dict</span>
 
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_dict --test-invert_dict</span>
+
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_dict import *  # NOQA</span>
@@ -81,20 +263,82 @@
 <span class="sd">        &gt;&gt;&gt; result = inverted_dict</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        {1: &#39;a&#39;, 2: &#39;b&#39;}</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dict import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; dict_ = OrderedDict([(2, &#39;good&#39;,), (1, &#39;ok&#39;,), (0, &#39;junk&#39;,), (None, &#39;UNKNOWN&#39;,),])</span>
+<span class="sd">        &gt;&gt;&gt; inverted_dict = invert_dict(dict_)</span>
+<span class="sd">        &gt;&gt;&gt; result = inverted_dict</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        OrderedDict([(&#39;good&#39;, 2), (&#39;ok&#39;, 1), (&#39;junk&#39;, 0), (&#39;UNKNOWN&#39;, None)])</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">inverted_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">val</span><span class="p">:</span> <span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">dict_</span><span class="p">)}</span>
+    <span class="n">inverted_items</span> <span class="o">=</span> <span class="p">[(</span><span class="n">val</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">dict_</span><span class="p">)]</span>
+    <span class="n">inverted_dict</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">dict_</span><span class="p">)(</span><span class="n">inverted_items</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">inverted_dict</span>
 
 </div>
-<div class="viewcode-block" id="all_dict_combinations"><a class="viewcode-back" href="../../utool.html#utool.util_dict.all_dict_combinations">[docs]</a><span class="k">def</span> <span class="nf">all_dict_combinations</span><span class="p">(</span><span class="n">varied_dict</span><span class="p">):</span>
+<div class="viewcode-block" id="iter_all_dict_combinations_ordered"><a class="viewcode-back" href="../../utool.html#utool.util_dict.iter_all_dict_combinations_ordered">[docs]</a><span class="k">def</span> <span class="nf">iter_all_dict_combinations_ordered</span><span class="p">(</span><span class="n">varied_dict</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Input: a dict with lists of possible parameter settings</span>
-<span class="sd">    Output: a list of dicts correpsonding to all combinations of params settings</span>
+<span class="sd">    Same as all_dict_combinations but preserves order</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="n">tups_list</span> <span class="o">=</span> <span class="p">[[(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">val_list</span><span class="p">]</span>
                  <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val_list</span><span class="p">)</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">varied_dict</span><span class="p">)]</span>
-    <span class="n">dict_list</span> <span class="o">=</span> <span class="p">[{</span><span class="n">key</span><span class="p">:</span> <span class="n">val</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="n">tups</span><span class="p">}</span> <span class="k">for</span> <span class="n">tups</span> <span class="ow">in</span> <span class="n">iprod</span><span class="p">(</span><span class="o">*</span><span class="n">tups_list</span><span class="p">)]</span>
+    <span class="n">dict_iter</span> <span class="o">=</span> <span class="p">(</span><span class="n">OrderedDict</span><span class="p">(</span><span class="n">tups</span><span class="p">)</span> <span class="k">for</span> <span class="n">tups</span> <span class="ow">in</span> <span class="n">iprod</span><span class="p">(</span><span class="o">*</span><span class="n">tups_list</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">dict_iter</span>
+
+</div>
+<div class="viewcode-block" id="all_dict_combinations_ordered"><a class="viewcode-back" href="../../utool.html#utool.util_dict.all_dict_combinations_ordered">[docs]</a><span class="k">def</span> <span class="nf">all_dict_combinations_ordered</span><span class="p">(</span><span class="n">varied_dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Same as all_dict_combinations but preserves order</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dict_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">iter_all_dict_combinations_ordered</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dict_list</span>
+
+</div>
+<div class="viewcode-block" id="all_dict_combinations"><a class="viewcode-back" href="../../utool.html#utool.util_dict.all_dict_combinations">[docs]</a><span class="k">def</span> <span class="nf">all_dict_combinations</span><span class="p">(</span><span class="n">varied_dict</span><span class="p">,</span> <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    all_dict_combinations</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        varied_dict (dict):  a dict with lists of possible parameter settings</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: dict_list a list of dicts correpsonding to all combinations of params settings</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_dict --test-all_dict_combinations</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dict import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; varied_dict = {&#39;logdist_weight&#39;: [0.0, 1.0], &#39;pipeline_root&#39;: [&#39;vsmany&#39;], &#39;sv_on&#39;: [True, False, None]}</span>
+<span class="sd">        &gt;&gt;&gt; dict_list = all_dict_combinations(varied_dict)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(ut.list_str(dict_list))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [</span>
+<span class="sd">            {&#39;pipeline_root&#39;: &#39;vsmany&#39;, &#39;sv_on&#39;: True, &#39;logdist_weight&#39;: 0.0,},</span>
+<span class="sd">            {&#39;pipeline_root&#39;: &#39;vsmany&#39;, &#39;sv_on&#39;: True, &#39;logdist_weight&#39;: 1.0,},</span>
+<span class="sd">            {&#39;pipeline_root&#39;: &#39;vsmany&#39;, &#39;sv_on&#39;: False, &#39;logdist_weight&#39;: 0.0,},</span>
+<span class="sd">            {&#39;pipeline_root&#39;: &#39;vsmany&#39;, &#39;sv_on&#39;: False, &#39;logdist_weight&#39;: 1.0,},</span>
+<span class="sd">            {&#39;pipeline_root&#39;: &#39;vsmany&#39;, &#39;sv_on&#39;: None, &#39;logdist_weight&#39;: 0.0,},</span>
+<span class="sd">            {&#39;pipeline_root&#39;: &#39;vsmany&#39;, &#39;sv_on&#39;: None, &#39;logdist_weight&#39;: 1.0,},</span>
+<span class="sd">        ]</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        print(x)</span>
+<span class="sd">        print(y)</span>
+
+<span class="sd">        print(ut.hz_str(&#39;\n&#39;.join(list(x)), &#39;\n&#39;.join(list(y))))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tups_list</span> <span class="o">=</span> <span class="p">[[(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">val_list</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val_list</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="k">else</span> <span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="n">val_list</span><span class="p">)]</span>
+                 <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val_list</span><span class="p">)</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">varied_dict</span><span class="p">)]</span>
+    <span class="n">dict_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">tups</span><span class="p">)</span> <span class="k">for</span> <span class="n">tups</span> <span class="ow">in</span> <span class="n">iprod</span><span class="p">(</span><span class="o">*</span><span class="n">tups_list</span><span class="p">)]</span>
+    <span class="c">#dict_list = [{key: val for (key, val) in tups} for tups in iprod(*tups_list)]</span>
+    <span class="c">#from collections import OrderedDict</span>
+    <span class="c">#dict_list = [OrderedDict([(key, val) for (key, val) in tups]) for tups in iprod(*tups_list)]</span>
     <span class="k">return</span> <span class="n">dict_list</span>
 
 </div>
@@ -102,6 +346,9 @@
     <span class="sd">&quot;&quot;&quot; returns a label for each variation in a varydict.</span>
 <span class="sd">    It tries to not be oververbose and returns only what parameters are varied</span>
 <span class="sd">    in each label.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_dict --test-all_dict_combinations_lbls</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
@@ -111,14 +358,15 @@
 <span class="sd">        &gt;&gt;&gt; result = (utool.list_str(comb_lbls))</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        [</span>
-<span class="sd">            ((&#39;sv_on&#39;, True), (&#39;logdist_weight&#39;, 0.0)),</span>
-<span class="sd">            ((&#39;sv_on&#39;, True), (&#39;logdist_weight&#39;, 1.0)),</span>
-<span class="sd">            ((&#39;sv_on&#39;, False), (&#39;logdist_weight&#39;, 0.0)),</span>
-<span class="sd">            ((&#39;sv_on&#39;, False), (&#39;logdist_weight&#39;, 1.0)),</span>
-<span class="sd">            ((&#39;sv_on&#39;, None), (&#39;logdist_weight&#39;, 0.0)),</span>
-<span class="sd">            ((&#39;sv_on&#39;, None), (&#39;logdist_weight&#39;, 1.0)),</span>
+<span class="sd">            &quot;((&#39;sv_on&#39;, True), (&#39;logdist_weight&#39;, 0.0))&quot;,</span>
+<span class="sd">            &quot;((&#39;sv_on&#39;, True), (&#39;logdist_weight&#39;, 1.0))&quot;,</span>
+<span class="sd">            &quot;((&#39;sv_on&#39;, False), (&#39;logdist_weight&#39;, 0.0))&quot;,</span>
+<span class="sd">            &quot;((&#39;sv_on&#39;, False), (&#39;logdist_weight&#39;, 1.0))&quot;,</span>
+<span class="sd">            &quot;((&#39;sv_on&#39;, None), (&#39;logdist_weight&#39;, 0.0))&quot;,</span>
+<span class="sd">            &quot;((&#39;sv_on&#39;, None), (&#39;logdist_weight&#39;, 1.0))&quot;,</span>
 <span class="sd">        ]</span>
 
+<span class="sd">    #ut.list_type_profile(comb_lbls)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">multitups_list</span> <span class="o">=</span> <span class="p">[[(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">val_list</span><span class="p">]</span>
                       <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val_list</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">varied_dict</span><span class="p">)</span>
@@ -147,7 +395,35 @@
 </div>
 <div class="viewcode-block" id="build_conflict_dict"><a class="viewcode-back" href="../../utool.html#utool.util_dict.build_conflict_dict">[docs]</a><span class="k">def</span> <span class="nf">build_conflict_dict</span><span class="p">(</span><span class="n">key_list</span><span class="p">,</span> <span class="n">val_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Builds dict where a list of values is associated with a key</span>
+<span class="sd">    Builds dict where a list of values is associated with more than one key</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        key_list (list):</span>
+<span class="sd">        val_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: key_to_vals</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_dict --test-build_conflict_dict</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dict import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; key_list = [  1,   2,   2,   3,   1]</span>
+<span class="sd">        &gt;&gt;&gt; val_list = [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; key_to_vals = build_conflict_dict(key_list, val_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.dict_str(key_to_vals)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        {</span>
+<span class="sd">            1: [&#39;a&#39;, &#39;e&#39;],</span>
+<span class="sd">            2: [&#39;b&#39;, &#39;c&#39;],</span>
+<span class="sd">            3: [&#39;d&#39;],</span>
+<span class="sd">        }</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">key_to_vals</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">key_list</span><span class="p">,</span> <span class="n">val_list</span><span class="p">):</span>
@@ -156,9 +432,35 @@
 
 </div>
 <div class="viewcode-block" id="updateif_haskey"><a class="viewcode-back" href="../../utool.html#utool.util_dict.updateif_haskey">[docs]</a><span class="k">def</span> <span class="nf">updateif_haskey</span><span class="p">(</span><span class="n">dict1</span><span class="p">,</span> <span class="n">dict2</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    updates vals in dict1 using vals from dict2 only if the</span>
+<span class="sd">    key is already in dict1.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dict1 (dict)</span>
+<span class="sd">        dict2 (dict):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_dict --test-updateif_haskey</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dict import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; dict1 = {&#39;a&#39;: 1, &#39;b&#39;: 2, &#39;c&#39;: 3}</span>
+<span class="sd">        &gt;&gt;&gt; dict2 = {&#39;a&#39;: 2, &#39;d&#39;: 3}</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; result = updateif_haskey(dict1, dict2)</span>
+<span class="sd">        &gt;&gt;&gt; assert &#39;d&#39; not in dict1</span>
+<span class="sd">        &gt;&gt;&gt; assert dict1[&#39;a&#39;] == 2</span>
+<span class="sd">        &gt;&gt;&gt; assert result is dict1</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">dict2</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">dict1</span><span class="p">:</span>
             <span class="n">dict1</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="k">return</span> <span class="n">dict1</span>
 
 </div>
 <div class="viewcode-block" id="dict_update_newkeys"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_update_newkeys">[docs]</a><span class="k">def</span> <span class="nf">dict_update_newkeys</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">dict2</span><span class="p">):</span>
@@ -194,25 +496,230 @@
     <span class="k">return</span> <span class="bp">True</span>
 
 </div>
-<div class="viewcode-block" id="dict_take_gen"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_take_gen">[docs]</a><span class="k">def</span> <span class="nf">dict_take_gen</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">):</span>
-    <span class="n">hasnumpy</span> <span class="o">=</span> <span class="s">&#39;np&#39;</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">hasnumpy</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-            <span class="k">yield</span> <span class="nb">list</span><span class="p">(</span><span class="n">dict_take_gen</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">key</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">yield</span> <span class="n">dict_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+<div class="viewcode-block" id="dict_subset"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_subset">[docs]</a><span class="k">def</span> <span class="nf">dict_subset</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        dict_ (dict):</span>
+<span class="sd">        keys (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: subset dictionary</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dict import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; dict_ = {&#39;K&#39;: 3, &#39;dcvs_clip_max&#39;: 0.2, &#39;p&#39;: 0.1}</span>
+<span class="sd">        &gt;&gt;&gt; keys = [&#39;K&#39;, &#39;dcvs_clip_max&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; result = dict_subset(dict_, keys)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        {&#39;K&#39;: 3, &#39;dcvs_clip_max&#39;: 0.2}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">subdict_</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">dict_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">}</span>
+    <span class="k">return</span> <span class="n">subdict_</span>
 
 </div>
-<div class="viewcode-block" id="dict_take_list"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_take_list">[docs]</a><span class="k">def</span> <span class="nf">dict_take_list</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">):</span>
-    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">dict_take_gen</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">))</span>
+<div class="viewcode-block" id="dict_to_keyvals"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_to_keyvals">[docs]</a><span class="k">def</span> <span class="nf">dict_to_keyvals</span><span class="p">(</span><span class="n">dict_</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">dict_</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="dict_setdiff"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_setdiff">[docs]</a><span class="k">def</span> <span class="nf">dict_setdiff</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">negative_keys</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    returns a copy of dict_ without keys in the negative_keys list</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dict_ (dict):</span>
+<span class="sd">        negative_keys (list):</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">dict_</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">negative_keys</span><span class="p">)]</span>
+    <span class="n">subdict_</span> <span class="o">=</span> <span class="n">dict_subset</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">subdict_</span>
+
+</div>
+<div class="viewcode-block" id="delete_dict_keys"><a class="viewcode-back" href="../../utool.html#utool.util_dict.delete_dict_keys">[docs]</a><span class="k">def</span> <span class="nf">delete_dict_keys</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">key_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    in place deletion if keys exist</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dict_ (?):</span>
+<span class="sd">        key_list (list):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_dict --test-delete_dict_keys</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; dict_ = {&#39;bread&#39;: 1, &#39;churches&#39;: 1, &#39;cider&#39;: 2, &#39;very small rocks&#39;:2}</span>
+<span class="sd">        &gt;&gt;&gt; key_list = [&#39;duck&#39;, &#39;bread&#39;, &#39;cider&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; delete_dict_keys(dict_, key_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.dict_str(dict_, newlines=False)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        {&#39;churches&#39;: 1, &#39;very small rocks&#39;: 2,}</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">invalid_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">key_list</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">dict_</span><span class="p">))</span>
+    <span class="n">valid_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">key_list</span><span class="p">)</span> <span class="o">-</span> <span class="n">invalid_keys</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">valid_keys</span><span class="p">:</span>
+        <span class="k">del</span> <span class="n">dict_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">dict_</span>
+
+</div>
+<div class="viewcode-block" id="dict_take_gen"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_take_gen">[docs]</a><span class="k">def</span> <span class="nf">dict_take_gen</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        dict_ (dict):</span>
+<span class="sd">        keys (list):</span>
+
+<span class="sd">    Varargs:</span>
+<span class="sd">        d: if specified is default for key errors</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_dict --test-dict_take_gen</span>
+
+<span class="sd">    Example1:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dict import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; dict_ = {1: &#39;a&#39;, 2: &#39;b&#39;, 3: &#39;c&#39;}</span>
+<span class="sd">        &gt;&gt;&gt; keys = [1, 2, 3, 4, 5]</span>
+<span class="sd">        &gt;&gt;&gt; result = list(dict_take_gen(dict_, keys, None))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, None, None]</span>
+
+<span class="sd">    Example2:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dict import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; dict_ = {1: &#39;a&#39;, 2: &#39;b&#39;, 3: &#39;c&#39;}</span>
+<span class="sd">        &gt;&gt;&gt; keys = [1, 2, 3, 4, 5]</span>
+<span class="sd">        &gt;&gt;&gt; try:</span>
+<span class="sd">        &gt;&gt;&gt;     print(list(dict_take_gen(dict_, keys)))</span>
+<span class="sd">        &gt;&gt;&gt;     result = &#39;did not get key error&#39;</span>
+<span class="sd">        &gt;&gt;&gt; except KeyError:</span>
+<span class="sd">        &gt;&gt;&gt;     result = &#39;correctly got key error&#39;</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        correctly got key error</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c"># no default given throws key error</span>
+        <span class="n">dictget</span> <span class="o">=</span> <span class="n">dict_</span><span class="o">.</span><span class="n">__getitem__</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c"># default given does not throw key erro</span>
+        <span class="n">dictget</span> <span class="o">=</span> <span class="n">dict_</span><span class="o">.</span><span class="n">get</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;len(d) must be 1 or 0&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">HAS_NUMPY</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="c"># recursive call</span>
+            <span class="k">yield</span> <span class="nb">list</span><span class="p">(</span><span class="n">dict_take_gen</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">dictget</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="dict_take_list"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_take_list">[docs]</a><span class="k">def</span> <span class="nf">dict_take_list</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">dict_take_gen</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="p">))</span>
     <span class="c">#return [dict_[key] for key in keys]</span>
 
 </div>
+<div class="viewcode-block" id="dict_take"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_take">[docs]</a><span class="k">def</span> <span class="nf">dict_take</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; alias &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">dict_take_list</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">dict_take_list</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="p">[</span><span class="n">keys</span><span class="p">],</span> <span class="o">*</span><span class="n">d</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="dict_take_pop"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_take_pop">[docs]</a><span class="k">def</span> <span class="nf">dict_take_pop</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; like dict_take but pops values off</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_dict --test-dict_take_pop</span>
+
+<span class="sd">    Example1:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dict import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; dict_ = {1: &#39;a&#39;, &#39;other&#39;: None, &#39;another&#39;: &#39;foo&#39;, 2: &#39;b&#39;, 3: &#39;c&#39;}</span>
+<span class="sd">        &gt;&gt;&gt; keys = [1, 2, 3, 4, 5]</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;before: &#39; + ut.dict_str(dict_))</span>
+<span class="sd">        &gt;&gt;&gt; result = list(dict_take_pop(dict_, keys, None))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;after: &#39; + ut.dict_str(dict_))</span>
+<span class="sd">        &gt;&gt;&gt; assert len(dict_) == 2</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, None, None]</span>
+
+<span class="sd">    Example2:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dict import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; dict_ = {1: &#39;a&#39;, 2: &#39;b&#39;, 3: &#39;c&#39;}</span>
+<span class="sd">        &gt;&gt;&gt; keys = [1, 2, 3, 4, 5]</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;before: &#39; + ut.dict_str(dict_))</span>
+<span class="sd">        &gt;&gt;&gt; try:</span>
+<span class="sd">        &gt;&gt;&gt;     print(list(dict_take_pop(dict_, keys)))</span>
+<span class="sd">        &gt;&gt;&gt;     result = &#39;did not get key error&#39;</span>
+<span class="sd">        &gt;&gt;&gt; except KeyError:</span>
+<span class="sd">        &gt;&gt;&gt;     result = &#39;correctly got key error&#39;</span>
+<span class="sd">        &gt;&gt;&gt; assert len(dict_) == 0</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;after: &#39; + ut.dict_str(dict_))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        correctly got key error</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">dict_</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">default</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">dict_</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;len(d) must be 1 or 0&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="dict_assign"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_assign">[docs]</a><span class="k">def</span> <span class="nf">dict_assign</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">vals</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; simple method for assigning or setting values with a similar interface</span>
+<span class="sd">    to dict_take &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">vals</span><span class="p">):</span>
+        <span class="n">dict_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+</div>
 <div class="viewcode-block" id="dict_where_len0"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_where_len0">[docs]</a><span class="k">def</span> <span class="nf">dict_where_len0</span><span class="p">(</span><span class="n">dict_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Accepts a dict of lists. Returns keys that have vals with no length</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">keys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dict_</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
     <span class="n">flags</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">dict_</span><span class="o">.</span><span class="n">values</span><span class="p">())))</span> <span class="o">==</span> <span class="mi">0</span>
     <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">flags</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">keys</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="order_dict_by"><a class="viewcode-back" href="../../utool.html#utool.util_dict.order_dict_by">[docs]</a><span class="k">def</span> <span class="nf">order_dict_by</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">key_order</span><span class="p">):</span>
+    <span class="n">sorted_item_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="n">dict_</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">key_order</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">dict_</span><span class="p">]</span>
+    <span class="n">sorted_dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="n">sorted_item_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sorted_dict</span>
+
+</div>
+<div class="viewcode-block" id="get_dict_column"><a class="viewcode-back" href="../../utool.html#utool.util_dict.get_dict_column">[docs]</a><span class="k">def</span> <span class="nf">get_dict_column</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">colx</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        dict_ (dict_):  a dictionary</span>
+<span class="sd">        colx (?):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_dict --test-get_dict_column</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dict import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; dict_ = {&#39;a&#39;: [0, 1, 2], &#39;b&#39;: [3, 4, 5], &#39;c&#39;: [6, 7, 8]}</span>
+<span class="sd">        &gt;&gt;&gt; colx = [2, 0]</span>
+<span class="sd">        &gt;&gt;&gt; retdict_ = get_dict_column(dict_, colx)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(retdict_)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        {&#39;a&#39;: [2, 0], &#39;c&#39;: [8, 6], &#39;b&#39;: [5, 3]}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">retdict_</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">util_list</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">colx</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">dict_</span><span class="p">)}</span>
+    <span class="k">return</span> <span class="n">retdict_</span>
 
 </div>
 <div class="viewcode-block" id="dictinfo"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dictinfo">[docs]</a><span class="k">def</span> <span class="nf">dictinfo</span><span class="p">(</span><span class="n">dict_</span><span class="p">):</span>
@@ -287,13 +794,68 @@
     <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">fmtstr</span><span class="p">)</span>
 
 </div>
+<div class="viewcode-block" id="dict_find_keys"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_find_keys">[docs]</a><span class="k">def</span> <span class="nf">dict_find_keys</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">val_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        dict_ (dict):</span>
+<span class="sd">        val_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: found_dict</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_dict --test-dict_find_keys</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dict import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; dict_ = {&#39;default&#39;: 1, &#39;hierarchical&#39;: 5, &#39;linear&#39;: 0, &#39;kdtree&#39;: 1,</span>
+<span class="sd">        ...          &#39;composite&#39;: 3, &#39;autotuned&#39;: 255, &#39;saved&#39;: 254, &#39;kmeans&#39;: 2,</span>
+<span class="sd">        ...          &#39;lsh&#39;: 6, &#39;kdtree_single&#39;: 4}</span>
+<span class="sd">        &gt;&gt;&gt; val_list = [1]</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; found_dict = dict_find_keys(dict_, val_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = str(found_dict)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        {1: [&#39;kdtree&#39;, &#39;default&#39;]}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">found_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">search_val</span><span class="p">:</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">dict_</span><span class="p">)</span>
+                     <span class="k">if</span> <span class="n">val</span> <span class="o">==</span> <span class="n">search_val</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">search_val</span> <span class="ow">in</span> <span class="n">val_list</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">found_dict</span>
+
+</div>
+<div class="viewcode-block" id="dict_find_other_sameval_keys"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_find_other_sameval_keys">[docs]</a><span class="k">def</span> <span class="nf">dict_find_other_sameval_keys</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dict import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; dict_ = {&#39;default&#39;: 1, &#39;hierarchical&#39;: 5, &#39;linear&#39;: 0, &#39;kdtree&#39;: 1,</span>
+<span class="sd">        ...          &#39;composite&#39;: 3, &#39;autotuned&#39;: 255, &#39;saved&#39;: 254, &#39;kmeans&#39;: 2,</span>
+<span class="sd">        ...          &#39;lsh&#39;: 6, &#39;kdtree_single&#39;: 4}</span>
+<span class="sd">        &gt;&gt;&gt; key = &#39;default&#39;</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; found_dict = dict_find_keys(dict_, val_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">dict_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="n">found_dict</span> <span class="o">=</span> <span class="n">dict_find_keys</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="p">[</span><span class="n">value</span><span class="p">])</span>
+    <span class="n">other_keys</span> <span class="o">=</span> <span class="n">found_dict</span><span class="p">[</span><span class="n">value</span><span class="p">]</span>
+    <span class="n">other_keys</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">other_keys</span>
+
+</div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -c &quot;import utool, utool.util_dict; utool.doctest_funcs(utool.util_dict, allexamples=True)&quot;</span>
 <span class="sd">        python -c &quot;import utool, utool.util_dict; utool.doctest_funcs(utool.util_dict)&quot;</span>
-<span class="sd">        python utool/util_dict.py</span>
-<span class="sd">        python utool/util_dict.py --allexamples</span>
+<span class="sd">        python -m utool.util_dict</span>
+<span class="sd">        python -m utool.util_dict --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
@@ -302,44 +864,58 @@
 </pre></div>
 
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-<div id="searchbox" style="display: none">
-  <h3>Quick search</h3>
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
     </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
         </div>
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
-          <li><a href="../index.html" >Module code</a> &raquo;</li>
-          <li><a href="../utool.html" >utool</a> &raquo;</li> 
-      </ul>
-    </div>
-    <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
-    </div>
-  </body>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.0.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
 </html>

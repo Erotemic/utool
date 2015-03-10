@@ -1,13 +1,32 @@
 from __future__ import absolute_import, division, print_function
-try:
-    import numpy as np
-except ImportError as ex:
-    pass
+#try:
+#    import numpy as np
+#except ImportError as ex:
+#    pass
 import six
 from six.moves import zip, range
 from itertools import chain, cycle, islice, izip_longest
-from utool.util_inject import inject
-print, print_, printDBG, rrr, profile = inject(__name__, '[iter]')
+from utool import util_inject
+from utool._internal import meta_util_iter
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[iter]')
+
+ensure_iterable = meta_util_iter.ensure_iterable
+isiterable = meta_util_iter.isiterable
+
+
+def evaluate_generator(iter_):
+    """ for evaluating each item in a generator and ignoring output """
+    for _ in iter_:  # NOQA
+        pass
+
+
+def iget_list_column(list_, colx):
+    """ iterator version of get_list_column """
+    if isinstance(colx, list):
+        # multi select
+        return ([row[colx_] for colx_ in colx] for row in list_)
+    else:
+        return (row[colx] for row in list_)
 
 
 def itertwo(iterable):
@@ -15,17 +34,6 @@ def itertwo(iterable):
     iter2 = iter(iterable)
     six.next(iter2)
     return zip(iter1, iter2)
-
-
-def ensure_iterable(obj):
-    if np.iterable(obj):
-        return obj
-    else:
-        return [obj]
-
-
-def isiterable(obj):
-    return np.iterable(obj) and not isinstance(obj, six.string_types)
 
 
 def ifilter_items(item_iter, flag_iter):
@@ -134,7 +142,10 @@ def ichunks(iterable, chunksize):
 
 
 def ichunks_list(list_, chunksize):
-    """ input must be a list. SeeAlso ichunks
+    """ input must be a list.
+
+    SeeAlso:
+        ichunks
 
     References:
         http://stackoverflow.com/questions/434287/what-is-the-most-pythonic-way-to-iterate-over-a-list-in-chunks

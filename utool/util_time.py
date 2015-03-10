@@ -1,10 +1,19 @@
+"""
+TODO: This file seems to care about timezone
+
+TODO: Use UTC/GMT time here for EVERYTHING
+
+References:
+    http://www.timeanddate.com/time/aboututc.html
+
+"""
 from __future__ import absolute_import, division, print_function
 import sys
 import six
 import time
 import datetime
-from utool.util_inject import inject
-print, print_, printDBG, rrr, profile = inject(__name__, '[time]')
+from utool import util_inject
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[time]')
 
 
 # --- Timing ---
@@ -47,8 +56,10 @@ def get_timestamp(format_='filename', use_second=False, delta_seconds=None):
         >>> delta_seconds = None
         >>> stamp = get_timestamp(format_, use_second, delta_seconds)
         >>> print(stamp)
+        >>> assert len(stamp) == len('15:43:04 2015/02/24')
     """
     now = datetime.datetime.now()
+    #now = datetime.datetime.utcnow()
     if delta_seconds is not None:
         now += datetime.timedelta(seconds=delta_seconds)
     if format_ == 'tag':
@@ -140,12 +151,22 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=1, strict=False):
         python -m utool.util_time --test-exiftime_to_unixtime
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_time import *  # NOQA
         >>> datetime_str = '0000:00:00 00:00:00'
         >>> timestamp_format = 1
         >>> result = exiftime_to_unixtime(datetime_str, timestamp_format)
         >>> print(result)
+        -1
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_time import *  # NOQA
+        >>> datetime_str = '2015:04:01 00:00:00'
+        >>> timestamp_format = 1
+        >>> result = exiftime_to_unixtime(datetime_str, timestamp_format)
+        >>> print(result)
+        1427860800.0
     """
     try:
         # Normal format, or non-standard year first data
@@ -202,8 +223,7 @@ def unixtime_to_datetime(unixtime, timefmt='%Y/%m/%d %H:%M:%S'):
 
 def unixtime_to_timedelta(unixtime_diff):
     """ alias for get_unix_timedelta """
-    timedelta = datetime.timedelta(seconds=abs(unixtime_diff))
-    return timedelta
+    return get_unix_timedelta(unixtime_diff)
 
 
 def get_unix_timedelta(unixtime_diff):
@@ -215,8 +235,28 @@ def get_unix_timedelta_str(unixtime_diff):
     """
     Args:
         unixtime_diff (int): number of seconds
+
     Returns:
         timestr (str): formated time string
+
+    Args:
+        unixtime_diff (int):
+
+    Returns:
+        str: timestr
+
+    CommandLine:
+        python -m utool.util_time --test-get_unix_timedelta_str
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_time import *  # NOQA
+        >>> unixtime_diff = 0
+        >>> timestr = get_unix_timedelta_str(unixtime_diff)
+        >>> timestr_list = [get_unix_timedelta_str(_) for _ in [-9001, -1, 0, 1, 9001]]
+        >>> result = str(timestr_list)
+        >>> print(result)
+        ['2 hours 30 minutes 1 seconds', '1 seconds', '0 seconds', '1 seconds', '2 hours 30 minutes 1 seconds']
     """
     timedelta = get_unix_timedelta(unixtime_diff)
     timestr = get_timedelta_str(timedelta)
@@ -242,6 +282,8 @@ def get_timedelta_str(timedelta):
         >>> print(result)
         10 seconds
     """
+    if timedelta == datetime.timedelta(0):
+        return '0 seconds'
     days = timedelta.days
     hours, rem = divmod(timedelta.seconds, 3600)
     minutes, seconds = divmod(rem, 60)
@@ -277,19 +319,52 @@ def get_year():
 
 
 def get_timestats_str(unixtime_list, newlines=False):
-    import utool
-    unixtime_stats = utool.get_stats(unixtime_list)
+    r"""
+    Args:
+        unixtime_list (list):
+        newlines (bool):
+
+    Returns:
+        str: timestat_str
+
+    CommandLine:
+        python -m utool.util_time --test-get_timestats_str
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_time import *  # NOQA
+        >>> import utool as ut
+        >>> # build test data
+        >>> # TODO: FIXME ME FOR TIMEZONE EST vs GMT
+        >>> unixtime_list = [0 + 60*60*5 , 10+ 60*60*5, 100+ 60*60*5, 1000+ 60*60*5]
+        >>> newlines = True
+        >>> # execute function
+        >>> timestat_str = get_timestats_str(unixtime_list, newlines)
+        >>> # verify results
+        >>> result = ut.align(str(timestat_str), ':')
+        >>> print(result)
+        {
+            'std' : '0:06:59',
+            'max' : '1970/01/01 00:16:40',
+            'mean': '1970/01/01 00:04:37',
+            'min' : '1970/01/01 00:00:00',
+        }
+
+    """
+    import utool as ut
+    unixtime_stats = ut.get_stats(unixtime_list)
+    datetime_stats = {}
     for key in ['max', 'min', 'mean']:
         try:
-            unixtime_stats[key] = utool.unixtime_to_datetime(unixtime_stats[key])
+            datetime_stats[key] = ut.unixtime_to_datetime(unixtime_stats[key])
         except KeyError:
             pass
     for key in ['std']:
         try:
-            unixtime_stats[key] = str(utool.unixtime_to_timedelta(int(round(unixtime_stats[key]))))
+            datetime_stats[key] = str(ut.unixtime_to_timedelta(int(round(unixtime_stats[key]))))
         except KeyError:
             pass
-    timestat_str = utool.dict_str(unixtime_stats, newlines=newlines)
+    timestat_str = ut.dict_str(datetime_stats, newlines=newlines)
     return timestat_str
 
 

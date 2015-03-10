@@ -10,13 +10,23 @@ except ImportError:
     # TODO remove numpy
     HAS_NUMPY = False
     pass
-from utool.util_inject import inject
+from utool import util_inject
 from utool._internal.meta_util_six import IntType, LongType, FloatType, BooleanType
-print, print_, printDBG, rrr, profile = inject(__name__, '[type]')
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[type]')
+
+
+def type_str(type_):
+    return str(type_).replace('<type \'', '').replace('\'>', '')
 
 
 # Very odd that I have to put in dtypes in two different ways.
 if HAS_NUMPY:
+    NUMPY_SCALAR_NAMES = sorted(list(set(
+        [str_.replace('numpy.', '')
+         for str_ in (type_str(type_) for type_ in np.ScalarType)
+         if str_.startswith('numpy.')
+         ])))
+
     VALID_INT_TYPES = (IntType, LongType,
                        np.typeDict['int64'],
                        np.typeDict['int32'],
@@ -179,6 +189,26 @@ def is_int(var):
 
 
 def is_float(var):
+    r"""
+    Args:
+        var (ndarray or scalar):
+
+    Returns:
+        var:
+
+    CommandLine:
+        python -m utool.util_type --test-is_float
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_type import *  # NOQA
+        >>> # build test data
+        >>> var = np.array([1.0, 2.0, 3.0])
+        >>> # execute function
+        >>> assert is_float(var) is True, 'var is a float'
+        >>> # verify results
+        >>> print(result)
+    """
     return is_type(var, VALID_FLOAT_TYPES)
 
 
@@ -207,10 +237,6 @@ def is_tuple(var):
     return isinstance(var, tuple)
 
 
-def type_str(type_):
-    return str(type_).replace('<type \'', '').replace('\'>', '')
-
-
 def is_func_or_method(var):
     return isinstance(var, (types.MethodType, types.FunctionType))
 
@@ -222,6 +248,7 @@ def is_func_or_method_or_partial(var):
 
 def is_funclike(var):
     return hasattr(var, '__call__')
+
 
 if __name__ == '__main__':
     """

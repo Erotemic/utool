@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import cPickle
+import lockfile
 from utool import util_path
 from utool import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[io]')
@@ -67,6 +68,11 @@ def read_from(fpath, verbose=False, aslines=False, strict=True):
             raise
 
 
+# aliases
+readfrom = read_from
+writeto = write_to
+
+
 def save_cPkl(fpath, data, verbose=False):
     if verbose and __PRINT_WRITES__:
         print('[util_io] * save_cPkl(%r, data)' % (util_path.tail(fpath),))
@@ -80,6 +86,16 @@ def load_cPkl(fpath, verbose=False):
     with open(fpath, 'rb') as file_:
         data = cPickle.load(file_)
     return data
+
+
+def lock_and_load_cPkl(fpath, verbose=False):
+    with lockfile.LockFile(fpath + '.lock'):
+        return load_cPkl(fpath, verbose)
+
+
+def lock_and_save_cPkl(fpath, data, verbose=False):
+    with lockfile.LockFile(fpath + '.lock'):
+        return save_cPkl(fpath, data, verbose)
 
 
 def save_hdf5(fpath, data, verbose=False, compression='gzip'):

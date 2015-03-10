@@ -10,14 +10,16 @@ import itertools
 from collections import OrderedDict
 from six.moves import input
 from utool import util_progress
+from os.path import splitext, exists, join, split, relpath
+from utool import util_inject
+from utool import util_dict
+from utool import util_arg
 try:
     import numpy as np
     HAS_NUMPY = True
 except ImportError as ex:
     HAS_NUMPY = False
     pass
-from os.path import splitext, exists, join, split, relpath
-from utool import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[dev]')
 
 if HAS_NUMPY:
@@ -26,9 +28,23 @@ else:
     INDEXABLE_TYPES = (list, tuple)
 
 
+class ClassNoParam(object):
+    """
+    # class used in place of None when None might be a valid value
+    # probably should just make None not a valid value
+    """
+    def __init__(self):
+        pass
+    def __call__(self, default):
+        pass
+
+# Used instance of NoParam
+NoParam = ClassNoParam()
+
+
 def DEPRICATED(func):
     """ deprication decorator """
-    warn_msg = 'Depricated call to: %s' % func.__name__
+    warn_msg = 'Deprecated call to: %s' % func.__name__
 
     def __DEP_WRAPPER(*args, **kwargs):
         raise Exception('dep')
@@ -53,6 +69,9 @@ def DEPRICATED(func):
 #        if isinstance(varargs[0], INDEXABLE_TYPES):
 #            return varargs[0]
 #    return varargs
+
+def ensure_str_list(input_):
+    return [input_] if isinstance(input_, six.string_types) else input_
 
 
 def set_clipboard(text):
@@ -202,6 +221,83 @@ def strip_line_comments(code_text, comment_char='#'):
     # inline comments
     code_text = ut.regex_replace('  ' + comment_regex, '', code_text)
     return code_text
+
+
+def timeit_grid(stmt_list, setup='', iterations=10000, input_sizes=None,
+                verbose=True, show=False):
+    """
+    Timeit::
+        import utool as ut
+        setup = ut.codeblock(
+        '''
+        import utool as ut
+        from six.moves import range, zip
+        import time
+        def time_append(size):
+            start_time    = time.time()
+            last_time     = start_time
+            list2 = []
+            for x in range(size):
+                now_time    = time.time()
+                between = now_time - last_time
+                last_time   = now_time
+                list2.append(between)
+
+        def time_assign(size):
+            start_time    = time.time()
+            last_time     = start_time
+            list1 = ut.alloc_nones(size)
+            for x in range(size):
+                now_time    = time.time()
+                between = now_time - last_time
+                last_time   = now_time
+                list1[x] = between
+
+        def time_baseline(size):
+            start_time    = time.time()
+            last_time     = start_time
+            for x in range(size):
+                now_time    = time.time()
+                between = now_time - last_time
+                last_time   = now_time
+
+        def time_null(size):
+            for x in range(size):
+                pass
+        ''')
+
+        input_sizes = [2 ** count for count in range(7, 12)]
+        stmt_list = ['time_assign', 'time_append', 'time_baseline', 'time_null']
+        input_sizes=[100, 1000, 10000]
+        ut.timeit_grid(stmt_list, setup, input_sizes=input_sizes, show=True)
+    """
+    import timeit
+    #iterations = timeit.default_number
+    if input_sizes is None:
+        input_sizes = [2 ** count for count in range(7, 14)]
+    time_grid = []
+    for size in input_sizes:
+        time_list = []
+        for stmt in stmt_list:
+            stmt_ = stmt + '(' + str(size) + ')'
+            if verbose:
+                print('running stmt_=%r' % (stmt_,))
+            time = timeit.timeit(stmt_, setup=setup, number=iterations)
+            if verbose:
+                print('... took %r seconds' % (time,))
+            time_list.append(time)
+        time_grid.append(time_list)
+
+    if show:
+        time_grid = np.array(time_grid)
+        import plottool as pt
+        color_list = pt.distinct_colors(len(stmt_list))
+        for count, (stmt, color) in enumerate(zip(stmt_list, color_list)):
+            pt.plot(input_sizes, time_grid.T[count], 'x-', color=color, label=stmt)
+        pt.dark_background()
+        pt.legend()
+        pt.show_if_requested()
+    return time_grid
 
 
 def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
@@ -697,8 +793,96 @@ def tuples_to_unique_scalars(tup_list):
     scalar_list = [seen[tup] if tup in seen else addval(tup) for tup in tup_list]
     return scalar_list
 
+STAT_KEY_ORDER = ['max', 'min', 'mean', 'sum', 'std', 'nMin', 'nMax', 'shape', 'num_nan']
 
-def get_stats(list_, axis=None):
+
+def find_interesting_stats(stat_dict, col_lbls=None, lbl=None):
+    #argfind = np.argmax
+    import utool as ut
+    # select indices of interest
+    sel_indices = []
+    #statstr_kw = dict(precision=3, newlines=True, lbl=lbl, align=True)
+    for key in ['max', 'mean', 'sum']:
+        if key not in stat_dict:
+            continue
+        sortx  = np.argsort(stat_dict[key])
+        if len(sortx) > 4:
+            sel_sortx = sortx.take([0, 1, -2, -1])
+        else:
+            sel_sortx = sortx
+        sel_indices.extend(sel_sortx)
+    sel_indices = ut.unique_keep_order2(sel_indices)
+    sel_stat_dict = ut.get_dict_column(stat_dict, sel_indices)
+    sel_stat_dict = ut.order_dict_by(sel_stat_dict, STAT_KEY_ORDER)
+    return sel_stat_dict, sel_indices
+
+
+#def jagged_stats_str(arr, use_nan=True, lbl=None):
+#    """
+#    builds stats over all columns in arr. Can find interesting column labels
+
+#    Args:
+#        arr (?):  list of potentially non-parallel lists
+#        use_nan (bool):
+#        lbl (None):
+#    """
+#    stat_dict = get_jagged_stats(arr, use_nan=use_nan)
+#    statstr_kw = dict(precision=3, newlines=True, lbl=lbl, align=True)
+#    stat_str =  get_stats_str(stat_dict=stat_dict, **statstr_kw)
+#    REPORT_INTERESTING = True
+#    if REPORT_INTERESTING and col_lbls is not None:
+#        pass
+
+#    #import utool as ut
+#    #ut.embed()
+
+#    return stat_str
+
+
+def get_jagged_stats(arr_list, **kwargs):
+    r"""
+    Args:
+        arr_list (list):
+
+    Returns:
+        dict: stats_dict
+
+    CommandLine:
+        python -m utool.util_dev --test-get_jagged_stats
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dev import *  # NOQA
+        >>> import utool as ut
+        >>> # build test data
+        >>> kwargs = dict(use_nan=True)
+        >>> arr_list = [[1, 2, 3, 4], [3, 10], [np.nan, 3, 3, 3]]
+        >>> # execute function
+        >>> stats_dict = get_jagged_stats(arr_list, **kwargs)
+        >>> # verify results
+        >>> result = ut.align(str(ut.dict_str(stats_dict)), ':')
+        >>> print(result)
+        {
+            'max'    : [4.0, 10.0, 3.0],
+            'min'    : [1.0, 3.0, 3.0],
+            'mean'   : [2.5, 6.5, 3.0],
+            'std'    : [1.118034, 3.5, 0.0],
+            'nMin'   : [1, 1, 3],
+            'nMax'   : [1, 1, 3],
+            'shape'  : ['(4,)', '(2,)', '(4,)'],
+            'num_nan': [0, 0, 1],
+        }
+
+    """
+    import functools
+    stats_dict_list = list(map(functools.partial(get_stats, **kwargs), arr_list))
+    stats_dict_ = util_dict.dict_stack(stats_dict_list)
+    # Fix order
+    stats_dict = util_dict.order_dict_by(stats_dict_, STAT_KEY_ORDER)
+    return stats_dict
+
+
+def get_stats(list_, axis=None, use_nan=False, use_sum=False):
     """
     Args:
         list_ (listlike): values to get statistics of
@@ -719,17 +903,17 @@ def get_stats(list_, axis=None):
         >>> axis = 0
         >>> np.random.seed(0)
         >>> list_ = np.random.rand(10, 2)
-        >>> stat_dict = get_stats(list_, axis)
+        >>> stat_dict = get_stats(list_, axis, use_nan=False)
         >>> result = str(utool.dict_str(stat_dict))
         >>> print(result)
         {
-            'max': array([ 0.96366274,  0.92559665], dtype=float32),
-            'min': array([ 0.0202184,  0.0871293], dtype=float32),
-            'mean': array([ 0.52056623,  0.64254338], dtype=float32),
-            'std': array([ 0.28543401,  0.25168759], dtype=float32),
-            'nMin': array([1, 1], dtype=int32),
-            'nMax': array([1, 1], dtype=int32),
-            'shape': '(10, 2)',
+            'max': np.array([ 0.96366274,  0.92559665], dtype=np.float32),
+            'min': np.array([ 0.0202184,  0.0871293], dtype=np.float32),
+            'mean': np.array([ 0.52056623,  0.64254338], dtype=np.float32),
+            'std': np.array([ 0.28543401,  0.25168759], dtype=np.float32),
+            'nMin': np.array([1, 1], dtype=np.int32),
+            'nMax': np.array([1, 1], dtype=np.int32),
+            'shape': (10, 2),
         }
 
     SeeAlso:
@@ -748,30 +932,48 @@ def get_stats(list_, axis=None):
     if len(list_) == 0:
         stat_dict = {'empty_list': True}
     else:
+        #import utool as ut
+        #if np.any(np.isnan(nparr)):
+        #    ut.embed()
         # Compute stats
-        min_val = nparr.min(axis=axis)
-        max_val = nparr.max(axis=axis)
-        mean_ = nparr.mean(axis=axis)
-        std_  = nparr.std(axis=axis)
+        if use_nan:
+            min_val = np.nanmin(nparr, axis=axis)
+            max_val = np.nanmax(nparr, axis=axis)
+            mean_ = np.nanmean(nparr, axis=axis)
+            std_  = np.nanstd(nparr, axis=axis)
+            # TODO report num nans
+        else:
+            min_val = nparr.min(axis=axis)
+            max_val = nparr.max(axis=axis)
+            mean_ = nparr.mean(axis=axis)
+            std_  = nparr.std(axis=axis)
         # number of entries with min val
         nMin = np.sum(nparr == min_val, axis=axis)
         # number of entries with min val
         nMax = np.sum(nparr == max_val, axis=axis)
-        stat_dict = OrderedDict(
-            [('max',   np.float32(max_val)),
-             ('min',   np.float32(min_val)),
-             ('mean',  np.float32(mean_)),
-             ('std',   np.float32(std_)),
-             ('nMin',  np.int32(nMin)),
-             ('nMax',  np.int32(nMax)),
-             ('shape', repr(nparr.shape))])
+        stats_list = [
+            ('max',   np.float32(max_val)),
+            ('min',   np.float32(min_val)),
+            ('mean',  np.float32(mean_)),
+            ('std',   np.float32(std_)),
+            ('nMin',  np.int32(nMin)),
+            ('nMax',  np.int32(nMax)),
+            ('shape', nparr.shape),  # repr(nparr.shape)),
+        ]
+        if use_nan:
+            stats_list.append(('num_nan', np.isnan(nparr).sum()))
+        if use_sum:
+            sumfunc = np.nansum if use_nan else np.sum
+            stats_list.append(('sum', sumfunc(nparr, axis=axis)))
+        stat_dict = OrderedDict(stats_list)
     return stat_dict
 
 # --- Info Strings ---
 
 
 def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=None,
-                  precision=None, axis=0, stat_dict=None):
+                  precision=None, axis=0, stat_dict=None, use_nan=False,
+                  align=False):
     """
     Returns the string version of get_stats
 
@@ -804,7 +1006,7 @@ def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=No
     import utool as ut
     # Get stats dict
     if stat_dict is None:
-        stat_dict = get_stats(list_, axis=axis)
+        stat_dict = get_stats(list_, axis=axis, use_nan=use_nan)
     else:
         stat_dict = stat_dict.copy()
     # Keep only included keys if specified
@@ -824,7 +1026,14 @@ def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=No
         float_fmtstr = '%.' + str(precision) + 'f'
         for key in list(six.iterkeys(statstr_dict)):
             val = statstr_dict[key]
-            if ut.is_float(val):
+            isfloat = ut.is_float(val)
+            if not isfloat and isinstance(val, list):
+                type_list = list(map(type, val))
+                if len(type_list) > 0 and ut.list_allsame(type_list):
+                    if ut.is_float(val[0]):
+                        isfloat = True
+                        val = np.array(val)
+            if isfloat:
                 if isinstance(val, np.ndarray):
                     strval = str([float_fmtstr % v for v in val]).replace('\'', '')
                     #np.array_str((val), precision=precision)
@@ -847,7 +1056,9 @@ def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=No
     if lbl is True:
         lbl = ut.get_varname_from_stack(list_, N=1)  # fancy
     if lbl is not None:
-        stat_str = 'stats(' + lbl + ') = ' + stat_str
+        stat_str = 'stats_' + lbl + ' = ' + stat_str
+    if align:
+        stat_str = ut.align(stat_str, ':')
     return stat_str
 
 
@@ -884,7 +1095,7 @@ def npArrInfo(arr):
     """
     OLD update and refactor
     """
-    from .DynamicStruct import DynStruct
+    from utool.DynamicStruct import DynStruct
     info = DynStruct()
     info.shapestr  = '[' + ' x '.join([str(x) for x in arr.shape]) + ']'
     info.dtypestr  = str(arr.dtype)
@@ -1450,12 +1661,27 @@ def reset_catch_ctrl_c():
     signal.signal(signal.SIGINT, signal.SIG_DFL)  # reset ctrl+c behavior
 
 
+USER_MODE      =  util_arg.get_argflag(('--user-mode', '--no-developer', '--nodev', '--nodeveloper'))
+DEVELOPER_MODE =  util_arg.get_argflag(('--dev-mode', '--developer-mode'))
+#USER_MODE = not DEVELOPER_MODE
+
+
 def is_developer(mycomputers=None):
     import utool
+    if USER_MODE:
+        return False
+    if DEVELOPER_MODE:
+        return True
     if mycomputers is None:
         mycomputers = ['hyrule', 'ooo', 'bakerstreet']
     compname_lower = utool.get_computer_name().lower()
     return compname_lower in mycomputers
+
+
+def iup():
+    """ shortcut when pt is not imported """
+    import plottool as pt
+    pt.iup()
 
 
 if __name__ == '__main__':

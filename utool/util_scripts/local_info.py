@@ -2,12 +2,12 @@
 """ flake8: noqa """
 from __future__ import absolute_import, division, print_function
 import utool
-import psutil
-import multiprocessing
-import sys
-import os
+import psutil  # NOQA
+import multiprocessing  # NOQA
+import sys  # NOQA
+import os  # NOQA
 import platform
-import site
+import site  # NOQA
 
 if __name__ == '__main__':
     """
@@ -24,13 +24,17 @@ if __name__ == '__main__':
     utool.printvar2('multiprocessing.cpu_count()')
     utool.printvar2('sys.platform')
     utool.printvar2('os.getcwd()')
+    utool.printvar2('utool.is64bit_python()')
+    utool.printvar2('sys.maxint')
 
     print('')
-    print('Python Site')
-    print('')
-
+    print('Python Site:')
     utool.printvar2('site.getsitepackages()')
     utool.printvar2('site.getusersitepackages()')
+
+    print('')
+    print('Memory Status:')
+    print(utool.get_memstats_str())
 
     try:
         #import psutil
@@ -66,7 +70,6 @@ if __name__ == '__main__':
     except ImportError:
         print('psutil not installed')
 
-
     try:
         import resource
         utool.rrr()
@@ -74,7 +77,6 @@ if __name__ == '__main__':
         print('[parallel] Max memory usage: %s' % utool.byte_str2(used_memory))
     except ImportError:
         print('no module resources (doesnt exist on win32)')
-
 
     try:
         import cv2  # NOQA

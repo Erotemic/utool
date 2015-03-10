@@ -9,8 +9,8 @@ import time
 from utool import util_path
 from utool import util_cplat
 from utool import util_arg
-from utool.util_inject import inject
-print, print_, printDBG, rrr, profile = inject(__name__, '[grabdata]')
+from utool import util_inject
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[grabdata]')
 
 
 QUIET = util_arg.QUIET
@@ -207,6 +207,7 @@ TESTIMG_URL_DICT = {
     'easy3.png' : 'http://i.imgur.com/zBcm5mS.png',
     'hard3.png' : 'http://i.imgur.com/ST91yBf.png',
     'zebra.png' : 'http://i.imgur.com/58hbGcd.png',
+    'star.png'  : 'http://i.imgur.com/d2FHuIU.png',
 }
 
 
@@ -227,6 +228,9 @@ def grab_test_imgpath(key, allow_external=True):
     Returns:
         str: testimg_fpath - filepath to the downloaded or cached test image.
 
+    SeeAlso:
+        ut.get_valid_test_imgkeys
+
     CommandLine:
         python -m utool.util_grabdata --test-grab_test_imgpath
 
@@ -243,7 +247,12 @@ def grab_test_imgpath(key, allow_external=True):
     """
     if allow_external and key not in TESTIMG_URL_DICT:
         testimg_fpath = key
-        assert util_path.checkpath(testimg_fpath, verbose=True)
+        if not util_path.checkpath(testimg_fpath, verbose=True):
+            import utool as ut
+            raise AssertionError(
+                'testimg_fpath=%r not found did you mean %s' % (
+                    testimg_fpath,
+                    ut.cond_phrase(get_valid_test_imgkeys(), 'or')))
     else:
         testimg_fname = key
         testimg_url = TESTIMG_URL_DICT[key]
@@ -354,6 +363,29 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool', download_dir=None,
     if cleanup:
         util_path.assert_exists(data_dir)
     return util_path.unixpath(data_dir)
+
+
+def geo_locate(default='Unknown', timeout=1):
+    try:
+        import urllib2
+        import json
+        req = urllib2.Request('http://freegeoip.net/json/', headers={ 'User-Agent': 'Mozilla/5.0' })
+        f = urllib2.urlopen(req, timeout=timeout)
+        json_string = f.read()
+        f.close()
+        location = json.loads(json_string)
+        location_city    = location['city']
+        location_state   = location['region_name']
+        location_country = location['country_name']
+        location_zip     = location['zipcode']
+        success = True
+    except:
+        success = False
+        location_city    = default
+        location_state   = default
+        location_zip     = default
+        location_country = default
+    return success, location_city, location_state, location_country, location_zip
 
 
 if __name__ == '__main__':

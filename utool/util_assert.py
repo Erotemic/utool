@@ -21,7 +21,7 @@ def get_first_None_position(list_):
     return None
 
 
-def assert_all_not_None(list_, list_name='some_list', key_list=[], verbose=True,
+def assert_all_not_None(list_, list_name='some_list', key_list=[], verbose=not util_arg.QUIET,
                         veryverbose=False):
     if util_arg.NO_ASSERTS:
         return
@@ -127,7 +127,7 @@ def assert_lists_eq(list1, list2, failmsg='', verbose=False):
         raise ex
 
 
-def assert_inbounds(num, low, high, msg=''):
+def assert_inbounds(num, low, high, msg='', eq=False, verbose=not util_arg.QUIET):
     r"""
     Args:
         num (scalar):
@@ -137,9 +137,21 @@ def assert_inbounds(num, low, high, msg=''):
     """
     if util_arg.NO_ASSERTS:
         return
-    if not util_alg.inbounds(num, low, high):
-        msg_ = 'num=%r is out of bounds=(%r, %r)' % (num, low, high)
+    passed = util_alg.inbounds(num, low, high, eq=eq)
+    if isinstance(passed, np.ndarray):
+        passflag = np.all(passed)
+    else:
+        passflag = passed
+    if not passflag:
+        failednum = num.compress(~passed) if isinstance(num, np.ndarray) else num
+        failedlow = low.compress(~passed) if isinstance(low, np.ndarray) else low
+        failedhigh = high.compress(~passed) if isinstance(high, np.ndarray) else high
+        msg_ = 'num=%r is out of bounds=(%r, %r)' % (failednum, failedlow, failedhigh)
         raise AssertionError(msg_ + '\n' + msg)
+    else:
+        op = '<=' if eq else '<'
+        fmtstr = 'Passed assert_inbounds: {low} {op} {num} {op} {high}'
+        print(fmtstr.format(low=low, op=op, num=num, high=high))
 
 
 def assert_almost_eq(arr_test, arr_target, thresh=1E-11):
@@ -173,11 +185,45 @@ def assert_almost_eq(arr_test, arr_target, thresh=1E-11):
     return error
 
 
-def assert_eq(var1, var2, msg='', verbose=True):
+def assert_lessthan(arr_test, arr_max, msg=''):
+    r"""
+    Args:
+        arr_test (ndarray or list):
+        arr_target (ndarray or list):
+        thresh (scalar or ndarray or list):
+    """
+    if util_arg.NO_ASSERTS:
+        return
+    arr1 = np.array(arr_test)
+    arr2 = np.array(arr_max)
+    error = arr_max - arr_test
+    passed = error >= 0
+    if not np.all(passed):
+        failed_xs = np.where(np.logical_not(passed))
+        failed_error = error.take(failed_xs)
+        failed_arr_test = arr1.take(failed_xs)
+        failed_arr_target = arr2.take(failed_xs)
+
+        msg_list = [
+            'FAILED ASSERT LESSTHAN',
+            msg,
+            '  * failed_xs = %r' % (failed_xs,),
+            '  * failed_error = %r' % (failed_error,),
+            '  * failed_arr_test   = %r' % (failed_arr_test,),
+            '  * failed_arr_target = %r' % (failed_arr_target,),
+        ]
+        msg = '\n'.join(msg_list)
+        raise AssertionError(msg)
+    return error
+
+
+def assert_eq(var1, var2, msg='', var1_name=None, var2_name=None, verbose=not util_arg.QUIET):
     import utool as ut
     failed = var1 != var2
-    var1_name = ut.get_varname_from_stack(var1, N=1, default='var1')
-    var2_name = ut.get_varname_from_stack(var2, N=1, default='var2')
+    if var1_name is None:
+        var1_name = ut.get_varname_from_stack(var1, N=1, default='var1')
+    if var2_name is None:
+        var2_name = ut.get_varname_from_stack(var2, N=1, default='var2')
     fmtdict = dict(
         msg=msg,
         var1_name=var1_name,
@@ -199,3 +245,16 @@ def assert_eq(var1, var2, msg='', verbose=True):
         raise AssertionError(msg)
     else:
         print('ASSERT_EQ_PASSED: {var1_name} == {var2_name} == {var1_repr}'.format(**fmtdict))
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m utool.util_assert
+        python -m utool.util_assert --allexamples
+        python -m utool.util_assert --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

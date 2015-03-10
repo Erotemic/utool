@@ -53,20 +53,28 @@ def gitcmd(repo, command, sudo=False):
 
 
 def std_build_command(repo):
-    """  My build script names.
+    """
+    My standard build script names.
 
     Calls mingw_build.bat on windows and unix_build.sh  on unix
     """
-    print("************")
+    import utool as ut
+    print("+**** stdbuild *******")
     print(repo)
     if sys.platform.startswith('win32'):
-        scriptname = './mingw_build.sh'
+        #scriptname = './mingw_build.bat'  # vtool --rebuild-sver didnt work with this line
+        scriptname = 'mingw_build.bat'
     else:
         scriptname = './unix_build.sh'
+    normbuild_flag = '--no-rmbuild'
+    if ut.get_argflag(normbuild_flag):
+        scriptname += ' ' + normbuild_flag
+
     # Execute build
     os.chdir(repo)
-    os.system(scriptname)
-    print("************")
+    ut.cmd(scriptname)
+    #os.system(scriptname)
+    print("L**** stdbuild *******")
 
 
 def gg_command(command, sudo=False):

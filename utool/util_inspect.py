@@ -4,6 +4,7 @@ import types
 import six
 import re
 import functools
+from six.moves import range, zip  # NOQA
 from utool import util_regex
 from utool import util_arg
 from utool import util_inject
@@ -30,12 +31,19 @@ def get_dev_hints():
         ('rvecs'   , ('ndarray[uint8_t, ndim=2]', 'residual vector')),
         ('fm', ('list', 'list of feature matches as tuples (qfx, dfx)')),
         ('fs', ('list', 'list of feature scores')),
+        ('aid_list' , ('int', 'list of annotation ids')),
+        ('ensure' , ('bool', 'eager evaluation if True')),
         ('qaid'    , ('int', 'query annotation id')),
+        ('aid[0-9]?', ('int', 'annotation id')),
         ('daids'   , ('list', 'database annotation ids')),
         ('qaids'   , ('list', 'query annotation ids')),
         ('use_cache', ('bool', 'turns on disk based caching')),
         ('qreq_vsmany_', ('QueryRequest', 'persistant vsmany query request')),
         ('qnid'    , ('int', 'query name id')),
+        #
+        ('gfpath[0-9]?' , ('str', 'image file path string')),
+        ('bbox' , ('tuple', 'bounding box in the format (x, y, w, h)')),
+        ('theta' , ('float', 'angle in radians')),
 
         # Pipeline hints
         ('qaid2_nns',
@@ -81,6 +89,7 @@ def get_dev_hints():
         # Plotting hints
         ('[qd]?rchip[0-9]?', ('ndarray[uint8_t, ndim=2]', 'rotated annotation image data')),
         ('[qd]?chip[0-9]?', ('ndarray[uint8_t, ndim=2]', 'annotation image data')),
+        ('kp', ('ndarray[float32_t, ndim=1]', 'a single keypoint')),
         ('[qd]?kpts[0-9]?', ('ndarray[float32_t, ndim=2]', 'keypoints')),
         ('[qd]?vecs[0-9]?', ('ndarray[uint8_t, ndim=2]', 'descriptor vectors')),
         ('H', ('ndarray[float64_t, ndim=2]', 'homography/perspective matrix')),
@@ -88,10 +97,14 @@ def get_dev_hints():
         ('invVR_mats2x2', ('ndarray[float32_t, ndim=3]', 'keypoint shape and rotations')),
         ('invV_mats', ('ndarray[float32_t, ndim=3]',  'keypoint shapes (possibly translation)')),
         ('invVR_mats', ('ndarray[float32_t, ndim=3]', 'keypoint shape and rotations (possibly translation)')),
-        ('img', ('ndarray[uint8_t, ndim=2]', 'image data')),
+        ('img\d*', ('ndarray[uint8_t, ndim=2]', 'image data')),
+        ('imgBGR', ('ndarray[uint8_t, ndim=2]', 'image data in opencv format (blue, green, red)')),
         ('pnum', ('tuple', 'plot number')),
         ('fnum', ('int', 'figure number')),
         ('title', ('str', '')),
+
+        # Matching Hints
+        ('ratio_thresh'       , ('float', None)),
 
         # utool hints
         ('funcname'       , ('str', 'function name')),
@@ -101,18 +114,32 @@ def get_dev_hints():
         ('dict_'          , ('dict_', 'a dictionary')),
         ('examplecode'    , ('str', None)),
 
+        # Numpy Hints
+        ('shape'    , ('tuple', 'array dimensions')),
+        ('chipshape'    , ('tuple', 'height, width')),
 
-        # My coding style hints
+        # Opencv hings
+        ('dsize'    , ('tuple', 'width, height')),
+        ('chipsize'    , ('tuple', 'width, height')),
+
+        # Standard Python Hints for my coding style
+        ('.*_fn' , ('func', None)),
+        ('str_' , ('str', None)),
+        ('.*_str' , ('str', None)),
+        ('.*_?list_?' , ('list', None)),
+        ('.*_tup' , ('tuple', None)),
+        ('.*_sublist' , ('list', None)),
+        ('fpath[0-9]?' , ('str', 'file path string')),
+        ('chip[A-Z]*' , ('ndarray', 'cropped image')),
+        ('verbose', ('bool', 'verbosity flag')),
+
+        # Other hints for my coding style
         ('wx2_'    , ('dict', None)),
         ('qfx2_' + VAL_FIELD,
          ('ndarray',
           'mapping from query feature index to ' + VAL_BREF)),
         ('.*x2_.*' , ('ndarray', None)),
         ('.+2_.*'  , ('dict', None)),
-        ('.*_?list_?' , ('list', None)),
-        ('.*_tup' , ('tuple', None)),
-        ('.*_sublist' , ('list', None)),
-        ('verbose', ('bool', 'verbosity flag')),
     ])
     return registered_hints
 
@@ -196,18 +223,8 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
         >>> doctestable_list = list(iter_module_doctestable(module))
         >>> func_names = ut.get_list_column(doctestable_list, 0)
         >>> print('\n'.join(func_names))
-
-    Example2:
-        >>> # ENABLE_DOCTEST
-        >>> from utool.util_inspect import *   # NOQA
-        >>> import utool as ut
-        >>> import ibeis
-        >>> import ibeis.control.IBEISControl
-        >>> module = ibeis.control.IBEISControl
-        >>> doctestable_list = list(iter_module_doctestable(module))
-        >>> func_names = ut.get_list_column(doctestable_list, 0)
-        >>> print('\n'.join(func_names))
     """
+    import ctypes
     valid_func_types = (types.FunctionType, types.BuiltinFunctionType,
                         #types.MethodType, types.BuiltinMethodType,
                         )
@@ -216,10 +233,21 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
     scalar_types = ([dict, list, tuple, set, frozenset, bool, float, int] +
                     list(six.string_types))
     scalar_types += list(six.string_types)
-    other_types = [types.InstanceType, functools.partial, types.ModuleType]
+    other_types = [types.InstanceType, functools.partial, types.ModuleType,
+                   ctypes.CDLL]
     invalid_types = tuple(scalar_types + other_types)
 
+    #modpath = ut.get_modname_from_modpath(module.__file__)
+
     for key, val in six.iteritems(module.__dict__):
+        if hasattr(val, '__module__'):
+            # HACK: todo. figure out true parent module
+            if val.__module__ == 'numpy':
+                continue
+            #if key == 'NP_NDARRAY':
+            #    import utool as ut
+            #    ut.embed()
+
         if val is None:
             pass
         elif isinstance(val, valid_func_types):
@@ -317,6 +345,87 @@ def list_global_funcnames(fname, blank_pats=['    #']):
 
 
 # grep is in util_path. Thats pretty inspecty
+
+def get_kwargs(func):
+    """
+    Args:
+        func (?):
+
+    Returns:
+        ?:
+
+    CommandLine:
+        python -m utool.util_inspect --test-get_kwargs
+
+
+    def func1(a, b, c):
+        pass
+    def func2(a, b, c, *args):
+        pass
+    def func3(a, b, c, *args, **kwargs):
+        pass
+    def func4(a, b=1, c=2):
+        pass
+    def func5(a, b=1, c=2, *args):
+        pass
+    def func6(a, b=1, c=2, **kwargs):
+        pass
+    def func7(a, b=1, c=2, *args, **kwargs):
+        pass
+    for func in [locals()['func' + str(x)] for x in range(1, 8)]:
+        print(inspect.getargspec(func))
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_inspect import *  # NOQA
+        >>> # build test data
+        >>> func = '?'
+        >>> # execute function
+        >>> result = get_kwargs(func)
+        >>> # verify results
+        >>> print(result)
+    """
+    #if argspec.keywords is None:
+    import utool as ut
+    argspec = inspect.getargspec(func)
+    if argspec.defaults is not None:
+        num_args = len(argspec.args)
+        num_keys = len(argspec.defaults)
+        keys = ut.list_take(argspec.args, range(num_args - num_keys, num_args))
+    else:
+        keys = []
+    is_arbitrary = argspec.keywords is not None
+    RECURSIVE = False
+    if RECURSIVE and argspec.keywords is not None:
+        pass
+        # TODO: look inside function at the functions that the kwargs object is being
+        # passed to
+    return keys, is_arbitrary
+
+
+def filter_valid_kwargs(func, dict_):
+    import utool as ut
+    keys, is_arbitrary = ut.get_kwargs(func)
+    if is_arbitrary:
+        valid_dict_ = dict_
+    else:
+        key_subset = ut.dict_keysubset(dict_, keys)
+        valid_dict_ = ut.dict_subset(dict_, key_subset)
+    return valid_dict_
+
+
+def get_kwdefaults(func):
+    argspec = inspect.getargspec(func)
+    if argspec.keywords is None or argspec.defaults is None:
+        return {}
+    kwdefaults = dict(zip(argspec.keywords, argspec.defaults))
+    return kwdefaults
+
+
+def get_argnames(func):
+    argspec = inspect.getargspec(func)
+    argnames = argspec.args
+    return argnames
 
 
 def get_funcname(func):
@@ -494,16 +603,70 @@ def parse_return_type(sourcecode):
     return return_type, return_name, return_header, return_desc
 
 
-def get_func_sourcecode(func):
+def get_func_sourcecode(func, stripdef=False, stripret=False):
     """
     wrapper around inspect.getsource but takes into account utool decorators
+    strip flags are very hacky as of now
+
+    Args:
+        func (?):
+        stripdef (bool):
+
+
+    CommandLine:
+        python -m utool.util_inspect --test-get_func_sourcecode
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_inspect import *  # NOQA
+        >>> # build test data
+        >>> func = get_func_sourcecode
+        >>> stripdef = True
+        >>> stripret = True
+        >>> # execute function
+        >>> sourcecode = get_func_sourcecode(func, stripdef)
+        >>> # verify results
+        >>> print(result)
     """
+    import utool as ut
+    #try:
     sourcefile = inspect.getsourcefile(func)
+    #except IOError:
+    #    sourcefile = None
     if hasattr(func, '_utinfo'):
-        #return func._utinfo['src']
-        return get_func_sourcecode(func._utinfo['orig_func'])
-    if sourcefile is not None:
-        return inspect.getsource(func)
+        #if 'src' in func._utinfo:
+        #    sourcecode = func._utinfo['src']
+        #else:
+        func2 = func._utinfo['orig_func']
+        sourcecode = get_func_sourcecode(func2)
+    elif sourcefile is not None:
+        sourcecode = inspect.getsource(func)
+    else:
+        sourcecode = None
+    #orig_source = sourcecode
+    #print(orig_source)
+    if stripdef:
+        # hacky
+        sourcecode = ut.unindent(ut.regex_replace('def [^)]*\\):\n', '', sourcecode))
+        #print(sourcecode)
+        pass
+    if stripret:
+        r""" \s is a whitespace char """
+        return_ = ut.named_field('return', 'return .*$')
+        prereturn = ut.named_field('prereturn', r'^\s*')
+        return_bref = ut.bref_field('return')
+        prereturn_bref = ut.bref_field('prereturn')
+        regex = prereturn + return_
+        repl = prereturn_bref + 'pass  # ' + return_bref
+        #import re
+        #print(re.search(regex, sourcecode, flags=re.MULTILINE ))
+        #print(re.search('return', sourcecode, flags=re.MULTILINE | re.DOTALL ))
+        #print(re.search(regex, sourcecode))
+        sourcecode_ = re.sub(regex, repl, sourcecode, flags=re.MULTILINE)
+        #print(sourcecode_)
+        sourcecode = sourcecode_
+        pass
+    return sourcecode
     #else:
     #return get_func_sourcecode(func._utinfo['src'])
 

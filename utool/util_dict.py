@@ -5,6 +5,7 @@ from itertools import product as iprod
 from six.moves import zip
 from collections import OrderedDict
 from utool import util_inject
+from utool import util_list
 import six
 try:
     import numpy as np
@@ -18,6 +19,10 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[dict]')
 def count_dict_vals(dict_of_lists):
     count_dict = {'len(%s)' % (key,): len(val) for key, val in six.iteritems(dict_of_lists)}
     return count_dict
+
+
+def dict_keysubset(dict_, keys):
+    return [key for key in keys if key in dict_]
 
 
 def get_dict_hashid(dict_):
@@ -53,6 +58,42 @@ def get_dict_hashid(dict_):
     return hashid
 
 
+def dict_stack(dict_list, key_prefix=''):
+    r"""
+    stacks values from two dicts into a new dict where the values are list of
+    the input values. the keys are the same.
+
+    Args:
+        dict_list (list): list of dicts with similar keys
+
+    Returns:
+        dict dict_stacked
+
+    CommandLine:
+        python -m utool.util_dict --test-dict_stack
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> # build test data
+        >>> dict1_ = {'a': 1, 'b': 2}
+        >>> dict2_ = {'a': 2, 'b': 3, 'c': 4}
+        >>> # execute function
+        >>> dict_stacked = dict_stack([dict1_, dict2_])
+        >>> # verify results
+        >>> result = str(dict_stacked)
+        >>> print(result)
+        {'a': [1, 2], 'c': [4], 'b': [2, 3]}
+
+    """
+    dict_stacked_ = defaultdict(list)
+    for dict_ in dict_list:
+        for key, val in six.iteritems(dict_):
+            dict_stacked_[key_prefix + key].append(val)
+    dict_stacked = dict(dict_stacked_)
+    return dict_stacked
+
+
 def invert_dict(dict_):
     """
     invert_dict
@@ -63,6 +104,9 @@ def invert_dict(dict_):
     Returns:
         dict: inverted_dict
 
+    CommandLine:
+        python -m utool.util_dict --test-invert_dict
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
@@ -71,8 +115,19 @@ def invert_dict(dict_):
         >>> result = inverted_dict
         >>> print(result)
         {1: 'a', 2: 'b'}
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> dict_ = OrderedDict([(2, 'good',), (1, 'ok',), (0, 'junk',), (None, 'UNKNOWN',),])
+        >>> inverted_dict = invert_dict(dict_)
+        >>> result = inverted_dict
+        >>> print(result)
+        OrderedDict([('good', 2), ('ok', 1), ('junk', 0), ('UNKNOWN', None)])
+
     """
-    inverted_dict = {val: key for key, val in six.iteritems(dict_)}
+    inverted_items = [(val, key) for key, val in six.iteritems(dict_)]
+    inverted_dict = type(dict_)(inverted_items)
     return inverted_dict
 
 
@@ -94,7 +149,7 @@ def all_dict_combinations_ordered(varied_dict):
     return dict_list
 
 
-def all_dict_combinations(varied_dict):
+def all_dict_combinations(varied_dict, ):
     """
     all_dict_combinations
 
@@ -103,6 +158,9 @@ def all_dict_combinations(varied_dict):
 
     Returns:
         list: dict_list a list of dicts correpsonding to all combinations of params settings
+
+    CommandLine:
+        python -m utool.util_dict --test-all_dict_combinations
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -113,13 +171,19 @@ def all_dict_combinations(varied_dict):
         >>> result = str(ut.list_str(dict_list))
         >>> print(result)
         [
-            {'pipeline_root': 'vsmany', 'sv_on': True, 'logdist_weight': 0.0},
-            {'pipeline_root': 'vsmany', 'sv_on': True, 'logdist_weight': 1.0},
-            {'pipeline_root': 'vsmany', 'sv_on': False, 'logdist_weight': 0.0},
-            {'pipeline_root': 'vsmany', 'sv_on': False, 'logdist_weight': 1.0},
-            {'pipeline_root': 'vsmany', 'sv_on': None, 'logdist_weight': 0.0},
-            {'pipeline_root': 'vsmany', 'sv_on': None, 'logdist_weight': 1.0},
+            {'pipeline_root': 'vsmany', 'sv_on': True, 'logdist_weight': 0.0,},
+            {'pipeline_root': 'vsmany', 'sv_on': True, 'logdist_weight': 1.0,},
+            {'pipeline_root': 'vsmany', 'sv_on': False, 'logdist_weight': 0.0,},
+            {'pipeline_root': 'vsmany', 'sv_on': False, 'logdist_weight': 1.0,},
+            {'pipeline_root': 'vsmany', 'sv_on': None, 'logdist_weight': 0.0,},
+            {'pipeline_root': 'vsmany', 'sv_on': None, 'logdist_weight': 1.0,},
         ]
+
+    Ignore:
+        print(x)
+        print(y)
+
+        print(ut.hz_str('\n'.join(list(x)), '\n'.join(list(y))))
     """
     tups_list = [[(key, val) for val in val_list] if isinstance(val_list, (list, tuple)) else [(key, val_list)]
                  for (key, val_list) in six.iteritems(varied_dict)]
@@ -135,6 +199,9 @@ def all_dict_combinations_lbls(varied_dict):
     It tries to not be oververbose and returns only what parameters are varied
     in each label.
 
+    CommandLine:
+        python -m utool.util_dict --test-all_dict_combinations_lbls
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> import utool
@@ -143,14 +210,15 @@ def all_dict_combinations_lbls(varied_dict):
         >>> result = (utool.list_str(comb_lbls))
         >>> print(result)
         [
-            (('sv_on', True), ('logdist_weight', 0.0)),
-            (('sv_on', True), ('logdist_weight', 1.0)),
-            (('sv_on', False), ('logdist_weight', 0.0)),
-            (('sv_on', False), ('logdist_weight', 1.0)),
-            (('sv_on', None), ('logdist_weight', 0.0)),
-            (('sv_on', None), ('logdist_weight', 1.0)),
+            "(('sv_on', True), ('logdist_weight', 0.0))",
+            "(('sv_on', True), ('logdist_weight', 1.0))",
+            "(('sv_on', False), ('logdist_weight', 0.0))",
+            "(('sv_on', False), ('logdist_weight', 1.0))",
+            "(('sv_on', None), ('logdist_weight', 0.0))",
+            "(('sv_on', None), ('logdist_weight', 1.0))",
         ]
 
+    #ut.list_type_profile(comb_lbls)
     """
     multitups_list = [[(key, val) for val in val_list]
                       for key, val_list in six.iteritems(varied_dict)
@@ -216,9 +284,35 @@ def build_conflict_dict(key_list, val_list):
 
 
 def updateif_haskey(dict1, dict2):
+    r"""
+    updates vals in dict1 using vals from dict2 only if the
+    key is already in dict1.
+
+    Args:
+        dict1 (dict)
+        dict2 (dict):
+
+    CommandLine:
+        python -m utool.util_dict --test-updateif_haskey
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> # build test data
+        >>> dict1 = {'a': 1, 'b': 2, 'c': 3}
+        >>> dict2 = {'a': 2, 'd': 3}
+        >>> # execute function
+        >>> result = updateif_haskey(dict1, dict2)
+        >>> assert 'd' not in dict1
+        >>> assert dict1['a'] == 2
+        >>> assert result is dict1
+        >>> # verify results
+        >>> print(result)
+    """
     for key, val in six.iteritems(dict2):
         if key in dict1:
             dict1[key] = val
+    return dict1
 
 
 def dict_update_newkeys(dict_, dict2):
@@ -264,19 +358,26 @@ def dict_subset(dict_, keys):
         dict: subset dictionary
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
-        >>> dict_ = '?'
-        >>> keys = '?'
+        >>> dict_ = {'K': 3, 'dcvs_clip_max': 0.2, 'p': 0.1}
+        >>> keys = ['K', 'dcvs_clip_max']
         >>> result = dict_subset(dict_, keys)
         >>> print(result)
+        {'K': 3, 'dcvs_clip_max': 0.2}
     """
     subdict_ = {key: dict_[key] for key in keys}
     return subdict_
 
 
+def dict_to_keyvals(dict_):
+    return list(six.iteritems(dict_))
+
+
 def dict_setdiff(dict_, negative_keys):
     r"""
+    returns a copy of dict_ without keys in the negative_keys list
+
     Args:
         dict_ (dict):
         negative_keys (list):
@@ -289,7 +390,7 @@ def dict_setdiff(dict_, negative_keys):
 
 def delete_dict_keys(dict_, key_list):
     r"""
-    in place deletion if  keys exist
+    in place deletion if keys exist
 
     Args:
         dict_ (?):
@@ -376,14 +477,101 @@ def dict_take_list(dict_, keys, *d):
 
 def dict_take(dict_, keys, *d):
     """ alias """
-    return dict_take_list(dict_, keys, *d)
+    try:
+        return dict_take_list(dict_, keys, *d)
+    except TypeError:
+        return dict_take_list(dict_, [keys], *d)[0]
+
+
+def dict_take_pop(dict_, keys, *d):
+    """ like dict_take but pops values off
+
+    CommandLine:
+        python -m utool.util_dict --test-dict_take_pop
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
+        >>> dict_ = {1: 'a', 'other': None, 'another': 'foo', 2: 'b', 3: 'c'}
+        >>> keys = [1, 2, 3, 4, 5]
+        >>> print('before: ' + ut.dict_str(dict_))
+        >>> result = list(dict_take_pop(dict_, keys, None))
+        >>> print('after: ' + ut.dict_str(dict_))
+        >>> assert len(dict_) == 2
+        >>> print(result)
+        ['a', 'b', 'c', None, None]
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
+        >>> dict_ = {1: 'a', 2: 'b', 3: 'c'}
+        >>> keys = [1, 2, 3, 4, 5]
+        >>> print('before: ' + ut.dict_str(dict_))
+        >>> try:
+        >>>     print(list(dict_take_pop(dict_, keys)))
+        >>>     result = 'did not get key error'
+        >>> except KeyError:
+        >>>     result = 'correctly got key error'
+        >>> assert len(dict_) == 0
+        >>> print('after: ' + ut.dict_str(dict_))
+        >>> print(result)
+        correctly got key error
+    """
+    if len(d) == 0:
+        return [dict_.pop(key) for key in keys]
+    elif len(d) == 1:
+        default = d[0]
+        return [dict_.pop(key, default) for key in keys]
+    else:
+        raise ValueError('len(d) must be 1 or 0')
+
+
+def dict_assign(dict_, keys, vals):
+    """ simple method for assigning or setting values with a similar interface
+    to dict_take """
+    for key, val in zip(keys, vals):
+        dict_[key] = val
 
 
 def dict_where_len0(dict_):
+    """
+    Accepts a dict of lists. Returns keys that have vals with no length
+    """
     keys = np.array(dict_.keys())
     flags = np.array(list(map(len, dict_.values()))) == 0
     indices = np.where(flags)[0]
     return keys[indices]
+
+
+def order_dict_by(dict_, key_order):
+    sorted_item_list = [(key, dict_[key]) for key in key_order if key in dict_]
+    sorted_dict = OrderedDict(sorted_item_list)
+    return sorted_dict
+
+
+def get_dict_column(dict_, colx):
+    r"""
+    Args:
+        dict_ (dict_):  a dictionary
+        colx (?):
+
+    CommandLine:
+        python -m utool.util_dict --test-get_dict_column
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> dict_ = {'a': [0, 1, 2], 'b': [3, 4, 5], 'c': [6, 7, 8]}
+        >>> colx = [2, 0]
+        >>> retdict_ = get_dict_column(dict_, colx)
+        >>> result = str(retdict_)
+        >>> print(result)
+        {'a': [2, 0], 'c': [8, 6], 'b': [5, 3]}
+    """
+    retdict_ = {key: util_list.list_take(val, colx) for key, val in six.iteritems(dict_)}
+    return retdict_
 
 
 def dictinfo(dict_):

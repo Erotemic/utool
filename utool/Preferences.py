@@ -12,17 +12,17 @@ try:
     import numpy as np
 except ImportError as ex:
     pass
-from utool.DynamicStruct import DynStruct
-from utool.util_dbg import printex
-from utool.util_type import is_str, is_dict, try_cast
-from utool import util_inject
+from utool import DynamicStruct
+from utool import util_dbg
+from utool import util_arg
 from utool import util_type
+from utool import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[pref]')
 
 # ---
 # GLOBALS
 # ---
-PrefNode = DynStruct
+PrefNode = DynamicStruct.DynStruct
 
 
 def printDBG(msg):
@@ -33,7 +33,7 @@ def printDBG(msg):
 # ---
 # Classes
 # ---
-class PrefInternal(DynStruct):
+class PrefInternal(DynamicStruct.DynStruct):
     def __init__(_intern, name, doc, default, hidden, fpath, depeq, choices):
         super(PrefInternal, _intern).__init__(child_exclude_list=[])
         # self._intern describes this node
@@ -58,7 +58,7 @@ class PrefInternal(DynStruct):
         _intern._frozen_type = _intern.get_type()
 
 
-class PrefTree(DynStruct):
+class PrefTree(DynamicStruct.DynStruct):
     def __init__(_tree, parent):
         super(PrefTree, _tree).__init__(child_exclude_list=[])
         # self._tree describes node's children and the parents
@@ -71,7 +71,7 @@ class PrefTree(DynStruct):
         _tree.aschildx             = 0   # This node is the x-th child
 
 
-class PrefChoice(DynStruct):
+class PrefChoice(DynamicStruct.DynStruct):
     def __init__(self, choices, default):
         super(PrefChoice, self).__init__(child_exclude_list=[])
         self.choices = choices
@@ -174,10 +174,19 @@ class Pref(PrefNode):
                 child.change_combo_val(attr)
             else:
                 child_type = child._intern.get_type()
+                if isinstance(attr, six.string_types) and issubclass(child_type, six.string_types):
+                    #import utool as ut
+                    #ut.embed()
+                    attr = child_type(attr)
                 attr_type  = type(attr)
-                if child_type is not attr_type:
-                    #print('WARNING TYPE DIFFERENCE! %r, %r' % (child_type, attr_type))
-                    attr = try_cast(attr, child_type, attr)
+                if attr is not None and child_type is not attr_type:
+                    if util_arg.VERBOSE:
+                        print('[pref] WARNING TYPE DIFFERENCE!')
+                        print('[pref] * expected child_type = %r' % (child_type,))
+                        print('[pref] * got attr_type = %r' % (attr_type,))
+                        print('[pref] * name = %r' % (name,))
+                        print('[pref] * attr = %r' % (attr,))
+                    attr = util_type.try_cast(attr, child_type, attr)
                 child._intern.value = attr
             self.__dict__[name] = child.value()
 
@@ -230,7 +239,7 @@ class Pref(PrefNode):
         """
         # No wrapping for private vars: _printable_exclude, _intern, _tree
         if name.find('_') == 0:
-            return super(DynStruct, self).__setattr__(name, attr)
+            return super(DynamicStruct.DynStruct, self).__setattr__(name, attr)
         # Overwrite if child exists
         if name in self._tree.child_names:
             self.__overwrite_child_attr(name, attr)
@@ -366,18 +375,16 @@ class Pref(PrefNode):
                 #printDBG('load: %r' % fpath)
                 pref_dict = cPickle.load(f)
         except EOFError as ex1:
-            printex(ex1, 'did not load pref fpath=%r correctly' %
-                    fpath, iswarning=True)
+            util_dbg.printex(ex1, 'did not load pref fpath=%r correctly' % fpath, iswarning=True)
             #warnings.warn(msg)
             raise
             #return msg
         except ImportError as ex2:
-            printex(ex2, 'did not load pref fpath=%r correctly' %
-                    fpath, iswarning=True)
+            util_dbg.printex(ex2, 'did not load pref fpath=%r correctly' % fpath, iswarning=True)
             #warnings.warn(msg)
             raise
             #return msg
-        if not is_dict(pref_dict):
+        if not util_type.is_dict(pref_dict):
             raise Exception('Preference file is corrupted')
         self.add_dict(pref_dict)
         return True
@@ -414,7 +421,7 @@ class Pref(PrefNode):
             row = self._tree.child_names.index(name)
             #child = self._tree.child_list[row]  # child node to "overwrite"
             _typestr = type(self._tree.child_list[row]._intern.value)
-            if is_str(_typestr):
+            if util_type.is_str(_typestr):
                 return _typestr
 
     def pref_update(self, key, new_val):
@@ -444,7 +451,7 @@ class Pref(PrefNode):
             editpref_widget.show()
             return editpref_widget
         except ImportError as ex:
-            printex(ex, 'Cannot create preference widget. Is guitool and PyQt 4/5 Installed')
+            util_dbg.printex(ex, 'Cannot create preference widget. Is guitool and PyQt 4/5 Installed')
             raise
 
     def qt_get_parent(self):

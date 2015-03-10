@@ -1,140 +1,254 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>utool.util_progress &mdash; utool 1.0.0.dev1 documentation</title>
-    
-    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '1.0.0.dev1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html" />
-    <link rel="up" title="utool" href="../utool.html" /> 
-  </head>
-  <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
-          <li><a href="../index.html" >Module code</a> &raquo;</li>
-          <li><a href="../utool.html" accesskey="U">utool</a> &raquo;</li> 
-      </ul>
-    </div>  
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>utool.util_progress &mdash; utool 1.0.0.dev1 documentation</title>
+  
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body">
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html"/>
+        <link rel="up" title="utool" href="../utool.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../index.html" class="fa fa-home"> utool</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../utool.html">utool package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.DynamicStruct">utool.DynamicStruct module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.Preferences">utool.Preferences module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.Printable">utool.Printable module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_alg">utool.util_alg module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_aliases">utool.util_aliases module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_arg">utool.util_arg module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_assert">utool.util_assert module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_autogen">utool.util_autogen module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_cache">utool.util_cache module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_class">utool.util_class module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_config">utool.util_config module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_cplat">utool.util_cplat module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_csv">utool.util_csv module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_dbg">utool.util_dbg module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_decor">utool.util_decor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_dev">utool.util_dev module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_dict">utool.util_dict module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_distances">utool.util_distances module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_func">utool.util_func module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_git">utool.util_git module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_grabdata">utool.util_grabdata module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_gridsearch">utool.util_gridsearch module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_hash">utool.util_hash module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_inject">utool.util_inject module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_inspect">utool.util_inspect module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_io">utool.util_io module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_iter">utool.util_iter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_latex">utool.util_latex module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_list">utool.util_list module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_logging">utool.util_logging module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_num">utool.util_num module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_numpy">utool.util_numpy module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_parallel">utool.util_parallel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_path">utool.util_path module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_print">utool.util_print module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_progress">utool.util_progress module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_regex">utool.util_regex module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_resources">utool.util_resources module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_set">utool.util_set module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_setup">utool.util_setup module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_six">utool.util_six module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_str">utool.util_str module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_sysreq">utool.util_sysreq module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_tests">utool.util_tests module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_time">utool.util_time module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_type">utool.util_type module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">utool</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../utool.html">utool</a> &raquo;</li>
+      
+    <li>utool.util_progress</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
             
   <h1>Source code for utool.util_progress</h1><div class="highlight"><pre>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd"># Need to invoke this way because of relative imports</span>
+<span class="sd">progress handler.</span>
 
-
-<span class="sd">Examples:</span>
-<span class="sd">    python -c &quot;import utool, doctest; print(doctest.testmod(utool.util_progress))&quot;</span>
-<span class="sd">    python -m doctest -v ~/code/utool/utool/util_progress.py</span>
-<span class="sd">    python -c &quot;import utool, doctest; doctest.testmod(utool.util_progress, verbose=True)&quot;</span>
-<span class="sd">    python -c &quot;import utool, doctest; doctest.testmod(utool.util_progress)&quot; -v</span>
-<span class="sd">    python -c &quot;import utool, doctest; doctest.testmod(utool.util_progress)&quot;</span>
-<span class="sd">    python -c &quot;import utool, doctest; help(doctest.testmod)&quot;</span>
+<span class="sd">Old progress funcs needto be depricated ProgressIter and progress_chunks are</span>
+<span class="sd">pretty much the only useful things here.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_logging</span>
-<span class="kn">from</span> <span class="nn">utool.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
-<span class="kn">from</span> <span class="nn">utool.util_arg</span> <span class="kn">import</span> <span class="n">QUIET</span><span class="p">,</span> <span class="n">SILENT</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_arg</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_time</span>
-<span class="c">#get_argflag,</span>
-<span class="c">#, VERBOSE</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[progress]&#39;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_iter</span>
+<span class="kn">import</span> <span class="nn">six</span>  <span class="c"># NOQA</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[progress]&#39;</span><span class="p">)</span>
 
 
-<span class="c">#QUIET = get_argflag(&#39;--quiet&#39;)</span>
-<span class="c">#VERBOSE = get_argflag(&#39;--verbose&#39;)</span>
+<span class="n">QUIET</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">QUIET</span>
+<span class="n">SILENT</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">SILENT</span>
 <span class="n">VALID_PROGRESS_TYPES</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;none&#39;</span><span class="p">,</span> <span class="s">&#39;dots&#39;</span><span class="p">,</span> <span class="s">&#39;fmtstr&#39;</span><span class="p">,</span> <span class="s">&#39;simple&#39;</span><span class="p">]</span>
-<span class="n">AGGROFLUSH</span> <span class="o">=</span> <span class="s">&#39;--aggroflush&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
-<span class="n">PROGGRESS_BACKSPACE</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;--screen&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="ow">and</span> <span class="s">&#39;--progress-backspace&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+<span class="n">AGGROFLUSH</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--aggroflush&#39;</span><span class="p">)</span>
+<span class="n">PROGGRESS_BACKSPACE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--screen&#39;</span><span class="p">,</span> <span class="s">&#39;--progress-backspace&#39;</span><span class="p">))</span>
+<span class="n">NO_PROGRESS</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--no-progress&#39;</span><span class="p">,</span> <span class="s">&#39;--noprogress&#39;</span><span class="p">))</span>
+<span class="c">#(&#39;--screen&#39; not in sys.argv and &#39;--progress-backspace&#39; not in sys.argv)</span>
 
 
 <span class="c">#PROGRESS_WRITE = sys.stdout.write</span>
 <span class="c">#PROGRESS_FLUSH = sys.stdout.flush</span>
 
+<span class="c"># FIXME: if this is loaded before logging beings</span>
+<span class="c"># progress will not be logged</span>
 <span class="n">PROGRESS_WRITE</span> <span class="o">=</span> <span class="n">util_logging</span><span class="o">.</span><span class="n">__UTOOL_WRITE__</span>
 <span class="n">PROGRESS_FLUSH</span> <span class="o">=</span> <span class="n">util_logging</span><span class="o">.</span><span class="n">__UTOOL_FLUSH__</span>
 
 
 <div class="viewcode-block" id="test_progress"><a class="viewcode-back" href="../../utool.html#utool.util_progress.test_progress">[docs]</a><span class="k">def</span> <span class="nf">test_progress</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_progress --test-test_progress</span>
+
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; test_progress()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-    <span class="kn">import</span> <span class="nn">time</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">rrrr</span><span class="p">()</span>
+    <span class="c">#import time</span>
+    <span class="c">#ut.rrrr()</span>
 
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;_________________&#39;</span><span class="p">)</span>
 
-    <span class="n">numiter</span> <span class="o">=</span> <span class="mi">100</span>
-    <span class="n">rate</span> <span class="o">=</span> <span class="o">.</span><span class="mo">001</span>
+    <span class="n">numiter</span> <span class="o">=</span> <span class="mi">50</span>
+    <span class="n">sleeptime</span> <span class="o">=</span> <span class="mf">1E-4</span>
 
     <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numiter</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
-            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">rate</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">sleeptime</span><span class="p">)</span>
 
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;_________________&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;No frequncy run:&#39;</span><span class="p">)</span>
 
     <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numiter</span><span class="p">):</span>
-            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">rate</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">sleeptime</span><span class="p">)</span>
 
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;_________________&#39;</span><span class="p">)</span>
 
-    <span class="n">numiter</span> <span class="o">=</span> <span class="mi">10000</span>
-    <span class="n">rate</span> <span class="o">=</span> <span class="o">.</span><span class="mo">000000</span><span class="mi">8</span>
+    <span class="n">numiter</span> <span class="o">=</span> <span class="mi">500</span>
+    <span class="n">sleeptime</span> <span class="o">=</span> <span class="mf">8E-7</span>
 
     <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numiter</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
-            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">rate</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">sleeptime</span><span class="p">)</span>
 
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;_________________&#39;</span><span class="p">)</span>
 
     <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numiter</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
-            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">rate</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">sleeptime</span><span class="p">)</span>
 
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;_________________&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;No frequncy run:&#39;</span><span class="p">)</span>
 
     <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numiter</span><span class="p">):</span>
-            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">rate</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">sleeptime</span><span class="p">)</span>
 
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;_________________&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="progress_chunks"><a class="viewcode-back" href="../../utool.html#utool.util_progress.progress_chunks">[docs]</a><span class="k">def</span> <span class="nf">progress_chunks</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Yeilds an iterator in chunks and computes progress</span>
+<span class="sd">    Progress version of ut.ichunks</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">chunk_iter</span> <span class="o">=</span> <span class="n">util_iter</span><span class="o">.</span><span class="n">ichunks</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">)</span>
+    <span class="n">nTotal</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span> <span class="o">/</span> <span class="n">chunksize</span><span class="p">))</span>
+    <span class="k">if</span> <span class="s">&#39;freq&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;freq&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;nTotal&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nTotal</span>
+    <span class="n">progiter_</span> <span class="o">=</span> <span class="n">ProgressIter</span><span class="p">(</span><span class="n">chunk_iter</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">progiter_</span>
 
 </div>
 <div class="viewcode-block" id="ProgressIter"><a class="viewcode-back" href="../../utool.html#utool.util_progress.ProgressIter">[docs]</a><span class="k">class</span> <span class="nc">ProgressIter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -143,8 +257,11 @@
 
 <span class="sd">    lbl=&#39;Progress: &#39;, nTotal=0, flushfreq=4, startafter=-1, start=True,</span>
 <span class="sd">    repl=False, approx=False, disable=False, writefreq=1, with_time=False,</span>
-<span class="sd">    backspace=True, separate=False, wfreq=None, ffreq=None, freq=None,</span>
+<span class="sd">    backspace=True, pad_stdout=False, wfreq=None, ffreq=None, freq=None,</span>
 <span class="sd">    total=None, num=None, with_totaltime=None</span>
+
+<span class="sd">    Referencs:</span>
+<span class="sd">        https://github.com/verigak/progress/blob/master/progress/__init__.py</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        iterable (): iterable normally passed to for loop</span>
@@ -159,21 +276,85 @@
 <span class="sd">        writefreq (int):</span>
 <span class="sd">        with_totaltime (bool):</span>
 <span class="sd">        backspace (bool):</span>
-<span class="sd">        separate (bool):</span>
+<span class="sd">        pad_stdout (bool):</span>
 <span class="sd">        wfreq (None): alias for write_freq</span>
 <span class="sd">        ffreq (None): alias for flush_freq</span>
 <span class="sd">        total (None): alias for nTotal</span>
 <span class="sd">        num (None):   alias for nTotal</span>
 
+<span class="sd">    Timeit::</span>
+<span class="sd">        import utool as ut</span>
+<span class="sd">        setup = ut.codeblock(</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        import utool as ut</span>
+<span class="sd">        from six.moves import range, zip</span>
+<span class="sd">        import time</span>
+<span class="sd">        def time_append(size):</span>
+<span class="sd">            start_time    = time.time()</span>
+<span class="sd">            last_time     = start_time</span>
+<span class="sd">            list2 = []</span>
+<span class="sd">            for x in range(size):</span>
+<span class="sd">                now_time    = time.time()</span>
+<span class="sd">                between = now_time - last_time</span>
+<span class="sd">                last_time   = now_time</span>
+<span class="sd">                list2.append(between)</span>
+
+<span class="sd">        def time_assign(size):</span>
+<span class="sd">            start_time    = time.time()</span>
+<span class="sd">            last_time     = start_time</span>
+<span class="sd">            list1 = ut.alloc_nones(size)</span>
+<span class="sd">            for x in range(size):</span>
+<span class="sd">                now_time    = time.time()</span>
+<span class="sd">                between = now_time - last_time</span>
+<span class="sd">                last_time   = now_time</span>
+<span class="sd">                list1[x] = between</span>
+
+<span class="sd">        def time_baseline(size):</span>
+<span class="sd">            start_time    = time.time()</span>
+<span class="sd">            last_time     = start_time</span>
+<span class="sd">            for x in range(size):</span>
+<span class="sd">                now_time    = time.time()</span>
+<span class="sd">                between = now_time - last_time</span>
+<span class="sd">                last_time   = now_time</span>
+
+<span class="sd">        def time_null(size):</span>
+<span class="sd">            for x in range(size):</span>
+<span class="sd">                pass</span>
+<span class="sd">        &#39;&#39;&#39;)</span>
+
+<span class="sd">        input_sizes = [2 ** count for count in range(7, 12)]</span>
+<span class="sd">        stmt_list = [&#39;time_assign&#39;, &#39;time_append&#39;, &#39;time_baseline&#39;, &#39;time_null&#39;]</span>
+<span class="sd">        input_sizes=[100, 1000, 10000]</span>
+<span class="sd">        ut.timeit_grid(stmt_list, setup, input_sizes=input_sizes, show=True)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_progress --test-ProgressIter</span>
+<span class="sd">        python -m utool.util_progress --test-ProgressIter:0</span>
+<span class="sd">        python -m utool.util_progress --test-ProgressIter:1</span>
+
+
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; import utool</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
 <span class="sd">        &gt;&gt;&gt; from six.moves import range</span>
-<span class="sd">        &gt;&gt;&gt; results1 = [x for x in utool.ProgressIter(range(10000), wfreq=10)]</span>
-<span class="sd">        &gt;&gt;&gt; results4 = [x for x in utool.ProgressIter(range(10000), wfreq=1)]</span>
-<span class="sd">        &gt;&gt;&gt; results2 = [x for x in range(10000)]</span>
-<span class="sd">        &gt;&gt;&gt; results3 = [x for x in utool.progiter((y + 1 for y in range(1000001)), nTotal=1000001, wfreq=1000, backspace=True)]</span>
+<span class="sd">        &gt;&gt;&gt; num = 1000</span>
+<span class="sd">        &gt;&gt;&gt; num2 = 10001</span>
+<span class="sd">        &gt;&gt;&gt; results1 = [x for x in ut.ProgressIter(range(num), wfreq=10)]</span>
+<span class="sd">        &gt;&gt;&gt; results4 = [x for x in ut.ProgressIter(range(num), wfreq=1)]</span>
+<span class="sd">        &gt;&gt;&gt; results2 = [x for x in range(num)]</span>
+<span class="sd">        &gt;&gt;&gt; results3 = [x for x in ut.progiter((y + 1 for y in range(num2)), nTotal=num2, wfreq=1000, backspace=True)]</span>
 <span class="sd">        &gt;&gt;&gt; assert results1 == results2</span>
+
+<span class="sd">    Example1:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; from six.moves import range</span>
+<span class="sd">        &gt;&gt;&gt; num2 = 10001</span>
+<span class="sd">        &gt;&gt;&gt; progiter = ut.ProgressIter(range(num2), lbl=&#39;testing primes&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;                            report_unit=&#39;seconds&#39;, freq=1,</span>
+<span class="sd">        &gt;&gt;&gt;                            time_thresh=1)</span>
+<span class="sd">        &gt;&gt;&gt; results1 = [ut.get_nth_prime_bruteforce(29) for x in progiter]</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.truncate_str(str(results1)))</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="ProgressIter.new_init"><a class="viewcode-back" href="../../utool.html#utool.util_progress.ProgressIter.new_init">[docs]</a>    <span class="k">def</span> <span class="nf">new_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iterable</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;ProgIter&#39;</span><span class="p">,</span> <span class="n">nTotal</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
@@ -188,26 +369,205 @@
                 <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;nTotal&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nTotal</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="k">pass</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">time_thresh</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;time_thresh&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">use_rate</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;use_rate&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">lbl</span>       <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;lbl&#39;</span><span class="p">,</span> <span class="s">&#39;lbl&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">nTotal</span>    <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;nTotal&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">backspace</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;backspace&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">freq</span>      <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;freq&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">mark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">=</span> <span class="n">log_progress</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_thresh</span>    <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;time_thresh&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_rate</span>       <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;use_rate&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lbl</span>            <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;lbl&#39;</span><span class="p">,</span> <span class="s">&#39;lbl&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nTotal</span>         <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;nTotal&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backspace</span>      <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;backspace&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">freq</span>           <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;freq&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">invert_rate</span>    <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;invert_rate&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="c">#self.report_unit    = kwargs.get(&#39;report_unit&#39;, &#39;minutes&#39;)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">report_unit</span>    <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;report_unit&#39;</span><span class="p">,</span> <span class="s">&#39;seconds&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">autoadjust</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;autoadjust&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>  <span class="c"># autoadjust frequency of reporting</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">with_totaltime</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_rate</span><span class="p">:</span>
+            <span class="c"># Hacky so hacky. this needs major cleanup</span>
+            <span class="c"># saving args and kwargs so can wait on log_progress call</span>
+            <span class="c"># not sure where it is called and dont want to break things</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">args</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mark</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">=</span> <span class="n">log_progress</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
 
     <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iterable</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">iterable</span> <span class="o">=</span> <span class="n">iterable</span>
         <span class="k">return</span> <span class="bp">self</span>
 
     <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_rate</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_rate</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">NO_PROGRESS</span><span class="p">:</span>
+            <span class="c"># IF PROGRESS IS TURNED OFF</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;Iterating &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">lbl</span> <span class="o">+</span> <span class="s">&#39; with no progress&#39;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="c">#with ut.Timer(msg):</span>
+            <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iterable</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_without_rate</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_rate</span><span class="p">:</span>
+                <span class="c"># STANDARD CALL CASE</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_rate</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_without_rate</span><span class="p">()</span>
 
+<div class="viewcode-block" id="ProgressIter.build_msg_fmtstr"><a class="viewcode-back" href="../../utool.html#utool.util_progress.ProgressIter.build_msg_fmtstr">[docs]</a>    <span class="k">def</span> <span class="nf">build_msg_fmtstr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nTotal</span><span class="p">,</span> <span class="n">report_unit</span><span class="p">,</span> <span class="n">lbl</span><span class="p">,</span> <span class="n">invert_rate</span><span class="p">,</span> <span class="n">backspace</span><span class="p">):</span>
+        <span class="c">#msg_fmtstr = &#39;&#39;.join((</span>
+        <span class="c">#    &#39;\r&#39;,</span>
+        <span class="c">#    lbl,</span>
+        <span class="c">#    &#39; %4d/&#39;, str(nTotal),</span>
+        <span class="c">#    #&#39;...  rate=%3.3f seconds per iter.&#39; if invert_rate else &#39;...  rate=%4.2f iters per second.&#39;,</span>
+        <span class="c">#    &#39;...  rate=%3.3f seconds/iter.&#39; if invert_rate else &#39;...  rate=%4.2f Hz.&#39;,</span>
+        <span class="c">#    &#39; est &#39; + report_unit + &#39; left: %4.2f,&#39;,</span>
+        <span class="c">#    &#39; total &#39; + report_unit + &#39;: %4.2f,&#39;,</span>
+        <span class="c">#))</span>
+        <span class="n">msg_fmtstr</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span>
+            <span class="s">&#39;</span><span class="se">\r</span><span class="s">&#39;</span><span class="p">,</span>
+            <span class="n">lbl</span><span class="p">,</span>
+            <span class="s">&#39; </span><span class="si">%4d</span><span class="s">/&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">nTotal</span><span class="p">),</span>
+            <span class="s">&#39;...  rate=</span><span class="si">%3.3f</span><span class="s"> seconds/iter.&#39;</span> <span class="k">if</span> <span class="n">invert_rate</span> <span class="k">else</span> <span class="s">&#39;...  rate=</span><span class="si">%4.2f</span><span class="s"> Hz, &#39;</span><span class="p">,</span>
+            <span class="s">&#39;eta: </span><span class="si">%4.2f</span><span class="s"> &#39;</span> <span class="o">+</span> <span class="n">report_unit</span> <span class="o">+</span> <span class="s">&#39;, &#39;</span><span class="p">,</span>
+            <span class="s">&#39;ellapsed: </span><span class="si">%4.2f</span><span class="s"> &#39;</span> <span class="o">+</span> <span class="n">report_unit</span> <span class="o">+</span> <span class="s">&#39;,&#39;</span><span class="p">,</span>
+        <span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">backspace</span><span class="p">:</span>
+            <span class="n">msg_fmtstr</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="k">return</span> <span class="n">msg_fmtstr</span>
+</div>
+    <span class="nd">@profile</span>
+<div class="viewcode-block" id="ProgressIter.iter_rate"><a class="viewcode-back" href="../../utool.html#utool.util_progress.ProgressIter.iter_rate">[docs]</a>    <span class="k">def</span> <span class="nf">iter_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        # TODO: record iteration times for analysis</span>
+<span class="sd">        # TODO Incorporate this better</span>
+<span class="sd">        # FIXME; pad_stdout into subfunctions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c">#class IterState(object):</span>
+        <span class="c">#    def __init__(state):</span>
+        <span class="c">#        state.freq = 1</span>
+        <span class="c">#        state.freq = 1</span>
+        <span class="c">#        pass</span>
+        <span class="n">DEBUG_FREQ_ADJUST</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">autoadjust</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">autoadjust</span>
+        <span class="c"># SETUP VARIABLES</span>
+        <span class="n">timeunit_scale</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;minutes&#39;</span><span class="p">:</span> <span class="mf">60.0</span><span class="p">,</span>
+            <span class="s">&#39;seconds&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+        <span class="p">}[</span><span class="bp">self</span><span class="o">.</span><span class="n">report_unit</span><span class="p">]</span>
+        <span class="c"># HACK: reaquire logging print funcs in case they have changed</span>
+        <span class="n">PROGRESS_WRITE</span> <span class="o">=</span> <span class="n">util_logging</span><span class="o">.</span><span class="n">__UTOOL_WRITE__</span>
+        <span class="n">PROGRESS_FLUSH</span> <span class="o">=</span> <span class="n">util_logging</span><span class="o">.</span><span class="n">__UTOOL_FLUSH__</span>
+
+        <span class="n">nTotal</span>        <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nTotal</span>
+        <span class="n">freq</span>          <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">freq</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">count</span>    <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">between_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">last_count</span>    <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c"># how long iterations should be before a flush</span>
+        <span class="c"># (used for freq adjustment)</span>
+        <span class="n">time_thresh</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_timethresh_heuristics</span><span class="p">()</span>
+                       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_thresh</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span>
+                       <span class="bp">self</span><span class="o">.</span><span class="n">time_thresh</span><span class="p">)</span>
+        <span class="c">#time_thresh = 0.5</span>
+        <span class="n">max_between_time</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+        <span class="n">max_between_count</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>  <span class="c"># why is this different? # becuase frequency varies</span>
+        <span class="n">iters_per_second</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">est_timeunit_left</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="c"># Write initial message</span>
+        <span class="n">msg_fmtstr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_msg_fmtstr</span><span class="p">(</span><span class="n">nTotal</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">report_unit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lbl</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">invert_rate</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">backspace</span><span class="p">)</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">msg_fmtstr</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">PROGRESS_WRITE</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">PROGRESS_FLUSH</span><span class="p">()</span>
+
+        <span class="n">start_time</span>    <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">last_time</span>     <span class="o">=</span> <span class="n">start_time</span>
+
+        <span class="c"># Wrap the for loop with a generator</span>
+        <span class="k">for</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iterable</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+            <span class="c"># GENERATE</span>
+            <span class="k">yield</span> <span class="n">item</span>
+            <span class="c"># DO PROGRESS INFO</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="p">)</span> <span class="o">%</span> <span class="n">freq</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c"># UPDATE INFO</span>
+                <span class="n">now_time</span>          <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+                <span class="n">between_time</span>      <span class="o">=</span> <span class="p">(</span><span class="n">now_time</span> <span class="o">-</span> <span class="n">last_time</span><span class="p">)</span>
+                <span class="n">between_count</span>     <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">-</span> <span class="n">last_count</span>
+                <span class="n">total_time</span>        <span class="o">=</span> <span class="p">(</span><span class="n">now_time</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">)</span>
+                <span class="n">iters_per_second</span>  <span class="o">=</span> <span class="n">between_count</span> <span class="o">/</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">between_time</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1E-9</span><span class="p">)</span>
+                <span class="n">iters_left</span>        <span class="o">=</span> <span class="n">nTotal</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span>
+                <span class="n">est_seconds_left</span>  <span class="o">=</span> <span class="n">iters_left</span> <span class="o">/</span> <span class="p">(</span><span class="n">iters_per_second</span> <span class="o">+</span> <span class="mf">1E-9</span><span class="p">)</span>
+                <span class="n">last_count</span>        <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span>
+                <span class="n">last_time</span>         <span class="o">=</span> <span class="n">now_time</span>
+                <span class="n">total_timeunit</span>    <span class="o">=</span> <span class="n">total_time</span> <span class="o">/</span> <span class="n">timeunit_scale</span>
+                <span class="n">est_timeunit_left</span> <span class="o">=</span> <span class="n">est_seconds_left</span> <span class="o">/</span> <span class="n">timeunit_scale</span>
+                <span class="c"># ADJUST FREQ IF NEEDED</span>
+                <span class="c"># Adjust frequency if printing too quickly</span>
+                <span class="c"># so progress doesnt slow down actual function</span>
+                <span class="c"># TODO: better adjust algorithm</span>
+                <span class="k">if</span> <span class="n">autoadjust</span> <span class="ow">and</span> <span class="n">between_time</span> <span class="o">&lt;</span> <span class="n">time_thresh</span><span class="p">:</span>
+                    <span class="n">max_between_time</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">max_between_time</span><span class="p">,</span> <span class="n">between_time</span><span class="p">),</span> <span class="mf">1E-9</span><span class="p">)</span>
+                    <span class="n">max_between_count</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_between_count</span><span class="p">,</span> <span class="n">between_count</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">DEBUG_FREQ_ADJUST</span><span class="p">:</span>
+                        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">+---&#39;</span><span class="p">)</span>
+                        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[prog] between_count = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">between_count</span><span class="p">)</span>
+                        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[prog] between_time = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">between_time</span><span class="p">)</span>
+                        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[prog] time_thresh = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">time_thresh</span><span class="p">)</span>
+                        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[prog] max_between_count = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">max_between_count</span><span class="p">)</span>
+                        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[prog] max_between_time = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">max_between_time</span><span class="p">)</span>
+                        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[prog] Adusting frequency from: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">freq</span><span class="p">)</span>
+                    <span class="n">freq</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="mf">1.3</span> <span class="o">*</span> <span class="n">time_thresh</span> <span class="o">*</span> <span class="n">max_between_count</span> <span class="o">/</span> <span class="n">max_between_time</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">DEBUG_FREQ_ADJUST</span><span class="p">:</span>
+                        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[prog] Adusting frequency to: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">freq</span><span class="p">)</span>
+                        <span class="k">print</span><span class="p">(</span><span class="s">&#39;L___&#39;</span><span class="p">)</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="n">msg_fmtstr</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="p">,</span>
+                                    <span class="mf">1.0</span> <span class="o">/</span> <span class="n">iters_per_second</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">invert_rate</span> <span class="k">else</span> <span class="n">iters_per_second</span><span class="p">,</span>
+                                    <span class="n">est_timeunit_left</span><span class="p">,</span>
+                                    <span class="n">total_timeunit</span><span class="p">)</span>
+                <span class="n">PROGRESS_WRITE</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                <span class="n">PROGRESS_FLUSH</span><span class="p">()</span>
+        <span class="c"># FINISH PROGRESS INFO</span>
+        <span class="n">est_timeunit_left</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">now_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">total_timeunit</span> <span class="o">=</span> <span class="p">(</span><span class="n">now_time</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">)</span> <span class="o">/</span> <span class="n">timeunit_scale</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">msg_fmtstr</span> <span class="o">%</span> <span class="p">(</span><span class="n">nTotal</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">iters_per_second</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">invert_rate</span> <span class="k">else</span> <span class="n">iters_per_second</span><span class="p">,</span> <span class="n">est_timeunit_left</span><span class="p">,</span> <span class="n">total_timeunit</span><span class="p">)</span>
+        <span class="n">PROGRESS_WRITE</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">PROGRESS_WRITE</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">PROGRESS_FLUSH</span><span class="p">()</span>
+        <span class="c">#cumrate = 1E-9</span>
+        <span class="c">#self.nTotal = len(self.iterable)</span>
+        <span class="c"># for:</span>
+        <span class="c">#    if:</span>
+        <span class="c">#         if:</span>
+        <span class="c">#            print(&#39;&#39;)</span>
+        <span class="c">#            freq = max(int(1.3 * between_count * time_thresh / between_time), 1)</span>
+        <span class="c">#            # There has to be a standard way to do this.</span>
+        <span class="c">#            # Refer to: https://github.com/verigak/progress/blob/master/progress/__init__.py</span>
+        <span class="c">#            freq = max(int((between_count * between_time) / time_thresh), 1)</span>
+        <span class="c">#            freq = max(int((between_count) / time_thresh), 1)</span>
+        <span class="c">#            freq = max(int((between_time) / time_thresh), 1)</span>
+        <span class="c">#            freq = max(int(time_thresh / between_count), 1)</span>
+        <span class="c">#            print(&#39;[prog] Adusting frequency to: %r&#39; % freq)</span>
+        <span class="c">#            print(&#39;&#39;)</span>
+        <span class="c">#        cumrate += between_time</span>
+        <span class="c">#        rate = (self.count + 1.0) / float(cumrate)</span>
+        <span class="c">#        if False and __debug__:</span>
+        <span class="c">#            print(&#39;&lt;!!!!!!!!!!!!!&gt;&#39;)</span>
+        <span class="c">#            print(&#39;iters_left = %r&#39; % iters_left)</span>
+        <span class="c">#            print(&#39;between_time = %r&#39; % between_time)</span>
+        <span class="c">#            print(&#39;between_count = %r&#39; % between_count)</span>
+        <span class="c">#            print(&#39;est_seconds_left = %r&#39; % est_seconds_left)</span>
+        <span class="c">#            print(&#39;iters_per_second = %r&#39; % iters_per_second)</span>
+        <span class="c">#            print(&#39;&lt;/!!!!!!!!!!!!!&gt;&#39;)</span>
+        <span class="c">#PROGRESS_WRITE(&#39;\n&#39;)</span>
+        <span class="c">#msg = msg_fmtstr % (self.count + 1, iters_per_second, est_timeunit_left)</span>
+        <span class="c">#print(&#39;freq = %r&#39; % freq)</span>
+        <span class="c">#self.end(self.count + 1)</span>
+</div>
 <div class="viewcode-block" id="ProgressIter.iter_without_rate"><a class="viewcode-back" href="../../utool.html#utool.util_progress.ProgressIter.iter_without_rate">[docs]</a>    <span class="k">def</span> <span class="nf">iter_without_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mark</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># Continuation of hacking</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">=</span> <span class="n">log_progress</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mark</span>
         <span class="c"># Wrap the for loop with a generator</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
@@ -216,105 +576,25 @@
             <span class="k">yield</span> <span class="n">item</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="ProgressIter.iter_rate"><a class="viewcode-back" href="../../utool.html#utool.util_progress.ProgressIter.iter_rate">[docs]</a>    <span class="k">def</span> <span class="nf">iter_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c"># TODO Incorporate this better</span>
-        <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-        <span class="n">starttime</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-        <span class="n">last_time</span> <span class="o">=</span> <span class="n">starttime</span>
-        <span class="c">#mark = self.mark</span>
-        <span class="c"># Wrap the for loop with a generator</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-        <span class="n">freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">freq</span>
-        <span class="c">#cumrate = 1E-9</span>
-        <span class="n">between_count</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">last_count</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-        <span class="c">#self.nTotal = len(self.iterable)</span>
-        <span class="n">nTotal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nTotal</span>
-        <span class="n">fmt_msg</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="s">&#39;</span><span class="se">\r</span><span class="s">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lbl</span><span class="p">,</span>
-                           <span class="s">&#39; </span><span class="si">%4d</span><span class="s">/&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">nTotal</span><span class="p">),</span>
-                           <span class="s">&#39;...  rate=</span><span class="si">%4.1f</span><span class="s"> iters per second.&#39;</span><span class="p">,</span>
-                           <span class="s">&#39; est_min_left=</span><span class="si">%4.2f</span><span class="s">              &#39;</span><span class="p">))</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">backspace</span><span class="p">:</span>
-            <span class="n">fmt_msg</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
-
-        <span class="c"># how long iterations should be before a flush</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_thresh</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nTotal</span> <span class="o">&gt;</span> <span class="mf">1E5</span><span class="p">:</span>
-                <span class="n">time_thresh</span> <span class="o">=</span> <span class="mf">4.0</span>
-            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">nTotal</span> <span class="o">&gt;</span> <span class="mf">1E4</span><span class="p">:</span>
-                <span class="n">time_thresh</span> <span class="o">=</span> <span class="mf">2.0</span>
-            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">nTotal</span> <span class="o">&gt;</span> <span class="mf">1E3</span><span class="p">:</span>
-                <span class="n">time_thresh</span> <span class="o">=</span> <span class="mf">1.0</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">time_thresh</span> <span class="o">=</span> <span class="mf">0.5</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">time_thresh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_thresh</span>
-        <span class="c">#time_thresh = 0.5</span>
-        <span class="n">max_between_time</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
-        <span class="n">max_between_count</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>  <span class="c"># why is this different? # becuase frequency varies</span>
-
-        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lbl</span><span class="p">):</span>
-            <span class="kn">import</span> <span class="nn">six</span>
-            <span class="c"># yeild first element</span>
-            <span class="n">enumiter</span> <span class="o">=</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iterable</span><span class="p">)</span>
-            <span class="k">yield</span> <span class="n">six</span><span class="o">.</span><span class="n">next</span><span class="p">(</span><span class="n">enumiter</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
-
-            <span class="k">for</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">enumiter</span><span class="p">:</span>
-                <span class="c">#mark(self.count)</span>
-                <span class="k">yield</span> <span class="n">item</span>
-                <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="p">)</span> <span class="o">%</span> <span class="n">freq</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">between_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">-</span> <span class="n">last_count</span>
-                    <span class="n">now_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-                    <span class="n">between_time</span> <span class="o">=</span> <span class="p">(</span><span class="n">now_time</span> <span class="o">-</span> <span class="n">last_time</span><span class="p">)</span>
-                    <span class="c"># Adjust frequency if printing too quickly</span>
-                    <span class="c"># so progress doesnt slow down actual function</span>
-                    <span class="c"># TODO: better adjust algorithm</span>
-                    <span class="k">if</span> <span class="n">between_time</span> <span class="o">&lt;</span> <span class="n">time_thresh</span><span class="p">:</span>
-                        <span class="c">#print(&#39;&#39;)</span>
-                        <span class="c">#print(&#39;[prog] Adusting frequency from: %r&#39; % freq)</span>
-                        <span class="c">#print(&#39;between_count = %r&#39; % between_count)</span>
-                        <span class="c">#print(&#39;between_time = %r&#39; % between_time)</span>
-                        <span class="c"># There has to be a standard way to do this.</span>
-                        <span class="c"># Refer to: https://github.com/verigak/progress/blob/master/progress/__init__.py</span>
-                        <span class="n">max_between_time</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">max_between_time</span><span class="p">,</span> <span class="n">between_time</span><span class="p">),</span> <span class="mf">1E-9</span><span class="p">)</span>
-                        <span class="n">max_between_count</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_between_count</span><span class="p">,</span> <span class="n">between_count</span><span class="p">)</span>
-                        <span class="c">#freq = max(int(1.3 * between_count * time_thresh / between_time), 1)</span>
-                        <span class="n">freq</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="mf">1.3</span> <span class="o">*</span> <span class="n">max_between_count</span> <span class="o">*</span> <span class="n">time_thresh</span> <span class="o">/</span> <span class="n">max_between_time</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
-                        <span class="c">#freq = max(int((between_count * between_time) / time_thresh), 1)</span>
-                        <span class="c">#freq = max(int((between_count) / time_thresh), 1)</span>
-                        <span class="c">#freq = max(int((between_time) / time_thresh), 1)</span>
-                        <span class="c">#freq = max(int(time_thresh / between_count), 1)</span>
-                        <span class="c">#print(&#39;[prog] Adusting frequency to: %r&#39; % freq)</span>
-                        <span class="c">#print(&#39;&#39;)</span>
-                    <span class="n">iters_per_second</span> <span class="o">=</span> <span class="n">between_count</span> <span class="o">/</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">between_time</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1E-9</span><span class="p">)</span>
-                    <span class="c">#cumrate += between_time</span>
-                    <span class="c">#rate = (self.count + 1.0) / float(cumrate)</span>
-                    <span class="n">iters_left</span> <span class="o">=</span> <span class="n">nTotal</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span>
-                    <span class="n">est_seconds_left</span> <span class="o">=</span> <span class="n">iters_left</span> <span class="o">/</span> <span class="p">(</span><span class="n">iters_per_second</span> <span class="o">+</span> <span class="mf">1E-9</span><span class="p">)</span>
-                    <span class="n">est_min_left</span> <span class="o">=</span> <span class="n">est_seconds_left</span> <span class="o">/</span> <span class="mf">60.0</span>
-                    <span class="n">msg</span> <span class="o">=</span> <span class="n">fmt_msg</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="p">,</span> <span class="n">iters_per_second</span><span class="p">,</span> <span class="n">est_min_left</span><span class="p">)</span>
-                    <span class="c">#if False and __debug__:</span>
-                    <span class="c">#    print(&#39;&lt;!!!!!!!!!!!!!&gt;&#39;)</span>
-                    <span class="c">#    print(&#39;iters_left = %r&#39; % iters_left)</span>
-                    <span class="c">#    print(&#39;between_time = %r&#39; % between_time)</span>
-                    <span class="c">#    print(&#39;between_count = %r&#39; % between_count)</span>
-                    <span class="c">#    print(&#39;est_seconds_left = %r&#39; % est_seconds_left)</span>
-                    <span class="c">#    print(&#39;iters_per_second = %r&#39; % iters_per_second)</span>
-                    <span class="c">#    print(&#39;&lt;/!!!!!!!!!!!!!&gt;&#39;)</span>
-                    <span class="n">PROGRESS_WRITE</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-                    <span class="n">PROGRESS_FLUSH</span><span class="p">()</span>
-                    <span class="n">last_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span>
-                    <span class="n">last_time</span> <span class="o">=</span> <span class="n">now_time</span>
-            <span class="c">#print(&#39;freq = %r&#39; % freq)</span>
-            <span class="n">PROGRESS_WRITE</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
-            <span class="n">PROGRESS_FLUSH</span><span class="p">()</span>
-        <span class="c">#self.end(self.count + 1)</span>
-</div>
 <div class="viewcode-block" id="ProgressIter.mark_current"><a class="viewcode-back" href="../../utool.html#utool.util_progress.ProgressIter.mark_current">[docs]</a>    <span class="k">def</span> <span class="nf">mark_current</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mark</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">_get_timethresh_heuristics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        resonably decent hueristics for how much time to wait before</span>
+<span class="sd">        updating progress.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nTotal</span> <span class="o">&gt;</span> <span class="mf">1E5</span><span class="p">:</span>
+            <span class="n">time_thresh</span> <span class="o">=</span> <span class="mf">2.5</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">nTotal</span> <span class="o">&gt;</span> <span class="mf">1E4</span><span class="p">:</span>
+            <span class="n">time_thresh</span> <span class="o">=</span> <span class="mf">2.0</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">nTotal</span> <span class="o">&gt;</span> <span class="mf">1E3</span><span class="p">:</span>
+            <span class="n">time_thresh</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">time_thresh</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="k">return</span> <span class="n">time_thresh</span>
 
-</div></div>
+</div>
 <span class="n">progiter</span> <span class="o">=</span> <span class="n">ProgressIter</span>
 
 
@@ -356,7 +636,7 @@
 <div class="viewcode-block" id="log_progress"><a class="viewcode-back" href="../../utool.html#utool.util_progress.log_progress">[docs]</a><span class="k">def</span> <span class="nf">log_progress</span><span class="p">(</span><span class="n">lbl</span><span class="o">=</span><span class="s">&#39;Progress: &#39;</span><span class="p">,</span> <span class="n">nTotal</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">flushfreq</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">startafter</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
                  <span class="n">start</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">repl</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">approx</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">disable</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
                  <span class="n">writefreq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">with_time</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">backspace</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                 <span class="n">separate</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">wfreq</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ffreq</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">pad_stdout</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">wfreq</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ffreq</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                  <span class="n">num</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">with_totaltime</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns two functions (mark_progress, end_progress) which will handle</span>
@@ -376,7 +656,7 @@
 <span class="sd">        writefreq (int):</span>
 <span class="sd">        with_totaltime (bool):</span>
 <span class="sd">        backspace (bool):</span>
-<span class="sd">        separate (bool):</span>
+<span class="sd">        pad_stdout (bool):</span>
 <span class="sd">        wfreq (None): alias for write_freq</span>
 <span class="sd">        ffreq (None): alias for flush_freq</span>
 <span class="sd">        freq (None):  alias for flush_freq and write_freq (prefered)</span>
@@ -458,7 +738,7 @@
                     <span class="k">if</span> <span class="n">count_</span> <span class="o">%</span> <span class="n">flushfreq</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                         <span class="n">flush_fn</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="n">separate</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">pad_stdout</span><span class="p">:</span>
             <span class="n">write_fn</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
             <span class="n">write_fn</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
             <span class="n">flush_fn</span><span class="p">()</span>
@@ -472,7 +752,7 @@
             <span class="n">flush_fn</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">with_time</span><span class="p">:</span>
                 <span class="n">util_time</span><span class="o">.</span><span class="n">toc</span><span class="p">(</span><span class="n">tt</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">separate</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">pad_stdout</span><span class="p">:</span>
                 <span class="n">write_fn</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s">&#39;</span><span class="p">)</span>
                 <span class="n">flush_fn</span><span class="p">()</span>
         <span class="c">#mark_progress(0)</span>
@@ -595,8 +875,8 @@
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -c &quot;import utool, utool.util_progress; utool.doctest_funcs(utool.util_progress, allexamples=True)&quot;</span>
 <span class="sd">        python -c &quot;import utool, utool.util_progress; utool.doctest_funcs(utool.util_progress)&quot;</span>
-<span class="sd">        python utool/util_progress.py</span>
-<span class="sd">        python utool/util_progress.py --allexamples</span>
+<span class="sd">        python -m utool.util_progress</span>
+<span class="sd">        python -m utool.util_progress --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
@@ -605,44 +885,58 @@
 </pre></div>
 
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-<div id="searchbox" style="display: none">
-  <h3>Quick search</h3>
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
     </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
         </div>
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
-          <li><a href="../index.html" >Module code</a> &raquo;</li>
-          <li><a href="../utool.html" >utool</a> &raquo;</li> 
-      </ul>
-    </div>
-    <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
-    </div>
-  </body>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.0.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
 </html>

@@ -4,11 +4,164 @@ from collections import namedtuple, OrderedDict
 from utool import util_class
 from utool import util_inject
 from utool import util_dict
+from utool import util_dev
 import six
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[gridsearch]')
 
 
 DimensionBasis = namedtuple('DimensionBasis', ('dimension_name', 'dimension_point_list'))
+
+
+@six.add_metaclass(util_class.ReloadingMetaclass)
+class ParamInfo(object):
+    """ small class for individual paramater information """
+    def __init__(pi, varname, default, shortprefix=util_dev.NoParam,
+                 type_=util_dev.NoParam, varyvals=[], varyslice=None,
+                 hideif=util_dev.NoParam):
+        r"""
+        Args:
+            varname (?):
+            default (?):
+            shortprefix (ClassNoParam):
+            type_ (ClassNoParam):
+            varyvals (list):
+            hideif (var): if the variable value of config is this the itemstr is empty
+
+        CommandLine:
+            python -m utool.util_gridsearch --test-__init__
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from utool.util_gridsearch import *  # NOQA
+            >>> # build test data
+            >>> pi = '?'
+            >>> varname = '?'
+            >>> default = '?'
+            >>> shortprefix = <utool.util_dev.ClassNoParam object at 0x7f2826164490>
+            >>> type_ = <utool.util_dev.ClassNoParam object at 0x7f2826164490>
+            >>> varyvals = []
+            >>> # execute function
+            >>> result = pi.__init__(varname, default, shortprefix, type_, varyvals)
+            >>> # verify results
+            >>> print(result)
+        """
+        pi.varname = varname
+        pi.default = default
+        pi.shortprefix = shortprefix
+        pi.type_ = type(default) if type_ is util_dev.NoParam else type_
+        # for gridsearch
+        pi.varyvals = varyvals
+        pi.varyslice = varyslice
+        pi.hideif_list = []
+        if hideif is not util_dev.NoParam:
+            pi.append_hideif(hideif)
+
+    def append_hideif(pi, hideif):
+        pi.hideif_list.append(hideif)
+
+    def is_hidden(pi, cfg):
+        for hideif in pi.hideif_list:
+            if hasattr(hideif, '__call__'):
+                hide = hideif(cfg)
+            else:
+                hide = getattr(cfg,  pi.varname) == hideif
+            if hide:
+                return True
+
+    def make_itemstr(pi, cfg):
+        varval = getattr(cfg,  pi.varname)
+        varstr = str(varval)
+        if pi.shortprefix is not util_dev.NoParam:
+            itemstr = pi.shortprefix + varstr
+        else:
+            itemstr =  pi.varname + '=' + varstr
+        return itemstr
+
+    def get_itemstr(pi, cfg):
+        if pi.is_hidden(cfg):
+            return ''
+        else:
+            return pi.make_itemstr(cfg)
+
+
+@six.add_metaclass(util_class.ReloadingMetaclass)
+class ParamInfoBool(ParamInfo):
+    def __init__(pi, varname, default=False, shortprefix=util_dev.NoParam, type_=bool, varyvals=[], varyslice=None, hideif=False):
+        super(ParamInfoBool, pi).__init__(
+            varname, default=default, shortprefix=shortprefix, type_=bool,
+            varyvals=varyvals, varyslice=varyslice, hideif=hideif)
+
+    def make_itemstr(pi, cfg):
+        varval = getattr(cfg,  pi.varname)
+        if pi.shortprefix is not util_dev.NoParam:
+            itemstr = pi.shortprefix
+        else:
+            itemstr =  pi.varname.replace('_on', '')
+        if varval is False:
+            itemstr = 'no' + itemstr
+        elif varval is not True:
+            raise AssertionError('Not a boolean pi.varname=%r, varval=%r' % (pi.varname, varval,))
+        return itemstr
+
+
+@six.add_metaclass(util_class.ReloadingMetaclass)
+class ParamInfoList(object):
+    """ small class for ut.Pref-less configurations """
+    def __init__(self, name, param_info_list=[], constraint_func=None, hideif=None):
+        self.name = name
+        self.param_info_list = param_info_list
+        self.constraint_func = constraint_func
+        if hideif is not None:
+            self.append_hideif(hideif)
+
+    def append_hideif(self, hideif):
+        # apply hideif to all children
+        for pi in self.param_info_list:
+            pi.append_hideif(hideif)
+
+    def aslist(self, hideif=None):
+        if hideif is not None:
+            self.append_hideif(hideif)
+        return self.param_info_list
+
+    def updated_cfgdict(self, dict_):
+        return {pi.varname: dict_.get(pi.varname, pi.default) for pi in self.param_info_list}
+
+    def get_varnames(self):
+        return [pi.varname for pi in self.param_info_list]
+
+    def get_varydict(self):
+        """ for gridsearch """
+        varied_dict = {pi.varname: pi.varyvals for pi in self.param_info_list}
+        return varied_dict
+
+    def get_slicedict(self):
+        """ for gridsearch """
+        slice_dict = {pi.varname: pi.varyslice for pi in self.param_info_list if pi.varyslice is not None}
+        if len(slice_dict) == 0:
+            slice_dict = None
+        return slice_dict
+
+    def get_grid_basis(self):
+        """ DEPRICATE """
+        grid_basis = [
+            DimensionBasis(pi.varname, pi.varyvals)
+            for pi in self.param_info_list
+        ]
+        return grid_basis
+
+    def get_gridsearch_input(self, defaultslice=slice(0, 1)):
+        """ for gridsearch """
+        varied_dict = self.get_varydict()
+        slice_dict = self.get_slicedict()
+        constraint_func = self.constraint_func
+        cfgdict_list, cfglbl_list = make_constrained_cfg_and_lbl_list(
+            varied_dict,
+            constraint_func=constraint_func,
+            slice_dict=slice_dict,
+            defaultslice=defaultslice
+        )
+        return cfgdict_list, cfglbl_list
 
 
 def testdata_grid_search():
@@ -19,12 +172,12 @@ def testdata_grid_search():
     grid_basis = [
         ut.DimensionBasis('p', [.5, .8, .9, 1.0]),
         ut.DimensionBasis('K', [2, 3, 4, 5]),
-        ut.DimensionBasis('clip_fraction', [.1, .2, .5, 1.0]),
+        ut.DimensionBasis('dcvs_clip_max', [.1, .2, .5, 1.0]),
     ]
     gridsearch = ut.GridSearch(grid_basis, label='testdata_gridsearch')
     for cfgdict in gridsearch:
         tp_score = cfgdict['p'] + (cfgdict['K'] ** .5)
-        tn_score = (cfgdict['p'] * (cfgdict['K'])) / cfgdict['clip_fraction']
+        tn_score = (cfgdict['p'] * (cfgdict['K'])) / cfgdict['dcvs_clip_max']
         gridsearch.append_result(tp_score, tn_score)
     return gridsearch
 
@@ -40,12 +193,12 @@ class GridSearch(object):
         >>> grid_basis = [
         ...     ut.DimensionBasis('p', [.5, .8, .9, 1.0]),
         ...     ut.DimensionBasis('K', [2, 3, 4, 5]),
-        ...     ut.DimensionBasis('clip_fraction', [.1, .2, .5, 1.0]),
+        ...     ut.DimensionBasis('dcvs_clip_max', [.1, .2, .5, 1.0]),
         ... ]
         >>> gridsearch = ut.GridSearch(grid_basis, label='testdata_gridsearch')
         >>> for cfgdict in gridsearch:
         ...    tp_score = cfgdict['p'] + (cfgdict['K'] ** .5)
-        ...    tn_score = (cfgdict['p'] * (cfgdict['K'])) / cfgdict['clip_fraction']
+        ...    tn_score = (cfgdict['p'] * (cfgdict['K'])) / cfgdict['dcvs_clip_max']
         ...    gridsearch.append_result(tp_score, tn_score)
     """
     def __init__(gridsearch, grid_basis, label=None):
@@ -249,7 +402,7 @@ class GridSearch(object):
             >>> self = gridsearch
             >>> self.plot_dimension('p', score_lbl, fnum=1, pnum=(1, 3, 1))
             >>> self.plot_dimension('K', score_lbl, fnum=1, pnum=(1, 3, 2))
-            >>> self.plot_dimension('clip_fraction', score_lbl, fnum=1, pnum=(1, 3, 3))
+            >>> self.plot_dimension('dcvs_clip_max', score_lbl, fnum=1, pnum=(1, 3, 3))
             >>> pt.show_if_requested()
         """
         import plottool as pt
@@ -307,6 +460,241 @@ def grid_search_generator(grid_basis=[], *args, **kwargs):
     grid_point_iter = util_dict.iter_all_dict_combinations_ordered(grid_basis_dict)
     for grid_point in grid_point_iter:
         yield grid_point
+
+
+def make_constrained_cfg_and_lbl_list(varied_dict, constraint_func=None,
+                                      slice_dict=None,
+                                      defaultslice=slice(0, 1)):
+    r"""
+    Args:
+        varied_dict (dict):  parameters to vary with possible variations
+        constraint_func (func): function to restirct parameter variations
+        slice_dict (dict):  dict of slices for each param of valid possible values
+        defaultslice (slice): default slice used if slice is not specified in slice_dict
+
+    Returns:
+        tuple: (cfgdict_list, cfglbl_list)
+
+    CommandLine:
+        python -m utool.util_gridsearch --test-make_constrained_cfg_and_lbl_list
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_gridsearch import *  # NOQA
+        >>> # build test data
+        >>> varied_dict = {
+        ...     'p': [.1, .3, 1.0, 2.0],
+        ...     'dcvs_clip_max': [.1, .2, .5],
+        ...     'K': [3, 5],
+        ... }
+        >>> constraint_func = None
+        >>> # execute function
+        >>> (cfgdict_list, cfglbl_list) = make_constrained_cfg_and_lbl_list(varied_dict, constraint_func)
+        >>> # verify results
+        >>> result = str((cfgdict_list, cfglbl_list))
+        >>> print(result)
+    """
+    # Restrict via slices
+    if slice_dict is None:
+        varied_dict_ = varied_dict
+    else:
+        varied_dict_ = {
+            key: val[slice_dict.get(key, defaultslice)]
+            for key, val in six.iteritems(varied_dict)
+        }
+    # Enumerate all combinations
+    cfgdict_list_ = util_dict.all_dict_combinations(varied_dict_)
+    if constraint_func is not None:
+        # Remove invalid combinations
+        cfgdict_list = constrain_cfgdict_list(cfgdict_list_, constraint_func)
+    else:
+        cfgdict_list = cfgdict_list_
+    # Get labels and return
+    cfglbl_list = make_cfglbls(cfgdict_list, varied_dict)
+    return cfgdict_list, cfglbl_list
+
+
+def get_cfgdict_lbl_list_subset(cfgdict_list, varied_dict):
+    keys = list(varied_dict.iterkeys())
+    cfgdict_sublist = get_cfgdict_list_subset(cfgdict_list, keys)
+    cfglbl_sublist = make_cfglbls(cfgdict_sublist, varied_dict)
+    return cfgdict_sublist, cfglbl_sublist
+
+
+def get_cfgdict_list_subset(cfgdict_list, keys):
+    r"""
+    returns list of unique dictionaries only with keys specified in keys
+
+    Args:
+        cfgdict_list (list):
+        keys (list):
+
+    Returns:
+        list: cfglbl_list
+
+    CommandLine:
+        python -m utool.util_gridsearch --test-get_cfgdict_list_subset
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_gridsearch import *  # NOQA
+        >>> import utool as ut
+        >>> # build test data
+        >>> cfgdict_list = [
+        ...    {'K': 3, 'dcvs_clip_max': 0.1, 'p': 0.1},
+        ...    {'K': 5, 'dcvs_clip_max': 0.1, 'p': 0.1},
+        ...    {'K': 5, 'dcvs_clip_max': 0.1, 'p': 0.2},
+        ...    {'K': 3, 'dcvs_clip_max': 0.2, 'p': 0.1},
+        ...    {'K': 5, 'dcvs_clip_max': 0.2, 'p': 0.1},
+        ...    {'K': 3, 'dcvs_clip_max': 0.2, 'p': 0.1}]
+        >>> keys = ['K', 'dcvs_clip_max']
+        >>> # execute function
+        >>> cfgdict_sublist = get_cfgdict_list_subset(cfgdict_list, keys)
+        >>> # verify results
+        >>> result = ut.list_str(cfgdict_sublist)
+        >>> print(result)
+        [
+            {'K': 3, 'dcvs_clip_max': 0.1,},
+            {'K': 5, 'dcvs_clip_max': 0.1,},
+            {'K': 3, 'dcvs_clip_max': 0.2,},
+            {'K': 5, 'dcvs_clip_max': 0.2,},
+        ]
+    """
+    import utool as ut
+    cfgdict_sublist_ = [ut.dict_subset(cfgdict, keys) for cfgdict in cfgdict_list]
+    cfgtups_sublist_ = [tuple(ut.dict_to_keyvals(cfgdict)) for cfgdict in cfgdict_sublist_]
+    cfgtups_sublist = ut.unique_keep_order2(cfgtups_sublist_)
+    cfgdict_sublist = list(map(dict, cfgtups_sublist))
+    return cfgdict_sublist
+
+
+def constrain_cfgdict_list(cfgdict_list_, constraint_func):
+    """ constrains configurations and removes duplicates """
+    cfgdict_list = []
+    for cfg_ in cfgdict_list_:
+        cfg = cfg_.copy()
+        if constraint_func(cfg) is not False and len(cfg) > 0:
+            if cfg not in cfgdict_list:
+                cfgdict_list.append(cfg)
+    return cfgdict_list
+
+
+def make_cfglbls(cfgdict_list, varied_dict):
+    """  Show only the text in labels that mater from the cfgdict """
+    import textwrap
+    wrapper = textwrap.TextWrapper(width=50)
+    cfglbl_list =  []
+    for cfgdict_ in cfgdict_list:
+        cfgdict = cfgdict_.copy()
+        for key in six.iterkeys(cfgdict_):
+            try:
+                vals = varied_dict[key]
+                # Dont print label if not varied
+                if len(vals) == 1:
+                    del cfgdict[key]
+                else:
+                    # Dont print label if it is None (irrelevant)
+                    if cfgdict[key] is None:
+                        del cfgdict[key]
+            except KeyError:
+                # Don't print keys not in varydict
+                del cfgdict[key]
+        cfglbl = str(cfgdict)
+        search_repl_list = [('\'', ''), ('}', ''),
+                            ('{', ''), (': ', '=')]
+        for search, repl in search_repl_list:
+            cfglbl = cfglbl.replace(search, repl)
+        #cfglbl = str(cfgdict).replace('\'', '').replace('}', '').replace('{', '').replace(': ', '=')
+        cfglbl = ('\n'.join(wrapper.wrap(cfglbl)))
+        cfglbl_list.append(cfglbl)
+    return cfglbl_list
+
+
+def interact_gridsearch_result_images(show_result_func, cfgdict_list,
+                                      cfglbl_list, cfgresult_list,
+                                      score_list=None, fnum=None, figtitle='',
+                                      unpack=False, max_plots=25, verbose=True,
+                                      precision=3, scorelbl='score',
+                                      onclick_func=None):
+    """ helper function for visualizing results of gridsearch """
+    assert hasattr(show_result_func, '__call__'), 'NEED FUNCTION GOT: %r' % (show_result_func,)
+
+    import utool as ut
+    import plottool as pt
+    from plottool import plot_helpers as ph
+    from plottool import interact_helpers as ih
+    if verbose:
+        print('Plotting gridsearch results figtitle=%r' % (figtitle,))
+    if score_list is None:
+        score_list = [None] * len(cfgdict_list)
+    else:
+        # sort by score if available
+        sortx_list = ut.list_argsort(score_list, reverse=True)
+        score_list = ut.list_take(score_list, sortx_list)
+        cfgdict_list = ut.list_take(cfgdict_list, sortx_list)
+        cfglbl_list = ut.list_take(cfglbl_list, sortx_list)
+        cfgresult_list = ut.list_take(cfgresult_list, sortx_list)
+    # Dont show too many results only the top few
+    score_list = ut.listclip(score_list, max_plots)
+
+    # Show the config results
+    fig = pt.figure(fnum=fnum)
+    # Get plots for each of the resutls
+    nRows, nCols = pt.get_square_row_cols(len(score_list), fix=True)
+    next_pnum = pt.make_pnum_nextgen(nRows, nCols)
+    for cfgdict, cfglbl, cfgresult, score in zip(cfgdict_list, cfglbl_list,
+                                                  cfgresult_list,
+                                                  score_list):
+        if score is not None:
+            cfglbl += '\n' + scorelbl + '=' + ut.numeric_str(score, precision=precision)
+        pnum = next_pnum()
+        try:
+            if unpack:
+                show_result_func(*cfgresult, fnum=fnum, pnum=pnum)
+            else:
+                show_result_func(cfgresult, fnum=fnum, pnum=pnum)
+        except Exception as ex:
+            if isinstance(cfgresult, tuple):
+                #print(ut.list_str(cfgresult))
+                print(ut.depth_profile(cfgresult))
+                print(ut.list_type_profile(cfgresult))
+            ut.printex(ex, 'error showing', keys=['cfgresult', 'fnum', 'pnum'])
+            raise
+        #pt.imshow(255 * cfgresult, fnum=fnum, pnum=next_pnum(), title=cfglbl)
+        ax = pt.gca()
+        pt.set_title(cfglbl, ax=ax)  # , size)
+        ph.set_plotdat(ax, 'cfgdict', cfgdict)
+        ph.set_plotdat(ax, 'cfglbl', cfglbl)
+        ph.set_plotdat(ax, 'cfgresult', cfgresult)
+    # Define clicked callback
+    def on_clicked(event):
+        print('\n[pt] clicked gridsearch axes')
+        if event is None or event.xdata is None or event.inaxes is None:
+            print('out of axes')
+            pass
+        else:
+            ax = event.inaxes
+            plotdat_dict = ph.get_plotdat_dict(ax)
+            print(ut.dict_str(plotdat_dict))
+            cfglbl = ph.get_plotdat(ax, 'cfglbl', None)
+            cfgdict = ph.get_plotdat(ax, 'cfgdict', {})
+            cfgresult = ph.get_plotdat(ax, 'cfgresult', {})
+            infostr_list = [
+                ('cfglbl = ' + str(cfglbl)),
+                '',
+                ('cfgdict = ' + ut.dict_str(cfgdict, sorted_=True)),
+            ]
+            # Call a user defined function if given
+            if onclick_func is not None:
+                if unpack:
+                    onclick_func(*cfgresult)
+                else:
+                    onclick_func(cfgresult)
+            infostr = ut.msgblock('CLICKED', '\n'.join(infostr_list))
+            print(infostr)
+    # Connect callbacks
+    ih.connect_callback(fig, 'button_press_event', on_clicked)
+    pt.set_figtitle(figtitle)
 
 
 if __name__ == '__main__':

@@ -19,17 +19,16 @@ import types
 import functools
 from os.path import splitext, split, basename, dirname
 from utool import util_inject
-from utool.util_arg import get_argflag
-from utool.util_inject import inject
-from utool.util_list import list_allsame
-from utool.util_print import Indenter
-from utool.util_str import pack_into, truncate_str, horiz_string, indent
-from utool.util_type import is_listlike, get_type
-from utool._internal.meta_util_six import get_funcname
-print, print_, printDBG, rrr, profile = inject(__name__, '[dbg]')
+from utool import util_arg
+from utool import util_list
+from utool import util_print
+from utool import util_str
+from utool import util_type
+from utool._internal import meta_util_six
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[dbg]')
 
-RAISE_ALL = get_argflag('--raise-all', help='Causes ut.printex to always reraise errors')
-FORCE_TB = get_argflag('--force-tb', help='Causes ut.printex to always print traceback')
+RAISE_ALL = util_arg.get_argflag('--raise-all', help='Causes ut.printex to always reraise errors')
+FORCE_TB = util_arg.get_argflag('--force-tb', help='Causes ut.printex to always print traceback')
 
 # --- Exec Strings ---
 IPYTHON_EMBED_STR = r'''
@@ -215,7 +214,7 @@ def execstr_dict(dict_, local_name=None, exclude_list=None):
 
 
 def execstr_func(func):
-    print(' ! Getting executable source for: ' + get_funcname(func))
+    print(' ! Getting executable source for: ' + meta_util_six.get_funcname(func))
     _src = inspect.getsource(func)
     execstr = textwrap.dedent(_src[_src.find(':') + 1:])
     # Remove return statments
@@ -299,6 +298,25 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
 
     References:
        http://stackoverflow.com/questions/27911570/can-you-specify-a-command-to-run-after-you-embed-into-ipython/27914204#27914204
+       http://stackoverflow.com/questions/15167200/how-do-i-embed-an-ipython-interpreter-into-an-application-running-in-an-ipython
+
+    TODO:
+        try:
+            get_ipython
+        except NameError:
+            banner=exit_msg=''
+        else:
+            banner = '*** Nested interpreter ***'
+            exit_msg = '*** Back in main IPython ***'
+
+        # First import the embed function
+        from IPython.frontend.terminal.embed import InteractiveShellEmbed
+        # Now create the IPython shell instance. Put ipshell() anywhere in your code
+        # where you want it to open.
+        ipshell = InteractiveShellEmbed(banner1=banner, exit_msg=exit_msg)
+        #Then use ipshell() whenever you want to be dropped into an IPython shell. This
+        #will allow you to embed (and even nest) IPython interpreters in your code and
+        #inspect objects or the state of the program.
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -329,6 +347,9 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
     exec(execstr_dict(parent_globals, 'parent_globals'))
     exec(execstr_dict(parent_locals,  'parent_locals'))
     print('')
+    print('================')
+    print(ut.bubbletext('EMBEDING'))
+    print('================')
     print('[util] embedding')
     import IPython
     try:
@@ -343,7 +364,7 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
             # make qt not loop forever (I had qflag loop forever with this off)
     except ImportError as ex:
         print(ex)
-    NEW_METHOD = True
+    NEW_METHOD = False
     if NEW_METHOD:
         user_ns = globals()
         user_ns = globals().copy()
@@ -354,8 +375,8 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
             user_ns.update(parent_locals)
         orig_argv = sys.argv  # NOQA
         print('About to start_ipython')
-        c = IPython.Config()
-        c.InteractiveShellApp.exec_lines = [
+        config = IPython.Config()
+        exec_lines_ = [
             '%pylab qt4',
             'print("Entered IPYTHON via utool")',
             'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=11).f_code.co_name,))',
@@ -366,10 +387,13 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
             #'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=6).f_code.co_name,))',
             #'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=5).f_code.co_name,))',
             #execstr_dict(parent_locals)
-        ]
-        IPython.start_ipython(config=c, argv=[], user_ns=user_ns)
+        ] + ut.ensure_str_list(exec_lines if exec_lines is not None else [])
+        config.InteractiveShellApp.exec_lines = exec_lines_
+        print('Exec Lines: ')
+        print(ut.indentjoin(exec_lines_, '\n    >>> '))
+        IPython.start_ipython(config=config, argv=[], user_ns=user_ns)
         # Exit python immediately if specifed
-        if user_ns.get('qqq', False) or user_ns.get('EXIT_NOW', False):
+        if user_ns.get('qqq', False) or vars.get('qqq', False) or user_ns.get('EXIT_NOW', False):
             print('[utool.embed] EXIT_NOW or qqq specified')
             sys.exit(1)
     else:
@@ -408,7 +432,7 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
 
 
 def quitflag(num=None, embed_=False, parent_locals=None, parent_globals=None):
-    if num is None or get_argflag('--quit' + str(num)):
+    if num is None or util_arg.get_argflag('--quit' + str(num)):
         if parent_locals is None:
             parent_locals = get_parent_locals()
         if parent_globals is None:
@@ -466,7 +490,7 @@ def print_frame(frame):
                           for _execstr in execstr_attr_list(obj_name, attr_list)]
     execstr = '\n'.join(execstr_print_list)
     exec(execstr)
-    local_varnames = pack_into('; '.join(frame.f_locals.keys()))
+    local_varnames = util_str.pack_into('; '.join(frame.f_locals.keys()))
     print('Local varnames: ' + local_varnames)
     print('--- End Frame ---')
 
@@ -625,7 +649,7 @@ def get_caller_name(N=0):
     caller_name = parent_frame.f_code.co_name
     #try:
     #    if 'func' in  parent_frame.f_locals:
-    #        caller_name += '(' + get_funcname(parent_frame.f_locals['func']) + ')'
+    #        caller_name += '(' + meta_util_six.get_funcname(parent_frame.f_locals['func']) + ')'
     #except Exception:
     #    pass
     if caller_name == '<module>':
@@ -702,7 +726,7 @@ def explore_module(module_, seen=None, maxdepth=2, nonmodules=False):
                     if nonmodules:
                         #print_(depth)
                         fullstr = indent + '    ' + str(aname) + ' = ' + repr(child)
-                        truncstr = truncate_str(fullstr) + '\n'
+                        truncstr = util_str.truncate_str(fullstr) + '\n'
                         ret +=  truncstr
                     continue
                 childname = str(child.__name__)
@@ -747,7 +771,7 @@ def debug_npstack(stacktup):
         elif isinstance(item, list) or isinstance(item, tuple):
             print(' * len(item[%d]) = %d' % (count, len(item)))
             print(' * DEBUG LIST')
-            with Indenter(' * '):
+            with util_print.Indenter(' * '):
                 debug_list(item)
         else:
             print(' *  type(item[%d]) = %r' % (count, type(item)))
@@ -758,17 +782,17 @@ def debug_list(list_):
     append = dbgmessage.append
     append('debug_list')
     dim2 = None
-    if all([is_listlike(item) for item in list_]):
+    if all([util_type.is_listlike(item) for item in list_]):
         append(' * list items are all listlike')
         all_lens = [len(item) for item in list_]
-        if list_allsame(all_lens):
+        if util_list.list_allsame(all_lens):
             dim2 = all_lens[0]
             append(' * uniform lens=%d' % dim2)
         else:
             append(' * nonuniform lens = %r' % np.unique(all_lens).tolist())
     else:
         all_types = [type(item) for item in list_]
-        if list_allsame(all_types):
+        if util_list.list_allsame(all_types):
             append(' * uniform types=%r' % all_types[0])
         else:
             append(' * nonuniform types: %r' % np.unique(all_types).tolist())
@@ -801,7 +825,7 @@ def debug_exception(func):
             return func(*args, **kwargs)
         except Exception as ex:
             import utool
-            msg = ('[tools] ERROR: %s(%r, %r)' % (get_funcname(func), args, kwargs))
+            msg = ('[tools] ERROR: %s(%r, %r)' % (meta_util_six.get_funcname(func), args, kwargs))
             #print(msg)
             utool.printex(ex, msg)
             #print('[tools] ERROR: %r' % ex)
@@ -810,7 +834,7 @@ def debug_exception(func):
 
 
 def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
-            locals_=None, iswarning=False, tb=False, separate=True, N=0,
+            locals_=None, iswarning=False, tb=False, pad_stdout=True, N=0,
             use_stdout=False, reraise=False, msg_=None, keys=None):
     """
     Prints (and/or logs) an exception with relevant info
@@ -821,7 +845,7 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
         keys (None): a list of strings denoting variables or expressions of interest
         iswarning (bool): prints as a warning rather than an error if True (defaults to False)
         tb (bool): if True prints the traceback in the error message
-        separate (bool): separate the error message from the rest of stdout with newlines
+        pad_stdout (bool): separate the error message from the rest of stdout with newlines
         prefix (None):
         locals_ (None):
         N (int):
@@ -833,6 +857,10 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
     Returns:
         None
     """
+    if isinstance(ex, MemoryError):
+        import utool as ut
+        ut.print_resource_usage()
+    #ut.embed()
     if keys is not None:
         # shorthand for key_list
         key_list = keys
@@ -854,11 +882,11 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
             sys.stdout.flush()
     else:
         print_func = print
-    if separate:
+    if pad_stdout:
         print_func('\n+------\n')
     # print the execption
     print_func(exstr)
-    if separate:
+    if pad_stdout:
         print_func('\nL______\n')
     # If you dont know where an error is coming from raise-all
     if (reraise and not iswarning) or RAISE_ALL:
@@ -912,7 +940,7 @@ def get_varname_from_locals(val, locals_, default='varname-not-found',
         str: the varname which is Val (if it exists)
 
     """
-    if isinstance(val, (int, float, bool)):
+    if val is None or isinstance(val, (int, float, bool)):
         # Cannot work on primative types
         return default
     try:
@@ -954,17 +982,17 @@ def get_varval_from_locals(key, locals_, strict=False):
     return val
 
 
-def get_varstr(val, separate=True, locals_=None):
+def get_varstr(val, pad_stdout=True, locals_=None):
     # TODO: combine with printex functionality
     if locals_ is None:
         locals_ = get_parent_locals()
     name = get_varname_from_locals(val, locals_)
     varstr_list = []
-    if separate:
+    if pad_stdout:
         varstr_list.append('\n\n+==========')
     varstr_list.append(repr(type(val)) + ' ' + name + ' = ')
     varstr_list.append(str(val))
-    if separate:
+    if pad_stdout:
         varstr_list.append('L==========')
     varstr = '\n'.join(varstr_list)
     return varstr
@@ -1004,14 +1032,14 @@ def parse_locals_keylist(locals_, key_list, strlist_=None, prefix=''):
             elif isinstance(key, six.string_types):
                 # Try to infer print from variable name
                 val = get_varval_from_locals(key, locals_)
-                valstr = truncate_str(repr(val), maxlen=200)
+                valstr = util_str.truncate_str(repr(val), maxlen=200)
                 strlist_.append('%s %s = %s' % (prefix, key, valstr))
             else:
                 # Try to infer print from variable value
                 val = key
                 typestr = repr(type(val))
                 namestr = get_varname_from_locals(val, locals_)
-                valstr = truncate_str(repr(val), maxlen=200)
+                valstr = util_str.truncate_str(repr(val), maxlen=200)
                 strlist_.append('%s %s %s = %s' % (prefix, typestr, namestr, valstr))
         except AssertionError as ex:
             strlist_.append(str(ex))
@@ -1029,10 +1057,10 @@ def get_reprs(*args, **kwargs):
     var_list = list(args) + kwargs.get('var_list', [])
     for key in var_list:
         var = locals_[key]
-        msg = horiz_string(str(key) + ' = ', repr(var))
+        msg = util_str.horiz_string(str(key) + ' = ', repr(var))
         msg_list.append(msg)
 
-    reprs = '\n' + indent('\n##\n'.join(msg_list)) + '\n'
+    reprs = '\n' + util_str.indent('\n##\n'.join(msg_list)) + '\n'
     return reprs
 
 
@@ -1054,7 +1082,7 @@ def printvar(locals_, varname, attr='.shape', typepad=0):
         var_ = locals_[varname_]  # NOQA
         var = eval('var_' + dotname_)
     # Print in format
-    typestr = str(get_type(var)).ljust(typepad)
+    typestr = str(util_type.get_type(var)).ljust(typepad)
 
     if isinstance(var, np.ndarray):
         varstr = eval('str(var' + attr + ')')
@@ -1159,6 +1187,7 @@ class EmbedOnException(object):
             print('[util_dbg] %r in context manager!: %s ' % (type_, str(value)))
             import utool
             import traceback
+            #traceback.print_stack(type_, value, trace)
             traceback.print_exception(type_, value, trace)
             #parent_locals = utool.get_parent_locals()
             #execstr_parent = utool.execstr_dict(parent_locals, 'parent_locals')
@@ -1167,6 +1196,9 @@ class EmbedOnException(object):
             execstr_trace = utool.execstr_dict(trace_locals, 'trace_locals')
             exec(execstr_trace)
             utool.embed()
+
+# maybe this will be easier to type?
+embed_on_exception_context = EmbedOnException()
 
 if __name__ == '__main__':
     """

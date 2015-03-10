@@ -1,89 +1,205 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>utool.util_tests &mdash; utool 1.0.0.dev1 documentation</title>
-    
-    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '1.0.0.dev1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html" />
-    <link rel="up" title="utool" href="../utool.html" /> 
-  </head>
-  <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
-          <li><a href="../index.html" >Module code</a> &raquo;</li>
-          <li><a href="../utool.html" accesskey="U">utool</a> &raquo;</li> 
-      </ul>
-    </div>  
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>utool.util_tests &mdash; utool 1.0.0.dev1 documentation</title>
+  
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body">
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html"/>
+        <link rel="up" title="utool" href="../utool.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../index.html" class="fa fa-home"> utool</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../utool.html">utool package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.DynamicStruct">utool.DynamicStruct module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.Preferences">utool.Preferences module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.Printable">utool.Printable module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_alg">utool.util_alg module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_aliases">utool.util_aliases module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_arg">utool.util_arg module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_assert">utool.util_assert module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_autogen">utool.util_autogen module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_cache">utool.util_cache module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_class">utool.util_class module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_config">utool.util_config module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_cplat">utool.util_cplat module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_csv">utool.util_csv module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_dbg">utool.util_dbg module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_decor">utool.util_decor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_dev">utool.util_dev module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_dict">utool.util_dict module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_distances">utool.util_distances module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_func">utool.util_func module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_git">utool.util_git module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_grabdata">utool.util_grabdata module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_gridsearch">utool.util_gridsearch module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_hash">utool.util_hash module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_inject">utool.util_inject module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_inspect">utool.util_inspect module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_io">utool.util_io module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_iter">utool.util_iter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_latex">utool.util_latex module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_list">utool.util_list module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_logging">utool.util_logging module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_num">utool.util_num module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_numpy">utool.util_numpy module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_parallel">utool.util_parallel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_path">utool.util_path module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_print">utool.util_print module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_progress">utool.util_progress module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_regex">utool.util_regex module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_resources">utool.util_resources module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_set">utool.util_set module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_setup">utool.util_setup module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_six">utool.util_six module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_str">utool.util_str module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_sysreq">utool.util_sysreq module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_tests">utool.util_tests module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_time">utool.util_time module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_type">utool.util_type module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">utool</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../utool.html">utool</a> &raquo;</li>
+      
+    <li>utool.util_tests</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
             
   <h1>Source code for utool.util_tests</h1><div class="highlight"><pre>
-<span class="sd">&quot;&quot;&quot; Helpers for tests &quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Helpers for tests</span>
+
+<span class="sd">This module contains a more sane reimplementation of doctest functionality.</span>
+<span class="sd">(I.E. asserts work and you don&#39;t have to worry about standard out mucking things</span>
+<span class="sd">up) The code isn&#39;t super clean though due to time constriaints. Many functions</span>
+<span class="sd">probably belong elsewhere and the parsers need a big cleanup.</span>
+
+<span class="sd">TODO:</span>
+<span class="sd">    report the line of the doctest in the file when reporting errors as well as</span>
+<span class="sd">    the relative line</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">builtins</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
 <span class="kn">import</span> <span class="nn">types</span>
-<span class="kn">import</span> <span class="nn">parse</span>  <span class="c"># NOQA</span>
 <span class="kn">import</span> <span class="nn">traceback</span>  <span class="c"># NOQA</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span>
-<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_print</span>
-<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_dbg</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_print</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_arg</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_path</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_time</span>
-<span class="kn">from</span> <span class="nn">utool.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
 <span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[tests]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[tests]&#39;</span><span class="p">)</span>
 
 
-<span class="n">VERBOSE_TEST</span> <span class="o">=</span> <span class="s">&#39;--verb-test&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="ow">or</span> <span class="s">&#39;--verbose-test&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<span class="n">VERBOSE_TEST</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--verb-test&#39;</span><span class="p">,</span> <span class="s">&#39;--verbose-test&#39;</span><span class="p">))</span>
+<span class="c">#PRINT_SRC = not util_arg.get_argflag((&#39;--noprintsrc&#39;, &#39;--nosrc&#39;))</span>
+<span class="n">DEBUG_SRC</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nodbgsrc&#39;</span><span class="p">)</span>
+<span class="n">PRINT_SRC</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--printsrc&#39;</span><span class="p">,</span> <span class="s">&#39;--src&#39;</span><span class="p">))</span>
+<span class="n">PRINT_FACE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--noprintface&#39;</span><span class="p">,</span> <span class="s">&#39;--noface&#39;</span><span class="p">))</span>
+<span class="c">#BIGFACE = False</span>
+<span class="n">BIGFACE</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--bigface&#39;</span><span class="p">)</span>
+<span class="n">SYSEXIT_ON_FAIL</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--sysexitonfail&#39;</span><span class="p">)</span>
 
-<span class="n">HAPPY_FACE</span> <span class="o">=</span> <span class="s">r&#39;&#39;&#39;</span>
+<span class="n">ModuleDoctestTup</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;ModuleDoctestTup&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;enabled_testtup_list&#39;</span><span class="p">,</span> <span class="s">&#39;frame_fpath&#39;</span><span class="p">,</span> <span class="s">&#39;all_testflags&#39;</span><span class="p">,</span> <span class="s">&#39;module&#39;</span><span class="p">))</span>
+
+<span class="n">HAPPY_FACE_BIG</span> <span class="o">=</span> <span class="s">r&#39;&#39;&#39;</span>
 <span class="s">               .-&quot;&quot;&quot;&quot;&quot;&quot;-.</span>
 <span class="s">             .&#39;          &#39;.</span>
 <span class="s">            /   O      O   \</span>
 <span class="s">           :                :</span>
 <span class="s">           |                |</span>
-<span class="s">           : &#39;,          ,&#39; :</span>
+<span class="s">           &#39;  ,          ,&#39; :</span>
 <span class="s">            \  &#39;-......-&#39;  /</span>
 <span class="s">             &#39;.          .&#39;</span>
 <span class="s">               &#39;-......-&#39;</span>
 <span class="s">                   &#39;&#39;&#39;</span>
 
-
-<span class="n">SAD_FACE</span> <span class="o">=</span> <span class="s">r&#39;&#39;&#39;</span>
+<span class="n">SAD_FACE_BIG</span> <span class="o">=</span> <span class="s">r&#39;&#39;&#39;</span>
 <span class="s">               .-&quot;&quot;&quot;&quot;&quot;&quot;-.</span>
 <span class="s">             .&#39;          &#39;.</span>
 <span class="s">            /   O      O   \</span>
@@ -95,8 +211,34 @@
 <span class="s">               &#39;-......-&#39;</span>
 <span class="s">                  &#39;&#39;&#39;</span>
 
+<span class="n">HAPPY_FACE_SMALL</span> <span class="o">=</span> <span class="s">r&#39;&#39;&#39;</span>
+<span class="s">     .&quot;&quot;&quot;.</span>
+<span class="s">    | o o |</span>
+<span class="s">    | \_/ |</span>
+<span class="s">     &#39; = &#39;</span>
+<span class="s">    &#39;&#39;&#39;</span>
+
+<span class="n">SAD_FACE_SMALL</span> <span class="o">=</span> <span class="s">r&#39;&#39;&#39;</span>
+<span class="s">     .&quot;&quot;&quot;.</span>
+<span class="s">    | . . |</span>
+<span class="s">    |  ~  |</span>
+<span class="s">     &#39; = &#39;</span>
+<span class="s">    &#39;&#39;&#39;</span>
+
+<span class="k">if</span> <span class="n">BIGFACE</span><span class="p">:</span>
+    <span class="n">HAPPY_FACE</span> <span class="o">=</span> <span class="n">HAPPY_FACE_BIG</span>
+    <span class="n">SAD_FACE</span> <span class="o">=</span> <span class="n">SAD_FACE_BIG</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">HAPPY_FACE</span> <span class="o">=</span> <span class="n">HAPPY_FACE_SMALL</span>
+    <span class="c">#SAD_FACE = SAD_FACE_BIG</span>
+    <span class="n">SAD_FACE</span> <span class="o">=</span> <span class="n">SAD_FACE_SMALL</span>
+
 
 <span class="k">def</span> <span class="nf">_get_testable_name</span><span class="p">(</span><span class="n">testable</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Depth 3)</span>
+<span class="sd">    called by get_module_doctest_tup</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">utool</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">testable_name</span> <span class="o">=</span> <span class="n">testable</span><span class="o">.</span><span class="n">func_name</span>
@@ -110,15 +252,115 @@
     <span class="k">return</span> <span class="n">testable_name</span>
 
 
-<div class="viewcode-block" id="parse_docblocks_from_docstr"><a class="viewcode-back" href="../../utool.html#utool.util_tests.parse_docblocks_from_docstr">[docs]</a><span class="k">def</span> <span class="nf">parse_docblocks_from_docstr</span><span class="p">(</span><span class="n">docstr</span><span class="p">):</span>
-    <span class="c"># FIXME Requires tags to be separated by two spaces</span>
-    <span class="kn">import</span> <span class="nn">parse</span>   <span class="c"># NOQA</span>
+<div class="viewcode-block" id="dev_ipython_copypaster"><a class="viewcode-back" href="../../utool.html#utool.util_tests.dev_ipython_copypaster">[docs]</a><span class="k">def</span> <span class="nf">dev_ipython_copypaster</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">code_text</span> <span class="o">=</span> <span class="n">get_dev_paste_code</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">copy_text_to_clipboard</span><span class="p">(</span><span class="n">code_text</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="get_dev_paste_code"><a class="viewcode-back" href="../../utool.html#utool.util_tests.get_dev_paste_code">[docs]</a><span class="k">def</span> <span class="nf">get_dev_paste_code</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">example_texts</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_doctest_examples</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="n">example_text</span> <span class="o">=</span> <span class="n">example_texts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">example_text</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">example_text</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">example_text</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">example_text</span><span class="p">)</span>
+    <span class="n">source_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_func_source</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="n">get_dev_code</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">example_text</span><span class="p">,</span> <span class="n">source_text</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">get_dev_code</span>
+
+</div>
+<div class="viewcode-block" id="get_func_source"><a class="viewcode-back" href="../../utool.html#utool.util_tests.get_func_source">[docs]</a><span class="k">def</span> <span class="nf">get_func_source</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        func (function): live function</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        src: source_text</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_tests --test-get_func_source</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.all_imports import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.devcases import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; func = myquery</span>
+<span class="sd">        &gt;&gt;&gt; deventer(func)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">source_text</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getsource</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="n">source_lines</span> <span class="o">=</span> <span class="n">source_text</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+    <span class="n">source_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unindent</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_lines</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+    <span class="k">return</span> <span class="n">source_text</span>
+
+</div>
+<div class="viewcode-block" id="get_module_testlines"><a class="viewcode-back" href="../../utool.html#utool.util_tests.get_module_testlines">[docs]</a><span class="k">def</span> <span class="nf">get_module_testlines</span><span class="p">(</span><span class="n">module_list</span><span class="p">,</span> <span class="n">remove_pyc</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                         <span class="n">pythoncmd</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Builds test commands for autogen tests</span>
+<span class="sd">    called by autogen test scripts</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="k">if</span> <span class="n">pythoncmd</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">pythoncmd</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">executable</span>
+        <span class="c">#&#39;python&#39;</span>
+    <span class="n">testcmd_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">module_list</span><span class="p">:</span>
+        <span class="n">mod_doctest_tup</span> <span class="o">=</span> <span class="n">get_module_doctest_tup</span><span class="p">(</span><span class="n">module</span><span class="o">=</span><span class="n">module</span><span class="p">,</span> <span class="n">allexamples</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                                 <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">enabled_testtup_list</span><span class="p">,</span> <span class="n">frame_fpath</span><span class="p">,</span> <span class="n">all_testflags</span><span class="p">,</span> <span class="n">module_</span> <span class="o">=</span> <span class="n">mod_doctest_tup</span>
+        <span class="k">for</span> <span class="n">testtup</span> <span class="ow">in</span> <span class="n">enabled_testtup_list</span><span class="p">:</span>
+            <span class="n">testflag</span> <span class="o">=</span> <span class="n">testtup</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">remove_pyc</span><span class="p">:</span>
+                <span class="c"># FIXME python 3 __pycache__/*.pyc</span>
+                <span class="n">frame_fpath</span> <span class="o">=</span> <span class="n">frame_fpath</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;.pyc&#39;</span><span class="p">,</span> <span class="s">&#39;.py&#39;</span><span class="p">)</span>
+            <span class="n">frame_rel_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_relative_modpath</span><span class="p">(</span><span class="n">frame_fpath</span><span class="p">)</span>
+            <span class="n">testcmd</span> <span class="o">=</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">pythoncmd</span><span class="p">,</span> <span class="n">frame_rel_fpath</span><span class="p">,</span> <span class="n">testflag</span><span class="p">))</span>
+            <span class="n">testcmd_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">testcmd</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">testcmd_list</span>
+
+</div>
+<div class="viewcode-block" id="parse_docblocks_from_docstr"><a class="viewcode-back" href="../../utool.html#utool.util_tests.parse_docblocks_from_docstr">[docs]</a><span class="k">def</span> <span class="nf">parse_docblocks_from_docstr</span><span class="p">(</span><span class="n">docstr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    parse_docblocks_from_docstr</span>
+<span class="sd">    Depth 5)</span>
+<span class="sd">    called by parse_doctest_from_docstr</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        docstr (str):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: docstr_blocks</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_tests import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; #import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; #import ibeis.model.hots.query_request</span>
+<span class="sd">        &gt;&gt;&gt; #func_or_class = ibeis.model.hots.query_request.QueryParams</span>
+<span class="sd">        &gt;&gt;&gt; func_or_class = ut.parse_docblocks_from_docstr</span>
+<span class="sd">        &gt;&gt;&gt; docstr = ut.get_docstr(func_or_class)</span>
+<span class="sd">        &gt;&gt;&gt; docstr_blocks = parse_docblocks_from_docstr(docstr)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(docstr_blocks)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># FIXME Requires tags to be separated by two spaces</span>
+    <span class="kn">import</span> <span class="nn">parse</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="kn">import</span> <span class="nn">itertools</span>
     <span class="n">initial_docblocks</span> <span class="o">=</span> <span class="n">docstr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s">&#39;</span><span class="p">)</span>
-    <span class="c">#print(&#39;__________&#39;)</span>
-    <span class="c">#print(&#39;\n---\n&#39;.join(initial_docblocks))</span>
+    <span class="n">docblock_len_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">str_</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">str_</span> <span class="ow">in</span> <span class="n">initial_docblocks</span><span class="p">]</span>
+    <span class="n">offset_iter</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="n">ut</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">docblock_len_list</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">initial_line_offsets</span> <span class="o">=</span> <span class="p">[</span><span class="n">offset</span> <span class="k">for</span> <span class="n">offset</span> <span class="ow">in</span> <span class="n">offset_iter</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">VERBOSE_TEST</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;__________&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;__Initial Docblocks__&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">---</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">initial_docblocks</span><span class="p">))</span>
     <span class="n">docstr_blocks</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">docblock</span> <span class="ow">in</span> <span class="n">initial_docblocks</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">docblock</span><span class="p">,</span> <span class="n">line_offset</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">initial_docblocks</span><span class="p">,</span> <span class="n">initial_line_offsets</span><span class="p">):</span>
         <span class="n">docblock</span> <span class="o">=</span> <span class="n">docblock</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
         <span class="n">indent</span> <span class="o">=</span> <span class="s">&#39; &#39;</span> <span class="o">*</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_indentation</span><span class="p">(</span><span class="n">docblock</span><span class="p">)</span>
         <span class="n">parse_result</span> <span class="o">=</span> <span class="n">parse</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">indent</span> <span class="o">+</span> <span class="s">&#39;{tag}:</span><span class="se">\n</span><span class="s">{rest}&#39;</span><span class="p">,</span> <span class="n">docblock</span><span class="p">)</span>
@@ -126,32 +368,65 @@
             <span class="n">header</span> <span class="o">=</span> <span class="n">parse_result</span><span class="p">[</span><span class="s">&#39;tag&#39;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">header</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-        <span class="n">docstr_blocks</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">header</span><span class="p">,</span> <span class="n">docblock</span><span class="p">))</span>
+        <span class="n">docstr_blocks</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">header</span><span class="p">,</span> <span class="n">docblock</span><span class="p">,</span> <span class="n">line_offset</span><span class="p">))</span>
     <span class="c">#print(docstr_blocks)</span>
+
+    <span class="n">docblock_headers</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">docstr_blocks</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">docblock_bodys</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">docstr_blocks</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">docblock_offsets</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">docstr_blocks</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">VERBOSE_TEST</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_test] * found </span><span class="si">%d</span><span class="s"> docstr_blocks&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">docstr_blocks</span><span class="p">),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_test] * docblock_headers = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">docblock_headers</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_test] * docblock_offsets = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">docblock_offsets</span><span class="p">,))</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_test] * docblock_bodys:&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">-=-</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">docblock_bodys</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">docstr_blocks</span>
 
 </div>
 <div class="viewcode-block" id="parse_doctest_from_docstr"><a class="viewcode-back" href="../../utool.html#utool.util_tests.parse_doctest_from_docstr">[docs]</a><span class="k">def</span> <span class="nf">parse_doctest_from_docstr</span><span class="p">(</span><span class="n">docstr</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    because doctest itself doesnt do what I want it to do</span>
+<span class="sd">    called by get_doctest_examples</span>
+<span class="sd">    Depth 4)</span>
+
+<span class="sd">    CAREFUL, IF YOU GET BACK WRONG RESULTS MAKE SURE YOUR DOCSTR IS PREFFIXED</span>
+<span class="sd">    WITH R</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_tests import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots import score_normalization</span>
+<span class="sd">        &gt;&gt;&gt; func_or_class = score_normalization.cached_ibeis_score_normalizer</span>
+<span class="sd">        &gt;&gt;&gt; docstr = ut.get_docstr(func_or_class)</span>
+<span class="sd">        &gt;&gt;&gt; testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr = get_doctest_examples(func_or_class)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(len(testsrc_list) + len(testwant_list))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        2</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
     <span class="n">docstr_blocks</span> <span class="o">=</span> <span class="n">parse_docblocks_from_docstr</span><span class="p">(</span><span class="n">docstr</span><span class="p">)</span>
-    <span class="n">example_docblocks</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">header</span><span class="p">,</span> <span class="n">docblock</span> <span class="ow">in</span> <span class="n">docstr_blocks</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">header</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;Example&#39;</span><span class="p">):</span>
-            <span class="n">example_docblocks</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">header</span><span class="p">,</span> <span class="n">docblock</span><span class="p">))</span>
 
-    <span class="n">testheader_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">testsrc_list</span>    <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">testwant_list</span>   <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">header</span><span class="p">,</span> <span class="n">docblock</span> <span class="ow">in</span> <span class="n">example_docblocks</span><span class="p">:</span>
+    <span class="n">example_docblocks</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">header</span><span class="p">,</span> <span class="n">docblock</span><span class="p">,</span> <span class="n">line_offset</span> <span class="ow">in</span> <span class="n">docstr_blocks</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">header</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;Example&#39;</span><span class="p">):</span>
+            <span class="n">example_docblocks</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">header</span><span class="p">,</span> <span class="n">docblock</span><span class="p">,</span> <span class="n">line_offset</span><span class="p">))</span>
+
+    <span class="n">testheader_list</span>     <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">testsrc_list</span>        <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">testwant_list</span>       <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">testlineoffset_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">header</span><span class="p">,</span> <span class="n">docblock</span><span class="p">,</span> <span class="n">line_offset</span> <span class="ow">in</span> <span class="n">example_docblocks</span><span class="p">:</span>
         <span class="n">nonheader_src</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unindent</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">docblock</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]))</span>
         <span class="n">nonheader_lines</span> <span class="o">=</span> <span class="n">nonheader_src</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
         <span class="n">reversed_src_lines</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">reversed_want_lines</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">finished_want</span> <span class="o">=</span> <span class="bp">False</span>
 
+        <span class="c"># Read the example block backwards to get the want string</span>
+        <span class="c"># and then the rest should all be source</span>
         <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">nonheader_lines</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">finished_want</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;&gt;&gt;&gt; &#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;... &#39;</span><span class="p">):</span>
@@ -165,14 +440,18 @@
         <span class="n">testheader_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
         <span class="n">testsrc_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">test_src</span><span class="p">)</span>
         <span class="n">testwant_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">test_want</span><span class="p">)</span>
+        <span class="n">testlineoffset_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line_offset</span><span class="p">)</span>
         <span class="c">#print(&#39;Parsed header=%r&#39; % header)</span>
         <span class="c">#print(&#39;Parsed src=%r&#39; % test_src)</span>
-    <span class="k">return</span> <span class="n">testheader_list</span><span class="p">,</span> <span class="n">testsrc_list</span><span class="p">,</span> <span class="n">testwant_list</span>
+    <span class="k">return</span> <span class="n">testheader_list</span><span class="p">,</span> <span class="n">testsrc_list</span><span class="p">,</span> <span class="n">testwant_list</span><span class="p">,</span> <span class="n">testlineoffset_list</span>
 
 </div>
 <div class="viewcode-block" id="get_doctest_examples"><a class="viewcode-back" href="../../utool.html#utool.util_tests.get_doctest_examples">[docs]</a><span class="k">def</span> <span class="nf">get_doctest_examples</span><span class="p">(</span><span class="n">func_or_class</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    get_doctest_examples</span>
+
+<span class="sd">    Depth 3)</span>
+<span class="sd">    called by get_module_doctest_tup</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        func_or_class (function)</span>
@@ -180,12 +459,46 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        tuple (list, list): example_list, want_list</span>
 
-<span class="sd">    Example:</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_tests --test-get_doctest_examples</span>
+
+<span class="sd">    Example0:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_tests import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; func_or_class = get_doctest_examples</span>
-<span class="sd">        &gt;&gt;&gt; testsrc_list, testwant_list, docstr = get_doctest_examples(func_or_class)</span>
+<span class="sd">        &gt;&gt;&gt; testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr = get_doctest_examples(func_or_class)</span>
 <span class="sd">        &gt;&gt;&gt; result = str(len(testsrc_list) + len(testwant_list))</span>
+<span class="sd">        &gt;&gt;&gt; print(testsrc_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(testlinenum_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(func_lineno)</span>
+<span class="sd">        &gt;&gt;&gt; print(testwant_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        6</span>
+
+<span class="sd">    Example1:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_tests import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; func_or_class = tryimport</span>
+<span class="sd">        &gt;&gt;&gt; testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr = get_doctest_examples(func_or_class)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(len(testsrc_list) + len(testwant_list))</span>
+<span class="sd">        &gt;&gt;&gt; print(testsrc_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(testlinenum_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(func_lineno)</span>
+<span class="sd">        &gt;&gt;&gt; print(testwant_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        4</span>
+
+<span class="sd">    Example2:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_tests import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; func_or_class = ibeis.control.manual_annot_funcs.add_annots</span>
+<span class="sd">        &gt;&gt;&gt; testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr = get_doctest_examples(func_or_class)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(len(testsrc_list) + len(testwant_list))</span>
+<span class="sd">        &gt;&gt;&gt; print(testsrc_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(testlinenum_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(func_lineno)</span>
+<span class="sd">        &gt;&gt;&gt; print(testwant_list)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        2</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -193,21 +506,39 @@
     <span class="k">if</span> <span class="n">VERBOSE_TEST</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_test] parsing </span><span class="si">%r</span><span class="s"> for doctest&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">func_or_class</span><span class="p">))</span>
 
-    <span class="c"># Get the docstring</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">docstr</span> <span class="o">=</span> <span class="n">func_or_class</span><span class="o">.</span><span class="n">func_doc</span>
-    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-        <span class="n">docstr</span> <span class="o">=</span> <span class="n">func_or_class</span><span class="o">.</span><span class="n">__doc__</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;FIXME&#39;</span><span class="p">)</span>
+        <span class="c">#func_or_class._utinfo[&#39;orig_func&#39;]</span>
+        <span class="n">func_lineno</span> <span class="o">=</span> <span class="n">func_or_class</span><span class="o">.</span><span class="n">func_code</span><span class="o">.</span><span class="n">co_firstlineno</span>
+        <span class="c"># FIXME: doesn&#39;t handle decorators well</span>
+        <span class="c">#</span>
+        <span class="c"># ~~FIXME doesn&#39;t account for multiline function definitions</span>
+        <span class="c"># actually parse this out~~</span>
+        <span class="c"># TODO: rectify with util_insepct get_funcsource with stip def line</span>
+        <span class="n">sourcecode</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getsource</span><span class="p">(</span><span class="n">func_or_class</span><span class="p">)</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">regex_get_match</span><span class="p">(</span><span class="s">&#39;def [^)]*</span><span class="se">\\</span><span class="s">):</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">sourcecode</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">num_funcdef_lines</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">()</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">num_funcdef_lines</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">func_lineno</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">num_funcdef_lines</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;[util-test] error getting function line number&#39;</span><span class="p">)</span>
 
+    <span class="n">docstr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_docstr</span><span class="p">(</span><span class="n">func_or_class</span><span class="p">)</span>
     <span class="c"># Cache because my janky parser is slow</span>
-    <span class="n">docstr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unindent</span><span class="p">(</span><span class="n">docstr</span><span class="p">)</span>
     <span class="c">#with ut.GlobalShelfContext(&#39;utool&#39;) as shelf:</span>
     <span class="c">#    if False and docstr in shelf:</span>
     <span class="c">#        testsrc_list, testwant_list = shelf[docstr]</span>
     <span class="c">#    else:</span>
-    <span class="n">testheader_list</span><span class="p">,</span> <span class="n">testsrc_list</span><span class="p">,</span> <span class="n">testwant_list</span> <span class="o">=</span> <span class="n">parse_doctest_from_docstr</span><span class="p">(</span><span class="n">docstr</span><span class="p">)</span>
+    <span class="n">testheader_list</span><span class="p">,</span> <span class="n">testsrc_list</span><span class="p">,</span> <span class="n">testwant_list</span><span class="p">,</span> <span class="n">testlineoffset_list</span> <span class="o">=</span> <span class="n">parse_doctest_from_docstr</span><span class="p">(</span><span class="n">docstr</span><span class="p">)</span>
+    <span class="n">testlinenum_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">func_lineno</span> <span class="o">+</span> <span class="n">num_funcdef_lines</span> <span class="o">+</span> <span class="n">offset</span> <span class="k">for</span> <span class="n">offset</span> <span class="ow">in</span> <span class="n">testlineoffset_list</span><span class="p">]</span>
     <span class="c">#       shelf[docstr] = testsrc_list, testwant_list</span>
-    <span class="k">return</span> <span class="n">testsrc_list</span><span class="p">,</span> <span class="n">testwant_list</span><span class="p">,</span> <span class="n">docstr</span>
+    <span class="k">if</span> <span class="n">VERBOSE_TEST</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_test] * found </span><span class="si">%d</span><span class="s"> doctests&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">testsrc_list</span><span class="p">),))</span>
+    <span class="k">return</span> <span class="n">testsrc_list</span><span class="p">,</span> <span class="n">testwant_list</span><span class="p">,</span> <span class="n">testlinenum_list</span><span class="p">,</span> <span class="n">func_lineno</span><span class="p">,</span> <span class="n">docstr</span>
     <span class="c"># doctest doesnt do what i want. so I wrote my own primative but effective</span>
     <span class="c"># parser.</span>
     <span class="sd">&#39;&#39;&#39;</span>
@@ -252,49 +583,71 @@
 <span class="sd">    &#39;&#39;&#39;</span>
 
 </div>
-<div class="viewcode-block" id="doctest_modules"><a class="viewcode-back" href="../../utool.html#utool.util_tests.doctest_modules">[docs]</a><span class="k">def</span> <span class="nf">doctest_modules</span><span class="p">(</span><span class="n">module_list</span><span class="p">):</span>
-    <span class="n">nPass</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">nTotal</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">failed_cmd_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">module_list</span><span class="p">:</span>
-        <span class="p">(</span><span class="n">nPass_</span><span class="p">,</span> <span class="n">nTotal_</span><span class="p">,</span> <span class="n">failed_cmd_list_</span><span class="p">)</span> <span class="o">=</span> <span class="n">doctest_funcs</span><span class="p">(</span><span class="n">module</span><span class="o">=</span><span class="n">module</span><span class="p">,</span> <span class="n">allexamples</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="n">nPass</span>  <span class="o">+=</span> <span class="n">nPass_</span>
-        <span class="n">nTotal</span> <span class="o">+=</span> <span class="n">nTotal_</span>
-        <span class="n">failed_cmd_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">failed_cmd_list_</span><span class="p">)</span>
-
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;+-------&#39;</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;| FINISHED TESTING MODULE LIST&#39;</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;| passed </span><span class="si">%d</span><span class="s"> / </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nPass</span><span class="p">,</span> <span class="n">nTotal</span><span class="p">))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;L-------&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">failed_cmd_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Failed Tests:&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">failed_cmd_list</span><span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;No Failures :)&#39;</span><span class="p">)</span>
-
-</div>
-<div class="viewcode-block" id="get_module_testlines"><a class="viewcode-back" href="../../utool.html#utool.util_tests.get_module_testlines">[docs]</a><span class="k">def</span> <span class="nf">get_module_testlines</span><span class="p">(</span><span class="n">module_list</span><span class="p">,</span> <span class="n">remove_pyc</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">pythoncmd</span><span class="o">=</span><span class="s">&#39;python&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="doctest_module_list"><a class="viewcode-back" href="../../utool.html#utool.util_tests.doctest_module_list">[docs]</a><span class="k">def</span> <span class="nf">doctest_module_list</span><span class="p">(</span><span class="n">module_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Builds test commands for autogen tests</span>
+<span class="sd">    Runs many module tests</span>
+
+<span class="sd">    Entry point for batch run</span>
+<span class="sd">    Depth 0)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
-    <span class="n">testcmd_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">module_list</span><span class="p">:</span>
-        <span class="n">enabled_testtup_list</span><span class="p">,</span> <span class="n">frame_fpath</span><span class="p">,</span> <span class="n">all_testflags</span><span class="p">,</span> <span class="n">module_</span> <span class="o">=</span> <span class="n">get_doctest_testtup_list</span><span class="p">(</span><span class="n">module</span><span class="o">=</span><span class="n">module</span><span class="p">,</span> <span class="n">allexamples</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">testtup</span> <span class="ow">in</span> <span class="n">enabled_testtup_list</span><span class="p">:</span>
-            <span class="n">testflag</span> <span class="o">=</span> <span class="n">testtup</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">remove_pyc</span><span class="p">:</span>
-                <span class="c"># FIXME python 3</span>
-                <span class="n">frame_fpath</span> <span class="o">=</span> <span class="n">frame_fpath</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;.pyc&#39;</span><span class="p">,</span> <span class="s">&#39;.py&#39;</span><span class="p">)</span>
-            <span class="n">frame_rel_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_relative_modpath</span><span class="p">(</span><span class="n">frame_fpath</span><span class="p">)</span>
-            <span class="n">testcmd</span> <span class="o">=</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">pythoncmd</span><span class="p">,</span> <span class="n">frame_rel_fpath</span><span class="p">,</span> <span class="n">testflag</span><span class="p">))</span>
-            <span class="n">testcmd_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">testcmd</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">testcmd_list</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">nPass_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">nTotal_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">failed_cmds_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_test] Running doctests on module list&#39;</span><span class="p">)</span>
+
+    <span class="n">failed_doctest_fname</span> <span class="o">=</span> <span class="s">&#39;failed_doctests.txt&#39;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">failed_doctest_fname</span><span class="p">,</span> <span class="s">&#39;a&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+        <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">-------</span><span class="se">\n\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_printable_timestamp</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">testkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">allexamples</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">module_list</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">nPass</span><span class="p">,</span> <span class="n">nTotal</span><span class="p">,</span> <span class="n">failed_list</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">(</span><span class="n">module</span><span class="o">=</span><span class="n">module</span><span class="p">,</span> <span class="o">**</span><span class="n">testkw</span><span class="p">)</span>
+            <span class="n">nPass_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nPass</span><span class="p">)</span>
+            <span class="n">nTotal_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nTotal</span><span class="p">)</span>
+            <span class="n">failed_cmds_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">failed_list</span><span class="p">)</span>
+            <span class="c"># Write failed tests to disk</span>
+            <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">failed_list</span><span class="p">:</span>
+                <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cmd</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+    <span class="n">nPass</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">nPass_list</span><span class="p">)</span>
+    <span class="n">nTotal</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">nTotal_list</span><span class="p">)</span>
+    <span class="n">failed_cmd_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">failed_cmds_list</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;+========&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;| FINISHED TESTING </span><span class="si">%d</span><span class="s"> MODULES&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">module_list</span><span class="p">),))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;| PASSED </span><span class="si">%d</span><span class="s"> / </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nPass</span><span class="p">,</span> <span class="n">nTotal</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;L========&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">failed_cmd_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;FAILED TESTS:&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">failed_cmd_list</span><span class="p">))</span>
 
 </div>
-<div class="viewcode-block" id="get_doctest_testtup_list"><a class="viewcode-back" href="../../utool.html#utool.util_tests.get_doctest_testtup_list">[docs]</a><span class="k">def</span> <span class="nf">get_doctest_testtup_list</span><span class="p">(</span><span class="n">testable_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">check_flags</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">module</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+<div class="viewcode-block" id="get_module_doctest_tup"><a class="viewcode-back" href="../../utool.html#utool.util_tests.get_module_doctest_tup">[docs]</a><span class="k">def</span> <span class="nf">get_module_doctest_tup</span><span class="p">(</span><span class="n">testable_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">check_flags</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">module</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                              <span class="n">allexamples</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">needs_enable</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                             <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+                             <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">testslow</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses module for testable doctesttups</span>
+<span class="sd">    Depth 2)</span>
+<span class="sd">    called by doctest_funcs and get_module_testlines</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ModuleDoctestTup : (enabled_testtup_list, frame_fpath, all_testflags, module)</span>
+<span class="sd">            enabled_testtup_list (list): a list of testtup</span>
+<span class="sd">                testtup (tuple): (name, num, src, want, flag1) describes a valid doctest in the module</span>
+<span class="sd">                    name  (str): test name</span>
+<span class="sd">                    num   (str): test number of the module / function / class / method</span>
+<span class="sd">                    src   (str): test source code</span>
+<span class="sd">                    want  (str): expected test result</span>
+<span class="sd">                    flag1 (str): a valid commandline flag to enable this test</span>
+<span class="sd">            frame_fpath (str):</span>
+<span class="sd">                module fpath that will be tested</span>
+<span class="sd">            module (module):</span>
+<span class="sd">                the actual module that will be tested</span>
+<span class="sd">            all_testflags (list):</span>
+<span class="sd">                the command line arguments that will enable different tests</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#+------------------------</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
     <span class="k">if</span> <span class="n">needs_enable</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">needs_enable</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--enableall&#39;</span><span class="p">)</span>
@@ -306,9 +659,9 @@
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">testable_list</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">):</span>
         <span class="n">module</span> <span class="o">=</span> <span class="n">testable_list</span>
         <span class="n">testable_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="c"># ----------------------------------------</span>
+    <span class="c">#L________________________</span>
+    <span class="c">#+------------------------</span>
     <span class="c"># Inspect caller module for testable names</span>
-    <span class="c"># ----------------------------------------</span>
     <span class="k">if</span> <span class="n">module</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">frame_fpath</span> <span class="o">=</span> <span class="s">&#39;???&#39;</span>
         <span class="k">try</span><span class="p">:</span>
@@ -318,6 +671,14 @@
             <span class="n">frame_fpath</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">f_globals</span><span class="p">[</span><span class="s">&#39;__file__&#39;</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">frame_name</span> <span class="o">==</span> <span class="n">main_modname</span><span class="p">:</span>
                 <span class="n">module</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">main_modname</span><span class="p">]</span>
+                <span class="n">entry_modname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_modname_from_modpath</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">__file__</span><span class="p">)</span>
+                <span class="c">#ut.embed()</span>
+                <span class="k">if</span> <span class="n">entry_modname</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;kernprof&#39;</span><span class="p">,</span> <span class="s">&#39;kernprof-script&#39;</span><span class="p">]:</span>
+                    <span class="c"># kernprof clobbers the __main__ variable.</span>
+                    <span class="c"># workaround by reimporting the module name</span>
+                    <span class="kn">import</span> <span class="nn">importlib</span>
+                    <span class="n">modname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_modname_from_modpath</span><span class="p">(</span><span class="n">frame_fpath</span><span class="p">)</span>
+                    <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">f_globals</span><span class="p">)</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;frame&#39;</span><span class="p">,</span> <span class="s">&#39;module&#39;</span><span class="p">])</span>
@@ -326,15 +687,19 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">frame_fpath</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="n">__file__</span>
         <span class="n">allexamples</span> <span class="o">=</span> <span class="bp">True</span>
-    <span class="c"># ----------------------------------------</span>
+    <span class="c">#L________________________</span>
+    <span class="c">#+------------------------</span>
     <span class="c"># Get testable functions</span>
-    <span class="c"># ----------------------------------------</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">verbose</span> <span class="ow">or</span> <span class="n">VERBOSE_TEST</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_test] Iterating over module funcs&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_test] module =</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">module</span><span class="p">,))</span>
 
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">iter_module_funcs</span><span class="p">(</span><span class="n">module</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">iter_module_doctestable</span><span class="p">(</span><span class="n">module</span><span class="p">):</span>
             <span class="n">docstr</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getdoc</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+            <span class="c"># FIXME:</span>
+            <span class="c"># BUG: We need to verify that this function actually belongs to this</span>
+            <span class="c"># module. In util_type ndarray is imported and we try to parse it</span>
             <span class="k">if</span> <span class="n">docstr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">docstr</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Example&#39;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">testable_name_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
                 <span class="n">testable_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
@@ -348,9 +713,9 @@
     <span class="c">#if verbose:</span>
     <span class="c">#    for val in testable_list:</span>
     <span class="c">#        print(&#39;[util_dev] DOCTEST ENABLED: %s&#39; % val)</span>
-    <span class="c"># ----------------------------------------</span>
+    <span class="c">#L________________________</span>
+    <span class="c">#+------------------------</span>
     <span class="c"># Get testable function examples</span>
-    <span class="c"># ----------------------------------------</span>
     <span class="n">test_sentinals</span> <span class="o">=</span> <span class="p">[</span>
         <span class="s">&#39;ENABLE_DOCTEST&#39;</span><span class="p">,</span>
         <span class="c">#&#39;ENABLE_TEST&#39;,</span>
@@ -359,21 +724,30 @@
         <span class="c">#&#39;UTOOL_TEST&#39;,</span>
         <span class="c">#&#39;UTOOLTEST&#39;</span>
     <span class="p">]</span>
+    <span class="k">if</span> <span class="n">testslow</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--testall&#39;</span><span class="p">,</span> <span class="s">&#39;--testslow&#39;</span><span class="p">)):</span>
+        <span class="n">test_sentinals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;SLOW_DOCTEST&#39;</span><span class="p">)</span>
+    <span class="n">force_enable_testnames</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">arg</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;--test-&#39;</span><span class="p">):</span>
+            <span class="n">testname</span> <span class="o">=</span> <span class="n">arg</span><span class="p">[</span><span class="mi">7</span><span class="p">:]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="s">&#39;_&#39;</span><span class="p">)</span>
+            <span class="n">force_enable_testnames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">testname</span><span class="p">)</span>
+    <span class="c">#print(force_enable_testnames)</span>
     <span class="n">sorted_testable</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">testable_list</span><span class="p">)),</span> <span class="n">key</span><span class="o">=</span><span class="n">_get_testable_name</span><span class="p">)</span>
     <span class="n">testtup_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="c"># Append each testable example</span>
     <span class="k">for</span> <span class="n">testable</span> <span class="ow">in</span> <span class="n">sorted_testable</span><span class="p">:</span>
         <span class="n">testname</span> <span class="o">=</span> <span class="n">_get_testable_name</span><span class="p">(</span><span class="n">testable</span><span class="p">)</span>
-        <span class="n">examples</span><span class="p">,</span> <span class="n">wants</span><span class="p">,</span> <span class="n">docstr</span> <span class="o">=</span> <span class="n">get_doctest_examples</span><span class="p">(</span><span class="n">testable</span><span class="p">)</span>
+        <span class="n">examples</span><span class="p">,</span> <span class="n">wants</span><span class="p">,</span> <span class="n">linenums</span><span class="p">,</span> <span class="n">func_lineno</span><span class="p">,</span> <span class="n">docstr</span> <span class="o">=</span> <span class="n">get_doctest_examples</span><span class="p">(</span><span class="n">testable</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">examples</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">testno</span> <span class="p">,</span> <span class="n">srcwant_tup</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">examples</span><span class="p">,</span> <span class="n">wants</span><span class="p">)):</span>
                 <span class="n">src</span><span class="p">,</span> <span class="n">want</span> <span class="o">=</span> <span class="n">srcwant_tup</span>
                 <span class="n">src_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">regex_replace</span><span class="p">(</span><span class="s">&#39;from __future__ import.*$&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">src</span><span class="p">)</span>
                 <span class="n">test_disabled</span> <span class="o">=</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">([</span><span class="n">src_</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">test_sentinals</span><span class="p">])</span>
                 <span class="k">if</span> <span class="n">needs_enable</span> <span class="ow">and</span> <span class="n">test_disabled</span><span class="p">:</span>
-                    <span class="c">#print(&#39;skipping: %r&#39; % testname)</span>
-                    <span class="c">#print(src)</span>
-                    <span class="k">continue</span>
+                    <span class="k">if</span> <span class="n">testname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">force_enable_testnames</span><span class="p">:</span>
+                        <span class="c">#print(&#39;skipping: %r&#39; % testname)</span>
+                        <span class="c">#print(src)</span>
+                        <span class="k">continue</span>
                 <span class="c">#ut.embed()</span>
                 <span class="n">testtup</span> <span class="o">=</span> <span class="p">(</span><span class="n">testname</span><span class="p">,</span> <span class="n">testno</span><span class="p">,</span> <span class="n">src_</span><span class="p">,</span> <span class="n">want</span><span class="p">)</span>
                 <span class="n">testtup_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">testtup</span><span class="p">)</span>
@@ -384,15 +758,16 @@
                 <span class="k">print</span><span class="p">(</span><span class="n">examples</span><span class="p">)</span>
                 <span class="k">print</span><span class="p">(</span><span class="n">wants</span><span class="p">)</span>
                 <span class="k">print</span><span class="p">(</span><span class="n">docstr</span><span class="p">)</span>
-    <span class="c"># ----------------------------------------</span>
+    <span class="c">#L________________________</span>
+    <span class="c">#+------------------------</span>
     <span class="c"># Get enabled (requested) examples</span>
-    <span class="c"># ----------------------------------------</span>
     <span class="n">all_testflags</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">enabled_testtup_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">distabled_testflags</span>  <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">subx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--subx&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">help_</span><span class="o">=</span><span class="s">&#39;Only tests the subxth example&#39;</span><span class="p">)</span>
+    <span class="n">subx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--subx&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                         <span class="n">help_</span><span class="o">=</span><span class="s">&#39;Only tests the subxth example&#39;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">testtup</span> <span class="ow">in</span> <span class="n">testtup_list</span><span class="p">:</span>
-        <span class="n">name</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">want</span> <span class="o">=</span> <span class="n">testtup</span>
+        <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">want</span><span class="p">)</span> <span class="o">=</span> <span class="n">testtup</span>
         <span class="n">prefix</span> <span class="o">=</span> <span class="s">&#39;--test-&#39;</span>
         <span class="n">flag1</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&#39;:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
         <span class="n">flag2</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">name</span>
@@ -402,19 +777,23 @@
         <span class="n">testenabled</span> <span class="o">=</span> <span class="n">TEST_ALL_EXAMPLES</span>  <span class="ow">or</span> <span class="ow">not</span> <span class="n">check_flags</span> <span class="ow">or</span> <span class="n">testflag</span>
         <span class="k">if</span> <span class="n">subx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">subx</span> <span class="o">!=</span> <span class="n">num</span><span class="p">:</span>
             <span class="k">continue</span>
-        <span class="n">all_testflags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flag4</span><span class="p">)</span>
+        <span class="n">all_testflags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flag3</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">testenabled</span><span class="p">:</span>
             <span class="n">new_testtup</span> <span class="o">=</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">want</span><span class="p">,</span> <span class="n">flag1</span><span class="p">)</span>
             <span class="n">enabled_testtup_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_testtup</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">distabled_testflags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flag1</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">enabled_testtup_list</span><span class="p">,</span> <span class="n">frame_fpath</span><span class="p">,</span> <span class="n">all_testflags</span><span class="p">,</span> <span class="n">module</span>
+
+    <span class="n">mod_doctest_tup</span> <span class="o">=</span> <span class="n">ModuleDoctestTup</span><span class="p">(</span><span class="n">enabled_testtup_list</span><span class="p">,</span> <span class="n">frame_fpath</span><span class="p">,</span> <span class="n">all_testflags</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>
+    <span class="c">#L________________________</span>
+    <span class="k">return</span> <span class="n">mod_doctest_tup</span>
 
 </div>
 <div class="viewcode-block" id="doctest_funcs"><a class="viewcode-back" href="../../utool.html#utool.util_tests.doctest_funcs">[docs]</a><span class="k">def</span> <span class="nf">doctest_funcs</span><span class="p">(</span><span class="n">testable_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">check_flags</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">module</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">allexamples</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                  <span class="n">needs_enable</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+                  <span class="n">needs_enable</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Main entry point into utools main module doctest harness</span>
+<span class="sd">    Depth 1)</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        testable_list (list):</span>
@@ -424,11 +803,14 @@
 <span class="sd">        needs_enable (None):</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        tuple: (nPass, nTotal)</span>
+<span class="sd">        tuple: (nPass, nTotal, failed_cmd_list)</span>
 
 <span class="sd">    CommandLine:</span>
-<span class="sd">        python -c &quot;import utool; utool.doctest_funcs(module=utool.util_tests, needs_enable=False)&quot;</span>
-<span class="sd">        python ibeis/model/preproc/preproc_chip.py --all-examples</span>
+<span class="sd">        python -m ibeis.model.preproc.preproc_chip --all-examples</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://legacy.python.org/dev/peps/pep-0338/</span>
+<span class="sd">        https://docs.python.org/2/library/runpy.html</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
@@ -439,123 +821,149 @@
 <span class="sd">        &gt;&gt;&gt; allexamples = None</span>
 <span class="sd">        &gt;&gt;&gt; needs_enable = None</span>
 <span class="sd">        &gt;&gt;&gt; # careful might infinitely recurse</span>
-<span class="sd">        &gt;&gt;&gt; (nPass, nTotal) = doctest_funcs(testable_list, check_flags, module, allexamples, needs_enable)</span>
+<span class="sd">        &gt;&gt;&gt; (nPass, nTotal) = doctest_funcs(testable_list, check_flags, module,</span>
+<span class="sd">        ...                                 allexamples, needs_enable)</span>
 <span class="sd">        &gt;&gt;&gt; print((nPass, nTotal))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># just in case</span>
-    <span class="c">#</span>
+    <span class="c">#+-------------------</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_test.doctest_funcs] Running doctest funcs&#39;</span><span class="p">)</span>
-    <span class="n">tup_</span> <span class="o">=</span> <span class="n">get_doctest_testtup_list</span><span class="p">(</span><span class="n">testable_list</span><span class="p">,</span> <span class="n">check_flags</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span>
-                                    <span class="n">allexamples</span><span class="p">,</span> <span class="n">needs_enable</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                                    <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="n">enabled_testtup_list</span><span class="p">,</span> <span class="n">frame_fpath</span><span class="p">,</span> <span class="n">all_testflags</span><span class="p">,</span> <span class="n">module</span>  <span class="o">=</span> <span class="n">tup_</span>
-    <span class="c"># ----------------------------------------</span>
+    <span class="c"># parse out testable doctesttups</span>
+    <span class="n">mod_doctest_tup</span> <span class="o">=</span> <span class="n">get_module_doctest_tup</span><span class="p">(</span><span class="n">testable_list</span><span class="p">,</span> <span class="n">check_flags</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span>
+                                             <span class="n">allexamples</span><span class="p">,</span> <span class="n">needs_enable</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">enabled_testtup_list</span><span class="p">,</span> <span class="n">frame_fpath</span><span class="p">,</span> <span class="n">all_testflags</span><span class="p">,</span> <span class="n">module</span>  <span class="o">=</span> <span class="n">mod_doctest_tup</span>
+    <span class="c">#L__________________</span>
+    <span class="c">#+-------------------</span>
     <span class="c"># Run enabled examles</span>
-    <span class="c"># ----------------------------------------</span>
-    <span class="n">nTotal</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">enabled_testtup_list</span><span class="p">)</span>
     <span class="n">nPass</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">nFail</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">failed_flag_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">nTotal</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">enabled_testtup_list</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">testtup</span> <span class="ow">in</span> <span class="n">enabled_testtup_list</span><span class="p">:</span>
         <span class="n">name</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">want</span><span class="p">,</span> <span class="n">flag</span> <span class="o">=</span> <span class="n">testtup</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s"> ---- DOCTEST &#39;</span> <span class="o">+</span> <span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;---&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">msgblock</span><span class="p">(</span><span class="s">&#39;EXEC SRC&#39;</span><span class="p">,</span> <span class="n">src</span><span class="p">))</span>
-        <span class="c"># --- EXEC STATMENT ---</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;--------------------------------------------------------------&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;--------------------------------------------------------------&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39; ---- DOCTEST &#39;</span> <span class="o">+</span> <span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;---&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">PRINT_SRC</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">msgblock</span><span class="p">(</span><span class="s">&#39;EXEC SRC&#39;</span><span class="p">,</span> <span class="n">src</span><span class="p">))</span>
         <span class="n">test_globals</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">test_locals</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">run_test</span><span class="p">((</span><span class="n">name</span><span class="p">,</span>  <span class="n">src</span><span class="p">,</span> <span class="n">frame_fpath</span><span class="p">),</span> <span class="nb">globals</span><span class="o">=</span><span class="n">test_globals</span><span class="p">,</span> <span class="n">want</span><span class="o">=</span><span class="n">want</span><span class="p">)</span>
-            <span class="n">nPass</span> <span class="o">+=</span> <span class="p">(</span><span class="n">test_locals</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">False</span><span class="p">)</span>
+            <span class="n">testkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">globals</span><span class="o">=</span><span class="n">test_globals</span><span class="p">,</span> <span class="n">want</span><span class="o">=</span><span class="n">want</span><span class="p">)</span>
+            <span class="n">testtup</span>
+            <span class="n">test_locals</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">run_test</span><span class="p">((</span><span class="n">name</span><span class="p">,</span>  <span class="n">src</span><span class="p">,</span> <span class="n">frame_fpath</span><span class="p">),</span> <span class="o">**</span><span class="n">testkw</span><span class="p">)</span>
+            <span class="n">is_pass</span> <span class="o">=</span> <span class="p">(</span><span class="n">test_locals</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">is_pass</span><span class="p">:</span>
+                <span class="n">nPass</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;failed&#39;</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="n">nFail</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">failed_flag_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flag</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">strict</span><span class="p">:</span>
                 <span class="k">raise</span>
             <span class="k">pass</span>
-    <span class="c"># -------</span>
+    <span class="c">#L__________________</span>
+    <span class="c">#+-------------------</span>
     <span class="c"># Print Results</span>
     <span class="k">if</span> <span class="n">nTotal</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;No test flags sepcified. Please choose one of the following flags&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Valid test argflags:</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="s">&#39;    --allexamples&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="n">all_testflags</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">    &#39;</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;No test flags sepcified.&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Please choose one of the following flags or specify --enableall&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Valid test argflags:</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="s">&#39;    --allexamples&#39;</span> <span class="o">+</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="n">all_testflags</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">    &#39;</span><span class="p">))</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;+-------&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;| finished testing fpath=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">frame_fpath</span><span class="p">,))</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;| passed </span><span class="si">%d</span><span class="s"> / </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nPass</span><span class="p">,</span> <span class="n">nTotal</span><span class="p">))</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;L-------&#39;</span><span class="p">)</span>
     <span class="n">failed_cmd_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">nFail</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">failed_cmd_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;python </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">frame_fpath</span><span class="p">,</span> <span class="n">flag_</span><span class="p">)</span>
+        <span class="c">#modname = module.__name__</span>
+        <span class="n">modname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_modname_from_modpath</span><span class="p">(</span><span class="n">frame_fpath</span><span class="p">)</span>
+        <span class="n">failed_cmd_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;python -m </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">flag_</span><span class="p">)</span>
                             <span class="k">for</span> <span class="n">flag_</span> <span class="ow">in</span> <span class="n">failed_flag_list</span><span class="p">]</span>
+        <span class="c">#failed_cmd_list = [&#39;python %s %s&#39; % (frame_fpath, flag_)</span>
+        <span class="c">#                    for flag_ in failed_flag_list]</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;Failed Tests:&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">failed_cmd_list</span><span class="p">))</span>
+    <span class="c">#L__________________</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">nPass</span><span class="p">,</span> <span class="n">nTotal</span><span class="p">,</span> <span class="n">failed_cmd_list</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="run_test"><a class="viewcode-back" href="../../utool.html#utool.util_tests.run_test">[docs]</a><span class="k">def</span> <span class="nf">run_test</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="run_test"><a class="viewcode-back" href="../../utool.html#utool.util_tests.run_test">[docs]</a><span class="k">def</span> <span class="nf">run_test</span><span class="p">(</span><span class="n">func_or_doctesttup</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Runs the test function with success / failure printing</span>
 
-<span class="sd">    Input:</span>
-<span class="sd">        Anything that needs to be passed to &lt;func&gt;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        func_or_doctesttup (func or tuple): function or doctest tuple</span>
+
+<span class="sd">    Varargs/Kwargs:</span>
+<span class="sd">        Anything that needs to be passed to &lt;func_&gt;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">func_is_text</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">TupleType</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">func_is_text</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">func_or_doctesttup</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">TupleType</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">func_is_text</span><span class="p">:</span>
-        <span class="p">(</span><span class="n">funcname</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">frame_fpath</span><span class="p">)</span> <span class="o">=</span> <span class="n">func</span>
+        <span class="p">(</span><span class="n">funcname</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">frame_fpath</span><span class="p">)</span> <span class="o">=</span> <span class="n">func_or_doctesttup</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">funcname</span> <span class="o">=</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="n">func_</span> <span class="o">=</span> <span class="n">func_or_doctesttup</span>
+        <span class="n">funcname</span> <span class="o">=</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func_</span><span class="p">)</span>
+        <span class="n">frame_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_funcfpath</span><span class="p">(</span><span class="n">func_</span><span class="p">)</span>
     <span class="n">upper_funcname</span> <span class="o">=</span> <span class="n">funcname</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
-    <span class="k">with</span> <span class="n">util_print</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s">&#39;[&#39;</span> <span class="o">+</span> <span class="n">funcname</span> <span class="o">+</span> <span class="s">&#39;]&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="n">printTEST</span><span class="p">(</span><span class="s">&#39;[TEST.BEGIN] </span><span class="si">%s</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">))</span>
+        <span class="n">printTEST</span><span class="p">(</span><span class="s">&#39;[TEST.BEGIN] </span><span class="si">%s</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">funcname</span><span class="p">,))</span>
+    <span class="n">VERBOSE_TIMER</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">INDENT_TEST</span>   <span class="o">=</span> <span class="bp">False</span>
+    <span class="c">#print(&#39;  &lt;funcname&gt;  &#39;)</span>
+    <span class="c">#print(&#39;  &lt;&#39; + funcname + &#39;&gt;  &#39;)</span>
+    <span class="c">#short_funcname = ut.clipstr(funcname, 8)</span>
+    <span class="k">with</span> <span class="n">util_print</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s">&#39;  &lt;&#39;</span> <span class="o">+</span> <span class="n">funcname</span> <span class="o">+</span> <span class="s">&#39;&gt;  &#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="n">INDENT_TEST</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-                <span class="n">printTEST</span><span class="p">(</span><span class="s">&#39;[TEST.BEGIN] </span><span class="si">%s</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">))</span>
-                <span class="n">printTEST</span><span class="p">(</span><span class="s">&#39;[TEST.BEGIN] </span><span class="si">%s</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">funcname</span><span class="p">,))</span>
-            <span class="k">with</span> <span class="n">util_time</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="n">upper_funcname</span><span class="p">)</span> <span class="k">as</span> <span class="n">timer</span><span class="p">:</span>
+            <span class="c">#+----------------</span>
+            <span class="c"># RUN THE TEST WITH A TIMER</span>
+            <span class="k">with</span> <span class="n">util_time</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="n">upper_funcname</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERBOSE_TIMER</span><span class="p">)</span> <span class="k">as</span> <span class="n">timer</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">func_is_text</span><span class="p">:</span>
-                    <span class="n">test_locals</span> <span class="o">=</span> <span class="p">{}</span>
-                    <span class="n">test_globals</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;globals&#39;</span><span class="p">,</span> <span class="p">{})</span>
-                    <span class="n">want</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;want&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-                    <span class="c">#test_globals[&#39;print&#39;] = doctest_print</span>
-                    <span class="n">six</span><span class="o">.</span><span class="n">exec_</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">test_globals</span><span class="p">,</span> <span class="n">test_locals</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">want</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">want</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
-                        <span class="k">print</span><span class="p">(</span><span class="s">&#39;warning test does not want anything&#39;</span><span class="p">)</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="k">if</span> <span class="n">want</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">):</span>
-                            <span class="n">want</span> <span class="o">=</span> <span class="n">want</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-                        <span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">test_locals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;result&#39;</span><span class="p">,</span> <span class="s">&#39;NO VARIABLE NAMED result&#39;</span><span class="p">))</span>
-                        <span class="c">#print(&#39;!! RESULT LINES: &#39;)</span>
-                        <span class="c">#print(result)</span>
-                        <span class="k">if</span> <span class="n">result</span> <span class="o">!=</span> <span class="n">want</span><span class="p">:</span>
-                            <span class="n">errmsg1</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-                            <span class="n">errmsg1</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&#39;GOT: result=</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">result</span><span class="p">))</span>
-                            <span class="n">errmsg1</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&#39;EXPECTED: want=</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">want</span><span class="p">))</span>
-                            <span class="n">errmsg1</span> <span class="o">+=</span> <span class="s">&#39;&#39;</span>
-                            <span class="n">errmsg1</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&#39;GOT: result=</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">result</span><span class="p">))</span>
-                            <span class="n">errmsg1</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&#39;EXPECTED: want=</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">want</span><span class="p">))</span>
-                            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;result != want</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">errmsg1</span><span class="p">)</span>
-                        <span class="c">#assert result == want, &#39;result is not the same as want&#39;</span>
-                    <span class="c">#print(&#39;\n&#39;.join(output_lines))</span>
+                    <span class="n">test_locals</span> <span class="o">=</span> <span class="n">_exec_doctest</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">test_locals</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                    <span class="c"># TEST INPUT IS A LIVE PYTHON FUNCTION</span>
+                    <span class="n">test_locals</span> <span class="o">=</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
-                <span class="c"># Write timings</span>
+            <span class="c">#L________________</span>
+            <span class="c">#+----------------</span>
+            <span class="c"># LOG PASSING TEST</span>
             <span class="n">printTEST</span><span class="p">(</span><span class="s">&#39;[TEST.FINISH] </span><span class="si">%s</span><span class="s"> -- SUCCESS&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">funcname</span><span class="p">,))</span>
-            <span class="k">print</span><span class="p">(</span><span class="n">HAPPY_FACE</span><span class="p">)</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;_test_times.txt&#39;</span><span class="p">,</span> <span class="s">&#39;a&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%.4f</span><span class="s">s in </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">timer</span><span class="o">.</span><span class="n">ellapsed</span><span class="p">,</span> <span class="n">upper_funcname</span><span class="p">)</span>
-                <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">PRINT_FACE</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="n">HAPPY_FACE</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%.4f</span><span class="s">s in </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">timer</span><span class="o">.</span><span class="n">ellapsed</span><span class="p">,</span> <span class="n">funcname</span><span class="p">,</span> <span class="n">frame_fpath</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="s">&#39;test_times.txt&#39;</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;a&#39;</span><span class="p">)</span>
+                <span class="c">#with open(&#39;test_times.txt&#39;, &#39;a&#39;) as file_:</span>
+                <span class="c">#    file_.write(msg)</span>
+            <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;[util_test] IOWarning&#39;</span><span class="p">)</span>
+            <span class="c">#L________________</span>
+            <span class="c"># RETURN VALID TEST LOCALS</span>
             <span class="k">return</span> <span class="n">test_locals</span>
+
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
             <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">tb</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
             <span class="c"># Get locals in the wrapped function</span>
-            <span class="n">util_dbg</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-            <span class="n">printTEST</span><span class="p">(</span><span class="s">&#39;[TEST.FINISH] </span><span class="si">%s</span><span class="s"> -- FAILED: </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">funcname</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span> <span class="n">ex</span><span class="p">))</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">printTEST</span><span class="p">(</span><span class="s">&#39;[TEST.FINISH] </span><span class="si">%s</span><span class="s"> -- FAILED:</span><span class="se">\n</span><span class="s">    type(ex)=</span><span class="si">%s</span><span class="se">\n</span><span class="s">    ex=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">funcname</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span> <span class="n">ex</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">PRINT_FACE</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="n">SAD_FACE</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">func_is_text</span><span class="p">:</span>
-                <span class="c">#ut.embed()</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;Failed in module: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">frame_fpath</span><span class="p">)</span>
-                <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">msgblock</span><span class="p">(</span><span class="s">&#39;FAILED DOCTEST IN </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">funcname</span><span class="p">,),</span> <span class="n">src</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">DEBUG_SRC</span><span class="p">:</span>
+                    <span class="n">src_with_lineno</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">number_text_lines</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+                    <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">msgblock</span><span class="p">(</span><span class="s">&#39;FAILED DOCTEST IN </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">funcname</span><span class="p">,),</span> <span class="n">src_with_lineno</span><span class="p">))</span>
+                <span class="c">#ut.embed()</span>
+                <span class="c">#print(&#39;\n... test encountered error. sys.exit(1)\n&#39;)</span>
+                <span class="c">#sys.exit(1)</span>
                 <span class="c">#failed_execline = traceback.format_tb(tb)[-1]</span>
                 <span class="c">#parse_str = &#39;File {fname}, line {lineno}, in {modname}&#39;</span>
                 <span class="c">#parse_dict = parse.parse(&#39;{prefix_}&#39; + parse_str + &#39;{suffix_}&#39;, failed_execline)</span>
@@ -563,23 +971,77 @@
                 <span class="c">#    lineno = int(parse_dict[&#39;lineno&#39;])</span>
                 <span class="c">#    failed_line = src.splitlines()[lineno - 1]</span>
                 <span class="c">#    print(&#39;Failed on line: %s&#39; % failed_line)</span>
-            <span class="k">print</span><span class="p">(</span><span class="n">SAD_FACE</span><span class="p">)</span>
-            <span class="k">raise</span>
-            <span class="k">if</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">STRICT</span><span class="p">:</span>
-                <span class="c"># Remove this function from stack strace</span>
+            <span class="k">if</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">SUPER_STRICT</span><span class="p">:</span>
                 <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_traceback</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
-                <span class="n">exc_traceback</span> <span class="o">=</span> <span class="n">exc_traceback</span><span class="o">.</span><span class="n">tb_next</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">func_is_text</span><span class="p">:</span>
+                    <span class="c"># Remove this function from stack strace</span>
+                    <span class="c"># dont do this for execed code</span>
+                    <span class="n">exc_traceback</span> <span class="o">=</span> <span class="n">exc_traceback</span><span class="o">.</span><span class="n">tb_next</span>
                 <span class="c"># Python 2*3=6</span>
-                <span class="n">six</span><span class="o">.</span><span class="n">reraise</span><span class="p">(</span><span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_traceback</span><span class="p">)</span>
+                <span class="c">#six.reraise(exc_type, exc_value, exc_traceback)</span>
                 <span class="c"># PYTHON 2.7 DEPRICATED:</span>
-                <span class="c">#raise exc_type, exc_value, exc_traceback.tb_next</span>
+                <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_traceback</span><span class="o">.</span><span class="n">tb_next</span>
+                    <span class="c">#exec(&#39;raise exc_type, exc_value, exc_traceback.tb_next&#39;, globals(), locals())</span>
                 <span class="c"># PYTHON 3.3 NEW METHODS</span>
-                <span class="c">#ex = exc_type(exc_value)</span>
-                <span class="c">#ex.__traceback__ = exc_traceback.tb_next</span>
-                <span class="c">#raise ex</span>
+                <span class="k">elif</span> <span class="n">six</span><span class="o">.</span><span class="n">PY3</span><span class="p">:</span>
+                    <span class="n">ex</span> <span class="o">=</span> <span class="n">exc_type</span><span class="p">(</span><span class="n">exc_value</span><span class="p">)</span>
+                    <span class="n">ex</span><span class="o">.</span><span class="n">__traceback__</span> <span class="o">=</span> <span class="n">exc_traceback</span><span class="o">.</span><span class="n">tb_next</span>
+                    <span class="k">raise</span> <span class="n">ex</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;Weird python version&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">SYSEXIT_ON_FAIL</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_test] SYSEXIT_ON_FAIL = True&#39;</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_test] exiting with sys.exit(1)&#39;</span><span class="p">)</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="c">#raise</span>
             <span class="k">return</span> <span class="bp">False</span>
 
 </div>
+<span class="k">def</span> <span class="nf">_exec_doctest</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper for run_test</span>
+
+<span class="sd">    block of code that runs doctest and was too big to be in run_test</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># TEST INPUT IS PYTHON CODE TEXT</span>
+    <span class="n">test_locals</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">test_globals</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;globals&#39;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">want</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;want&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="c">#test_globals[&#39;print&#39;] = doctest_print</span>
+    <span class="c"># EXEC FUNC</span>
+    <span class="c">#six.exec_(src, test_globals, test_locals)  # adds stack to debug trace</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">exec</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">test_globals</span><span class="p">,</span> <span class="n">test_locals</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">ExitTestException</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Test exited before show&#39;</span><span class="p">)</span>
+        <span class="k">pass</span>
+    <span class="k">if</span> <span class="n">want</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">want</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;warning test does not want anything&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">want</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">):</span>
+            <span class="n">want</span> <span class="o">=</span> <span class="n">want</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">test_locals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;result&#39;</span><span class="p">,</span> <span class="s">&#39;NO VARIABLE NAMED result&#39;</span><span class="p">))</span>
+        <span class="c">#print(&#39;!! RESULT LINES: &#39;)</span>
+        <span class="c">#print(result)</span>
+        <span class="k">if</span> <span class="n">result</span> <span class="o">!=</span> <span class="n">want</span><span class="p">:</span>
+            <span class="n">errmsg1</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+                <span class="n">errmsg1</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&#39;GOT/EXPECTED/DIFF</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_textdiff</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">want</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                <span class="n">errmsg1</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&#39;REPR_GOT: result=</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">result</span><span class="p">))</span>
+                <span class="n">errmsg1</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&#39;REPR_EXPECTED: want=</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">want</span><span class="p">))</span>
+                <span class="k">pass</span>
+            <span class="n">errmsg1</span> <span class="o">+=</span> <span class="s">&#39;&#39;</span>
+            <span class="n">errmsg1</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&#39;STR_GOT: result=</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">result</span><span class="p">))</span>
+            <span class="n">errmsg1</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&#39;STR_EXPECTED: want=</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">want</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;result != want</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">errmsg1</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="n">want</span><span class="p">,</span> <span class="s">&#39;result is not the same as want&#39;</span>
+    <span class="k">return</span> <span class="n">test_locals</span>
+    <span class="c">#print(&#39;\n&#39;.join(output_lines))</span>
+
+
 <div class="viewcode-block" id="printTEST"><a class="viewcode-back" href="../../utool.html#utool.util_tests.printTEST">[docs]</a><span class="k">def</span> <span class="nf">printTEST</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">=============================&#39;</span><span class="p">)</span>
     <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="s">&#39;**&#39;</span> <span class="o">+</span> <span class="n">msg</span><span class="p">)</span>
@@ -587,8 +1049,11 @@
     <span class="c"># raw_input(&#39;press enter to continue&#39;)</span>
 
 </div>
-<div class="viewcode-block" id="tryimport"><a class="viewcode-back" href="../../utool.html#utool.util_tests.tryimport">[docs]</a><span class="k">def</span> <span class="nf">tryimport</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">pipiname</span><span class="p">):</span>
+<div class="viewcode-block" id="tryimport"><a class="viewcode-back" href="../../utool.html#utool.util_tests.tryimport">[docs]</a><span class="k">def</span> <span class="nf">tryimport</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">pipiname</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_tests --test-tryimport</span>
+
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_tests import *   # NOQA</span>
@@ -596,18 +1061,39 @@
 <span class="sd">        &gt;&gt;&gt; pipiname = &#39;git+https://github.com/pwaller/pyfiglet&#39;</span>
 <span class="sd">        &gt;&gt;&gt; pyfiglet = tryimport(modname, pipiname)</span>
 <span class="sd">        &gt;&gt;&gt; assert pyfiglet is None or isinstance(pyfiglet, types.ModuleType)</span>
+
+<span class="sd">    Example2:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_tests import *   # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; modname = &#39;lru&#39;</span>
+<span class="sd">        &gt;&gt;&gt; pipiname = &#39;git+https://github.com/amitdev/lru-dict&#39;</span>
+<span class="sd">        &gt;&gt;&gt; lru = tryimport(modname, pipiname, ensure=True)</span>
+<span class="sd">        &gt;&gt;&gt; assert isinstance(lru, types.ModuleType)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">pipiname</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">pipiname</span> <span class="o">=</span> <span class="n">modname</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">module</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">module</span>
     <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">utool</span>
+        <span class="n">base_pipcmd</span> <span class="o">=</span> <span class="s">&#39;pip install </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">pipiname</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">WIN32</span><span class="p">:</span>
-            <span class="n">pipcmd</span> <span class="o">=</span> <span class="s">&#39;sudo pip install </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">pipiname</span>
+            <span class="n">pipcmd</span> <span class="o">=</span> <span class="s">&#39;sudo &#39;</span> <span class="o">+</span> <span class="n">base_pipcmd</span>
+            <span class="n">sudo</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">pipcmd</span> <span class="o">=</span> <span class="s">&#39;pip install </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">pipiname</span>
+            <span class="n">pipcmd</span> <span class="o">=</span> <span class="n">base_pipcmd</span>
+            <span class="n">sudo</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;unable to find module </span><span class="si">%r</span><span class="s">. Please install: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">modname</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">pipcmd</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
         <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
+            <span class="c">#raise NotImplementedError(&#39;not ensuring&#39;)</span>
+            <span class="n">utool</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="n">base_pipcmd</span><span class="p">,</span> <span class="n">sudo</span><span class="o">=</span><span class="n">sudo</span><span class="p">)</span>
+            <span class="n">module</span> <span class="o">=</span> <span class="n">tryimport</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">pipiname</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">module</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;Cannot ensure modname=</span><span class="si">%r</span><span class="s"> please install using </span><span class="si">%r</span><span class="s">&#39;</span>  <span class="o">%</span> <span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">pipcmd</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">module</span>
         <span class="k">return</span> <span class="bp">None</span>
 
 </div>
@@ -628,6 +1114,7 @@
 <span class="sd">        &gt;&gt;&gt; bubble_text3 = utool.bubbletext(&#39;TEXT&#39;, font=&#39;cyberlarge&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; print(&#39;\n&#39;.join([bubble_text1, bubble_text2, bubble_text3]))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># TODO: move this function elsewhere</span>
     <span class="n">pyfiglet</span> <span class="o">=</span> <span class="n">tryimport</span><span class="p">(</span><span class="s">&#39;pyfiglet&#39;</span><span class="p">,</span> <span class="s">&#39;git+https://github.com/pwaller/pyfiglet&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">pyfiglet</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">text</span>
@@ -643,7 +1130,7 @@
 
 <span class="sd">    Examples:</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_tests import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; import utool</span>
+<span class="sd">        &gt;&gt;&gt; import utool  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; testdirs = [&#39;~/code/ibeis/test_ibs*.py&#39;]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">utool</span>
@@ -740,7 +1227,7 @@
 <span class="sd">                echo &quot;-----&quot;</span>
 <span class="sd">                printf &quot;Failed Tests:&quot;</span>
 <span class="sd">                printf &quot;$FAILED_TESTS\n&quot;</span>
-<span class="sd">                printf &quot;$FAILED_TESTS\n&quot; &gt;&gt; failed.txt</span>
+<span class="sd">                printf &quot;$FAILED_TESTS\n&quot; &gt;&gt; failed_shelltests.txt</span>
 <span class="sd">                echo &quot;-----&quot;</span>
 <span class="sd">            fi</span>
 <span class="sd">            echo &quot;$num_passed / $num_ran tests passed&quot;</span>
@@ -956,14 +1443,38 @@
     <span class="k">return</span> <span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">modname</span><span class="p">,</span> <span class="n">dpath</span><span class="p">,</span> <span class="n">pat</span><span class="p">,</span> <span class="n">testcmds</span><span class="p">)</span>
 
 </div>
+<div class="viewcode-block" id="show_was_requested"><a class="viewcode-back" href="../../utool.html#utool.util_tests.show_was_requested">[docs]</a><span class="k">def</span> <span class="nf">show_was_requested</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    returns True if --show is specified on the commandline or you are in</span>
+<span class="sd">    IPython (and presumably want some sort of interaction</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--show&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">inIPython</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="ExitTestException"><a class="viewcode-back" href="../../utool.html#utool.util_tests.ExitTestException">[docs]</a><span class="k">class</span> <span class="nc">ExitTestException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="quit_if_noshow"><a class="viewcode-back" href="../../utool.html#utool.util_tests.quit_if_noshow">[docs]</a><span class="k">def</span> <span class="nf">quit_if_noshow</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--show&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">inIPython</span><span class="p">()):</span>
+        <span class="k">raise</span> <span class="n">ExitTestException</span><span class="p">(</span><span class="s">&#39;This should be caught gracefully by ut.run_test&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="show_if_requested"><a class="viewcode-back" href="../../utool.html#utool.util_tests.show_if_requested">[docs]</a><span class="k">def</span> <span class="nf">show_if_requested</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+
+</div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -c &quot;import utool, utool.util_tests; utool.doctest_funcs(utool.util_tests, allexamples=True)&quot;</span>
 <span class="sd">        python -c &quot;import utool, utool.util_tests; utool.doctest_funcs(utool.util_tests)&quot;</span>
-<span class="sd">        python utool/util_tests.py</span>
-<span class="sd">        python utool/util_tests.py --allexamples</span>
-<span class="sd">        python utool/util_tests.py</span>
+<span class="sd">        python -m utool.util_tests</span>
+<span class="sd">        python -m utool.util_tests --allexamples</span>
+<span class="sd">        python -m utool.util_tests</span>
 <span class="sd">        python -c &quot;import utool; utool.doctest_funcs(module=utool.util_tests, needs_enable=False)&quot;</span>
 <span class="sd">        /model/preproc/preproc_chip.py --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -975,44 +1486,58 @@
 </pre></div>
 
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-<div id="searchbox" style="display: none">
-  <h3>Quick search</h3>
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
     </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
         </div>
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
-          <li><a href="../index.html" >Module code</a> &raquo;</li>
-          <li><a href="../utool.html" >utool</a> &raquo;</li> 
-      </ul>
-    </div>
-    <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
-    </div>
-  </body>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.0.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
 </html>

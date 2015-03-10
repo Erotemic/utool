@@ -6,12 +6,11 @@ import os
 import re
 #import six
 import argparse
-from utool.util_type import try_cast
-from utool.util_inject import inject
-from utool.util_print import Indenter
-from utool._internal import meta_util_six
-from utool._internal import meta_util_arg
-print, print_, printDBG, rrr, profile = inject(__name__, '[arg]')
+from utool import util_inject
+from utool import util_type
+#from utool import util_print
+from utool._internal import meta_util_six, meta_util_arg, meta_util_iter
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[arg]')
 
 #STRICT = '--nostrict' not in sys.argv
 DEBUG2       = meta_util_arg.DEBUG2
@@ -29,10 +28,45 @@ NOT_QUIET    = meta_util_arg.NOT_QUIET
 QUIET        = meta_util_arg.QUIET
 
 
+#(switch, type, default, help)
+__REGISTERED_ARGS__ = []
+
+
+@profile
+def get_argflag(argstr_, default=False, help_='', return_was_specified=False, **kwargs):
+    """ Checks if the commandline has a flag or a corresponding noflag """
+    global __REGISTERED_ARGS__
+    assert isinstance(default, bool), 'default must be boolean'
+    argstr_list = meta_util_iter.ensure_iterable(argstr_)
+    # arg registration
+    __REGISTERED_ARGS__.append((argstr_list, bool, default, help_))
+    parsed_val = default
+    was_specified = False
+    for argstr in argstr_list:
+        if not (argstr.find('--') == 0 or (argstr.find('-') == 0 and len(argstr) == 2)):
+            raise AssertionError('Invalid argstr: %r' % (argstr,))
+        #if argstr.find('--no') == 0:
+            #argstr = argstr.replace('--no', '--')
+        noarg = argstr.replace('--', '--no')
+        if argstr in sys.argv:
+            parsed_val = True
+            was_specified = True
+            break
+        elif noarg in sys.argv:
+            parsed_val = False
+            was_specified = True
+            break
+    if return_was_specified:
+        return parsed_val, was_specified
+    else:
+        return parsed_val
+
+
 # TODO: rectify with meta_util_arg
 # This has diverged and is now better
 #from utool._internal.meta_util_arg import get_argval
-def get_argval(argstr_, type_=None, default=None, help_=None):
+@profile
+def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True, return_was_specified=False):
     """ Returns a value of an argument specified on the command line after some flag
 
     Examples:
@@ -42,7 +76,8 @@ def get_argval(argstr_, type_=None, default=None, help_=None):
         >>> res1 = get_argval('--spam', type_=str, default=None)
         >>> res2 = get_argval('--quest', type_=str, default=None)
         >>> res3 = get_argval('--ans', type_=int, default=None)
-        >>> result = ', '.join((res1, res2, res3))
+        >>> result = ', '.join(map(str, (res1, res2, res3)))
+        >>> print(result)
         eggs, holy grail, 42
 
     CommandLine:
@@ -53,41 +88,61 @@ def get_argval(argstr_, type_=None, default=None, help_=None):
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest', float)]])" --quest 42
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--nAssign'), int)]])" --nAssign 42
     """
+    global __REGISTERED_ARGS__
+    #print(argstr_)
+    was_specified = False
     arg_after = default
     if type_ is bool:
         arg_after = False if default is None else default
     try:
         # New for loop way (accounts for =)
-        if isinstance(argstr_, six.string_types):
-            argstr_list = (argstr_,)
-        else:
-            # HACK FOR LIST. TODO INTEGRATE
-            argstr_list = argstr_
+        argstr_list = meta_util_iter.ensure_iterable(argstr_)
+        # arg registration
+        __REGISTERED_ARGS__.append((argstr_list, type_, default, help_))
+
         for argx, item in enumerate(sys.argv):
             for argstr in argstr_list:
                 if item == argstr:
+                    if type_ is bool:
+                        arg_after = True
+                        was_specified = True
+                        break
                     if argx < len(sys.argv):
-                        if type_ is bool:
-                            arg_after = True
-                        elif type_ is list:
+                        if type_ is list:
                             # HACK FOR LIST. TODO INTEGRATE
                             arg_after = parse_arglist_hack(argx)
+                            if smartcast:
+                                arg_after = list(map(util_type.smart_cast2, arg_after))
                         else:
-                            arg_after = try_cast(sys.argv[argx + 1], type_)
-
-                if item.startswith(argstr + '='):
+                            arg_after = util_type.try_cast(sys.argv[argx + 1], type_)
+                        was_specified = True
+                        break
+                elif item.startswith(argstr + '='):
                     val_after = ''.join(item.split('=')[1:])
                     if type_ is list:
+                        #import utool as ut
+                        #ut.embed()
                         # HACK FOR LIST. TODO INTEGRATE
-                        arg_after = val_after.split(',')
+                        val_after_ = val_after.rstrip(']').lstrip('[')
+                        arg_after = val_after_.split(',')
+                        if smartcast:
+                            arg_after = list(map(util_type.smart_cast2, arg_after))
                     else:
-                        arg_after = try_cast(val_after, type_)
-    except Exception:
+                        arg_after = util_type.try_cast(val_after, type_)
+                    was_specified = True
+                    break
+    except Exception as ex:
+        import utool as ut
+        ut.printex(ex, 'problem in arg_val')
         pass
-    return arg_after
+    if return_was_specified:
+        return arg_after, was_specified
+    else:
+        return arg_after
 
 
-def parse_cfgstr_list(cfgstr_list):
+@profile
+def parse_cfgstr_list(cfgstr_list, smartcast=True):
     """
     Parses a list of items in the format
     ['var1:val1', 'var2:val2', 'var3:val3']
@@ -102,23 +157,28 @@ def parse_cfgstr_list(cfgstr_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_arg import *  # NOQA
-        >>> cfgstr_list = ['var1:val1', 'var2:val2', 'var3:val3']
-        >>> cfgdict = parse_cfgstr_list(cfgstr_list)
+        >>> cfgstr_list = ['var1:val1', 'var2:1', 'var3:1.0', 'var4:None']
+        >>> smartcast = True
+        >>> cfgdict = parse_cfgstr_list(cfgstr_list, smartcast)
         >>> result = str(cfgdict)
         >>> print(result)
-        {'var1': 'val1', 'var3': 'val3', 'var2': 'val2'}
+        {'var4': None, 'var1': 'val1', 'var3': 1.0, 'var2': 1}
     """
     cfgdict = {}
     for item in cfgstr_list:
-        varval_tup = item.replace('=', ':').split(':')
-        assert len(varval_tup) == 2, '[!] Invalid cfgitem=%r' % (item,)
-        var, val = varval_tup
-        cfgdict[var] = val
+        keyval_tup = item.replace('=', ':').split(':')
+        assert len(keyval_tup) == 2, '[!] Invalid cfgitem=%r' % (item,)
+        key, val = keyval_tup
+        if smartcast:
+            val = util_type.smart_cast2(val)
+        cfgdict[key] = val
     return cfgdict
 
 
 def parse_arglist_hack(argx):
     arglist = []
+    #import utool as ut
+    #ut.embed()
     for argx2 in range(argx + 1, len(sys.argv)):
         listarg = sys.argv[argx2]
         if listarg.startswith('-'):
@@ -126,27 +186,6 @@ def parse_arglist_hack(argx):
         else:
             arglist.append(listarg)
     return arglist
-
-
-def get_argflag(arg, default=False, help_='', **kwargs):
-    """ Checks if the commandline has a flag or a corresponding noflag """
-    assert isinstance(default, bool), 'default must be boolean'
-    if isinstance(arg, (tuple, list)):
-        arg_list = arg
-    else:
-        assert isinstance(arg, six.string_types), 'arg is not tuple or string'
-        arg_list = [arg]
-    for arg in arg_list:
-        if not (arg.find('--') == 0 or (arg.find('-') == 0 and len(arg) == 2)):
-            raise AssertionError(arg)
-        #if arg.find('--no') == 0:
-            #arg = arg.replace('--no', '--')
-        noarg = arg.replace('--', '--no')
-        if arg in sys.argv:
-            return True
-        elif noarg in sys.argv:
-            return False
-    return default
 
 
 # Backwards Compatibility Aliases
@@ -347,7 +386,6 @@ def argv_flag_dec(func):
     the decorated function does not execute without its corresponding
     flag
     """
-
     return __argv_flag_dec(func, default=False)
 
 
@@ -363,18 +401,114 @@ def __argv_flag_dec(func, default=False, quiet=QUIET):
 
     def GaurdWrapper(*args, **kwargs):
         # FIXME: the --print-all is a hack
-        if get_argflag(flag, default) or get_argflag('--print-all'):
+        default_ = kwargs.pop('default', default)
+        alias_flags = kwargs.pop('alias_flags', [])
+        is_flagged = (get_argflag(flag, default_) or
+                      get_argflag('--print-all') or
+                      any([get_argflag(_) for _ in alias_flags]))
+        if is_flagged:
             indent_lbl = flag.replace('--', '').replace('print-', '')
             print('')
             print('\n+++ ' + indent_lbl + ' +++')
-            with Indenter('[%s]' % indent_lbl):
-                return func(*args, **kwargs)
+            #with util_print.Indenter('[%s]' % indent_lbl):
+            return func(*args, **kwargs)
             print('')
         else:
             if not quiet:
                 print('\n~~~ %s ~~~' % flag)
     meta_util_six.set_funcname(GaurdWrapper, meta_util_six.get_funcname(func))
     return GaurdWrapper
+
+
+@profile
+def argparse_dict(default_dict_, lbl=None, verbose=VERBOSE,
+                  only_specified=False, force_keys={}):
+    r"""
+    Gets values for a dict based on the command line
+
+    Args:
+        default_dict_ (?):
+        only_specified (bool): if True only returns keys that are specified on commandline. no defaults.
+
+    Returns:
+        dict_: dict_ -  a dictionary
+
+    CommandLine:
+        python -m utool.util_arg --test-argparse_dict
+        python -m utool.util_arg --test-argparse_dict --flag1
+        python -m utool.util_arg --test-argparse_dict --flag2
+        python -m utool.util_arg --test-argparse_dict --noflag2
+        python -m utool.util_arg --test-argparse_dict --thresh=43
+        python -m utool.util_arg --test-argparse_dict --bins=-10
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_arg import *  # NOQA
+        >>> import utool as ut
+        >>> # build test data
+        >>> default_dict_ = {
+        ...    'thresh': -5.333,
+        ...    'neg': -5,
+        ...    'bins': 8,
+        ...    'max': 0.2,
+        ...    'flag1': False,
+        ...    'flag2': True,
+        ... }
+        >>> # execute function
+        >>> dict_ = argparse_dict(default_dict_)
+        >>> # verify results
+        >>> result = ut.dict_str(dict_)
+        >>> print(result)
+    """
+    def make_argstrs(key, prefix_list):
+        for prefix in prefix_list:
+            yield prefix + key
+            yield prefix + key.replace('-', '_')
+            yield prefix + key.replace('_', '-')
+
+    def get_dictkey_cmdline_val(key, default):
+        # see if the user gave a commandline value for this dict key
+        type_ = type(default)
+        was_specified = False
+        if isinstance(default, bool):
+            val = default
+            if default is True:
+                falsekeys = list(set(make_argstrs(key, ['--no', '--no-'])))
+                notval, was_specified = get_argflag(falsekeys, return_was_specified=True)
+                val = not notval
+            elif default is False:
+                truekeys = list(set(make_argstrs(key, ['--'])))
+                val, was_specified = get_argflag(truekeys, return_was_specified=True)
+        else:
+            argtup = list(set(make_argstrs(key, ['--'])))
+            val, was_specified = get_argval(argtup, type_=type_, default=default, return_was_specified=True)
+        return val, was_specified
+
+    dict_  = {}
+    for key, default in six.iteritems(default_dict_):
+        val, was_specified = get_dictkey_cmdline_val(key, default)
+        if not only_specified or was_specified or key in force_keys:
+            dict_[key] = val
+    #dict_ = {key: get_dictkey_cmdline_val(key, default) for key, default in six.iteritems(default_dict_)}
+
+    if verbose:
+        for key in dict_:
+            if dict_[key] != default_dict_[key]:
+                print('[argparse_dict] GOT ARGUMENT: cfgdict[%r] = %r' % (key, dict_[key]))
+
+    if get_argflag(('--help', '--helpx')):
+        import utool as ut
+        print('COMMAND LINE IS ACCEPTING THESE PARAMS WITH DEFAULTS:')
+        if lbl is not None:
+            print(lbl)
+        print(ut.align(ut.dict_str(default_dict_, sorted_=True), ':'))
+        if get_argflag('--helpx'):
+            sys.exit(1)
+    return dict_
+
+# alias
+parse_dict_from_argv = argparse_dict
+get_dict_vals_from_commandline = argparse_dict
 
 
 if __name__ == '__main__':

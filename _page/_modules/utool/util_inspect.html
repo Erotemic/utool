@@ -1,94 +1,417 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>utool.util_inspect &mdash; utool 1.0.0.dev1 documentation</title>
-    
-    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '1.0.0.dev1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html" />
-    <link rel="up" title="utool" href="../utool.html" /> 
-  </head>
-  <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
-          <li><a href="../index.html" >Module code</a> &raquo;</li>
-          <li><a href="../utool.html" accesskey="U">utool</a> &raquo;</li> 
-      </ul>
-    </div>  
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>utool.util_inspect &mdash; utool 1.0.0.dev1 documentation</title>
+  
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body">
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="utool 1.0.0.dev1 documentation" href="../../index.html"/>
+        <link rel="up" title="utool" href="../utool.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../index.html" class="fa fa-home"> utool</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../utool.html">utool package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.DynamicStruct">utool.DynamicStruct module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.Preferences">utool.Preferences module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.Printable">utool.Printable module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_alg">utool.util_alg module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_aliases">utool.util_aliases module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_arg">utool.util_arg module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_assert">utool.util_assert module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_autogen">utool.util_autogen module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_cache">utool.util_cache module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_class">utool.util_class module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_config">utool.util_config module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_cplat">utool.util_cplat module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_csv">utool.util_csv module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_dbg">utool.util_dbg module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_decor">utool.util_decor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_dev">utool.util_dev module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_dict">utool.util_dict module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_distances">utool.util_distances module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_func">utool.util_func module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_git">utool.util_git module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_grabdata">utool.util_grabdata module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_gridsearch">utool.util_gridsearch module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_hash">utool.util_hash module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_inject">utool.util_inject module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_inspect">utool.util_inspect module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_io">utool.util_io module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_iter">utool.util_iter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_latex">utool.util_latex module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_list">utool.util_list module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_logging">utool.util_logging module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_num">utool.util_num module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_numpy">utool.util_numpy module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_parallel">utool.util_parallel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_path">utool.util_path module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_print">utool.util_print module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_progress">utool.util_progress module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_regex">utool.util_regex module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_resources">utool.util_resources module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_set">utool.util_set module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_setup">utool.util_setup module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_six">utool.util_six module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_str">utool.util_str module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_sysreq">utool.util_sysreq module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_tests">utool.util_tests module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_time">utool.util_time module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool.util_type">utool.util_type module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utool.html#module-utool">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">utool</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../utool.html">utool</a> &raquo;</li>
+      
+    <li>utool.util_inspect</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
             
   <h1>Source code for utool.util_inspect</h1><div class="highlight"><pre>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
 <span class="kn">import</span> <span class="nn">types</span>
 <span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">zip</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_regex</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_arg</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
-<span class="kn">from</span> <span class="nn">._internal</span> <span class="kn">import</span> <span class="n">meta_util_six</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[alg]&#39;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">utool._internal</span> <span class="kn">import</span> <span class="n">meta_util_six</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[inspect]&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="iter_module_funcs"><a class="viewcode-back" href="../../utool.html#utool.util_inspect.iter_module_funcs">[docs]</a><span class="k">def</span> <span class="nf">iter_module_funcs</span><span class="p">(</span><span class="n">module</span><span class="p">):</span>
-    <span class="sd">r&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="get_dev_hints"><a class="viewcode-back" href="../../utool.html#utool.util_inspect.get_dev_hints">[docs]</a><span class="k">def</span> <span class="nf">get_dev_hints</span><span class="p">():</span>
+    <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+    <span class="n">VAL_FIELD</span> <span class="o">=</span> <span class="n">util_regex</span><span class="o">.</span><span class="n">named_field</span><span class="p">(</span><span class="s">&#39;val&#39;</span><span class="p">,</span> <span class="s">&#39;.*&#39;</span><span class="p">)</span>
+    <span class="n">VAL_BREF</span> <span class="o">=</span> <span class="n">util_regex</span><span class="o">.</span><span class="n">bref_field</span><span class="p">(</span><span class="s">&#39;val&#39;</span><span class="p">)</span>
+
+    <span class="n">registered_hints</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([</span>
+        <span class="c"># General IBEIS hints</span>
+        <span class="p">(</span><span class="s">&#39;ibs.*&#39;</span>   <span class="p">,</span> <span class="p">(</span><span class="s">&#39;IBEISController&#39;</span><span class="p">,</span> <span class="s">&#39;ibeis controller object&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;qaid2_qres.*&#39;</span>   <span class="p">,</span> <span class="p">(</span><span class="s">&#39;dict&#39;</span><span class="p">,</span> <span class="s">&#39;dict of query result objects&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;qreq_&#39;</span>   <span class="p">,</span> <span class="p">(</span><span class="s">&#39;QueryRequest&#39;</span><span class="p">,</span> <span class="s">&#39;query request object with hyper-parameters&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;qres.*&#39;</span>  <span class="p">,</span> <span class="p">(</span><span class="s">&#39;QueryResult&#39;</span><span class="p">,</span> <span class="s">&#39;object of feature correspondences and scores&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;qparams*&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;QueryParams&#39;</span><span class="p">,</span> <span class="s">&#39;query hyper-parameters&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;vecs&#39;</span>    <span class="p">,</span> <span class="p">(</span><span class="s">&#39;ndarray[uint8_t, ndim=2]&#39;</span><span class="p">,</span> <span class="s">&#39;descriptor vectors&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;maws&#39;</span>    <span class="p">,</span> <span class="p">(</span><span class="s">&#39;ndarray[float32_t, ndim=1]&#39;</span><span class="p">,</span> <span class="s">&#39;multiple assignment weights&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;words&#39;</span>   <span class="p">,</span> <span class="p">(</span><span class="s">&#39;ndarray[uint8_t, ndim=2]&#39;</span><span class="p">,</span> <span class="s">&#39;aggregate descriptor cluster centers&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;word&#39;</span>    <span class="p">,</span> <span class="p">(</span><span class="s">&#39;ndarray[uint8_t, ndim=1]&#39;</span><span class="p">,</span> <span class="s">&#39;aggregate descriptor cluster center&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;rvecs&#39;</span>   <span class="p">,</span> <span class="p">(</span><span class="s">&#39;ndarray[uint8_t, ndim=2]&#39;</span><span class="p">,</span> <span class="s">&#39;residual vector&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;fm&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;list&#39;</span><span class="p">,</span> <span class="s">&#39;list of feature matches as tuples (qfx, dfx)&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;fs&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;list&#39;</span><span class="p">,</span> <span class="s">&#39;list of feature scores&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;aid_list&#39;</span> <span class="p">,</span> <span class="p">(</span><span class="s">&#39;int&#39;</span><span class="p">,</span> <span class="s">&#39;list of annotation ids&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;ensure&#39;</span> <span class="p">,</span> <span class="p">(</span><span class="s">&#39;bool&#39;</span><span class="p">,</span> <span class="s">&#39;eager evaluation if True&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;qaid&#39;</span>    <span class="p">,</span> <span class="p">(</span><span class="s">&#39;int&#39;</span><span class="p">,</span> <span class="s">&#39;query annotation id&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;aid[0-9]?&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;int&#39;</span><span class="p">,</span> <span class="s">&#39;annotation id&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;daids&#39;</span>   <span class="p">,</span> <span class="p">(</span><span class="s">&#39;list&#39;</span><span class="p">,</span> <span class="s">&#39;database annotation ids&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;qaids&#39;</span>   <span class="p">,</span> <span class="p">(</span><span class="s">&#39;list&#39;</span><span class="p">,</span> <span class="s">&#39;query annotation ids&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;use_cache&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;bool&#39;</span><span class="p">,</span> <span class="s">&#39;turns on disk based caching&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;qreq_vsmany_&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;QueryRequest&#39;</span><span class="p">,</span> <span class="s">&#39;persistant vsmany query request&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;qnid&#39;</span>    <span class="p">,</span> <span class="p">(</span><span class="s">&#39;int&#39;</span><span class="p">,</span> <span class="s">&#39;query name id&#39;</span><span class="p">)),</span>
+
+        <span class="c"># Pipeline hints</span>
+        <span class="p">(</span><span class="s">&#39;qaid2_nns&#39;</span><span class="p">,</span>
+         <span class="p">(</span><span class="s">&#39;dict&#39;</span><span class="p">,</span> <span class="s">&#39;maps query annotid to (qfx2_idx, qfx2_dist)&#39;</span><span class="p">)),</span>
+
+        <span class="p">(</span><span class="s">&#39;qaid2_nnvalid0&#39;</span><span class="p">,</span>
+         <span class="p">(</span><span class="s">&#39;dict&#39;</span><span class="p">,</span>
+          <span class="s">&#39;maps query annotid to qfx2_valid0&#39;</span><span class="p">)),</span>
+
+        <span class="p">(</span><span class="s">&#39;qfx2_valid0&#39;</span><span class="p">,</span>
+         <span class="p">(</span><span class="s">&#39;ndarray&#39;</span><span class="p">,</span>
+          <span class="s">&#39;maps query feature index to K matches non-impossibility flags&#39;</span><span class="p">)),</span>
+
+        <span class="p">(</span><span class="s">&#39;filt2_weights&#39;</span><span class="p">,</span>
+         <span class="p">(</span><span class="s">&#39;dict&#39;</span><span class="p">,</span> <span class="s">&#39;maps filter names to qfx2_weight ndarray&#39;</span><span class="p">)),</span>
+
+        <span class="p">(</span><span class="s">&#39;qaid2_filtweights&#39;</span><span class="p">,</span>
+         <span class="p">(</span><span class="s">&#39;dict&#39;</span><span class="p">,</span>
+          <span class="s">&#39;mapping to weights computed by filters like lnnbnn and ratio&#39;</span><span class="p">)),</span>
+
+        <span class="p">(</span><span class="s">&#39;qaid2_nnfiltagg&#39;</span><span class="p">,</span>
+         <span class="p">(</span><span class="s">&#39;dict&#39;</span><span class="p">,</span>
+          <span class="s">&#39;maps to nnfiltagg - tuple(qfx2_score, qfx2_valid)&#39;</span><span class="p">)),</span>
+
+        <span class="p">(</span><span class="s">&#39;qaid2_nnfilts&#39;</span><span class="p">,</span>
+         <span class="p">(</span><span class="s">&#39;dict&#39;</span><span class="p">,</span> <span class="s">&#39;nonaggregate feature scores and validities for each feature NEW&#39;</span><span class="p">)),</span>
+
+        <span class="p">(</span><span class="s">&#39;nnfiltagg&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;tuple&#39;</span><span class="p">,</span> <span class="s">&#39;(qfx2_score_agg, qfx2_valid_agg)&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;nnfilts&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;tuple&#39;</span><span class="p">,</span> <span class="s">&#39;(filt_list, qfx2_score_list, qfx2_valid_list)&#39;</span><span class="p">)),</span>
+
+        <span class="p">(</span><span class="s">&#39;qfx2_idx&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;ndarray[int32_t, ndims=2]&#39;</span><span class="p">,</span> <span class="s">&#39;mapping from query feature index to db neighbor index&#39;</span><span class="p">)),</span>
+
+        <span class="p">(</span><span class="s">&#39;K&#39;</span>       <span class="p">,</span> <span class="p">(</span><span class="s">&#39;int&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;Knorm&#39;</span>   <span class="p">,</span> <span class="p">(</span><span class="s">&#39;int&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)),</span>
+
+        <span class="c"># SMK Hints</span>
+        <span class="p">(</span><span class="s">&#39;smk_alpha&#39;</span><span class="p">,</span>  <span class="p">(</span><span class="s">&#39;float&#39;</span><span class="p">,</span> <span class="s">&#39;selectivity power&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;smk_thresh&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;float&#39;</span><span class="p">,</span> <span class="s">&#39;selectivity threshold&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;query_sccw&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;float&#39;</span><span class="p">,</span> <span class="s">&#39;query self-consistency-criterion&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;data_sccw&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;float&#39;</span><span class="p">,</span> <span class="s">&#39;data self-consistency-criterion&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;invindex&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;InvertedIndex&#39;</span><span class="p">,</span> <span class="s">&#39;object for fast vocab lookup&#39;</span><span class="p">)),</span>
+
+        <span class="c"># Plotting hints</span>
+        <span class="p">(</span><span class="s">&#39;[qd]?rchip[0-9]?&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;ndarray[uint8_t, ndim=2]&#39;</span><span class="p">,</span> <span class="s">&#39;rotated annotation image data&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;[qd]?chip[0-9]?&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;ndarray[uint8_t, ndim=2]&#39;</span><span class="p">,</span> <span class="s">&#39;annotation image data&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;kp&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;ndarray[float32_t, ndim=1]&#39;</span><span class="p">,</span> <span class="s">&#39;a single keypoint&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;[qd]?kpts[0-9]?&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;ndarray[float32_t, ndim=2]&#39;</span><span class="p">,</span> <span class="s">&#39;keypoints&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;[qd]?vecs[0-9]?&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;ndarray[uint8_t, ndim=2]&#39;</span><span class="p">,</span> <span class="s">&#39;descriptor vectors&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;H&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;ndarray[float64_t, ndim=2]&#39;</span><span class="p">,</span> <span class="s">&#39;homography/perspective matrix&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;invV_mats2x2&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;ndarray[float32_t, ndim=3]&#39;</span><span class="p">,</span>  <span class="s">&#39;keypoint shapes&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;invVR_mats2x2&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;ndarray[float32_t, ndim=3]&#39;</span><span class="p">,</span> <span class="s">&#39;keypoint shape and rotations&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;invV_mats&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;ndarray[float32_t, ndim=3]&#39;</span><span class="p">,</span>  <span class="s">&#39;keypoint shapes (possibly translation)&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;invVR_mats&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;ndarray[float32_t, ndim=3]&#39;</span><span class="p">,</span> <span class="s">&#39;keypoint shape and rotations (possibly translation)&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;img\d*&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;ndarray[uint8_t, ndim=2]&#39;</span><span class="p">,</span> <span class="s">&#39;image data&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;imgBGR&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;ndarray[uint8_t, ndim=2]&#39;</span><span class="p">,</span> <span class="s">&#39;image data in opencv format (blue, green, red)&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;pnum&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;tuple&#39;</span><span class="p">,</span> <span class="s">&#39;plot number&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;fnum&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;int&#39;</span><span class="p">,</span> <span class="s">&#39;figure number&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;title&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;str&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)),</span>
+
+        <span class="c"># Matching Hints</span>
+        <span class="p">(</span><span class="s">&#39;ratio_thresh&#39;</span>       <span class="p">,</span> <span class="p">(</span><span class="s">&#39;float&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)),</span>
+
+        <span class="c"># utool hints</span>
+        <span class="p">(</span><span class="s">&#39;funcname&#39;</span>       <span class="p">,</span> <span class="p">(</span><span class="s">&#39;str&#39;</span><span class="p">,</span> <span class="s">&#39;function name&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;modname&#39;</span>        <span class="p">,</span> <span class="p">(</span><span class="s">&#39;str&#39;</span><span class="p">,</span> <span class="s">&#39;module name&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;argname_list&#39;</span>   <span class="p">,</span> <span class="p">(</span><span class="s">&#39;str&#39;</span><span class="p">,</span> <span class="s">&#39;list of argument names&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;return_name&#39;</span>    <span class="p">,</span> <span class="p">(</span><span class="s">&#39;str&#39;</span><span class="p">,</span> <span class="s">&#39;return variable name&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;dict_&#39;</span>          <span class="p">,</span> <span class="p">(</span><span class="s">&#39;dict_&#39;</span><span class="p">,</span> <span class="s">&#39;a dictionary&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;examplecode&#39;</span>    <span class="p">,</span> <span class="p">(</span><span class="s">&#39;str&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)),</span>
+
+        <span class="c"># Numpy Hints</span>
+        <span class="p">(</span><span class="s">&#39;shape&#39;</span>    <span class="p">,</span> <span class="p">(</span><span class="s">&#39;tuple&#39;</span><span class="p">,</span> <span class="s">&#39;array dimensions&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;chipshape&#39;</span>    <span class="p">,</span> <span class="p">(</span><span class="s">&#39;tuple&#39;</span><span class="p">,</span> <span class="s">&#39;height, width&#39;</span><span class="p">)),</span>
+
+        <span class="c"># Opencv hings</span>
+        <span class="p">(</span><span class="s">&#39;dsize&#39;</span>    <span class="p">,</span> <span class="p">(</span><span class="s">&#39;tuple&#39;</span><span class="p">,</span> <span class="s">&#39;width, height&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;chipsize&#39;</span>    <span class="p">,</span> <span class="p">(</span><span class="s">&#39;tuple&#39;</span><span class="p">,</span> <span class="s">&#39;width, height&#39;</span><span class="p">)),</span>
+
+        <span class="c"># Standard Python Hints for my coding style</span>
+        <span class="p">(</span><span class="s">&#39;str_&#39;</span> <span class="p">,</span> <span class="p">(</span><span class="s">&#39;str&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;.*_str&#39;</span> <span class="p">,</span> <span class="p">(</span><span class="s">&#39;str&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;.*_?list_?&#39;</span> <span class="p">,</span> <span class="p">(</span><span class="s">&#39;list&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;.*_tup&#39;</span> <span class="p">,</span> <span class="p">(</span><span class="s">&#39;tuple&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;.*_sublist&#39;</span> <span class="p">,</span> <span class="p">(</span><span class="s">&#39;list&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;fpath[0-9]?&#39;</span> <span class="p">,</span> <span class="p">(</span><span class="s">&#39;str&#39;</span><span class="p">,</span> <span class="s">&#39;file path string&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;verbose&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;bool&#39;</span><span class="p">,</span> <span class="s">&#39;verbosity flag&#39;</span><span class="p">)),</span>
+
+        <span class="c"># Other hints for my coding style</span>
+        <span class="p">(</span><span class="s">&#39;wx2_&#39;</span>    <span class="p">,</span> <span class="p">(</span><span class="s">&#39;dict&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;qfx2_&#39;</span> <span class="o">+</span> <span class="n">VAL_FIELD</span><span class="p">,</span>
+         <span class="p">(</span><span class="s">&#39;ndarray&#39;</span><span class="p">,</span>
+          <span class="s">&#39;mapping from query feature index to &#39;</span> <span class="o">+</span> <span class="n">VAL_BREF</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;.*x2_.*&#39;</span> <span class="p">,</span> <span class="p">(</span><span class="s">&#39;ndarray&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;.+2_.*&#39;</span>  <span class="p">,</span> <span class="p">(</span><span class="s">&#39;dict&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)),</span>
+    <span class="p">])</span>
+    <span class="k">return</span> <span class="n">registered_hints</span>
+
+</div>
+<div class="viewcode-block" id="infer_arg_types_and_descriptions"><a class="viewcode-back" href="../../utool.html#utool.util_inspect.infer_arg_types_and_descriptions">[docs]</a><span class="k">def</span> <span class="nf">infer_arg_types_and_descriptions</span><span class="p">(</span><span class="n">argname_list</span><span class="p">,</span> <span class="n">defaults</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        argname_list (list):</span>
+<span class="sd">        defaults (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple : (arg_types, argdesc_list)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_inspect --test-infer_arg_types_and_descriptions</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        python -c &quot;import utool; print(utool.auto_docstr(&#39;ibeis.model.hots.pipeline&#39;, &#39;build_chipmatches&#39;))&quot;</span>
+
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; import utool</span>
-<span class="sd">        &gt;&gt;&gt; func_names = utool.get_list_column(list(iter_module_funcs(utool.util_tests)), 0)</span>
+<span class="sd">        &gt;&gt;&gt; argname_list = [&#39;ibs&#39;, &#39;qaid&#39;, &#39;fdKfds&#39;, &#39;qfx2_foo&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; defaults = None</span>
+<span class="sd">        &gt;&gt;&gt; arg_types, argdesc_list = utool.infer_arg_types_and_descriptions(argname_list, defaults)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#import utool as ut</span>
+    <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_dev</span>
+
+    <span class="c"># hacks for IBEIS</span>
+    <span class="k">if</span> <span class="bp">True</span> <span class="ow">or</span> <span class="n">util_dev</span><span class="o">.</span><span class="n">is_developer</span><span class="p">():</span>
+        <span class="n">registered_hints</span> <span class="o">=</span> <span class="n">get_dev_hints</span><span class="p">()</span>
+        <span class="c"># key = regex pattern</span>
+        <span class="c"># val = hint=tuple(type_, desc_)</span>
+
+    <span class="k">if</span> <span class="n">defaults</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">defaults</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">default_types</span> <span class="o">=</span> <span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;NoneType&#39;</span><span class="p">,</span> <span class="s">&#39;None&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">defaults</span><span class="p">]</span>
+    <span class="n">arg_types</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;?&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">argname_list</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">defaults</span><span class="p">))</span> <span class="o">+</span> <span class="n">default_types</span>
+
+    <span class="n">argdesc_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">argname_list</span><span class="p">))]</span>
+
+    <span class="c"># use hints to build better docstrs</span>
+    <span class="k">for</span> <span class="n">argx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">argname_list</span><span class="p">)):</span>
+        <span class="c">#if arg_types[argx] == &#39;?&#39; or arg_types[argx] == &#39;None&#39;:</span>
+        <span class="n">argname</span> <span class="o">=</span> <span class="n">argname_list</span><span class="p">[</span><span class="n">argx</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">argname</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c">#print(&#39;warning argname is None&#39;)</span>
+            <span class="k">continue</span>
+        <span class="k">for</span> <span class="n">regex</span><span class="p">,</span> <span class="n">hint</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">registered_hints</span><span class="p">):</span>
+            <span class="n">matchobj</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s">&#39;^&#39;</span> <span class="o">+</span> <span class="n">regex</span> <span class="o">+</span> <span class="s">&#39;$&#39;</span><span class="p">,</span> <span class="n">argname</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span> <span class="o">|</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">matchobj</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">type_</span> <span class="o">=</span> <span class="n">hint</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">desc_</span> <span class="o">=</span> <span class="n">hint</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">type_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">arg_types</span><span class="p">[</span><span class="n">argx</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;?&#39;</span> <span class="ow">or</span> <span class="n">arg_types</span><span class="p">[</span><span class="n">argx</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;None&#39;</span><span class="p">:</span>
+                        <span class="n">arg_types</span><span class="p">[</span><span class="n">argx</span><span class="p">]</span> <span class="o">=</span> <span class="n">type_</span>
+                <span class="k">if</span> <span class="n">desc_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">desc_</span> <span class="o">=</span> <span class="n">matchobj</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="n">desc_</span><span class="p">)</span>
+                    <span class="n">argdesc_list</span><span class="p">[</span><span class="n">argx</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="n">desc_</span>
+                <span class="k">break</span>
+    <span class="k">return</span> <span class="n">arg_types</span><span class="p">,</span> <span class="n">argdesc_list</span>
+
+</div>
+<div class="viewcode-block" id="iter_module_doctestable"><a class="viewcode-back" href="../../utool.html#utool.util_inspect.iter_module_doctestable">[docs]</a><span class="k">def</span> <span class="nf">iter_module_doctestable</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">include_funcs</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">include_classes</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                            <span class="n">include_methods</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Yeilds doctestable live object form a modules</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        module (live python module):</span>
+<span class="sd">        include_funcs (bool):</span>
+<span class="sd">        include_classes (bool):</span>
+<span class="sd">        include_methods (bool):</span>
+
+<span class="sd">    Example1:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_inspect import *   # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; module = ut.util_tests</span>
+<span class="sd">        &gt;&gt;&gt; doctestable_list = list(iter_module_doctestable(module))</span>
+<span class="sd">        &gt;&gt;&gt; func_names = ut.get_list_column(doctestable_list, 0)</span>
 <span class="sd">        &gt;&gt;&gt; print(&#39;\n&#39;.join(func_names))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">valid_func_types</span> <span class="o">=</span> <span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">FunctionType</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">MethodType</span><span class="p">,</span>
-                        <span class="n">types</span><span class="o">.</span><span class="n">BuiltinFunctionType</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">BuiltinMethodType</span><span class="p">,</span>
-                        <span class="n">types</span><span class="o">.</span><span class="n">ClassType</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">TypeType</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">ctypes</span>
+    <span class="n">valid_func_types</span> <span class="o">=</span> <span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">FunctionType</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">BuiltinFunctionType</span><span class="p">,</span>
+                        <span class="c">#types.MethodType, types.BuiltinMethodType,</span>
+                        <span class="p">)</span>
+    <span class="n">valid_class_types</span> <span class="o">=</span> <span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">ClassType</span><span class="p">,</span>  <span class="n">types</span><span class="o">.</span><span class="n">TypeType</span><span class="p">,)</span>
+
+    <span class="n">scalar_types</span> <span class="o">=</span> <span class="p">([</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">set</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">+</span>
+                    <span class="nb">list</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">))</span>
+    <span class="n">scalar_types</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span>
+    <span class="n">other_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">types</span><span class="o">.</span><span class="n">InstanceType</span><span class="p">,</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">,</span>
+                   <span class="n">ctypes</span><span class="o">.</span><span class="n">CDLL</span><span class="p">]</span>
+    <span class="n">invalid_types</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">scalar_types</span> <span class="o">+</span> <span class="n">other_types</span><span class="p">)</span>
+
+    <span class="c">#modpath = ut.get_modname_from_modpath(module.__file__)</span>
+
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">__dict__</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">valid_func_types</span><span class="p">):</span>
-            <span class="k">yield</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span>
-        <span class="k">elif</span> <span class="n">val</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="s">&#39;__module__&#39;</span><span class="p">):</span>
+            <span class="c"># HACK: todo. figure out true parent module</span>
+            <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">__module__</span> <span class="o">==</span> <span class="s">&#39;numpy&#39;</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="c">#if key == &#39;NP_NDARRAY&#39;:</span>
+            <span class="c">#    import utool as ut</span>
+            <span class="c">#    ut.embed()</span>
+
+        <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">pass</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="p">(</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">set</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
-            <span class="k">pass</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">InstanceType</span><span class="p">):</span>
-            <span class="k">pass</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">):</span>
-            <span class="k">pass</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">):</span>
-            <span class="k">pass</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">valid_func_types</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">include_funcs</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">valid_class_types</span><span class="p">):</span>
+            <span class="n">class_</span> <span class="o">=</span> <span class="n">val</span>
+            <span class="k">if</span> <span class="n">include_classes</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span>
+            <span class="k">if</span> <span class="n">include_methods</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">subkey</span><span class="p">,</span> <span class="n">subval</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">class_</span><span class="o">.</span><span class="n">__dict__</span><span class="p">):</span>
+                    <span class="c"># Unbound methods are still typed as functions</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">subval</span><span class="p">,</span> <span class="n">valid_func_types</span><span class="p">):</span>
+                        <span class="k">yield</span> <span class="n">subkey</span><span class="p">,</span> <span class="n">subval</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">invalid_types</span><span class="p">):</span>
             <span class="k">pass</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c">#import utool as ut</span>
-            <span class="c">#if ut.VERBOSE:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_inspect] WARNING:&#39;</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39; * Unknown if testable val=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">val</span><span class="p">))</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39; * Unknown if testable type(val)=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_inspect] WARNING:&#39;</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39; * Unknown if testable val=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">val</span><span class="p">))</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39; * Unknown if testable type(val)=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
 
 </div>
 <div class="viewcode-block" id="list_class_funcnames"><a class="viewcode-back" href="../../utool.html#utool.util_inspect.list_class_funcnames">[docs]</a><span class="k">def</span> <span class="nf">list_class_funcnames</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">blank_pats</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;    #&#39;</span><span class="p">]):</span>
@@ -103,7 +426,6 @@
 <span class="sd">        list: funcname_list</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt;</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_inspect import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; fname = &#39;util_class.py&#39;</span>
 <span class="sd">        &gt;&gt;&gt; blank_pats = [&#39;    #&#39;]</span>
@@ -127,8 +449,125 @@
             <span class="n">funcname_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">funcname</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">funcname_list</span>
 
+</div>
+<div class="viewcode-block" id="list_global_funcnames"><a class="viewcode-back" href="../../utool.html#utool.util_inspect.list_global_funcnames">[docs]</a><span class="k">def</span> <span class="nf">list_global_funcnames</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">blank_pats</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;    #&#39;</span><span class="p">]):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    list_global_funcnames</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fname (str): filepath</span>
+<span class="sd">        blank_pats (list): defaults to &#39;    #&#39;</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: funcname_list</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_inspect import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; fname = &#39;util_class.py&#39;</span>
+<span class="sd">        &gt;&gt;&gt; blank_pats = [&#39;    #&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; funcname_list = list_global_funcnames(fname, blank_pats)</span>
+<span class="sd">        &gt;&gt;&gt; print(funcname_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+    <span class="n">funcname_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c">#full_line_ = &#39;&#39;</span>
+    <span class="k">for</span> <span class="n">lx</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lines</span><span class="p">):</span>
+        <span class="c">#full_line_ += line</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">pat</span><span class="p">)</span> <span class="k">for</span> <span class="n">pat</span> <span class="ow">in</span> <span class="n">blank_pats</span><span class="p">]):</span>
+            <span class="n">funcname_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;def &#39;</span><span class="p">):</span>
+            <span class="n">def_x</span>    <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;def&#39;</span><span class="p">)</span>
+            <span class="n">rparen_x</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;(&#39;</span><span class="p">)</span>
+            <span class="n">funcname</span> <span class="o">=</span> <span class="n">line</span><span class="p">[(</span><span class="n">def_x</span> <span class="o">+</span> <span class="mi">3</span><span class="p">):</span><span class="n">rparen_x</span><span class="p">]</span>
+            <span class="c">#print(funcname)</span>
+            <span class="n">funcname_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">funcname</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">funcname_list</span>
+
 
 <span class="c"># grep is in util_path. Thats pretty inspecty</span>
+</div>
+<div class="viewcode-block" id="get_kwargs"><a class="viewcode-back" href="../../utool.html#utool.util_inspect.get_kwargs">[docs]</a><span class="k">def</span> <span class="nf">get_kwargs</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        func (?):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ?:</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_inspect --test-get_kwargs</span>
+
+
+<span class="sd">    def func1(a, b, c):</span>
+<span class="sd">        pass</span>
+<span class="sd">    def func2(a, b, c, *args):</span>
+<span class="sd">        pass</span>
+<span class="sd">    def func3(a, b, c, *args, **kwargs):</span>
+<span class="sd">        pass</span>
+<span class="sd">    def func4(a, b=1, c=2):</span>
+<span class="sd">        pass</span>
+<span class="sd">    def func5(a, b=1, c=2, *args):</span>
+<span class="sd">        pass</span>
+<span class="sd">    def func6(a, b=1, c=2, **kwargs):</span>
+<span class="sd">        pass</span>
+<span class="sd">    def func7(a, b=1, c=2, *args, **kwargs):</span>
+<span class="sd">        pass</span>
+<span class="sd">    for func in [locals()[&#39;func&#39; + str(x)] for x in range(1, 8)]:</span>
+<span class="sd">        print(inspect.getargspec(func))</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_inspect import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; func = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; result = get_kwargs(func)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#if argspec.keywords is None:</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">argspec</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getargspec</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">argspec</span><span class="o">.</span><span class="n">defaults</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">num_args</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">argspec</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+        <span class="n">num_keys</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">argspec</span><span class="o">.</span><span class="n">defaults</span><span class="p">)</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">argspec</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_args</span> <span class="o">-</span> <span class="n">num_keys</span><span class="p">,</span> <span class="n">num_args</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">is_arbitrary</span> <span class="o">=</span> <span class="n">argspec</span><span class="o">.</span><span class="n">keywords</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+    <span class="n">RECURSIVE</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">if</span> <span class="n">RECURSIVE</span> <span class="ow">and</span> <span class="n">argspec</span><span class="o">.</span><span class="n">keywords</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">pass</span>
+        <span class="c"># TODO: look inside function at the functions that the kwargs object is being</span>
+        <span class="c"># passed to</span>
+    <span class="k">return</span> <span class="n">keys</span><span class="p">,</span> <span class="n">is_arbitrary</span>
+
+</div>
+<div class="viewcode-block" id="filter_valid_kwargs"><a class="viewcode-back" href="../../utool.html#utool.util_inspect.filter_valid_kwargs">[docs]</a><span class="k">def</span> <span class="nf">filter_valid_kwargs</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">dict_</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">keys</span><span class="p">,</span> <span class="n">is_arbitrary</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_kwargs</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">is_arbitrary</span><span class="p">:</span>
+        <span class="n">valid_dict_</span> <span class="o">=</span> <span class="n">dict_</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">key_subset</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_keysubset</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">)</span>
+        <span class="n">valid_dict_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_subset</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">key_subset</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">valid_dict_</span>
+
+</div>
+<div class="viewcode-block" id="get_kwdefaults"><a class="viewcode-back" href="../../utool.html#utool.util_inspect.get_kwdefaults">[docs]</a><span class="k">def</span> <span class="nf">get_kwdefaults</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="n">argspec</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getargspec</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">argspec</span><span class="o">.</span><span class="n">keywords</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">argspec</span><span class="o">.</span><span class="n">defaults</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{}</span>
+    <span class="n">kwdefaults</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">argspec</span><span class="o">.</span><span class="n">keywords</span><span class="p">,</span> <span class="n">argspec</span><span class="o">.</span><span class="n">defaults</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">kwdefaults</span>
+
+</div>
+<div class="viewcode-block" id="get_argnames"><a class="viewcode-back" href="../../utool.html#utool.util_inspect.get_argnames">[docs]</a><span class="k">def</span> <span class="nf">get_argnames</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="n">argspec</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getargspec</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="n">argnames</span> <span class="o">=</span> <span class="n">argspec</span><span class="o">.</span><span class="n">args</span>
+    <span class="k">return</span> <span class="n">argnames</span>
 
 </div>
 <div class="viewcode-block" id="get_funcname"><a class="viewcode-back" href="../../utool.html#utool.util_inspect.get_funcname">[docs]</a><span class="k">def</span> <span class="nf">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
@@ -151,13 +590,300 @@
     <span class="k">return</span> <span class="n">meta_util_six</span><span class="o">.</span><span class="n">get_funcdoc</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
 
 </div>
+<div class="viewcode-block" id="get_funcfpath"><a class="viewcode-back" href="../../utool.html#utool.util_inspect.get_funcfpath">[docs]</a><span class="k">def</span> <span class="nf">get_funcfpath</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">func</span><span class="o">.</span><span class="n">func_code</span><span class="o">.</span><span class="n">co_filename</span>
+
+</div>
 <div class="viewcode-block" id="set_funcdoc"><a class="viewcode-back" href="../../utool.html#utool.util_inspect.set_funcdoc">[docs]</a><span class="k">def</span> <span class="nf">set_funcdoc</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">newdoc</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">meta_util_six</span><span class="o">.</span><span class="n">set_funcdoc</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">newdoc</span><span class="p">)</span>
 
 </div>
+<div class="viewcode-block" id="get_docstr"><a class="viewcode-back" href="../../utool.html#utool.util_inspect.get_docstr">[docs]</a><span class="k">def</span> <span class="nf">get_docstr</span><span class="p">(</span><span class="n">func_or_class</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;  Get the docstring from a live object &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">docstr_</span> <span class="o">=</span> <span class="n">func_or_class</span><span class="o">.</span><span class="n">func_doc</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="n">docstr_</span> <span class="o">=</span> <span class="n">func_or_class</span><span class="o">.</span><span class="n">__doc__</span>
+    <span class="k">if</span> <span class="n">docstr_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">docstr_</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="n">docstr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unindent</span><span class="p">(</span><span class="n">docstr_</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">docstr</span>
+
+</div>
+<div class="viewcode-block" id="parse_return_type"><a class="viewcode-back" href="../../utool.html#utool.util_inspect.parse_return_type">[docs]</a><span class="k">def</span> <span class="nf">parse_return_type</span><span class="p">(</span><span class="n">sourcecode</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+
+<span class="sd">    parse_return_type</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        sourcecode (?):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (return_type, return_name, return_header)</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        testcase</span>
+<span class="sd">        automated_helpers query_vsone_verified</span>
+
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_inspect import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool</span>
+<span class="sd">        &gt;&gt;&gt; sourcecode = utool.codeblock(</span>
+<span class="sd">        ... &#39;def foo(tmp=False):\n&#39;</span>
+<span class="sd">        ... &#39;    bar = True\n&#39;</span>
+<span class="sd">        ... &#39;    return bar\n&#39;</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; returninfo = parse_return_type(sourcecode)</span>
+<span class="sd">        &gt;&gt;&gt; (return_type, return_name, return_header, return_desc) = returninfo</span>
+<span class="sd">        &gt;&gt;&gt; result = str((return_type, return_name, return_header))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        (&#39;?&#39;, &#39;bar&#39;, &#39;Returns&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="kn">import</span> <span class="nn">utool</span>
+    <span class="kn">import</span> <span class="nn">ast</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] parsing return types&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">sourcecode</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">return_type</span><span class="p">,</span> <span class="n">return_name</span><span class="p">,</span> <span class="n">return_header</span> <span class="o">=</span> <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">return_type</span><span class="p">,</span> <span class="n">return_name</span><span class="p">,</span> <span class="n">return_header</span>
+
+    <span class="c">#source_lines = sourcecode.splitlines()</span>
+    <span class="n">sourcecode</span> <span class="o">=</span> <span class="s">&#39;from __future__ import print_function</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">sourcecode</span>
+    <span class="n">pt</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">sourcecode</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pt</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Module</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">pt</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">find_function_nodes</span><span class="p">(</span><span class="n">pt</span><span class="p">):</span>
+        <span class="n">function_nodes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">pt</span><span class="o">.</span><span class="n">body</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">FunctionDef</span><span class="p">):</span>
+                <span class="n">function_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">function_nodes</span>
+
+    <span class="n">function_nodes</span> <span class="o">=</span> <span class="n">find_function_nodes</span><span class="p">(</span><span class="n">pt</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">function_nodes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="n">func_node</span> <span class="o">=</span> <span class="n">function_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">find_return_node</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">candidates</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">node_list</span> <span class="o">=</span> <span class="n">node</span>
+            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">node_list</span><span class="p">:</span>
+                <span class="n">candidate</span> <span class="o">=</span> <span class="n">find_return_node</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">candidate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">candidates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">candidate</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidates</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">candidates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">Return</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Yield</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="n">node</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">If</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">TryExcept</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="n">find_return_node</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">pass</span>
+            <span class="c">#print(type(node))</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] parsing return types&#39;</span><span class="p">)</span>
+    <span class="n">returnnode</span> <span class="o">=</span> <span class="n">find_return_node</span><span class="p">(</span><span class="n">func_node</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+    <span class="c"># Check return or yeild</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">returnnode</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Yield</span><span class="p">):</span>
+        <span class="n">return_header</span> <span class="o">=</span> <span class="s">&#39;Yeilds&#39;</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">returnnode</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Return</span><span class="p">):</span>
+        <span class="n">return_header</span> <span class="o">=</span> <span class="s">&#39;Returns&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">return_header</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="c"># Get more return info</span>
+
+    <span class="k">def</span> <span class="nf">get_node_name_and_type</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+        <span class="n">node_name</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">node_type</span> <span class="o">=</span> <span class="s">&#39;?&#39;</span>
+        <span class="k">if</span> <span class="n">node</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">node_type</span> <span class="o">=</span> <span class="s">&#39;None&#39;</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Tuple</span><span class="p">):</span>
+            <span class="n">tupnode_list</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">elts</span>
+            <span class="k">def</span> <span class="nf">get_tuple_membername</span><span class="p">(</span><span class="n">tupnode</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">tupnode</span><span class="p">,</span> <span class="s">&#39;id&#39;</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="n">tupnode</span><span class="o">.</span><span class="n">id</span>
+                <span class="c">#elif hasattr(tupnode, &#39;key&#39;):</span>
+                <span class="c">#    return &#39;tupnode.key=%r&#39; % (tupnode.key,)</span>
+                <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">tupnode</span><span class="p">,</span> <span class="s">&#39;value&#39;</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="s">&#39;None&#39;</span>
+                    <span class="c">#return &#39;tupnode.value=%r&#39; % (tupnode.value,)</span>
+                    <span class="c">#return (ast.dump(tupnode))</span>
+                    <span class="c">#return get_node_name_and_type(tupnode)[1]</span>
+                <span class="c">#type(name.value)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="s">&#39;None&#39;</span>
+                <span class="k">pass</span>
+            <span class="n">tupleid</span> <span class="o">=</span> <span class="s">&#39;(</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">get_tuple_membername</span><span class="p">(</span><span class="n">tupnode</span><span class="p">))</span> <span class="k">for</span> <span class="n">tupnode</span> <span class="ow">in</span> <span class="n">tupnode_list</span><span class="p">]))</span>
+            <span class="n">node_type</span> <span class="o">=</span> <span class="s">&#39;tuple&#39;</span>
+            <span class="n">node_name</span> <span class="o">=</span> <span class="n">tupleid</span>
+            <span class="c">#node_name = ast.dump(node)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Dict</span><span class="p">):</span>
+            <span class="n">node_type</span> <span class="o">=</span> <span class="s">&#39;dict&#39;</span>
+            <span class="n">node_name</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Name</span><span class="p">):</span>
+            <span class="n">node_name</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">id</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c">#node_type = &#39;ADD_TO_GET_NODE_NAME_AND_TYPE: &#39; + str(type(node.value))</span>
+            <span class="n">node_type</span> <span class="o">=</span> <span class="s">&#39;?&#39;</span>
+        <span class="k">return</span> <span class="n">node_type</span><span class="p">,</span> <span class="n">node_name</span>
+
+    <span class="n">return_type</span><span class="p">,</span> <span class="n">return_name</span> <span class="o">=</span> <span class="n">get_node_name_and_type</span><span class="p">(</span><span class="n">returnnode</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">return_type</span> <span class="o">==</span> <span class="s">&#39;?&#39;</span><span class="p">:</span>
+        <span class="n">arg_types</span><span class="p">,</span> <span class="n">arg_desc</span> <span class="o">=</span> <span class="n">infer_arg_types_and_descriptions</span><span class="p">([</span><span class="n">return_name</span><span class="p">],</span> <span class="p">[])</span>
+        <span class="n">return_type</span> <span class="o">=</span> <span class="n">arg_types</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">return_desc</span> <span class="o">=</span> <span class="n">arg_desc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">return_desc</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+
+    <span class="k">return</span> <span class="n">return_type</span><span class="p">,</span> <span class="n">return_name</span><span class="p">,</span> <span class="n">return_header</span><span class="p">,</span> <span class="n">return_desc</span>
+
+</div>
+<div class="viewcode-block" id="get_func_sourcecode"><a class="viewcode-back" href="../../utool.html#utool.util_inspect.get_func_sourcecode">[docs]</a><span class="k">def</span> <span class="nf">get_func_sourcecode</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">stripdef</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">stripret</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    wrapper around inspect.getsource but takes into account utool decorators</span>
+<span class="sd">    strip flags are very hacky as of now</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        func (?):</span>
+<span class="sd">        stripdef (bool):</span>
+
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_inspect --test-get_func_sourcecode</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_inspect import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; func = get_func_sourcecode</span>
+<span class="sd">        &gt;&gt;&gt; stripdef = True</span>
+<span class="sd">        &gt;&gt;&gt; stripret = True</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; sourcecode = get_func_sourcecode(func, stripdef)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="c">#try:</span>
+    <span class="n">sourcefile</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getsourcefile</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="c">#except IOError:</span>
+    <span class="c">#    sourcefile = None</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s">&#39;_utinfo&#39;</span><span class="p">):</span>
+        <span class="c">#if &#39;src&#39; in func._utinfo:</span>
+        <span class="c">#    sourcecode = func._utinfo[&#39;src&#39;]</span>
+        <span class="c">#else:</span>
+        <span class="n">func2</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">_utinfo</span><span class="p">[</span><span class="s">&#39;orig_func&#39;</span><span class="p">]</span>
+        <span class="n">sourcecode</span> <span class="o">=</span> <span class="n">get_func_sourcecode</span><span class="p">(</span><span class="n">func2</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">sourcefile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">sourcecode</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getsource</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sourcecode</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="c">#orig_source = sourcecode</span>
+    <span class="c">#print(orig_source)</span>
+    <span class="k">if</span> <span class="n">stripdef</span><span class="p">:</span>
+        <span class="c"># hacky</span>
+        <span class="n">sourcecode</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unindent</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">regex_replace</span><span class="p">(</span><span class="s">&#39;def [^)]*</span><span class="se">\\</span><span class="s">):</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">sourcecode</span><span class="p">))</span>
+        <span class="c">#print(sourcecode)</span>
+        <span class="k">pass</span>
+    <span class="k">if</span> <span class="n">stripret</span><span class="p">:</span>
+        <span class="sd">r&quot;&quot;&quot; \s is a whitespace char &quot;&quot;&quot;</span>
+        <span class="n">return_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">named_field</span><span class="p">(</span><span class="s">&#39;return&#39;</span><span class="p">,</span> <span class="s">&#39;return .*$&#39;</span><span class="p">)</span>
+        <span class="n">prereturn</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">named_field</span><span class="p">(</span><span class="s">&#39;prereturn&#39;</span><span class="p">,</span> <span class="s">r&#39;^\s*&#39;</span><span class="p">)</span>
+        <span class="n">return_bref</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">bref_field</span><span class="p">(</span><span class="s">&#39;return&#39;</span><span class="p">)</span>
+        <span class="n">prereturn_bref</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">bref_field</span><span class="p">(</span><span class="s">&#39;prereturn&#39;</span><span class="p">)</span>
+        <span class="n">regex</span> <span class="o">=</span> <span class="n">prereturn</span> <span class="o">+</span> <span class="n">return_</span>
+        <span class="n">repl</span> <span class="o">=</span> <span class="n">prereturn_bref</span> <span class="o">+</span> <span class="s">&#39;pass  # &#39;</span> <span class="o">+</span> <span class="n">return_bref</span>
+        <span class="c">#import re</span>
+        <span class="c">#print(re.search(regex, sourcecode, flags=re.MULTILINE ))</span>
+        <span class="c">#print(re.search(&#39;return&#39;, sourcecode, flags=re.MULTILINE | re.DOTALL ))</span>
+        <span class="c">#print(re.search(regex, sourcecode))</span>
+        <span class="n">sourcecode_</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">repl</span><span class="p">,</span> <span class="n">sourcecode</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">)</span>
+        <span class="c">#print(sourcecode_)</span>
+        <span class="n">sourcecode</span> <span class="o">=</span> <span class="n">sourcecode_</span>
+        <span class="k">pass</span>
+    <span class="k">return</span> <span class="n">sourcecode</span>
+    <span class="c">#else:</span>
+    <span class="c">#return get_func_sourcecode(func._utinfo[&#39;src&#39;])</span>
+
+</div>
 <div class="viewcode-block" id="get_func_argspec"><a class="viewcode-back" href="../../utool.html#utool.util_inspect.get_func_argspec">[docs]</a><span class="k">def</span> <span class="nf">get_func_argspec</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    wrapper around inspect.getargspec but takes into account utool decorators</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s">&#39;_utinfo&#39;</span><span class="p">):</span>
+        <span class="n">argspec</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">_utinfo</span><span class="p">[</span><span class="s">&#39;orig_argspec&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">argspec</span>
     <span class="n">argspec</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getargspec</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">argspec</span>
+
+</div>
+<div class="viewcode-block" id="infer_function_info"><a class="viewcode-back" href="../../utool.html#utool.util_inspect.infer_function_info">[docs]</a><span class="k">def</span> <span class="nf">infer_function_info</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Infers information for make_default_docstr</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        func (function): live python function</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_inspect import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; func = ut.infer_function_info</span>
+<span class="sd">        &gt;&gt;&gt; func = ut.Timer.tic</span>
+<span class="sd">        &gt;&gt;&gt; funcinfo = infer_function_info(func)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.dict_str(funcinfo.__dict__)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">current_doc</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getdoc</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="n">needs_surround</span> <span class="o">=</span> <span class="n">current_doc</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_doc</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="n">argspec</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_func_argspec</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">argname_list</span><span class="p">,</span> <span class="n">varargs</span><span class="p">,</span> <span class="n">varkw</span><span class="p">,</span> <span class="n">defaults</span><span class="p">)</span> <span class="o">=</span> <span class="n">argspec</span>
+
+    <span class="c"># See util_inspect</span>
+    <span class="n">argtype_list</span><span class="p">,</span> <span class="n">argdesc_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">infer_arg_types_and_descriptions</span><span class="p">(</span><span class="n">argname_list</span><span class="p">,</span> <span class="n">defaults</span><span class="p">)</span>
+
+    <span class="c"># Move source down to base indentation, but remember original indentation</span>
+    <span class="n">sourcecode</span> <span class="o">=</span> <span class="n">get_func_sourcecode</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="n">num_indent</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_indentation</span><span class="p">(</span><span class="n">sourcecode</span><span class="p">)</span>
+    <span class="n">sourcecode</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unindent</span><span class="p">(</span><span class="n">sourcecode</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">sourcecode</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">returninfo</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">parse_return_type</span><span class="p">(</span><span class="n">sourcecode</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">returninfo</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;&#39;</span>
+    <span class="n">return_type</span><span class="p">,</span> <span class="n">return_name</span><span class="p">,</span> <span class="n">return_header</span><span class="p">,</span> <span class="n">return_desc</span> <span class="o">=</span> <span class="n">returninfo</span>
+
+    <span class="n">modname</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">__module__</span>
+    <span class="n">funcname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+
+    <span class="k">class</span> <span class="nc">FunctionInfo</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">pass</span>
+    <span class="n">funcinfo</span> <span class="o">=</span> <span class="n">FunctionInfo</span><span class="p">()</span>
+    <span class="n">funcinfo</span><span class="o">.</span><span class="n">needs_surround</span> <span class="o">=</span> <span class="n">needs_surround</span>
+    <span class="n">funcinfo</span><span class="o">.</span><span class="n">argname_list</span> <span class="o">=</span> <span class="n">argname_list</span>
+    <span class="n">funcinfo</span><span class="o">.</span><span class="n">argtype_list</span> <span class="o">=</span> <span class="n">argtype_list</span>
+    <span class="n">funcinfo</span><span class="o">.</span><span class="n">argdesc_list</span> <span class="o">=</span> <span class="n">argdesc_list</span>
+    <span class="n">funcinfo</span><span class="o">.</span><span class="n">varargs</span> <span class="o">=</span> <span class="n">varargs</span>
+    <span class="n">funcinfo</span><span class="o">.</span><span class="n">varkw</span> <span class="o">=</span> <span class="n">varkw</span>
+    <span class="n">funcinfo</span><span class="o">.</span><span class="n">defaults</span> <span class="o">=</span> <span class="n">defaults</span>
+    <span class="n">funcinfo</span><span class="o">.</span><span class="n">num_indent</span> <span class="o">=</span> <span class="n">num_indent</span>
+    <span class="n">funcinfo</span><span class="o">.</span><span class="n">return_type</span> <span class="o">=</span> <span class="n">return_type</span>
+    <span class="n">funcinfo</span><span class="o">.</span><span class="n">return_name</span> <span class="o">=</span> <span class="n">return_name</span>
+    <span class="n">funcinfo</span><span class="o">.</span><span class="n">return_header</span> <span class="o">=</span> <span class="n">return_header</span>
+    <span class="n">funcinfo</span><span class="o">.</span><span class="n">return_desc</span> <span class="o">=</span> <span class="n">return_desc</span>
+    <span class="n">funcinfo</span><span class="o">.</span><span class="n">modname</span> <span class="o">=</span> <span class="n">modname</span>
+    <span class="n">funcinfo</span><span class="o">.</span><span class="n">funcname</span> <span class="o">=</span> <span class="n">funcname</span>
+    <span class="n">funcinfo</span><span class="o">.</span><span class="n">ismethod</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s">&#39;im_class&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">funcinfo</span>
 
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
@@ -165,8 +891,9 @@
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -c &quot;import utool, utool.util_inspect; utool.doctest_funcs(utool.util_inspect, allexamples=True)&quot;</span>
 <span class="sd">        python -c &quot;import utool, utool.util_inspect; utool.doctest_funcs(utool.util_inspect)&quot;</span>
-<span class="sd">        python utool/util_inspect.py</span>
-<span class="sd">        python utool/util_inspect.py --allexamples</span>
+<span class="sd">        python -m utool.util_inspect --enableall</span>
+<span class="sd">        python -m utool.util_inspect --enableall --test-iter-module-doctestable:1</span>
+<span class="sd">        python -m utool.util_inspect --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
@@ -175,44 +902,58 @@
 </pre></div>
 
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-<div id="searchbox" style="display: none">
-  <h3>Quick search</h3>
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
     </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
         </div>
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../index.html">utool 1.0.0.dev1 documentation</a> &raquo;</li>
-          <li><a href="../index.html" >Module code</a> &raquo;</li>
-          <li><a href="../utool.html" >utool</a> &raquo;</li> 
-      </ul>
-    </div>
-    <div class="footer">
-        &copy; Copyright 2014, Jon Crall.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
-    </div>
-  </body>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.0.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
 </html>

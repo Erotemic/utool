@@ -1,4 +1,7 @@
 #!/usr/bin/env python2.7
+# Utool is released under the Apache License Version 2.0
+# no warenty liability blah blah blah blah legal blah
+# just use the software, don't be a jerk, and write kickass code.
 from __future__ import absolute_import, division, print_function
 from setuptools import setup
 import sys
@@ -10,8 +13,7 @@ def utool_setup():
         'psutil >= 2.1.3',
         'parse >= 1.6.6',
         'lockfile >= 0.10.2',
-        'lru-dict >= 1.1.1'
-
+        'lru-dict >= 1.1.1',  # import as lru
         #'decorator',
     ]
 

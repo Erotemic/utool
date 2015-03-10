@@ -7,9 +7,10 @@ import six
 import functools
 import sys
 from utool._internal import meta_util_arg
-from utool.util_str import horiz_string, filesize_str
-from utool.util_inject import inject, get_injected_modules
-print, print_, printDBG, rrr, profile = inject(__name__, '[print]')
+from utool import util_str
+from utool import util_inject
+from utool import util_dict
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[print]')
 
 QUIET        = meta_util_arg.QUIET
 VERBOSE      = meta_util_arg.VERBOSE
@@ -17,8 +18,12 @@ NO_INDENT    = meta_util_arg.NO_INDENT
 SILENT       = meta_util_arg.SILENT
 
 
+def print_dict(dict_):
+    print(util_dict.dict_str(dict_))
+
+
 def horiz_print(*args):
-    toprint = horiz_string(args)
+    toprint = util_str.horiz_string(args)
     print(toprint)
 
 
@@ -41,7 +46,7 @@ class Indenter(object):
         self.enabled = enabled
         if not NO_INDENT or not self.enabled:
             #self.modules = modules
-            self.modules = get_injected_modules()
+            self.modules = util_inject.get_injected_modules()
             self.old_print_dict = {}
             #self.old_prints_ = {}
             self.old_printDBG_dict = {}
@@ -176,7 +181,7 @@ def printWARN(msg):
 
 
 def print_filesize(fpath):
-    print(filesize_str(fpath))
+    print(util_str.filesize_str(fpath))
 
 
 def printif(func, condition=VERBOSE and not QUIET):

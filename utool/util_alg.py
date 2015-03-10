@@ -12,8 +12,9 @@ except ImportError:
     # TODO remove numpy
     pass
 from collections import defaultdict
+import operator
 import six
-from six.moves import zip, range
+from six.moves import zip, range, reduce  # NOQA
 from utool import util_type
 from utool import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
@@ -324,7 +325,7 @@ def group_items(item_list, groupid_list):
         dict: groupid2_items mapping groupids to a list of items
 
     SeeAlso:
-        vtool.group_indicies - much faster numpy grouping algorithm
+        vtool.group_indices - much faster numpy grouping algorithm
         vtool.apply_gropuing - second part to faster numpy grouping algorithm
 
     Example:
@@ -430,18 +431,11 @@ def get_phi_ratio1():
     return 1.0 / get_phi()
 
 
-def iceil(num):
-    """ Integer ceiling. (because numpy doesn't have it! """
-    return int(np.ceil(num))
-
-
-def iround(num):
-    """ Integer round. (because numpy doesn't have it! """
-    return int(round(num))
-
-
 def is_prime(num):
-    """ http://thelivingpearl.com/2013/01/06/how-to-find-prime-numbers-in-python/ """
+    """
+    References:
+        http://thelivingpearl.com/2013/01/06/how-to-find-prime-numbers-in-python/
+    """
     for j in range(2, num):
         if (num % j) == 0:
             return False
@@ -459,10 +453,10 @@ def enumerate_primes(max_prime=4100):
     return primes
 
 
-def get_nth_prime(n, max_prime=4100):
-    """ horribly inefficient but convinient for small tests """
+def get_nth_prime(n, max_prime=4100, safe=True):
+    """ hacky but still brute force algorithm for finding nth prime for small tests """
     if n <= 100:
-        first_100_primes = [
+        first_100_primes = (
             2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61,
             67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137,
             139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199,
@@ -470,24 +464,70 @@ def get_nth_prime(n, max_prime=4100):
             281, 283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 353, 359,
             367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439,
             443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521,
-            523, 541, ]
-        nth_prime = first_100_primes[n]
+            523, 541, )
+        print(len(first_100_primes))
+        nth_prime = first_100_primes[n - 1]
     else:
-        primes = [num for num in range(2, max_prime) if is_prime(num)]
-        nth_prime = primes[n]
+        if safe:
+            primes = [num for num in range(2, max_prime) if is_prime(num)]
+            nth_prime = primes[n]
+        else:
+            # This can run for a while... get it? while?
+            nth_prime = get_nth_prime_bruteforce(n)
+    return nth_prime
+
+
+def get_nth_prime_bruteforce(n):
+    num = 2
+    num_primes_found = 0
+    while True:
+        if is_prime(num):
+            num_primes_found += 1
+        if num_primes_found == n:
+            nth_prime = num
+            break
+        num += 1
     return nth_prime
 
 
 def inbounds(num, low, high, eq=False):
-    import operator
-    if isinstance(num, np.ndarray):
-        less    = operator.le if eq else operator.lt
-        greater = operator.ge if eq else operator.gt
-        and_ = np.logical_and
-    else:
-        less = operator.le if eq else operator.lt
-        greater = operator.ge if eq else operator.gt
-        and_ = operator.and_
+    r"""
+    Args:
+        num (scalar or ndarray):
+        low (scalar or ndarray):
+        high (scalar or ndarray):
+        eq (bool):
+
+    Returns:
+        scalar or ndarray: is_inbounds
+
+    CommandLine:
+        python -m utool.util_alg --test-inbounds
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
+        >>> # build test data
+        >>> num = np.array([[ 0.   ,  0.431,  0.279],
+        ...                 [ 0.204,  0.352,  0.08 ],
+        ...                 [ 0.107,  0.325,  0.179]])
+        >>> low  = .1
+        >>> high = .4
+        >>> eq = False
+        >>> # execute function
+        >>> is_inbounds = inbounds(num, low, high, eq)
+        >>> # verify results
+        >>> result = ut.numpy_str(is_inbounds)
+        >>> print(result)
+        np.array([[False, False,  True],
+                  [ True,  True, False],
+                  [ True,  True,  True]], dtype=bool)
+
+    """
+    less    = operator.le if eq else operator.lt
+    greater = operator.ge if eq else operator.gt
+    and_ = np.logical_and if isinstance(num, np.ndarray) else operator.and_
     is_inbounds = and_(greater(num, low), less(num, high))
     return is_inbounds
 
@@ -516,6 +556,70 @@ def almost_eq(arr1, arr2, thresh=1E-11, ret_error=False):
         return passed, error
     return passed
 
+
+def knapsack(items, maxweight):
+    """
+    Solve the knapsack problem by finding the most valuable
+    subsequence of `items` subject that weighs no more than
+    `maxweight`.
+
+    Args:
+        `items` (tuple): is a sequence of tuples `(value, weight, id_)`, where `value`
+            is a number and `weight` is a non-negative integer, and `id_` is an
+            item identifier.
+
+        `maxweight` (scalar):  is a non-negative integer.
+
+    Returns:
+        tuple: a pair whose first element is the sum of values in the most
+            valuable subsequence, and whose second element is the subsequence.
+
+    References:
+        http://codereview.stackexchange.com/questions/20569/dynamic-programming-solution-to-knapsack-problem
+
+    CommandLine:
+        python -m utool.util_alg --test-knapsack
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> items = [(4, 12, 0), (2, 1, 1), (6, 4, 2), (1, 1, 3), (2, 2, 4)]
+        >>> result = knapsack(items, 15)
+        >>> print(result)
+        (11, [(2, 1, 1), (6, 4, 2), (1, 1, 3), (2, 2, 4)])
+    """
+
+    # Return the value of the most valuable subsequence of the first i
+    # elements in items whose weights sum to no more than j.
+    from utool import util_decor
+    @util_decor.memorize
+    def bestvalue(i, j):
+        if i == 0:
+            return 0
+        value, weight = items[i - 1][0:2]
+        if weight > j:
+            return bestvalue(i - 1, j)
+        else:
+            return max(bestvalue(i - 1, j),
+                       bestvalue(i - 1, j - weight) + value)
+
+    j = maxweight
+    result = []
+    for i in range(len(items), 0, -1):
+        if bestvalue(i, j) != bestvalue(i - 1, j):
+            result.append(items[i - 1])
+            j -= items[i - 1][1]
+    result.reverse()
+    return bestvalue(len(items), maxweight), result
+
+
+def cumsum(num_list):
+    """ python cumsum
+
+    References:
+        http://stackoverflow.com/questions/9258602/elegant-pythonic-cumsum
+    """
+    return reduce(lambda acc, itm: operator.iadd(acc, [acc[-1] + itm]), num_list, [0])[1:]
 
 if __name__ == '__main__':
     """

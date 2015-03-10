@@ -18,6 +18,65 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[list]')
 
 # --- List Allocations ---
 
+def lmap(func, iter_):
+    """
+    list map - eagerly evaulates map like in python2
+    (but you aren't using that right?)
+    """
+    return list(map(func, iter_))
+
+
+def replace_nones(list_, repl=-1):
+    r"""
+    Recursively removes Nones in all lists and sublists and replaces them with
+    the repl variable
+
+    Args:
+        list_ (list):
+        repl (obj): replacement value
+
+    Returns:
+        list
+
+    CommandLine:
+        python -m utool.util_list --test-replace_nones
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> # build test data
+        >>> list_ = [None, 0, 1, 2]
+        >>> repl = -1
+        >>> # execute function
+        >>> repl_list = replace_nones(list_, repl)
+        >>> # verify results
+        >>> result = str(repl_list)
+        >>> print(result)
+        [-1, 0, 1, 2]
+
+    """
+    repl_list = [
+        repl if item is None else (
+            replace_nones(item, repl) if isinstance(item, list) else item
+        )
+        for item in list_
+    ]
+    return repl_list
+
+
+def recursive_replace(list_, target, repl=-1):
+    r"""
+    Recursively removes target in all lists and sublists and replaces them with
+    the repl variable
+    """
+    repl_list = [
+        recursive_replace(item, target, repl) if isinstance(item, (list, np.ndarray)) else
+        (repl if item == target else item)
+        for item in list_
+    ]
+    return repl_list
+
+
 def alloc_lists(num_alloc):
     """ allocates space for a ``list`` of lists """
     return [[] for _ in range(num_alloc)]
@@ -48,14 +107,20 @@ def ensure_list_size(list_, size_):
 
 def get_list_column(list_, colx):
     r"""
+    accepts a list of (indexables) and returns a list of indexables
+    can also return a list of list of indexables if colx is a list
+
     Args:
         list_ (list):  list of lists
-        colx (int):  position in each sublist get item
+        colx (int or list): index or key in each sublist get item
 
     Returns:
         list: list of selected items
 
-    Example:
+    CommandLine:
+        python -m utool.util_list --test-get_list_column
+
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> list_ = [['a', 'b'], ['c', 'd']]
@@ -72,12 +137,23 @@ def get_list_column(list_, colx):
         >>> result = get_list_column(list_, colx)
         >>> print(result)
         [['b', 'a'], ['d', 'c']]
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [{'spam': 'EGGS', 'ham': 'SPAM'}, {'spam': 'JAM', 'ham': 'PRAM'},]
+        >>> # colx can be a key or list of keys as well
+        >>> colx = ['spam']
+        >>> result = get_list_column(list_, colx)
+        >>> print(result)
+        [['EGGS'], ['JAM']]
     """
-    if isinstance(colx, list):
-        # multi select
-        return [[row[colx_] for colx_ in colx] for row in list_]
-    else:
-        return [row[colx] for row in list_]
+    return list(util_iter.iget_list_column(list_, colx))
+    #if isinstance(colx, list):
+    #    # multi select
+    #    return [[row[colx_] for colx_ in colx] for row in list_]
+    #else:
+    #    return [row[colx] for row in list_]
 
 
 #def get_list_row(list_, rowx):
@@ -210,7 +286,7 @@ def flatten(list_):
     return list(util_iter.iflatten(list_))
 
 
-def invertable_flatten(unflat_list):
+def invertible_flatten(unflat_list):
     """
     Flattens ``list`` but remember how to reconstruct the unflat ``list``
     Returns flat ``list`` and the unflat ``list`` with indexes into the flat
@@ -234,7 +310,7 @@ def invertable_flatten(unflat_list):
 
 
 def unflatten(flat_list, reverse_list):
-    """ Rebuilds unflat list from invertable_flatten
+    """ Rebuilds unflat list from invertible_flatten
 
     Args:
         flat_list (list): the flattened list
@@ -245,8 +321,8 @@ def unflatten(flat_list, reverse_list):
 
 
     SeeAlso:
-        invertable_flatten
-        invertable_flatten2
+        invertible_flatten
+        invertible_flatten2
         unflatten2
 
     """
@@ -254,9 +330,9 @@ def unflatten(flat_list, reverse_list):
     return unflat_list2
 
 
-def invertable_flatten2(unflat_list):
+def invertible_flatten2(unflat_list):
     """
-    An alternative to invertable_flatten which uses cumsum
+    An alternative to invertible_flatten which uses cumsum
 
     TODO: This flatten is faster fix it to be used everywhere
 
@@ -270,7 +346,7 @@ def invertable_flatten2(unflat_list):
         >>> import utool
         >>> utool.util_list
         >>> unflat_list = [[5], [2, 3, 12, 3, 3], [9], [13, 3], [5]]
-        >>> flat_list, cumlen_list = invertable_flatten2(unflat_list)
+        >>> flat_list, cumlen_list = invertible_flatten2(unflat_list)
         >>> unflat_list2 = unflatten2(flat_list, cumlen_list)
         >>> assert unflat_list2 == unflat_list
         >>> result = ((flat_list, cumlen_list))
@@ -278,15 +354,15 @@ def invertable_flatten2(unflat_list):
         ([5, 2, 3, 12, 3, 3, 9, 13, 3, 5], [1, 6, 7, 9, 10])
 
     SeeAlso:
-        invertable_flatten
+        invertible_flatten
         unflatten
         unflatten2
 
     Timeits:
         import utool
         unflat_list = aids_list1
-        flat_aids1, reverse_list = utool.invertable_flatten(unflat_list)
-        flat_aids2, cumlen_list = utool.invertable_flatten2(unflat_list)
+        flat_aids1, reverse_list = utool.invertible_flatten(unflat_list)
+        flat_aids2, cumlen_list = utool.invertible_flatten2(unflat_list)
         unflat_list1 = utool.unflatten(flat_aids1, reverse_list)
         unflat_list2 = utool.unflatten2(flat_aids2, cumlen_list)
         assert list(map(list, unflat_list1)) == unflat_list2
@@ -298,10 +374,10 @@ def invertable_flatten2(unflat_list):
         print(utool.get_object_size_str(unflat_list1, 'unflat_list1 '))
         print(utool.get_object_size_str(unflat_list2, 'unflat_list2 '))
         print('Timings 1:)
-        %timeit utool.invertable_flatten(unflat_list)
+        %timeit utool.invertible_flatten(unflat_list)
         %timeit utool.unflatten(flat_aids1, reverse_list)
         print('Timings 2:)
-        %timeit utool.invertable_flatten2(unflat_list)
+        %timeit utool.invertible_flatten2(unflat_list)
         %timeit utool.unflatten2(flat_aids2, cumlen_list)
     """
     sublen_list = list(map(len, unflat_list))
@@ -326,7 +402,7 @@ def accumulate(iterator):
 
 
 def unflatten2(flat_list, cumlen_list):
-    """ Rebuilds unflat list from invertable_flatten
+    """ Rebuilds unflat list from invertible_flatten
 
     Args:
         flat_list (list): the flattened list
@@ -337,8 +413,8 @@ def unflatten2(flat_list, cumlen_list):
 
 
     SeeAlso:
-        invertable_flatten
-        invertable_flatten2
+        invertible_flatten
+        invertible_flatten2
         unflatten2
 
     Example:
@@ -412,7 +488,7 @@ def unflat_unique_rowid_map(func, unflat_rowids, **kwargs):
     """
     import utool as ut
     # First flatten the list, and remember the original dimensions
-    flat_rowids, reverse_list = ut.invertable_flatten2(unflat_rowids)
+    flat_rowids, reverse_list = ut.invertible_flatten2(unflat_rowids)
     # Then make the input unique
     flat_rowids_arr = np.array(flat_rowids)
     unique_flat_rowids, inverse_unique = np.unique(flat_rowids_arr, return_inverse=True)
@@ -803,6 +879,8 @@ def sortedby2(item_list, *args, **kwargs):
 
     Args:
         item_list (list): list to sort
+
+    Varargs:
         *args (list): multiple lists to sort by
 
     Kwargs:
@@ -837,14 +915,55 @@ def sortedby2(item_list, *args, **kwargs):
 
 
 def list_argsort(*args, **kwargs):
-    """ like np.argsort but for lists """
+    """ like np.argsort but for lists
+
+    Varargs:
+        *args (list): multiple lists to sort by
+
+    Kwargs:
+        reverse (bool): sort order is descending if True else acscending
+    """
     index_list = list(range(len(args[0])))
     return sortedby2(index_list, *args, **kwargs)
 
 
 def list_take(list_, index_list):
-    """ like np.take but for lists """
-    return [list_[ix] for ix in index_list]
+    """ like np.take but for lists
+
+    Args:
+        list_ (list):
+        index_list (list):
+
+    Returns:
+        list or scalar:
+
+    CommandLine:
+        python -m utool.util_list --test-list_take
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [0, 1, 2, 3]
+        >>> index_list = [2, 0]
+        >>> result = list_take(list_, index_list)
+        >>> print(result)
+        [2, 0]
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [0, 1, 2, 3]
+        >>> index = 2
+        >>> result = list_take(list_, index)
+        >>> print(result)
+        2
+    """
+    try:
+        return [list_[index] for index in index_list]
+    except TypeError:
+        return list_[index_list]
+    #if util_iter.isiterable(index_list):
+    #else:
 
 
 def list_where(flag_list):
@@ -955,6 +1074,27 @@ def sample_lists(items_list, num=1, seed=None):
     return samples_list
 
 
+def strided_sample(items, num, offset=0):
+    r"""
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> # build test data
+        >>> items = [1, 2, 3, 4, 5]
+        >>> num = 3
+        >>> offset = 0
+        >>> # execute function
+        >>> sample_items = strided_sample(items, num, offset)
+        >>> # verify results
+        >>> result = str(sample_items)
+        >>> print(result)
+    """
+    import math
+    stride = max(int(math.ceil(len(items) / num)), 1)
+    sample_items = items[offset::stride]
+    return sample_items
+
+
 def issorted(list_, op=operator.le):
     """
     Args:
@@ -967,7 +1107,7 @@ def issorted(list_, op=operator.le):
     return all(op(list_[ix], list_[ix + 1]) for ix in range(len(list_) - 1))
 
 
-def find_nonconsec_indicies(unique_vals, consec_vals):
+def find_nonconsec_indices(unique_vals, consec_vals):
     """
     # TODO: rectify with above function
 
@@ -987,7 +1127,7 @@ def find_nonconsec_indicies(unique_vals, consec_vals):
         >>> min_ = unique_vals.min()
         >>> range_ = max_ - min_
         >>> consec_vals = np.linspace(min_, max_ + 1, range_ + 2)
-        >>> missing_ixs = find_nonconsec_indicies(unique_vals, consec_vals)
+        >>> missing_ixs = find_nonconsec_indices(unique_vals, consec_vals)
         >>> result = (consec_vals[missing_ixs])
         [ 0.  3.  4.  5.  6.  7.  8.  9.]
     """
@@ -1006,20 +1146,20 @@ def find_nonconsec_indicies(unique_vals, consec_vals):
 def debug_consec_list(list_):
     """
     Returns:
-        tuple of (missing_items, missing_indicies, duplicate_items)
+        tuple of (missing_items, missing_indices, duplicate_items)
     """
     if not issorted(list_):
-        print('warning list is not sorted. indicies will not match')
+        print('warning list is not sorted. indices will not match')
     sortedlist = sorted(list_)
     start = sortedlist[0]
     last = start - 1
     missing_vals = []
-    missing_indicies = []
+    missing_indices = []
     duplicate_items = []
     for count, item in enumerate(sortedlist):
         diff = item - last
         if diff > 1:
-            missing_indicies.append(count)
+            missing_indices.append(count)
             for miss in range(last + 1, last + diff):
                 missing_vals.append(miss)
         elif diff == 0:
@@ -1030,7 +1170,7 @@ def debug_consec_list(list_):
         else:
             raise AssertionError('We sorted the list. diff can not be negative')
         last = item
-    return missing_vals, missing_indicies, duplicate_items
+    return missing_vals, missing_indices, duplicate_items
 
 
 def find_duplicate_items(items):
@@ -1085,7 +1225,7 @@ def print_duplicate_map(duplicate_map, *args, **kwargs):
     printfn = kwargs.get('printfn', print)
     printfn('There are %d duplicates' % (len(duplicate_map)))
     for key, index_list in six.iteritems(duplicate_map):
-        printfn('item=%s appears %d times at indicies: %r' % (key, len(index_list), index_list))
+        printfn('item=%s appears %d times at indices: %r' % (key, len(index_list), index_list))
         for argx, arg in enumerate(args):
             #argname = 'arg%d' % (argx)
             argname = ut.get_varname_from_stack(arg, N=2)
@@ -1096,8 +1236,8 @@ def print_duplicate_map(duplicate_map, *args, **kwargs):
 
 def debug_duplicate_items(items, *args, **kwargs):
     import utool as ut
-    separate = kwargs.get('separate', True)
-    if separate:
+    pad_stdout = kwargs.get('pad_stdout', True)
+    if pad_stdout:
         print('')
 
     print('[util_list] +--- DEBUG DUPLICATE ITEMS  %r ---' % ut.get_varname_from_locals(items, ut.get_caller_locals()))
@@ -1108,7 +1248,7 @@ def debug_duplicate_items(items, *args, **kwargs):
     printkw = {'printfn': printfn}
     ut.print_duplicate_map(duplicate_map, *args, **printkw)
     print('[util_list] L--- FINISH DEBUG DUPLICATE ITEMS ---')
-    if separate:
+    if pad_stdout:
         print('')
     return duplicate_map
 
@@ -1150,17 +1290,47 @@ def list_deep_types(list_):
     return type_list
 
 
-def depth_profile(list_):
+def depth_profile(list_, max_depth=None, compress_homogenous=True):
     """
-    Returns a nested list corresponding the shape of the nested structure
+    Returns a nested list corresponding the shape of the nested structures
+    lists represent depth, tuples represent shape. The values of the items do
+    not matter. only the lengths.
 
-    Example:
+    CommandLine:
+        python -m utool.util_list --test-depth_profile
+
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
-        >>> list_ = [[[[[1]]], [3, 4, 33]], [[1], [3]], [[1], [3]]]
-        >>> result = (depth_profile(list_))
+        >>> list_ = [[[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]], [[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]]]
+        >>> result = depth_profile(list_)
         >>> print(result)
-        [[[[1]], 3], [1, 1], [1, 1]]
+        (2, 3, 4)
+
+    Example0:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [[[[[1]]], [3, 4, 33]], [[1], [2, 3], [4, [5, 5]]], [1, 3]]
+        >>> result = depth_profile(list_)
+        >>> print(result)
+        [[(1, 1, 1), 3], [1, 2, [1, 2]], 2]
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [[[[[1]]], [3, 4, 33]], [[1], [2, 3], [4, [5, 5]]], [1, 3]]
+        >>> result = depth_profile(list_, 1)
+        >>> print(result)
+        [[(1, '1'), 3], [1, 2, [1, '2']], 2]
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [[[1, 2], [1, 2, 3]], None]
+        >>> result = depth_profile(list_, compress_homogenous=True)
+        >>> print(result)
+        [[2, 3], 1]
+
     """
     level_shape_list = []
     # For a pure bottom level list return the length
@@ -1168,8 +1338,53 @@ def depth_profile(list_):
         return len(list_)
     for item in list_:
         if is_listlike(item):
-            level_shape_list.append(depth_profile(item))
+            if max_depth is None:
+                level_shape_list.append(depth_profile(item, None))
+            else:
+                if max_depth >= 0:
+                    level_shape_list.append(depth_profile(item, max_depth - 1))
+                else:
+                    level_shape_list.append(str(len(item)))
+        else:
+            level_shape_list.append(1)
+
+    if compress_homogenous:
+        # removes redudant information by returning a shape duple
+        if list_allsame(level_shape_list):
+            dim_ = level_shape_list[0]
+            len_ = len(level_shape_list)
+            if isinstance(dim_, tuple):
+                level_shape_list = tuple([len_] + list(dim_))
+            else:
+                level_shape_list = tuple([len_, dim_])
+
     return level_shape_list
+
+
+def list_type_profile(sequence, compress_homogenous=True):
+    """ similar to depth_profile but reports types """
+    # For a pure bottom level list return the length
+    #if not any(map(is_listlike, sequence)) or (isinstance(sequence, np.ndarray) and sequence.dtype != object):
+    if not is_listlike(sequence) or (isinstance(sequence, np.ndarray) and sequence.dtype != object):
+        typename = str(type(sequence)).replace('<type \'', '').replace('\'>', '')
+        level_type_str = typename
+        return level_type_str
+
+    level_type_list = []
+    for item in sequence:
+        #if is_listlike(item):
+        level_type_list.append(list_type_profile(item))
+
+    if compress_homogenous:
+        # removes redudant information by returning a type and number
+        if list_allsame(level_type_list):
+            type_ = level_type_list[0]
+            level_type_str = str(type_) + '*' + str(len(level_type_list))
+        else:
+            level_type_str = ', '.join(level_type_list)
+    typename = str(type(sequence)).replace('<type \'', '').replace('\'>', '')
+    level_type_str = typename + '(' + str(level_type_str) + ')'
+    return level_type_str
 
 
 def list_cover(list1, list2):
@@ -1208,6 +1423,29 @@ def and_lists(*args):
     return [all(tup) for tup in zip(*args)]
 
 
+def xor_lists(*args):
+    r"""
+    Returns:
+        list:
+
+    CommandLine:
+        python -m utool.util_list --test-xor_lists
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> args = ([True, False, False, True], [True, True, False, False])
+        >>> result = xor_lists(*args)
+        >>> print(result)
+        [False, True, False, True]
+    """
+    return [reduce(operator.xor, tup) for tup in zip(*args)]
+
+
+def not_list(flag_list):
+    return [not flag for flag in flag_list]
+
+
 def or_lists(*args):
     return [any(tup) for tup in zip(*args)]
 
@@ -1220,7 +1458,7 @@ def make_sortby_func(item_list, reverse=False):
     return sortby_func
 
 
-def find_first_true_indicies(flags_list):
+def find_first_true_indices(flags_list):
     """
     returns a list of indexes where the index is the first True position
     in the corresponding sublist or None if it does not exist
@@ -1231,16 +1469,18 @@ def find_first_true_indicies(flags_list):
         flags_list (list): list of lists of booleans
 
     CommandLine:
-        python -m utool.util_list --test-find_first_true_indicies
+        python -m utool.util_list --test-find_first_true_indices
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> # build test data
-        >>> flags_list = [[True, False, True], [False, False, False],
-        ...               [False, True, True], [False, False, True]]
+        >>> flags_list = [[True, False, True],
+        ...               [False, False, False],
+        ...               [False, True, True],
+        ...               [False, False, True]]
         >>> # execute function
-        >>> index_list = find_first_true_indicies(flags_list)
+        >>> index_list = find_first_true_indices(flags_list)
         >>> # verify results
         >>> result = str(index_list)
         >>> print(result)
@@ -1254,26 +1494,28 @@ def find_first_true_indicies(flags_list):
     return index_list
 
 
-def find_next_true_indicies(flags_list, offset_list):
+def find_next_true_indices(flags_list, offset_list):
     """
-    Uses output of either this function or find_first_true_indicies
+    Uses output of either this function or find_first_true_indices
     to find the next index of true flags
 
     Args:
         flags_list (list): list of lists of booleans
 
     CommandLine:
-        python -m utool.util_list --test-find_next_true_indicies
+        python -m utool.util_list --test-find_next_true_indices
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> # build test data
-        >>> flags_list = [[True, False, True], [False, False, False],
-        ...               [False, True, True], [False, False, True]]
-        >>> offset_list = find_first_true_indicies(flags_list)
+        >>> flags_list = [[True, False, True],
+        ...               [False, False, False],
+        ...               [False, True, True],
+        ...               [False, False, True]]
+        >>> offset_list = find_first_true_indices(flags_list)
         >>> # execute function
-        >>> index_list = find_next_true_indicies(flags_list, offset_list)
+        >>> index_list = find_next_true_indices(flags_list, offset_list)
         >>> # verify results
         >>> result = str(index_list)
         >>> print(result)
@@ -1294,6 +1536,38 @@ def filter_startswith(list_, str_):
     def item_startswith(item):
         return item.startswith(str_)
     return list(filter(item_startswith, list_))
+
+
+def list_rotate(list_, n):
+    """
+    Args:
+        list_ (list):
+        n (int):
+
+    Returns:
+        list:
+
+    References:
+        http://stackoverflow.com/questions/9457832/python-list-rotation
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [1, 2, 3, 4, 5]
+        >>> n = 2
+        >>> result = list_rotate(list_, n)
+        >>> print(result)
+        [3, 4, 5, 1, 2]
+    """
+    return list_[n:] + list_[:n]
+
+
+def list_argmax(list_):
+    return np.argmax(np.array(list_))
+
+
+def make_index_lookup(list_):
+    return dict(zip(list_, range(len(list_))))
 
 
 if __name__ == '__main__':

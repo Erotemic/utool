@@ -1,25 +1,31 @@
 """
-python -c "import utool, doctest; print(doctest.testmod(utool.util_str))"
+Module that handles string formating and manipulation of varoius data
 """
 from __future__ import absolute_import, division, print_function
 import sys
 import six
 import textwrap
 from six.moves import map, range
+import itertools
 import math
 from os.path import split
-from utool.util_inject import inject
-from utool.util_time import get_unix_timedelta
-from utool._internal.meta_util_six import get_funcname
-print, print_, printDBG, rrr, profile = inject(__name__, '[str]')
+from utool import util_type
+from utool import util_inject
+from utool import util_time  # import get_unix_timedelta
+from utool._internal import meta_util_six  # import get_funcname
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[str]')
 
-
-TAU = (2 * math.pi)  # References: tauday.com
+if util_type.HAS_NUMPY:
+    import numpy as np
+    TAU = (2 * np.pi)  # References: tauday.com
+else:
+    TAU = (2 * math.pi)  # References: tauday.com
 
 TRIPLE_DOUBLE_QUOTE = r'"' * 3
 TRIPLE_SINGLE_QUOTE = r"'" * 3
 SINGLE_QUOTE = r"'"
 DOUBLE_QUOTE = r'"'
+NEWLINE = '\n'
 
 TAUFMTSTR = '{coeff:,.1f}{taustr}'
 if '--myway' not in sys.argv:
@@ -90,13 +96,29 @@ def tupstr(tuple_):
 # --- Strings ----
 
 
-def remove_chars(instr, illegals_chars):
+def remove_chars(str_, char_list):
     """
-    replaces all illegal characters in instr with ''
+    removes all chars in char_list from str_
+
+    Args:
+        str_ (str):
+        char_list (list):
+
+    Returns:
+        str: outstr
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> str_ = '1, 2, 3, 4'
+        >>> char_list = [',']
+        >>> result = remove_chars(str_, char_list)
+        >>> print(result)
+        1 2 3 4
     """
-    outstr = instr
-    for ill_char in iter(illegals_chars):
-        outstr = outstr.replace(ill_char, '')
+    outstr = str_[:]
+    for char in char_list:
+        outstr = outstr.replace(char, '')
     return outstr
 
 
@@ -177,7 +199,7 @@ def indentjoin(strlist, indent='\n    ', suffix=''):
         suffix  (str):
 
     Returns:
-        str: joineed list
+        str: joined list
     """
     indent_ = indent
     strlist = list(strlist)
@@ -223,6 +245,8 @@ def __OLD_pack_into(instr, textwidth=160, breakchars=' ', break_words=True,
 def pack_into(instr, textwidth=160, breakchars=' ', break_words=True,
               newline_prefix='', wordsep=' ', remove_newlines=True):
     r"""
+
+    DEPRICATE IN FAVOR OF textwrap.wrap
 
     TODO: Look into textwrap.wrap
 
@@ -512,7 +536,7 @@ def func_str(func, args=[], kwargs={}, type_aliases=[], packed=False,
     """
     repr_list = list_aliased_repr(args, type_aliases) + dict_aliased_repr(kwargs)
     argskwargs_str = newlined_list(repr_list, ', ', textwidth=80)
-    func_str = '%s(%s)' % (get_funcname(func), argskwargs_str)
+    func_str = '%s(%s)' % (meta_util_six.get_funcname(func), argskwargs_str)
     if packed:
         packkw_ = dict(textwidth=80, nlprefix='    ', break_words=False)
         if packkw is not None:
@@ -521,7 +545,136 @@ def func_str(func, args=[], kwargs={}, type_aliases=[], packed=False,
     return func_str
 
 
-def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True, recursive=True, indent_=''):
+def array_repr2(arr, max_line_width=None, precision=None, suppress_small=None, force_dtype=False):
+    """ extended version of numpy.array_repr
+
+    ut.editfile(np.core.numeric.__file__)
+
+    On linux:
+    _typelessdata [numpy.int64, numpy.float64, numpy.complex128, numpy.int64]
+
+    On BakerStreet
+    _typelessdata [numpy.int32, numpy.float64, numpy.complex128, numpy.int32]
+
+    # WEIRD
+    np.int64 is np.int64
+    _typelessdata[0] is _typelessdata[-1]
+    _typelessdata[0] == _typelessdata[-1]
+
+
+    id(_typelessdata[-1])
+    id(_typelessdata[0])
+
+
+    from numpy.core.numeric import _typelessdata
+    _typelessdata
+
+    Referencs:
+        http://stackoverflow.com/questions/28455982/why-are-there-two-np-int64s-in-numpy-core-numeric-typelessdata-why-is-numpy-in/28461928#28461928
+    """
+    from numpy.core.numeric import _typelessdata
+
+    if arr.__class__ is not np.ndarray:
+        cName = arr.__class__.__name__
+    else:
+        cName = 'array'
+
+    prefix = cName + '('
+
+    if arr.size > 0 or arr.shape == (0,):
+        lst = np.array2string(arr, max_line_width, precision, suppress_small, ', ', prefix)
+    else:
+        # show zero-length shape unless it is (0,)
+        lst = '[], shape=%s' % (repr(arr.shape),)
+
+    skipdtype = ((arr.dtype.type in _typelessdata) and arr.size > 0)
+
+    if skipdtype and not (cName == 'array' and force_dtype):
+        return '%s(%s)' % (cName, lst)
+    else:
+        typename = arr.dtype.name
+        # Quote typename in the output if it is 'complex'.
+        if typename and not (typename[0].isalpha() and typename.isalnum()):
+            typename = '\'%s\'' % typename
+
+        lf = ''
+        if issubclass(arr.dtype.type, np.flexible):
+            if arr.dtype.names:
+                typename = '%s' % str(arr.dtype)
+            else:
+                typename = '\'%s\'' % str(arr.dtype)
+            lf = '\n' + ' ' * len(prefix)
+        return cName + '(%s, %sdtype=%s)' % (lst, lf, typename)
+
+
+def numpy_str(arr, strvals=False, precision=8, pr=None, force_dtype=True):
+    if pr is not None:
+        precision = pr
+    # TODO: make this a util_str func for numpy reprs
+    if strvals:
+        valstr = np.array_str(arr, precision=precision)
+    else:
+        #valstr = np.array_repr(arr, precision=precision)
+        valstr = array_repr2(arr, precision=precision, force_dtype=force_dtype)
+        numpy_vals = itertools.chain(util_type.NUMPY_SCALAR_NAMES, ['array'])
+        for npval in numpy_vals:
+            valstr = valstr.replace(npval, 'np.' + npval)
+    if valstr.find('\n') >= 0:
+        # Align multiline arrays
+        valstr = valstr.replace('\n', '\n   ')
+        pass
+    return valstr
+
+
+def numeric_str(num, precision=8, **kwargs):
+    """
+    Args:
+        num (scalar or array):
+        precision (int):
+
+    Returns:
+        str:
+
+    CommandLine:
+        python -m utool.util_str --test-numeric_str
+
+    References:
+        http://stackoverflow.com/questions/4541155/check-if-a-number-is-int-or-float
+
+    Notes:
+        isinstance(np.array([3], dtype=np.uint8)[0], numbers.Integral)
+        isinstance(np.array([3], dtype=np.int32)[0], numbers.Integral)
+        isinstance(np.array([3], dtype=np.uint64)[0], numbers.Integral)
+        isinstance(np.array([3], dtype=object)[0], numbers.Integral)
+        isinstance(np.array([3], dtype=np.float32)[0], numbers.Integral)
+        isinstance(np.array([3], dtype=np.float64)[0], numbers.Integral)
+
+    CommandLine:
+        python -m utool.util_str --test-numeric_str
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> precision = 2
+        >>> result = [numeric_str(num, precision) for num in [1, 2.0, 3.43343,4432]]
+        >>> print(result)
+        ['1', '2.00', '3.43', '4432']
+    """
+    import numbers
+    if np.isscalar(num):
+        if not isinstance(num, numbers.Integral):
+            fmtstr = ('%.' + str(precision) + 'f')
+            return fmtstr  % num
+        else:
+            return '%d' % (num)
+        return
+    else:
+        return numpy_str(num, precision=precision, **kwargs)
+
+
+def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True,
+                      recursive=True, indent_='', precision=8,
+                      hack_liststr=False):
     """
     Returns:
         list: a list of human-readable dictionary items
@@ -557,7 +710,11 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True, recurs
             # recursive call
             return dict_str(val, strvals=strvals, sorted_=sorted_,
                             newlines=newlines, recursive=recursive,
-                            indent_=indent_ + '    ')
+                            indent_=indent_ + '    ', precision=precision)
+        elif util_type.HAS_NUMPY and isinstance(val, np.ndarray):
+            return numpy_str(val, strvals=strvals, precision=precision)
+        if hack_liststr and isinstance(val, list):
+            return list_str(val)
         else:
             # base case
             return valfunc(val)
@@ -568,37 +725,141 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True, recurs
     #        return six.iteritems(x)
     #    except AttributeError:
     #        return iter(x.items())
-    fmtstr = indent_ + '%r: %s,'
     if sorted_:
         iteritems = lambda iter_: iter(sorted(six.iteritems(iter_)))
 
-    if recursive:
-        itemstr_list = [fmtstr % (key, recursive_valfunc(val)) for (key, val) in iteritems(dict_)]
+    _valstr = recursive_valfunc if recursive else valfunc
+    OLD = False
+    if OLD:
+        fmtstr = indent_ + '%r: %s,'
+        itemstr_list = [fmtstr % (key, _valstr(val)) for (key, val) in iteritems(dict_)]
     else:
-        itemstr_list = [fmtstr % (key, valfunc(val)) for (key, val) in iteritems(dict_)]
+        def make_item_str(key, val, indent_):
+            repr_str = repr(key) + ': '
+            val_str = _valstr(val)
+            #print('2)-----------')
+            #print(val_str)
+            # valstr is fine at this point
+            padded_indent = ' ' * min(len(indent_), len(repr_str))
+            val_str = val_str.replace('\n', '\n' + padded_indent)  # ' ' * val_indent)
+            #val_str = ut.indent(val_str, ' ' * val_indent)
+            item_str = repr_str + val_str + ','
+            #print('3)-----------')
+            #print(val_str)
+            #print('4)===========')
+            #print(item_str)
+            #print('===========')
+            return item_str
+
+        #if isinstance(dict_, dict)
+        itemstr_list = [make_item_str(key, val, indent_) for (key, val) in iteritems(dict_)]
+        # itemstr_list is fine too. weird
+    #import utool as ut
+    #ut.embed()
+    #itemstr_list = [fmtstr % (key, _valstr(val)) for (key, val) in iteritems(dict_)]
     return itemstr_list
 
 
-def list_str(list_):
-    return '[%s\n]' % indentjoin(list(list_), suffix=',')
-
-
-def dict_str(dict_, strvals=False, sorted_=False, newlines=True, recursive=True, indent_=''):
+def get_itemstr_list(list_, strvals=False, newlines=True,
+                      recursive=True, indent_='', precision=8):
     """
+    TODO: have this replace dict_itemstr list or at least most functionality in
+    it. have it make two itemstr lists over keys and values and then combine
+    them.
+    """
+    if strvals:
+        valfunc = str
+    else:
+        valfunc = repr
+
+    def recursive_valfunc(val):
+        new_indent = indent_ + '    ' if newlines else indent_
+        if isinstance(val, dict):
+            # recursive call
+            return dict_str(val, strvals=strvals, newlines=newlines,
+                            recursive=recursive, indent_=new_indent,
+                            precision=precision)
+        if isinstance(val, (tuple, list)):
+            return list_str(val, strvals=strvals, newlines=newlines,
+                            recursive=recursive, indent_=new_indent,
+                            precision=precision)
+        elif util_type.HAS_NUMPY and isinstance(val, np.ndarray):
+            return numpy_str(val, strvals=strvals, precision=precision)
+        else:
+            # base case
+            return valfunc(val)
+
+    _valstr = recursive_valfunc if recursive else valfunc
+
+    def make_item_str(item):
+        val_str = _valstr(item)
+        item_str = val_str + ','
+        return item_str
+
+    itemstr_list = [make_item_str(item) for item in list_]
+    return itemstr_list
+
+
+def list_str(list_, indent_='', newlines=1, nobraces=False, *args, **kwargs):
+    #return '[%s\n]' % indentjoin(list(list_), suffix=',')
+    if isinstance(newlines, int):
+        new_newlines = newlines - 1
+    elif newlines is True:
+        new_newlines = newlines
+    else:
+        new_newlines = False
+
+    itemstr_list = get_itemstr_list(list_, indent_=indent_, newlines=new_newlines, *args, **kwargs)
+    if isinstance(list_, tuple):
+        leftbrace, rightbrace  = '(', ')'
+    else:
+        leftbrace, rightbrace  = '[', ']'
+
+    if newlines:
+        import utool as ut
+        if nobraces:
+            body_str = '\n'.join(itemstr_list)
+            return body_str
+        else:
+            body_str = '\n'.join([ut.indent(itemstr) for itemstr in itemstr_list])
+            braced_body_str = (leftbrace + '\n' + body_str + '\n' + rightbrace)
+            return braced_body_str
+        #return (leftbrace + indentjoin(itemstr_list) + '\n' + indent_ + rightbrace)
+    else:
+        # hack away last comma
+        sequence_str = ' '.join(itemstr_list)
+        sequence_str = sequence_str.rstrip(',')
+        return (leftbrace + sequence_str +  rightbrace)
+
+
+def dict_str(dict_, strvals=False, sorted_=False, newlines=True, recursive=True,
+             indent_='', precision=8, hack_liststr=False):
+    """
+    FIXME: ALL LIST DICT STRINGS ARE VERY SPAGEHETTI RIGHT NOW
     Returns:
         str: a human-readable and execable string representation of a dictionary
+
     Example:
         >>> from utool.util_str import dict_str, dict_itemstr_list
         >>> import utool
         >>> REPO_CONFIG = utool.get_default_repo_config()
-        >>> repo_cfgstr   = dict_str(REPO_CONFIG, strvals=True)
+        >>> repo_cfgstr   = dict_str(REPO_CONFIG, strvals=True)'
         >>> print(repo_cfgstr)
     """
-    itemstr_list = dict_itemstr_list(dict_, strvals, sorted_, newlines, recursive, indent_)
+    if len(dict_) == 0:
+        return '{}'
+    itemstr_list = dict_itemstr_list(dict_, strvals, sorted_, newlines,
+                                     recursive, indent_, precision, hack_liststr)
+    leftbrace, rightbrace  = '{', '}'
     if newlines:
-        return ('{%s\n' + indent_ + '}') % indentjoin(itemstr_list)
+        import utool as ut
+        body_str = '\n'.join([ut.indent(itemstr, '    ') for itemstr in itemstr_list])
+        retstr =  (leftbrace + '\n' + body_str + '\n' + rightbrace)
+        return retstr
+    #if newlines:
+    #    return ('{%s\n' + indent_ + '}') % indentjoin(itemstr_list)
     else:
-        return '{%s}' % ' '.join(itemstr_list)
+        return leftbrace + ' '.join(itemstr_list) + rightbrace
 
 
 def horiz_string(*args, **kwargs):
@@ -695,7 +956,7 @@ def str2(obj):
 
 def get_unix_timedelta_str(unixtime_diff):
     """ string representation of time deltas """
-    timedelta = get_unix_timedelta(unixtime_diff)
+    timedelta = util_time.get_unix_timedelta(unixtime_diff)
     sign = '+' if unixtime_diff >= 0 else '-'
     timedelta_str = sign + str(timedelta)
     return timedelta_str
@@ -720,7 +981,7 @@ def padded_str_range(start, end):
 def get_callable_name(func):
     """ Works on must functionlike objects including str, which has no func_name """
     try:
-        return get_funcname(func)
+        return meta_util_six.get_funcname(func)
     except AttributeError:
         builtin_function_name_dict = {
             len:    'len',
@@ -791,6 +1052,18 @@ def align_lines(line_list, character='='):
         a     = b
         one   = two
         three = fish
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> line_list = 'foofish:\n    a = b\n    one    = two\n    three    = fish\n'.split('\n')
+        >>> character = '='
+        >>> new_lines = align_lines(line_list, character)
+        >>> print('\n'.join(new_lines))
+        foofish:
+            a        = b
+            one      = two
+            three    = fish
     """
 
     tup_list = [line.split(character) for line in line_list]
@@ -820,6 +1093,8 @@ def get_freespace_str(dir_='.'):
 # FIXME: HASHLEN is a global var in util_hash
 def long_fname_format(fmt_str, fmt_dict, hashable_keys=[], max_len=64, hashlen=16, ABS_MAX_LEN=255):
     """
+    Formats a string and hashes certain parts if the resulting string becomes
+    too long. Used for making filenames fit onto disk.
 
     Args:
         fmt_str (str): format of fname
@@ -948,7 +1223,7 @@ def msgblock(key, text):
     blocked_text = ''.join(
         [' + --- ', key, ' ---\n'] +
         [' | ' + line + '\n' for line in text.split('\n')] +
-        [' L --- ', key, ' ---\n']
+        [' L ___ ', key, ' ___\n']
     )
     return blocked_text
 
@@ -970,12 +1245,35 @@ def number_text_lines(text):
 
 
 def get_textdiff(text1, text2):
-    """
+    r"""
     Uses difflib to return a difference string between two
     similar texts
 
     References:
         http://www.java2s.com/Code/Python/Utility/IntelligentdiffbetweentextfilesTimPeters.htm
+
+    Args:
+        text1 (?):
+        text2 (?):
+
+    Returns:
+        ?:
+
+    CommandLine:
+        python -m utool.util_str --test-get_textdiff
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> # build test data
+        >>> text1 = 'one\ntwo\nthree'
+        >>> text2 = 'one\ntwo\nfive'
+        >>> # execute function
+        >>> result = get_textdiff(text1, text2)
+        >>> # verify results
+        >>> print(result)
+        - three
+        + five
     """
     import difflib
     text1_lines = text1.splitlines()
@@ -1028,6 +1326,28 @@ def cond_phrase(list_, cond='or'):
     else:
         condstr = ''.join((', ' + cond, ' '))
         return ', '.join((', '.join(list_[:-2]), condstr.join(list_[-2:])))
+
+
+def doctest_code_line(line_str, varname=None, verbose=True):
+    varprefix = varname + ' = ' if varname is not None else ''
+    prefix1 = '>>> ' + varprefix
+    prefix2 = '\n... ' + (' ' * len(varprefix))
+    doctest_line_str = prefix1 + prefix2.join(line_str.split('\n'))
+    if verbose:
+        print(doctest_line_str)
+    return doctest_line_str
+
+
+def doctest_repr(var, varname=None, precision=2, verbose=True):
+    import utool as ut
+    varname_ = ut.get_varname_from_stack(var, N=1) if varname is None else varname
+    if isinstance(var, np.ndarray):
+        line_str = ut.numpy_str(var, precision=precision)
+    else:
+        line_str = repr(var)
+    doctest_line_str = doctest_code_line(line_str, varname=varname_, verbose=verbose)
+    return doctest_line_str
+
 
 if __name__ == '__main__':
     """

@@ -15,13 +15,25 @@ class PythonStatement(object):
         return self.stmt
 
 
-def write_modscript_alias(fpath, modname, pyscript='python'):
+def write_modscript_alias(fpath, modname, args='', pyscript='python'):
     """
     convinience function because $@ is annoying to paste into the terminal
     """
     import utool as ut
-    fmtstr = '{pyscript} -m {modname} $@'
-    cmdstr = fmtstr.format(pyscript=pyscript, modname=modname)
+    from os.path import splitext
+    allargs_dict = {
+        '.sh': ' $@',
+        '.bat': ' %1', }
+    _, script_ext = splitext(fpath)
+    if script_ext not in ['.sh', '.bat']:
+        script_ext = '.bat' if ut.WIN32 else 'sh'
+    allargs = (args + allargs_dict[script_ext]).strip(' ')
+    if not modname.endswith('.py'):
+        fmtstr = '{pyscript} -m {modname} {allargs}'
+    else:
+        fmtstr = '{pyscript} {modname} {allargs}'
+
+    cmdstr = fmtstr.format(pyscript=pyscript, modname=modname, allargs=allargs)
     ut.write_to(fpath, cmdstr)
     os.system('chmod +x ' + fpath)
 
@@ -260,27 +272,39 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
 
     # TODO: Externally register these
     default_argval_map = {
-        'ibs':      'ibeis.opendb(\'testdb1\')',
-        'qreq_':      'ibs.new_query_request(qaids, daids)',
-        'qaid2_qres':  'ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())',
-        'qres':  'ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())[1]',
-        'aid_list': 'ibs.get_valid_aids()',
-        'nid_list': 'ibs._get_all_known_nids()',
-        'qaids': 'ibs.get_valid_aids(species=species)',
-        'daids': 'ibs.get_valid_aids(species=species)',
-        'species': 'ibeis.const.Species.ZEB_PLAIN',
-        'kpts': 'vt.dummy.get_dummy_kpts()'
+        'ibs'        : 'ibeis.opendb(\'testdb1\')',
+        'qreq_'      : 'ibs.new_query_request(qaids, daids)',
+        'qaid2_qres' : 'ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())',
+        'qres'       : 'ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())[1]',
+        'aid_list'   : 'ibs.get_valid_aids()',
+        'nid_list'   : 'ibs._get_all_known_nids()',
+        'qaids'      : 'ibs.get_valid_aids(species=species)',
+        'daids'      : 'ibs.get_valid_aids(species=species)',
+        'species'    : 'ibeis.const.Species.ZEB_PLAIN',
+        'kpts'       : 'vt.dummy.get_dummy_kpts()',
+        'dodraw'     : 'ut.show_was_requested()',
+        'img_fpath'  : 'ut.grab_test_imgpath(\'carl.jpg\')',
+        'gfpath'     : 'ut.grab_test_imgpath(\'carl.jpg\')',
+        'img'        : 'vt.imread(img_fpath)',
+        'bbox'       : '(10, 10, 50, 50)',
+        'theta'      : '0.0',
     }
     import_depends_map = {
-        'ibs':      'import ibeis',
-        'kpts':     'import vtool as vt',
+        'ibeis':    'import ibeis',
+        'vt':       'import vtool as vt',
+        #'img':      'import vtool as vt',  # TODO: remove. fix dependency
+        #'species':  'import ibeis',
     }
     var_depends_map = {
+        'species':   ['ibeis'],
+        'ibs':       ['ibeis'],
+        'kpts':      ['vt'],
         'qreq_':     ['ibs', 'species', 'daids', 'qaids'],
         'qaids':     ['ibs'],
         'daids':     ['ibs'],
         'qaids':     ['species'],
         'daids':     ['species'],
+        'img':       ['img_fpath', 'vt'],
     }
 
     def find_arg_defaultval(argname, val):
@@ -296,6 +320,9 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
     def append_dependant_argnames(argnames, dependant_argnames):
         """ use hints to add known dependencies for certain argument inputs """
         for argname in argnames:
+            # Check if argname just implies an import
+            if argname in import_depends_map:
+                import_lines.append(import_depends_map[argname])
             # Check if argname was already added as dependency
             if argname not in dependant_argnames and argname not in argname_list:
                 dependant_argnames.append(argname)
@@ -489,6 +516,8 @@ def make_default_docstr(func,
 def make_default_module_maintest(modname):
     """
     make_default_module_maintest
+
+    TODO: use path relative to home dir if the file is a script
 
     Args:
         modname (str):  module name

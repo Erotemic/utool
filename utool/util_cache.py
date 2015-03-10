@@ -1,10 +1,12 @@
 from __future__ import absolute_import, division, print_function
 import shelve
 import six
+#import lru
+#git+https://github.com/amitdev/lru-dict
 #import atexit
-import inspect
+#import inspect
 import contextlib
-from six.moves import range, zip
+from six.moves import range, zip  # NOQA
 from os.path import join, normpath, basename, exists
 import functools
 from itertools import chain
@@ -16,10 +18,8 @@ from utool import util_path
 from utool import util_io
 from utool import util_str
 from utool import util_cplat
-from utool._internal.meta_util_six import get_funcname
-from utool._internal.meta_util_constants import (global_cache_fname,
-                                                 global_cache_dname,
-                                                 default_appname)
+from utool import util_inspect
+from utool._internal import meta_util_constants
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[cache]')
 
 
@@ -28,7 +28,7 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[cache]')
 VERBOSE = util_arg.VERBOSE
 QUIET = util_arg.QUIET
 __SHELF__ = None  # GLOBAL CACHE
-__APPNAME__ = default_appname  # the global application name
+__APPNAME__ = meta_util_constants.default_appname  # the global application name
 
 
 def get_default_appname():
@@ -230,20 +230,6 @@ class Cacher(object):
         save_cache(self.dpath, self.fname, cfgstr, data)
 
 
-def get_kwdefaults(func):
-    argspec = inspect.getargspec(func)
-    if argspec.keywords is None or argspec.defaults is None:
-        return {}
-    kwdefaults = dict(zip(argspec.keywords, argspec.defaults))
-    return kwdefaults
-
-
-def get_argnames(func):
-    argspec = inspect.getargspec(func)
-    argnames = argspec.args
-    return argnames
-
-
 def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults, argnames):
     """
     Dev:
@@ -338,7 +324,7 @@ def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults, arg
     #        [argfmter] map(type, args)) = %r
     #        [argfmter] %s
     #        ''') % (argx, len(args), map(type, args), utool.func_str(func),)
-    #        utool.printex(ex, msg, separate=True)
+    #        utool.printex(ex, msg, pad_stdout=True)
     #        raise
     #def kwdfmter(key):
     #    return fmt_str % (key, hashrepr(kwdval(key)))
@@ -356,7 +342,7 @@ def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults, arg
     #    except Exception:
     #        pass
     #    utool.printex(ex, keys=['key_argsx', 'key_kwds', 'kwdefaults',
-    #                            dbg_cfgstr], separate=True)
+    #                            dbg_cfgstr], pad_stdout=True)
     #    raise
     return cfgstr
 
@@ -388,9 +374,9 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
         >>> assert ans1 != ans0
     """
     def cached_closure(func):
-        fname_ = get_funcname(func) if fname is None else fname
-        kwdefaults = get_kwdefaults(func)
-        argnames   = get_argnames(func)
+        fname_ = util_inspect.get_funcname(func) if fname is None else fname
+        kwdefaults = util_inspect.get_kwdefaults(func)
+        argnames   = util_inspect.get_argnames(func)
         cacher = Cacher(fname_, cache_dir=cache_dir, appname=appname)
         if use_cache is None:
             use_cache_ = not util_arg.get_argflag('--nocache-' + fname)
@@ -443,7 +429,7 @@ def get_global_cache_dir(appname='default', ensure=False):
     """ Returns (usually) writable directory for an application cache """
     if appname is None or  appname == 'default':
         appname = get_default_appname()
-    global_cache_dir = util_cplat.get_app_resource_dir(appname, global_cache_dname)
+    global_cache_dir = util_cplat.get_app_resource_dir(appname, meta_util_constants.global_cache_dname)
     if ensure:
         util_path.ensuredir(global_cache_dir)
     return global_cache_dir
@@ -452,7 +438,7 @@ def get_global_cache_dir(appname='default', ensure=False):
 def get_global_shelf_fpath(appname='default', ensure=False):
     """ Returns the filepath to the global shelf """
     global_cache_dir = get_global_cache_dir(appname, ensure=ensure)
-    shelf_fpath = join(global_cache_dir, global_cache_fname)
+    shelf_fpath = join(global_cache_dir, meta_util_constants.global_cache_fname)
     return shelf_fpath
 
 
@@ -510,7 +496,7 @@ def shelf_open(fpath):
         >>> import utool as ut
         >>> fpath = ut.get_app_resource_dir('utool', 'test.shelf')
         >>> with ut.shelf_open(fpath) as dict_:
-        >>>     print(ut.dict_str(dict_))
+        ...     print(ut.dict_str(dict_))
     """
     return contextlib.closing(shelve.open(fpath))
 
@@ -705,7 +691,7 @@ def get_lru_cache(max_size=5):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_cache import *  # NOQA
-        >>> import utool as ut
+        >>> import utool as ut  # NOQA
         >>> # build test data
         >>> max_size = 5
         >>> # execute function

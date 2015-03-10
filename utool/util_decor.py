@@ -6,11 +6,6 @@ import six
 import sys
 import functools
 import os
-try:
-    import numpy as np
-    HAS_NUMPY = True
-except ImportError:
-    HAS_NUMPY = False
 from utool import util_print
 from utool import util_time
 from utool import util_iter
@@ -18,6 +13,11 @@ from utool import util_dbg
 from utool import util_arg
 from utool import util_inject
 from utool._internal import meta_util_six
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
 (print, print_, printDBG, rrr, profile) = util_inject.inject(__name__, '[decor]')
 
 # Commandline to toggle certain convinience decorators
@@ -105,34 +105,39 @@ def ignores_exc_tb(*args, **kwargs):
         return ignores_exc_tb_closure
 
 
-def on_exception_report_input(func):
+def on_exception_report_input(func_=None, force=False):
     """
     If an error is thrown in the scope of this function's stack frame then the
     decorated function name and the arguments passed to it will be printed to
     the utool print function.
     """
-    if not ONEX_REPORT_INPUT:
-        return func
-    @ignores_exc_tb(outer_wrapper=False)
-    #@wraps(func)
-    def wrp_onexceptreport(*args, **kwargs):
-        try:
-            #import utool
-            #if utool.DEBUG:
-            #    print('[IN EXCPRPT] args=%r' % (args,))
-            #    print('[IN EXCPRPT] kwargs=%r' % (kwargs,))
-            return func(*args, **kwargs)
-        except Exception as ex:
-            from utool import util_str
-            arg_strs = ', '.join([repr(util_str.truncate_str(str(arg))) for arg in args])
-            kwarg_strs = ', '.join([util_str.truncate_str('%s=%r' % (key, val)) for key, val in six.iteritems(kwargs)])
-            msg = ('\nERROR: funcname=%r,\n * args=%s,\n * kwargs=%r\n' % (meta_util_six.get_funcname(func), arg_strs, kwarg_strs))
-            msg += ' * len(args) = %r\n' % len(args)
-            msg += ' * len(kwargs) = %r\n' % len(kwargs)
-            util_dbg.printex(ex, msg, separate=True)
-            raise
-    wrp_onexceptreport = preserve_sig(wrp_onexceptreport, func)
-    return wrp_onexceptreport
+    def _closure_onexceptreport(func):
+        if not ONEX_REPORT_INPUT and not force:
+            return func
+        @ignores_exc_tb(outer_wrapper=False)
+        #@wraps(func)
+        def wrp_onexceptreport(*args, **kwargs):
+            try:
+                #import utool
+                #if utool.DEBUG:
+                #    print('[IN EXCPRPT] args=%r' % (args,))
+                #    print('[IN EXCPRPT] kwargs=%r' % (kwargs,))
+                return func(*args, **kwargs)
+            except Exception as ex:
+                from utool import util_str
+                arg_strs = ', '.join([repr(util_str.truncate_str(str(arg))) for arg in args])
+                kwarg_strs = ', '.join([util_str.truncate_str('%s=%r' % (key, val)) for key, val in six.iteritems(kwargs)])
+                msg = ('\nERROR: funcname=%r,\n * args=%s,\n * kwargs=%r\n' % (meta_util_six.get_funcname(func), arg_strs, kwarg_strs))
+                msg += ' * len(args) = %r\n' % len(args)
+                msg += ' * len(kwargs) = %r\n' % len(kwargs)
+                util_dbg.printex(ex, msg, pad_stdout=True)
+                raise
+        wrp_onexceptreport = preserve_sig(wrp_onexceptreport, func)
+        return wrp_onexceptreport
+    if func_ is None:
+        return _closure_onexceptreport
+    else:
+        return _closure_onexceptreport(func_)
 
 
 def _indent_decor(lbl):
@@ -345,7 +350,9 @@ def accepts_numpy(func):
 def memorize(func):
     """
     Memoization decorator for functions taking one or more arguments.
-    # http://code.activestate.com/recipes/578231-probably-the-fastest-memoization-decorator-in-the-/
+
+    References:
+        # http://code.activestate.com/recipes/578231-probably-the-fastest-memoization-decorator-in-the-/
     """
     class _memorizer(dict):
         def __init__(self, func):
@@ -369,6 +376,17 @@ def interested(func):
         print('INTERESTING... ' + (' ' * 30) + ' <----')
         return func(*args, **kwargs)
     return wrp_interested
+
+
+def tracefunc(func):
+    lbl = '[trace.' + meta_util_six.get_funcname(func) + ']'
+    def wrp_tracefunc(*args, **kwargs):
+        print(lbl + ' +--- ENTER ---')
+        with util_print.Indenter(lbl + ' |'):
+            ret = func(*args, **kwargs)
+        print(lbl + ' L___ EXIT ____')
+        return ret
+    return wrp_tracefunc
 
 
 def show_return_value(func):
@@ -440,6 +458,9 @@ def time_func(func):
 
 
 def lazyfunc(func):
+    """
+    Returns a memcached version of a function
+    """
     closuremem_ = [{}]
     def wrapper(*args, **kwargs):
         mem = closuremem_[0]
@@ -457,6 +478,7 @@ def preserve_sig(wrapper, orig_func, force=False):
     Decorates a wrapper function.
 
     It seems impossible to presever signatures in python 2 without eval
+    (Maybe another option is to write to a temporary module?)
 
     Args:
         wrapper: the function wrapping orig_func to change the signature of
@@ -508,10 +530,12 @@ def preserve_sig(wrapper, orig_func, force=False):
         parent_orig_utinfo = orig_func._utinfo
         _utinfo['parent_orig_utinfo'] = parent_orig_utinfo
 
+    # environment variable is set if you are building documentation
     # preserve sig if building docs
     building_docs = os.environ.get('UTOOL_AUTOGEN_SPHINX_RUNNING', 'OFF') == 'ON'
 
     if force or SIG_PRESERVE or building_docs:
+        # PRESERVES ALL SIGNATURES WITH EXECS
         src_fmt = r'''
         def _wrp_preserve{defsig}:
             """ {orig_docstr} """
@@ -526,15 +550,15 @@ def preserve_sig(wrapper, orig_func, force=False):
         # Put wrapped function into a scope
         globals_ =  {'wrapper': wrapper}
         locals_ = {}
-        # Extract argspec from orig function
-        argspec = inspect.getargspec(orig_func)
         # argspec is :ArgSpec(args=['bar', 'baz'], varargs=None, keywords=None, defaults=(True,))
-        (args, varargs, varkw, defaults) = argspec
-        # Get the function definition signature
-        defsig = inspect.formatargspec(*argspec)
+        # get orig functions argspec
+        # get functions signature
         # Get function call signature (no defaults)
-        callsig = inspect.formatargspec(*argspec[0:3])
         # Define an exec function
+        argspec = inspect.getargspec(orig_func)
+        (args, varargs, varkw, defaults) = argspec
+        defsig = inspect.formatargspec(*argspec)
+        callsig = inspect.formatargspec(*argspec[0:3])
         src_fmtdict = dict(defsig=defsig, callsig=callsig, orig_docstr=orig_docstr)
         src = textwrap.dedent(src_fmt).format(**src_fmtdict)
         # Define the new function on the fly
@@ -548,20 +572,30 @@ def preserve_sig(wrapper, orig_func, force=False):
         # Set an internal sig variable that we may use
         #_wrp_preserve.__sig__ = defsig
     else:
+        # PRESERVES SOME SIGNATURES NO EXEC
         # signature preservation is turned off. just preserve the name.
         # Does not use any exec or eval statments.
         import utool as ut
         _wrp_preserve = functools.update_wrapper(wrapper, orig_func)
         # Just do something to preserve signature
-    new_docstr_fmtstr = ut.codeblock(
-        '''
-        Wrapped function {wrap_name}({orig_name})
 
-        orig_argspec = {orig_argspec}
+    DEBUG_WRAPPED_DOCSTRING = False
+    if DEBUG_WRAPPED_DOCSTRING:
+        new_docstr_fmtstr = ut.codeblock(
+            '''
+            Wrapped function {wrap_name}({orig_name})
 
-        orig_docstr = {orig_docstr}
-        '''
-    )
+            orig_argspec = {orig_argspec}
+
+            orig_docstr = {orig_docstr}
+            '''
+        )
+    else:
+        new_docstr_fmtstr = ut.codeblock(
+            '''
+            {orig_docstr}
+            '''
+        )
     new_docstr = new_docstr_fmtstr.format(wrap_name=wrap_name,
                                           orig_name=orig_name, orig_docstr=orig_docstr,
                                           orig_argspec=orig_argspec)
