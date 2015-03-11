@@ -208,17 +208,25 @@ def print_python_code(text):
         >>> print_python_code(text)
 
     Ignore:
+        import pygments
         print(ut.list_str(list(pygments.formatters.get_all_formatters())))
         print(list(pygments.styles.get_all_styles()))
 
     """
-    #import utool as ut
-    #if not ut.WIN32:
     import pygments
-    formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
-    #, colorscheme='darkbg')
-    lexer = pygments.lexers.get_lexer_by_name('python')
-    print(pygments.highlight(text, lexer, formater))
+    import utool as ut
+    #with ut.embed_on_exception_context:
+    try:
+        if ut.WIN32:
+            #formater = pygments.formatters.terminal256.Terminal256Formatter()
+            formater = pygments.formatters.terminal256.Terminal256Formatter()
+        else:
+            formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
+        #, colorscheme='darkbg')
+        lexer = pygments.lexers.get_lexer_by_name('python')
+        print(pygments.highlight(text, lexer, formater))
+    except Exception:
+        print(text)
     #else:
     #    print(text)
 

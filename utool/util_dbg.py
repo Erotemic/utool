@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 #import six
 from six.moves import range
 import fnmatch
+import operator
 import inspect
 import traceback
 import time
@@ -924,7 +925,7 @@ def get_varname_from_stack(var, N=0, **kwargs):
 
 
 def get_varname_from_locals(val, locals_, default='varname-not-found',
-                            strict=False):
+                            strict=False, cmpfunc_=operator.is_):
     """ Finds the string name which has where locals_[name] is val
 
     Check the varname is in the parent namespace
@@ -945,7 +946,7 @@ def get_varname_from_locals(val, locals_, default='varname-not-found',
         return default
     try:
         for count, val_ in enumerate(six.itervalues(locals_)):
-            if val is val_:
+            if cmpfunc_(val, val_):
                 index_ = count
         varname = str(locals_.keys()[index_])
     except NameError:
