@@ -604,6 +604,12 @@ def preserve_sig(wrapper, orig_func, force=False):
     return _wrp_preserve
 
 
+def dummy_args_decor(*args, **kwargs):
+    def dummy_args_closure(func):
+        return func
+    return dummy_args_closure
+
+
 if __name__ == '__main__':
     """
     CommandLine:

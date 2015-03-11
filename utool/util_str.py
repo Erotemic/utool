@@ -1244,7 +1244,7 @@ def number_text_lines(text):
     return text_with_lineno
 
 
-def get_textdiff(text1, text2):
+def get_textdiff(text1, text2, mode=0):
     r"""
     Uses difflib to return a difference string between two
     similar texts
@@ -1279,8 +1279,11 @@ def get_textdiff(text1, text2):
     text1_lines = text1.splitlines()
     text2_lines = text2.splitlines()
     diffline_gen = difflib.ndiff(text1_lines, text2_lines)
-    diff_lines = [line for line in diffline_gen
-                  if len(line) > 0 and line[0] in '+-?']
+    if mode == 0:
+        diff_lines = [line for line in diffline_gen
+                      if len(line) > 0 and line[0] in '+-?']
+    else:
+        diff_lines = list(diffline_gen)
     return '\n'.join(diff_lines)
 
 

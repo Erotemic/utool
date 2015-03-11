@@ -227,8 +227,20 @@ def print_python_code(text):
         print(pygments.highlight(text, lexer, formater))
     except Exception:
         print(text)
-    #else:
-    #    print(text)
+
+
+def print_difftext(text):
+    import pygments
+    import utool as ut
+    try:
+        if ut.WIN32:
+            formater = pygments.formatters.terminal256.Terminal256Formatter()
+        else:
+            formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
+        lexer = pygments.lexers.get_lexer_by_name('diff')
+        print(pygments.highlight(text, lexer, formater))
+    except Exception:
+        print(text)
 
 
 def print_locals():
