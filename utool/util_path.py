@@ -402,7 +402,7 @@ def ensuredir(path_, verbose=VERYVERBOSE, info=False):
         #os.makedirs(path_)
         try:
             os.makedirs(normpath(path_))
-        except WindowsError as ex:
+        except OSError as ex:
             util_dbg.printex(ex, 'check that the longest existing path is not a bad windows symlink.')
             raise
     return True
