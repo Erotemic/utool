@@ -488,6 +488,10 @@ def preserve_sig(wrapper, orig_func, force=False):
         http://emptysqua.re/blog/copying-a-python-functions-signature/
         https://code.google.com/p/micheles/source/browse/decorator/src/decorator.py
 
+    TODO:
+        checkout funcsigs
+        https://funcsigs.readthedocs.org/en/latest/
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
