@@ -1244,7 +1244,7 @@ def number_text_lines(text):
     return text_with_lineno
 
 
-def get_textdiff(text1, text2, mode=0):
+def get_textdiff(text1, text2, num_context_lines=0):
     r"""
     Uses difflib to return a difference string between two
     similar texts
@@ -1260,7 +1260,8 @@ def get_textdiff(text1, text2, mode=0):
         ?:
 
     CommandLine:
-        python -m utool.util_str --test-get_textdiff
+        python -m utool.util_str --test-get_textdiff:1
+        python -m utool.util_str --test-get_textdiff:0
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1274,16 +1275,50 @@ def get_textdiff(text1, text2, mode=0):
         >>> print(result)
         - three
         + five
+
+    Example2:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> # build test data
+        >>> text1 = 'one\ntwo\nthree\n3.1\n3.14\n3.1415\npi\n3.4\n3.5\n4'
+        >>> text2 = 'one\ntwo\nfive\n3.1\n3.14\n3.1415\npi\n3.4\n4'
+        >>> # execute function
+        >>> num_context_lines = 1
+        >>> result = get_textdiff(text1, text2, num_context_lines)
+        >>> # verify results
+        >>> print(result)
     """
     import difflib
     text1_lines = text1.splitlines()
     text2_lines = text2.splitlines()
-    diffline_gen = difflib.ndiff(text1_lines, text2_lines)
-    if mode == 0:
-        diff_lines = [line for line in diffline_gen
-                      if len(line) > 0 and line[0] in '+-?']
+    all_diff_lines = list(difflib.ndiff(text1_lines, text2_lines))
+    if num_context_lines is None:
+        diff_lines = all_diff_lines
     else:
-        diff_lines = list(diffline_gen)
+        from utool import util_list
+        # boolean for every line if it is marked or not
+        ismarked_list = [len(line) > 0 and line[0] in '+-?' for line in all_diff_lines]
+        # flag lines that are within num_context_lines away from a diff line
+        isvalid_list = ismarked_list[:]
+        for i in range(1, num_context_lines + 1):
+            isvalid_list[:-i] = util_list.or_lists(isvalid_list[:-i], ismarked_list[i:])
+            isvalid_list[i:]  = util_list.or_lists(isvalid_list[i:], ismarked_list[:-i])
+        USE_BREAK_LINE = True
+        if USE_BREAK_LINE:
+            # insert a visual break when there is a break in context
+            diff_lines = []
+            prev = False
+            visual_break = '\n <... FILTERED CONTEXT ...> \n'
+            #print(isvalid_list)
+            for line, valid in zip(all_diff_lines, isvalid_list):
+                if valid:
+                    diff_lines.append(line)
+                elif prev:
+                    diff_lines.append(visual_break)
+                prev = valid
+        else:
+            diff_lines = util_list.filter_items(all_diff_lines, isvalid_list)
+        #
     return '\n'.join(diff_lines)
 
 
