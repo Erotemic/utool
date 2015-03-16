@@ -190,8 +190,74 @@ def printif(func, condition=VERBOSE and not QUIET):
         print(func())
 
 
+def print_python_code(text):
+    r"""
+    Args:
+        text (?):
+
+    CommandLine:
+        python -m utool.util_print --test-print_python_code
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_print import *  # NOQA
+        >>> import utool as ut
+        >>> # build test data
+        >>> text = ut.read_from(ut.__file__.replace('.pyc', '.py'))
+        >>> # execute function
+        >>> print_python_code(text)
+
+    Ignore:
+        import pygments
+        print(ut.list_str(list(pygments.formatters.get_all_formatters())))
+        print(list(pygments.styles.get_all_styles()))
+
+    """
+    import pygments
+    import utool as ut
+    #with ut.embed_on_exception_context:
+    try:
+        if ut.WIN32:
+            #formater = pygments.formatters.terminal256.Terminal256Formatter()
+            formater = pygments.formatters.terminal256.Terminal256Formatter()
+        else:
+            formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
+        #, colorscheme='darkbg')
+        lexer = pygments.lexers.get_lexer_by_name('python')
+        print(pygments.highlight(text, lexer, formater))
+    except Exception:
+        print(text)
+
+
+def print_difftext(text):
+    import pygments
+    import utool as ut
+    try:
+        if ut.WIN32:
+            formater = pygments.formatters.terminal256.Terminal256Formatter()
+        else:
+            formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
+        lexer = pygments.lexers.get_lexer_by_name('diff')
+        print(pygments.highlight(text, lexer, formater))
+    except Exception:
+        print(text)
+
+
 def print_locals():
     from utool import util_str
     from utool import util_dbg
     locals_ = util_dbg.get_caller_locals()
     print(util_str.dict_str(locals_))
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m utool.util_print
+        python -m utool.util_print --allexamples
+        python -m utool.util_print --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

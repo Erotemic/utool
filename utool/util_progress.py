@@ -356,6 +356,17 @@ class ProgressIter(object):
                 last_time         = now_time
                 total_timeunit    = total_time / timeunit_scale
                 est_timeunit_left = est_seconds_left / timeunit_scale
+                # Adjust report unit
+                if timeunit_scale == 1.0 and est_seconds_left > 60 * 2:
+                    timeunit_scale = 60.0
+                    self.report_unit = 'minutes'
+                    msg_fmtstr = self.build_msg_fmtstr(nTotal, self.lbl, self.report_unit,
+                                                       self.invert_rate, self.backspace)
+                elif timeunit_scale == 60.0 and est_seconds_left < 60 * 2:
+                    timeunit_scale = 1.0
+                    self.report_unit = 'seconds'
+                    msg_fmtstr = self.build_msg_fmtstr(nTotal, self.lbl, self.report_unit,
+                                                       self.invert_rate, self.backspace)
                 # ADJUST FREQ IF NEEDED
                 # Adjust frequency if printing too quickly
                 # so progress doesnt slow down actual function

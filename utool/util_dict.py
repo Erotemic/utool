@@ -149,7 +149,7 @@ def all_dict_combinations_ordered(varied_dict):
     return dict_list
 
 
-def all_dict_combinations(varied_dict, ):
+def all_dict_combinations(varied_dict):
     """
     all_dict_combinations
 

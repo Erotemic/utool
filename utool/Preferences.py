@@ -305,7 +305,7 @@ class Pref(PrefNode):
                 import utool
                 if utool.VERBOSE:
                     utool.printex(ex, 'Pref object missing named attribute', keys=['self._intern.name', 'name'], iswarning=True)
-                raise AttributeError('Pref object is missing named attribute: name=%r'  % name)
+                raise AttributeError('Pref object is missing named attribute: name=%r. You might try running ibeis with --nocache-pref to see if that fixes things.'  % name)
                 #raise
 
     def iteritems(self):

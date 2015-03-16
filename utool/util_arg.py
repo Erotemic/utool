@@ -506,6 +506,46 @@ def argparse_dict(default_dict_, lbl=None, verbose=VERBOSE,
             sys.exit(1)
     return dict_
 
+
+def get_argv_tail(scriptname):
+    """ gets the rest of the arguments after a script has been invoked
+
+    Args:
+        scriptname (?):
+
+    CommandLine:
+        python -m utool.util_arg --test-get_argv_tail
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_arg import *  # NOQA
+        >>> # build test data
+        >>> scriptname = 'util_arg.py'
+        >>> # execute function
+        >>> result = get_argv_tail(scriptname)
+        >>> # verify results
+        >>> print(result)
+    """
+    import utool as ut
+    modname = ut.get_argval('-m', help_='specify module name to profile')
+    #print(sys.argv)
+    if modname is not None:
+        modpath = ut.get_modpath_from_modname(modname)
+        #print(modpath)
+        argvx = sys.argv.index(modname) + 1
+        argv_tail = [modpath] + sys.argv[argvx:]
+    else:
+        try:
+            argvx = sys.argv.index(scriptname)
+        except ValueError:
+            for argvx, arg in enumerate(sys.argv):
+                if scriptname in arg:
+                    break
+            #print('sys.argv = %r' % (sys.argv,))
+        argv_tail = sys.argv[(argvx + 1):]
+        return argv_tail
+
+
 # alias
 parse_dict_from_argv = argparse_dict
 get_dict_vals_from_commandline = argparse_dict
