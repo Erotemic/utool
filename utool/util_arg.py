@@ -543,7 +543,7 @@ def get_argv_tail(scriptname):
                     break
             #print('sys.argv = %r' % (sys.argv,))
         argv_tail = sys.argv[(argvx + 1):]
-        return argv_tail
+    return argv_tail
 
 
 # alias
