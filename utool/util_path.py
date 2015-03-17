@@ -421,6 +421,30 @@ def assertpath(path_, **kwargs):
 
 
 # ---File Copy---
+
+def copy_files_to(src_fpath_list, dst_dpath, overwrite=False, verbose=True):
+    """
+        >>> from utool.util_path import *
+        >>> import utool as ut
+        >>> overwrite = False
+        >>> src_fpath_list = [ut.grab_test_imgpath(key) for key in  ut.get_valid_test_imgkeys()]
+        >>> dst_dpath = ut.get_app_resource_dir('utool', 'filecopy_tests')
+        >>> copy_files_to(src_fpath_list, dst_dpath, overwrite=overwrite, verbose=True)
+    """
+    ensuredir(dst_dpath, verbose=verbose)
+    dst_fpath_list = [join(dst_dpath, basename(fpath)) for fpath in src_fpath_list]
+    if not overwrite:
+        from utool import util_list
+        exists_list = list(map(exists, dst_fpath_list))
+        dst_fpath_list_ = util_list.filterfalse_items(dst_fpath_list, exists_list)
+        src_fpath_list_ = util_list.filterfalse_items(src_fpath_list, exists_list)
+    else:
+        dst_fpath_list_ = dst_fpath_list
+        src_fpath_list_ = src_fpath_list
+    success_list = copy_list(src_fpath_list_, dst_fpath_list_)
+    print('Copied %d / %d' % (sum(success_list), len(src_fpath_list)))
+
+
 def copy_task(cp_list, test=False, nooverwrite=False, print_tasks=True):
     """ Copies all files src_i to dst_i
 
