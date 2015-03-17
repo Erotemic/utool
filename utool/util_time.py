@@ -344,13 +344,21 @@ def get_timestats_str(unixtime_list, newlines=False):
         >>> result = ut.align(str(timestat_str), ':')
         >>> print(result)
         {
-            'std' : '0:06:59',
-            'max' : '1970/01/01 00:16:40',
-            'mean': '1970/01/01 00:04:37',
-            'min' : '1970/01/01 00:00:00',
+            'std'   : '0:06:59',
+            'max'   : '1970/01/01 00:16:40',
+            'range' : '0:16:40',
+            'mean'  : '1970/01/01 00:04:37',
+            'min'   : '1970/01/01 00:00:00',
         }
 
     """
+    import utool as ut
+    datetime_stats = get_timestats_dict(unixtime_list)
+    timestat_str = ut.dict_str(datetime_stats, newlines=newlines)
+    return timestat_str
+
+
+def get_timestats_dict(unixtime_list):
     import utool as ut
     unixtime_stats = ut.get_stats(unixtime_list)
     datetime_stats = {}
@@ -364,8 +372,8 @@ def get_timestats_str(unixtime_list, newlines=False):
             datetime_stats[key] = str(ut.unixtime_to_timedelta(int(round(unixtime_stats[key]))))
         except KeyError:
             pass
-    timestat_str = ut.dict_str(datetime_stats, newlines=newlines)
-    return timestat_str
+    datetime_stats['range'] = str(ut.unixtime_to_timedelta(int(round(unixtime_stats['max'] - unixtime_stats['min']))))
+    return datetime_stats
 
 
 if __name__ == '__main__':
