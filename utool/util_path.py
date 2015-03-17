@@ -422,66 +422,54 @@ def assertpath(path_, **kwargs):
 
 # ---File Copy---
 
-def copy_files_to(src_fpath_list, dst_dpath, overwrite=False, verbose=True):
+def copy_worker(args):
+    """ for util_parallel.generate """
+    src, dst = args
+    try:
+        shutil.copy2(src, dst)
+    except OSError:
+        return False
+    except shutil.Error:
+        pass
+    return True
+
+
+def copy_files_to(src_fpath_list, dst_dpath, overwrite=False, verbose=True, veryverbose=False):
     """
         >>> from utool.util_path import *
         >>> import utool as ut
         >>> overwrite = False
+        >>> veryverbose = False
+        >>> verbose = True
         >>> src_fpath_list = [ut.grab_test_imgpath(key) for key in  ut.get_valid_test_imgkeys()]
         >>> dst_dpath = ut.get_app_resource_dir('utool', 'filecopy_tests')
-        >>> copy_files_to(src_fpath_list, dst_dpath, overwrite=overwrite, verbose=True)
+        >>> copy_files_to(src_fpath_list, dst_dpath, overwrite=overwrite, verbose=verbose)
     """
-    ensuredir(dst_dpath, verbose=verbose)
+    from utool import util_list
+    from utool import util_parallel
+    if verbose:
+        print('[util_path] +--- COPYING FILES ---')
+        print('[util_path]  * len(src_fpath_list) = %r' % (len(src_fpath_list)))
+        print('[util_path]  * dst_dpath = %r' % (dst_dpath,))
+
+    ensuredir(dst_dpath, verbose=veryverbose)
     dst_fpath_list = [join(dst_dpath, basename(fpath)) for fpath in src_fpath_list]
+    exists_list = list(map(exists, dst_fpath_list))
+    if verbose:
+        print('[util_path] * %d files already exist dst_dpath' % (sum(exists_list),))
     if not overwrite:
-        from utool import util_list
-        exists_list = list(map(exists, dst_fpath_list))
         dst_fpath_list_ = util_list.filterfalse_items(dst_fpath_list, exists_list)
         src_fpath_list_ = util_list.filterfalse_items(src_fpath_list, exists_list)
     else:
         dst_fpath_list_ = dst_fpath_list
         src_fpath_list_ = src_fpath_list
-    success_list = copy_list(src_fpath_list_, dst_fpath_list_)
-    print('Copied %d / %d' % (sum(success_list), len(src_fpath_list)))
 
+    success_list = list(util_parallel.generate(copy_worker, zip(src_fpath_list_, dst_fpath_list_), nTasks=len(src_fpath_list_)))
 
-def copy_task(cp_list, test=False, nooverwrite=False, print_tasks=True):
-    """ Copies all files src_i to dst_i
-
-    Args:
-        cp_list (list of tuples): [(src_1, dst_1), ..., (src_N, dst_N)]
-    """
-    num_overwrite = 0
-    _cp_tasks = []  # Build this list with the actual tasks
-    if nooverwrite:
-        print('[util_path] Removed: copy task ')
-    else:
-        print('[util_path] Begining copy + overwrite task.')
-    for (src, dst) in iter(cp_list):
-        if exists(dst):
-            num_overwrite += 1
-            if print_tasks:
-                print('[util_path] !!! Overwriting ')
-            if not nooverwrite:
-                _cp_tasks.append((src, dst))
-        else:
-            if print_tasks:
-                print('[util_path] ... Copying ')
-                _cp_tasks.append((src, dst))
-        if print_tasks:
-            print('[util_path]    ' + src + ' -> \n    ' + dst)
-    print('[util_path] About to copy %d files' % len(cp_list))
-    if nooverwrite:
-        print('[util_path] Skipping %d tasks which would have overwriten files' % num_overwrite)
-    else:
-        print('[util_path] There will be %d overwrites' % num_overwrite)
-    if not test:
-        print('[util_path]... Copying')
-        for (src, dst) in iter(_cp_tasks):
-            shutil.copy2(src, dst)
-        print('[util_path]... Finished copying')
-    else:
-        print('[util_path]... In test mode. Nothing was copied.')
+    #success_list = copy_list(src_fpath_list_, dst_fpath_list_)
+    if verbose:
+        print('[util_path] * Copied %d / %d' % (sum(success_list), len(src_fpath_list)))
+        print('[util_path] L___ DONE COPYING FILES ___')
 
 
 def copy(src, dst, overwrite=True, verbose=True):
