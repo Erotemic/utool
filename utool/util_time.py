@@ -372,7 +372,10 @@ def get_timestats_dict(unixtime_list):
             datetime_stats[key] = str(ut.unixtime_to_timedelta(int(round(unixtime_stats[key]))))
         except KeyError:
             pass
-    datetime_stats['range'] = str(ut.unixtime_to_timedelta(int(round(unixtime_stats['max'] - unixtime_stats['min']))))
+    try:
+        datetime_stats['range'] = str(ut.unixtime_to_timedelta(int(round(unixtime_stats['max'] - unixtime_stats['min']))))
+    except KeyError:
+        pass
     return datetime_stats
 
 
