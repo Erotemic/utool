@@ -867,8 +867,8 @@ def sortedby(item_list, key_list, reverse=False):
         [5, 2, 3, 1, 4]
 
     """
-    assert len(item_list) == len(key_list), 'Expected same length. Got: %r != %r' % (
-        len(item_list), len(key_list))
+    assert len(item_list) == len(key_list), (
+        'Expected same len. Got: %r != %r' % (len(item_list), len(key_list)))
     sorted_list = [item for (key, item) in
                    sorted(list(zip(key_list, item_list)), reverse=reverse)]
     return sorted_list
