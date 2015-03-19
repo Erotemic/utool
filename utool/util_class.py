@@ -203,7 +203,7 @@ def decorate_postinject(func, classtype=None, skipmain=False):
     return func
 
 
-def inject_func_as_method(self, func, method_name=None, class_=None, allow_override=False):
+def inject_func_as_method(self, func, method_name=None, class_=None, allow_override=False, allow_main=False):
     """ Injects a function into an object as a method
 
     Wraps func as a bound method of self. Then injects func into self
@@ -232,7 +232,8 @@ def inject_func_as_method(self, func, method_name=None, class_=None, allow_overr
     #new_method = profile(func.__get__(self, self.__class__))
 
     if old_method is not None:
-        if (old_method.im_func.func_globals['__name__'] != '__main__' and
+        if not allow_main and (
+                old_method.im_func.func_globals['__name__'] != '__main__' and
                 new_method.im_func.func_globals['__name__'] == '__main__'):
             if True or VERBOSE_CLASS:
                 print('[util_class] skipping re-inject of %r from __main__' % method_name)

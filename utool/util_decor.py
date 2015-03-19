@@ -286,6 +286,18 @@ def accepts_scalar_input_vector_output(func):
     DEPRICATE IN FAVOR OF accepts_scalar_input2
 
     accepts_scalar_input_vector_output
+
+    Notes:
+
+        Input:                                Excpeted Output 1to1           Expected Output 1toM
+            scalar         : 1                x                              [X]
+            n element list : [1, 2, 3]        [x, y, z]                      [[X], [Y], [Z]]
+            1 element list : [1]              [x]                            [[X]]
+            0 element list : []               []                             []
+        There seems to be no real issue here, I be the thing that tripped me up was
+        when using sql and getting multiple columns that returned the values inside of the N-tuple
+        whereas when you get one column you get one element inside of a 1-tuple, no that still makes sense.
+        There was something where when you couln't unpack it becuase it was already empty...
     """
     @ignores_exc_tb(outer_wrapper=False)
     #@wraps(func)
