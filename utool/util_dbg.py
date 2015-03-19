@@ -834,8 +834,11 @@ def debug_exception(func):
     return ex_wrapper
 
 
+TB = util_arg.get_flag('--tb')
+
+
 def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
-            locals_=None, iswarning=False, tb=False, pad_stdout=True, N=0,
+            locals_=None, iswarning=False, tb=TB, pad_stdout=True, N=0,
             use_stdout=False, reraise=False, msg_=None, keys=None):
     """
     Prints (and/or logs) an exception with relevant info

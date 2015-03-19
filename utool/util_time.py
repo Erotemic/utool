@@ -344,11 +344,11 @@ def get_timestats_str(unixtime_list, newlines=False):
         >>> result = ut.align(str(timestat_str), ':')
         >>> print(result)
         {
-            'std'   : '0:06:59',
-            'max'   : '1970/01/01 00:16:40',
-            'range' : '0:16:40',
-            'mean'  : '1970/01/01 00:04:37',
-            'min'   : '1970/01/01 00:00:00',
+            'std'  : '0:06:59',
+            'max'  : '1970/01/01 00:16:40',
+            'range': '0:16:40',
+            'mean' : '1970/01/01 00:04:37',
+            'min'  : '1970/01/01 00:00:00',
         }
 
     """
