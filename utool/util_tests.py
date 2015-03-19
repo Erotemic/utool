@@ -452,7 +452,7 @@ def doctest_module_list(module_list):
     with open(failed_doctest_fname, 'a') as file_:
         file_.write('\n-------\n\n')
         file_.write(ut.get_printable_timestamp() + '\n')
-        file_.write('logfile (only present if logging) = %r\n' % (ut.util_logging.get_log_fpath(),))
+        file_.write('logfile (only present if logging) = %r\n' % (ut.util_logging.get_current_log_fpath(),))
         testkw = dict(allexamples=True)
         for module in module_list:
             (nPass, nTotal, failed_list) = ut.doctest_funcs(module=module, **testkw)

@@ -32,6 +32,7 @@ def __inside_doctest(original_stdout=sys.stdout):
 __IN_MAIN_PROCESS__ = multiprocessing.current_process().name == 'MainProcess'
 
 __UTOOL_ROOT_LOGGER__ = None
+__CURRENT_LOG_FPATH__ = None
 
 # Remeber original python values
 __PYTHON_STDOUT__ = sys.stdout
@@ -74,6 +75,11 @@ def get_logging_dir(appname='default'):
                                 default=default)
     log_dir_realpath = realpath(log_dir)
     return log_dir_realpath
+
+
+def get_current_log_fpath():
+    global __CURRENT_LOG_FPATH__
+    return __CURRENT_LOG_FPATH__
 
 
 def get_log_fpath(num='next', appname=None):
@@ -166,6 +172,7 @@ def start_logging(log_fpath=None, mode='a', appname='default'):
     global __UTOOL_PRINTDBG__
     global __UTOOL_WRITE__
     global __UTOOL_FLUSH__
+    global __CURRENT_LOG_FPATH__
     if LOGGING_VERBOSE:
         print('[utool] start_logging()')
     # FIXME: The test for doctest may not work
@@ -175,6 +182,7 @@ def start_logging(log_fpath=None, mode='a', appname='default'):
         #logging.config.dictConfig(LOGGING)
         if log_fpath is None:
             log_fpath = get_log_fpath(num='next', appname=appname)
+        __CURRENT_LOG_FPATH__ = log_fpath
         # Print what is about to happen
         if VERBOSE or LOGGING_VERBOSE:
             startmsg = ('logging to log_fpath=%r' % log_fpath)
