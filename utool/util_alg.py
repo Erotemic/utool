@@ -448,6 +448,12 @@ def deg_to_rad(degree):
     return (degree / 360.0) * tau
 
 
+def rad_to_deg(radians):
+    tau = 2 * np.pi
+    radians %= tau
+    return (radians / tau) * 360.0
+
+
 def enumerate_primes(max_prime=4100):
     primes = [num for num in range(2, max_prime) if is_prime(num)]
     return primes
