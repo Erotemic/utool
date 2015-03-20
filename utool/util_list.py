@@ -927,6 +927,11 @@ def list_argsort(*args, **kwargs):
     return sortedby2(index_list, *args, **kwargs)
 
 
+def list_compress(list_, flag_list):
+    """ like np.compress but for lists """
+    return filter_items(list_, flag_list)
+
+
 def list_take(list_, index_list):
     """ like np.take but for lists
 
