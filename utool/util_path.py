@@ -452,8 +452,8 @@ def copy_files_to(src_fpath_list, dst_dpath=None, dst_fpath_list=None, overwrite
         print('[util_path]  * len(src_fpath_list) = %r' % (len(src_fpath_list)))
         print('[util_path]  * dst_dpath = %r' % (dst_dpath,))
 
-    ensuredir(dst_dpath, verbose=veryverbose)
     if dst_fpath_list is None:
+        ensuredir(dst_dpath, verbose=veryverbose)
         dst_fpath_list = [join(dst_dpath, basename(fpath)) for fpath in src_fpath_list]
     exists_list = list(map(exists, dst_fpath_list))
     if verbose:
