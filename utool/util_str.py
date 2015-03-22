@@ -89,6 +89,10 @@ def verts_str(verts, pad=1):
     return ', '.join(['(' + fmtstr % vert + ')' for vert in verts])
 
 
+def percent_str(pcnt):
+    return 'undef' if pcnt is None else '%06.2f %%' % (pcnt * 100,)
+
+
 def tupstr(tuple_):
     """ maps each item in tuple to a string and doesnt include parens """
     return ', '.join(list(map(str, tuple_)))
