@@ -434,7 +434,7 @@ def copy_worker(args):
     return True
 
 
-def copy_files_to(src_fpath_list, dst_dpath, overwrite=False, verbose=True, veryverbose=False):
+def copy_files_to(src_fpath_list, dst_dpath=None, dst_fpath_list=None, overwrite=False, verbose=True, veryverbose=False):
     """
         >>> from utool.util_path import *
         >>> import utool as ut
@@ -453,7 +453,8 @@ def copy_files_to(src_fpath_list, dst_dpath, overwrite=False, verbose=True, very
         print('[util_path]  * dst_dpath = %r' % (dst_dpath,))
 
     ensuredir(dst_dpath, verbose=veryverbose)
-    dst_fpath_list = [join(dst_dpath, basename(fpath)) for fpath in src_fpath_list]
+    if dst_fpath_list is None:
+        dst_fpath_list = [join(dst_dpath, basename(fpath)) for fpath in src_fpath_list]
     exists_list = list(map(exists, dst_fpath_list))
     if verbose:
         print('[util_path] * %d files already exist dst_dpath' % (sum(exists_list),))
