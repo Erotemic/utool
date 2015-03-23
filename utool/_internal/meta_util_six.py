@@ -2,9 +2,19 @@ from __future__ import absolute_import, division, print_function
 import six
 
 if six.PY2:
+    import functools
     import types
     def get_funcname(func):
-        return getattr(func, 'func_name')
+        try:
+            return getattr(func, 'func_name')
+        except AttributeError:
+            if isinstance(func, functools.partial):
+                return get_funcname(func.func)
+        #except Exception as ex:
+        #    import utool as ut
+        #    with ut.embed_on_exception_context:
+        #        raise
+
     def set_funcname(func, newname):
         return setattr(func, 'func_name', newname)
     #
