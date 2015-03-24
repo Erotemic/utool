@@ -379,6 +379,10 @@ def get_timestats_dict(unixtime_list):
     return datetime_stats
 
 
+#def datetime_to_posixtime(dt):
+#    return dt.toordinal()
+
+
 if __name__ == '__main__':
     """
     CommandLine:

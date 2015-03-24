@@ -9,7 +9,6 @@ import sys
 from utool._internal import meta_util_arg
 from utool import util_str
 from utool import util_inject
-from utool import util_dict
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[print]')
 
 QUIET        = meta_util_arg.QUIET
@@ -19,7 +18,15 @@ SILENT       = meta_util_arg.SILENT
 
 
 def print_dict(dict_):
-    print(util_dict.dict_str(dict_))
+    import utool as ut
+    dict_name = ut.get_varname_from_stack(dict_, N=1)
+    print(dict_name + ' = ' + util_str.dict_str(dict_))
+
+
+def print_list(list_):
+    import utool as ut
+    list_name = ut.get_varname_from_stack(list_, N=1)
+    print(list_name + ' = ' + util_str.list_str(list_))
 
 
 def horiz_print(*args):
