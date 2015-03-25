@@ -324,7 +324,7 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
             if argname in import_depends_map:
                 import_lines.append(import_depends_map[argname])
             # Check if argname was already added as dependency
-            if argname not in dependant_argnames and argname not in argname_list:
+            if argname not in dependant_argnames and argname not in argname_list and argname not in import_depends_map:
                 dependant_argnames.append(argname)
             # Check if argname has dependants
             if argname in var_depends_map:

@@ -213,6 +213,10 @@ def roundrobin(*iterables):
             nexts = cycle(islice(nexts, pending))
 
 
+def and_iters(*args):
+    return (all(tup) for tup in zip(*args))
+
+
 if __name__ == '__main__':
     """
     CommandLine:

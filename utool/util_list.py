@@ -1425,7 +1425,8 @@ def list_cover(list1, list2):
 
 
 def and_lists(*args):
-    return [all(tup) for tup in zip(*args)]
+    #[all(tup) for tup in zip(*args)]
+    return list(util_iter.and_iters(*args))
 
 
 def xor_lists(*args):
