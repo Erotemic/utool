@@ -6,7 +6,7 @@ import os
 
 def ensuredir(dpath):
     if not exists(dpath):
-        os.makedirs(dpath)
+        os.makedirs(dpath, mode=0o1777)
 
 
 def truepath(path):
