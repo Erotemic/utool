@@ -394,14 +394,14 @@ def ensurepath(path_, verbose=VERYVERBOSE):
     return ensuredir(path_, verbose=verbose)
 
 
-def ensuredir(path_, verbose=VERYVERBOSE, info=False):
-    """ Ensures that directory will exist """
+def ensuredir(path_, verbose=VERYVERBOSE, info=False, mode=0o1777):
+    """ Ensures that directory will exist. creates new dir with sticky bits by default """
     if not checkpath(path_, verbose=verbose, info=info):
         if verbose:
             print('[util_path] mkdir(%r)' % path_)
         #os.makedirs(path_)
         try:
-            os.makedirs(normpath(path_))
+            os.makedirs(normpath(path_), mode=mode)
         except OSError as ex:
             util_dbg.printex(ex, 'check that the longest existing path is not a bad windows symlink.')
             raise
