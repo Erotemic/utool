@@ -23,7 +23,7 @@ util_inject.noinject('[parallel]')
 
 QUIET   = util_arg.QUIET
 SILENT  = util_arg.SILENT
-VERBOSE = util_arg.VERBOSE
+PAR_VERBOSE = util_arg.VERBOSE or util_arg.get_argflag(('--verbose-par', '--verbpar'))
 STRICT  = util_arg.STRICT
 
 if SILENT:
@@ -103,7 +103,7 @@ def init_worker():
 def init_pool(num_procs=None, maxtasksperchild=None):
     """ warning this might not be the right hting to do """
     global __POOL__
-    if util_arg.VERBOSE:
+    if PAR_VERBOSE:
         print('[util_parallel] init_pool()')
     if num_procs is None:
         # Get number of cpu cores
@@ -128,7 +128,7 @@ def init_pool(num_procs=None, maxtasksperchild=None):
 @atexit.register
 def close_pool(terminate=False):
     global __POOL__
-    if util_arg.VERBOSE:
+    if PAR_VERBOSE:
         print('[util_parallel] close_pool()')
 
     if __POOL__ is not None:
@@ -313,10 +313,10 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
     if nTasks is None:
         nTasks = len(args_list)
     if nTasks == 0:
-        if VERBOSE and verbose:
+        if PAR_VERBOSE or verbose:
             print('[util_parallel.generate] submitted 0 tasks')
         return iter([])
-    if VERBOSE and verbose:
+    if PAR_VERBOSE or verbose:
         print('[util_parallel.generate] ordered=%r' % ordered)
         print('[util_parallel.generate] force_serial=%r' % force_serial)
     # Check conditions under which we force serial
@@ -324,11 +324,11 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
     if not force_serial_:
         ensure_pool()
     if force_serial_ or isinstance(__POOL__, int):
-        if VERBOSE and verbose:
+        if PAR_VERBOSE or verbose:
             print('[util_parallel.generate] generate_serial')
         return _generate_serial(func, args_list, prog=prog, nTasks=nTasks)
     else:
-        if VERBOSE and verbose:
+        if PAR_VERBOSE or verbose:
             print('[util_parallel.generate] generate_parallel')
         return _generate_parallel(func, args_list, ordered=ordered,
                                   chunksize=chunksize, prog=prog,

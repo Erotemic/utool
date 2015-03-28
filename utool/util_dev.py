@@ -128,7 +128,7 @@ def get_nonconflicting_string(base_fmtstr, conflict_set, offset=0):
         python -m utool.util_dev --test-get_nonconflicting_string
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_dev import *  # NOQA
         >>> # build test data
         >>> base_fmtstr = 'somestring%d'
@@ -137,11 +137,13 @@ def get_nonconflicting_string(base_fmtstr, conflict_set, offset=0):
         >>> result = get_nonconflicting_string(base_fmtstr, conflict_set)
         >>> # verify results
         >>> print(result)
+        somestring1
     """
     # Infinite loop until we find a non-conflict
+    conflict_set_ = set(conflict_set)
     for count in itertools.count(offset):
         base_str = base_fmtstr % count
-        if base_str not in conflict_set:
+        if base_str not in conflict_set_:
             return base_str
 
 
