@@ -804,6 +804,17 @@ def get_itemstr_list(list_, strvals=False, newlines=True,
     return itemstr_list
 
 
+def list_str_summarized(list_, list_name, maxlen=5):
+    """
+    prints the list members when the list is small and the length when it is
+    large
+    """
+    if len(list_) > maxlen:
+        return 'len(%s)=%d' % (list_name, len(list_))
+    else:
+        return '%s=%r' % (list_name, list_)
+
+
 def list_str(list_, indent_='', newlines=1, nobraces=False, *args, **kwargs):
     #return '[%s\n]' % indentjoin(list(list_), suffix=',')
     if isinstance(newlines, int):
