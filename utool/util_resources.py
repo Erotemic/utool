@@ -122,6 +122,53 @@ def current_memory_usage():
     return rss
 
 
+def get_matching_process_ids(cmd_pattern, user_pattern):
+    """
+    CommandLine:
+        export PID=30196
+        export PID=$(python -c "import utool as ut; print(ut.get_matching_process_ids('jonc', 'python2.7'))")
+        export PID=$(python -c "import utool as ut; print(ut.get_matching_process_ids('jonc', 'matlab'))")
+        sudo -H echo $PID
+        ps -o pid,comm,nice -p $PID
+        renice 10 -p $PID
+        sudo renice -4 -p $PID
+
+    user_pattern = 'jonc'
+    cmd_pattern = 'main.py'
+    user_pattern = None
+    cmd_pattern = 'matlab'
+    get_matching_process_ids(cmd_pattern, user_pattern)
+    """
+    import psutil
+    import re
+    process_list = list(psutil.process_iter())
+    def matches_pattern(proc, user_pattern, cmd_pattern):
+        matches_user = True if user_pattern is None else re.match(user_pattern, proc.username())
+        cmdline_str = ' '.join(proc.cmdline())
+        matches_name = True if cmd_pattern is None else re.search(cmd_pattern, cmdline_str)
+        return matches_user and matches_name
+    filtered_proc_list = [proc for proc in process_list if matches_pattern(proc)]
+
+    for proc in process_list:
+        print(' | '.join([str(proc.username()), str(proc.nice()), str(proc), ' '.join(proc.cmdline())]))
+        #print(proc.cmdline())
+        #print(proc.pid)
+        #print('---')
+
+    important_process_list = [proc for proc in process_list if proc.nice() < -4]
+    for proc in important_process_list:
+        print(' -- '.join([str(proc.username()), str(proc.nice()), str(proc), ' '.join(proc.cmdline())]))
+
+    #for proc in filtered_proc_list:
+    #    print('---')
+    #    print(proc)
+    #    print(proc.cmdline())
+    #    print(proc.nice())
+    #    print(proc.pid)
+    filtered_pid_list = [proc.pid for proc in filtered_proc_list]
+    return filtered_pid_list
+
+
 def num_cpus():
     import psutil
     return psutil.NUM_CPUS
