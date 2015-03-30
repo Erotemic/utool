@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 import time
 import math
 import sys
+import datetime
 from utool import util_logging
 from utool import util_inject
 from utool import util_arg
@@ -272,17 +273,17 @@ class ProgressIter(object):
         msg_fmtstr_index = ''.join(('\r', lbl, ' %4d/', str(nTotal), '...  ',))
         return msg_fmtstr_index
 
-    def build_msg_fmtstr_time(self, report_unit, lbl, invert_rate, backspace):
+    def build_msg_fmtstr_time(self, lbl, invert_rate, backspace):
         msg_fmtstr_time = ''.join((
             'rate=%3.3f seconds/iter, ' if invert_rate else 'rate=%4.2f Hz, ',
-            'eta: %4.2f ' + report_unit + ', ',
-            'ellapsed: %4.2f ' + report_unit + ',',
+            'eta: %s, ',
+            'ellapsed: %s,',
             '\n' if backspace else '',
         ))
         return msg_fmtstr_time
 
-    def build_msg_fmtstr(self, nTotal, lbl, report_unit, invert_rate, backspace):
-        msg_fmtstr = self.build_msg_fmtstr_index(nTotal, lbl) + self.build_msg_fmtstr_time(report_unit, lbl, invert_rate, backspace)
+    def build_msg_fmtstr(self, nTotal, lbl, invert_rate, backspace):
+        msg_fmtstr = self.build_msg_fmtstr_index(nTotal, lbl) + self.build_msg_fmtstr_time(lbl, invert_rate, backspace)
         return msg_fmtstr
 
     @profile
@@ -303,10 +304,6 @@ class ProgressIter(object):
         DEBUG_FREQ_ADJUST = False
         autoadjust = self.autoadjust
         # SETUP VARIABLES
-        timeunit_scale = {
-            'minutes': 60.0,
-            'seconds': 1.0,
-        }[self.report_unit]
         # HACK: reaquire logging print funcs in case they have changed
         PROGRESS_WRITE = util_logging.__UTOOL_WRITE__
         PROGRESS_FLUSH = util_logging.__UTOOL_FLUSH__
@@ -326,14 +323,14 @@ class ProgressIter(object):
         max_between_time = -1.0
         max_between_count = -1.0  # why is this different? # becuase frequency varies
         iters_per_second = -1
-        est_timeunit_left = -1
+        #est_timeunit_left = -1
 
         # Write initial message
         PROGRESS_WRITE(self.build_msg_fmtstr_index(nTotal, self.lbl) % (self.count))
         PROGRESS_FLUSH()
 
         # Prepare for iteration
-        msg_fmtstr = self.build_msg_fmtstr(nTotal, self.lbl, self.report_unit,
+        msg_fmtstr = self.build_msg_fmtstr(nTotal, self.lbl,
                                            self.invert_rate, self.backspace)
         start_time    = time.time()
         last_time     = start_time
@@ -348,25 +345,12 @@ class ProgressIter(object):
                 now_time          = time.time()
                 between_time      = (now_time - last_time)
                 between_count     = self.count - last_count
-                total_time        = (now_time - start_time)
+                total_seconds     = (now_time - start_time)
                 iters_per_second  = between_count / (float(between_time) + 1E-9)
                 iters_left        = nTotal - self.count
                 est_seconds_left  = iters_left / (iters_per_second + 1E-9)
                 last_count        = self.count
                 last_time         = now_time
-                total_timeunit    = total_time / timeunit_scale
-                est_timeunit_left = est_seconds_left / timeunit_scale
-                # Adjust report unit
-                if timeunit_scale == 1.0 and est_seconds_left > 60 * 2:
-                    timeunit_scale = 60.0
-                    self.report_unit = 'minutes'
-                    msg_fmtstr = self.build_msg_fmtstr(nTotal, self.lbl, self.report_unit,
-                                                       self.invert_rate, self.backspace)
-                elif timeunit_scale == 60.0 and est_seconds_left < 60 * 2:
-                    timeunit_scale = 1.0
-                    self.report_unit = 'seconds'
-                    msg_fmtstr = self.build_msg_fmtstr(nTotal, self.lbl, self.report_unit,
-                                                       self.invert_rate, self.backspace)
                 # ADJUST FREQ IF NEEDED
                 # Adjust frequency if printing too quickly
                 # so progress doesnt slow down actual function
@@ -388,15 +372,17 @@ class ProgressIter(object):
                         print('L___')
                 msg = msg_fmtstr % (self.count,
                                     1.0 / iters_per_second if self.invert_rate else iters_per_second,
-                                    est_timeunit_left,
-                                    total_timeunit)
+                                    str(datetime.timedelta(seconds=int(est_seconds_left))),
+                                    str(datetime.timedelta(seconds=int(total_seconds))),)
+                #est_timeunit_left,
+                #total_timeunit)
                 PROGRESS_WRITE(msg)
                 PROGRESS_FLUSH()
         # FINISH PROGRESS INFO
-        est_timeunit_left = 0
+        est_seconds_left = 0
         now_time = time.time()
-        total_timeunit = (now_time - start_time) / timeunit_scale
-        msg = msg_fmtstr % (nTotal, 1.0 / iters_per_second if self.invert_rate else iters_per_second, est_timeunit_left, total_timeunit)
+        total_seconds = (now_time - start_time)
+        msg = msg_fmtstr % (nTotal, 1.0 / iters_per_second if self.invert_rate else iters_per_second, str(datetime.timedelta(seconds=int(est_seconds_left))), str(datetime.timedelta(seconds=int(total_seconds))),)
         PROGRESS_WRITE(msg)
         PROGRESS_WRITE('\n')
         PROGRESS_FLUSH()

@@ -306,6 +306,90 @@ def get_timedelta_str(timedelta):
     return timedelta_str
 
 
+def get_posix_timedelta_str(posixtime):
+    """
+    get_timedelta_str
+
+    Returns:
+        str: timedelta_str, formated time string
+
+    CommandLine:
+        python -m utool.util_time --test-get_posix_timedelta_str
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_time import *  # NOQA
+        >>> posixtime_list = [-13, 10.2, 10.2 ** 2, 10.2 ** 3, 10.2 ** 4, 10.2 ** 5, 10.2 ** 8]
+        >>> posixtime = posixtime_list[1]
+        >>> timedelta_str = [get_posix_timedelta_str(posixtime) for posixtime in posixtime_list]
+        >>> result = (timedelta_str)
+        >>> print(result)
+        ['-00:00:13', '00:00:10.20', '00:01:44.04', '00:17:41.21', '03:00:24.32', '1 days 06:40:08.08', '193 weeks 5 days 02:05:38.10']
+
+    Timeit::
+        import datetime
+        # Seems like like timedelta is just faster. must be because it is builtin
+        %timeit get_posix_timedelta_str(posixtime)
+        %timeit str(datetime.timedelta(seconds=posixtime))
+
+    """
+    sign, posixtime_ = (1, posixtime) if posixtime >= 0 else (-1, -posixtime)
+    seconds_, subseconds = divmod(posixtime_, 1)
+    minutes_, seconds    = divmod(int(seconds_), 60)
+    hours_, minutes      = divmod(minutes_, 60)
+    days_, hours         = divmod(hours_, 24)
+    weeks_, days         = divmod(days_, 7)
+    timedelta_str = ':'.join(['%02d' % _ for _ in (hours, minutes, seconds)])
+    if subseconds > 0:
+        timedelta_str += ('%.2f' % (subseconds,))[1:]
+    if days_ > 0:
+        timedelta_str = '%d days ' % (days,) + timedelta_str
+    if weeks_ > 0:
+        timedelta_str = '%d weeks ' % (weeks_,) + timedelta_str
+    if sign == -1:
+        timedelta_str = '-' + timedelta_str
+    return timedelta_str
+
+
+#def get_simple_posix_timedelta_str(posixtime):
+#    """
+#    get_timedelta_str
+
+#    Returns:
+#        str: timedelta_str, formated time string
+
+#    CommandLine:
+#        python -m utool.util_time --test-get_posix_timedelta_str
+
+#    Example:
+#        >>> # ENABLE_DOCTEST
+#        >>> from utool.util_time import *  # NOQA
+#        >>> posixtime_list = [13, 10.2, 10.2 ** 2, 10.2 ** 3, 10.2 ** 4, 10.2 ** 5, 10.2 ** 8]
+#        >>> posixtime = posixtime_list[1]
+#        >>> timedelta_str = [get_simple_posix_timedelta_str(posixtime) for posixtime in posixtime_list]
+#        >>> result = (timedelta_str)
+#        >>> print(result)
+
+#    Timeit::
+#        import datetime
+#        posixtime = 10.2 ** 8
+#        %timeit get_simple_posix_timedelta_str(posixtime)
+#        %timeit str(datetime.timedelta(seconds=posixtime))
+
+#    """
+#    seconds_ = int(posixtime)
+#    minutes_, seconds    = divmod(seconds_, 60)
+#    hours_, minutes      = divmod(minutes_, 60)
+#    days_, hours         = divmod(hours_, 24)
+#    weeks_, days         = divmod(days_, 7)
+#    timedelta_str = ':'.join(['%02d' % _ for _ in (hours, minutes, seconds)])
+#    #if days_ > 0:
+#    #    timedelta_str = '%d days ' % (days,) + timedelta_str
+#    #if weeks_ > 0:
+#    #    timedelta_str = '%d weeks ' % (weeks_,) + timedelta_str
+#    return timedelta_str
+
+
 def get_month():
     return datetime.datetime.now().month
 
