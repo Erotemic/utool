@@ -974,8 +974,12 @@ def list_take(list_, index_list):
 def list_inverse_take(list_, index_list):
     r"""
     Args:
-        list_ (list):
-        index_list (list):
+        list_ (list): list in sorted domain
+        index_list (list): index list of the unsorted domain
+
+    Note:
+        Seems to be logically equivalent to
+        ut.list_take(list_, ut.list_argsort(index_list)), but faster
 
     Returns:
         list: output_list_
@@ -984,11 +988,10 @@ def list_inverse_take(list_, index_list):
         python -m utool.util_list --test-list_inverse_take
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> import utool as ut
         >>> # build test data
-        >>> id_list   = [2, 4, 6, 8, 9, 3]
         >>> rank_list = [3, 2, 4, 1, 9, 2]
         >>> prop_list = [0, 1, 2, 3, 4, 5]
         >>> index_list = ut.list_argsort(rank_list)
