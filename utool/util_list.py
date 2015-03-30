@@ -982,7 +982,7 @@ def list_inverse_take(list_, index_list):
         ut.list_take(list_, ut.list_argsort(index_list)), but faster
 
     Returns:
-        list: output_list_
+        list: output_list_ - the input list in the unsorted domain
 
     CommandLine:
         python -m utool.util_list --test-list_inverse_take
