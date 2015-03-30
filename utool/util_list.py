@@ -971,6 +971,48 @@ def list_take(list_, index_list):
     #else:
 
 
+def list_inverse_take(list_, index_list):
+    r"""
+    Args:
+        list_ (list):
+        index_list (list):
+
+    Returns:
+        list: output_list_
+
+    CommandLine:
+        python -m utool.util_list --test-list_inverse_take
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> import utool as ut
+        >>> # build test data
+        >>> id_list   = [2, 4, 6, 8, 9, 3]
+        >>> rank_list = [3, 2, 4, 1, 9, 2]
+        >>> prop_list = [0, 1, 2, 3, 4, 5]
+        >>> index_list = ut.list_argsort(rank_list)
+        >>> sorted_prop_list = ut.list_take(prop_list, index_list)
+        >>> # execute function
+        >>> list_ = sorted_prop_list
+        >>> output_list_  = list_inverse_take(list_, index_list)
+        >>> output_list2_ = ut.list_take(list_, ut.list_argsort(index_list))
+        >>> assert output_list_ == prop_list
+        >>> assert output_list2_ == prop_list
+        >>> # verify results
+        >>> result = str(output_list_)
+        >>> print(result)
+
+    Timeit::
+        %timeit list_inverse_take(list_, index_list)
+        %timeit ut.list_take(list_, ut.list_argsort(index_list))
+    """
+    output_list_ = [None] * len(index_list)
+    for item, index in zip(list_, index_list):
+        output_list_[index] = item
+    return output_list_
+
+
 def list_where(flag_list):
     """ takes flags returns indexes of True values """
     return [index for index, flag in enumerate(flag_list) if flag]
