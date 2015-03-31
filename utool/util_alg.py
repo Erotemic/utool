@@ -627,6 +627,53 @@ def cumsum(num_list):
     """
     return reduce(lambda acc, itm: operator.iadd(acc, [acc[-1] + itm]), num_list, [0])[1:]
 
+
+def haversine(latlon1, latlon2):
+    """
+    #http://gis.stackexchange.com/questions/81551/matching-gps-tracks
+    Calculate the great circle distance between two points
+    on the earth (specified in decimal degrees)
+
+    References:
+        http://en.wikipedia.org/wiki/Haversine_formula
+        http://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> import scipy.spatial.distance as spdist
+        >>> import utool as ut
+        >>> import functools
+        >>> gpsarr_track_list_ = [
+        ...    np.array([[ -80.21895315, -158.81099213],
+        ...              [ -12.08338926,   67.50368014],
+        ...              [ -11.08338926,   67.50368014],
+        ...              [ -11.08338926,   67.50368014],]
+        ...    ),
+        ...    np.array([[   9.77816711,  -17.27471498],
+        ...              [ -51.67678814, -158.91065495],])
+        ...    ]
+        >>> latlon1 = gpsarr_track_list_[0][0]
+        >>> latlon2 = gpsarr_track_list_[0][1]
+        >>> kilometers = ut.haversine(latlon1, latlon2)
+        >>> haversin_pdist = functools.partial(spdist.pdist, metric=ut.haversine)
+        >>> dist_vector_list = list(map(haversin_pdist, gpsarr_track_list_))
+        >>> dist_matrix_list = list(map(spdist.squareform, dist_vector_list))
+    """
+    # convert decimal degrees to radians
+    lat1, lon1 = np.radians(latlon1)
+    lat2, lon2 = np.radians(latlon2)
+
+    # haversine formula
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = (np.sin(dlat / 2) ** 2) + np.cos(lat1) * np.cos(lat2) * (np.sin(dlon / 2) ** 2)
+    c = 2 * np.arcsin(np.sqrt(a))
+
+    EARTH_RADIUS_KM = 6367
+    kilometers = EARTH_RADIUS_KM * c
+    return kilometers
+
 if __name__ == '__main__':
     """
     CommandLine:
