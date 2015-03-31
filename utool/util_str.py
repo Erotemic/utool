@@ -1014,7 +1014,7 @@ def get_callable_name(func):
                                         'type(func)=%r') % (func, type(func)))
 
 
-def align(text, character='='):
+def align(text, character='=', replchar=None):
     r"""
     Left justifies text on the left side of character
 
@@ -1039,12 +1039,12 @@ def align(text, character='='):
         three = fish
     """
     line_list = text.splitlines()
-    new_lines = align_lines(line_list, character)
+    new_lines = align_lines(line_list, character, replchar)
     new_text = '\n'.join(new_lines)
     return new_text
 
 
-def align_lines(line_list, character='='):
+def align_lines(line_list, character='=', replchar=None):
     """
     Left justifies text on the left side of character
 
@@ -1080,6 +1080,8 @@ def align_lines(line_list, character='='):
             one      = two
             three    = fish
     """
+    if replchar is None:
+        replchar = character
 
     tup_list = [line.split(character) for line in line_list]
     maxlen = 0
@@ -1091,11 +1093,11 @@ def align_lines(line_list, character='='):
     for tup in tup_list:
         if len(tup) >= 2:
             lhs = tup[0]
-            rhs = character.join(tup[1:])
-            newline = lhs.ljust(maxlen) + character + rhs
+            rhs = replchar.join(tup[1:])
+            newline = lhs.ljust(maxlen) + replchar + rhs
             new_lines.append(newline)
         else:
-            new_lines.append(character.join(tup))
+            new_lines.append(replchar.join(tup))
     return new_lines
 
 
