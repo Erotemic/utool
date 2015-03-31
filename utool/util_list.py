@@ -852,7 +852,8 @@ def sortedby(item_list, key_list, reverse=False):
     Args:
         list_ (list): list to sort
         key_list (list): list to sort by
-        reverse (bool): sort order is descending if True else acscending
+        reverse (bool): sort order is descending (largest first)
+                        if reverse is True else acscending (smallest first)
 
     Returns:
         list : ``list_`` sorted by the values of another ``list``. defaults to

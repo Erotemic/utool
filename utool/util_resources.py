@@ -147,9 +147,9 @@ def get_matching_process_ids(cmd_pattern, user_pattern):
         cmdline_str = ' '.join(proc.cmdline())
         matches_name = True if cmd_pattern is None else re.search(cmd_pattern, cmdline_str)
         return matches_user and matches_name
-    filtered_proc_list = [proc for proc in process_list if matches_pattern(proc)]
+    filtered_proc_list = [proc for proc in process_list if matches_pattern(proc, user_pattern, cmd_pattern)]
 
-    for proc in process_list:
+    for proc in filtered_proc_list:
         print(' | '.join([str(proc.username()), str(proc.nice()), str(proc), ' '.join(proc.cmdline())]))
         #print(proc.cmdline())
         #print(proc.pid)
