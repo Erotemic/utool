@@ -647,7 +647,9 @@ def get_func_sourcecode(func, stripdef=False, stripret=False):
     #print(orig_source)
     if stripdef:
         # hacky
-        sourcecode = ut.unindent(ut.regex_replace('def [^)]*\\):\n', '', sourcecode))
+        sourcecode = ut.unindent(sourcecode)
+        #sourcecode = ut.unindent(ut.regex_replace('def [^)]*\\):\n', '', sourcecode))
+        sourcecode = ut.unindent(ut.regex_replace('def [^:]*\\):\n', '', sourcecode))
         #print(sourcecode)
         pass
     if stripret:

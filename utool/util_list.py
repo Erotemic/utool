@@ -309,6 +309,7 @@ def invertible_flatten(unflat_list):
     return flat_list, reverse_list
 
 
+@profile
 def unflatten(flat_list, reverse_list):
     """ Rebuilds unflat list from invertible_flatten
 
@@ -330,6 +331,19 @@ def unflatten(flat_list, reverse_list):
     return unflat_list2
 
 
+@profile
+def accumulate(iterator):
+    """
+    Notice:
+        use itertools.accumulate in python > 3.2
+    """
+    total = 0
+    for item in iterator:
+        total += item
+        yield total
+
+
+@profile
 def invertible_flatten2(unflat_list):
     """
     An alternative to invertible_flatten which uses cumsum
@@ -352,6 +366,14 @@ def invertible_flatten2(unflat_list):
         >>> result = ((flat_list, cumlen_list))
         >>> print(result)
         ([5, 2, 3, 12, 3, 3, 9, 13, 3, 5], [1, 6, 7, 9, 10])
+
+    Timeit:
+        unflat_list = [[random.random() for _ in range(int(random.random() * 1000))] for __ in range(200)]
+        unflat_arrs = list(map(np.array, unflat_list))
+
+        %timeit invertible_flatten2(unflat_list)
+        %timeit invertible_flatten2_numpy(unflat_list)
+        %timeit invertible_flatten2_numpy(unflat_arrs)
 
     SeeAlso:
         invertible_flatten
@@ -390,15 +412,13 @@ def invertible_flatten2(unflat_list):
     return flat_list, cumlen_list
 
 
-def accumulate(iterator):
-    """
-    Notice:
-        use itertools.accumulate in python > 3.2
-    """
-    total = 0
-    for item in iterator:
-        total += item
-        yield total
+@profile
+def invertible_flatten2_numpy(unflat_arrs):
+    """ more numpy version """
+    sublen_list = [arr.shape[0] for arr in unflat_arrs]
+    cumlen_list = np.cumsum(sublen_list)
+    flat_list = np.hstack(unflat_arrs)
+    return flat_list, cumlen_list
 
 
 def unflatten2(flat_list, cumlen_list):
@@ -434,6 +454,7 @@ def unflatten2(flat_list, cumlen_list):
     return unflat_list2
 
 
+@profile
 def unflat_unique_rowid_map(func, unflat_rowids, **kwargs):
     """
     performs only one call to the underlying func with unique rowids the func
