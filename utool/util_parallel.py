@@ -385,6 +385,7 @@ def spawn_background_process(func, *args, **kwargs):
     (like rebuilding some costly data structure)
 
     References:
+        http://stackoverflow.com/questions/2046603/is-it-possible-to-run-function-in-a-subprocess-without-threading-or-writing-a-se
         http://stackoverflow.com/questions/1196074/starting-a-background-process-in-python
         http://stackoverflow.com/questions/15063963/python-is-thread-still-running
 
