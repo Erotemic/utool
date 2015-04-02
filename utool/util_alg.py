@@ -688,7 +688,7 @@ def safe_pdist(arr, *args, **kwargs):
 
 
 def safe_div(a, b):
-    return None if a is None else a / b
+    return None if a is None or b is None else a / b
 
 
 def safe_max(arr):
