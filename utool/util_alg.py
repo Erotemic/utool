@@ -17,6 +17,7 @@ import six
 from six.moves import zip, range, reduce  # NOQA
 from utool import util_type
 from utool import util_inject
+import scipy.spatial.distance as spdist
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
 
 
@@ -673,6 +674,26 @@ def haversine(latlon1, latlon2):
     EARTH_RADIUS_KM = 6367
     kilometers = EARTH_RADIUS_KM * c
     return kilometers
+
+
+def unixtime_hourdiff(x, y):
+    return np.abs((x - y)) / (60. ** 2)
+
+
+def safe_pdist(arr, *args, **kwargs):
+    if arr is None or len(arr) < 2:
+        return None
+    else:
+        return spdist.pdist(arr, *args, **kwargs)
+
+
+def safe_div(a, b):
+    return None if a is None else a / b
+
+
+def safe_max(arr):
+    return np.nan if arr is None or len(arr) == 0 else arr.max()
+
 
 if __name__ == '__main__':
     """
