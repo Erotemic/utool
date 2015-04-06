@@ -98,13 +98,14 @@ def iflatten_scalars(list_):
     [item for item in list_]
 
 
-def ichunks(iterable, chunksize):
+def ichunks(iterable, chunksize, bordermode=None):
     """
     generates successive n-sized chunks from ``iterable``.
 
     Args:
         iterable (list): input to iterate over
         chunksize (int): size of sublist to return
+        bordermode (str): None, 'cycle', or 'replicate'
 
     References:
         http://stackoverflow.com/questions/434287/what-is-the-most-pythonic-way-to-iterate-over-a-list-in-chunks
@@ -131,14 +132,51 @@ def ichunks(iterable, chunksize):
         >>> result = list(genresult)
         >>> print(result)
         [[1, 2, 3], [4, 5, 6], [7]]
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_iter import *  # NOQA
+        >>> iterable = (1, 2, 3, 4, 5, 6, 7)
+        >>> chunksize = 3
+        >>> bordermode = 'cycle'
+        >>> genresult = ichunks(iterable, chunksize, bordermode)
+        >>> result = list(genresult)
+        >>> print(result)
+        [[1, 2, 3], [4, 5, 6], [7, 1, 2]]
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_iter import *  # NOQA
+        >>> iterable = (1, 2, 3, 4, 5, 6, 7)
+        >>> chunksize = 3
+        >>> bordermode = 'replicate'
+        >>> genresult = ichunks(iterable, chunksize, bordermode)
+        >>> result = list(genresult)
+        >>> print(result)
+        [[1, 2, 3], [4, 5, 6], [7, 7, 7]]
     """
     # feed the same iter to izip_longest multiple times, this causes it to
     # consume successive values of the same sequence rather than striped values
     sentinal = object()
-    chunks_with_sentinals = izip_longest(*[iter(iterable)] * chunksize, fillvalue=sentinal)
+    copied_iterators = [iter(iterable)] * chunksize
+    chunks_with_sentinals = izip_longest(*copied_iterators, fillvalue=sentinal)
     # Yeild smaller chunks without sentinals
-    for chunk in chunks_with_sentinals:
-        yield [item for item in chunk if item is not sentinal]
+    if bordermode is None:
+        for chunk in chunks_with_sentinals:
+            yield [item for item in chunk if item is not sentinal]
+    elif bordermode == 'cycle':
+        bordervalues = cycle(iter(iterable))
+        for chunk in chunks_with_sentinals:
+            yield [item if item is not sentinal else six.next(bordervalues) for item in chunk]
+    elif bordermode == 'replicate':
+        for chunk in chunks_with_sentinals:
+            filtered_chunk = [item for item in chunk if item is not sentinal]
+            if len(filtered_chunk) == chunksize:
+                yield filtered_chunk
+            else:
+                sizediff = (chunksize - len(filtered_chunk))
+                padded_chunk = filtered_chunk + [filtered_chunk[-1]] * sizediff
+                yield padded_chunk
 
 
 def ichunks_list(list_, chunksize):
