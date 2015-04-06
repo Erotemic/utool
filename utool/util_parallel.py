@@ -45,6 +45,9 @@ if util_cplat.WIN32:
 
 BACKEND = 'multiprocessing'
 
+#TODO:
+#    http://dispy.sourceforge.net/
+
 if BACKEND == 'gevent':
     raise NotImplementedError('gevent cannot run on multiple cpus')
     pass
