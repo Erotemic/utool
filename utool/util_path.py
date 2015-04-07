@@ -148,7 +148,7 @@ def remove_dirs(dpath, dryrun=False, ignore_errors=True, **kwargs):
 #import os
 
 
-def augpath(path, augsuf='', augext='', augdir=None, newext=None, ensure=False):
+def augpath(path, augsuf='', augext='', augdir=None, newext=None, newfname=None, ensure=False):
     """
     augments end of path before the extension.
 
@@ -184,6 +184,8 @@ def augpath(path, augsuf='', augext='', augdir=None, newext=None, ensure=False):
     # Breakup path
     dpath, fname = split(path)
     fname_noext, ext = splitext(fname)
+    if newfname is not None:
+        fname_noext = newfname
     # Augment ext
     if newext is None:
         newext = ext

@@ -59,6 +59,7 @@ def get_timestamp(format_='filename', use_second=False, delta_seconds=None):
         >>> assert len(stamp) == len('15:43:04 2015/02/24')
     """
     now = datetime.datetime.now()
+    # TODO: time.timezone
     #now = datetime.datetime.utcnow()
     if delta_seconds is not None:
         now += datetime.timedelta(seconds=delta_seconds)
@@ -82,6 +83,16 @@ def get_timestamp(format_='filename', use_second=False, delta_seconds=None):
                 'comment': '# (yyyy-mm-dd hh:mm) %04d-%02d-%02d %02d:%02d'}
         stamp = time_formats[format_] % time_tup
     return stamp
+
+
+def get_datestamp(explicit=True):
+    now = datetime.datetime.now()
+    stamp = '%04d-%02d-%02d' % (now.year, now.month, now.day)
+    if explicit:
+        return 'ymd-' + stamp + time.timezone[0]
+    else:
+        return stamp
+
 
 # alias
 timestamp = get_timestamp
