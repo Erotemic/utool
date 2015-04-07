@@ -457,7 +457,7 @@ def copy_files_to(src_fpath_list, dst_dpath=None, dst_fpath_list=None, overwrite
         dst_fpath_list = [join(dst_dpath, basename(fpath)) for fpath in src_fpath_list]
     exists_list = list(map(exists, dst_fpath_list))
     if verbose:
-        print('[util_path] * %d files already exist dst_dpath' % (sum(exists_list),))
+        print('[util_path]  * %d files already exist dst_dpath' % (sum(exists_list),))
     if not overwrite:
         dst_fpath_list_ = util_list.filterfalse_items(dst_fpath_list, exists_list)
         src_fpath_list_ = util_list.filterfalse_items(src_fpath_list, exists_list)
@@ -469,7 +469,7 @@ def copy_files_to(src_fpath_list, dst_dpath=None, dst_fpath_list=None, overwrite
 
     #success_list = copy_list(src_fpath_list_, dst_fpath_list_)
     if verbose:
-        print('[util_path] * Copied %d / %d' % (sum(success_list), len(src_fpath_list)))
+        print('[util_path]  * Copied %d / %d' % (sum(success_list), len(src_fpath_list)))
         print('[util_path] L___ DONE COPYING FILES ___')
 
 

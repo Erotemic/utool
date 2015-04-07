@@ -25,6 +25,9 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[pref]')
 PrefNode = DynamicStruct.DynStruct
 
 
+VERBOSE_PREF = util_arg.get_argflag('--verbpref')
+
+
 def printDBG(msg):
     #print('[PREFS] '+msg)
     pass
@@ -155,7 +158,8 @@ class Pref(PrefNode):
     def __overwrite_child_attr(self, name, attr):
         # FIXME: when setting string preference nodes to lists, it casts
         # the list to a string!
-        #printDBG( "overwrite_attr: %s.%s = %r" % (self._intern.name, name, attr))
+        if VERBOSE_PREF:
+            print('[pref.__overwrite_child_attr]: %s.%s = %r' % (self._intern.name, name, attr))
         # get child node to "overwrite"
         row = self._tree.child_names.index(name)
         child = self._tree.child_list[row]
@@ -198,8 +202,8 @@ class Pref(PrefNode):
         """
         if isinstance(attr, Pref):
             # Child attribute already has a Pref wrapping
-
-            #printDBG( 'new_attr: %s.%s = %r' % (self._intern.name, name, attr.value()))
+            if VERBOSE_PREF:
+                print('[pref.__new_attr]: %s.%s = %r' % (self._intern.name, name, attr.value()))
             new_childx = len(self._tree.child_names)
             # Children know about parents
             attr._tree.parent = self     # Give child parent
@@ -349,9 +353,11 @@ class Pref(PrefNode):
         fpath = self.get_fpath()
         if fpath in ['', None]:
             if self._tree.parent is not None:
-                #printDBG('[save] Can my parent save me?')  # ...to disk
+                if VERBOSE_PREF:
+                    print('[pref.save] Can my parent save me?')  # ...to disk
                 return self._tree.parent.save()
-            #printDBG('[save] I cannot be saved. I have no parents.')
+            if VERBOSE_PREF:
+                print('[pref.save] I cannot be saved. I have no parents.')
             return False
         with open(fpath, 'w') as f:
             print('[pref] Saving to ' + fpath)
@@ -364,15 +370,17 @@ class Pref(PrefNode):
 
     def load(self):
         """ Read pref dict stored on disk. Overwriting current values. """
-        #printDBG('[pref.load()]')
-        #if not os.path.exists(self._intern.fpath):
-        #    msg = '[pref] fpath=%r does not exist' % (self._intern.fpath)
-        #    #printDBG(msg)
-        #    return msg
+        if VERBOSE_PREF:
+            print('[pref.load()]')
+            #if not os.path.exists(self._intern.fpath):
+            #    msg = '[pref] fpath=%r does not exist' % (self._intern.fpath)
+            #    #printDBG(msg)
+            #    return msg
         fpath = self.get_fpath()
         try:
             with open(fpath, 'r') as f:
-                #printDBG('load: %r' % fpath)
+                if VERBOSE_PREF:
+                    print('load: %r' % fpath)
                 pref_dict = cPickle.load(f)
         except EOFError as ex1:
             util_dbg.printex(ex1, 'did not load pref fpath=%r correctly' % fpath, iswarning=True)
@@ -497,12 +505,15 @@ class Pref(PrefNode):
 
 def _qt_set_leaf_data(self, qvar):
     """ Sets backend data using QVariants """
-    #print('[pref] qt_set_leaf_data: qvar = %r' % qvar)
-    #print('[pref] qt_set_leaf_data: _intern.name=%r' % self._intern.name)
-    #print('[pref] qt_set_leaf_data: _intern.type_=%r' % self._intern.get_type())
-    #print('[pref] qt_set_leaf_data: type(_intern.value)=%r' % type(self._intern.value))
-    #print('[pref] qt_set_leaf_data: _intern.value=%r' % self._intern.value)
-    ##print('[pref] qt_set_leaf_data: qvar.toString()=%s' % str(qvar.toString()))
+    if VERBOSE_PREF:
+        print('')
+        print('+--- [pref.qt_set_leaf_data]')
+        print('[pref.qt_set_leaf_data] qvar = %r' % qvar)
+        print('[pref.qt_set_leaf_data] _intern.name=%r' % self._intern.name)
+        print('[pref.qt_set_leaf_data] _intern.type_=%r' % self._intern.get_type())
+        print('[pref.qt_set_leaf_data] type(_intern.value)=%r' % type(self._intern.value))
+        print('[pref.qt_set_leaf_data] _intern.value=%r' % self._intern.value)
+        #print('[pref.qt_set_leaf_data] qvar.toString()=%s' % str(qvar.toString()))
     if self._tree.parent is None:
         raise Exception('[Pref.qtleaf] Cannot set root preference')
     if self.qt_is_editable():
@@ -522,7 +533,10 @@ def _qt_set_leaf_data(self, qvar):
         self._intern.get_type()
         if isinstance(self._intern.value, bool):
             #new_val = bool(qvar.toBool())
-            new_val = bool(qvar)
+            print('qvar = %r' % (qvar,))
+            new_val = util_type.smart_cast(qvar, bool)
+            #new_val = bool(eval(qvar, {}, {}))
+            print('new_val = %r' % (new_val,))
         elif isinstance(self._intern.value, int):
             #new_val = int(qvar.toInt()[0])
             new_val = int(qvar)
@@ -554,16 +568,64 @@ def _qt_set_leaf_data(self, qvar):
                     % type(self._intern.value), self._intern.get_type())
         # Check for a set of None
         if isinstance(new_val, six.string_types):
-            if new_val.upper() == 'NONE':
+            if new_val.lower() == 'none':
                 new_val = None
-            elif new_val.upper() == 'TRUE':
+            elif new_val.lower() == 'true':
                 new_val = True
-            elif new_val.upper() == 'FALSE':
+            elif new_val.lower() == 'false':
                 new_val = False
         # save to disk after modifying data
-        print('[pref] qt_set_leaf_data: new_val=%r' % new_val)
-        print('[pref] qt_set_leaf_data: type(new_val)=%r' % type(new_val))
+        if VERBOSE_PREF:
+            print('---')
+            print('[pref.qt_set_leaf_data] new_val=%r' % new_val)
+            print('[pref.qt_set_leaf_data] type(new_val)=%r' % type(new_val))
+            print('L____ [pref.qt_set_leaf_data]')
         # TODO Add ability to set a callback function when certain
         # preferences are changed.
         return self._tree.parent.pref_update(self._intern.name, new_val)
     return 'PrefNotEditable'
+
+
+def test_Preferences():
+    r"""
+    CommandLine:
+        python -m utool.Preferences --test-test_Preferences --show --verbpref
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.Preferences import *  # NOQA
+        >>> import utool as ut
+        >>> import guitool
+        >>> guitool.ensure_qtapp()
+        >>> root = test_Preferences()
+        >>> ut.quit_if_noshow()
+        >>> widget = root.createQWidget()
+        >>> #widget.show()
+        >>> guitool.qtapp_loop(widget)
+    """
+    root = Pref()
+    root.a = Pref()
+    root.strvar = 'foobar'
+    root.intvar = 1
+    root.floatvar = -1.3
+    root.boolvar = True
+    root.listvar = [True, 1, 3]
+
+    root.a.strvar = 'foobar1'
+    root.a.intvar = -1
+    root.a.floatvar = 2.4
+    root.a.boolvar2 = False
+    return root
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m utool.Preferences
+        python -m utool.Preferences --allexamples
+        python -m utool.Preferences --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
