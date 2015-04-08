@@ -238,6 +238,8 @@ class ProgressIter(object):
         self.report_unit    = kwargs.get('report_unit', 'seconds')
         self.autoadjust  = kwargs.get('autoadjust', True)  # autoadjust frequency of reporting
         self.with_totaltime = False
+        if self.freq is None:
+            self.freq = 1
         if self.use_rate:
             # Hacky so hacky. this needs major cleanup
             # saving args and kwargs so can wait on log_progress call

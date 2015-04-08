@@ -431,8 +431,19 @@ def byte_str2(nBytes):
     Automatically chooses relevant unit (KB, MB, or GB) for displaying some
     number of bytes.
 
+    Args:
+        nBytes (int):
+
     Returns:
-        str
+        str:
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> nBytes_list = [1, 100, 1024,  1048576, 1073741824, 1099511627776]
+        >>> result = list(map(byte_str2, nBytes_list))
+        >>> print(result)
+        ['0.00 KB', '0.10 KB', '1.00 KB', '1.00 MB', '1.00 GB', '1024.00 GB']
     """
     nAbsBytes = abs(nBytes)
     if nAbsBytes < 2.0 ** 10:

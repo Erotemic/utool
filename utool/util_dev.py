@@ -714,7 +714,7 @@ class InteractiveIter(object):
             raise StopIteration()
         assert isinstance(iiter.iterable, INDEXABLE_TYPES)
         iiter.num_items = len(iiter.iterable)
-        print('Begin interactive iteration over %r items' % (iiter.num_items))
+        print('[IITER] Begin interactive iteration over %r items\n' % (iiter.num_items))
         mark_, end_ = util_progress.log_progress(total=iiter.num_items, lbl='interaction: ', freq=1)
         while True:
             print('')

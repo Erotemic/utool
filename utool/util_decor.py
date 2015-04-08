@@ -359,12 +359,12 @@ def accepts_numpy(func):
     return wrp_accepts_numpy
 
 
-def memorize(func):
+def memoize_nonzero(func):
     """
-    Memoization decorator for functions taking one or more arguments.
+    Memoization decorator for functions taking a nonzero number of arguments.
 
     References:
-        # http://code.activestate.com/recipes/578231-probably-the-fastest-memoization-decorator-in-the-/
+        http://code.activestate.com/recipes/578231-probably-the-fastest-memoization-decorator-in-the-/
     """
     class _memorizer(dict):
         def __init__(self, func):
@@ -375,6 +375,43 @@ def memorize(func):
             ret = self[key] = self.func(*key)
             return ret
     return _memorizer(func)
+
+
+def memoize_single(func):
+    """ Memoization decorator for a function taking a single argument
+
+    References:
+        http://code.activestate.com/recipes/578231-probably-the-fastest-memoization-decorator-in-the-/
+    """
+    class memodict_single(dict):
+        def __missing__(self, key):
+            ret = self[key] = func(key)
+            return ret
+    return memodict_single().__getitem__
+
+
+def memoize_zero(func):
+    """ Memoization decorator for a function taking no arguments """
+    wrp_memoize_single = memoize_single(func)
+    def wrp_memoize_zero():
+        return wrp_memoize_single(None)
+    return wrp_memoize_zero
+
+
+def memoize(obj):
+    """
+    References:
+        https://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
+    """
+    cache = obj.cache = {}
+
+    @functools.wraps(obj)
+    def memoizer(*args, **kwargs):
+        key = str(args) + str(kwargs)
+        if key not in cache:
+            cache[key] = obj(*args, **kwargs)
+        return cache[key]
+    return memoizer
 
 
 def interested(func):

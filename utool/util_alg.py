@@ -599,7 +599,7 @@ def knapsack(items, maxweight):
     # Return the value of the most valuable subsequence of the first i
     # elements in items whose weights sum to no more than j.
     from utool import util_decor
-    @util_decor.memorize
+    @util_decor.memoize_nonzero
     def bestvalue(i, j):
         if i == 0:
             return 0

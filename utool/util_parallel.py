@@ -202,7 +202,7 @@ def _process_parallel(func, args_list, args_dict={}, nTasks=None):
 
 
 def _generate_parallel(func, args_list, ordered=True, chunksize=1,
-                       prog=True, verbose=True, nTasks=None):
+                       prog=True, verbose=True, nTasks=None, freq=None):
     """
     Parallel process generator
     """
@@ -219,7 +219,7 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
     raw_generator = pmap_func(func, args_list, chunksize)
     # Get iterator with or without progress
     result_generator = (
-        util_progress.ProgressIter(raw_generator, nTotal=nTasks, lbl=get_funcname(func) + ': ')
+        util_progress.ProgressIter(raw_generator, nTotal=nTasks, lbl=get_funcname(func) + ': ', freq=freq)
         if prog else raw_generator
     )
     if __TIME_GENERATE__:
@@ -230,14 +230,14 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
         if __EAGER_JOIN__:
             close_pool()
     except Exception as ex:
-        util_dbg.printex(ex, 'Parallel Generation Failed!', '[utool]')
+        util_dbg.printex(ex, 'Parallel Generation Failed!', '[utool]', tb=True)
         if __EAGER_JOIN__:
             close_pool()
         print('__SERIAL_FALLBACK__ = %r' % __SERIAL_FALLBACK__)
         if __SERIAL_FALLBACK__:
             print('Trying to handle error by falling back to serial')
             serial_generator = _generate_serial(
-                func, args_list, prog=prog, verbose=verbose, nTasks=nTasks)
+                func, args_list, prog=prog, verbose=verbose, nTasks=nTasks, freq=freq)
             for result in serial_generator:
                 yield result
         else:
@@ -246,7 +246,7 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
         util_time.toc(tt)
 
 
-def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None):
+def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None, freq=None):
     """ internal serial generator  """
     if nTasks is None:
         nTasks = len(args_list)
@@ -256,7 +256,7 @@ def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None):
     prog = prog and verbose and nTasks > 1
     # Get iterator with or without progress
     args_iter = (
-        util_progress.ProgressIter(args_list, nTotal=nTasks, lbl=get_funcname(func) + ': ')
+        util_progress.ProgressIter(args_list, nTotal=nTasks, lbl=get_funcname(func) + ': ', freq=freq)
         if prog else args_list
     )
     if __TIME_GENERATE__:
@@ -278,7 +278,7 @@ def ensure_pool(warn=False):
 
 
 def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
-             chunksize=1, prog=True, verbose=True, nTasks=None):
+             chunksize=1, prog=True, verbose=True, nTasks=None, freq=None):
     """
 
     Args:
@@ -335,7 +335,7 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
             print('[util_parallel.generate] generate_parallel')
         return _generate_parallel(func, args_list, ordered=ordered,
                                   chunksize=chunksize, prog=prog,
-                                  verbose=verbose, nTasks=nTasks)
+                                  verbose=verbose, nTasks=nTasks, freq=freq)
 
 
 def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__,
