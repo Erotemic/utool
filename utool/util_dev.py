@@ -711,10 +711,12 @@ class InteractiveIter(object):
     def __iter__(iiter):
         import utool as ut
         if not iiter.enabled:
-            raise StopIteration()
+            for item in ut.ProgressIter(iiter.iterable, lbl='nointeract: '):
+                yield item
+            #raise StopIteration()
         assert isinstance(iiter.iterable, INDEXABLE_TYPES)
         iiter.num_items = len(iiter.iterable)
-        print('[IITER] Begin interactive iteration over %r items\n' % (iiter.num_items))
+        print('[IITER] Begin interactive iteration: %r items\n' % (iiter.num_items))
         mark_, end_ = util_progress.log_progress(total=iiter.num_items, lbl='interaction: ', freq=1)
         while True:
             print('')

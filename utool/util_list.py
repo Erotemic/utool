@@ -348,11 +348,15 @@ def invertible_flatten2(unflat_list):
     """
     An alternative to invertible_flatten which uses cumsum
 
-    TODO: This flatten is faster fix it to be used everywhere
-
     Flattens ``list`` but remember how to reconstruct the unflat ``list``
     Returns flat ``list`` and the unflat ``list`` with indexes into the flat
     ``list``
+
+    Args:
+        unflat_list (list):
+
+    Returns:
+        tuple: flat_list, cumlen_list
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -366,6 +370,8 @@ def invertible_flatten2(unflat_list):
         >>> result = ((flat_list, cumlen_list))
         >>> print(result)
         ([5, 2, 3, 12, 3, 3, 9, 13, 3, 5], [1, 6, 7, 9, 10])
+
+    TODO: This flatten is faster fix it to be used everywhere
 
     Timeit:
         unflat_list = [[random.random() for _ in range(int(random.random() * 1000))] for __ in range(200)]
