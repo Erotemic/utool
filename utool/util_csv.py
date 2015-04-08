@@ -11,7 +11,7 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[csv]')
 
 def numpy_to_csv(arr, col_lbls=None, header='', col_type=None):
     col_list = arr.T.tolist()
-    return make_csv_table(col_lbls, col_list, header, col_type)
+    return make_csv_table(col_list, col_lbls, header, col_type)
 
 
 def make_csv_table(column_list=[], column_lbls=None, header='',
