@@ -1301,8 +1301,10 @@ def show_was_requested():
     returns True if --show is specified on the commandline or you are in
     IPython (and presumably want some sort of interaction
     """
-    import utool as ut
-    return ut.get_argflag('--show') or ut.inIPython()
+    import plottool as pt
+    return pt.show_was_requested()
+    #import utool as ut
+    #return ut.get_argflag('--show') or ut.inIPython()
 
 
 class ExitTestException(Exception):

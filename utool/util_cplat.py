@@ -7,7 +7,7 @@ import six
 import sys
 import platform
 import subprocess
-#import shlex
+import shlex
 from os.path import exists, normpath, basename
 from .util_inject import inject
 from utool._internal import meta_util_cplat
@@ -329,7 +329,6 @@ def __parse_cmd_args(args, sudo, shell):
         >>> result = str(args)
         >>> print(result)
     """
-    import shlex
     # Case where tuple is passed in as only argument
     if isinstance(args, tuple) and len(args) == 1 and isinstance(args[0], tuple):
         args = args[0]

@@ -310,6 +310,56 @@ def make_score_tabular(row_lbls, col_lbls, scores, title=None,
     return tabular_str
 
 
+def get_latex_figure_str(fpath_list, caption_str=None, label_str=None):
+    r"""
+    Args:
+        fpath_list (list):
+
+    Returns:
+        str: figure_str
+
+    CommandLine:
+        python -m utool.util_latex --test-get_latex_figure_str
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_latex import *  # NOQA
+        >>> # build test data
+        >>> fpath_list = ['figures/foo.png']
+        >>> # execute function
+        >>> figure_str = get_latex_figure_str(fpath_list)
+        >>> # verify results
+        >>> result = str(figure_str)
+        >>> print(result)
+    """
+    import utool as ut
+    graphics_list = [r'\includegraphics[height=1.65in]{%s}' % (fpath,) for fpath in fpath_list]
+    graphics_body = '\n&\n'.join(graphics_list)
+    header_str = ' '.join(['c'] * len(graphics_list))
+    tabular_body =  ut.codeblock(
+        r'''
+        \begin{tabular}{%s}
+        %s
+        \end{tabular}
+        '''
+    ) % (header_str, graphics_body)
+    if caption_str is not None:
+        tabular_body += '\n\caption{\\footnotesize{%s}}' % (caption_str,)
+    if label_str is not None:
+        tabular_body += '\n\label{fig:%s}' % (label_str,)
+    figure_fmtstr = ut.codeblock(
+        r'''
+        \begin{figure*}
+        \begin{center}
+        %s
+        \end{center}
+        \end{figure*}
+        '''
+    )
+    figure_str = figure_fmtstr % (tabular_body)
+    return figure_str
+
+
 def _tabular_header_and_footer(col_layout):
     tabular_head = textwrap.dedent(r'\begin{tabular}{|%s|}' % col_layout)
     tabular_tail = textwrap.dedent(r'\end{tabular}')
@@ -349,3 +399,16 @@ def tabular_join(tabular_body_list, nCols=2):
     tabular_body = hline.join(tabular_body_list)
     tabular = hline.join([tabular_head, tabular_body, tabular_tail])
     return tabular
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m utool.util_latex
+        python -m utool.util_latex --allexamples
+        python -m utool.util_latex --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
