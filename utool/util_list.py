@@ -11,7 +11,7 @@ from six.moves import zip, map, zip_longest, range, filter
 from utool import util_iter
 from utool import util_inject
 from utool.util_str import get_callable_name
-from utool.util_type import is_listlike
+from utool import util_type
 from utool._internal.meta_util_six import get_funcname, set_funcname
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[list]')
 
@@ -1348,7 +1348,7 @@ def list_depth(list_, func=max, _depth=0):
 
     """
     depth_list = [list_depth(item, func=func, _depth=_depth + 1)
-                  for item in  list_ if is_listlike(item)]
+                  for item in  list_ if util_type.is_listlike(item)]
     if len(depth_list) > 0:
         return func(depth_list)
     else:
@@ -1361,7 +1361,7 @@ def list_deep_types(list_):
     """
     type_list = []
     for item in list_:
-        if is_listlike(item):
+        if util_type.is_listlike(item):
             type_list.extend(list_deep_types(item))
         else:
             type_list.append(type(item))
@@ -1412,10 +1412,10 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True):
     """
     level_shape_list = []
     # For a pure bottom level list return the length
-    if not any(map(is_listlike, list_)):
+    if not any(map(util_type.is_listlike, list_)):
         return len(list_)
     for item in list_:
-        if is_listlike(item):
+        if util_type.is_listlike(item):
             if max_depth is None:
                 level_shape_list.append(depth_profile(item, None))
             else:
@@ -1442,15 +1442,15 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True):
 def list_type_profile(sequence, compress_homogenous=True):
     """ similar to depth_profile but reports types """
     # For a pure bottom level list return the length
-    #if not any(map(is_listlike, sequence)) or (isinstance(sequence, np.ndarray) and sequence.dtype != object):
-    if not is_listlike(sequence) or (isinstance(sequence, np.ndarray) and sequence.dtype != object):
+    #if not any(map(util_type.is_listlike, sequence)) or (isinstance(sequence, np.ndarray) and sequence.dtype != object):
+    if not util_type.is_listlike(sequence) or (isinstance(sequence, np.ndarray) and sequence.dtype != object):
         typename = str(type(sequence)).replace('<type \'', '').replace('\'>', '')
         level_type_str = typename
         return level_type_str
 
     level_type_list = []
     for item in sequence:
-        #if is_listlike(item):
+        #if util_type.is_listlike(item):
         level_type_list.append(list_type_profile(item))
 
     if compress_homogenous:
