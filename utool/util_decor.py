@@ -196,7 +196,7 @@ def accepts_scalar_input(func):
 
     accepts_scalar_input is a decorator which expects to be used on class methods.
     It lets the user pass either a vector or a scalar to a function, as long as
-    the function treats everything like a vector. Input and output is sanatized
+    the function treats everything like a vector. Input and output is sanitized
     to the user expected format on return.
     """
     #@on_exception_report_input
@@ -226,7 +226,7 @@ def accepts_scalar_input2(argx_list=[0], outer_wrapper=True):
 
     accepts_scalar_input2 is a decorator which expects to be used on class methods.
     It lets the user pass either a vector or a scalar to a function, as long as
-    the function treats everything like a vector. Input and output is sanatized
+    the function treats everything like a vector. Input and output is sanitized
     to the user expected format on return.
 
     Args:
