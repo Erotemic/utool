@@ -310,7 +310,7 @@ def make_score_tabular(row_lbls, col_lbls, scores, title=None,
     return tabular_str
 
 
-def get_latex_figure_str(fpath_list, caption_str=None, label_str=None):
+def get_latex_figure_str(fpath_list, caption_str=None, label_str=None, height_str='1.65'):
     r"""
     Args:
         fpath_list (list):
@@ -333,7 +333,7 @@ def get_latex_figure_str(fpath_list, caption_str=None, label_str=None):
         >>> print(result)
     """
     import utool as ut
-    graphics_list = [r'\includegraphics[height=1.65in]{%s}' % (fpath,) for fpath in fpath_list]
+    graphics_list = [r'\includegraphics[height=%sin]{%s}' % (height_str, fpath,) for fpath in fpath_list]
     graphics_body = '\n&\n'.join(graphics_list)
     header_str = ' '.join(['c'] * len(graphics_list))
     tabular_body =  ut.codeblock(
