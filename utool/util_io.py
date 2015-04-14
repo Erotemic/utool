@@ -28,7 +28,7 @@ def write_to(fpath, to_write, aslines=False, verbose=False,
         if ut.hashstr(read_from(fpath)) == ut.hashstr(to_write):
             print('[util_io] * no difference')
             return
-    if verbose and __PRINT_WRITES__:
+    if verbose or __PRINT_WRITES__:
         print('[util_io] * Writing to text file: %r ' % util_path.tail(fpath))
     with open(fpath, mode) as file_:
         if aslines:
@@ -48,7 +48,7 @@ def read_from(fpath, verbose=False, aslines=False, strict=True):
     Returns:
         text from fpath
     """
-    if verbose and __PRINT_READS__:
+    if verbose or __PRINT_READS__:
         print('[util_io] * Reading text file: %r ' % util_path.tail(fpath))
     try:
         if not util_path.checkpath(fpath, verbose=verbose, n=3):
@@ -74,14 +74,14 @@ writeto = write_to
 
 
 def save_cPkl(fpath, data, verbose=False):
-    if verbose and __PRINT_WRITES__:
+    if verbose or __PRINT_WRITES__:
         print('[util_io] * save_cPkl(%r, data)' % (util_path.tail(fpath),))
     with open(fpath, 'wb') as file_:
         cPickle.dump(data, file_, cPickle.HIGHEST_PROTOCOL)
 
 
 def load_cPkl(fpath, verbose=False):
-    if verbose and __PRINT_READS__:
+    if verbose or __PRINT_READS__:
         print('[util_io] * load_cPkl(%r, data)' % (util_path.tail(fpath),))
     with open(fpath, 'rb') as file_:
         data = cPickle.load(file_)
@@ -167,7 +167,7 @@ def save_hdf5(fpath, data, verbose=False, compression='gzip'):
     fname = basename(fpath)
     shape = data.shape
     dtype = data.dtype
-    if verbose and __PRINT_WRITES__:
+    if verbose or __PRINT_WRITES__:
         print('[util_io] * save_hdf5(%r, data)' % (util_path.tail(fpath),))
     with h5py.File(fpath, 'w') as file_:
         dset = file_.create_dataset(fname, shape,  dtype, chunks=chunks, compression=compression)
@@ -182,7 +182,7 @@ def load_hdf5(fpath, verbose=False):
     #file_ = h5py.File(fpath, 'r')
     #file_.values()
     #file_.keys()
-    if verbose and __PRINT_READS__:
+    if verbose or __PRINT_READS__:
         print('[util_io] * load_hdf5(%r, data)' % (util_path.tail(fpath),))
     with h5py.File(fpath, 'r') as file_:
         dset = file_[fname]
@@ -229,7 +229,7 @@ def save_pytables(fpath, data, verbose=False):
     #shape = data.shape
     #dtype = data.dtype
     #file_ = tables.open_file(fpath)
-    if verbose and __PRINT_WRITES__:
+    if verbose or __PRINT_WRITES__:
         print('[util_io] * save_pytables(%r, data)' % (util_path.tail(fpath),))
     with tables.open_file(fpath, 'w') as file_:
         atom = tables.Atom.from_dtype(data.dtype)
@@ -245,7 +245,7 @@ def load_pytables(fpath, verbose=False):
     #from os.path import basename
     #fname = basename(fpath)
     #file_ = tables.open_file(fpath)
-    if verbose and __PRINT_READS__:
+    if verbose or __PRINT_READS__:
         print('[util_io] * load_pytables(%r, data)' % (util_path.tail(fpath),))
     with tables.open_file(fpath, 'r') as file_:
         data = file_.root.data.read()

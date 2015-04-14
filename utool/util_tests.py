@@ -1313,7 +1313,7 @@ class ExitTestException(Exception):
 
 def quit_if_noshow():
     import utool as ut
-    if not (ut.get_argflag('--show') or ut.inIPython()):
+    if not (ut.get_argflag(('--show', '--save')) or ut.inIPython()):
         raise ExitTestException('This should be caught gracefully by ut.run_test')
 
 
