@@ -19,6 +19,7 @@ from utool import util_io
 from utool import util_str
 from utool import util_cplat
 from utool import util_inspect
+from utool import util_list
 from utool._internal import meta_util_constants
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[cache]')
 
@@ -129,7 +130,7 @@ def _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl=False):
     return fpath
 
 
-def save_cache(dpath, fname, cfgstr, data):
+def save_cache(dpath, fname, cfgstr, data, verbose=None):
     """
     save_cache
 
@@ -155,21 +156,21 @@ def save_cache(dpath, fname, cfgstr, data):
         >>> print(result)
     """
     fpath = _args2_fpath(dpath, fname, cfgstr, '.cPkl', write_hashtbl=False)
-    util_io.save_cPkl(fpath, data)
+    util_io.save_cPkl(fpath, data, verbose)
     return fpath
 
 
-def load_cache(dpath, fname, cfgstr):
+def load_cache(dpath, fname, cfgstr, verbose=None):
     """
     load_cache
 
     Args:
-        dpath  (?):
-        fname  (?):
-        cfgstr (?):
+        dpath  (str):
+        fname  (str):
+        cfgstr (str):
 
     Returns:
-        ?: data
+        pickleable: data
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -182,7 +183,50 @@ def load_cache(dpath, fname, cfgstr):
         >>> print(result)
     """
     fpath = _args2_fpath(dpath, fname, cfgstr, '.cPkl')
-    return util_io.load_cPkl(fpath)
+    return util_io.load_cPkl(fpath, verbose)
+
+
+def tryload_cache(dpath, fname, cfgstr, verbose=None):
+    """
+    returns None if cache cannot be loaded
+    """
+    try:
+        return load_cache(dpath, fname, cfgstr, verbose)
+    except IOError:
+        return None
+
+
+def tryload_cache_list(dpath, fname, cfgstr_list, verbose=False):
+    """
+    loads a list of similar cached datas. Returns flags that needs to be computed
+    """
+    data_list = [tryload_cache(dpath, fname, cfgstr, verbose) for cfgstr in cfgstr_list]
+    ismiss_list = [data is None for data in data_list]
+    return data_list, ismiss_list
+
+
+def tryload_cache_list_with_compute(dpath, fname, cfgstr_list, compute_fn, *args):
+    """
+    tries to load data, but computes it if it can't give a compute function
+    """
+    # Load precomputed values
+    data_list, ismiss_list = tryload_cache_list(dpath, fname, cfgstr_list, verbose=False)
+    num_total = len(cfgstr_list)
+    if any(ismiss_list):
+        # Compute missing values
+        newdata_list = compute_fn(ismiss_list, *args)
+        newcfgstr_list = util_list.list_compress(cfgstr_list, ismiss_list)
+        index_list = util_list.list_where(ismiss_list)
+        print('[cache] %d/%d cache hits for %s in %s' % (num_total - len(index_list), num_total, fname, util_path.tail(dpath)))
+        # Cache write
+        for newcfgstr, newdata in zip(newcfgstr_list, newdata_list):
+            save_cache(dpath, fname, newcfgstr, newdata, verbose=False)
+        # Populate missing result
+        for index, newdata in zip(index_list, newdata_list):
+            data_list[index] = newdata
+    else:
+        print('[cache] %d/%d cache hits for %s in %s' % (num_total, num_total, fname, util_path.tail(dpath)))
+    return data_list
 
 
 class Cacher(object):

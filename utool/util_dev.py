@@ -648,6 +648,45 @@ class InteractiveIter(object):
         iiter.index = startx
         pass
 
+    def __iter__(iiter):
+        import utool as ut
+        if not iiter.enabled:
+            for item in ut.ProgressIter(iiter.iterable, lbl='nointeract: '):
+                yield item
+            #raise StopIteration()
+        assert isinstance(iiter.iterable, INDEXABLE_TYPES)
+        iiter.num_items = len(iiter.iterable)
+        print('[IITER] Begin interactive iteration: %r items\n' % (iiter.num_items))
+        if iiter.num_items == 0:
+            raise StopIteration
+        mark_, end_ = util_progress.log_progress(total=iiter.num_items, lbl='interaction: ', freq=1)
+        while True:
+            print('')
+            if iiter.wraparound:
+                iiter.index = iiter.index % len(iiter.iterable)
+            if iiter.index >= len(iiter.iterable):
+                print('Got to end the end of the iterable')
+                break
+            mark_(iiter.index)
+            item = iiter.iterable[iiter.index]
+            yield item
+            print('')
+            mark_(iiter.index)
+            print('')
+            print('[IITER] current index=%r' % (iiter.index,))
+            print('[IITER] current item=%r' % (item,))
+            ans = iiter.prompt()
+            action = iiter.handle_ans(ans)
+            REFRESH_ON_BAD_INPUT = False
+            if not REFRESH_ON_BAD_INPUT:
+                while action is False:
+                    ans = iiter.prompt()
+                    action = iiter.handle_ans(ans)
+            if action == 'IPython':
+                ut.embed(N=1)
+        end_()
+        print('Ended interactive iteration')
+
     def handle_ans(iiter, ans_):
         ans = ans_.strip(' ')
         def parse_str_value(ans):
@@ -707,35 +746,6 @@ class InteractiveIter(object):
 
     def __call__(iiter, iterable=None):
         iiter.iterable = iterable
-
-    def __iter__(iiter):
-        import utool as ut
-        if not iiter.enabled:
-            for item in ut.ProgressIter(iiter.iterable, lbl='nointeract: '):
-                yield item
-            #raise StopIteration()
-        assert isinstance(iiter.iterable, INDEXABLE_TYPES)
-        iiter.num_items = len(iiter.iterable)
-        print('[IITER] Begin interactive iteration: %r items\n' % (iiter.num_items))
-        mark_, end_ = util_progress.log_progress(total=iiter.num_items, lbl='interaction: ', freq=1)
-        while True:
-            print('')
-            if iiter.wraparound:
-                iiter.index = iiter.index % len(iiter.iterable)
-            mark_(iiter.index)
-            item = iiter.iterable[iiter.index]
-            yield item
-            print('')
-            mark_(iiter.index)
-            print('')
-            print('[IITER] current index=%r' % (iiter.index,))
-            print('[IITER] current item=%r' % (item,))
-            ans = iiter.prompt()
-            action = iiter.handle_ans(ans)
-            if action == 'IPython':
-                ut.embed(N=1)
-        end_()
-        print('Ended interactive iteration')
 
 
 def user_cmdline_prompt(msg=''):
@@ -1686,6 +1696,45 @@ def iup():
     """ shortcut when pt is not imported """
     import plottool as pt
     pt.iup()
+
+
+def make_at_least_n_items_valid(flag_list, n):
+    """
+    tries to make at least min(len(flag_list, n) items True in flag_list
+
+    Args:
+        flag_list (list): list of booleans
+        n (int): number of items to ensure are True
+
+    CommandLine:
+        python -m utool.util_dev --test-make_at_least_n_items_valid
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dev import *  # NOQA
+        >>> # build test data
+        >>> flag_list = [False, True, False, False, False, False, False, True]
+        >>> n = 5
+        >>> # execute function
+        >>> flag_list = make_at_least_n_items_valid(flag_list, n)
+        >>> # verify results
+        >>> result = str(flag_list)
+        >>> print(result)
+        [ True  True  True  True False False False  True]
+    """
+    flag_list = np.array(flag_list)
+    num_valid = flag_list.sum()
+    # Find how many places we need to make true
+    num_extra = min(len(flag_list) - num_valid, n - num_valid)
+    # make_at_least_n_items_valid
+    # Add in some extra daids to show if there are not enough
+    for index in range(len(flag_list)):
+        if num_extra <= 0:
+            break
+        if not flag_list[index]:
+            flag_list[index] = True
+            num_extra -= 1
+    return flag_list
 
 
 if __name__ == '__main__':

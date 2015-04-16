@@ -97,6 +97,31 @@ def num2_sigfig(num):
 
 
 def num_fmt(num, max_digits=None):
+    r"""
+    Weird function. Not very well written. Very special case-y
+
+    Args:
+        num (int or float):
+        max_digits (int):
+
+    Returns:
+        str:
+
+    CommandLine:
+        python -m utool.util_num --test-num_fmt
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_num import *  # NOQA
+        >>> # build test data
+        >>> num_list = [0, 0.0, 1.2, 1003232, 41431232., .0000000343, -.443243]
+        >>> max_digits = None
+        >>> # execute function
+        >>> result = [num_fmt(num, max_digits) for num in num_list]
+        >>> # verify results
+        >>> print(result)
+        ['0', '0.0', '1.2', '1,003,232', '41431232.0', '0.0', '-0.443']
+    """
     if num is None:
         return 'None'
     def num_in_mag(num, mag):
@@ -110,9 +135,15 @@ def num_fmt(num, max_digits=None):
                 max_digits = 3
         else:
             max_digits = 1
-
     if util_type.is_float(num):
-        return ('%.' + str(max_digits) + 'f') % num
+        num_str = ('%.' + str(max_digits) + 'f') % num
+        # Handle trailing and leading zeros
+        num_str = num_str.rstrip('0').lstrip('0')
+        if num_str.startswith('.'):
+            num_str = '0' + num_str
+        if num_str.endswith('.'):
+            num_str = num_str + '0'
+        return num_str
     elif util_type.is_int(num):
         return int_comma_str(num)
     else:

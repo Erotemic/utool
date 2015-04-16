@@ -250,6 +250,12 @@ def print_difftext(text):
         print(text)
 
 
+def colorprint(msg, color):
+    """ provides some color to terminal output """
+    import pygments
+    print(pygments.console.colorize(color, msg))
+
+
 def print_locals():
     from utool import util_str
     from utool import util_dbg

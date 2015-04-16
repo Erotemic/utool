@@ -409,10 +409,11 @@ def __argv_flag_dec(func, default=False, quiet=QUIET):
         if is_flagged:
             indent_lbl = flag.replace('--', '').replace('print-', '')
             print('')
-            print('\n+++ ' + indent_lbl + ' +++')
+            print('\n+ --- ' + indent_lbl + ' ___')
             #with util_print.Indenter('[%s]' % indent_lbl):
-            return func(*args, **kwargs)
-            print('')
+            ret = func(*args, **kwargs)
+            print('L ___ ' + indent_lbl + '___\n')
+            return ret
         else:
             if not quiet:
                 print('\n~~~ %s ~~~' % flag)
