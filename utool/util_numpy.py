@@ -112,6 +112,27 @@ def intersect2d(A, B):
 
 
 def deterministic_shuffle(list_, seed=1):
+    r"""
+    Args:
+        list_ (list):
+        seed (int):
+
+    Returns:
+        list: list_
+
+    CommandLine:
+        python -m utool.util_numpy --test-deterministic_shuffle
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_numpy import *  # NOQA
+        >>> list_ = [1,2,3,4,5,6]
+        >>> seed = 1
+        >>> list_ = deterministic_shuffle(list_, seed)
+        >>> result = str(list_)
+        >>> print(result)
+        [4, 6, 1, 3, 2, 5]
+    """
     rand_seed = np.uint32(np.random.rand() * np.uint(0 - 2) / 2)
     if not isinstance(list_, (np.ndarray, list)):
         list_ = list(list_)
