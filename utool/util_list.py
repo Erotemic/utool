@@ -260,6 +260,11 @@ def listfind(list_, tofind):
 # --- List Modification --- #
 
 def list_replace(instr, search_list=[], repl_list=None):
+    """
+    Does a string replace with a list of search and replacements
+
+    TODO: rename
+    """
     repl_list = [''] * len(search_list) if repl_list is None else repl_list
     for ser, repl in zip(search_list, repl_list):
         instr = instr.replace(ser, repl)
