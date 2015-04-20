@@ -7,42 +7,74 @@ from setuptools import setup
 import sys
 
 
+version = '1.1.0.dev1'
+
+
+def pypi_publish():
+    """
+     References:
+        https://packaging.python.org/en/latest/distributing.html#uploading-your-project-to-pypi
+        http://peterdowns.com/posts/first-time-with-pypi.html
+     CommandLine:
+         git tag 1.1.0.dev1 -m "tarball tag 1.1.0.dev1"
+         git push --tags origin master
+         python setup.py register -r pypitest
+
+         python setup.py sdist upload -r pypitest
+         python setup.py register -r pypi
+         python setup.py sdist upload -r pypi
+     Notes:
+         this file needs to be in my home directory apparently
+         ~/.pypirc
+
+    """
+    pass
+
+
+def get_tarball_download_url(version):
+    download_url = 'https://github.com/erotemic/utool/tarball/' + version
+    return download_url
+
+
 def utool_setup():
     INSTALL_REQUIRES = [
         'six >= 1.8.0',
         'psutil >= 2.1.3',
         'parse >= 1.6.6',
         'lockfile >= 0.10.2',
-        'lru-dict >= 1.1.1',  # import as lru
+        'numpy >= 1.8.0',  # TODO REMOVE DEPENDENCY
         #'decorator',
     ]
 
     INSTALL_OPTIONAL = [
-        'numpy >= 1.8.0',  # TODO REMOVE DEPENDENCY
         'astor',
         'sphinx',
         'sphinxcontrib-napoleon',
         'pyperclip >= 1.5.7',
         'pyfiglet >= 0.7.2',
+        'lru-dict >= 1.1.1',  # import as lru
     ]
 
-    REQUIRES_LINKS = [
-    ]
+    #REQUIRES_LINKS = [
+    #]
 
-    OPTIONAL_DEPENDS_LINKS = [
-        #'git+https://github.com/amitdev/lru-dict',  # TODO REMOVE DEPENDENCY
-        #'git+https://github.com/pwaller/pyfiglet',
+    #OPTIONAL_DEPENDS_LINKS = [
+    #    #'git+https://github.com/amitdev/lru-dict',  # TODO REMOVE DEPENDENCY
+    #    #'git+https://github.com/pwaller/pyfiglet',
 
-    ]
+    #]
 
     INSTALL_OPTIONAL_EXTRA = [  # NOQA
         'guppy',
         'objgraph',
     ]
 
+    # format optional dependencies
+    INSTALL_EXTRA = {item.split(' ')[0]: item for item in INSTALL_OPTIONAL}
+
     # TODO: remove optional depends
-    INSTALL_REQUIRES += INSTALL_OPTIONAL
-    REQUIRES_LINKS += OPTIONAL_DEPENDS_LINKS
+    #INSTALL_OPTIONAL += INSTALL_OPTIONAL_EXTRA
+    #INSTALL_REQUIRES += INSTALL_OPTIONAL
 
     try:
         # HACK: Please remove someday
@@ -89,8 +121,8 @@ def utool_setup():
             'utool.util_scripts',
         ],
         #packages=util_setup.find_packages(),
-        version='1.1.0.dev1',
-        download_url='https://github.com/erotemic/utool/tarball/1.1.0.dev1',
+        version=version,
+        download_url=get_tarball_download_url(version),
         description='Univerally useful utility tools for you!',
         url='https://github.com/Erotemic/utool',
         ext_modules=ext_modules,
@@ -99,7 +131,7 @@ def utool_setup():
         author_email='erotemic@gmail.com',
         keywords='',
         install_requires=INSTALL_REQUIRES,
-        dependency_links=REQUIRES_LINKS,
+        extras_require=INSTALL_EXTRA,
         package_data={},
         scripts=[
             'utool/util_scripts/makesetup.py',
@@ -115,7 +147,6 @@ def utool_setup():
         ],
         classifiers=[],
     )
-
 
 
 if __name__ == '__main__':
