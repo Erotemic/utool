@@ -53,8 +53,25 @@ def utool_setup():
             # Clean clutter files
             if arg in ['clean']:
                 clutter_dirs = ['cyth']
-                clutter_patterns = ['cyth']
-                utool.clean(dirname(__file__), clutter_patterns, clutter_dirs)
+                CLUTTER_PATTERNS = [
+                    '\'',
+                    'cyth',
+                    '*.dump.txt',
+                    '*.sqlite3',
+                    '*.prof',
+                    '*.prof.txt',
+                    '*.lprof',
+                    '*.ln.pkg',
+                    'failed.txt',
+                    'failed_doctests.txt',
+                    'failed_shelltests.txt',
+                    'test_pyflann_index.flann',
+                    'test_pyflann_ptsdata.npz',
+                    '_test_times.txt',
+                    'test_times.txt',
+                    'Tgen.sh',
+                ]
+                utool.clean(dirname(__file__), CLUTTER_PATTERNS, clutter_dirs)
         ext_modules = util_setup.find_ext_modules()
         cmdclass = util_setup.get_cmdclass()
     except Exception as ex:
