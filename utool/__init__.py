@@ -17,7 +17,8 @@ import sys
 import textwrap
 
 #__fun_version__ = '(.878 + .478i)'
-__version__ = '1.0.0.dev1'
+#__version__ = '1.0.0.dev1'
+__version__ = '1.1.0.dev1'
 
 __DYNAMIC__ = not '--nodyn' in sys.argv
 #__DYNAMIC__ = '--dyn' in sys.argv

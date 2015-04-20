@@ -89,7 +89,8 @@ def utool_setup():
             'utool.util_scripts',
         ],
         #packages=util_setup.find_packages(),
-        version='1.0.0.dev1',
+        version='1.1.0.dev1',
+        download_url='https://github.com/erotemic/utool/tarball/1.1.0.dev1',
         description='Univerally useful utility tools for you!',
         url='https://github.com/Erotemic/utool',
         ext_modules=ext_modules,
@@ -114,6 +115,7 @@ def utool_setup():
         ],
         classifiers=[],
     )
+
 
 
 if __name__ == '__main__':
