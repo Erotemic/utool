@@ -625,7 +625,7 @@ class InteractiveIter(object):
     iterable should be a list, not a generator. sorry
     """
     def __init__(iiter, iterable=None, enabled=True, startx=0,
-                 default_action='next', custom_actions=[], wraparound=False):
+                 default_action='next', custom_actions=[], wraparound=False, display_item=True):
         import utool as ut
         iiter.wraparound = wraparound
         iiter.enabled = enabled
@@ -646,6 +646,7 @@ class InteractiveIter(object):
         iiter.action_tuples[default_action_index][1].append('')
         iiter.action_keys = {tup[0]: tup[1] for tup in iiter.action_tuples}
         iiter.index = startx
+        iiter.display_item = display_item
         pass
 
     def __iter__(iiter):
@@ -669,12 +670,14 @@ class InteractiveIter(object):
                 break
             mark_(iiter.index)
             item = iiter.iterable[iiter.index]
+            print('')
             yield item
             print('')
             mark_(iiter.index)
             print('')
             print('[IITER] current index=%r' % (iiter.index,))
-            print('[IITER] current item=%r' % (item,))
+            if iiter.display_item:
+                print('[IITER] current item=%r' % (item,))
             ans = iiter.prompt()
             action = iiter.handle_ans(ans)
             REFRESH_ON_BAD_INPUT = False
