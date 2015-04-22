@@ -133,9 +133,10 @@ def remove_file(fpath, verbose=True, dryrun=False, ignore_errors=True, **kwargs)
     return True
 
 
-def remove_dirs(dpath, dryrun=False, ignore_errors=True, **kwargs):
+def remove_dirs(dpath, dryrun=False, ignore_errors=True, quiet=QUIET, **kwargs):
     """ Removes a directory """
-    print('[util_path] Removing directory: %r' % dpath)
+    if not quiet:
+        print('[util_path] Removing directory: %r' % dpath)
     try:
         shutil.rmtree(dpath)
     except OSError as e:
