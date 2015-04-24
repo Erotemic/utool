@@ -91,7 +91,7 @@ def _extract_archive(archive_fpath, archive_file, archive_namelist, output_dir, 
         # use the archivename as the default common prefix
         archive_basename, ext = split_archive_ext(basename(archive_fpath))
         output_dir = join(output_dir, archive_basename)
-        util_path.ensurepath(archive_basename)
+        util_path.ensurepath(output_dir)
 
     for member in archive_namelist:
         (dname, fname) = split(member)
