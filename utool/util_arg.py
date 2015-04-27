@@ -188,6 +188,65 @@ def parse_arglist_hack(argx):
     return arglist
 
 
+def get_arg_dict(argv=None):
+    r"""
+    Yet another way for parsing args
+
+    CommandLine:
+        python -m utool.util_arg --test-get_arg_dict
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_arg import *  # NOQA
+        >>> import utool as ut
+        >>> import shlex
+        >>> argv = shlex.split('--test-show_name --name=IBEIS_PZ_0303 --db testdb3 --save "~/latex/crall-candidacy-2015/figures/IBEIS_PZ_0303.jpg" --dpath figures --caption="Shadowed"  --figsize=11,3 --no-figtitle --notitle')
+        >>> arg_dict = ut.get_arg_dict(argv)
+        >>> result = ut.dict_str(arg_dict)
+        >>> # verify results
+        >>> print(result)
+        {
+            'name': 'IBEIS_PZ_0303',
+            'test-show_name': True,
+            'db': 'testdb3',
+            'notitle': True,
+            'dpath': 'figures',
+            'no-figtitle': True,
+            'caption': 'Shadowed',
+            'save': '~/latex/crall-candidacy-2015/figures/IBEIS_PZ_0303.jpg',
+            'figsize': '11,3',
+        }
+    """
+    if argv is None:
+        argv = sys.argv
+    arg_dict = {}
+    def argx_has_value(argv, argx):
+        # Check if has a value
+        if argv[argx].find('=') > -1:
+            return True
+        if argx + 1 < len(argv) and not argv[argx + 1].startswith('--'):
+            return True
+        return False
+
+    def get_arg_value(argv, argx):
+        if argv[argx].find('=') > -1:
+            return '='.join(argv[argx].split('=')[1:])
+        else:
+            return argv[argx + 1]
+
+    for argx in range(len(argv)):
+        arg = argv[argx]
+        if arg.startswith('--'):
+            argname = arg[2:]
+            if argx_has_value(argv, argx):
+                if arg.find('=') > -1:
+                    argname = arg[2:arg.find('=')]
+                argvalue = get_arg_value(argv, argx)
+                arg_dict[argname] = argvalue
+            else:
+                arg_dict[argname] = True
+    return arg_dict
+
 # Backwards Compatibility Aliases
 get_arg  = get_argval
 get_flag  = get_argflag

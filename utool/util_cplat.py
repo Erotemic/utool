@@ -262,7 +262,9 @@ def view_directory(dname=None, verbose=True):
         assert checkpath(dname, verbose=verbose)
     if dname.find(' ') != -1 and not dname.startswith(('"', '\'')):
         dname = '"%s"' % dname
-    os.system(open_prog + ' ' + dname)
+    import pipes
+    dname_ = pipes.quote(dname)
+    os.system(open_prog + ' ' + dname_)
 
 # Alias
 vd = view_directory

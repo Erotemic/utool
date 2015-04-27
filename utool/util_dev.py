@@ -1740,6 +1740,34 @@ def make_at_least_n_items_valid(flag_list, n):
     return flag_list
 
 
+# TODO: Generalize these functions
+def inverable_unique_two_lists(item1_list, item2_list):
+    """
+    item1_list = aid1_list
+    item2_list = aid2_list
+    """
+    import utool as ut
+    unique_list1, inverse1 = np.unique(item1_list, return_inverse=True)
+    unique_list2, inverse2 = np.unique(item2_list, return_inverse=True)
+    flat_stacked, cumsum = ut.invertible_flatten2((unique_list1, unique_list2))
+    flat_unique, inverse3 = np.unique(flat_stacked, return_inverse=True)
+    reconstruct_tup = (inverse3, cumsum, inverse2, inverse1)
+    return flat_unique, reconstruct_tup
+
+
+def uninvert_unique_two_lists(flat_list, reconstruct_tup):
+    """
+    flat_list = thumb_list
+    """
+    import utool as ut
+    (inverse3, cumsum, inverse2, inverse1) = reconstruct_tup
+    flat_stacked_ = ut.list_take(flat_list, inverse3)
+    unique_list1_, unique_list2_ = ut.unflatten2(flat_stacked_, cumsum)
+    res_list1_ = ut.list_take(unique_list1_, inverse1)
+    res_list2_ = ut.list_take(unique_list2_, inverse2)
+    return res_list1_, res_list2_
+
+
 if __name__ == '__main__':
     """
     CommandLine:
