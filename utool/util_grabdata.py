@@ -324,7 +324,7 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
 
 
 def grab_zipped_url(zipped_url, ensure=True, appname='utool', download_dir=None,
-                    force_commonprefix=True, cleanup=False):
+                    force_commonprefix=True, cleanup=False, redownload=False):
     """
     downloads and unzips the url
 
@@ -345,7 +345,10 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool', download_dir=None,
         download_dir = util_cplat.get_app_resource_dir(appname)
     # Zipfile should unzip to:
     data_dir = join(download_dir, data_name)
-    if ensure:
+    if ensure or redownload:
+        if redownload:
+            util_path.remove_dirs(download_dir)
+            util_path.remove_dirs(data_dir)
         util_path.ensurepath(download_dir)
         if not exists(data_dir):
             # Download and unzip testdata
