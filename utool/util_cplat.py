@@ -485,25 +485,29 @@ def cmd(*args, **kwargs):
     """
     try:
         # Parse the keyword arguments
+        quiet = kwargs.pop('quiet', False)
         verbose, detatch, shell, sudo, pad_stdout = __parse_cmd_kwargs(kwargs)
         if pad_stdout:
             sys.stdout.flush()
             print('\n+--------')
         args = __parse_cmd_args(args, sudo, shell)
         # Print what you are about to do
-        print('[ut.cmd] RUNNING: %r' % (args,))
+        if not quiet:
+            print('[ut.cmd] RUNNING: %r' % (args,))
         # Open a subprocess with a pipe
         proc = subprocess.Popen(args, stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT, shell=shell,
                                 universal_newlines=True)
         if detatch:
-            print('[ut.cmd] PROCESS DETATCHING. No stdoutput can be reported...')
+            if not quiet:
+                print('[ut.cmd] PROCESS DETATCHING. No stdoutput can be reported...')
             # There is no immediate confirmation as to whether or not the script
             # finished. It might still be running for all you know
             return None, None, proc
         else:
             if verbose and not detatch:
-                print('[ut.cmd] RUNNING WITH VERBOSE OUTPUT')
+                if not quiet:
+                    print('[ut.cmd] RUNNING WITH VERBOSE OUTPUT')
                 logged_out = []
                 for line in _run_process(proc):
                     line_ = line if six.PY2 else line.decode('utf-8')
@@ -514,15 +518,17 @@ def cmd(*args, **kwargs):
                 out = '\n'.join(logged_out)
                 (out_, err) = proc.communicate()
                 #print('[ut.cmd] out: %s' % (out,))
-                print('[ut.cmd] stdout: %s' % (out_,))
-                print('[ut.cmd] stderr: %s' % (err,))
+                if not quiet:
+                    print('[ut.cmd] stdout: %s' % (out_,))
+                    print('[ut.cmd] stderr: %s' % (err,))
             else:
                 # Surpress output
                 #print('[ut.cmd] RUNNING WITH SUPRESSED OUTPUT')
                 (out, err) = proc.communicate()
             # Make sure process if finished
             ret = proc.wait()
-            print('[ut.cmd] PROCESS FINISHED')
+            if not quiet:
+                print('[ut.cmd] PROCESS FINISHED')
             if pad_stdout:
                 print('L________\n')
             return out, err, ret
@@ -823,6 +829,27 @@ def print_system_users():
     #print(ut.list_str(sorted(userinfo_list)))
     bash_users = [tup for tup in userinfo_list if tup[-1] == '/bin/bash']
     print(ut.list_str(sorted(bash_users)))
+
+
+def check_installed_debian(pkgname):
+    """
+    References:
+        http://www.cyberciti.biz/faq/find-out-if-package-is-installed-in-linux/
+    """
+    import utool as ut
+    #pkgname = 'espeak'
+    #pkgname = 'sudo'
+    #ut.cmd('hash ' + pkgname + ' 2>/dev/null')
+    tup = ut.cmd('hash ' + pkgname + ' 2>/dev/null', quiet=True, pad_stdout=False)
+    out, err, ret = tup
+    is_installed = (ret == 0)
+    return is_installed
+
+
+def assert_installed_debian(pkgname):
+    import utool as ut
+    if not ut.check_installed_debian(pkgname):
+        raise AssertionError('espeak must be installed. run sudo apt-get install -y ' + pkgname)
 
 
 def unload_module(modname):

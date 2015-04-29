@@ -11,9 +11,12 @@ from utool._internal import meta_util_arg
 from utool import util_logging
 try:
     import traceback
-    from pygments import highlight
-    from pygments.lexers import get_lexer_by_name
-    from pygments.formatters import TerminalFormatter
+    import pygments
+    import pygments.lexers
+    import pygments.formatters
+    #from pygments import highlight
+    #from pygments.lexers import get_lexer_by_name
+    #from pygments.formatters import TerminalFormatter
     HAS_PYGMENTS = True
 except ImportError:
     HAS_PYGMENTS = False
@@ -95,24 +98,50 @@ def _get_module(module_name=None, module=None, register=True):
     return module
 
 
+def colored_pygments_excepthook(type_, value, tb):
+    """
+    References:
+        https://stackoverflow.com/questions/14775916/coloring-exceptions-from-python-on-a-terminal
+
+    CommandLine:
+        python -m utool.util_inject --test-colored_pygments_excepthook
+
+    """
+    sys.stderr.write('USING COLORED EXCEPTHOOK')
+    tbtext = ''.join(traceback.format_exception(type_, value, tb))
+    lexer = pygments.lexers.get_lexer_by_name('pytb', stripall=True)
+    formatter = pygments.formatters.TerminalFormatter(bg='dark')
+    formatted_text = pygments.highlight(tbtext, lexer, formatter)
+    sys.stderr.write(formatted_text)
+
+
 def inject_colored_exceptions():
     """
     Causes exceptions to be colored if not already
 
     Hooks into sys.excepthook
+
+    CommandLine:
+        python -m utool.util_inject --test-inject_colored_exceptions
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_inject import *  # NOQA
+        >>> print('sys.excepthook = %r ' % (sys.excepthook,))
+        >>> #assert sys.excepthook is colored_pygments_excepthook, 'bad excepthook'
+        >>> raise Exception('should be in color')
+
     """
     #COLORED_INJECTS = '--nocolorex' not in sys.argv
     #COLORED_INJECTS = '--colorex' in sys.argv
-    def myexcepthook(type, value, tb):
-        #https://stackoverflow.com/questions/14775916/coloring-exceptions-from-python-on-a-terminal
-        tbtext = ''.join(traceback.format_exception(type, value, tb))
-        lexer = get_lexer_by_name('pytb', stripall=True)
-        formatter = TerminalFormatter(bg='dark')
-        formatted_text = highlight(tbtext, lexer, formatter)
-        sys.stderr.write(formatted_text)
     # Ignore colored exceptions on win32
     if HAS_PYGMENTS and not sys.platform.startswith('win32'):
-        sys.excepthook = myexcepthook
+        if True or VERYVERBOSE:
+            print('[inject] injecting colored exceptions')
+        sys.excepthook = colored_pygments_excepthook
+    else:
+        if VERYVERBOSE:
+            print('[inject] cannot inject colored exceptions')
 
 
 def inject_print_functions(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
@@ -507,3 +536,16 @@ if '--inject-color' in sys.argv:
 
 # Inject this module with itself!
 print, print_, printDBG, rrr, profile = inject(__name__, '[inject]')
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m utool.util_inject
+        python -m utool.util_inject --allexamples
+        python -m utool.util_inject --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

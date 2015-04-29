@@ -682,6 +682,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     import utool as ut  # NOQA
     multiprocessing.freeze_support()  # just in case
     #+-------------------
+    ut.inject_colored_exceptions()
     if verbose:
         print('[util_test.doctest_funcs] Running doctest funcs')
     # parse out testable doctesttups
@@ -716,7 +717,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
         except Exception:
             nFail += 1
             failed_flag_list.append(flag)
-            if strict:
+            if strict or util_arg.SUPER_STRICT:
                 raise
             pass
     #L__________________

@@ -117,7 +117,8 @@ class Indenter(object):
     def __exit__(self, type_, value, trace):
         self.stop()
         if trace is not None:
-            print('[util_print] Error in print context manager!: ' + str(value))
+            if VERBOSE:
+                print('[util_print] Error in print context manager!: ' + str(value))
             return False  # return a falsey value on error
 
 
