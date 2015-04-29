@@ -107,7 +107,7 @@ def colored_pygments_excepthook(type_, value, tb):
         python -m utool.util_inject --test-colored_pygments_excepthook
 
     """
-    sys.stderr.write('USING COLORED EXCEPTHOOK')
+    #sys.stderr.write('USING COLORED EXCEPTHOOK')
     tbtext = ''.join(traceback.format_exception(type_, value, tb))
     lexer = pygments.lexers.get_lexer_by_name('pytb', stripall=True)
     formatter = pygments.formatters.TerminalFormatter(bg='dark')

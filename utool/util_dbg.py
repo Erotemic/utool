@@ -916,7 +916,18 @@ def formatex(ex, msg='[!?] Caught exception',
     ex_tag = 'WARNING' if iswarning else 'EXCEPTION'
     errstr_list.append('<!!! %s !!!>' % ex_tag)
     if tb or FORCE_TB:
-        errstr_list.append(traceback.format_exc())
+        tbtext = traceback.format_exc()
+        COLORED = True
+        if COLORED:
+            # TODO: rectify with duplicate in util_inject
+            import pygments
+            import pygments.lexers
+            import pygments.formatters
+            lexer = pygments.lexers.get_lexer_by_name('pytb', stripall=True)
+            formatter = pygments.formatters.TerminalFormatter(bg='dark')
+            formatted_text = pygments.highlight(tbtext, lexer, formatter)
+            tbtext = formatted_text
+        errstr_list.append(tbtext)
     errstr_list.append(prefix + ' ' + str(msg) + '\n%r: %s' % (type(ex), str(ex)))
     parse_locals_keylist(locals_, key_list, errstr_list, prefix)
     errstr_list.append('</!!! %s !!!>' % ex_tag)
