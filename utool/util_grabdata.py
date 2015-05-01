@@ -181,7 +181,9 @@ def download_url(url, filename=None, spoof=False):
 
 def fix_dropbox_link(dropbox_url):
     """ Dropbox links should be en-mass downloaed from dl.dropbox """
-    return dropbox_url.replace('www.dropbox', 'dl.dropbox')
+    cleaned_url = dropbox_url.replace('www.dropbox', 'dl.dropbox')
+    cleaned_url = cleaned_url.replace('?dl=0', '')
+    return cleaned_url
 
 
 def split_archive_ext(path):
