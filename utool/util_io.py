@@ -60,7 +60,7 @@ def read_from(fpath, verbose=None, aslines=False, strict=True):
                 text = file_.read()
         return text
     except IOError as ex:
-        from .util_dbg import printex
+        from utool.util_dbg import printex
         if verbose or strict:
             printex(ex, ' * Error reading fpath=%r' %
                     util_path.tail(fpath), '[io]')
@@ -74,6 +74,7 @@ writeto = write_to
 
 
 def save_cPkl(fpath, data, verbose=None):
+    """ Saves data to a pickled file with optional verbosity """
     if verbose or (verbose is None and __PRINT_WRITES__):
         print('[util_io] * save_cPkl(%r, data)' % (util_path.tail(fpath),))
     with open(fpath, 'wb') as file_:
@@ -81,8 +82,9 @@ def save_cPkl(fpath, data, verbose=None):
 
 
 def load_cPkl(fpath, verbose=None):
+    """ Loads a pickled file with optional verbosity """
     if verbose or (verbose is None and __PRINT_READS__):
-        print('[util_io] * load_cPkl(%r, data)' % (util_path.tail(fpath),))
+        print('[util_io] * load_cPkl(%r)' % (util_path.tail(fpath),))
     with open(fpath, 'rb') as file_:
         data = cPickle.load(file_)
     return data

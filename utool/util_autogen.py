@@ -131,10 +131,12 @@ def auto_docstr(modname, funcname, verbose=True, moddir=None, **kwargs):
                 import utool
                 imp.reload(utool.util_autogen)
                 imp.reload(utool.util_inspect)
-                if hasattr(module, '{funcname}'):
+                #if hasattr(module, '{funcname}'):
+                #else:
+                try:
                     func = module.{funcname}
                     docstr = utool.util_autogen.make_default_docstr(func, **kwargs)
-                else:
+                except AttributeError:
                     docstr = 'Could not find attribute funcname={funcname} in modname={modname} This might be a reloading issue'
                     imp.reload(module)
                 '''

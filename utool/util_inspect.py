@@ -746,6 +746,93 @@ def infer_function_info(func):
     return funcinfo
 
 
+def parse_callname(searchline, sentinal='def '):
+    """
+    Parses the function or class name from a signature line
+    originally part of the vim plugin
+    """
+    rparen_pos = searchline.find('(')
+    if rparen_pos > 0:
+        callname = searchline[len(sentinal):rparen_pos].strip(' ')
+        return callname
+    return None
+
+
+def find_pattern_above_row(pattern, line_list, row, maxIter=50):
+    """ originally part of the vim plugin """
+    import re
+    # Janky way to find function name
+    ix = 0
+    while True:
+        pos = row - ix
+        if maxIter is not None and ix > maxIter:
+            break
+        if pos < 0:
+            break
+            raise AssertionError('end of buffer')
+        searchline = line_list[pos]
+        if re.match(pattern, searchline) is not None:
+            return searchline, pos
+        ix += 1
+
+
+def find_pyclass_above_row(line_list, row):
+    """ originally part of the vim plugin """
+    # Get text posision
+    pattern = '^class [a-zA-Z_]'
+    classline, classpos = find_pattern_above_row(pattern, line_list, row, maxIter=None)
+    return classline, classpos
+
+
+def find_pyfunc_above_row(line_list, row):
+    """
+    originally part of the vim plugin
+
+    CommandLine:
+        python -m utool.util_inspect --test-find_pyfunc_above_row
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_inspect import *  # NOQA
+        >>> import utool as ut
+        >>> #fpath = ut.truepath('~/code/ibeis/ibeis/control/IBEISControl.py')
+        >>> #fpath = ut.truepath('~/code/utool/utool/util_inspect.py')
+        >>> fpath = ut.truepath('~/code/ibeis_cnn/ibeis_cnn/models.py')
+        >>> line_list = ut.read_from(fpath, aslines=True)
+        >>> #row = 200
+        >>> row = 93
+        >>> pyfunc, searchline = find_pyfunc_above_row(line_list, row)
+        >>> print(pyfunc)
+    """
+    searchlines = []  # for debugging
+    funcname = None
+    # Janky way to find function name
+    func_sentinal   = 'def '
+    method_sentinal = '    def '
+    for ix in range(200):
+        func_pos = row - ix
+        searchline = line_list[func_pos]
+        cleanline = searchline.strip(' ')
+        searchlines.append(cleanline)
+        if searchline.startswith(func_sentinal):  # and cleanline.endswith(':'):
+            # Found a valid function name
+            funcname = parse_callname(searchline, func_sentinal)
+            if funcname is not None:
+                break
+        if searchline.startswith(method_sentinal):  # and cleanline.endswith(':'):
+            # Found a valid function name
+            funcname = parse_callname(searchline, method_sentinal)
+            if funcname is not None:
+                classline, classpos = find_pyclass_above_row(line_list, func_pos)
+                classname = parse_callname(classline, 'class ')
+                if classname is not None:
+                    funcname = '.'.join([classname, funcname])
+                    break
+                else:
+                    funcname = None
+    return funcname, searchlines
+
+
 if __name__ == '__main__':
     """
     CommandLine:

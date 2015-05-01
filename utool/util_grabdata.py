@@ -261,7 +261,7 @@ def grab_test_imgpath(key, allow_external=True):
 
 
 def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
-                  delay=None, spoof=False, fname=None, verbose=True):
+                  delay=None, spoof=False, fname=None, verbose=True, redownload=False):
     """
     grab_file_url
 
@@ -306,9 +306,9 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
         download_dir = util_cplat.get_app_resource_dir(appname)
     # Zipfile should unzip to:
     fpath = join(download_dir, fname)
-    if ensure:
+    if ensure or redownload:
         util_path.ensurepath(download_dir)
-        if not exists(fpath):
+        if redownload or not exists(fpath):
             # Download testdata
             if verbose:
                 print('[utool] Downloading file %s' % fpath)
@@ -330,6 +330,7 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool', download_dir=None,
 
     Args:
         zipped_url (str): url which must be either a .zip of a .tar.gz file
+        download_dir (str): containing downloading directory
 
     Examples:
         >>> from utool.util_grabdata import *  # NOQA
@@ -347,17 +348,12 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool', download_dir=None,
     data_dir = join(download_dir, data_name)
     if ensure or redownload:
         if redownload:
-            util_path.remove_dirs(download_dir)
             util_path.remove_dirs(data_dir)
         util_path.ensurepath(download_dir)
         if not exists(data_dir):
             # Download and unzip testdata
             zip_fpath = realpath(join(download_dir, zip_fname))
             print('[utool] Downloading archive %s' % zip_fpath)
-            #true_zipped_fpath = grab_file_url(zipped_url,
-            #                                  download_dir=download_dir,
-            #                                  appname=appname)
-            #data_dir = unarchive_file(true_zipped_fpath, force_commonprefix)
             if not exists(zip_fpath):
                 download_url(zipped_url, zip_fpath)
             unarchive_file(zip_fpath, force_commonprefix)
