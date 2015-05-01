@@ -424,11 +424,36 @@ def invertible_flatten2(unflat_list):
 
 
 @profile
-def invertible_flatten2_numpy(unflat_arrs):
-    """ more numpy version """
+def invertible_flatten2_numpy(unflat_arrs, axis=0):
+    """ more numpy version
+
+    Args:
+        unflat_arrs (list):  list of ndarrays
+
+    Returns:
+        tuple: (flat_list, cumlen_list)
+
+    CommandLine:
+        python -m utool.util_list --test-invertible_flatten2_numpy
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> # build test data
+        >>> unflat_arrs = [np.array([1, 2, 1]), np.array([5, 9]), np.array([4])]
+        >>> # execute function
+        >>> (flat_list, cumlen_list) = invertible_flatten2_numpy(unflat_arrs)
+        >>> # verify results
+        >>> result = str((flat_list, cumlen_list))
+        >>> print(result)
+        (array([1, 2, 1, 5, 9, 4]), array([3, 5, 6]))
+    """
     sublen_list = [arr.shape[0] for arr in unflat_arrs]
     cumlen_list = np.cumsum(sublen_list)
-    flat_list = np.hstack(unflat_arrs)
+    #if axis is None:
+    #    flat_list = np.hstack(unflat_arrs)
+    #else:
+    flat_list = np.concatenate(unflat_arrs, axis=axis)
     return flat_list, cumlen_list
 
 

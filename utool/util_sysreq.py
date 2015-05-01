@@ -9,13 +9,30 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[sysreq]')
 
 def in_virtual_env():
     """
-    returns True if you are running inside a python virtual environment
+    returns True if you are running inside a python virtual environment.
+    (DOES NOT WORK IF IN IPYTHON AND USING A VIRTUALENV)
+
+    Notes:
+        It seems IPython does not respect virtual environments properly.
+        TODO: find a solution
+        http://stackoverflow.com/questions/7335992/ipython-and-virtualenv-ignoring-site-packages
 
     References:
         http://stackoverflow.com/questions/1871549/python-determine-if-running-inside-virtualenv
     """
     import sys
     return hasattr(sys, 'real_prefix')
+
+
+def get_site_packages_dir():
+    """
+    Notes:
+        It seems IPython does not respect virtual environments properly.
+        TODO: find a solution
+        http://stackoverflow.com/questions/7335992/ipython-and-virtualenv-ignoring-site-packages
+    """
+    import distutils.sysconfig
+    return distutils.sysconfig.get_python_lib()
 
 
 def is_running_as_root():

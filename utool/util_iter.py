@@ -18,6 +18,12 @@ def evaluate_generator(iter_):
     """ for evaluating each item in a generator and ignoring output """
     for _ in iter_:  # NOQA
         pass
+    # TODO: check if faster
+    #try:
+    #    while True:
+    #        six.next(iter_)
+    #except StopIteration:
+    #    pass
 
 
 def iget_list_column(list_, colx):

@@ -1327,7 +1327,7 @@ def _memory_profile(with_gc=False):
         %reset out
         %reset array
     """
-    import utool
+    import utool as ut
     import guppy
     if with_gc:
         garbage_collect()
@@ -1335,8 +1335,8 @@ def _memory_profile(with_gc=False):
     print('[hpy] Waiting for heap output...')
     heap_output = hp.heap()
     print(heap_output)
-    print('[hpy] total heap size: ' + utool.byte_str2(heap_output.size))
-    utool.util_resources.memstats()
+    print('[hpy] total heap size: ' + ut.byte_str2(heap_output.size))
+    ut.util_resources.memstats()
     # Graphical Browser
     #hp.pb()
 
@@ -1454,10 +1454,14 @@ def print_object_size_tree(obj):
 def get_object_size_str(obj, lbl='', unit=None):
     from utool import util_str
     nBytes = get_object_size(obj)
-    if unit is None:
-        sizestr = lbl + util_str.byte_str2(nBytes)
+    if len(lbl) > 0 and not lbl.endswith(' '):
+        lbl_ = lbl + ' '
     else:
-        sizestr = lbl + util_str.byte_str(nBytes, unit)
+        lbl_ = lbl
+    if unit is None:
+        sizestr = lbl_ + util_str.byte_str2(nBytes)
+    else:
+        sizestr = lbl_ + util_str.byte_str(nBytes, unit)
     return sizestr
 
 
@@ -1749,6 +1753,7 @@ def inverable_unique_two_lists(item1_list, item2_list):
     import utool as ut
     unique_list1, inverse1 = np.unique(item1_list, return_inverse=True)
     unique_list2, inverse2 = np.unique(item2_list, return_inverse=True)
+
     flat_stacked, cumsum = ut.invertible_flatten2((unique_list1, unique_list2))
     flat_unique, inverse3 = np.unique(flat_stacked, return_inverse=True)
     reconstruct_tup = (inverse3, cumsum, inverse2, inverse1)
@@ -1766,6 +1771,36 @@ def uninvert_unique_two_lists(flat_list, reconstruct_tup):
     res_list1_ = ut.list_take(unique_list1_, inverse1)
     res_list2_ = ut.list_take(unique_list2_, inverse2)
     return res_list1_, res_list2_
+
+
+def inverable_group_multi_list(item_lists):
+    """
+    aid_list1 = np.array([1, 1, 2, 2, 3, 3])
+    aid2_list = np.array([4, 2, 1, 9, 8, 7])
+    item_lists = (np.array(aid1_list), np.array(aid2_list))
+    """
+    #unique_list1, inverse1 = np.unique(item1_list, return_index=True, return_inverse=True)
+    import vtool as vt
+    import utool as ut
+    # Find uniques and groups in each individual list
+    unique_lists = []
+    groupx_lists = []
+    for item_list in item_lists:
+        unique_items, groupxs = vt.group_indices(item_list)
+        unique_lists.append(unique_items)
+        groupx_lists.append(groupxs)
+    # Merge all indexes into a signle long list
+    groups_stacked = ut.flatten(groupx_lists)
+    flat_stacked, cumsum = ut.invertible_flatten2(unique_lists)
+    # Find uniques in those lists
+    flat_unique, stack_groups = vt.group_indices(np.array(flat_stacked))
+    # Get a list of corresonding group indicies from each input list
+    flat_groupx_multilist = [ut.list_take(groups_stacked, groupx) for groupx in stack_groups]
+    # flat_unique corresponds with the aids (hence chips) the flag_groupxs
+    # multilist is a list where each item is a tuple who's nth item indexes
+    # into the nth input list. Ie (1, 0) is a list of indexes into the 1st chip
+    # the 0th keypoint list
+    return flat_unique, flat_groupx_multilist
 
 
 if __name__ == '__main__':
