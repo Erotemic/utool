@@ -235,6 +235,7 @@ class ProgressIter(object):
         self.freq           = kwargs.get('freq', 1)
         self.invert_rate    = kwargs.get('invert_rate', False)
         #self.report_unit    = kwargs.get('report_unit', 'minutes')
+        self.enabled        = kwargs.get('enabled', True)
         self.report_unit    = kwargs.get('report_unit', 'seconds')
         self.autoadjust  = kwargs.get('autoadjust', True)  # autoadjust frequency of reporting
         self.with_totaltime = False

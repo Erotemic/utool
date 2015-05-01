@@ -180,9 +180,19 @@ def download_url(url, filename=None, spoof=False):
 
 
 def fix_dropbox_link(dropbox_url):
-    """ Dropbox links should be en-mass downloaed from dl.dropbox """
+    """ Dropbox links should be en-mass downloaed from dl.dropbox
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_grabdata import *  # NOQA
+        >>> dropbox_url = 'www.dropbox.com/foobar.zip?dl=0'
+        >>> cleaned_url = fix_dropbox_link(dropbox_url)
+        >>> result = str(cleaned_url)
+        >>> print(result)
+        dl.dropbox.com/foobar.zip
+    """
     cleaned_url = dropbox_url.replace('www.dropbox', 'dl.dropbox')
-    cleaned_url = cleaned_url.replace('?dl=0', '')
+    cleaned_url = cleaned_url.rstrip('?dl=0')
     return cleaned_url
 
 
