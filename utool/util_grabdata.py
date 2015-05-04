@@ -335,8 +335,9 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
     return fpath
 
 
-def grab_zipped_url(zipped_url, ensure=True, appname='utool', download_dir=None,
-                    force_commonprefix=True, cleanup=False, redownload=False):
+def grab_zipped_url(zipped_url, ensure=True, appname='utool',
+                    download_dir=None, force_commonprefix=True, cleanup=False,
+                    redownload=False, spoof=False):
     """
     downloads and unzips the url
 
@@ -365,9 +366,9 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool', download_dir=None,
         if not exists(data_dir):
             # Download and unzip testdata
             zip_fpath = realpath(join(download_dir, zip_fname))
-            print('[utool] Downloading archive %s' % zip_fpath)
+            #print('[utool] Downloading archive %s' % zip_fpath)
             if not exists(zip_fpath):
-                download_url(zipped_url, zip_fpath)
+                download_url(zipped_url, zip_fpath, spoof=spoof)
             unarchive_file(zip_fpath, force_commonprefix)
             if cleanup:
                 util_path.delete(zip_fpath)  # Cleanup

@@ -832,18 +832,22 @@ def run_test(func_or_doctesttup, *args, **kwargs):
                     # dont do this for execed code
                     exc_traceback = exc_traceback.tb_next
                 # Python 2*3=6
-                #six.reraise(exc_type, exc_value, exc_traceback)
-                # PYTHON 2.7 DEPRICATED:
-                if six.PY2:
-                    raise exc_type, exc_value, exc_traceback.tb_next
-                    #exec('raise exc_type, exc_value, exc_traceback.tb_next', globals(), locals())
-                # PYTHON 3.3 NEW METHODS
-                elif six.PY3:
-                    ex = exc_type(exc_value)
-                    ex.__traceback__ = exc_traceback.tb_next
-                    raise ex
+                if True:
+                    # FIXME: use common code
+                    six.reraise(exc_type, exc_value, exc_traceback)
                 else:
-                    raise AssertionError('Weird python version')
+                    ## PYTHON 2.7 DEPRICATED:
+                    #if six.PY2:
+                    #    raise exc_type, exc_value, exc_traceback.tb_next
+                    #    #exec('raise exc_type, exc_value, exc_traceback.tb_next', globals(), locals())
+                    ## PYTHON 3.3 NEW METHODS
+                    #elif six.PY3:
+                    #    ex = exc_type(exc_value)
+                    #    ex.__traceback__ = exc_traceback.tb_next
+                    #    raise ex
+                    #else:
+                    #    raise AssertionError('Weird python version')
+                    pass
             if SYSEXIT_ON_FAIL:
                 print('[util_test] SYSEXIT_ON_FAIL = True')
                 print('[util_test] exiting with sys.exit(1)')

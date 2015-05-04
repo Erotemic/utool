@@ -4,8 +4,8 @@ from __future__ import absolute_import, division, print_function
 #except ImportError as ex:
 #    pass
 import six
-from six.moves import zip, range
-from itertools import chain, cycle, islice, izip_longest
+from six.moves import zip, range, zip_longest
+from itertools import chain, cycle, islice
 from utool import util_inject
 from utool._internal import meta_util_iter
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[iter]')
@@ -161,11 +161,11 @@ def ichunks(iterable, chunksize, bordermode=None):
         >>> print(result)
         [[1, 2, 3], [4, 5, 6], [7, 7, 7]]
     """
-    # feed the same iter to izip_longest multiple times, this causes it to
+    # feed the same iter to zip_longest multiple times, this causes it to
     # consume successive values of the same sequence rather than striped values
     sentinal = object()
     copied_iterators = [iter(iterable)] * chunksize
-    chunks_with_sentinals = izip_longest(*copied_iterators, fillvalue=sentinal)
+    chunks_with_sentinals = zip_longest(*copied_iterators, fillvalue=sentinal)
     # Yeild smaller chunks without sentinals
     if bordermode is None:
         for chunk in chunks_with_sentinals:

@@ -35,7 +35,7 @@ else:
 
 
 def theta_str(theta, taustr=TAUSTR, fmtstr='{coeff:,.1f}{taustr}'):
-    """
+    r"""
     Format theta so it is interpretable in base 10
 
     theta_str

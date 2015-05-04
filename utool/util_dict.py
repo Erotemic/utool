@@ -1,9 +1,8 @@
 """ convinience functions for dictionaries """
 from __future__ import absolute_import, division, print_function
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from itertools import product as iprod
 from six.moves import zip
-from collections import OrderedDict
 from utool import util_inject
 from utool import util_list
 import six
@@ -699,6 +698,33 @@ def dict_find_other_sameval_keys(dict_, key):
     other_keys = found_dict[value]
     other_keys.remove(key)
     return other_keys
+
+
+def dict_hist(item_list):
+    r"""
+    Args:
+        item_list (list):
+
+    CommandLine:
+        python -m utool.util_dict --test-dict_hist
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> # build test data
+        >>> item_list = [1, 2, 39, 900, 1232, 900, 1232, 2, 2, 2, 900]
+        >>> # execute function
+        >>> hist_ = dict_hist(item_list)
+        >>> result = hist_
+        >>> # verify results
+        >>> print(result)
+        {1232: 2, 1: 1, 2: 4, 900: 3, 39: 1}
+    """
+    hist_ = defaultdict(lambda: 0)
+    for item in item_list:
+        hist_[item] += 1
+    hist_ = dict(hist_)
+    return hist_
 
 
 if __name__ == '__main__':

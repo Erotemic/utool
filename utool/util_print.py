@@ -17,9 +17,10 @@ NO_INDENT    = meta_util_arg.NO_INDENT
 SILENT       = meta_util_arg.SILENT
 
 
-def print_dict(dict_):
+def print_dict(dict_, dict_name=None):
     import utool as ut
-    dict_name = ut.get_varname_from_stack(dict_, N=1)
+    if dict_name is None:
+        dict_name = ut.get_varname_from_stack(dict_, N=1)
     print(dict_name + ' = ' + util_str.dict_str(dict_))
 
 

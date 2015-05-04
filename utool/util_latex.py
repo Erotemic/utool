@@ -4,8 +4,10 @@ from six.moves import range, map
 import os
 import re
 import textwrap
-# Science
-import numpy as np
+try:
+    import numpy as np
+except ImportError:
+    pass
 from os.path import join, splitext
 # Util
 from utool import util_cplat
@@ -13,8 +15,8 @@ from utool import util_path
 from utool import util_num
 from utool import util_dev
 from utool import util_io
-from .util_dbg import printex
-from .util_inject import inject
+from utool.util_dbg import printex
+from utool.util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[latex]')
 
 #def ensure_latex_environ():

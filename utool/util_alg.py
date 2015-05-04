@@ -17,7 +17,11 @@ import six
 from six.moves import zip, range, reduce  # NOQA
 from utool import util_type
 from utool import util_inject
-import scipy.spatial.distance as spdist
+try:
+    import scipy.spatial.distance as spdist
+    HAS_SCIPY = True
+except ImportError:
+    HAS_SCIPY = False
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
 
 
