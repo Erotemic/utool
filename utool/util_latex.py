@@ -353,7 +353,8 @@ def get_latex_figure_str(fpath_list, caption_str=None, label_str=None, width_str
         '''
     ) % (header_str, graphics_body)
     if caption_str is not None:
-        tabular_body += '\n\caption{\\footnotesize{%s}}' % (caption_str,)
+        #tabular_body += '\n\caption{\\footnotesize{%s}}' % (caption_str,)
+        tabular_body += '\n\caption{%s}' % (caption_str,)
     if label_str is not None:
         tabular_body += '\n\label{fig:%s}' % (label_str,)
     figure_fmtstr = ut.codeblock(

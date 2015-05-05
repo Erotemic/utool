@@ -220,6 +220,7 @@ TESTIMG_URL_DICT = {
     'hard3.png' : 'http://i.imgur.com/ST91yBf.png',
     'zebra.png' : 'http://i.imgur.com/58hbGcd.png',
     'star.png'  : 'http://i.imgur.com/d2FHuIU.png',
+    'patsy.jpg' : 'http://i.imgur.com/C1lNRfT.jpg',
 }
 
 

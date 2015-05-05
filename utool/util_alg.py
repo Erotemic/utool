@@ -225,11 +225,6 @@ def find_std_inliers(data, m=2):
     return abs(data - np.mean(data)) < m * np.std(data)
 
 
-def choose(n, k):
-    import scipy.misc
-    return scipy.misc.comb(n, k, True)
-
-
 def cartesian(arrays, out=None):
     """
     Generate a cartesian product of input arrays.
@@ -697,6 +692,27 @@ def safe_div(a, b):
 
 def safe_max(arr):
     return np.nan if arr is None or len(arr) == 0 else arr.max()
+
+
+def choose(n, k):
+    """
+    N choose k
+
+    binomial combination (without replacement)
+    """
+    import scipy.misc
+    return scipy.misc.comb(n, k, exact=True, repetition=False)
+
+
+def triangular_number(n):
+    r"""
+    Latex:
+        T_n = \sum_{k=1}^{n} k = \frac{n (n + 1)}{2} = \binom{n + 1}{2}
+
+    References:
+        http://en.wikipedia.org/wiki/Triangular_number
+    """
+    return ((n * (n + 1)) / 2)
 
 
 if __name__ == '__main__':

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import operator
 try:
@@ -1249,6 +1250,62 @@ def find_nonconsec_indices(unique_vals, consec_vals):
             valx += 1
         consecx += 1
     return missing_ixs
+
+
+def group_consecutives(data, stepsize=1):
+    """
+    Return list of consecutive lists of numbers from data (number list).
+
+    References:
+        http://stackoverflow.com/questions/7352684/how-to-find-the-groups-of-consecutive-elements-from-an-array-in-numpy
+    """
+    run = []
+    result = [run]
+    expect = None
+    for item in data:
+        if (item == expect) or (expect is None):
+            run.append(item)
+        else:
+            run = [item]
+            result.append(run)
+        expect = item + stepsize
+    return result
+
+
+def group_consecutives_numpy(data, stepsize=1):
+    """
+
+    Args:
+        data (?):
+        stepsize (int):
+
+    Returns:
+        list: list of ndarrays
+
+    References:
+        http://stackoverflow.com/questions/7352684/how-to-find-the-groups-of-consecutive-elements-from-an-array-in-numpy
+
+    CommandLine:
+        python -m utool.util_list --test-group_consecutives
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> # build test data
+        >>> data = np.array([  0,   1,   2,   3,   4, 320, 636, 637, 638, 639])
+        >>> stepsize = 1
+        >>> # execute function
+        >>> result = group_consecutives(data, stepsize)
+        >>> # verify results
+        >>> print(result)
+        [array([0, 1, 2, 3, 4]), array([320]), array([636, 637, 638, 639])]
+
+    Timeit::
+        %timeit group_consecutives_numpy(data, stepsize) #  14.8 µs per loop
+        %timeit group_consecutives(data, stepsize) # 4.47 µs per loop
+
+    """
+    return np.split(data, np.where(np.diff(data) != stepsize)[0] + 1)
 
 
 def debug_consec_list(list_):

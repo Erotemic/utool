@@ -917,8 +917,9 @@ def formatex(ex, msg='[!?] Caught exception',
     errstr_list.append('<!!! %s !!!>' % ex_tag)
     if tb or FORCE_TB:
         tbtext = traceback.format_exc()
-        COLORED = True
-        if COLORED:
+        #COLORED_EXCEPTIONS = True
+        COLORED_EXCEPTIONS = False
+        if COLORED_EXCEPTIONS:
             # TODO: rectify with duplicate in util_inject
             import pygments
             import pygments.lexers

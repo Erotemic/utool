@@ -258,6 +258,8 @@ class ProgressIter(object):
         return self
 
     def __iter__(self):
+        if not self.enabled:
+            return iter(self.iterable)
         if NO_PROGRESS:
             # IF PROGRESS IS TURNED OFF
             msg = 'Iterating ' + self.lbl + ' with no progress'

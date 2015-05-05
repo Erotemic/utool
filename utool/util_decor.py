@@ -44,69 +44,6 @@ NOINDENT_DECOR = False
 
 
 # ORIGINAL PYTHON 2.7 VERSION
-#def ignores_exc_tb(*args, **kwargs):
-#    """
-#    ignore_exc_tb decorates a function and remove both itself
-#    and the function from any exception traceback that occurs.
-
-#    This is useful to decorate other trivial decorators
-#    which are polluting your stacktrace.
-
-#    if IGNORE_TRACEBACK is False then this decorator does nothing
-#    (and it should do nothing in production code!)
-
-#    References:
-#        https://github.com/jcrocholl/pep8/issues/34  # NOQA
-#        http://legacy.python.org/dev/peps/pep-3109/
-#    """
-#    outer_wrapper = kwargs.get('outer_wrapper', True)
-#    def ignores_exc_tb_closure(func):
-#        if not IGNORE_TRACEBACK:
-#            # if the global enforces that we should not ignore anytracebacks
-#            # then just return the original function without any modifcation
-#            return func
-#        #@wraps(func)
-#        def wrp_noexectb(*args, **kwargs):
-#            try:
-#                #import utool
-#                #if utool.DEBUG:
-#                #    print('[IN IGNORETB] args=%r' % (args,))
-#                #    print('[IN IGNORETB] kwargs=%r' % (kwargs,))
-#                return func(*args, **kwargs)
-#            except Exception:
-#                exc_type, exc_value, exc_traceback = sys.exc_info()
-#                # Code to remove this decorator from traceback
-#                # Remove two levels to remove this one as well
-#                exc_type, exc_value, exc_traceback = sys.exc_info()
-#                try:
-#                    exc_traceback = exc_traceback.tb_next
-#                    exc_traceback = exc_traceback.tb_next
-#                except Exception:
-#                    pass
-#                # Python 2*3=6
-#                # six has a problem because it inserts itself into the traceback
-#                #six.reraise(exc_type, exc_value, exc_traceback)
-#                # PYTHON 2.7 DEPRICATED:
-#                if six.PY2:
-#                    raise exc_type, exc_value, exc_traceback
-#                # PYTHON 3.3 NEW METHODS
-#                elif six.PY3:
-#                    ex = exc_type(exc_value)
-#                    ex.__traceback__ = exc_traceback
-#                    raise ex
-#        if outer_wrapper:
-#            wrp_noexectb = preserve_sig(wrp_noexectb, func)
-#        return wrp_noexectb
-#    if len(args) == 1:
-#        # called with one arg means its a function call
-#        func = args[0]
-#        return ignores_exc_tb_closure(func)
-#    else:
-#        # called with no args means kwargs as specified
-#        return ignores_exc_tb_closure
-
-
-# NEW PYTHON 2.7/3 VERSION
 def ignores_exc_tb(*args, **kwargs):
     """
     ignore_exc_tb decorates a function and remove both itself
@@ -128,40 +65,35 @@ def ignores_exc_tb(*args, **kwargs):
             # if the global enforces that we should not ignore anytracebacks
             # then just return the original function without any modifcation
             return func
-        if six.PY2:
-            #python2_func = """
-            common_wrp_noexcept_tb = """
-            def wrp_noexectb(*args, **kwargs):
+        #@wraps(func)
+        def wrp_noexectb(*args, **kwargs):
+            try:
+                #import utool
+                #if utool.DEBUG:
+                #    print('[IN IGNORETB] args=%r' % (args,))
+                #    print('[IN IGNORETB] kwargs=%r' % (kwargs,))
+                return func(*args, **kwargs)
+            except Exception:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                # Code to remove this decorator from traceback
+                # Remove two levels to remove this one as well
+                exc_type, exc_value, exc_traceback = sys.exc_info()
                 try:
-                    return func(*args, **kwargs)
+                    exc_traceback = exc_traceback.tb_next
+                    exc_traceback = exc_traceback.tb_next
                 except Exception:
-                    exc_type, exc_value, exc_traceback = sys.exc_info()
-                    # Code to remove this decorator from traceback
-                    # Remove two levels to remove this one as well
-                    exc_type, exc_value, exc_traceback = sys.exc_info()
-                    try:
-                        exc_traceback = exc_traceback.tb_next
-                        exc_traceback = exc_traceback.tb_next
-                    except Exception:
-                        pass
-            """
-            if six.PY2:
-                python2_reraise = """
+                    pass
+                # Python 2*3=6
+                # six has a problem because it inserts itself into the traceback
+                #six.reraise(exc_type, exc_value, exc_traceback)
+                # PYTHON 2.7 DEPRICATED:
+                if six.PY2:
                     raise exc_type, exc_value, exc_traceback
-                """
-                six_reraise = python2_reraise
-            elif six.PY3:
-                python3_reraise = """
+                # PYTHON 3.3 NEW METHODS
+                elif six.PY3:
                     ex = exc_type(exc_value)
                     ex.__traceback__ = exc_traceback
                     raise ex
-                """
-                six_reraise = python3_reraise
-            wrp_noexcept_tb_codeblock = common_wrp_noexcept_tb + six_reraise
-            globals_ = globals()
-            locals_ = locals()
-            six.exec_(wrp_noexcept_tb_codeblock, globals_, locals_)
-            wrp_noexectb = locals_['wrp_noexectb']
         if outer_wrapper:
             wrp_noexectb = preserve_sig(wrp_noexectb, func)
         return wrp_noexectb
@@ -172,6 +104,74 @@ def ignores_exc_tb(*args, **kwargs):
     else:
         # called with no args means kwargs as specified
         return ignores_exc_tb_closure
+
+
+# NEW PYTHON 2.7/3 VERSION
+#def ignores_exc_tb(*args, **kwargs):
+#    """
+#    ignore_exc_tb decorates a function and remove both itself
+#    and the function from any exception traceback that occurs.
+
+#    This is useful to decorate other trivial decorators
+#    which are polluting your stacktrace.
+
+#    if IGNORE_TRACEBACK is False then this decorator does nothing
+#    (and it should do nothing in production code!)
+
+#    References:
+#        https://github.com/jcrocholl/pep8/issues/34  # NOQA
+#        http://legacy.python.org/dev/peps/pep-3109/
+#    """
+#    outer_wrapper = kwargs.get('outer_wrapper', True)
+#    def ignores_exc_tb_closure(func):
+#        if not IGNORE_TRACEBACK:
+#            # if the global enforces that we should not ignore anytracebacks
+#            # then just return the original function without any modifcation
+#            return func
+#        if six.PY2:
+#            #python2_func = """
+#            common_wrp_noexcept_tb = """
+#            def wrp_noexectb(*args, **kwargs):
+#                try:
+#                    return func(*args, **kwargs)
+#                except Exception:
+#                    exc_type, exc_value, exc_traceback = sys.exc_info()
+#                    # Code to remove this decorator from traceback
+#                    # Remove two levels to remove this one as well
+#                    exc_type, exc_value, exc_traceback = sys.exc_info()
+#                    try:
+#                        exc_traceback = exc_traceback.tb_next
+#                        exc_traceback = exc_traceback.tb_next
+#                    except Exception:
+#                        pass
+#            """
+#            if six.PY2:
+#                python2_reraise = """
+#                    raise exc_type, exc_value, exc_traceback
+#                """
+#                six_reraise = python2_reraise
+#            elif six.PY3:
+#                python3_reraise = """
+#                    ex = exc_type(exc_value)
+#                    ex.__traceback__ = exc_traceback
+#                    raise ex
+#                """
+#                six_reraise = python3_reraise
+#            wrp_noexcept_tb_codeblock = common_wrp_noexcept_tb + six_reraise
+#            globals_ = globals()
+#            locals_ = locals()
+#            six.exec_(wrp_noexcept_tb_codeblock, globals_, locals_)
+#            wrp_noexectb = locals_['wrp_noexectb']
+#        if outer_wrapper:
+#            wrp_noexectb = preserve_sig(wrp_noexectb, func)
+#        return wrp_noexectb
+#    if len(args) == 1:
+#        # called with one arg means its a function call
+#        func = args[0]
+#        return ignores_exc_tb_closure(func)
+#    else:
+#        # called with no args means kwargs as specified
+#        return ignores_exc_tb_closure
 
 
 def on_exception_report_input(func_=None, force=False):
