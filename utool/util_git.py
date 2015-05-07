@@ -40,19 +40,24 @@ def get_project_repo_dirs():
 
 
 def gitcmd(repo, command, sudo=False):
-    print("************")
+    print("+****gitcmd*******")
     print('repo=%s' % repo)
     os.chdir(repo)
     #if command.find('git') != 0:
     #    command = 'git ' + command
     if not sudo or sys.platform.startswith('win32'):
-        os.system(command)
+        ret = os.system(command)
     else:
-        os.system('sudo ' + command)
-    print("************")
+        ret = os.system('sudo ' + command)
+    verbose = True
+    if verbose:
+        print('ret = %r' % (ret,))
+    if ret != 0:
+        raise Exception('Failed command')
+    print("L***********")
 
 
-def std_build_command(repo):
+def std_build_command(repo='.'):
     """
     My standard build script names.
 
@@ -60,7 +65,7 @@ def std_build_command(repo):
     """
     import utool as ut
     print("+**** stdbuild *******")
-    print(repo)
+    print('repo = %r' % (repo,))
     if sys.platform.startswith('win32'):
         #scriptname = './mingw_build.bat'  # vtool --rebuild-sver didnt work with this line
         scriptname = 'mingw_build.bat'
@@ -69,9 +74,13 @@ def std_build_command(repo):
     normbuild_flag = '--no-rmbuild'
     if ut.get_argflag(normbuild_flag):
         scriptname += ' ' + normbuild_flag
-
+    if repo == '':
+        # default to cwd
+        repo = '.'
+    else:
+        os.chdir(repo)
+    ut.assert_exists(scriptname)
     # Execute build
-    os.chdir(repo)
     ut.cmd(scriptname)
     #os.system(scriptname)
     print("L**** stdbuild *******")
