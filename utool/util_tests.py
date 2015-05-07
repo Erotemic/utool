@@ -228,11 +228,11 @@ def parse_docblocks_from_docstr(docstr):
     docblock_offsets = ut.get_list_column(docstr_blocks, 2)
 
     if VERBOSE_TEST:
-        print('[util_test] * found %d docstr_blocks' % (len(docstr_blocks),))
-        print('[util_test] * docblock_headers = %r' % (docblock_headers,))
-        print('[util_test] * docblock_offsets = %r' % (docblock_offsets,))
+        print('[util_test]   * found %d docstr_blocks' % (len(docstr_blocks),))
+        print('[util_test]   * docblock_headers = %r' % (docblock_headers,))
+        print('[util_test]   * docblock_offsets = %r' % (docblock_offsets,))
         if ut.VERBOSE:
-            print('[util_test] * docblock_bodys:')
+            print('[util_test]  * docblock_bodys:')
             print('\n-=-\n'.join(docblock_bodys))
     return docstr_blocks
 
@@ -356,8 +356,11 @@ def get_doctest_examples(func_or_class):
     """
     import utool as ut
     if VERBOSE_TEST:
-        print('[util_test] parsing %r for doctest' % (func_or_class))
-
+        print('[util_test] + parsing %r for doctest' % (func_or_class))
+        print('[util_test] - name = %r' % (func_or_class.__name__,))
+        if hasattr(func_or_class, '__ut_parent_class__'):
+            print('[util_test] - __ut_parent_class__ = %r' % (func_or_class.__ut_parent_class__,))
+        #ut.embed()
     try:
         raise NotImplementedError('FIXME')
         #func_or_class._utinfo['orig_func']
@@ -389,7 +392,7 @@ def get_doctest_examples(func_or_class):
     testlinenum_list = [func_lineno + num_funcdef_lines + offset for offset in testlineoffset_list]
     #       shelf[docstr] = testsrc_list, testwant_list
     if VERBOSE_TEST:
-        print('[util_test] * found %d doctests' % (len(testsrc_list),))
+        print('[util_test] L found %d doctests' % (len(testsrc_list),))
     return testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr
     # doctest doesnt do what i want. so I wrote my own primative but effective
     # parser.
@@ -588,8 +591,20 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     sorted_testable = sorted(list(set(testable_list)), key=_get_testable_name)
     testtup_list = []
     # Append each testable example
+    if VERBOSE_TEST:
+        indenter = ut.Indenter('[CHECK_TESTABLE]')
+        print('len(sorted_testable) = %r' % (len(sorted_testable),))
+
+        indenter.start()
     for testable in sorted_testable:
         testname = _get_testable_name(testable)
+        if hasattr(testable, '__ut_parent_class__'):
+            # HACK for getting classname.funcname
+            testname2 = testable.__ut_parent_class__.__name__ + '.' + testname
+            print('TESTNAME2')
+            print('testname2 = %r' % (testname2,))
+        else:
+            testname2 = None
         examples, wants, linenums, func_lineno, docstr = get_doctest_examples(testable)
         if len(examples) > 0:
             for testno , srcwant_tup in enumerate(zip(examples, wants)):
@@ -598,9 +613,19 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                 test_disabled = not any([src_.find(s) >= 0 for s in test_sentinals])
                 if needs_enable and test_disabled:
                     if testname not in force_enable_testnames:
-                        #print('skipping: %r' % testname)
-                        #print(src)
-                        continue
+                        # HACK
+                        if testname2 not in force_enable_testnames:
+                            #print(force_enable_testnames)
+                            #print(testname2)
+                            if VERBOSE_TEST:
+                                #print('skipping: %r' % testname)
+                                #print(src)
+                                print(' * skipping')
+                            continue
+                        else:
+                            testname = testname2
+                if VERBOSE_TEST:
+                    print(' * adding to testtup_list')
                 #ut.embed()
                 testtup = (testname, testno, src_, want)
                 testtup_list.append(testtup)
@@ -611,9 +636,19 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                 print(examples)
                 print(wants)
                 print(docstr)
+        if VERBOSE_TEST:
+            print(' --')
+    if VERBOSE_TEST:
+        indenter.stop()
     #L________________________
     #+------------------------
     # Get enabled (requested) examples
+    if VERBOSE_TEST:
+        print('\n-----\n')
+        indenter = ut.Indenter('[CHECK_REQUESTED]')
+        indenter.start()
+        print('Get enabled (requested) examples')
+        print('len(testtup_list) = %r' % (len(testtup_list),))
     all_testflags = []
     enabled_testtup_list = []
     distabled_testflags  = []
@@ -626,7 +661,10 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         flag2 = prefix + name
         flag3 = prefix + name.replace('_', '-') + ':' + str(num)
         flag4 = prefix + name.replace('_', '-')
-        testflag = ut.get_argflag((flag1, flag2, flag3, flag4))
+        valid_flags = (flag1, flag2, flag3, flag4)
+        if VERBOSE_TEST:
+            print(' checking for %r' % (valid_flags,))
+        testflag = ut.get_argflag(valid_flags)
         testenabled = TEST_ALL_EXAMPLES  or not check_flags or testflag
         if subx is not None and subx != num:
             continue
@@ -636,6 +674,8 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
             enabled_testtup_list.append(new_testtup)
         else:
             distabled_testflags.append(flag1)
+    if VERBOSE_TEST:
+        indenter.stop()
 
     mod_doctest_tup = ModuleDoctestTup(enabled_testtup_list, frame_fpath, all_testflags, module)
     #L________________________

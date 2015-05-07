@@ -420,6 +420,12 @@ def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
     return (print, print_, printDBG, rrr, profile_)
 
 
+def inject2(*args, **kwargs):
+    """ wrapper that depricates print_ and printDBG """
+    print, print_, printDBG, rrr, profile_ = inject(*args, **kwargs)
+    return print, rrr, profile_
+
+
 def inject_all(DEBUG=False):
     """
     UNFINISHED. DO NOT USE
