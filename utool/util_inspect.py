@@ -261,7 +261,8 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
                 for subkey, subval in six.iteritems(class_.__dict__):
                     # Unbound methods are still typed as functions
                     if isinstance(subval, valid_func_types):
-                        subval.__ut_parent_class__ = class_
+                        if not isinstance(subval, types.BuiltinFunctionType):
+                            subval.__ut_parent_class__ = class_
                         yield subkey, subval
         elif isinstance(val, invalid_types):
             pass
