@@ -1367,6 +1367,10 @@ def show_if_requested():
     pt.show_if_requested()
 
 
+def doctest_was_requested():
+    return any([arg.startswith('--test-') for arg in sys.argv])
+
+
 if __name__ == '__main__':
     """
     CommandLine:

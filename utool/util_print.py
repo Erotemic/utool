@@ -17,11 +17,12 @@ NO_INDENT    = meta_util_arg.NO_INDENT
 SILENT       = meta_util_arg.SILENT
 
 
-def print_dict(dict_, dict_name=None):
+def print_dict(dict_, dict_name=None, **kwargs):
     import utool as ut
     if dict_name is None:
         dict_name = ut.get_varname_from_stack(dict_, N=1)
-    print(dict_name + ' = ' + util_str.dict_str(dict_))
+    dict_repr = util_str.dict_str(dict_, **kwargs)
+    print(dict_name + ' = ' + dict_repr)
 
 
 def print_list(list_):

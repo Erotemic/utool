@@ -654,7 +654,7 @@ class InteractiveIter(object):
         if not iiter.enabled:
             for item in ut.ProgressIter(iiter.iterable, lbl='nointeract: '):
                 yield item
-            #raise StopIteration()
+            raise StopIteration()
         assert isinstance(iiter.iterable, INDEXABLE_TYPES)
         iiter.num_items = len(iiter.iterable)
         print('[IITER] Begin interactive iteration: %r items\n' % (iiter.num_items))
@@ -899,7 +899,7 @@ def get_jagged_stats(arr_list, **kwargs):
     return stats_dict
 
 
-def get_stats(list_, axis=None, use_nan=False, use_sum=False):
+def get_stats(list_, axis=None, use_nan=False, use_sum=False, datacast=np.float32):
     """
     Args:
         list_ (listlike): values to get statistics of
@@ -969,10 +969,10 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False):
         # number of entries with min val
         nMax = np.sum(nparr == max_val, axis=axis)
         stats_list = [
-            ('max',   np.float32(max_val)),
-            ('min',   np.float32(min_val)),
-            ('mean',  np.float32(mean_)),
-            ('std',   np.float32(std_)),
+            ('max',   datacast(max_val)),
+            ('min',   datacast(min_val)),
+            ('mean',  datacast(mean_)),
+            ('std',   datacast(std_)),
             ('nMin',  np.int32(nMin)),
             ('nMax',  np.int32(nMax)),
             ('shape', nparr.shape),  # repr(nparr.shape)),

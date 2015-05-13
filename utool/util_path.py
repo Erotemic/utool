@@ -349,6 +349,9 @@ def longest_existing_path(_path):
 
 
 def get_path_type(path_):
+    """
+    returns if a path is a file, directory, link, or mount
+    """
     path_type = ''
     if isfile(path_):
         path_type += 'file'

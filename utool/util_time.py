@@ -362,6 +362,14 @@ def get_posix_timedelta_str(posixtime):
     return timedelta_str
 
 
+def get_posix_timedelta_str2(posixtime):
+    try:
+        return get_posix_timedelta_str(posixtime)
+    except ValueError:
+        # handle nones and nans
+        return 'None'
+
+
 #def get_simple_posix_timedelta_str(posixtime):
 #    """
 #    get_timedelta_str

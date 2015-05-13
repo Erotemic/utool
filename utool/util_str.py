@@ -4,6 +4,7 @@ Module that handles string formating and manipulation of varoius data
 from __future__ import absolute_import, division, print_function
 import sys
 import six
+import re
 import textwrap
 from six.moves import map, range
 import itertools
@@ -133,6 +134,17 @@ def get_indentation(line_):
     return len(line_) - len(line_.lstrip())
 
 
+def get_minimum_indentation(text):
+    """
+    returns the number of preceding spaces
+    """
+    lines = text.split('\n')
+    indentations = [get_indentation(line_) for line_ in lines  if len(line_.strip()) > 0]
+    if len(indentations) == 0:
+        return 0
+    return min(indentations)
+
+
 def unindent(string):
     """
     Unindent a block of text
@@ -148,6 +160,19 @@ def codeblock(block_str):
     templated code.
     """
     return unindent(block_str).strip('\n')
+
+
+def flatten_textlines(text):
+    new_text = text
+    new_text = re.sub(' *\n *', ' ', new_text, flags=re.MULTILINE).strip(' ')
+    return new_text
+
+
+def remove_doublspaces(text):
+    new_text = text
+    new_text = re.sub('  *', ' ', new_text)
+    #, flags=re.MULTILINE)
+    return new_text
 
 
 def textblock(multiline_text):
@@ -176,9 +201,6 @@ def textblock(multiline_text):
         >>> result = new_text
         >>> print(result)
     """
-    import re
-    def flatten_textlines(text):
-        return re.sub(' *\n *', ' ', text, flags=re.MULTILINE).strip(' ')
     new_text = '\n\n'.join(list(map(flatten_textlines, multiline_text.split('\n\n'))))
     return new_text
 
