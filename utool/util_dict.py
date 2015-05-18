@@ -221,7 +221,7 @@ def all_dict_combinations_lbls(varied_dict):
     """
     multitups_list = [[(key, val) for val in val_list]
                       for key, val_list in six.iteritems(varied_dict)
-                      if len(val_list) > 1]
+                      if isinstance(val_list, (list, tuple)) and len(val_list) > 1]
     comb_lbls = list(map(str, list(iprod(*multitups_list))))
     return comb_lbls
 

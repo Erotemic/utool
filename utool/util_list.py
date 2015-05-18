@@ -1455,11 +1455,17 @@ def list_deep_types(list_):
     return type_list
 
 
-def depth_profile(list_, max_depth=None, compress_homogenous=True):
+def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_consecutive=False):
     """
     Returns a nested list corresponding the shape of the nested structures
     lists represent depth, tuples represent shape. The values of the items do
     not matter. only the lengths.
+
+    Args:
+        list_ (list):
+        max_depth (None):
+        compress_homogenous (bool):
+        compress_consecutive (bool):  experimental
 
     CommandLine:
         python -m utool.util_list --test-depth_profile
@@ -1496,6 +1502,14 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True):
         >>> print(result)
         [[2, 3], 1]
 
+    Example3:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [[3, 2], [3, 2], [3, 2], [3, 2], [3, 2], [3, 2], [9, 5, 3], [2, 2]]
+        >>> result = depth_profile(list_, compress_homogenous=True, compress_consecutive=True)
+        >>> print(result)
+        [2] * 6 + [3, 2]
+
     """
     level_shape_list = []
     # For a pure bottom level list return the length
@@ -1522,7 +1536,25 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True):
                 level_shape_list = tuple([len_] + list(dim_))
             else:
                 level_shape_list = tuple([len_, dim_])
-
+    if compress_consecutive:
+        hash_list = list(map(hash, map(str, level_shape_list)))
+        consec_list = group_consecutives(hash_list, 0)
+        if len(consec_list) != len(level_shape_list):
+            len_list = list(map(len, consec_list))
+            cumsum_list = np.cumsum(len_list)
+            consec_str = '['
+            thresh = 1
+            for len_, cumsum in zip(len_list, cumsum_list):
+                value = level_shape_list[cumsum - 1]
+                if len_ > thresh:
+                    consec_str += str(value) + '] * ' + str(len_) + ' + ['
+                else:
+                    consec_str += str(value) + ', '
+            #if consec_str.endswith(', '):
+            #    consec_str = consec_str[:-2]
+            consec_str = consec_str.rstrip(', ').rstrip(']')
+            consec_str += ']'
+            level_shape_list = consec_str
     return level_shape_list
 
 
