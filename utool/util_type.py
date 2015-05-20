@@ -250,6 +250,12 @@ def is_funclike(var):
     return hasattr(var, '__call__')
 
 
+#def get_list_type(list_):
+#    if isinstance(list_, np.ndarray):
+#        return list_.dtype
+#        pass
+
+
 if __name__ == '__main__':
     """
     CommandLine:
