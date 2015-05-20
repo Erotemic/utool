@@ -28,7 +28,7 @@ from utool._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[tests]')
 
 
-VERBOSE_TEST = util_arg.get_argflag(('--verb-test', '--verbose-test'))
+VERBOSE_TEST = util_arg.get_argflag(('--verbtest', '--verb-test', '--verbose-test'))
 #PRINT_SRC = not util_arg.get_argflag(('--noprintsrc', '--nosrc'))
 DEBUG_SRC = not util_arg.get_argflag('--nodbgsrc')
 PRINT_SRC = util_arg.get_argflag(('--printsrc', '--src'))
@@ -582,6 +582,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     ]
     if testslow or ut.get_argflag(('--testall', '--testslow')):
         test_sentinals.append('SLOW_DOCTEST')
+    # Grab sys.argv enabled tests
     force_enable_testnames = []
     for arg in sys.argv:
         if arg.startswith('--test-'):
@@ -592,19 +593,21 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     testtup_list = []
     # Append each testable example
     if VERBOSE_TEST:
+        print('Vars:')
+        print(' * needs_enable = %r' % (needs_enable,))
+        print(' * force_enable_testnames = %r' % (force_enable_testnames,))
         indenter = ut.Indenter('[CHECK_TESTABLE]')
         print('len(sorted_testable) = %r' % (len(sorted_testable),))
 
         indenter.start()
     for testable in sorted_testable:
         testname = _get_testable_name(testable)
+        testname2 = None
         if hasattr(testable, '__ut_parent_class__'):
             # HACK for getting classname.funcname
             testname2 = testable.__ut_parent_class__.__name__ + '.' + testname
             print('TESTNAME2')
             print('testname2 = %r' % (testname2,))
-        else:
-            testname2 = None
         examples, wants, linenums, func_lineno, docstr = get_doctest_examples(testable)
         if len(examples) > 0:
             for testno , srcwant_tup in enumerate(zip(examples, wants)):
@@ -618,15 +621,22 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                             #print(force_enable_testnames)
                             #print(testname2)
                             if VERBOSE_TEST:
-                                #print('skipping: %r' % testname)
+                                print(' * skipping: %r / %r' % (testname, testname2))
                                 #print(src)
-                                print(' * skipping')
+                                #print(' * skipping')
                             continue
-                        else:
-                            testname = testname2
-                if VERBOSE_TEST:
-                    print(' * adding to testtup_list')
+                        #else:
+                        #    testname = testname2
                 #ut.embed()
+                #. FIXME: you probably should only add one version of the testname to the list,
+                # and classname prefixes should probably be enforced
+                if testname2 is not None:
+                    if VERBOSE_TEST:
+                        print(' * HACK adding testname=%r to testtup_list' % (testname,))
+                    testtup = (testname2, testno, src_, want)
+                    testtup_list.append(testtup)
+                if VERBOSE_TEST:
+                    print(' * adding testname=%r to testtup_list' % (testname,))
                 testtup = (testname, testno, src_, want)
                 testtup_list.append(testtup)
         else:
@@ -649,6 +659,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         indenter.start()
         print('Get enabled (requested) examples')
         print('len(testtup_list) = %r' % (len(testtup_list),))
+        #print('(testtup_list) = %r' % (testtup_list,))
     all_testflags = []
     enabled_testtup_list = []
     distabled_testflags  = []
@@ -663,7 +674,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         flag4 = prefix + name.replace('_', '-')
         valid_flags = (flag1, flag2, flag3, flag4)
         if VERBOSE_TEST:
-            print(' checking for %r' % (valid_flags,))
+            print(' checking sys.argv for %r' % (valid_flags,))
         testflag = ut.get_argflag(valid_flags)
         testenabled = TEST_ALL_EXAMPLES  or not check_flags or testflag
         if subx is not None and subx != num:
