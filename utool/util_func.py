@@ -1,13 +1,30 @@
 from __future__ import absolute_import, division, print_function
+import functools
 from utool import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[func]')
 
 
-# DEPRICATE WHOLE FILE
+def compose_functions(*func_list):
+    """
+    Referenes:
+        https://mathieularose.com/function-composition-in-python/
+    """
+    def apply_composition(f, g):
+        def compose(x):
+            return f(g(x))
+        return compose
+    composed_func = functools.reduce(apply_composition, func_list)
+    return composed_func
+
+# DEPRICATE EVERYTHING BELOW HERE
+
 
 def uinput_1to1(func, input_):
     """ universal input (really just accept list or tuple as input to a list
-    only function) """
+    only function)
+
+    Move to guitool
+    """
     if isinstance(input_, (tuple, list)):
         output_ = list(map(func, input_))
     else:

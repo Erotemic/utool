@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 import sys
 import six
 import functools
+#import warnings
 import types
 try:
     import numpy as np
@@ -185,6 +186,41 @@ def is_type(var, valid_types):
 
 
 def is_int(var):
+    """
+
+    Returns:
+        bool: True if var is an integer.
+
+    Note:
+        Yuck, isinstance(True, int) returns True. This function does not have
+        that flaw.
+
+    References:
+        http://www.peterbe.com/plog/bool-is-int
+
+    CommandLine:
+        python -m utool.util_type --test-is_int
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_type import *  # NOQA
+        >>> var1 = 1
+        >>> var2 = np.array([1, 2, 3])
+        >>> var3 = True
+        >>> var4 = np.array([True, True, False])
+        >>> result = [is_int(var, False) for var in [var1, var2, var3, var4]]
+        >>> print(result)
+        [True, True, False, False]
+    """
+    #if _newbehavior:
+    #    if is_bool(var):
+    #        msg = 'Comparing bool to int. Make sure legacy code does is updated accordingly.'
+    #        print('Warning: ' + msg)
+    #        warnings.warn(msg)
+    #        return False
+    #    else:
+    #        return is_type(var, VALID_INT_TYPES)
+    #else:
     return is_type(var, VALID_INT_TYPES)
 
 

@@ -15,6 +15,22 @@ except ImportError:
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[dict]')
 
 
+class AutoVivification(dict):
+    """
+    Implementation of perl's autovivification feature.
+
+    References:
+        http://stackoverflow.com/questions/651794/whats-the-best-way-to-initialize-a-dict-of-dicts-in-python
+
+    """
+    def __getitem__(self, item):
+        try:
+            return dict.__getitem__(self, item)
+        except KeyError:
+            value = self[item] = type(self)()
+            return value
+
+
 def count_dict_vals(dict_of_lists):
     count_dict = {'len(%s)' % (key,): len(val) for key, val in six.iteritems(dict_of_lists)}
     return count_dict
