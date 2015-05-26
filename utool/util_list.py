@@ -944,6 +944,7 @@ def priority_argsort(list_, priority):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
+        >>> import utool as ut
         >>> list_ = [2, 4, 6, 8, 10]
         >>> priority = [8, 2, 6, 9]
         >>> sortx = priority_argsort(list_, priority)

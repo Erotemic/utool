@@ -208,7 +208,7 @@ def is_int(var):
         >>> var2 = np.array([1, 2, 3])
         >>> var3 = True
         >>> var4 = np.array([True, True, False])
-        >>> result = [is_int(var, False) for var in [var1, var2, var3, var4]]
+        >>> result = [is_int(var) for var in [var1, var2, var3, var4]]
         >>> print(result)
         [True, True, False, False]
     """
