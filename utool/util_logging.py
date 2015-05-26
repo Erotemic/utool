@@ -82,12 +82,13 @@ def get_current_log_fpath():
     return __CURRENT_LOG_FPATH__
 
 
-def get_log_fpath(num='next', appname=None):
+def get_log_fpath(num='next', appname=None, log_dir=None):
     """
     Returns:
         log_fpath (str): path to log file
     """
-    log_dir = get_logging_dir(appname=appname)
+    if log_dir is None:
+        log_dir = get_logging_dir(appname=appname)
     if not exists(log_dir):
         os.makedirs(log_dir)
     if appname is not None:
@@ -131,9 +132,13 @@ def add_logging_handler(handler, format_='file'):
     __UTOOL_ROOT_LOGGER__.addHandler(handler)
 
 
-def start_logging(log_fpath=None, mode='a', appname='default'):
+def start_logging(log_fpath=None, mode='a', appname='default', log_dir=None):
     r"""
     Overwrites utool print functions to use a logger
+
+    CommandLine:
+        python -m utool.util_logging --test-start_logging:0
+        python -m utool.util_logging --test-start_logging:1
 
     Example0:
         >>> # DISABLE_DOCTEST
@@ -181,7 +186,7 @@ def start_logging(log_fpath=None, mode='a', appname='default'):
             print('[utool] start_logging()... rootcheck OK')
         #logging.config.dictConfig(LOGGING)
         if log_fpath is None:
-            log_fpath = get_log_fpath(num='next', appname=appname)
+            log_fpath = get_log_fpath(num='next', appname=appname, log_dir=log_dir)
         __CURRENT_LOG_FPATH__ = log_fpath
         # Print what is about to happen
         if VERBOSE or LOGGING_VERBOSE:

@@ -27,37 +27,165 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[latex]')
 #    mpl.rc('text.latex',preamble='\usepackage[utf8]{inputenc}')
 
 
+def find_ghostscript_exe():
+    import utool as ut
+    if ut.WIN32:
+        gs_exe = r'C:\Program Files (x86)\gs\gs9.16\bin\gswin32c.exe'
+    else:
+        gs_exe = 'gs'
+    return gs_exe
+
+
+def compress_pdf(pdf_fpath, output_fname=None):
+    """ uses ghostscript to write a pdf """
+    import utool as ut
+    ut.assertpath(pdf_fpath)
+    suffix = '_' + ut.get_datestamp(False) + '_compressed'
+    print('pdf_fpath = %r' % (pdf_fpath,))
+    output_pdf_fpath = ut.augpath(pdf_fpath, suffix, newfname=output_fname)
+    print('output_pdf_fpath = %r' % (output_pdf_fpath,))
+    gs_exe = find_ghostscript_exe()
+    cmd_list = (
+        gs_exe,
+        '-sDEVICE=pdfwrite',
+        '-dCompatibilityLevel=1.4',
+        '-dNOPAUSE',
+        '-dQUIET',
+        '-dBATCH',
+        '-sOutputFile=' + output_pdf_fpath,
+        pdf_fpath
+    )
+    ut.cmd(*cmd_list)
+    return output_pdf_fpath
+
+
 def make_full_document(text):
-    doc_preamb = r'''
-    \documentclass{article}
-    \pagenumbering{gobble}
-    '''
-    doc_header = r'''
+    import utool as ut
+    doc_preamb = ut.codeblock(r'''
+    %\documentclass{article}
+    \documentclass[10pt,twocolumn,letterpaper]{article}
+
+    \usepackage[english=nohyphenation]{hyphsubst}
+    \usepackage{times}
+    \usepackage{amsmath}
+    \usepackage{amsthm}
+    \usepackage{amssymb}
+    \usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+    \usepackage{mathtools}
+    \usepackage{algorithm}
+    \usepackage{ulem}
+    \normalem
+    \usepackage{graphicx,adjustbox}
+    \usepackage{multirow}
+    \usepackage[T1]{fontenc}
+    \usepackage[margin=1.25in]{geometry}
+
+    %\pagenumbering{gobble}
+    ''')
+    doc_header = ut.codeblock(r'''
     \begin{document}
-    '''
-    doc_footer = r'''
+    ''')
+    doc_footer = ut.codeblock(r'''
     \end{document}
-    '''
-    return doc_preamb + doc_header + text + doc_footer
+    ''')
+    text_ = '\n'.join((doc_preamb, doc_header, text, doc_footer))
+    return text_
 
 
-def render(input_text, fnum=1):
-    import pylab as plt
-    import matplotlib as mpl
-    verbose = False
+def compile_latex_text(input_text, fnum=1, dpath=None, verbose=True):
+    """
+    pdflatex -shell-escape --synctex=-1 -src-specials -interaction=nonstopmode /home/joncrall/code/ibeis/tmptex/latex_formatter_temp.tex
+
+    Example1:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_latex import *  # NOQA
+        >>> import utool as ut
+        >>> verbose = True
+        >>> dpath = '/home/joncrall/code/ibeis/aidchallenge'
+        >>> ut.vd(dpath)
+        >>> orig_fpath_list = ut.list_images(dpath, fullpath=True)
+        >>> figure_str = ut.get_latex_figure_str(new_rel_fpath_list, width_str='2.4in', nCols=2)
+        >>> input_text = figure_str
+        >>> pdf_fpath = ut.compile_latex_text(input_text, dpath=dpath, verbose=verbose)
+        >>> output_pdf_fpath = ut.compress_pdf(pdf_fpath)
+
+        fpath_list
+        def clipwhite_ondisk(fpath_in):
+            import utool as ut
+            import vtool as vt
+            fpath_out = ut.augpath(fpath_in, '_clipwhite')
+            img = vt.imread(fpath_in)
+            thresh = 128
+            fillval = [255, 255, 255]
+            cropped_img = vt.crop_out_imgfill(img, fillval=fillval, thresh=thresh)
+            vt.imwrite(fpath_out, cropped_img)
+            return fpath_out
+        fpath_list_ = [clipwhite_ondisk(fpath) for fpath in fpath_list]
+        tmpfig = join(dpath, 'tmpfig')
+        ut.ensuredir(tmpfig)
+        # Weirdness
+        from os.path import *
+        new_fpath_list = []
+        for fpath in fpath_list_:
+            fname, ext = splitext(basename(fpath))
+            fname_ = ut.hashstr(fname, alphabet=ut.ALPHABET_16) + ext
+            fpath_ = join(tmpfig, fname_)
+            ut.move(fpath, fpath_)
+            new_fpath_list.append(fpath_)
+        new_rel_fpath_list = [ut.relpath_unix(fpath_, dpath) for fpath_ in new_fpath_list]
+
+    """
+    #import pylab as plt
+    #import matplotlib as mpl
+    #verbose = True
     text = make_full_document(input_text)
     cwd = os.getcwd()
-    text_dir = join(cwd, 'tmptex')
+    if dpath is None:
+        text_dir = join(cwd, 'tmptex')
+    else:
+        text_dir = dpath
+    util_path.ensuredir(text_dir, verbose=verbose)
+    text_fname = 'latex_formatter_temp.tex'
+    text_fpath = join(text_dir, text_fname)
+    pdf_fpath = splitext(text_fpath)[0] + '.pdf'
+    #jpg_fpath = splitext(text_fpath)[0] + '.jpg'
+    try:
+        os.chdir(text_dir)
+        util_io.write_to(text_fpath, text)
+        pdflatex_args = ('pdflatex', '-shell-escape', '--synctex=-1', '-src-specials', '-interaction=nonstopmode')
+        args = pdflatex_args + (text_fpath,)
+        util_cplat.cmd(*args, verbose=verbose)
+        assert util_path.checkpath(pdf_fpath, verbose=verbose), 'latex failed'
+    except Exception as ex:
+        ut.printex(ex, 'LATEX ERROR')
+    finally:
+        os.chdir(cwd)
+    return pdf_fpath
+
+
+def render(input_text, fnum=1, dpath=None, verbose=True):
+    import pylab as plt
+    import matplotlib as mpl
+    #verbose = True
+    text = make_full_document(input_text)
+    cwd = os.getcwd()
+    if dpath is None:
+        text_dir = join(cwd, 'tmptex')
+    else:
+        text_dir = dpath
+    util_path.ensuredir(text_dir, verbose=verbose)
     text_fname = 'latex_formatter_temp.tex'
     text_fpath = join(text_dir, text_fname)
     pdf_fpath = splitext(text_fpath)[0] + '.pdf'
     jpg_fpath = splitext(text_fpath)[0] + '.jpg'
     try:
-        util_path.ensuredir(text_dir, verbose=verbose)
         os.chdir(text_dir)
         util_io.write_to(text_fpath, text)
-        util_cplat.cmd('pdflatex', text_fpath, verbose=verbose)
+        pdflatex_args = ('pdflatex', '-shell-escape', '--synctex=-1', '-src-specials', '-interaction=nonstopmode')
+        args = pdflatex_args + (text_fpath,)
+        util_cplat.cmd(*args, verbose=verbose)
         assert util_path.checkpath(pdf_fpath, verbose=verbose), 'latex failed'
+        # convert latex pdf to jpeg
         util_cplat.cmd('convert', '-density', '300', pdf_fpath, '-quality', '90', jpg_fpath, verbose=verbose)
         assert util_path.checkpath(jpg_fpath, verbose=verbose), 'imgmagick failed'
         tex_img = plt.imread(jpg_fpath)
@@ -87,8 +215,9 @@ def render(input_text, fnum=1):
         pass
     finally:
         os.chdir(cwd)
-        if util_path.checkpath(text_dir, verbose=verbose):
-            util_path.delete(text_dir)
+        #if dpath is None:
+        #    if util_path.checkpath(text_dir, verbose=verbose):
+        #        util_path.delete(text_dir)
 
 
 def latex_multicolumn(data, ncol=2):
@@ -181,7 +310,7 @@ def replace_all(str_, repltups):
 def make_score_tabular(row_lbls, col_lbls, scores, title=None,
                        out_of=None, bold_best=True,
                        replace_rowlbl=None, flip=False):
-    'tabular for displaying scores'
+    """ tabular for displaying scores """
     bigger_is_better = True
     if flip:
         bigger_is_better = not bigger_is_better
@@ -312,10 +441,11 @@ def make_score_tabular(row_lbls, col_lbls, scores, title=None,
     return tabular_str
 
 
-def get_latex_figure_str(fpath_list, caption_str=None, label_str=None, width_str=r'\textwdith', height_str=None):
+def get_latex_figure_str(fpath_list, caption_str=None, label_str=None, width_str=r'\textwdith', height_str=None, nCols=None, dpath=None):
     r"""
     Args:
         fpath_list (list):
+        dpath (str): directory relative to main tex file
 
     Returns:
         str: figure_str
@@ -342,9 +472,26 @@ def get_latex_figure_str(fpath_list, caption_str=None, label_str=None, width_str
     else:
         graphics_sizestr =  ''
 
+    if dpath is not None:
+        fpath_list = [ut.relpath_unix(fpath_, dpath) for fpath_ in fpath_list]
     graphics_list = [r'\includegraphics%s{%s}' % (graphics_sizestr, fpath,) for fpath in fpath_list]
-    graphics_body = '\n&\n'.join(graphics_list)
-    header_str = ' '.join(['c'] * len(graphics_list))
+
+    if nCols is None:
+        nCols = len(graphics_list)
+    #nRows = len(graphics_list) // nCols
+
+    # Add separators
+    sep_list = [
+        '\n&\n' if count % nCols > 0 else '\n\\\\\n'
+        for count in range(1, len(graphics_list) + 1)
+    ]
+    sep_list[-1] = ''
+    graphics_list_ = [graphstr + sep for graphstr, sep in zip(graphics_list, sep_list)]
+
+    #graphics_body = '\n&\n'.join(graphics_list)
+    graphics_body = ''.join(graphics_list_)
+    header_str = ' '.join(['c'] * nCols)
+
     tabular_body =  ut.codeblock(
         r'''
         \begin{tabular}{%s}

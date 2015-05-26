@@ -858,6 +858,32 @@ def setdiff_ordered(list1, list2):
     return [item for item in list1 if item not in set(list2)]
 
 
+def setintersect_ordered(list1, list2):
+    """
+    returns list1 elements that are in list2. preserves order of list1
+
+    setintersect_ordered
+
+    Args:
+        list1 (list):
+        list2 (list):
+
+    Returns:
+        list: new_list
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list1 = [1, 2, 3, 5, 8, 13, 21]
+        >>> list2 = [6, 4, 2, 21, 8]
+        >>> new_list = setintersect_ordered(list1, list2)
+        >>> result = new_list
+        >>> print(result)
+        [2, 8, 21]
+    """
+    return [item for item in list1 if item in set(list2)]
+
+
 def flag_unique_items(list_):
     """
     Returns a list of flags corresponding to the first time an item is seen
@@ -876,6 +902,61 @@ def flag_unique_items(list_):
         return True
     flag_list = [unseen(item) for item in list_]
     return flag_list
+
+
+def priority_sort(list_, priority):
+    r"""
+    Args:
+        list_ (list):
+        priority (list): desired order of items
+
+    Returns:
+        list: reordered_list
+
+    CommandLine:
+        python -m utool.util_list --test-priority_argsort
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [2, 4, 6, 8, 10]
+        >>> priority = [8, 2, 6, 9]
+        >>> reordered_list = priority_sort(list_, priority)
+        >>> result = str(reordered_list)
+        >>> print(result)
+        [8, 2, 6, 4, 10]
+    """
+    # remove requested priority items not in the list
+    priority_ = setintersect_ordered(priority, list_)
+    reordered_list = unique_keep_order2(priority_ + list_)
+    return reordered_list
+
+
+def priority_argsort(list_, priority):
+    r"""
+    Args:
+        list_ (list):
+        priority (list): desired order of items
+
+    Returns:
+        list: reordered_index_list
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [2, 4, 6, 8, 10]
+        >>> priority = [8, 2, 6, 9]
+        >>> sortx = priority_argsort(list_, priority)
+        >>> reordered_list = priority_sort(list_, priority)
+        >>> assert ut.list_take(list_, sortx) == reordered_list
+        >>> result = str(sortx)
+        >>> print(result)
+        [3, 0, 2, 1, 4]
+    """
+    reordered_list = priority_sort(list_, priority)
+    # FIXME: inefficient
+    sortx = [list_.index(item) for item in reordered_list]
+    return sortx
 
 
 def unique_keep_order2(list_):

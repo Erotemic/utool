@@ -244,6 +244,8 @@ def get_unix_timedelta(unixtime_diff):
 
 def get_unix_timedelta_str(unixtime_diff):
     """
+    TODO: rectify this function with get_posix_timedelta_str
+
     Args:
         unixtime_diff (int): number of seconds
 
@@ -320,6 +322,8 @@ def get_timedelta_str(timedelta):
 def get_posix_timedelta_str(posixtime):
     """
     get_timedelta_str
+
+    TODO: rectify this function with get_unix_timedelta_str (unix_timedelta_str probably has better implementation)
 
     Returns:
         str: timedelta_str, formated time string
