@@ -477,6 +477,7 @@ def doctest_module_list(module_list):
     if len(failed_cmd_list) > 0:
         print('FAILED TESTS:')
         print('\n'.join(failed_cmd_list))
+    return nPass, nTotal, failed_cmd_list
 
 
 def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
