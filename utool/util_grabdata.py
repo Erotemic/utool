@@ -3,6 +3,7 @@ from os.path import dirname, split, join, splitext, exists, realpath, basename, 
 import sys
 import zipfile
 import tarfile
+import gzip
 import urllib
 import functools
 import time
@@ -65,8 +66,25 @@ def unarchive_file(archive_fpath, force_commonprefix=True):
         return untar_file(archive_fpath, force_commonprefix=force_commonprefix)
     elif zipfile.is_zipfile(archive_fpath):
         return unzip_file(archive_fpath, force_commonprefix=force_commonprefix)
+    elif archive_fpath.endswith('.gz'):
+        # This is to handle .gz files (not .tar.gz) like how MNIST is stored
+        # Example: http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz
+        return ungz_file(archive_fpath)
     else:
         raise AssertionError('unknown archive format: %r' % (archive_fpath,))
+
+
+def ungz_file(gz_fpath):
+    # Jon, this is something I'm not sure how to generalize with your structure
+    # below, so I'm just going to leave it here in a nice little function.
+    # I think the original code will still work correctly with .tar.gz, but
+    # now will also work with just .gz files as a fall-back     -- Jason
+    with gzip.open(gz_fpath, 'rb') as gz_file:
+        extracted_content = gz_file.read()
+    extracted_fpath = gz_fpath.strip('.gz')
+    with open(extracted_fpath, 'w') as extracted_file:
+        extracted_file.write(extracted_content)
+    return extracted_fpath
 
 
 def untar_file(targz_fpath, force_commonprefix=True):
