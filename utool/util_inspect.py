@@ -231,13 +231,19 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
     valid_func_types = (types.FunctionType, types.BuiltinFunctionType,
                         #types.MethodType, types.BuiltinMethodType,
                         )
-    valid_class_types = (types.ClassType,  types.TypeType,)
+    if six.PY2:
+        valid_class_types = (types.ClassType,  types.TypeType,)
+    else:
+        valid_class_types = six.class_types
 
     scalar_types = ([dict, list, tuple, set, frozenset, bool, float, int] +
                     list(six.string_types))
     scalar_types += list(six.string_types)
-    other_types = [types.InstanceType, functools.partial, types.ModuleType,
+    other_types = [functools.partial, types.ModuleType,
                    ctypes.CDLL]
+    if six.PY2:
+        other_types += [types.InstanceType]
+
     invalid_types = tuple(scalar_types + other_types)
 
     #modpath = ut.get_modname_from_modpath(module.__file__)

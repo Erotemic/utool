@@ -911,7 +911,7 @@ def get_jagged_stats(arr_list, **kwargs):
     return stats_dict
 
 
-def get_stats(list_, axis=None, use_nan=False, use_sum=False, datacast=np.float32):
+def get_stats(list_, axis=None, use_nan=False, use_sum=False, datacast=None):
     """
     Args:
         list_ (listlike): values to get statistics of
@@ -949,6 +949,8 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, datacast=np.float3
         print_stats
         get_stats_str
     """
+    if datacast is None:
+        datacast = np.float32
     # Assure input is in numpy format
     if isinstance(list_, np.ndarray):
         nparr = list_
