@@ -71,14 +71,32 @@ def unarchive_file(archive_fpath, force_commonprefix=True):
         from utool.util_grabdata import *
         archive_fpath = '/home/joncrall/.config/utool/train-images-idx3-ubyte.gz'
         """
+        # FIXME: unsure if this is general
         output_fpath = splitext(archive_fpath)[0]
         with gzip.open(archive_fpath, 'rb') as gzfile_:
             contents = gzfile_.read()
             with open(output_fpath, 'wb') as file_:
                 file_.write(contents)
         return output_fpath
+    #elif archive_fpath.endswith('.gz'):
+    #    # This is to handle .gz files (not .tar.gz) like how MNIST is stored
+    #    # Example: http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz
+    #    return ungz_file(archive_fpath)
     else:
         raise AssertionError('unknown archive format: %r' % (archive_fpath,))
+
+
+#def ungz_file(gz_fpath):
+#    # Jon, this is something I'm not sure how to generalize with your structure
+#    # below, so I'm just going to leave it here in a nice little function.
+#    # I think the original code will still work correctly with .tar.gz, but
+#    # now will also work with just .gz files as a fall-back     -- Jason
+#    with gzip.open(gz_fpath, 'rb') as gz_file:
+#        extracted_content = gz_file.read()
+#    extracted_fpath = gz_fpath.strip('.gz')
+#    with open(extracted_fpath, 'w') as extracted_file:
+#        extracted_file.write(extracted_content)
+#    return extracted_fpath
 
 
 def untar_file(targz_fpath, force_commonprefix=True):
