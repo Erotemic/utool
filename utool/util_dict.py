@@ -743,6 +743,35 @@ def dict_hist(item_list):
     return hist_
 
 
+def merge_dicts(*args):
+    r"""
+    Returns:
+        dict: mergedict_
+
+    CommandLine:
+        python -m utool.util_dict --test-merge_dicts
+
+    References:
+        http://stackoverflow.com/questions/38987/how-can-i-merge-two-python-dictionaries-in-a-single-expression
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> x = {'a': 1, 'b': 2}
+        >>> y = {'b': 3, 'c': 4}
+        >>> mergedict_ = merge_dicts(x, y)
+        >>> result = str(mergedict_)
+        >>> print(result)
+        {'a': 1, 'c': 4, 'b': 3}
+
+    """
+    iter_ = iter(args)
+    mergedict_ = six.next(iter_).copy()
+    for dict_ in iter_:
+        mergedict_.update(dict_)
+    return mergedict_
+
+
 if __name__ == '__main__':
     """
     CommandLine:

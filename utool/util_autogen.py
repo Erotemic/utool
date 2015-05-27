@@ -292,6 +292,7 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
         'img_fpath'  : 'ut.grab_test_imgpath(\'carl.jpg\')',
         'gfpath'     : 'ut.grab_test_imgpath(\'carl.jpg\')',
         'img'        : 'vt.imread(img_fpath)',
+        'img_in'     : 'vt.imread(img_fpath)',
         'bbox'       : '(10, 10, 50, 50)',
         'theta'      : '0.0',
     }

@@ -486,6 +486,7 @@ def cmd(*args, **kwargs):
     try:
         # Parse the keyword arguments
         quiet = kwargs.pop('quiet', False)
+        silence = kwargs.pop('silence', False)
         verbose, detatch, shell, sudo, pad_stdout = __parse_cmd_kwargs(kwargs)
         if pad_stdout:
             sys.stdout.flush()
@@ -512,8 +513,9 @@ def cmd(*args, **kwargs):
                 for line in _run_process(proc):
                     line_ = line if six.PY2 else line.decode('utf-8')
                     if len(line_) > 0:
-                        sys.stdout.write(line_)
-                        sys.stdout.flush()
+                        if not silence:
+                            sys.stdout.write(line_)
+                            sys.stdout.flush()
                         logged_out.append(line)
                 out = '\n'.join(logged_out)
                 (out_, err) = proc.communicate()

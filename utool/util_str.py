@@ -881,7 +881,7 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, *args, **kwargs):
 
 
 def dict_str(dict_, strvals=False, sorted_=False, newlines=True, recursive=True,
-             indent_='', precision=8, hack_liststr=False):
+             indent_='', precision=8, hack_liststr=False, truncate=False):
     """
     FIXME: ALL LIST DICT STRINGS ARE VERY SPAGEHETTI RIGHT NOW
     Returns:
@@ -898,6 +898,8 @@ def dict_str(dict_, strvals=False, sorted_=False, newlines=True, recursive=True,
         return '{}'
     itemstr_list = dict_itemstr_list(dict_, strvals, sorted_, newlines,
                                      recursive, indent_, precision, hack_liststr)
+    if truncate:
+        itemstr_list = [truncate_str(item) for item in itemstr_list]
     leftbrace, rightbrace  = '{', '}'
     if newlines:
         import utool as ut

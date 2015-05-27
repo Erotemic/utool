@@ -98,10 +98,13 @@ def get_dev_hints():
         ('invV_mats', ('ndarray[float32_t, ndim=3]',  'keypoint shapes (possibly translation)')),
         ('invVR_mats', ('ndarray[float32_t, ndim=3]', 'keypoint shape and rotations (possibly translation)')),
         ('img\d*', ('ndarray[uint8_t, ndim=2]', 'image data')),
+        ('img_in', ('ndarray[uint8_t, ndim=2]', 'image data')),
         ('imgBGR', ('ndarray[uint8_t, ndim=2]', 'image data in opencv format (blue, green, red)')),
         ('pnum', ('tuple', 'plot number')),
         ('fnum', ('int', 'figure number')),
         ('title', ('str', '')),
+        ('text', ('str', '')),
+        ('text_', ('str', '')),
 
         # Matching Hints
         ('ratio_thresh'       , ('float', None)),

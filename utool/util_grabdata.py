@@ -3,6 +3,7 @@ from os.path import dirname, split, join, splitext, exists, realpath, basename, 
 import sys
 import zipfile
 import tarfile
+import gzip
 import urllib
 import functools
 import time
@@ -65,6 +66,17 @@ def unarchive_file(archive_fpath, force_commonprefix=True):
         return untar_file(archive_fpath, force_commonprefix=force_commonprefix)
     elif zipfile.is_zipfile(archive_fpath):
         return unzip_file(archive_fpath, force_commonprefix=force_commonprefix)
+    elif archive_fpath.endswith('.gz') and not archive_fpath.endswith('.tar.gz'):
+        """
+        from utool.util_grabdata import *
+        archive_fpath = '/home/joncrall/.config/utool/train-images-idx3-ubyte.gz'
+        """
+        output_fpath = splitext(archive_fpath)[0]
+        with gzip.open(archive_fpath, 'rb') as gzfile_:
+            contents = gzfile_.read()
+            with open(output_fpath, 'wb') as file_:
+                file_.write(contents)
+        return output_fpath
     else:
         raise AssertionError('unknown archive format: %r' % (archive_fpath,))
 
@@ -73,14 +85,18 @@ def untar_file(targz_fpath, force_commonprefix=True):
     tar_file = tarfile.open(targz_fpath, 'r:gz')
     output_dir = dirname(targz_fpath)
     archive_namelist = [mem.path for mem in tar_file.getmembers()]
-    return _extract_archive(targz_fpath, tar_file, archive_namelist, output_dir, force_commonprefix)
+    output_dir = _extract_archive(targz_fpath, tar_file, archive_namelist, output_dir, force_commonprefix)
+    tar_file.close()
+    return output_dir
 
 
 def unzip_file(zip_fpath, force_commonprefix=True):
     zip_file = zipfile.ZipFile(zip_fpath)
     output_dir  = dirname(zip_fpath)
     archive_namelist = zip_file.namelist()
-    return _extract_archive(zip_fpath, zip_file, archive_namelist, output_dir, force_commonprefix)
+    output_dir  = _extract_archive(zip_fpath, zip_file, archive_namelist, output_dir, force_commonprefix)
+    zip_file.close()
+    return output_dir
 
 
 def _extract_archive(archive_fpath, archive_file, archive_namelist, output_dir, force_commonprefix=True):

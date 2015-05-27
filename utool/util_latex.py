@@ -59,7 +59,28 @@ def compress_pdf(pdf_fpath, output_fname=None):
     return output_pdf_fpath
 
 
-def make_full_document(text):
+def make_full_document(text, title=None, preamp_decl={}):
+    r"""
+    Args:
+        text (str):
+        title (str):
+
+    Returns:
+        str: text_
+
+    CommandLine:
+        python -m utool.util_latex --test-make_full_document
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_latex import *  # NOQA
+        >>> text = 'foo'
+        >>> title = 'title'
+        >>> preamp_decl = {}
+        >>> text_ = make_full_document(text, title)
+        >>> result = str(text_)
+        >>> print(result)
+    """
     import utool as ut
     doc_preamb = ut.codeblock(r'''
     %\documentclass{article}
@@ -82,17 +103,28 @@ def make_full_document(text):
 
     %\pagenumbering{gobble}
     ''')
-    doc_header = ut.codeblock(r'''
-    \begin{document}
-    ''')
-    doc_footer = ut.codeblock(r'''
-    \end{document}
-    ''')
-    text_ = '\n'.join((doc_preamb, doc_header, text, doc_footer))
+    if title is not None:
+        preamp_decl['title'] = title
+
+    decl_lines = [r'\{key}{{{val}}}'.format(key=key, val=val) for key, val in preamp_decl.items()]
+    doc_decllines = '\n'.join(decl_lines)
+
+    doc_header = ut.codeblock(
+        r'''
+        \begin{document}
+        ''')
+    if preamp_decl.get('title') is not None:
+        doc_header += r'\maketitle'
+
+    doc_footer = ut.codeblock(
+        r'''
+        \end{document}
+        ''')
+    text_ = '\n'.join((doc_preamb, doc_decllines, doc_header, text, doc_footer))
     return text_
 
 
-def compile_latex_text(input_text, fnum=1, dpath=None, verbose=True):
+def compile_latex_text(input_text, fnum=1, dpath=None, verbose=True, fname=None, title=None, **kwargs):
     """
     pdflatex -shell-escape --synctex=-1 -src-specials -interaction=nonstopmode /home/joncrall/code/ibeis/tmptex/latex_formatter_temp.tex
 
@@ -138,14 +170,17 @@ def compile_latex_text(input_text, fnum=1, dpath=None, verbose=True):
     #import pylab as plt
     #import matplotlib as mpl
     #verbose = True
-    text = make_full_document(input_text)
+    text = make_full_document(input_text, title=title)
     cwd = os.getcwd()
     if dpath is None:
         text_dir = join(cwd, 'tmptex')
     else:
         text_dir = dpath
     util_path.ensuredir(text_dir, verbose=verbose)
-    text_fname = 'latex_formatter_temp.tex'
+    if fname is None:
+        fname = 'latex_formatter_temp'
+    text_fname = fname + '.tex'
+    #text_fname = 'latex_formatter_temp.tex'
     text_fpath = join(text_dir, text_fname)
     pdf_fpath = splitext(text_fpath)[0] + '.pdf'
     #jpg_fpath = splitext(text_fpath)[0] + '.jpg'
@@ -154,7 +189,7 @@ def compile_latex_text(input_text, fnum=1, dpath=None, verbose=True):
         util_io.write_to(text_fpath, text)
         pdflatex_args = ('pdflatex', '-shell-escape', '--synctex=-1', '-src-specials', '-interaction=nonstopmode')
         args = pdflatex_args + (text_fpath,)
-        util_cplat.cmd(*args, verbose=verbose)
+        util_cplat.cmd(*args, verbose=verbose, **kwargs)
         assert util_path.checkpath(pdf_fpath, verbose=verbose), 'latex failed'
     except Exception as ex:
         ut.printex(ex, 'LATEX ERROR')

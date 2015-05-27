@@ -446,6 +446,10 @@ def _disableable(func):
     return _wrp_disableable
 
 
+ENABLE_MEMTRACK = False
+ENABLE_MEMTRACK = util_arg.get_argflag('--enable-memtrack')
+
+
 class MemoryTracker(object):
     """
     A ``class`` for tracking memory usage.
@@ -467,7 +471,9 @@ class MemoryTracker(object):
         >>> memtrack.report('[DELETE]')
         #>>> memtrack.report_largest()
     """
-    def __init__(self, lbl='Memtrack Init', disable=True):
+    def __init__(self, lbl='Memtrack Init', disable=None):
+        if disable is None:
+            disable = ENABLE_MEMTRACK
         self.disabled = disable  # disable by default
         self.init_nBytes = self.get_available_memory()
         self.prev_nBytes = None
@@ -513,7 +519,7 @@ class MemoryTracker(object):
 
     @_disableable
     def report(self, lbl=''):
-        from .util_str import byte_str2
+        from utool.util_str import byte_str2
         self.collect()
         nBytes = self.get_available_memory()
         print('[memtrack] +----')
@@ -532,7 +538,7 @@ class MemoryTracker(object):
 
     @_disableable
     def get_available_memory(self):
-        from .util_resources import available_memory
+        from utool.util_resources import available_memory
         return available_memory()
 
     @_disableable
@@ -544,6 +550,12 @@ class MemoryTracker(object):
         self.weakref_dict[oid] = obj
         self.weakref_dict2[oid] = name
         del obj
+
+    @_disableable
+    def report_obj(self, obj, name=None):
+        if not isinstance(obj, weakref.ref):
+            obj = weakref.ref(obj)
+        report_memsize(obj, name)
 
     @_disableable
     def report_objs(self):

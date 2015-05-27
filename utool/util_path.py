@@ -442,6 +442,10 @@ def copy_worker(args):
 
 def copy_files_to(src_fpath_list, dst_dpath=None, dst_fpath_list=None, overwrite=False, verbose=True, veryverbose=False):
     """
+    parallel copier
+
+    Example:
+        >>> # DISTABLE_DOCTEST
         >>> from utool.util_path import *
         >>> import utool as ut
         >>> overwrite = False
@@ -480,6 +484,16 @@ def copy_files_to(src_fpath_list, dst_dpath=None, dst_fpath_list=None, overwrite
 
 
 def copy(src, dst, overwrite=True, verbose=True):
+    import utool as ut
+    if ut.isiterable(src) and not ut.isiterable(dst):
+        ut.copy_files_to(src, dst, overwrite=overwrite, verbose=verbose)
+        # list to non list
+        pass
+    else:
+        return copy_single(src, dst, overwrite=overwrite, verbose=verbose)
+
+
+def copy_single(src, dst, overwrite=True, verbose=True):
     """
     Args:
         src (str): file or directory to copy
