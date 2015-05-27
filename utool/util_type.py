@@ -208,7 +208,7 @@ def is_int(var):
         >>> var2 = np.array([1, 2, 3])
         >>> var3 = True
         >>> var4 = np.array([True, True, False])
-        >>> result = [is_int(var, False) for var in [var1, var2, var3, var4]]
+        >>> result = [is_int(var) for var in [var1, var2, var3, var4]]
         >>> print(result)
         [True, True, False, False]
     """
@@ -290,6 +290,34 @@ def is_funclike(var):
 #    if isinstance(list_, np.ndarray):
 #        return list_.dtype
 #        pass
+
+
+def get_homogenous_list_type(list_):
+    """
+    Returns the best matching python type even if it is an ndarray assumes all
+    items in the list are of the same type. does not check this
+    """
+    # TODO Expand and make work correctly
+    if HAS_NUMPY and isinstance(list_, np.ndarray):
+        item = list_
+    elif isinstance(list_, list) and len(list_) > 0:
+        item = list_[0]
+    else:
+        item = None
+    if item is not None:
+        if is_float(item):
+            type_ = float
+        elif is_int(item):
+            type_ = int
+        elif is_bool(item):
+            type_ = bool
+        elif is_str(item):
+            type_ = str
+        else:
+            type_ = get_type(item)
+    else:
+        type_ = None
+    return type_
 
 
 if __name__ == '__main__':
