@@ -44,6 +44,10 @@ def get_dev_hints():
         ('gfpath[0-9]?' , ('str', 'image file path string')),
         ('bbox' , ('tuple', 'bounding box in the format (x, y, w, h)')),
         ('theta' , ('float', 'angle in radians')),
+        ('ori_thresh' , ('float', 'angle in radians')),
+        ('xy_thresh_sqrd' , ('float', '')),
+        ('xy_thresh' , ('float', '')),
+        ('scale_thresh' , ('float', '')),
 
         # Pipeline hints
         ('qaid2_nns',
@@ -612,6 +616,16 @@ def parse_return_type(sourcecode):
         return_desc = ''
 
     return return_type, return_name, return_header, return_desc
+
+
+def exec_func_sourcecode(func, globals_, locals_, key_list):
+    """ execs a func and returns requested local vars """
+    import utool as ut
+    sourcecode = get_func_sourcecode(func, stripdef=True, stripret=True)
+    six.exec_(sourcecode, globals_, locals_)
+    # Draw intermediate steps
+    var_list = ut.dict_take( locals_, key_list)
+    return var_list
 
 
 def get_func_sourcecode(func, stripdef=False, stripret=False):
