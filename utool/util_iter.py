@@ -104,6 +104,52 @@ def iflatten_scalars(list_):
     [item for item in list_]
 
 
+def iter_multichunks(iterable, chunksizes, bordermode=None):
+    """
+    CommandLine:
+        python -m utool.util_iter --test-iter_multichunks
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_iter import *  # NOQA
+        >>> iterable = list(range(20))
+        >>> chunksizes = (3, 2, 3)
+        >>> bordermode = 'cycle'
+        >>> genresult = iter_multichunks(iterable, chunksizes, bordermode)
+        >>> multichunks = list(genresult)
+        >>> depthprofile = ut.depth_profile(multichunks)
+        >>> assert depthprofile[1:] == chunksizes, 'did not generate chunks correctly'
+        >>> result = ut.list_str(map(str, multichunks))
+        >>> print(result)
+        [
+            '[[[0, 1, 2], [3, 4, 5]], [[6, 7, 8], [9, 10, 11]], [[12, 13, 14], [15, 16, 17]]]',
+            '[[[18, 19, 0], [1, 2, 3]], [[4, 5, 6], [7, 8, 9]], [[10, 11, 12], [13, 14, 15]]]',
+        ]
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_iter import *  # NOQA
+        >>> iterable = list(range(7))
+        >>> # when chunksizes is len == 1, then equlivalent to ichunks
+        >>> chunksizes = (3,)
+        >>> bordermode = 'cycle'
+        >>> genresult = iter_multichunks(iterable, chunksizes, bordermode)
+        >>> multichunks = list(genresult)
+        >>> depthprofile = ut.depth_profile(multichunks)
+        >>> assert depthprofile[1:] == chunksizes, 'did not generate chunks correctly'
+        >>> result = str(multichunks)
+        >>> print(result)
+        [[0, 1, 2], [3, 4, 5], [6, 0, 1]]
+    """
+    import operator
+    chunksize = reduce(operator.mul, chunksizes)
+    for chunk in ichunks(iterable, chunksize, bordermode=bordermode):
+        reshaped_chunk = chunk
+        for d in chunksizes[1:][::-1]:
+            reshaped_chunk = list(ichunks(reshaped_chunk, d))
+        yield reshaped_chunk
+
+
 def ichunks(iterable, chunksize, bordermode=None):
     """
     generates successive n-sized chunks from ``iterable``.

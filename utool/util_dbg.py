@@ -404,11 +404,11 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
         #if exec_lines is not None:
         #    config_dict['exec_lines'] = exec_lines
         #IPython.embed(**config_dict)
-        print('Get stack location with: ')
-        print('ut.get_caller_stack_frame(N=8).f_code.co_name')
-        print('set EXIT_NOW or qqq to True to hard exit on unembed')
+        print('[util]  Get stack location with: ')
+        print('[util] ut.get_caller_stack_frame(N=8).f_code.co_name')
+        print('[util] set EXIT_NOW or qqq to True(ish) to hard exit on unembed')
         #print('set iup to True to draw plottool stuff')
-        print('call %pylab qt4 to get plottool stuff working')
+        print('[util] call %pylab qt4 to get plottool stuff working')
         once = True
         # Allow user to set iup and redo the loop
         while once or vars().get('iup', False):
@@ -425,11 +425,70 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
 
             once = False
             #vars().get('iup', False):
+            print('[util] calling IPython.embed()')
+            """
+            Notes:
+                /usr/local/lib/python2.7/dist-packages/IPython/terminal/embed.py
+                IPython.terminal.embed.InteractiveShellEmbed
+
+                # instance comes from  IPython.config.configurable.SingletonConfigurable.instance
+            """
             IPython.embed()
+            #config = IPython.terminal.ipapp.load_default_config()
+            #config.InteractiveShellEmbed = config.TerminalInteractiveShell
+            #module = sys.modules[parent_globals['__name__']]
+            #config['module'] = module
+            #config['module'] = module
+            #embed2(stack_depth=N + 2 + 1)
+            #IPython.embed(config=config)
+            #IPython.embed(config=config)
+            #IPython.embed(module=module)
             # Exit python immediately if specifed
             if vars().get('EXIT_NOW', False) or vars().get('qqq', False):
                 print('[utool.embed] EXIT_NOW specified')
                 sys.exit(1)
+
+
+def embed2(**kwargs):
+    """
+    Modified from IPython.terminal.embed.embed so I can mess with stack_depth
+    """
+    config = kwargs.get('config')
+    header = kwargs.pop('header', u'')
+    stack_depth = kwargs.pop('stack_depth', 2)
+    compile_flags = kwargs.pop('compile_flags', None)
+    import IPython
+    from IPython.core.interactiveshell import InteractiveShell
+    from IPython.terminal.embed import InteractiveShellEmbed
+    if config is None:
+        config = IPython.terminal.ipapp.load_default_config()
+        config.InteractiveShellEmbed = config.TerminalInteractiveShell
+        kwargs['config'] = config
+    #save ps1/ps2 if defined
+    ps1 = None
+    ps2 = None
+    try:
+        ps1 = sys.ps1
+        ps2 = sys.ps2
+    except AttributeError:
+        pass
+    #save previous instance
+    saved_shell_instance = InteractiveShell._instance
+    if saved_shell_instance is not None:
+        cls = type(saved_shell_instance)
+        cls.clear_instance()
+    shell = InteractiveShellEmbed.instance(**kwargs)
+    shell(header=header, stack_depth=stack_depth, compile_flags=compile_flags)
+    InteractiveShellEmbed.clear_instance()
+    #restore previous instance
+    if saved_shell_instance is not None:
+        cls = type(saved_shell_instance)
+        cls.clear_instance()
+        for subclass in cls._walk_mro():
+            subclass._instance = saved_shell_instance
+    if ps1 is not None:
+        sys.ps1 = ps1
+        sys.ps2 = ps2
 
 
 def quitflag(num=None, embed_=False, parent_locals=None, parent_globals=None):

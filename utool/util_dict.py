@@ -718,8 +718,14 @@ def dict_find_other_sameval_keys(dict_, key):
 
 def dict_hist(item_list):
     r"""
+    Builds a histogram of items in item_list
+
     Args:
-        item_list (list):
+        item_list (list): list with hashable items (usually containing duplicates)
+
+    Returns:
+        dict : dictionary where the keys are items in item_list, and the values
+          are the number of times the item appears in item_list.
 
     CommandLine:
         python -m utool.util_dict --test-dict_hist
