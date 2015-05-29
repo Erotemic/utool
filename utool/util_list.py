@@ -1740,6 +1740,8 @@ def make_sortby_func(item_list, reverse=False):
 
 def find_first_true_indices(flags_list):
     """
+    TODO: move to vtool
+
     returns a list of indexes where the index is the first True position
     in the corresponding sublist or None if it does not exist
 
@@ -1776,6 +1778,8 @@ def find_first_true_indices(flags_list):
 
 def find_next_true_indices(flags_list, offset_list):
     """
+    TODO: move to vtool
+
     Uses output of either this function or find_first_true_indices
     to find the next index of true flags
 

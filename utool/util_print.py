@@ -231,25 +231,38 @@ def print_python_code(text):
             #formater = pygments.formatters.terminal256.Terminal256Formatter()
             formater = pygments.formatters.terminal256.Terminal256Formatter()
         else:
+            import pygments.formatters.terminal
             formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
         #, colorscheme='darkbg')
         lexer = pygments.lexers.get_lexer_by_name('python')
         print(pygments.highlight(text, lexer, formater))
     except Exception:
+        raise
         print(text)
 
 
 def print_difftext(text):
+    """
+    Args:
+        text (str):
+
+    CommandLine:
+        #python -m utool.util_print --test-print_difftext
+        #autopep8 ingest_data.py --diff | python -m utool.util_print --test-print_difftext
+
+    """
     import pygments
     import utool as ut
     try:
         if ut.WIN32:
             formater = pygments.formatters.terminal256.Terminal256Formatter()
         else:
+            import pygments.formatters.terminal
             formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
         lexer = pygments.lexers.get_lexer_by_name('diff')
         print(pygments.highlight(text, lexer, formater))
     except Exception:
+        raise
         print(text)
 
 

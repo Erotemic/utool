@@ -1817,6 +1817,28 @@ def inverable_group_multi_list(item_lists):
     return flat_unique, flat_groupx_multilist
 
 
+def autopep8_diff(fpath):
+    r"""
+    Args:
+        fpath (str):  file path string
+
+    CommandLine:
+        python -m utool.util_dev --test-autopep8_diff --fpath ingest_data.py
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dev import *  # NOQA
+        >>> fpath = ut.get_argval('--fpath', type_=str, default='ingest_data.py')
+        >>> result = autopep8_diff(fpath)
+        >>> print(result)
+    """
+    import utool as ut
+    args = ('autopep8', fpath, '--diff')
+    res = ut.cmd(args, verbose=False)
+    out, err, ret = res
+    ut.print_difftext(out)
+
+
 if __name__ == '__main__':
     """
     CommandLine:
