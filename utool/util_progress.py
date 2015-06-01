@@ -337,6 +337,8 @@ class ProgressIter(object):
         # Prepare for iteration
         msg_fmtstr = self.build_msg_fmtstr(nTotal, self.lbl,
                                            self.invert_rate, self.backspace)
+        # TODO: on windows is time.clock better?
+        # http://exnumerus.blogspot.com/2011/02/how-to-quickly-plot-multiple-line.html
         start_time    = time.time()
         last_time     = start_time
 

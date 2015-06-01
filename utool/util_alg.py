@@ -471,7 +471,7 @@ def get_nth_prime(n, max_prime=4100, safe=True):
             367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439,
             443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521,
             523, 541, )
-        print(len(first_100_primes))
+        #print(len(first_100_primes))
         nth_prime = first_100_primes[n - 1]
     else:
         if safe:
