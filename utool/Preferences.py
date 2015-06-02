@@ -592,7 +592,8 @@ def test_Preferences():
         python -m utool.Preferences --test-test_Preferences --show --verbpref
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
+        >>> # FIXME depends on guitool
         >>> from utool.Preferences import *  # NOQA
         >>> import utool as ut
         >>> import guitool

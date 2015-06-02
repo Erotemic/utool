@@ -95,6 +95,7 @@ def get_timestamp(format_='filename', use_second=False, delta_seconds=None):
 
 def get_datestamp(explicit=True):
     now = datetime.datetime.now()
+    #now = datetime.datetime.utcnow()
     stamp = '%04d-%02d-%02d' % (now.year, now.month, now.day)
     if explicit:
         return 'ymd-' + stamp + time.timezone[0]
@@ -237,7 +238,8 @@ def unixtime_to_datetime(unixtime, timefmt='%Y/%m/%d %H:%M:%S'):
         return 'NA'
     if unixtime is None:
         return None
-    return datetime.datetime.fromtimestamp(unixtime).strftime(timefmt)
+    return datetime.datetime.utcfromtimestamp(unixtime).strftime(timefmt)
+    #return datetime.datetime.fromtimestamp(unixtime).strftime(timefmt)
 
 
 def unixtime_to_timedelta(unixtime_diff):
@@ -451,7 +453,7 @@ def get_timestats_str(unixtime_list, newlines=False):
         >>> import utool as ut
         >>> # build test data
         >>> # TODO: FIXME ME FOR TIMEZONE EST vs GMT
-        >>> unixtime_list = [0 + 60*60*5 , 10+ 60*60*5, 100+ 60*60*5, 1000+ 60*60*5]
+        >>> unixtime_list = [0, 0 + 60*60*5 , 10+ 60*60*5, 100+ 60*60*5, 1000+ 60*60*5]
         >>> newlines = True
         >>> # execute function
         >>> timestat_str = get_timestats_str(unixtime_list, newlines)
@@ -459,12 +461,20 @@ def get_timestats_str(unixtime_list, newlines=False):
         >>> result = ut.align(str(timestat_str), ':')
         >>> print(result)
         {
-            'std'  : '0:06:59',
-            'max'  : '1970/01/01 00:16:40',
-            'range': '0:16:40',
-            'mean' : '1970/01/01 00:04:37',
+            'std'  : '2:02:01',
+            'max'  : '1970/01/01 05:16:40',
+            'range': '5:16:40',
+            'mean' : '1970/01/01 04:03:42',
             'min'  : '1970/01/01 00:00:00',
         }
+
+        #{
+        #   'std'  : '0:06:59',
+        #   'max'  : '1970/01/01 00:16:40',
+        #   'range': '0:16:40',
+        #   'mean' : '1970/01/01 00:04:37',
+        #   'min'  : '1970/01/01 00:00:00',
+        #}
 
     """
     import utool as ut
@@ -484,11 +494,11 @@ def get_timestats_dict(unixtime_list):
             pass
     for key in ['std']:
         try:
-            datetime_stats[key] = str(ut.unixtime_to_timedelta(int(round(unixtime_stats[key]))))
+            datetime_stats[key] = str(ut.get_unix_timedelta(int(round(unixtime_stats[key]))))
         except KeyError:
             pass
     try:
-        datetime_stats['range'] = str(ut.unixtime_to_timedelta(int(round(unixtime_stats['max'] - unixtime_stats['min']))))
+        datetime_stats['range'] = str(ut.get_unix_timedelta(int(round(unixtime_stats['max'] - unixtime_stats['min']))))
     except KeyError:
         pass
     return datetime_stats

@@ -970,7 +970,7 @@ def tryimport(modname, pipiname=None, ensure=False):
         >>> modname = 'pyfiglet'
         >>> pipiname = 'git+https://github.com/pwaller/pyfiglet'
         >>> pyfiglet = tryimport(modname, pipiname)
-        >>> assert pyfiglet is None or isinstance(pyfiglet, types.ModuleType)
+        >>> assert pyfiglet is None or isinstance(pyfiglet, types.ModuleType), 'unknown error'
 
     Example2:
         >>> # ENABLE_DOCTEST
@@ -978,7 +978,7 @@ def tryimport(modname, pipiname=None, ensure=False):
         >>> modname = 'lru'
         >>> pipiname = 'git+https://github.com/amitdev/lru-dict'
         >>> lru = tryimport(modname, pipiname, ensure=True)
-        >>> assert isinstance(lru, types.ModuleType)
+        >>> assert isinstance(lru, types.ModuleType), 'did not ensure lru'
     """
     if pipiname is None:
         pipiname = modname
