@@ -112,6 +112,7 @@ def iter_multichunks(iterable, chunksizes, bordermode=None):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_iter import *  # NOQA
+        >>> import utool as ut
         >>> iterable = list(range(20))
         >>> chunksizes = (3, 2, 3)
         >>> bordermode = 'cycle'
@@ -129,6 +130,7 @@ def iter_multichunks(iterable, chunksizes, bordermode=None):
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_iter import *  # NOQA
+        >>> import utool as ut
         >>> iterable = list(range(7))
         >>> # when chunksizes is len == 1, then equlivalent to ichunks
         >>> chunksizes = (3,)
