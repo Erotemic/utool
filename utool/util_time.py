@@ -13,17 +13,25 @@ import six
 import time
 import datetime
 from utool import util_inject
+from utool import util_cplat
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[time]')
+
+
+if util_cplat.WIN32:
+    # Use time.clock in win32
+    default_timer = time.clock
+else:
+    default_timer = time.time
 
 
 # --- Timing ---
 def tic(msg=None):
-    return (msg, time.time())
+    return (msg, default_timer())
 
 
 def toc(tt, return_msg=False, write_msg=True):
     (msg, start_time) = tt
-    ellapsed = (time.time() - start_time)
+    ellapsed = (default_timer() - start_time)
     if (not return_msg) and write_msg and msg is not None:
         sys.stdout.write('...toc(%.4fs, ' % ellapsed + '"' + str(msg) + '"' + ')\n')
     if return_msg:
@@ -123,10 +131,10 @@ class Timer(object):
             if self.newline:
                 print_('\n')
             sys.stdout.flush()
-        self.tstart = time.time()
+        self.tstart = default_timer()
 
     def toc(self):
-        ellapsed = (time.time() - self.tstart)
+        ellapsed = (default_timer() - self.tstart)
         if self.verbose:
             print_('...toc(%r)=%.4fs\n' % (self.msg, ellapsed))
             sys.stdout.flush()

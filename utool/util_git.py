@@ -71,15 +71,15 @@ def std_build_command(repo='.'):
         scriptname = 'mingw_build.bat'
     else:
         scriptname = './unix_build.sh'
-    normbuild_flag = '--no-rmbuild'
-    if ut.get_argflag(normbuild_flag):
-        scriptname += ' ' + normbuild_flag
     if repo == '':
         # default to cwd
         repo = '.'
     else:
         os.chdir(repo)
     ut.assert_exists(scriptname)
+    normbuild_flag = '--no-rmbuild'
+    if ut.get_argflag(normbuild_flag):
+        scriptname += ' ' + normbuild_flag
     # Execute build
     ut.cmd(scriptname)
     #os.system(scriptname)
