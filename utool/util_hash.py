@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import hashlib
 import copy
@@ -160,11 +161,60 @@ def hashstr_sha1(data, base10=False):
     return hashstr
 
 
-def get_file_hash(fpath, blocksize=65536, hasher=None):
-    """
+def get_file_hash(fpath, blocksize=65536, hasher=None, stride=1):
+    r"""
+    For better hashes use hasher=hashlib.sha256, and keep stride=1
+
+    Args:
+        fpath (str):  file path string
+        blocksize (int): 2 ** 16. Affects speed of reading file
+        hasher (None):  defaults to sha1 for fast (but insecure) hashing
+        stride (int): strides > 1 skip data to hash, useful for faster
+                      hashing, but less accurate, also makes hash dependant on
+                      blocksize.
+
     References:
         http://stackoverflow.com/questions/3431825/generating-a-md5-checksum-of-a-file
         http://stackoverflow.com/questions/5001893/when-should-i-use-sha-1-and-when-should-i-use-sha-2
+
+    CommandLine:
+        python -m utool.util_hash --test-get_file_hash
+        python -m utool.util_hash --test-get_file_hash:0
+        python -m utool.util_hash --test-get_file_hash:1
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_hash import *  # NOQA
+        >>> fpath = ut.grab_test_imgpath('patsy.jpg')
+        >>> #blocksize = 65536  # 2 ** 16
+        >>> blocksize = 2 ** 16
+        >>> hasher = None
+        >>> stride = 1
+        >>> hashbytes_20 = get_file_hash(fpath, blocksize, hasher, stride)
+        >>> result = repr(hashbytes_20)
+        >>> print(result)
+        '7\x07B\x0eX<sRu\xa2\x90P\xda\xb2\x84?\x81?\xa9\xd9'
+
+        '\x13\x9b\xf6\x0f\xa3QQ \xd7"$\xe9m\x05\x9e\x81\xf6\xf2v\xe4'
+
+        '\x16\x00\x80Xx\x8c-H\xcdP\xf6\x02\x9frl\xbf\x99VQ\xb5'
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_hash import *  # NOQA
+        >>> #fpath = ut.grab_file_url('http://en.wikipedia.org/wiki/List_of_comets_by_type')
+        >>> fpath = ut.unixjoin(ut.ensure_app_resource_dir('utool'), 'tmp.txt')
+        >>> ut.write_to(fpath, ut.lorium_ipsum())
+        >>> blocksize = 2 ** 3
+        >>> hasher = None
+        >>> stride = 2
+        >>> hashbytes_20 = get_file_hash(fpath, blocksize, hasher, stride)
+        >>> result = repr(hashbytes_20)
+        >>> print(result)
+        '5KP\xcf>R\xf6\xffO:L\xac\x9c\xd3V+\x0e\xf6\xe1n'
+
+    Ignore:
+        file_ = open(fpath, 'rb')
     """
     if hasher is None:
         hasher = hashlib.sha1()
@@ -172,18 +222,20 @@ def get_file_hash(fpath, blocksize=65536, hasher=None):
         buf = file_.read(blocksize)
         while len(buf) > 0:
             hasher.update(buf)
+            if stride > 1:
+                file_.seek(blocksize * (stride - 1), 1)  # skip blocks
             buf = file_.read(blocksize)
         return hasher.digest()
 
 
-def get_file_uuid(fpath, hasher=None):
+def get_file_uuid(fpath, hasher=None, stride=1):
     """ Creates a uuid from the hash of a file
     """
     if hasher is None:
         hasher = hashlib.sha1()  # 20 bytes of output
         #hasher = hashlib.sha256()  # 32 bytes of output
     # sha1 produces a 20 byte hash
-    hashbytes_20 = get_file_hash(fpath, hasher=hasher)
+    hashbytes_20 = get_file_hash(fpath, hasher=hasher, stride=stride)
     # sha1 produces 20 bytes, but UUID requires 16 bytes
     hashbytes_16 = hashbytes_20[0:16]
     uuid_ = uuid.UUID(bytes=hashbytes_16)
