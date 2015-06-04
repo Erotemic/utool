@@ -582,8 +582,8 @@ def func_str(func, args=[], kwargs={}, type_aliases=[], packed=False,
     return func_str
 
 
-def array_repr2(arr, max_line_width=None, precision=None, suppress_small=None, force_dtype=False):
-    """ extended version of numpy.array_repr
+def array_repr2(arr, max_line_width=None, precision=None, suppress_small=None, force_dtype=False, **kwargs):
+    """ extended version of np.core.arrayprint.array_repr
 
     ut.editfile(np.core.numeric.__file__)
 
@@ -619,7 +619,8 @@ def array_repr2(arr, max_line_width=None, precision=None, suppress_small=None, f
     prefix = cName + '('
 
     if arr.size > 0 or arr.shape == (0,):
-        lst = np.array2string(arr, max_line_width, precision, suppress_small, ', ', prefix)
+        separator = ', '
+        lst = array2string2(arr, max_line_width, precision, suppress_small, separator, prefix, **kwargs)
     else:
         # show zero-length shape unless it is (0,)
         lst = '[], shape=%s' % (repr(arr.shape),)
@@ -644,15 +645,155 @@ def array_repr2(arr, max_line_width=None, precision=None, suppress_small=None, f
         return cName + '(%s, %sdtype=%s)' % (lst, lf, typename)
 
 
-def numpy_str(arr, strvals=False, precision=8, pr=None, force_dtype=True):
+def array2string2(a, max_line_width=None, precision=None, suppress_small=None,
+                  separator=' ', prefix="", style=repr, formatter=None, threshold=None):
+    """
+    expanded version of np.core.arrayprint.array2string
+    """
+
+    if a.shape == ():
+        x = a.item()
+        try:
+            lst = a._format(x)
+            msg = "The `_format` attribute is deprecated in Numpy " \
+                  "2.0 and will be removed in 2.1. Use the " \
+                  "`formatter` kw instead."
+            import warnings
+            warnings.warn(msg, DeprecationWarning)
+        except AttributeError:
+            if isinstance(x, tuple):
+                x = np.core.arrayprint._convert_arrays(x)
+            lst = style(x)
+    elif reduce(np.core.arrayprint.product, a.shape) == 0:
+        # treat as a null array if any of shape elements == 0
+        lst = "[]"
+    else:
+        lst = _array2string2(a, max_line_width, precision, suppress_small,
+                             separator, prefix, formatter=formatter, threshold=threshold)
+    return lst
+
+
+def _array2string2(a, max_line_width, precision, suppress_small, separator=' ',
+                   prefix="", formatter=None, threshold=None):
+    """
+    expanded version of np.core.arrayprint._array2string
+    TODO: make a numpy pull request with a fixed version
+
+    """
+
+    if max_line_width is None:
+        max_line_width = np.core.arrayprint._line_width
+
+    if precision is None:
+        precision = np.core.arrayprint._float_output_precision
+
+    if suppress_small is None:
+        suppress_small = np.core.arrayprint._float_output_suppress_small
+
+    if formatter is None:
+        formatter = np.core.arrayprint._formatter
+
+    if threshold is None:
+        threshold = np.core.arrayprint._summaryThreshold
+
+    if threshold is not None and threshold > 0 and a.size > threshold:
+        summary_insert = "..., "
+        data = np.core.arrayprint._leading_trailing(a)
+    else:
+        summary_insert = ""
+        data = np.core.arrayprint.ravel(a)
+
+    formatdict = {'bool' : np.core.arrayprint._boolFormatter,
+                  'int' : np.core.arrayprint.IntegerFormat(data),
+                  'float' : np.core.arrayprint.FloatFormat(data, precision, suppress_small),
+                  'longfloat' : np.core.arrayprint.LongFloatFormat(precision),
+                  'complexfloat' : np.core.arrayprint.ComplexFormat(data, precision, suppress_small),
+                  'longcomplexfloat' : np.core.arrayprint.LongComplexFormat(precision),
+                  'datetime' : np.core.arrayprint.DatetimeFormat(data),
+                  'timedelta' : np.core.arrayprint.TimedeltaFormat(data),
+                  'numpystr' : np.core.arrayprint.repr_format,
+                  'str' : str}
+
+    if formatter is not None:
+        fkeys = [k for k in formatter.keys() if formatter[k] is not None]
+        if 'all' in fkeys:
+            for key in formatdict.keys():
+                formatdict[key] = formatter['all']
+        if 'int_kind' in fkeys:
+            for key in ['int']:
+                formatdict[key] = formatter['int_kind']
+        if 'float_kind' in fkeys:
+            for key in ['float', 'longfloat']:
+                formatdict[key] = formatter['float_kind']
+        if 'complex_kind' in fkeys:
+            for key in ['complexfloat', 'longcomplexfloat']:
+                formatdict[key] = formatter['complex_kind']
+        if 'str_kind' in fkeys:
+            for key in ['numpystr', 'str']:
+                formatdict[key] = formatter['str_kind']
+        for key in formatdict.keys():
+            if key in fkeys:
+                formatdict[key] = formatter[key]
+
+    try:
+        format_function = a._format
+        msg = "The `_format` attribute is deprecated in Numpy 2.0 and " \
+              "will be removed in 2.1. Use the `formatter` kw instead."
+        import warnings
+        warnings.warn(msg, DeprecationWarning)
+    except AttributeError:
+        # find the right formatting function for the array
+        dtypeobj = a.dtype.type
+        if issubclass(dtypeobj, np.core.arrayprint._nt.bool_):
+            format_function = formatdict['bool']
+        elif issubclass(dtypeobj, np.core.arrayprint._nt.integer):
+            if issubclass(dtypeobj, np.core.arrayprint._nt.timedelta64):
+                format_function = formatdict['timedelta']
+            else:
+                format_function = formatdict['int']
+        elif issubclass(dtypeobj, np.core.arrayprint._nt.floating):
+            if issubclass(dtypeobj, np.core.arrayprint._nt.longfloat):
+                format_function = formatdict['longfloat']
+            else:
+                format_function = formatdict['float']
+        elif issubclass(dtypeobj, np.core.arrayprint._nt.complexfloating):
+            if issubclass(dtypeobj, np.core.arrayprint._nt.clongfloat):
+                format_function = formatdict['longcomplexfloat']
+            else:
+                format_function = formatdict['complexfloat']
+        elif issubclass(dtypeobj, (np.core.arrayprint._nt.unicode_, np.core.arrayprint._nt.string_)):
+            format_function = formatdict['numpystr']
+        elif issubclass(dtypeobj, np.core.arrayprint._nt.datetime64):
+            format_function = formatdict['datetime']
+        else:
+            format_function = formatdict['numpystr']
+
+    # skip over "["
+    next_line_prefix = " "
+    # skip over array(
+    next_line_prefix += " " * len(prefix)
+
+    lst = np.core.arrayprint._formatArray(a, format_function, len(a.shape), max_line_width,
+                                          next_line_prefix, separator,
+                                          np.core.arrayprint._summaryEdgeItems, summary_insert)[:-1]
+    return lst
+
+
+def numpy_str(arr, strvals=False, precision=8, pr=None, force_dtype=True, suppress_small=None, **kwargs):
+    """
+    suppress_small = False turns off scientific representation
+    """
+    if 'suppress' in kwargs:
+        suppress_small = kwargs['suppress']
+
     if pr is not None:
         precision = pr
     # TODO: make this a util_str func for numpy reprs
     if strvals:
-        valstr = np.array_str(arr, precision=precision)
+        valstr = np.array_str(arr, precision=precision, suppress_small=suppress_small, **kwargs)
     else:
         #valstr = np.array_repr(arr, precision=precision)
-        valstr = array_repr2(arr, precision=precision, force_dtype=force_dtype)
+        valstr = array_repr2(arr, precision=precision, force_dtype=force_dtype, suppress_small=suppress_small, **kwargs)
         numpy_vals = itertools.chain(util_type.NUMPY_SCALAR_NAMES, ['array'])
         for npval in numpy_vals:
             valstr = valstr.replace(npval, 'np.' + npval)

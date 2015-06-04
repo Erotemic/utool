@@ -103,6 +103,8 @@ def get_dev_hints():
         ('invVR_mats', ('ndarray[float32_t, ndim=3]', 'keypoint shape and rotations (possibly translation)')),
         ('img\d*', ('ndarray[uint8_t, ndim=2]', 'image data')),
         ('img_in', ('ndarray[uint8_t, ndim=2]', 'image data')),
+        ('arr', ('ndarray', '')),
+        ('arr_', ('ndarray', '')),
         ('imgBGR', ('ndarray[uint8_t, ndim=2]', 'image data in opencv format (blue, green, red)')),
         ('pnum', ('tuple', 'plot number')),
         ('fnum', ('int', 'figure number')),

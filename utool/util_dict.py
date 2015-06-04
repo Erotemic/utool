@@ -298,7 +298,7 @@ def build_conflict_dict(key_list, val_list):
     return key_to_vals
 
 
-def updateif_haskey(dict1, dict2):
+def update_existing(dict1, dict2, copy=False):
     r"""
     updates vals in dict1 using vals from dict2 only if the
     key is already in dict1.
@@ -308,7 +308,7 @@ def updateif_haskey(dict1, dict2):
         dict2 (dict):
 
     CommandLine:
-        python -m utool.util_dict --test-updateif_haskey
+        python -m utool.util_dict --test-update_existing
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -317,17 +317,23 @@ def updateif_haskey(dict1, dict2):
         >>> dict1 = {'a': 1, 'b': 2, 'c': 3}
         >>> dict2 = {'a': 2, 'd': 3}
         >>> # execute function
-        >>> result = updateif_haskey(dict1, dict2)
+        >>> result = update_existing(dict1, dict2)
         >>> assert 'd' not in dict1
         >>> assert dict1['a'] == 2
         >>> assert result is dict1
         >>> # verify results
         >>> print(result)
     """
+    if copy:
+        dict1 = dict(dict1)
     for key, val in six.iteritems(dict2):
         if key in dict1:
             dict1[key] = val
     return dict1
+
+
+# backwards compatibility
+updateif_haskey = update_existing
 
 
 def dict_update_newkeys(dict_, dict2):
