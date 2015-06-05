@@ -536,9 +536,9 @@ def shelf_open(fpath):
         python -m utool.util_cache --test-shelf_open
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # UNSTABLE_DOCTEST
         >>> import utool as ut
-        >>> fpath = ut.ensure_app_resource_dir('utool', 'test.shelf')
+        >>> fpath = ut.unixjoin(ut.ensure_app_resource_dir('utool') 'testshelf.shelf')
         >>> with ut.shelf_open(fpath) as dict_:
         ...     print(ut.dict_str(dict_))
     """
@@ -733,7 +733,7 @@ def get_lru_cache(max_size=5):
         python -m utool.util_cache --test-get_lru_cache
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # UNSTABLE_DOCTEST
         >>> from utool.util_cache import *  # NOQA
         >>> import utool as ut  # NOQA
         >>> # build test data
