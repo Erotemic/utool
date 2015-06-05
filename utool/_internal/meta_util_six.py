@@ -28,6 +28,9 @@ if six.PY2:
     #
     def get_imfunc(func):
         return getattr(func, 'im_func')
+
+    def get_funccode(func):
+        return getattr(func, 'func_code')
     IntType  = types.IntType
     LongType = types.LongType
     BooleanType = types.BooleanType
@@ -52,5 +55,8 @@ elif six.PY3:
     #
     def get_imfunc(func):
         return getattr(func, '__func__')
+
+    def get_funccode(func):
+        return getattr(func, '__code__')
 else:
     raise AssertionError('python4 ?!!')

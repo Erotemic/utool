@@ -80,7 +80,7 @@ def path_ndir_split(path_, n, force_unix=True, winroot='C:'):
         >>> N = 2
         >>> iter_ = ut.iprod(paths, range(1, N + 1))
         >>> force_unix = True
-        >>> tuplist = [(n, ut.path_ndir_split(path_, n)) for path_, n in iter_]
+        >>> tuplist = [(n, path_ndir_split(path_, n)) for path_, n in iter_]
         >>> chunklist = list(ut.ichunks(tuplist, N))
         >>> list_ = [['n=%r: %r' % tup for tup in chunk] for chunk in chunklist]
         >>> line_list = [', '.join(strs) for strs in list_]

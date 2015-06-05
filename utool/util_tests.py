@@ -465,9 +465,10 @@ def doctest_module_list(module_list):
             # Write failed tests to disk
             for cmd in failed_list:
                 file_.write(cmd + '\n')
+        nPass = sum(nPass_list)
+        nTotal = sum(nTotal_list)
+        file_.write('PASSED %d / %d' % (nPass, nTotal))
 
-    nPass = sum(nPass_list)
-    nTotal = sum(nTotal_list)
     failed_cmd_list = ut.flatten(failed_cmds_list)
     print('')
     print('+========')
@@ -677,16 +678,25 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         flag4 = prefix + name.replace('_', '-')
         valid_flags = (flag1, flag2, flag3, flag4)
         if VERBOSE_TEST:
-            print(' checking sys.argv for %r' % (valid_flags,))
+            print(' checking sys.argv for:\n %s' % (ut.list_str(valid_flags),))
         testflag = ut.get_argflag(valid_flags)
+        #if VERBOSE_TEST:
+        #    print('... testflag=%r' % (testflag,))
         testenabled = TEST_ALL_EXAMPLES  or not check_flags or testflag
+        #if VERBOSE_TEST:
+        #    print('... testenabled=%r' % (testenabled,))
+        #    #print('... subx=%r' % (subx,))
         if subx is not None and subx != num:
             continue
         all_testflags.append(flag3)
         if testenabled:
+            if VERBOSE_TEST:
+                print('... enabling test')
             new_testtup = (name, num, src, want, flag1)
             enabled_testtup_list.append(new_testtup)
         else:
+            if VERBOSE_TEST:
+                print('... disableing test')
             distabled_testflags.append(flag1)
     if VERBOSE_TEST:
         indenter.stop()
@@ -756,7 +766,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
         print('--------------------------------------------------------------')
         print('--------------------------------------------------------------')
         print(' ---- DOCTEST ' + name.upper() + ':' + str(num) + '---')
-        if PRINT_SRC:
+        if PRINT_SRC or VERBOSE_TEST:
             print(ut.msgblock('EXEC SRC', src))
         test_globals = module.__dict__.copy()
         try:
@@ -765,14 +775,23 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
             test_locals = ut.run_test((name,  src, frame_fpath), **testkw)
             is_pass = (test_locals is not False)
             if is_pass:
+                if VERBOSE_TEST:
+                    print('seems to pass')
                 nPass += 1
             else:
+                if VERBOSE_TEST:
+                    print('raising failed exception')
                 raise Exception('failed')
         except Exception:
+            if VERBOSE_TEST:
+                print('Seems to fail. ')
             nFail += 1
             failed_flag_list.append(flag)
             if strict or util_arg.SUPER_STRICT:
                 raise
+            else:
+                if VERBOSE_TEST:
+                    print('Silently Failing: maybe adding the --super-strict flag would help debug?')
             pass
     #L__________________
     #+-------------------
@@ -790,7 +809,9 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     if nFail > 0:
         #modname = module.__name__
         modname = ut.get_modname_from_modpath(frame_fpath)
-        failed_cmd_list = ['python -m %s %s' % (modname, flag_)
+        # TODO: ensure that exename is in the PATH
+        exename = basename(sys.executable)
+        failed_cmd_list = ['%s -m %s %s' % (exename, modname, flag_)
                             for flag_ in failed_flag_list]
         #failed_cmd_list = ['python %s %s' % (frame_fpath, flag_)
         #                    for flag_ in failed_flag_list]
@@ -811,7 +832,7 @@ def run_test(func_or_doctesttup, *args, **kwargs):
         Anything that needs to be passed to <func_>
     """
     import utool as ut
-    func_is_text = isinstance(func_or_doctesttup, types.TupleType)
+    func_is_text = isinstance(func_or_doctesttup, tuple)
     if func_is_text:
         (funcname, src, frame_fpath) = func_or_doctesttup
     else:

@@ -507,7 +507,8 @@ def cmd(*args, **kwargs):
                     print('[ut.cmd] RUNNING WITH VERBOSE OUTPUT')
                 logged_out = []
                 for line in _run_process(proc):
-                    line_ = line if six.PY2 else line.decode('utf-8')
+                    #line_ = line if six.PY2 else line.decode('utf-8')
+                    line_ = line if six.PY2 else line
                     if len(line_) > 0:
                         if not silence:
                             sys.stdout.write(line_)

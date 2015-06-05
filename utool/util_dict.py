@@ -90,14 +90,17 @@ def dict_stack(dict_list, key_prefix=''):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> # build test data
         >>> dict1_ = {'a': 1, 'b': 2}
         >>> dict2_ = {'a': 2, 'b': 3, 'c': 4}
         >>> # execute function
         >>> dict_stacked = dict_stack([dict1_, dict2_])
         >>> # verify results
-        >>> result = str(dict_stacked)
+        >>> result = ut.dict_str(dict_stacked, sorted_=True, newlines=False)
         >>> print(result)
+        {'a': [1, 2], 'b': [2, 3], 'c': [4],}
+
         {'a': [1, 2], 'c': [4], 'b': [2, 3]}
 
     """
@@ -186,6 +189,15 @@ def all_dict_combinations(varied_dict):
         >>> result = str(ut.list_str(dict_list))
         >>> print(result)
         [
+            {'logdist_weight': 0.0, 'pipeline_root': 'vsmany', 'sv_on': True,},
+            {'logdist_weight': 0.0, 'pipeline_root': 'vsmany', 'sv_on': False,},
+            {'logdist_weight': 0.0, 'pipeline_root': 'vsmany', 'sv_on': None,},
+            {'logdist_weight': 1.0, 'pipeline_root': 'vsmany', 'sv_on': True,},
+            {'logdist_weight': 1.0, 'pipeline_root': 'vsmany', 'sv_on': False,},
+            {'logdist_weight': 1.0, 'pipeline_root': 'vsmany', 'sv_on': None,},
+        ]
+
+        [
             {'pipeline_root': 'vsmany', 'sv_on': True, 'logdist_weight': 0.0,},
             {'pipeline_root': 'vsmany', 'sv_on': True, 'logdist_weight': 1.0,},
             {'pipeline_root': 'vsmany', 'sv_on': False, 'logdist_weight': 0.0,},
@@ -200,8 +212,14 @@ def all_dict_combinations(varied_dict):
 
         print(ut.hz_str('\n'.join(list(x)), '\n'.join(list(y))))
     """
-    tups_list = [[(key, val) for val in val_list] if isinstance(val_list, (list, tuple)) else [(key, val_list)]
-                 for (key, val_list) in six.iteritems(varied_dict)]
+    #tups_list = [[(key, val) for val in val_list]
+    #             if isinstance(val_list, (list, tuple))
+    #             else [(key, val_list)]
+    #             for (key, val_list) in six.iteritems(varied_dict)]
+    tups_list = [[(key, val) for val in val_list]
+                 if isinstance(val_list, (list, tuple))
+                 else [(key, val_list)]
+                 for (key, val_list) in iteritems_sorted(varied_dict)]
     dict_list = [dict(tups) for tups in iprod(*tups_list)]
     #dict_list = [{key: val for (key, val) in tups} for tups in iprod(*tups_list)]
     #from collections import OrderedDict
@@ -225,6 +243,15 @@ def all_dict_combinations_lbls(varied_dict):
         >>> result = (utool.list_str(comb_lbls))
         >>> print(result)
         [
+            "(('logdist_weight', 0.0), ('sv_on', True))",
+            "(('logdist_weight', 0.0), ('sv_on', False))",
+            "(('logdist_weight', 0.0), ('sv_on', None))",
+            "(('logdist_weight', 1.0), ('sv_on', True))",
+            "(('logdist_weight', 1.0), ('sv_on', False))",
+            "(('logdist_weight', 1.0), ('sv_on', None))",
+        ]
+
+        [
             "(('sv_on', True), ('logdist_weight', 0.0))",
             "(('sv_on', True), ('logdist_weight', 1.0))",
             "(('sv_on', False), ('logdist_weight', 0.0))",
@@ -235,11 +262,19 @@ def all_dict_combinations_lbls(varied_dict):
 
     #ut.list_type_profile(comb_lbls)
     """
+    # TODO dont do sorted if it an ordered dict
     multitups_list = [[(key, val) for val in val_list]
-                      for key, val_list in six.iteritems(varied_dict)
+                      for key, val_list in iteritems_sorted(varied_dict)
                       if isinstance(val_list, (list, tuple)) and len(val_list) > 1]
     comb_lbls = list(map(str, list(iprod(*multitups_list))))
     return comb_lbls
+
+
+def iteritems_sorted(dict_):
+    if isinstance(dict_, OrderedDict):
+        return six.iteritems(dict_)
+    else:
+        return iter(sorted(six.iteritems(dict_)))
 
 
 def dict_union2(dict1, dict2):
@@ -381,11 +416,13 @@ def dict_subset(dict_, keys):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> dict_ = {'K': 3, 'dcvs_clip_max': 0.2, 'p': 0.1}
         >>> keys = ['K', 'dcvs_clip_max']
-        >>> result = dict_subset(dict_, keys)
+        >>> subdict_ = dict_subset(dict_, keys)
+        >>> result = ut.dict_str(subdict_, sorted_=True, newlines=False)
         >>> print(result)
-        {'K': 3, 'dcvs_clip_max': 0.2}
+        {'K': 3, 'dcvs_clip_max': 0.2,}
     """
     subdict_ = {key: dict_[key] for key in keys}
     return subdict_
@@ -769,12 +806,13 @@ def merge_dicts(*args):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> x = {'a': 1, 'b': 2}
         >>> y = {'b': 3, 'c': 4}
         >>> mergedict_ = merge_dicts(x, y)
-        >>> result = str(mergedict_)
+        >>> result = ut.dict_str(mergedict_, sorted_=True, newlines=False)
         >>> print(result)
-        {'a': 1, 'c': 4, 'b': 3}
+        {'a': 1, 'b': 3, 'c': 4,}
 
     """
     iter_ = iter(args)

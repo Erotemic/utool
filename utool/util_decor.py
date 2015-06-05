@@ -715,7 +715,7 @@ def preserve_sig(wrapper, orig_func, force=False):
     orig_docstr = ut.get_funcdoc(orig_func)
     orig_docstr = '' if orig_docstr is None else orig_docstr
     orig_argspec = ut.get_func_argspec(orig_func)
-    wrap_name = wrapper.func_code.co_name
+    wrap_name = meta_util_six.get_funccode(wrapper).co_name
     orig_name = ut.get_funcname(orig_func)
 
     # At the very least preserve info in a dictionary

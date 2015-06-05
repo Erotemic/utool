@@ -8,7 +8,7 @@ except ImportError:
     HAS_NUMPY = False
 import six
 import itertools
-from six.moves import zip, map, zip_longest, range, filter
+from six.moves import zip, map, zip_longest, range, filter, reduce
 from utool import util_iter
 from utool import util_inject
 from utool.util_str import get_callable_name
@@ -477,11 +477,10 @@ def unflatten2(flat_list, cumlen_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
-        >>> import numpy as np
         >>> import utool
         >>> utool.util_list
         >>> flat_list = [5, 2, 3, 12, 3, 3, 9, 13, 3, 5]
-        >>> cumlen_list = np.array([ 1,  6,  7,  9, 10])
+        >>> cumlen_list = [ 1,  6,  7,  9, 10]
         >>> unflat_list2 = unflatten2(flat_list, cumlen_list)
         >>> result = (unflat_list2)
         >>> print(result)

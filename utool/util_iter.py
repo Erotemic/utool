@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 #except ImportError as ex:
 #    pass
 import six
-from six.moves import zip, range, zip_longest
+from six.moves import zip, range, zip_longest, reduce
 from itertools import chain, cycle, islice
 from utool import util_inject
 from utool._internal import meta_util_iter

@@ -46,10 +46,12 @@ if HAS_NUMPY:
 
     VALID_BOOL_TYPES = (BooleanType, np.bool_)
     NP_NDARRAY = np.ndarray
+    LISTLIKE_TYPES = (tuple, list, NP_NDARRAY)
 else:
     VALID_INT_TYPES = (IntType, LongType,)
     VALID_FLOAT_TYPES = (FloatType,)
     VALID_BOOL_TYPES = (BooleanType,)
+    LISTLIKE_TYPES = (tuple, list)
     NP_NDARRAY = None
 
 
@@ -162,16 +164,20 @@ def assert_int(var, lbl='var'):
         print('[tools] VALID_INT_TYPES: %r' % VALID_INT_TYPES)
         raise
 
-if sys.platform == 'win32':
-    # Well this is a weird system specific error
-    # https://github.com/numpy/numpy/issues/3667
-    def get_type(var):
-        """Gets types accounting for numpy"""
-        return var.dtype if isinstance(var, NP_NDARRAY) else type(var)
+if HAS_NUMPY:
+    if sys.platform == 'win32':
+        # Well this is a weird system specific error
+        # https://github.com/numpy/numpy/issues/3667
+        def get_type(var):
+            """Gets types accounting for numpy"""
+            return var.dtype if isinstance(var, NP_NDARRAY) else type(var)
+    else:
+        def get_type(var):
+            """Gets types accounting for numpy"""
+            return var.dtype.type if isinstance(var, NP_NDARRAY) else type(var)
 else:
     def get_type(var):
-        """Gets types accounting for numpy"""
-        return var.dtype.type if isinstance(var, NP_NDARRAY) else type(var)
+        return type(var)
 
 
 def is_type(var, valid_types):
@@ -266,7 +272,7 @@ def is_list(var):
 
 
 def is_listlike(var):
-    return isinstance(var, (list, tuple, NP_NDARRAY))
+    return isinstance(var, LISTLIKE_TYPES)
 
 
 def is_tuple(var):

@@ -21,6 +21,11 @@ from utool import util_cplat
 from utool import util_inspect
 from utool import util_list
 from utool._internal import meta_util_constants
+try:
+    import numpy as np
+    HAVE_NUMPY = True
+except ImportError:
+    HAVE_NUMPY = False
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[cache]')
 
 
@@ -303,11 +308,10 @@ def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults, arg
     def any_repr(val):
         """ hopefully json will be able to compute a string representation """
         import json
-        import numpy as np
 
         class NumPyArangeEncoder(json.JSONEncoder):
             def default(self, obj):
-                if isinstance(obj, np.ndarray):
+                if HAVE_NUMPY and isinstance(obj, np.ndarray):
                     return obj.tolist()  # or map(int, obj)
                 return json.JSONEncoder.default(self, obj)
 

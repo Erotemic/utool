@@ -29,20 +29,27 @@ QUIET        = meta_util_arg.QUIET
 
 
 #(switch, type, default, help)
+# TODO: make a static help file available via printing
 __REGISTERED_ARGS__ = []
 
 
 @profile
 def get_argflag(argstr_, default=False, help_='', return_was_specified=False, **kwargs):
-    """ Checks if the commandline has a flag or a corresponding noflag """
+    """
+    Checks if the commandline has a flag or a corresponding noflag
+    """
     global __REGISTERED_ARGS__
     assert isinstance(default, bool), 'default must be boolean'
     argstr_list = meta_util_iter.ensure_iterable(argstr_)
+    #if VERYVERBOSE:
+    #    print('[util_arg] checking argstr_list=%r' % (argstr_list,))
     # arg registration
     __REGISTERED_ARGS__.append((argstr_list, bool, default, help_))
     parsed_val = default
     was_specified = False
     for argstr in argstr_list:
+        #if VERYVERBOSE:
+        #    print('[util_arg]   * checking argstr=%r' % (argstr,))
         if not (argstr.find('--') == 0 or (argstr.find('-') == 0 and len(argstr) == 2)):
             raise AssertionError('Invalid argstr: %r' % (argstr,))
         #if argstr.find('--no') == 0:
@@ -51,10 +58,14 @@ def get_argflag(argstr_, default=False, help_='', return_was_specified=False, **
         if argstr in sys.argv:
             parsed_val = True
             was_specified = True
+            #if VERYVERBOSE:
+            #    print('[util_arg]   * ...WAS_SPECIFIED. AND PARSED')
             break
         elif noarg in sys.argv:
             parsed_val = False
             was_specified = True
+            #if VERYVERBOSE:
+            #    print('[util_arg]   * ...WAS_SPECIFIED. AND NOT PARSED')
             break
     if return_was_specified:
         return parsed_val, was_specified
@@ -157,11 +168,14 @@ def parse_cfgstr_list(cfgstr_list, smartcast=True):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_arg import *  # NOQA
+        >>> import utool as ut
         >>> cfgstr_list = ['var1:val1', 'var2:1', 'var3:1.0', 'var4:None']
         >>> smartcast = True
         >>> cfgdict = parse_cfgstr_list(cfgstr_list, smartcast)
-        >>> result = str(cfgdict)
+        >>> result = ut.dict_str(cfgdict, sorted_=True, newlines=False)
         >>> print(result)
+        {'var1': 'val1', 'var2': 1, 'var3': 1.0, 'var4': None,}
+
         {'var4': None, 'var1': 'val1', 'var3': 1.0, 'var2': 1}
     """
     cfgdict = {}
@@ -205,6 +219,19 @@ def get_arg_dict(argv=None):
         >>> result = ut.dict_str(arg_dict)
         >>> # verify results
         >>> print(result)
+        {
+            'caption': 'Shadowed',
+            'db': 'testdb3',
+            'dpath': 'figures',
+            'figsize': '11,3',
+            'name': 'IBEIS_PZ_0303',
+            'no-figtitle': True,
+            'notitle': True,
+            'save': '~/latex/crall-candidacy-2015/figures/IBEIS_PZ_0303.jpg',
+            'test-show_name': True,
+        }
+
+
         {
             'name': 'IBEIS_PZ_0303',
             'test-show_name': True,

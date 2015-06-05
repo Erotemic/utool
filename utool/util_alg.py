@@ -336,6 +336,8 @@ def group_items(item_list, groupid_list):
         >>> groupid2_items = ut.group_items(item_list, groupid_list)
         >>> result = ut.dict_str(groupid2_items, newlines=False, strvals=False)
         >>> print(result)
+        {'dairy': ['cheese'], 'fruit': ['bannana', 'jam'], 'protein': ['eggs', 'ham', 'spam'],}
+
         {'protein': ['eggs', 'ham', 'spam'], 'fruit': ['bannana', 'jam'], 'dairy': ['cheese'],}
     """
     # Sort by groupid for cache efficiency

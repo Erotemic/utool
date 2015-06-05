@@ -666,8 +666,12 @@ def get_func_sourcecode(func, stripdef=False, stripret=False):
         #else:
         func2 = func._utinfo['orig_func']
         sourcecode = get_func_sourcecode(func2)
-    elif sourcefile is not None:
-        sourcecode = inspect.getsource(func)
+    elif sourcefile is not None and sourcefile != '<string>':
+        try:
+            sourcecode = inspect.getsource(func)
+        except OSError as ex:
+            ut.printex(ex, 'Error getting source', keys=['sourcefile'])
+            raise
     else:
         sourcecode = None
     #orig_source = sourcecode

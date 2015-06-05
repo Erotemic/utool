@@ -1022,7 +1022,7 @@ def get_varname_from_locals(val, locals_, default='varname-not-found',
         for count, val_ in enumerate(six.itervalues(locals_)):
             if cmpfunc_(val, val_):
                 index_ = count
-        varname = str(locals_.keys()[index_])
+        varname = str(list(locals_.keys())[index_])
     except NameError:
         varname = default
         if strict:

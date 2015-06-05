@@ -9,6 +9,7 @@ import textwrap
 from six.moves import map, range
 import itertools
 import math
+import collections
 from os.path import split
 from utool import util_type
 from utool import util_inject
@@ -389,10 +390,9 @@ def seconds_str(num, prefix=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> import utool
-        >>> utool.util_str.rrr()
+        >>> import utool as ut
         >>> num_list = sorted([4.2 / (10.0 ** exp_) for exp_ in range(-13, 13, 4)])
-        >>> secstr_list = [utool.util_str.seconds_str(num, prefix=None) for num in num_list]
+        >>> secstr_list = [seconds_str(num, prefix=None) for num in num_list]
         >>> result = (', '.join(secstr_list))
         >>> print(result)
         0.04 ns, 0.42 us, 4.20 ms, 0.04 ks, 0.42 Ms, 4.20 Gs, 42.00 Ts
@@ -850,7 +850,7 @@ def numeric_str(num, precision=8, **kwargs):
         return numpy_str(num, precision=precision, **kwargs)
 
 
-def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True,
+def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
                       recursive=True, indent_='', precision=8,
                       hack_liststr=False):
     """
@@ -903,8 +903,16 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=False, newlines=True,
     #        return six.iteritems(x)
     #    except AttributeError:
     #        return iter(x.items())
+    if sorted_ is None:
+        sorted_ = not isinstance(dict_, collections.OrderedDict)
     if sorted_:
-        iteritems = lambda iter_: iter(sorted(six.iteritems(iter_)))
+        def iteritems(d):
+            try:
+                return iter(sorted(six.iteritems(d)))
+            except TypeError:
+                # catches case where keys are of different types
+                return six.iteritems(d)
+        #iteritems = lambda d: iter(sorted(six.iteritems(d)))
 
     _valstr = recursive_valfunc if recursive else valfunc
     OLD = False
@@ -954,9 +962,12 @@ def get_itemstr_list(list_, strvals=False, newlines=True,
         new_indent = indent_ + '    ' if newlines else indent_
         if isinstance(val, dict):
             # recursive call
+            #return dict_str(val, strvals=strvals, newlines=newlines,
+            #                recursive=recursive, indent_=new_indent,
+            #                precision=precision)
             return dict_str(val, strvals=strvals, newlines=newlines,
                             recursive=recursive, indent_=new_indent,
-                            precision=precision)
+                            precision=precision, sorted_=True)
         if isinstance(val, (tuple, list)):
             return list_str(val, strvals=strvals, newlines=newlines,
                             recursive=recursive, indent_=new_indent,
@@ -1021,7 +1032,7 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, *args, **kwargs):
         return (leftbrace + sequence_str +  rightbrace)
 
 
-def dict_str(dict_, strvals=False, sorted_=False, newlines=True, recursive=True,
+def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
              indent_='', precision=8, hack_liststr=False, truncate=False):
     """
     FIXME: ALL LIST DICT STRINGS ARE VERY SPAGEHETTI RIGHT NOW
