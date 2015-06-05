@@ -852,10 +852,13 @@ def numeric_str(num, precision=8, **kwargs):
 
 def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
                       recursive=True, indent_='', precision=8,
-                      hack_liststr=False):
+                      hack_liststr=False, explicit=False):
     """
     Returns:
         list: a list of human-readable dictionary items
+
+    Args:
+        explicit : if True uses dict(key=val,...) format instead of {key:val,...}
 
     Example:
         >>> from utool.util_str import dict_str, dict_itemstr_list
@@ -917,11 +920,15 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
     _valstr = recursive_valfunc if recursive else valfunc
     OLD = False
     if OLD:
-        fmtstr = indent_ + '%r: %s,'
+        if explicit:
+            fmtstr = indent_ + '%r: %s,'
         itemstr_list = [fmtstr % (key, _valstr(val)) for (key, val) in iteritems(dict_)]
     else:
         def make_item_str(key, val, indent_):
-            repr_str = repr(key) + ': '
+            if explicit:
+                repr_str = key + '='
+            else:
+                repr_str = repr(key) + ': '
             val_str = _valstr(val)
             #print('2)-----------')
             #print(val_str)
@@ -1033,7 +1040,7 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, *args, **kwargs):
 
 
 def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
-             indent_='', precision=8, hack_liststr=False, truncate=False):
+             indent_='', precision=8, hack_liststr=False, truncate=False, nl=None, explicit=False):
     """
     FIXME: ALL LIST DICT STRINGS ARE VERY SPAGEHETTI RIGHT NOW
     Returns:
@@ -1046,13 +1053,21 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
         >>> repo_cfgstr   = dict_str(REPO_CONFIG, strvals=True)'
         >>> print(repo_cfgstr)
     """
+    if nl is not None:
+        newlines = nl
     if len(dict_) == 0:
-        return '{}'
+        if explicit:
+            return 'dict()'
+        else:
+            return '{}'
     itemstr_list = dict_itemstr_list(dict_, strvals, sorted_, newlines,
-                                     recursive, indent_, precision, hack_liststr)
+                                     recursive, indent_, precision, hack_liststr, explicit)
     if truncate:
         itemstr_list = [truncate_str(item) for item in itemstr_list]
-    leftbrace, rightbrace  = '{', '}'
+    if explicit:
+        leftbrace, rightbrace  = 'dict(', ')'
+    else:
+        leftbrace, rightbrace  = '{', '}'
     if newlines:
         import utool as ut
         body_str = '\n'.join([ut.indent(itemstr, '    ') for itemstr in itemstr_list])

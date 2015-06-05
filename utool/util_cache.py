@@ -42,25 +42,33 @@ def get_default_appname():
     return __APPNAME__
 
 
-def text_dict_write(fpath, key, val):
+def text_dict_read(fpath):
+    try:
+        with open(fpath, 'r') as file_:
+            dict_text = file_.read()
+    except IOError:
+        dict_text = '{}'
+    try:
+        dict_ = eval(dict_text, {}, {})
+    except SyntaxError as ex:
+        import utool as ut
+        print(dict_text)
+        ut.printex(ex, 'Bad Syntax', keys=['dict_text'])
+        dict_ = {}
+        if util_arg.SUPER_STRICT:
+            raise
+    return dict_
+
+
+#def text_dict_write(fpath, key, val):
+def text_dict_write(fpath, dict_):
     """
     Very naive, but readable way of storing a dictionary on disk
     FIXME: This broke on RoseMary's big dataset. Not sure why. It gave bad
     syntax. And the SyntaxError did not seem to be excepted.
     """
-    try:
-        dict_text = util_io.read_from(fpath)
-    except IOError:
-        dict_text = '{}'
-    try:
-        dict_ = eval(dict_text)
-    except SyntaxError:
-        print('Bad Syntax:')
-        print(dict_text)
-        dict_ = {}
-        if util_arg.SUPER_STRICT:
-            raise
-    dict_[key] = val
+    #dict_ = text_dict_read(fpath)
+    #dict_[key] = val
     dict_text2 = util_str.dict_str(dict_, strvals=False)
     if VERBOSE:
         print('[cache] ' + str(dict_text2))

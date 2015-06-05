@@ -411,7 +411,8 @@ def ensuredir(path_, verbose=VERYVERBOSE, info=False, mode=0o1777):
         except OSError as ex:
             util_dbg.printex(ex, 'check that the longest existing path is not a bad windows symlink.')
             raise
-    return True
+    return path_
+    #return True
 
 
 def assertpath(path_, **kwargs):
@@ -617,24 +618,30 @@ def win_shortcut(source, link_name):
         raise ctypes.WinError()
 
 
-def symlink(source, link_name, noraise=False):
+def symlink(path, link, noraise=False):
     """
     Attempt to create unix or windows symlink
     TODO: TEST / FIXME
+
+    Args:
+        path (str): path to real file or directory
+        link (str): path to desired location for symlink
+        noraise (bool):
+
     """
-    if os.path.islink(link_name):
-        print('[util_path] symlink %r exists' % (link_name))
+    if os.path.islink(link):
+        print('[util_path] symlink %r exists' % (link))
         return
-    print('[util_path] Creating symlink: source=%r link_name=%r' % (source, link_name))
+    print('[util_path] Creating symlink: path=%r link_name=%r' % (path, link))
     try:
         os_symlink = getattr(os, "symlink", None)
         if callable(os_symlink):
-            os_symlink(source, link_name)
+            os_symlink(path, link)
         else:
-            win_shortcut(source, link_name)
+            win_shortcut(path, link)
     except Exception:
-        checkpath(link_name, True)
-        checkpath(source, True)
+        checkpath(link, True)
+        checkpath(path, True)
         if not noraise:
             raise
 

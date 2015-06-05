@@ -240,7 +240,8 @@ class ProgressIter(object):
         self.report_unit        = kwargs.get('report_unit', 'seconds')
         self.autoadjust         = kwargs.get('autoadjust', True)  # autoadjust frequency of reporting
         self.time_thresh        = kwargs.pop('time_thresh', None)
-        self.time_thresh_growth = kwargs.pop('time_thresh_growth', 1.0)
+        #self.time_thresh_growth = kwargs.pop('time_thresh_growth', 1.0)
+        self.time_thresh_growth = kwargs.pop('time_thresh_growth', 1.618)
         self.with_totaltime = False
         if self.freq is None:
             self.freq = 1

@@ -1300,6 +1300,7 @@ class EmbedOnException(object):
 
 # maybe this will be easier to type?
 embed_on_exception_context = EmbedOnException()
+eoxc = embed_on_exception_context
 
 if __name__ == '__main__':
     """
