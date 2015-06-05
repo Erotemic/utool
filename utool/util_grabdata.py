@@ -5,7 +5,7 @@ import sys
 import zipfile
 import tarfile
 import gzip
-import urllib
+import urllib  # NOQA
 import functools
 import time
 from utool import util_path
@@ -156,7 +156,7 @@ def open_url_in_browser(url):
 
 
 def download_url(url, filename=None, spoof=False):
-    """ downloads a url to a filename.
+    r""" downloads a url to a filename.
 
     download_url
 
@@ -178,6 +178,8 @@ def download_url(url, filename=None, spoof=False):
         [utool] Finished downloading filename='ispack.exe'
         ispack.exe
     """
+    # Weird that we seem to need this here for tests
+    import urllib  # NOQA
     if filename is None:
         filename = basename(url)
     def reporthook_(num_blocks, block_nBytes, total_nBytes, start_time=0):
@@ -210,9 +212,11 @@ def download_url(url, filename=None, spoof=False):
         # no spoofing
         if six.PY2:
             urllib.urlretrieve(url, filename=filename, reporthook=reporthook)
-        else:
+        elif six.PY3:
             import urllib.request
             urllib.request.urlretrieve(url, filename=filename, reporthook=reporthook)
+        else:
+            assert False, 'unknown python'
     print('')
     print('[utool] Finished downloading filename=%r' % (filename,))
     return filename
@@ -363,8 +367,11 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
         >>> download_dir = None
         >>> delay = None
         >>> spoof = False
+        >>> verbose = True
+        >>> redownload = True
         >>> fname ='lena.png'
-        >>> lena_fpath = grab_file_url(file_url, ensure, appname, download_dir, delay, spoof, fname)
+        >>> lena_fpath = ut.grab_file_url(file_url, ensure, appname, download_dir,
+        ...     delay, spoof, fname, verbose, redownload)
         >>> result = basename(lena_fpath)
         >>> print(result)
         lena.png
