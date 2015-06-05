@@ -218,7 +218,7 @@ def execstr_dict(dict_, local_name=None, exclude_list=None):
         exclude_list.append(local_name)
         expr_list = []
         assert isinstance(dict_, dict), 'incorrect type type(dict_)=%r, dict_=%r' % (type(dict), dict_)
-        for (key, val) in dict_.items():
+        for (key, val) in sorted(dict_.items()):
             assert isinstance(key, str), 'keys must be strings'
             if not is_valid_varname(key):
                 continue

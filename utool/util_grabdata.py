@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 from os.path import dirname, split, join, splitext, exists, realpath, basename, commonprefix
+import six
 import sys
 import zipfile
 import tarfile
@@ -207,7 +208,11 @@ def download_url(url, filename=None, spoof=False):
         spoofing_opener.retrieve(url, filename=filename, reporthook=reporthook)
     else:
         # no spoofing
-        urllib.urlretrieve(url, filename=filename, reporthook=reporthook)
+        if six.PY2:
+            urllib.urlretrieve(url, filename=filename, reporthook=reporthook)
+        else:
+            import urllib.request
+            urllib.request.urlretrieve(url, filename=filename, reporthook=reporthook)
     print('')
     print('[utool] Finished downloading filename=%r' % (filename,))
     return filename
@@ -261,6 +266,25 @@ TESTIMG_URL_DICT = {
 def get_valid_test_imgkeys():
     """ returns valid keys for grab_test_imgpath """
     return list(TESTIMG_URL_DICT.keys())
+
+
+def clear_test_img_cache():
+    r"""
+    CommandLine:
+        python -m utool.util_grabdata --test-clear_test_img_cache
+
+    Example:
+        >>> # UNSTABLE_DOCTEST
+        >>> from utool.util_grabdata import *  # NOQA
+        >>> testimg_fpath = clear_test_img_cache()
+        >>> result = str(testimg_fpath)
+        >>> print(result)
+    """
+    import utool as ut
+    download_dir = util_cplat.get_app_resource_dir('utool')
+    for key in TESTIMG_URL_DICT:
+        fpath = join(download_dir, key)
+        ut.delete(fpath)
 
 
 def grab_test_imgpath(key, allow_external=True):
@@ -326,6 +350,7 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
 
     CommandLine:
         sh -c "python ~/code/utool/utool/util_grabdata.py --all-examples"
+        python -m utool.util_grabdata --test-grab_file_url
 
     Example:
         >>> # ENABLE_DOCTEST
