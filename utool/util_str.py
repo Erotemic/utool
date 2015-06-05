@@ -1009,10 +1009,10 @@ def list_str_summarized(list_, list_name, maxlen=5):
 
 def list_str(list_, indent_='', newlines=1, nobraces=False, *args, **kwargs):
     #return '[%s\n]' % indentjoin(list(list_), suffix=',')
-    if isinstance(newlines, int):
-        new_newlines = newlines - 1
-    elif newlines is True:
+    if newlines is True:
         new_newlines = newlines
+    elif isinstance(newlines, int):
+        new_newlines = newlines - 1
     else:
         new_newlines = False
 
