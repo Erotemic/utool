@@ -872,17 +872,18 @@ def run_test(func_or_doctesttup, *args, **kwargs):
                 #with open('test_times.txt', 'a') as file_:
                 #    file_.write(msg)
             except IOError as ex:
-                ut.printex(ex, '[util_test] IOWarning')
+                ut.printex(ex, '[util_test] IOWarning', iswarning=True)
             #L________________
             # RETURN VALID TEST LOCALS
             return test_locals
 
         except Exception as ex:
             import utool as ut
-            exc_type, exc_value, tb = sys.exc_info()
             # Get locals in the wrapped function
             ut.printex(ex, tb=True)
-            printTEST('[TEST.FINISH] %s -- FAILED:\n    type(ex)=%s\n    ex=%s' % (funcname, type(ex), ex))
+            #printTEST('[TEST.FINISH] %s -- FAILED:\n    type(ex)=%s\n    ex=%s' % (funcname, type(ex), ex))
+            printTEST('[TEST.FINISH] %s -- FAILED:\n    type(ex)=%s' % (funcname, type(ex)))
+            exc_type, exc_value, tb = sys.exc_info()
             if PRINT_FACE:
                 print(SAD_FACE)
             if func_is_text:
@@ -961,7 +962,7 @@ def _exec_doctest(src, kwargs):
             errmsg1 = ''
             try:
                 import utool as ut
-                errmsg1 += ('GOT/EXPECTED/DIFF\n' + ut.get_textdiff(result, want))
+                errmsg1 += ('DIFF/GOT/EXPECTED\n' + ut.get_textdiff(result, want)) + '\n'
             except ImportError:
                 errmsg1 += ('REPR_GOT: result=\n%r\n' % (result))
                 errmsg1 += ('REPR_EXPECTED: want=\n%r\n' % (want))
@@ -970,7 +971,7 @@ def _exec_doctest(src, kwargs):
             errmsg1 += ('STR_GOT: result=\n%s\n' % (result))
             errmsg1 += ('STR_EXPECTED: want=\n%s\n' % (want))
             raise AssertionError('result != want\n' + errmsg1)
-        assert result == want, 'result is not the same as want'
+        #assert result == want, 'result is not the same as want'
     return test_locals
     #print('\n'.join(output_lines))
 

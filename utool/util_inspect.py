@@ -505,8 +505,8 @@ def parse_return_type(sourcecode):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
-        >>> import utool
-        >>> sourcecode = utool.codeblock(
+        >>> import utool as ut
+        >>> sourcecode = ut.codeblock(
         ... 'def foo(tmp=False):\n'
         ... '    bar = True\n'
         ... '    return bar\n'
@@ -517,10 +517,13 @@ def parse_return_type(sourcecode):
         >>> print(result)
         ('?', 'bar', 'Returns')
     """
-
-    import utool
+    import utool as ut
     import ast
-    if utool.VERBOSE:
+    if six.PY3:
+        Try = ast.Try
+    else:
+        Try = ast.TryExcept
+    if ut.VERBOSE:
         print('[utool] parsing return types')
 
     if sourcecode is None:
@@ -556,12 +559,12 @@ def parse_return_type(sourcecode):
                 return candidates[0]
         elif isinstance(node, (ast.Return, ast.Yield)):
             return node
-        elif isinstance(node, (ast.If, ast.TryExcept)):
+        elif isinstance(node, (ast.If, Try)):
             return find_return_node(node.body)
         else:
             pass
             #print(type(node))
-    if utool.VERBOSE:
+    if ut.VERBOSE:
         print('[utool] parsing return types')
     returnnode = find_return_node(func_node.body)
     # Check return or yeild

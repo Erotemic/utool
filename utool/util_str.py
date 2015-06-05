@@ -6,7 +6,7 @@ import sys
 import six
 import re
 import textwrap
-from six.moves import map, range
+from six.moves import map, range, reduce
 import itertools
 import math
 import collections
@@ -583,7 +583,7 @@ def func_str(func, args=[], kwargs={}, type_aliases=[], packed=False,
 
 
 def array_repr2(arr, max_line_width=None, precision=None, suppress_small=None, force_dtype=False, **kwargs):
-    """ extended version of np.core.arrayprint.array_repr
+    """ extended version of np.core.numeric.array_repr
 
     ut.editfile(np.core.numeric.__file__)
 
@@ -696,7 +696,7 @@ def _array2string2(a, max_line_width, precision, suppress_small, separator=' ',
     if threshold is None:
         threshold = np.core.arrayprint._summaryThreshold
 
-    if threshold is not None and threshold > 0 and a.size > threshold:
+    if threshold > 0 and a.size > threshold:
         summary_insert = "..., "
         data = np.core.arrayprint._leading_trailing(a)
     else:

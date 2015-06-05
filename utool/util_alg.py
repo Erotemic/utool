@@ -14,7 +14,7 @@ except ImportError:
 from collections import defaultdict
 import operator
 import six
-from six.moves import zip, range, reduce  # NOQA
+from six.moves import zip, range, reduce
 from utool import util_type
 from utool import util_inject
 try:
@@ -48,9 +48,9 @@ def greedy_max_inden_setcover(candidate_sets_dict, items, max_covers=None):
         >>> max_covers = None
         >>> tup = greedy_max_inden_setcover(candidate_sets_dict, items, max_covers)
         >>> (uncovered_items, covered_items_list, accepted_keys) = tup
-        >>> result = str((uncovered_items, accepted_keys))
+        >>> result = str((uncovered_items, sorted(list(accepted_keys))))
         >>> print(result)
-        ([0, 9], set(['a', 'c', 'd']))
+        ([0, 9], ['a', 'c', 'd'])
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -61,9 +61,9 @@ def greedy_max_inden_setcover(candidate_sets_dict, items, max_covers=None):
         >>> max_covers = 1
         >>> tup = greedy_max_inden_setcover(candidate_sets_dict, items, max_covers)
         >>> (uncovered_items, covered_items_list, accepted_keys) = tup
-        >>> result = str((uncovered_items, accepted_keys))
+        >>> result = str((uncovered_items, sorted(list(accepted_keys))))
         >>> print(result)
-        ([0, 3, 4, 5, 8, 9], set(['d']))
+        ([0, 3, 4, 5, 8, 9], ['d'])
     """
     uncovered_set = set(items)
     rejected_keys = set()
@@ -140,11 +140,12 @@ def estimate_pdf(data, gridsize=1024, adjust=1):
         https://jakevdp.github.io/blog/2013/12/01/kernel-density-estimation/
 
     Args:
-        data (?):
-        bw_factor (?):
+        data (ndarray): 1 dimensional data
+        gridsize(int): domain size
+        adjust(int): smoothing factor
 
     Returns:
-        ?: data_pdf
+        ndarray: data_pdf
 
     Example:
         >>> from utool.util_alg import *  # NOQA

@@ -16,8 +16,12 @@ from utool._internal.meta_util_six import IntType, LongType, FloatType, BooleanT
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[type]')
 
 
-def type_str(type_):
-    return str(type_).replace('<type \'', '').replace('\'>', '')
+if six.PY2:
+    def type_str(type_):
+        return str(type_).replace('<type \'', '').replace('\'>', '')
+else:
+    def type_str(type_):
+        return str(type_).replace('<class \'', '').replace('\'>', '')
 
 
 # Very odd that I have to put in dtypes in two different ways.

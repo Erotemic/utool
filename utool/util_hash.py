@@ -280,21 +280,25 @@ def augment_uuid(uuid_, *hashables):
 
 def hashable_to_uuid(hashable_):
     """
+    TODO: ensure that python2 and python3 agree on hashes of the same
+    information
+
     Args:
         hashable_ (hashable): hashables are bytes-like objects
-           An object that supports the Buffer Protocol, like bytes, bytearray or
-           memoryview. Bytes-like objects can be used for various operations
-           that expect binary data, such as compression, saving to a binary file
-           or sending over a socket. Some operations need the binary data to be
-           mutable, in which case not all bytes-like objects can apply.
+           An object that supports the Buffer Protocol, like bytes, bytearray
+           or memoryview. Bytes-like objects can be used for various operations
+           that expect binary data, such as compression, saving to a binary
+           file or sending over a socket. Some operations need the binary data
+           to be mutable, in which case not all bytes-like objects can apply.
 
     Returns:
         UUID: uuid_
 
     CommandLine:
         python -m utool.util_hash --test-hashable_to_uuid
+        python3 -m utool.util_hash --test-hashable_to_uuid:0
 
-    Example:
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> hashable_ = 'foobar'
@@ -303,7 +307,16 @@ def hashable_to_uuid(hashable_):
         >>> print(result)
         8843d7f9-2416-211d-e9eb-b963ff4ce281
 
-    Example:
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_hash import *  # NOQA
+        >>> hashable_ = u'foobar'
+        >>> uuid_ = hashable_to_uuid(hashable_)
+        >>> result = str(uuid_)
+        >>> print(result)
+        8843d7f9-2416-211d-e9eb-b963ff4ce281
+
+    Example2:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> hashable_ = 10
@@ -313,34 +326,34 @@ def hashable_to_uuid(hashable_):
         b1d57811-11d8-4f7b-3fe4-5a0852e59758
     """
     # Hash the bytes
-    try:
-        #print('hashable_=%r' % (hashable_,))
-        if six.PY3:
-            # If hashable_ is text (python3)
-            if isinstance(hashable_, bytes):
-                bytes_ = hashable_
-            if isinstance(hashable_, str):
-                bytes_ = hashable_.encode('utf-8')
-                #print('sbytes=%r' % (bytes_,))
-            else:
-                #bytes_ = bytearray(hashable_)
-                bytes_ = bytes(hashable_)
-                #bytes_ = repr(hashable_).encode('utf-8')
-                #print('bbytes=%r' % (bytes_,))
-        elif six.PY2:
-            # If hashable_ is data (python2)
-            if isinstance(hashable_, bytes):
-                bytes_ = hashable_
-            elif isinstance(hashable_, str):
-                bytes_ = hashable_.encode('utf-8')
-            else:
-                bytes_ = bytes(hashable_)
+    #try:
+    #print('hashable_=%r' % (hashable_,))
+    if six.PY3:
+        # If hashable_ is text (python3)
+        if isinstance(hashable_, bytes):
+            bytes_ = hashable_
+        if isinstance(hashable_, str):
+            bytes_ = hashable_.encode('utf-8')
+            #print('sbytes=%r' % (bytes_,))
+        else:
+            #bytes_ = bytearray(hashable_)
+            #bytes_ = bytes(hashable_)
+            bytes_ = repr(hashable_).encode('utf-8')
+            #print('bytes_=%r' % (bytes_,))
+    elif six.PY2:
+        # If hashable_ is data (python2)
+        if isinstance(hashable_, bytes):
+            bytes_ = hashable_
+        elif isinstance(hashable_, str):
+            bytes_ = hashable_.encode('utf-8')
+        else:
+            bytes_ = bytes(hashable_)
             #print('bytes=%r' % (bytes_,))
-        bytes_sha1 = hashlib.sha1(bytes_)
-    except Exception as ex:
-        import utool
-        utool.printex(ex, key_list=[(type, 'bytes_')])
-        raise
+    bytes_sha1 = hashlib.sha1(bytes_)
+    #except Exception as ex:
+    #    import utool
+    #    utool.printex(ex, keys=[(type, 'bytes_')])
+    #    raise
     # Digest them into a hash
     #hashstr_40 = img_bytes_sha1.hexdigest()
     #hashstr_32 = hashstr_40[0:32]
@@ -382,6 +395,7 @@ if __name__ == '__main__':
     CommandLine:
         python -m utool.util_hash
         python -m utool.util_hash --allexamples
+        python3 -m utool.util_hash --allexamples
         python -m utool.util_hash --allexamples --noface --nosrc
     """
     import multiprocessing
