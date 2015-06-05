@@ -229,17 +229,18 @@ class ProgressIter(object):
                 kwargs['nTotal'] = nTotal
             except Exception:
                 pass
-        self.time_thresh    = kwargs.pop('time_thresh', None)
-        self.use_rate       = kwargs.pop('use_rate', True)
-        self.lbl            = kwargs.get('lbl', 'lbl')
-        self.nTotal         = kwargs.get('nTotal', 0)
-        self.backspace      = kwargs.get('backspace', True)
-        self.freq           = kwargs.get('freq', 1)
-        self.invert_rate    = kwargs.get('invert_rate', False)
-        #self.report_unit    = kwargs.get('report_unit', 'minutes')
-        self.enabled        = kwargs.get('enabled', True)
-        self.report_unit    = kwargs.get('report_unit', 'seconds')
-        self.autoadjust  = kwargs.get('autoadjust', True)  # autoadjust frequency of reporting
+        self.use_rate           = kwargs.pop('use_rate', True)
+        self.lbl                = kwargs.get('lbl', 'lbl')
+        self.nTotal             = kwargs.get('nTotal', 0)
+        self.backspace          = kwargs.get('backspace', True)
+        self.freq               = kwargs.get('freq', 1)
+        self.invert_rate        = kwargs.get('invert_rate', False)
+        #self.report_unit       = kwargs.get('report_unit', 'minutes')
+        self.enabled            = kwargs.get('enabled', True)
+        self.report_unit        = kwargs.get('report_unit', 'seconds')
+        self.autoadjust         = kwargs.get('autoadjust', True)  # autoadjust frequency of reporting
+        self.time_thresh        = kwargs.pop('time_thresh', None)
+        self.time_thresh_growth = kwargs.pop('time_thresh_growth', 1.0)
         self.with_totaltime = False
         if self.freq is None:
             self.freq = 1
@@ -296,6 +297,8 @@ class ProgressIter(object):
     @profile
     def iter_rate(self):
         """
+        pun not intended
+
         # TODO: record iteration times for analysis
         # TODO Incorporate this better
         # FIXME; pad_stdout into subfunctions
@@ -326,9 +329,10 @@ class ProgressIter(object):
         time_thresh = (self._get_timethresh_heuristics()
                        if self.time_thresh is None else
                        self.time_thresh)
+        time_thresh_growth = self.time_thresh_growth
         #time_thresh = 0.5
         max_between_time = -1.0
-        max_between_count = -1.0  # why is this different? # becuase frequency varies
+        max_between_count = -1.0  # why is this different? # because frequency varies
         iters_per_second = -1
         #est_timeunit_left = -1
 
@@ -364,7 +368,8 @@ class ProgressIter(object):
                 # Adjust frequency if printing too quickly
                 # so progress doesnt slow down actual function
                 # TODO: better adjust algorithm
-                if autoadjust and between_time < time_thresh:
+                time_thresh *= time_thresh_growth
+                if autoadjust and (between_time < time_thresh or between_time > time_thresh * 2.0):
                     max_between_time = max(max(max_between_time, between_time), 1E-9)
                     max_between_count = max(max_between_count, between_count)
                     if DEBUG_FREQ_ADJUST:

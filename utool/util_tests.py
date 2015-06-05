@@ -583,6 +583,8 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     ]
     if testslow or ut.get_argflag(('--testall', '--testslow')):
         test_sentinals.append('SLOW_DOCTEST')
+    if testslow or ut.get_argflag(('--testall', '--testunstable')):
+        test_sentinals.append('UNSTABLE_DOCTEST')
     # Grab sys.argv enabled tests
     force_enable_testnames = []
     for arg in sys.argv:
@@ -973,7 +975,8 @@ def tryimport(modname, pipiname=None, ensure=False):
         >>> assert pyfiglet is None or isinstance(pyfiglet, types.ModuleType), 'unknown error'
 
     Example2:
-        >>> # ENABLE_DOCTEST
+        >>> # UNSTABLE_DOCTEST
+        >>> # disabled because not everyone has access to being a super user
         >>> from utool.util_tests import *   # NOQA
         >>> modname = 'lru'
         >>> pipiname = 'git+https://github.com/amitdev/lru-dict'

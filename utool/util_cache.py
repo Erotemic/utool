@@ -538,7 +538,7 @@ def shelf_open(fpath):
     Example:
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
-        >>> fpath = ut.get_app_resource_dir('utool', 'test.shelf')
+        >>> fpath = ut.ensure_app_resource_dir('utool', 'test.shelf')
         >>> with ut.shelf_open(fpath) as dict_:
         ...     print(ut.dict_str(dict_))
     """

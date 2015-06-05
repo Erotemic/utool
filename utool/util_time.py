@@ -11,6 +11,7 @@ from __future__ import absolute_import, division, print_function
 import sys
 import six
 import time
+import calendar
 import datetime
 from utool import util_inject
 from utool import util_cplat
@@ -186,7 +187,9 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=1, strict=False):
         >>> timestamp_format = 1
         >>> result = exiftime_to_unixtime(datetime_str, timestamp_format)
         >>> print(result)
-        1427860800.0
+        1427846400
+
+    1427860800.0
     """
     try:
         # Normal format, or non-standard year first data
@@ -203,7 +206,8 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=1, strict=False):
         else:
             datetime_str_ = datetime_str
         dt = datetime.datetime.strptime(datetime_str_, timefmt)
-        return time.mktime(dt.timetuple())
+        return calendar.timegm(dt.timetuple())
+        #return time.mktime(dt.timetuple())
     except TypeError:
         #if datetime_str is None:
             #return -1

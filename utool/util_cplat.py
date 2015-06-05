@@ -417,6 +417,7 @@ def cmd(*args, **kwargs):
     CommandLine:
         python -m utool.util_cplat --test-cmd:0
         python -m utool.util_cplat --test-cmd:1
+        python -m utool.util_cplat --test-cmd:2
         python -m utool.util_cplat --test-cmd:1 --test-sudo
         python -m utool.util_cplat --test-cmd:2 --test-sudo
 
@@ -455,16 +456,11 @@ def cmd(*args, **kwargs):
         >>>     ut.assert_eq(output, target)
         >>>     print('L ___ TEST CMD %d ___\n' % (count,))
 
-    Example1:
-        >>> # ENABLE_DOCTEST
+    Example2:
+        >>> # UNSTABLE_DOCTEST
+        >>> # ping is not as universal of a command as I thought
         >>> from utool.util_cplat import *  # NOQA
         >>> import utool as ut
-        >>> target = ut.codeblock(
-        ...     r'''
-                ('out', 'hello world\n'),
-                ('err', None),
-                ('ret', 0),
-                ''')
         >>> varydict = {
         ...    'shell': [True, False],
         ...    'detatch': [True],
