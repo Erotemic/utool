@@ -125,7 +125,11 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True, re
                             if smartcast:
                                 arg_after = list(map(util_type.smart_cast2, arg_after))
                         else:
-                            arg_after = util_type.try_cast(sys.argv[argx + 1], type_)
+                            if type_ is None:
+                                #arg_after = util_type.try_cast(sys.argv[argx + 1], type_)
+                                arg_after = util_type.smart_cast2(sys.argv[argx + 1])
+                            else:
+                                arg_after = util_type.try_cast(sys.argv[argx + 1], type_)
                         was_specified = True
                         break
                 elif item.startswith(argstr + '='):
@@ -139,7 +143,10 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True, re
                         if smartcast:
                             arg_after = list(map(util_type.smart_cast2, arg_after))
                     else:
-                        arg_after = util_type.try_cast(val_after, type_)
+                        if type_ is None:
+                            arg_after = util_type.smart_cast2(val_after)
+                        else:
+                            arg_after = util_type.try_cast(val_after, type_)
                     was_specified = True
                     break
     except Exception as ex:
@@ -522,6 +529,7 @@ def argparse_dict(default_dict_, lbl=None, verbose=VERBOSE,
 
     CommandLine:
         python -m utool.util_arg --test-argparse_dict
+        python -m utool.util_arg --test-argparse_dict --foo=3
         python -m utool.util_arg --test-argparse_dict --flag1
         python -m utool.util_arg --test-argparse_dict --flag2
         python -m utool.util_arg --test-argparse_dict --noflag2
@@ -534,17 +542,18 @@ def argparse_dict(default_dict_, lbl=None, verbose=VERBOSE,
         >>> import utool as ut
         >>> # build test data
         >>> default_dict_ = {
-        ...    'thresh': -5.333,
-        ...    'neg': -5,
         ...    'bins': 8,
-        ...    'max': 0.2,
+        ...    'foo': None,
         ...    'flag1': False,
         ...    'flag2': True,
+        ...    'max': 0.2,
+        ...    'neg': -5,
+        ...    'thresh': -5.333,
         ... }
         >>> # execute function
         >>> dict_ = argparse_dict(default_dict_)
         >>> # verify results
-        >>> result = ut.dict_str(dict_)
+        >>> result = ut.dict_str(dict_, sorted_=True)
         >>> print(result)
     """
     def make_argstrs(key, prefix_list):
@@ -555,7 +564,7 @@ def argparse_dict(default_dict_, lbl=None, verbose=VERBOSE,
 
     def get_dictkey_cmdline_val(key, default):
         # see if the user gave a commandline value for this dict key
-        type_ = type(default)
+        type_ = None if default is None else type(default)
         was_specified = False
         if isinstance(default, bool):
             val = default
@@ -568,12 +577,18 @@ def argparse_dict(default_dict_, lbl=None, verbose=VERBOSE,
                 val, was_specified = get_argflag(truekeys, return_was_specified=True)
         else:
             argtup = list(set(make_argstrs(key, ['--'])))
+            #if key == 'foo':
+            #    import utool as ut
+            #    ut.embed()
             val, was_specified = get_argval(argtup, type_=type_, default=default, return_was_specified=True)
         return val, was_specified
 
     dict_  = {}
     for key, default in six.iteritems(default_dict_):
         val, was_specified = get_dictkey_cmdline_val(key, default)
+        #if key == 'foo':
+        #    import utool as ut
+        #    ut.embed()
         if not only_specified or was_specified or key in force_keys:
             dict_[key] = val
     #dict_ = {key: get_dictkey_cmdline_val(key, default) for key, default in six.iteritems(default_dict_)}

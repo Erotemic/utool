@@ -76,6 +76,14 @@ def make_hash(o):
     return hash(tuple(frozenset(sorted(new_o.items()))))
 
 
+def hashstr_arr27(arr, lbl, alphabet=ALPHABET_27, **kwargs):
+    return hashstr_arr(arr, lbl, alphabet=alphabet, **kwargs)
+
+
+def hashstr27(data, alphabet=ALPHABET_27, **kwargs):
+    return hashstr(data, alphabet=alphabet, **kwargs)
+
+
 @profile
 def hashstr_arr(arr, lbl='arr', **kwargs):
     if isinstance(arr, list):

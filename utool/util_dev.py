@@ -1839,6 +1839,20 @@ def autopep8_diff(fpath):
     ut.print_difftext(out)
 
 
+def get_partial_func_name(func, precision=3):
+    float_fmtstr = '%.' + str(precision) + 'f'
+    def repr2(v):
+        if isinstance(v, float):
+            return float_fmtstr % (v,)
+        return repr(v)
+    name_part = func.func.func_name
+    args_part = ','.join(map(repr2, func.args))
+    kwargs_part = '' if func.keywords is None else (
+        ','.join(['%s=%s' % (key, repr2(val)) for key, val in func.keywords.items()])
+    )
+    name = name_part + '(' + args_part + kwargs_part + ')'
+    return name
+
 if __name__ == '__main__':
     """
     CommandLine:

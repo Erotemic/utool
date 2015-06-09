@@ -779,6 +779,13 @@ def _array2string2(a, max_line_width, precision, suppress_small, separator=' ',
     return lst
 
 
+def numpy_str2(arr, **kwargs):
+    kwargs['force_dtype'] = kwargs.get('force_dtype', False)
+    kwargs['suppress_small'] = kwargs.get('suppress_small', True)
+    kwargs['precision'] = kwargs.get('precision', 3)
+    return numpy_str(arr, **kwargs)
+
+
 def numpy_str(arr, strvals=False, precision=8, pr=None, force_dtype=True, suppress_small=None, **kwargs):
     """
     suppress_small = False turns off scientific representation

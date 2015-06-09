@@ -105,6 +105,8 @@ def get_dev_hints():
         ('img_in', ('ndarray[uint8_t, ndim=2]', 'image data')),
         ('arr', ('ndarray', '')),
         ('arr_', ('ndarray', '')),
+        ('X', ('ndarray', 'data')),
+        ('y', ('ndarray', 'labels')),
         ('imgBGR', ('ndarray[uint8_t, ndim=2]', 'image data in opencv format (blue, green, red)')),
         ('pnum', ('tuple', 'plot number')),
         ('fnum', ('int', 'figure number')),

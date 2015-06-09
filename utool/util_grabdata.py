@@ -467,6 +467,17 @@ def geo_locate(default='Unknown', timeout=1):
     return success, location_city, location_state, location_country, location_zip
 
 
+def scp_pull(remote_path, local_path='.', remote='localhost', user=None):
+    import utool as ut
+    if user is not None:
+        remote_uri = user + '@' + remote + ':' + remote_path
+    else:
+        remote_uri = remote + ':' + remote_path
+    scp_exe = 'scp'
+    scp_args = (scp_exe, '-r', remote_uri, local_path)
+    ut.cmd(scp_args)
+
+
 if __name__ == '__main__':
     """
     CommandLine:
