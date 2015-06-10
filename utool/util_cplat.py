@@ -187,6 +187,8 @@ def startfile(fpath, detatch=True, quote=False):
 
     """
     print('[cplat] startfile(%r)' % fpath)
+    fpath = normpath(fpath)
+    print('[cplat] fpath=%s' % fpath)
     if not exists(fpath):
         raise Exception('Cannot start nonexistant file: %r' % fpath)
     #if quote:
@@ -199,8 +201,10 @@ def startfile(fpath, detatch=True, quote=False):
         #outtup = cmd('xdg-open', fpath, detatch=detatch)
     elif DARWIN:
         outtup = cmd(('open', fpath), detatch=detatch)
-    else:
+    elif WIN32:
         os.startfile(fpath)
+    else:
+        raise RuntimeError('Unknown Platform')
     if outtup is not None:
         out, err, ret = outtup
         if not ret:

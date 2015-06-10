@@ -368,38 +368,37 @@ def list_global_funcnames(fname, blank_pats=['    #']):
 def get_kwargs(func):
     """
     Args:
-        func (?):
+        func (function):
 
     Returns:
-        ?:
+        kwargs:
 
     CommandLine:
         python -m utool.util_inspect --test-get_kwargs
 
-
-    def func1(a, b, c):
-        pass
-    def func2(a, b, c, *args):
-        pass
-    def func3(a, b, c, *args, **kwargs):
-        pass
-    def func4(a, b=1, c=2):
-        pass
-    def func5(a, b=1, c=2, *args):
-        pass
-    def func6(a, b=1, c=2, **kwargs):
-        pass
-    def func7(a, b=1, c=2, *args, **kwargs):
-        pass
-    for func in [locals()['func' + str(x)] for x in range(1, 8)]:
-        print(inspect.getargspec(func))
+    Ignore:
+        def func1(a, b, c):
+            pass
+        def func2(a, b, c, *args):
+            pass
+        def func3(a, b, c, *args, **kwargs):
+            pass
+        def func4(a, b=1, c=2):
+            pass
+        def func5(a, b=1, c=2, *args):
+            pass
+        def func6(a, b=1, c=2, **kwargs):
+            pass
+        def func7(a, b=1, c=2, *args, **kwargs):
+            pass
+        for func in [locals()['func' + str(x)] for x in range(1, 8)]:
+            print(inspect.getargspec(func))
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
         >>> # build test data
         >>> func = '?'
-        >>> # execute function
         >>> result = get_kwargs(func)
         >>> # verify results
         >>> print(result)
@@ -634,6 +633,8 @@ def exec_func_sourcecode(func, globals_, locals_, key_list):
     var_list = ut.dict_take( locals_, key_list)
     return var_list
 
+exec_func_src = exec_func_sourcecode
+
 
 def get_func_sourcecode(func, stripdef=False, stripret=False):
     """
@@ -655,7 +656,6 @@ def get_func_sourcecode(func, stripdef=False, stripret=False):
         >>> func = get_func_sourcecode
         >>> stripdef = True
         >>> stripret = True
-        >>> # execute function
         >>> sourcecode = get_func_sourcecode(func, stripdef)
         >>> # verify results
         >>> print(result)

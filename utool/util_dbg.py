@@ -998,7 +998,8 @@ def formatex(ex, msg='[!?] Caught exception',
     if tb or FORCE_TB:
         tbtext = traceback.format_exc()
         COLORED_EXCEPTIONS = False
-        COLORED_EXCEPTIONS = True
+        from utool import util_cplat
+        COLORED_EXCEPTIONS = not util_cplat.WIN32
         if COLORED_EXCEPTIONS:
             # TODO: rectify with duplicate in util_inject
             try:

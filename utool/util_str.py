@@ -374,7 +374,7 @@ def joins(string, list_, with_head=True, with_tail=False, tostrip='\n'):
 
 
 def indent_list(indent, list_):
-    return map(lambda item: indent + str(item), list_)
+    return list(map(lambda item: indent + str(item), list_))
 
 
 def filesize_str(fpath):
