@@ -79,6 +79,8 @@ def autofix_codeblock(codeblock, max_line_len=80,
 
 def auto_docstr(modname, funcname, verbose=True, moddir=None, **kwargs):
     """
+    called from vim. Uses strings of filename and modnames to build docstr
+
     Args:
         modname (str):
         funcname (str):
@@ -179,7 +181,7 @@ def print_auto_docstr(modname, funcname):
 
 def make_args_docstr(argname_list, argtype_list, argdesc_list, ismethod):
     r"""
-    make_args_docstr
+    Builds the argument docstring
 
     Args:
         argname_list (list): names
@@ -442,7 +444,8 @@ def make_default_docstr(func,
 
     """
     import utool as ut
-    funcinfo = ut.infer_function_info(func)
+    #from utool import util_inspect
+    funcinfo = ut.util_inspect.infer_function_info(func)
 
     argname_list   = funcinfo.argname_list
     argtype_list   = funcinfo.argtype_list

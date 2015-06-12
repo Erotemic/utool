@@ -708,7 +708,9 @@ def filter_items(item_list, flag_list):
         util_iter.ifilter_items
     """
 
-    assert len(item_list) == len(flag_list)
+    assert len(item_list) == len(flag_list), (
+        'lists should correspond. len(item_list)=%r len(flag_list)=%r' %
+        (len(item_list), len(flag_list)))
     filtered_items = list(util_iter.ifilter_items(item_list, flag_list))
     return filtered_items
 

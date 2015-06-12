@@ -4,6 +4,8 @@ from __future__ import absolute_import, division, print_function
 #except ImportError as ex:
 #    pass
 import six
+import itertools
+import functools
 from six.moves import zip, range, zip_longest, reduce
 from itertools import chain, cycle, islice
 from utool import util_inject
@@ -12,6 +14,33 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[iter]')
 
 ensure_iterable = meta_util_iter.ensure_iterable
 isiterable = meta_util_iter.isiterable
+
+
+def next_counter(start=0, step=1):
+    r"""
+    Args:
+        start (int): (default = 0)
+        step (int): (default = 1)
+
+    Returns:
+        func: next_
+
+    CommandLine:
+        python -m utool.util_iter --test-next_counter
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_iter import *  # NOQA
+        >>> start = 1
+        >>> step = 1
+        >>> next_ = next_counter(start, step)
+        >>> result = str([next_(), next_(), next_()])
+        >>> print(result)
+        [1, 2, 3]
+    """
+    count_gen = itertools.count(start, step)
+    next_ = functools.partial(six.next, count_gen)
+    return next_
 
 
 def evaluate_generator(iter_):

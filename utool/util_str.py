@@ -859,7 +859,7 @@ def numeric_str(num, precision=8, **kwargs):
 
 def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
                       recursive=True, indent_='', precision=8,
-                      hack_liststr=False, explicit=False):
+                      hack_liststr=False, explicit=False, truncate=False):
     """
     Returns:
         list: a list of human-readable dictionary items
@@ -898,7 +898,7 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
             # recursive call
             return dict_str(val, strvals=strvals, sorted_=sorted_,
                             newlines=newlines, recursive=recursive,
-                            indent_=indent_ + '    ', precision=precision)
+                            indent_=indent_ + '    ', precision=precision, truncate=truncate)
         elif util_type.HAS_NUMPY and isinstance(val, np.ndarray):
             return numpy_str(val, strvals=strvals, precision=precision)
         if hack_liststr and isinstance(val, list):
@@ -1014,16 +1014,63 @@ def list_str_summarized(list_, list_name, maxlen=5):
         return '%s=%r' % (list_name, list_)
 
 
+def _rectify_countdown_or_bool(count_or_bool):
+    """
+    used by recrusive functions to specify which level to turn a bool on in
+
+    Args:
+        count_or_bool (bool or int): if positive will count down, if negative will count up, if bool will remain same
+
+    Returns:
+        int or bool: count_or_bool_
+
+    CommandLine:
+        python -m utool.util_str --test-_rectify_countdown_or_bool
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_str import _rectify_countdown_or_bool  # NOQA
+        >>> count_or_bool = True
+        >>> a1 = (_rectify_countdown_or_bool(2))
+        >>> a2 = (_rectify_countdown_or_bool(1))
+        >>> a3 = (_rectify_countdown_or_bool(0))
+        >>> a4 = (_rectify_countdown_or_bool(-1))
+        >>> a5 = (_rectify_countdown_or_bool(-2))
+        >>> a6 = (_rectify_countdown_or_bool(True))
+        >>> a7 = (_rectify_countdown_or_bool(False))
+        >>> result = [a1, a2, a3, a4, a5, a6, a7]
+        >>> print(result)
+        [1.0, True, False, False, -1.0, True, False]
+    """
+    import math
+    math.copysign(1, count_or_bool)
+
+    if count_or_bool is True or count_or_bool is False:
+        count_or_bool_ = count_or_bool
+    elif isinstance(count_or_bool, int):
+        if count_or_bool == 0:
+            return 0
+        sign_ =  math.copysign(1, count_or_bool)
+        count_or_bool_ = count_or_bool - sign_
+        #if count_or_bool_ == 0:
+        #    return sign_ == 1
+    else:
+        count_or_bool_ = False
+    return count_or_bool_
+
+
 def list_str(list_, indent_='', newlines=1, nobraces=False, *args, **kwargs):
     #return '[%s\n]' % indentjoin(list(list_), suffix=',')
-    if newlines is True:
-        new_newlines = newlines
-    elif isinstance(newlines, int):
-        new_newlines = newlines - 1
-    else:
-        new_newlines = False
+    #if newlines is True:
+    #    newlines_ = newlines
+    ## newlines can either be a bool or countdown variable
+    #elif isinstance(newlines, int):
+    #    newlines_ = newlines - 1
+    #else:
+    #    newlines_ = False
+    newlines_ = _rectify_countdown_or_bool(newlines)
 
-    itemstr_list = get_itemstr_list(list_, indent_=indent_, newlines=new_newlines, *args, **kwargs)
+    itemstr_list = get_itemstr_list(list_, indent_=indent_, newlines=newlines_, *args, **kwargs)
     if isinstance(list_, tuple):
         leftbrace, rightbrace  = '(', ')'
     else:
@@ -1053,11 +1100,15 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
     Returns:
         str: a human-readable and execable string representation of a dictionary
 
+    CommandLine:
+        python -m utool.util_str --test-dict_str
+
     Example:
         >>> from utool.util_str import dict_str, dict_itemstr_list
         >>> import utool
-        >>> REPO_CONFIG = utool.get_default_repo_config()
-        >>> repo_cfgstr   = dict_str(REPO_CONFIG, strvals=True)'
+        >>> #REPO_CONFIG = utool.get_default_repo_config()
+        >>> dict_ = {'foo': 'barbarbarbarbar' * 10, 'baz': 'biz'}
+        >>> repo_cfgstr   = dict_str(dict_, strvals=True)
         >>> print(repo_cfgstr)
     """
     if nl is not None:
@@ -1067,9 +1118,19 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
             return 'dict()'
         else:
             return '{}'
+    truncate_ = _rectify_countdown_or_bool(truncate)
+    #print('----')
+    #print(indent_ + 'truncate = %r' % (truncate,))
+    #print(indent_ + 'truncate_ = %r' % (truncate_,))
+    #print('----')
+
     itemstr_list = dict_itemstr_list(dict_, strvals, sorted_, newlines,
-                                     recursive, indent_, precision, hack_liststr, explicit)
-    if truncate:
+                                     recursive, indent_, precision, hack_liststr, explicit, truncate=truncate_)
+    if truncate is not False and (truncate is True or truncate == 0):
+        print('----')
+        print(indent_ + 'truncate = %r' % (truncate,))
+        print(indent_ + 'Truncating')
+        print('----')
         itemstr_list = [truncate_str(item) for item in itemstr_list]
     if explicit:
         leftbrace, rightbrace  = 'dict(', ')'

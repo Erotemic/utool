@@ -16,6 +16,7 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[dist]')
 
 def nearest_point(x, y, pts, mode='random'):
     """ finds the nearest point(s) in pts to (x, y)
+    FIXME VIZ FEATROW
     """
     dists = (pts.T[0] - x) ** 2 + (pts.T[1] - y) ** 2
     fx = dists.argmin()

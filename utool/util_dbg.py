@@ -996,10 +996,10 @@ def formatex(ex, msg='[!?] Caught exception',
     ex_tag = 'WARNING' if iswarning else 'EXCEPTION'
     errstr_list.append('<!!! %s !!!>' % ex_tag)
     if tb or FORCE_TB:
-        tbtext = traceback.format_exc()
-        COLORED_EXCEPTIONS = False
         from utool import util_cplat
+        tbtext = traceback.format_exc()
         COLORED_EXCEPTIONS = not util_cplat.WIN32
+        COLORED_EXCEPTIONS = False  # disable
         if COLORED_EXCEPTIONS:
             # TODO: rectify with duplicate in util_inject
             try:

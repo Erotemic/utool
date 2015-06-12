@@ -32,6 +32,7 @@ def get_dev_hints():
         ('fm', ('list', 'list of feature matches as tuples (qfx, dfx)')),
         ('fs', ('list', 'list of feature scores')),
         ('aid_list' , ('int', 'list of annotation ids')),
+        ('aid_list[0-9]' , ('int', 'list of annotation ids')),
         ('ensure' , ('bool', 'eager evaluation if True')),
         ('qaid'    , ('int', 'query annotation id')),
         ('aid[0-9]?', ('int', 'annotation id')),
@@ -162,7 +163,7 @@ def infer_arg_types_and_descriptions(argname_list, defaults):
         defaults (list):
 
     Returns:
-        tuple : (arg_types, argdesc_list)
+        tuple : (argtype_list, argdesc_list)
 
     CommandLine:
         python -m utool.util_inspect --test-infer_arg_types_and_descriptions
@@ -175,7 +176,8 @@ def infer_arg_types_and_descriptions(argname_list, defaults):
         >>> import utool
         >>> argname_list = ['ibs', 'qaid', 'fdKfds', 'qfx2_foo']
         >>> defaults = None
-        >>> arg_types, argdesc_list = utool.infer_arg_types_and_descriptions(argname_list, defaults)
+        >>> tup = utool.infer_arg_types_and_descriptions(argname_list, defaults)
+        >>> argtype_list, argdesc_list, argdefault_list, hasdefault_list = tup
     """
     #import utool as ut
     from utool import util_dev
@@ -189,13 +191,18 @@ def infer_arg_types_and_descriptions(argname_list, defaults):
     if defaults is None:
         defaults = []
     default_types = [type(val).__name__.replace('NoneType', 'None') for val in defaults]
-    arg_types = ['?'] * (len(argname_list) - len(defaults)) + default_types
+    num_defaults = len(defaults)
+    num_nodefaults = len(argname_list) - num_defaults
+    argtype_list = ['?'] * (num_nodefaults) + default_types
+    # defaults aligned with argtype_list and argdesc_list
+    argdefault_list = [None] * num_nodefaults + list(defaults)
+    hasdefault_list = [False] * num_nodefaults + [True] * num_defaults
 
     argdesc_list = ['' for _ in range(len(argname_list))]
 
     # use hints to build better docstrs
     for argx in range(len(argname_list)):
-        #if arg_types[argx] == '?' or arg_types[argx] == 'None':
+        #if argtype_list[argx] == '?' or argtype_list[argx] == 'None':
         argname = argname_list[argx]
         if argname is None:
             #print('warning argname is None')
@@ -206,13 +213,34 @@ def infer_arg_types_and_descriptions(argname_list, defaults):
                 type_ = hint[0]
                 desc_ = hint[1]
                 if type_ is not None:
-                    if arg_types[argx] == '?' or arg_types[argx] == 'None':
-                        arg_types[argx] = type_
+                    if argtype_list[argx] == '?' or argtype_list[argx] == 'None':
+                        argtype_list[argx] = type_
                 if desc_ is not None:
                     desc_ = matchobj.expand(desc_)
                     argdesc_list[argx] = ' ' + desc_
                 break
-    return arg_types, argdesc_list
+    # append defaults to descriptions
+    for argx in range(len(argdesc_list)):
+        if hasdefault_list[argx]:
+            argdesc_list[argx] += '(default = %r)' % (argdefault_list[argx],)
+    return argtype_list, argdesc_list, argdefault_list, hasdefault_list
+
+
+def get_module_owned_functions(module):
+    """
+    returns functions actually owned by the module
+    module = vtool.distance
+    """
+    import utool as ut
+    list_ = []
+    for key, val in ut.iter_module_doctestable(module):
+        if hasattr(val, '__module__'):
+            belongs = val.__module__ == module.__name__
+        elif hasattr(val, 'func_globals'):
+            belongs = val.func_globals['__name__'] == module.__name__
+        if belongs:
+            list_.append(val)
+    return list_
 
 
 def iter_module_doctestable(module, include_funcs=True, include_classes=True,
@@ -365,13 +393,38 @@ def list_global_funcnames(fname, blank_pats=['    #']):
 
 # grep is in util_path. Thats pretty inspecty
 
+def inherit_kwargs(inherit_func):
+    """
+    TODO move to util_decor
+    inherit_func = inspect_pdfs
+    func = encoder.visualize.im_func
+    """
+    import utool as ut
+    keys, is_arbitrary = ut.get_kwargs(inherit_func)
+    if is_arbitrary:
+        keys += ['**kwargs']
+    kwargs_append = '\n'.join(keys)
+    #from six.moves import builtins
+    #builtins.print(kwargs_block)
+    def _wrp(func):
+        if func.__doc__ is None:
+            func.__doc__ = ''
+        # TODO append to kwargs block if it exists
+        kwargs_block = 'Kwargs:\n' + ut.indent(kwargs_append)
+        func.__doc__ += kwargs_block
+        return func
+    return _wrp
+
+
 def get_kwargs(func):
     """
     Args:
         func (function):
 
     Returns:
-        kwargs:
+        tuple: keys, is_arbitrary
+            keys (list): kwargs keys
+            is_arbitrary (bool): has generic **kwargs
 
     CommandLine:
         python -m utool.util_inspect --test-get_kwargs
@@ -615,9 +668,9 @@ def parse_return_type(sourcecode):
     return_type, return_name = get_node_name_and_type(returnnode)
 
     if return_type == '?':
-        arg_types, arg_desc = infer_arg_types_and_descriptions([return_name], [])
-        return_type = arg_types[0]
-        return_desc = arg_desc[0]
+        argtype_list, argdesc_list, argdefault_list, hasdefault_list = infer_arg_types_and_descriptions([return_name], [])
+        return_type = argtype_list[0]
+        return_desc = argdesc_list[0]
     else:
         return_desc = ''
 
@@ -727,12 +780,16 @@ def infer_function_info(func):
     Args:
         func (function): live python function
 
+    CommandLine:
+        python -m utool.util_inspect --test-infer_function_info
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
         >>> import utool as ut
-        >>> func = ut.infer_function_info
-        >>> func = ut.Timer.tic
+        >>> #func = ut.infer_function_info
+        >>> #func = ut.Timer.tic
+        >>> func = get_func_sourcecode
         >>> funcinfo = infer_function_info(func)
         >>> result = ut.dict_str(funcinfo.__dict__)
         >>> print(result)
@@ -744,7 +801,7 @@ def infer_function_info(func):
     (argname_list, varargs, varkw, defaults) = argspec
 
     # See util_inspect
-    argtype_list, argdesc_list = ut.infer_arg_types_and_descriptions(argname_list, defaults)
+    argtype_list, argdesc_list, argdefault_list, hasdefault_list = ut.infer_arg_types_and_descriptions(argname_list, defaults)
 
     # Move source down to base indentation, but remember original indentation
     sourcecode = get_func_sourcecode(func)
@@ -768,6 +825,8 @@ def infer_function_info(func):
     funcinfo.argname_list = argname_list
     funcinfo.argtype_list = argtype_list
     funcinfo.argdesc_list = argdesc_list
+    funcinfo.argdefault_list = argdefault_list
+    funcinfo.hasdefault_list = hasdefault_list
     funcinfo.varargs = varargs
     funcinfo.varkw = varkw
     funcinfo.defaults = defaults
