@@ -924,8 +924,9 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, datacast=None):
 
     CommandLine:
         python -m utool.util_dev --test-get_stats
+        python -m utool.util_dev --test-get_stats:1
 
-    Examples:
+    Examples0:
         >>> # ENABLE_DOCTEST
         >>> import numpy as np
         >>> import utool
@@ -943,6 +944,28 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, datacast=None):
             'nMin': np.array([1, 1], dtype=np.int32),
             'nMax': np.array([1, 1], dtype=np.int32),
             'shape': (10, 2),
+        }
+
+    Examples1:
+        >>> # ENABLE_DOCTEST
+        >>> import numpy as np
+        >>> import utool
+        >>> axis = 0
+        >>> rng = np.random.RandomState(0)
+        >>> list_ = rng.randint(0, 42, size=100).astype(np.float32)
+        >>> list_[4] = np.nan
+        >>> stat_dict = get_stats(list_, axis, use_nan=True)
+        >>> result = str(utool.dict_str(stat_dict))
+        >>> print(result)
+        {
+            'max': 41.0,
+            'min': 0.0,
+            'mean': 20.0,
+            'std': 13.177115,
+            'nMin': 7,
+            'nMax': 3,
+            'shape': (100,),
+            'num_nan': 1,
         }
 
     SeeAlso:

@@ -12,9 +12,9 @@ import math
 import collections
 from os.path import split
 from utool import util_type
-from utool import util_inject
 from utool import util_time  # import get_unix_timedelta
 from utool._internal import meta_util_six  # import get_funcname
+from utool import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[str]')
 
 if util_type.HAS_NUMPY:
@@ -1292,12 +1292,16 @@ def align(text, character='=', replchar=None):
 
     Args:
         text (str): text to align
-        character (str):
+        character (str): character to align at
+        replchar (str): replacement character (default=None)
 
     Returns:
         str: new_text
 
-    Example:
+    CommandLine:
+        python -m utool.util_str --test-align:0
+
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_str import *  # NOQA
         >>> character = '='
@@ -1315,7 +1319,7 @@ def align(text, character='=', replchar=None):
 
 
 def align_lines(line_list, character='=', replchar=None):
-    """
+    r"""
     Left justifies text on the left side of character
 
     align_lines
@@ -1327,28 +1331,55 @@ def align_lines(line_list, character='=', replchar=None):
     Returns:
         list: new_lines
 
-    Example:
+    CommandLine:
+        python -m utool.util_str --test-align_lines:0
+        python -m utool.util_str --test-align_lines:1
+        python -m utool.util_str --test-align_lines:2
+
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_str import *  # NOQA
-        >>> line_list = 'a = b\none = two\nthree = fish\n'.split('\n')
+        >>> line_list = 'a = b\none = two\nthree = fish'.split('\n')
         >>> character = '='
         >>> new_lines = align_lines(line_list, character)
-        >>> print('\n'.join(new_lines))
+        >>> result = ('\n'.join(new_lines))
+        >>> print(result)
         a     = b
         one   = two
         three = fish
 
-    Example2:
+    Example1:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_str import *  # NOQA
-        >>> line_list = 'foofish:\n    a = b\n    one    = two\n    three    = fish\n'.split('\n')
+        >>> line_list = 'foofish:\n    a = b\n    one    = two\n    three    = fish'.split('\n')
         >>> character = '='
         >>> new_lines = align_lines(line_list, character)
-        >>> print('\n'.join(new_lines))
+        >>> result = ('\n'.join(new_lines))
+        >>> print(result)
         foofish:
             a        = b
             one      = two
             three    = fish
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> import utool as ut
+        >>> character = ':'
+        >>> text = ut.codeblock('''
+            {'max': '1970/01/01 02:30:13',
+             'mean': '1970/01/01 01:10:15',
+             'min': '1970/01/01 00:01:41',
+             'range': '2:28:32',
+             'std': '1:13:57',}''').split('\n')
+        >>> new_lines = align_lines(text, ':', ' :')
+        >>> result = '\n'.join(new_lines)
+        >>> print(result)
+        {'max'   : '1970/01/01 02:30:13',
+         'mean'  : '1970/01/01 01:10:15',
+         'min'   : '1970/01/01 00:01:41',
+         'range' : '2:28:32',
+         'std'   : '1:13:57',}
     """
     if replchar is None:
         replchar = character
@@ -1363,7 +1394,7 @@ def align_lines(line_list, character='=', replchar=None):
     for tup in tup_list:
         if len(tup) >= 2:
             lhs = tup[0]
-            rhs = replchar.join(tup[1:])
+            rhs = character.join(tup[1:])
             newline = lhs.ljust(maxlen) + replchar + rhs
             new_lines.append(newline)
         else:

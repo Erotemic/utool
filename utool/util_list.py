@@ -78,6 +78,16 @@ def recursive_replace(list_, target, repl=-1):
     return repl_list
 
 
+def list_replace(list_, target, repl):
+    r"""
+    alias
+
+    Recursively removes target in all lists and sublists and replaces them with
+    the repl variable
+    """
+    return recursive_replace(list_, target, repl)
+
+
 def alloc_lists(num_alloc):
     """ allocates space for a ``list`` of lists """
     return [[] for _ in range(num_alloc)]
@@ -260,8 +270,9 @@ def listfind(list_, tofind):
 
 # --- List Modification --- #
 
-def list_replace(instr, search_list=[], repl_list=None):
+def multi_replace(instr, search_list=[], repl_list=None):
     """
+    DEPRICATE?
     Does a string replace with a list of search and replacements
 
     TODO: rename

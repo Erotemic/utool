@@ -439,7 +439,7 @@ def get_year():
     return datetime.datetime.now().year
 
 
-def get_timestats_str(unixtime_list, newlines=False):
+def get_timestats_str(unixtime_list, newlines=False, full=True):
     r"""
     Args:
         unixtime_list (list):
@@ -455,13 +455,10 @@ def get_timestats_str(unixtime_list, newlines=False):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_time import *  # NOQA
         >>> import utool as ut
-        >>> # build test data
-        >>> # TODO: FIXME ME FOR TIMEZONE EST vs GMT
         >>> unixtime_list = [0, 0 + 60*60*5 , 10+ 60*60*5, 100+ 60*60*5, 1000+ 60*60*5]
         >>> newlines = True
-        >>> # execute function
-        >>> timestat_str = get_timestats_str(unixtime_list, newlines)
-        >>> # verify results
+        >>> full = False
+        >>> timestat_str = get_timestats_str(unixtime_list, newlines, full=full)
         >>> result = ut.align(str(timestat_str), ':')
         >>> print(result)
         {
@@ -472,24 +469,37 @@ def get_timestats_str(unixtime_list, newlines=False):
             'std'  : '2:02:01',
         }
 
-        #{
-        #   'std'  : '0:06:59',
-        #   'max'  : '1970/01/01 00:16:40',
-        #   'range': '0:16:40',
-        #   'mean' : '1970/01/01 00:04:37',
-        #   'min'  : '1970/01/01 00:00:00',
-        #}
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_time import *  # NOQA
+        >>> import utool as ut
+        >>> unixtime_list = [0, 0 + 60*60*5 , 10+ 60*60*5, 100+ 60*60*5, 1000+ 60*60*5, float('nan'), 0]
+        >>> newlines = True
+        >>> timestat_str = get_timestats_str(unixtime_list, newlines)
+        >>> result = ut.align(str(timestat_str), ':')
+        >>> print(result)
+        {
+            'max'    : '1970/01/01 05:16:40',
+            'mean'   : '1970/01/01 03:23:05',
+            'min'    : '1970/01/01 00:00:00',
+            'nMax'   : 1,
+            'nMin'   : 2,
+            'num_nan': 1,
+            'range'  : '5:16:40',
+            'shape'  : (7,),
+            'std'    : '2:23:43',
+        }
 
     """
     import utool as ut
-    datetime_stats = get_timestats_dict(unixtime_list)
+    datetime_stats = get_timestats_dict(unixtime_list, full=full)
     timestat_str = ut.dict_str(datetime_stats, newlines=newlines)
     return timestat_str
 
 
-def get_timestats_dict(unixtime_list):
+def get_timestats_dict(unixtime_list, full=True):
     import utool as ut
-    unixtime_stats = ut.get_stats(unixtime_list)
+    unixtime_stats = ut.get_stats(unixtime_list, use_nan=True)
     datetime_stats = {}
     for key in ['max', 'min', 'mean']:
         try:
@@ -505,6 +515,11 @@ def get_timestats_dict(unixtime_list):
         datetime_stats['range'] = str(ut.get_unix_timedelta(int(round(unixtime_stats['max'] - unixtime_stats['min']))))
     except KeyError:
         pass
+
+    if full:
+        for key in ['nMax', 'num_nan', 'shape', 'nMin']:
+            datetime_stats[key] = unixtime_stats[key]
+    #print('Unused keys = %r' % (set(unixtime_stats.keys()) - set(datetime_stats.keys()),))
     return datetime_stats
 
 
