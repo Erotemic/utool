@@ -262,14 +262,39 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
         >>> modname = 'utool.util_autogen'
         >>> argname_list = ['qaids', 'qreq_']
         >>> defaults = None
-        >>> return_type = None
-        >>> return_name = None
+        >>> return_type = tuple
+        >>> return_name = 'foo'
         >>> ismethod = False
         >>> # execute function
         >>> examplecode = make_example_docstr(funcname, modname, argname_list, defaults, return_type, return_name, ismethod)
         >>> # verify results
         >>> result = str(examplecode)
         >>> print(result)
+        # ENABLE_DOCTEST
+        from utool.util_autogen import *  # NOQA
+        import ibeis
+        species = ibeis.const.Species.ZEB_PLAIN
+        ibs = ibeis.opendb(defaultdb='testdb1')
+        daids = ibs.get_valid_aids(species=species)
+        qaids = ibs.get_valid_aids(species=species)
+        qreq_ = ibs.new_query_request(qaids, daids)
+        foo = make_example_docstr(qaids, qreq_)
+        result = ('foo = %s' % (str(foo),))
+        print(result)
+
+
+        # ENABLE_DOCTEST
+        from utool.util_autogen import *  # NOQA
+        import ibeis
+        species = ibeis.const.Species.ZEB_PLAIN
+        ibs = ibeis.opendb(defaultdb='testdb1')
+        daids = ibs.get_valid_aids(species=species)
+        qaids = ibs.get_valid_aids(species=species)
+        qreq_ = ibs.new_query_request(qaids, daids)
+        foo = make_example_docstr(qaids, qreq_)
+        result = str(foo)
+        print(result)
+
     """
     import utool as ut
 
@@ -280,7 +305,7 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
 
     # TODO: Externally register these
     default_argval_map = {
-        'ibs'        : 'ibeis.opendb(\'testdb1\')',
+        'ibs'        : 'ibeis.opendb(defaultdb=\'testdb1\')',
         'qreq_'      : 'ibs.new_query_request(qaids, daids)',
         'qaid2_qres' : 'ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())',
         'qres'       : 'ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())[1]',
@@ -392,7 +417,10 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
     #examplecode_lines.append('# verify results')
     if result_print is not None:
         if return_name != 'result':
-            examplecode_lines.append('result = str(' + return_name + ')')
+            #examplecode_lines.append('result = str(' + return_name + ')')
+            result_line_fmt = 'result = (\'{return_name} = %s\' % (str({return_name}),))'
+            result_line = result_line_fmt.format(return_name=return_name)
+            examplecode_lines.append(result_line)
         examplecode_lines.append(result_print)
     examplecode = '\n'.join(examplecode_lines)
     return examplecode

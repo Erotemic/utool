@@ -166,7 +166,7 @@ if DOELSE:
     from utool import DynamicStruct
     from utool import Preferences
 
-    from utool.util_alg import (HAS_NUMPY, HAS_SCIPY, PHI, PHI_A, PHI_B,
+    from utool.util_alg import (HAVE_NUMPY, HAVE_SCIPY, PHI, PHI_A, PHI_B,
                                 almost_eq, bayes_rule, build_reverse_mapping,
                                 cartesian, choose, cumsum, defaultdict,
                                 deg_to_rad, enumerate_primes, estimate_pdf,
@@ -389,7 +389,7 @@ if DOELSE:
                                  hashstr_md5, hashstr_sha1, image_uuid,
                                  make_hash, random_nonce, random_uuid,)
     from utool.util_inject import (ARGV_DEBUG_FLAGS, DEBUG_PRINT,
-                                   DUMMYPROF_FUNC, HAS_PYGMENTS, KERNPROF_FUNC,
+                                   DUMMYPROF_FUNC, HAVE_PYGMENTS, KERNPROF_FUNC,
                                    PRINT_INJECT_ORDER, PROF_FUNC_PAT_LIST,
                                    PROF_MOD_PAT_LIST, TIMERPROF_FUNC, argv,
                                    colored_pygments_excepthook,
@@ -399,7 +399,7 @@ if DOELSE:
                                    inject_profile_function, inject_python_code,
                                    inject_reload_function, memprof, noinject,
                                    split_python_text_into_lines, wraps,)
-    from utool.util_io import (HAS_LOCKFILE, load_cPkl, load_hdf5,
+    from utool.util_io import (HAVE_LOCKFILE, load_cPkl, load_hdf5,
                                load_pytables, lock_and_load_cPkl,
                                lock_and_save_cPkl, read_from, readfrom,
                                save_cPkl, save_hdf5, save_pytables, try_decode,

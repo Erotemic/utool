@@ -3,9 +3,9 @@ from __future__ import absolute_import, division, print_function
 import operator
 try:
     import numpy as np
-    HAS_NUMPY = True
+    HAVE_NUMPY = True
 except ImportError:
-    HAS_NUMPY = False
+    HAVE_NUMPY = False
 import six
 import itertools
 from six.moves import zip, map, zip_longest, range, filter, reduce
@@ -426,7 +426,7 @@ def invertible_flatten2(unflat_list):
         %timeit utool.unflatten2(flat_aids2, cumlen_list)
     """
     sublen_list = list(map(len, unflat_list))
-    if not HAS_NUMPY:
+    if not HAVE_NUMPY:
         cumlen_list = np.cumsum(sublen_list)
         # Build an unflat list of flat indexes
     else:
@@ -674,7 +674,7 @@ def list_all_eq_to(list_, val):
     Returns:
         True if all items in the list are equal to val
     """
-    if HAS_NUMPY and isinstance(val, np.ndarray):
+    if HAVE_NUMPY and isinstance(val, np.ndarray):
         return all([np.all(item == val) for item in list_])
     return all([item == val for item in list_])
 

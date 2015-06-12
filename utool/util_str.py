@@ -17,7 +17,7 @@ from utool._internal import meta_util_six  # import get_funcname
 from utool import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[str]')
 
-if util_type.HAS_NUMPY:
+if util_type.HAVE_NUMPY:
     import numpy as np
     TAU = (2 * np.pi)  # References: tauday.com
 else:
@@ -901,7 +901,7 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
                             newlines=newlines, recursive=recursive,
                             indent_=indent_ + '    ', precision=precision,
                             truncate=truncate, truncatekw=truncatekw)
-        elif util_type.HAS_NUMPY and isinstance(val, np.ndarray):
+        elif util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
             return numpy_str(val, strvals=strvals, precision=precision)
         if hack_liststr and isinstance(val, list):
             return list_str(val)
@@ -963,7 +963,7 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
 
 
 def get_itemstr_list(list_, strvals=False, newlines=True,
-                      recursive=True, indent_='', precision=8):
+                      recursive=True, indent_='', precision=8, **listkws):
     """
     TODO: have this replace dict_itemstr list or at least most functionality in
     it. have it make two itemstr lists over keys and values and then combine
@@ -987,8 +987,8 @@ def get_itemstr_list(list_, strvals=False, newlines=True,
         if isinstance(val, (tuple, list)):
             return list_str(val, strvals=strvals, newlines=newlines,
                             recursive=recursive, indent_=new_indent,
-                            precision=precision)
-        elif util_type.HAS_NUMPY and isinstance(val, np.ndarray):
+                            precision=precision, **listkws)
+        elif util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
             return numpy_str(val, strvals=strvals, precision=precision)
         else:
             # base case
@@ -1049,8 +1049,6 @@ def _rectify_countdown_or_bool(count_or_bool):
         [1.0, True, False, False, -1.0, True, False]
     """
     import math
-    math.copysign(1, count_or_bool)
-
     if count_or_bool is True or count_or_bool is False:
         count_or_bool_ = count_or_bool
     elif isinstance(count_or_bool, int):
@@ -1065,7 +1063,7 @@ def _rectify_countdown_or_bool(count_or_bool):
     return count_or_bool_
 
 
-def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None, *args, **kwargs):
+def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None, truncate=False, truncatekw={}, **listkw):
     r"""
     Args:
         list_ (list):
@@ -1079,7 +1077,9 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None, *args, **kw
 
     CommandLine:
         python -m utool.util_str --test-list_str
-        python -m utool.util_str --test-list_str --no-checkwant
+        python -m utool.util_str --test-list_str --no-checkwant --truncate=True
+        python -m utool.util_str --test-list_str --no-checkwant --truncate=0 --no-checkwant
+
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1091,9 +1091,10 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None, *args, **kw
         ...     '')]]
         >>> indent_ = ''
         >>> newlines = 2
+        >>> truncate = ut.get_argval('--truncate', type_=None, default=False)
         >>> nobraces = False
         >>> nl = None
-        >>> result = list_str(list_, indent_, newlines, nobraces, nl)
+        >>> result = list_str(list_, indent_, newlines, nobraces, nl, truncate=truncate, truncatekw={'maxlen': 10})
         >>> print(result)
         [
             [
@@ -1119,11 +1120,12 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None, *args, **kw
     if nl is not None:
         newlines = nl
     newlines_ = _rectify_countdown_or_bool(newlines)
+    truncate_ = _rectify_countdown_or_bool(truncate)
     #print('--')
     #print(indent_ + 'newlines = %r' % (newlines,))
     #print(indent_ + 'newlines_ = %r' % (newlines_,))
 
-    itemstr_list = get_itemstr_list(list_, indent_=indent_, newlines=newlines_, *args, **kwargs)
+    itemstr_list = get_itemstr_list(list_, indent_=indent_, newlines=newlines_, truncate=truncate_, truncatekw=truncatekw, **listkw)
     if isinstance(list_, tuple):
         leftbrace, rightbrace  = '(', ')'
     else:
@@ -1133,17 +1135,32 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None, *args, **kw
         import utool as ut
         if nobraces:
             body_str = '\n'.join(itemstr_list)
-            return body_str
+            retstr = body_str
         else:
             body_str = '\n'.join([ut.indent(itemstr) for itemstr in itemstr_list])
             braced_body_str = (leftbrace + '\n' + body_str + '\n' + rightbrace)
-            return braced_body_str
+            retstr = braced_body_str
         #return (leftbrace + indentjoin(itemstr_list) + '\n' + indent_ + rightbrace)
     else:
         # hack away last comma
         sequence_str = ' '.join(itemstr_list)
         sequence_str = sequence_str.rstrip(',')
-        return (leftbrace + sequence_str +  rightbrace)
+        retstr  = (leftbrace + sequence_str +  rightbrace)
+
+    # TODO: rectify with dict_truncate
+    do_truncate = truncate is not False and (truncate is True or truncate == 0)
+    if do_truncate:
+        retstr = truncate_str(retstr, **truncatekw)
+    return retstr
+
+
+def obj_str(obj_, **kwargs):
+    if isinstance(obj_, dict):
+        return dict_str(obj_, **kwargs)
+    if isinstance(obj_, list):
+        return list_str(obj_, **kwargs)
+    else:
+        return repr(obj_)
 
 
 def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
@@ -1156,15 +1173,18 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
 
     CommandLine:
         python -m utool.util_str --test-dict_str
+        python -m utool.util_str --test-dict_str --truncate=False --no-checkwant
+        python -m utool.util_str --test-dict_str --truncate=1 --no-checkwant
+        python -m utool.util_str --test-dict_str --truncate=2 --no-checkwant
 
     Example:
         >>> from utool.util_str import dict_str, dict_itemstr_list
         >>> import utool
         >>> #REPO_CONFIG = utool.get_default_repo_config()
         >>> dict_ = {'foo': {'spam': 'barbarbarbarbar' * 3, 'eggs': 'jam'}, 'baz': 'barbarbarbarbar' * 3}
-        >>> truncate = 1
-        >>> repo_cfgstr   = dict_str(dict_, strvals=True, truncate=truncate, truncatekw={'maxlen': 20})
-        >>> print(repo_cfgstr)
+        >>> truncate = ut.get_argval('--truncate', type_=None, default=1)
+        >>> result  = dict_str(dict_, strvals=True, truncate=truncate, truncatekw={'maxlen': 20})
+        >>> print(result)
         {
             'baz': barbarbarbarbarbarbarbarbarbarbarbarbarbarbar,
             'foo': {
@@ -1181,34 +1201,38 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
         else:
             return '{}'
     truncate_ = _rectify_countdown_or_bool(truncate)
-    print('----')
-    print(indent_ + 'truncate = %r' % (truncate,))
-    print(indent_ + 'truncate_ = %r' % (truncate_,))
-    print('----')
+    #print('----')
+    #print(indent_ + 'truncate = %r' % (truncate,))
+    #print(indent_ + 'truncate_ = %r' % (truncate_,))
+    #print('----')
 
     itemstr_list = dict_itemstr_list(dict_, strvals, sorted_, newlines,
                                      recursive, indent_, precision,
                                      hack_liststr, explicit,
                                      truncate=truncate_, truncatekw=truncatekw)
-    if truncate is not False and (truncate is True or truncate == 0):
+
+    do_truncate = truncate is not False and (truncate is True or truncate == 0)
+    if do_truncate:
         #print('----')
         #print(indent_ + 'truncate = %r' % (truncate,))
         #print(indent_ + 'Truncating')
         #print('----')
         itemstr_list = [truncate_str(item, **truncatekw) for item in itemstr_list]
-    if explicit:
-        leftbrace, rightbrace  = 'dict(', ')'
-    else:
-        leftbrace, rightbrace  = '{', '}'
+
+    leftbrace, rightbrace  = ('dict(', ')') if explicit else ('{', '}')
     if newlines:
         import utool as ut
         body_str = '\n'.join([ut.indent(itemstr, '    ') for itemstr in itemstr_list])
         retstr =  (leftbrace + '\n' + body_str + '\n' + rightbrace)
-        return retstr
-    #if newlines:
-    #    return ('{%s\n' + indent_ + '}') % indentjoin(itemstr_list)
     else:
-        return leftbrace + ' '.join(itemstr_list) + rightbrace
+        retstr = leftbrace + ' '.join(itemstr_list) + rightbrace
+    # Is there a way to make truncate for dict_str compatible with list_str?
+    #print('----')
+    #print(indent_ + 'truncate = %r' % (truncate,))
+    #print(indent_ + 'Truncating')
+    #print('----')
+    #retstr = truncate_str(retstr, **truncatekw)
+    return retstr
 
 
 def horiz_string(*args, **kwargs):

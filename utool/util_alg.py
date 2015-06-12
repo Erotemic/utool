@@ -6,9 +6,9 @@
 from __future__ import absolute_import, division, print_function
 try:
     import numpy as np
-    HAS_NUMPY = True
+    HAVE_NUMPY = True
 except ImportError:
-    HAS_NUMPY = False
+    HAVE_NUMPY = False
     # TODO remove numpy
     pass
 from collections import defaultdict
@@ -19,9 +19,9 @@ from utool import util_type
 from utool import util_inject
 try:
     import scipy.spatial.distance as spdist
-    HAS_SCIPY = True
+    HAVE_SCIPY = True
 except ImportError:
-    HAS_SCIPY = False
+    HAVE_SCIPY = False
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
 
 

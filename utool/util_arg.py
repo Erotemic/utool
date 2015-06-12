@@ -101,10 +101,37 @@ def autogen_argparse_block(extra_args=[]):
         print(ut.list_str(multi_groups, newlines=2))
 
 
-@profile
+#@profile
 def get_argflag(argstr_, default=False, help_='', return_was_specified=False, **kwargs):
     """
     Checks if the commandline has a flag or a corresponding noflag
+
+    Args:
+        argstr_ (str, list, or tuple): the flag to look for
+        default (bool): dont use this (default = False)
+        help_ (str): a help string (default = '')
+        return_was_specified (bool): returns if flag was specified or not (default = False)
+
+    Returns:
+        tuple: (parsed_val, was_specified)
+
+    CommandLine:
+        python -m utool.util_arg --exec-get_argflag --noface --exec-mode
+        python -m utool.util_arg --exec-get_argflag --foo --exec-mode
+        python -m utool.util_arg --exec-get_argflag --no-foo --exec-mode
+        python -m utool.util_arg --exec-get_argflag --foo=True --exec-mode
+        python -m utool.util_arg --exec-get_argflag --foo=False  --exec-mode
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_arg import *  # NOQA
+        >>> argstr_ = '--foo'
+        >>> default = False
+        >>> help_ = ''
+        >>> return_was_specified = True
+        >>> (parsed_val, was_specified) = get_argflag(argstr_, default, help_, return_was_specified)
+        >>> result = ('(parsed_val, was_specified) = %s' % (str((parsed_val, was_specified)),))
+        >>> print(result)
     """
     assert isinstance(default, bool), 'default must be boolean'
     argstr_list = meta_util_iter.ensure_iterable(argstr_)
@@ -134,6 +161,15 @@ def get_argflag(argstr_, default=False, help_='', return_was_specified=False, **
             #if VERYVERBOSE:
             #    print('[util_arg]   * ...WAS_SPECIFIED. AND NOT PARSED')
             break
+        elif argstr + '=True' in sys.argv:
+            parsed_val = True
+            was_specified = True
+            break
+        elif argstr + '=False' in sys.argv:
+            parsed_val = False
+            was_specified = True
+            break
+
     if return_was_specified:
         return parsed_val, was_specified
     else:
@@ -581,7 +617,7 @@ def __argv_flag_dec(func, default=False, quiet=QUIET):
 
 
 @profile
-def argparse_dict(default_dict_, lbl=None, verbose=VERBOSE,
+def argparse_dict(default_dict_, lbl=None, verbose=None,
                   only_specified=False, force_keys={}):
     r"""
     Gets values for a dict based on the command line
@@ -601,6 +637,7 @@ def argparse_dict(default_dict_, lbl=None, verbose=VERBOSE,
         python -m utool.util_arg --test-argparse_dict --noflag2
         python -m utool.util_arg --test-argparse_dict --thresh=43
         python -m utool.util_arg --test-argparse_dict --bins=-10
+        python -m utool.util_arg --test-argparse_dict --bins=-10 --only-specified --helpx
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -617,11 +654,14 @@ def argparse_dict(default_dict_, lbl=None, verbose=VERBOSE,
         ...    'thresh': -5.333,
         ... }
         >>> # execute function
-        >>> dict_ = argparse_dict(default_dict_)
+        >>> only_specified = ut.get_argflag('--only-specified')
+        >>> dict_ = argparse_dict(default_dict_, only_specified=only_specified)
         >>> # verify results
         >>> result = ut.dict_str(dict_, sorted_=True)
         >>> print(result)
     """
+    if verbose is None:
+        verbose = VERBOSE_ARGPARSE or VERBOSE
     def make_argstrs(key, prefix_list):
         for prefix in prefix_list:
             yield prefix + key
@@ -638,6 +678,9 @@ def argparse_dict(default_dict_, lbl=None, verbose=VERBOSE,
                 falsekeys = list(set(make_argstrs(key, ['--no', '--no-'])))
                 notval, was_specified = get_argflag(falsekeys, return_was_specified=True)
                 val = not notval
+                if not was_specified:
+                    truekeys = list(set(make_argstrs(key, ['--'])))
+                    val, was_specified = get_argflag(truekeys, return_was_specified=True)
             elif default is False:
                 truekeys = list(set(make_argstrs(key, ['--'])))
                 val, was_specified = get_argflag(truekeys, return_was_specified=True)
@@ -650,13 +693,21 @@ def argparse_dict(default_dict_, lbl=None, verbose=VERBOSE,
         return val, was_specified
 
     dict_  = {}
+    num_specified = 0
     for key, default in six.iteritems(default_dict_):
         val, was_specified = get_dictkey_cmdline_val(key, default)
+        if VERBOSE_ARGPARSE:
+            if was_specified:
+                num_specified += 1
+                print('[argparse_dict] Specified key=%r, val=%r' % (key, val))
         #if key == 'foo':
         #    import utool as ut
         #    ut.embed()
         if not only_specified or was_specified or key in force_keys:
             dict_[key] = val
+    if VERBOSE_ARGPARSE:
+        print('[argparse_dict] num_specified = %r' % (num_specified,))
+        print('[argparse_dict] force_keys = %r' % (force_keys,))
     #dict_ = {key: get_dictkey_cmdline_val(key, default) for key, default in six.iteritems(default_dict_)}
 
     if verbose:
@@ -664,13 +715,16 @@ def argparse_dict(default_dict_, lbl=None, verbose=VERBOSE,
             if dict_[key] != default_dict_[key]:
                 print('[argparse_dict] GOT ARGUMENT: cfgdict[%r] = %r' % (key, dict_[key]))
 
-    if get_argflag(('--help', '--helpx')):
+    do_helpx = get_argflag('--helpx', help_='Specifies that argparse_dict should print help and quit')
+
+    if get_argflag('--help') or do_helpx:
         import utool as ut
         print('COMMAND LINE IS ACCEPTING THESE PARAMS WITH DEFAULTS:')
         if lbl is not None:
             print(lbl)
+        #print(ut.align(ut.dict_str(dict_, sorted_=True), ':'))
         print(ut.align(ut.dict_str(default_dict_, sorted_=True), ':'))
-        if get_argflag('--helpx'):
+        if do_helpx:
             sys.exit(1)
     return dict_
 
@@ -717,6 +771,9 @@ def get_argv_tail(scriptname):
 # alias
 parse_dict_from_argv = argparse_dict
 get_dict_vals_from_commandline = argparse_dict
+
+
+VERBOSE_ARGPARSE = get_argflag(('--verbose-argparse', '--verb-argparse', '--verb-arg', '--verbarg'), help_='debug util_arg')
 
 
 if __name__ == '__main__':

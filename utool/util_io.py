@@ -2,9 +2,9 @@ from __future__ import absolute_import, division, print_function
 from six.moves import cPickle
 try:
     import lockfile
-    HAS_LOCKFILE = True
+    HAVE_LOCKFILE = True
 except ImportError:
-    HAS_LOCKFILE = False
+    HAVE_LOCKFILE = False
 from utool import util_path
 from utool import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[io]')

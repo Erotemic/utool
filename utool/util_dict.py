@@ -8,9 +8,9 @@ from utool import util_list
 import six
 try:
     import numpy as np
-    HAS_NUMPY = True
+    HAVE_NUMPY = True
 except ImportError:
-    HAS_NUMPY = False
+    HAVE_NUMPY = False
     pass
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[dict]')
 
@@ -388,7 +388,7 @@ def is_dicteq(dict1_, dict2_, almosteq_ok=True, verbose_err=True):
         for (key1, val1), (key2, val2) in zip(dict1_.items(), dict2_.items()):
             assert key1 == key2, 'key mismatch'
             assert type(val1) == type(val2), 'vals are not same type'
-            if HAS_NUMPY and np.iterable(val1):
+            if HAVE_NUMPY and np.iterable(val1):
                 if almosteq_ok and utool.is_float(val1):
                     assert np.all(util_alg.almost_eq(val1, val2)), 'float vals are not within thresh'
                 else:
@@ -521,7 +521,7 @@ def dict_take_gen(dict_, keys, *d):
     else:
         raise ValueError('len(d) must be 1 or 0')
     for key in keys:
-        if HAS_NUMPY and isinstance(key, np.ndarray):
+        if HAVE_NUMPY and isinstance(key, np.ndarray):
             # recursive call
             yield list(dict_take_gen(dict_, key, *d))
         else:

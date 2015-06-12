@@ -16,13 +16,13 @@ from utool import util_dict
 from utool import util_arg
 try:
     import numpy as np
-    HAS_NUMPY = True
+    HAVE_NUMPY = True
 except ImportError as ex:
-    HAS_NUMPY = False
+    HAVE_NUMPY = False
     pass
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[dev]')
 
-if HAS_NUMPY:
+if HAVE_NUMPY:
     INDEXABLE_TYPES = (list, tuple, np.ndarray)
 else:
     INDEXABLE_TYPES = (list, tuple)

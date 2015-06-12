@@ -17,9 +17,9 @@ try:
     #from pygments import highlight
     #from pygments.lexers import get_lexer_by_name
     #from pygments.formatters import TerminalFormatter
-    HAS_PYGMENTS = True
+    HAVE_PYGMENTS = True
 except ImportError:
-    HAS_PYGMENTS = False
+    HAVE_PYGMENTS = False
 
 
 __AGGROFLUSH__ = '--aggroflush' in sys.argv
@@ -135,8 +135,8 @@ def inject_colored_exceptions():
     #COLORED_INJECTS = '--nocolorex' not in sys.argv
     #COLORED_INJECTS = '--colorex' in sys.argv
     # Ignore colored exceptions on win32
-    if HAS_PYGMENTS and not sys.platform.startswith('win32'):
-        if True or VERYVERBOSE:
+    if HAVE_PYGMENTS and not sys.platform.startswith('win32'):
+        if VERYVERBOSE:
             print('[inject] injecting colored exceptions')
         sys.excepthook = colored_pygments_excepthook
     else:

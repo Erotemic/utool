@@ -15,9 +15,9 @@ from utool import util_inject
 from utool._internal import meta_util_six
 try:
     import numpy as np
-    HAS_NUMPY = True
+    HAVE_NUMPY = True
 except ImportError:
-    HAS_NUMPY = False
+    HAVE_NUMPY = False
 (print, print_, printDBG, rrr, profile) = util_inject.inject(__name__, '[decor]')
 
 # Commandline to toggle certain convinience decorators
@@ -352,7 +352,7 @@ def accepts_scalar_input(func):
     @ignores_exc_tb(outer_wrapper=False)
     #@wraps(func)
     def wrp_asi(self, input_, *args, **kwargs):
-        #if HAS_PANDAS:
+        #if HAVE_PANDAS:
         #    if isinstance(input_, (pd.DataFrame, pd.Series)):
         #        input_ = input_.values
         if util_iter.isiterable(input_):
@@ -480,7 +480,7 @@ def accepts_numpy(func):
     #@ignores_exc_tb
     #@wraps(func)
     def wrp_accepts_numpy(self, input_, *args, **kwargs):
-        if not (HAS_NUMPY and isinstance(input_, np.ndarray)):
+        if not (HAVE_NUMPY and isinstance(input_, np.ndarray)):
             # If the input is not numpy, just call the function
             return func(self, input_, *args, **kwargs)
         else:

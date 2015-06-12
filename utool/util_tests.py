@@ -36,6 +36,9 @@ PRINT_FACE = not util_arg.get_argflag(('--noprintface', '--noface'))
 #BIGFACE = False
 BIGFACE = util_arg.get_argflag('--bigface')
 SYSEXIT_ON_FAIL = util_arg.get_argflag('--sysexitonfail')
+VERBOSE_TIMER = not util_arg.get_argflag('--no-time-tests')
+INDENT_TEST   = False
+EXEC_MODE = util_arg.get_argflag('--exec-mode', help_='dummy flag that will be removed')
 
 ModuleDoctestTup = namedtuple('ModuleDoctestTup', ('enabled_testtup_list', 'frame_fpath', 'all_testflags', 'module'))
 
@@ -84,24 +87,6 @@ else:
     HAPPY_FACE = HAPPY_FACE_SMALL
     #SAD_FACE = SAD_FACE_BIG
     SAD_FACE = SAD_FACE_SMALL
-
-
-def _get_testable_name(testable):
-    """
-    Depth 3)
-    called by get_module_doctest_tup
-    """
-    import utool
-    try:
-        testable_name = testable.func_name
-    except AttributeError as ex1:
-        try:
-            testable_name = testable.__name__
-        except AttributeError as ex2:
-            utool.printex(ex1, utool.list_str(dir(testable)))
-            utool.printex(ex2, utool.list_str(dir(testable)))
-            raise
-    return testable_name
 
 
 def dev_ipython_copypaster(func):
@@ -586,15 +571,36 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         test_sentinals.append('SLOW_DOCTEST')
     if testslow or ut.get_argflag(('--testall', '--testunstable')):
         test_sentinals.append('UNSTABLE_DOCTEST')
+    # FIND THE TEST NAMES REQUESTED
     # Grab sys.argv enabled tests
     force_enable_testnames = []
+    valid_prefix_list = ['--exec-', '--test-']
     for arg in sys.argv:
-        if arg.startswith('--test-'):
-            testname = arg[7:].split(':')[0].replace('-', '_')
-            force_enable_testnames.append(testname)
+        for prefix in valid_prefix_list:
+            if arg.startswith(prefix):
+                testname = arg[len(prefix):].split(':')[0].replace('-', '_')
+                force_enable_testnames.append(testname)
+                # TODO: parse out requested number up here
+                break
     #print(force_enable_testnames)
+    def _get_testable_name(testable):
+        """
+        Depth 3)
+        called by get_module_doctest_tup
+        """
+        import utool
+        try:
+            testable_name = testable.func_name
+        except AttributeError as ex1:
+            try:
+                testable_name = testable.__name__
+            except AttributeError as ex2:
+                utool.printex(ex1, utool.list_str(dir(testable)))
+                utool.printex(ex2, utool.list_str(dir(testable)))
+                raise
+        return testable_name
+
     sorted_testable = sorted(list(set(testable_list)), key=_get_testable_name)
-    testtup_list = []
     # Append each testable example
     if VERBOSE_TEST:
         print('Vars:')
@@ -604,6 +610,8 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         print('len(sorted_testable) = %r' % (len(sorted_testable),))
 
         indenter.start()
+    # PARSE OUT THE AVAILABLE TESTS FOR EACH REQUEST
+    local_testtup_list = []
     for testable in sorted_testable:
         testname = _get_testable_name(testable)
         testname2 = None
@@ -636,13 +644,13 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                 # and classname prefixes should probably be enforced
                 if testname2 is not None:
                     if VERBOSE_TEST:
-                        print(' * HACK adding testname=%r to testtup_list' % (testname,))
-                    testtup = (testname2, testno, src_, want)
-                    testtup_list.append(testtup)
+                        print(' * HACK adding testname=%r to local_testtup_list' % (testname,))
+                    local_testtup = (testname2, testno, src_, want)
+                    local_testtup_list.append(local_testtup)
                 if VERBOSE_TEST:
-                    print(' * adding testname=%r to testtup_list' % (testname,))
-                testtup = (testname, testno, src_, want)
-                testtup_list.append(testtup)
+                    print(' * adding testname=%r to local_testtup_list' % (testname,))
+                local_testtup = (testname, testno, src_, want)
+                local_testtup_list.append(local_testtup)
         else:
             print('WARNING: no examples in %r for testname=%r' % (frame_fpath, testname))
             if verbose:
@@ -662,26 +670,33 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         indenter = ut.Indenter('[CHECK_REQUESTED]')
         indenter.start()
         print('Get enabled (requested) examples')
-        print('len(testtup_list) = %r' % (len(testtup_list),))
-        #print('(testtup_list) = %r' % (testtup_list,))
+        print('len(local_testtup_list) = %r' % (len(local_testtup_list),))
+        #print('(local_testtup_list) = %r' % (local_testtup_list,))
     all_testflags = []
     enabled_testtup_list = []
     distabled_testflags  = []
     subx = ut.get_argval('--subx', type_=int, default=None,
                          help_='Only tests the subxth example')
-    for testtup in testtup_list:
-        (name, num, src, want) = testtup
-        prefix = '--test-'
-        flag1 = prefix + name + ':' + str(num)
-        flag2 = prefix + name
-        flag3 = prefix + name.replace('_', '-') + ':' + str(num)
-        flag4 = prefix + name.replace('_', '-')
-        valid_flags = (flag1, flag2, flag3, flag4)
-        if VERBOSE_TEST:
-            print(' checking sys.argv for:\n %s' % (ut.list_str(valid_flags),))
-        testflag = ut.get_argflag(valid_flags)
+    for local_testtup in local_testtup_list:
+        (name, num, src, want) = local_testtup
+        valid_flags = []
+        exec_mode = None
+        for prefix in valid_prefix_list:
+            #prefix = '--test-'
+            flag1 = prefix + name + ':' + str(num)
+            flag2 = prefix + name
+            flag3 = prefix + name.replace('_', '-') + ':' + str(num)
+            flag4 = prefix + name.replace('_', '-')
+            valid_flags += [flag1, flag2, flag3, flag4]
+            if VERBOSE_TEST:
+                print(' checking sys.argv for:\n %s' % (ut.list_str(valid_flags),))
+            testflag = ut.get_argflag(valid_flags)
+            # TODO: run in exec mode
+            exec_mode = prefix == '--exec-'  # NOQA
+
         #if VERBOSE_TEST:
         #    print('... testflag=%r' % (testflag,))
+
         testenabled = TEST_ALL_EXAMPLES  or not check_flags or testflag
         #if VERBOSE_TEST:
         #    print('... testenabled=%r' % (testenabled,))
@@ -706,6 +721,12 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     return mod_doctest_tup
 
 
+def doctest_was_requested():
+    """ lets a  __main__ codeblock know that util_test should do its thing """
+    valid_prefix_list = ['--exec-', '--test-']
+    return any([any([arg.startswith(prefix) for prefix in valid_prefix_list]) for arg in sys.argv])
+
+
 def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples=None,
                   needs_enable=None, strict=False, verbose=True):
     """
@@ -714,7 +735,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
 
     Args:
         testable_list (list):
-        check_flags (bool):
+        check_flags (bool): Force checking of the --test- and --exec- flags
         module (None):
         allexamples (None):
         needs_enable (None):
@@ -765,7 +786,10 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
         print('\n\n')
         print('--------------------------------------------------------------')
         print('--------------------------------------------------------------')
-        print(' ---- DOCTEST ' + name.upper() + ':' + str(num) + '---')
+        if EXEC_MODE:
+            print(' ---- EXEC ' + name.upper() + ':' + str(num) + '---')
+        else:
+            print(' ---- DOCTEST ' + name.upper() + ':' + str(num) + '---')
         if PRINT_SRC or VERBOSE_TEST:
             print(ut.msgblock('EXEC SRC', src))
         test_globals = module.__dict__.copy()
@@ -801,10 +825,12 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
         print('Please choose one of the following flags or specify --enableall')
         print('Valid test argflags:\n' + '    --allexamples' +
                 ut.indentjoin(all_testflags, '\n    '))
-    print('+-------')
-    print('| finished testing fpath=%r' % (frame_fpath,))
-    print('| passed %d / %d' % (nPass, nTotal))
-    print('L-------')
+
+    if not EXEC_MODE:
+        print('+-------')
+        print('| finished testing fpath=%r' % (frame_fpath,))
+        print('| passed %d / %d' % (nPass, nTotal))
+        print('L-------')
     failed_cmd_list = []
     if nFail > 0:
         #modname = module.__name__
@@ -843,18 +869,23 @@ def run_test(func_or_doctesttup, *args, **kwargs):
     if ut.VERBOSE:
         printTEST('[TEST.BEGIN] %s ' % (sys.executable))
         printTEST('[TEST.BEGIN] %s ' % (funcname,))
-    VERBOSE_TIMER = True
-    INDENT_TEST   = False
     #print('  <funcname>  ')
     #print('  <' + funcname + '>  ')
     #short_funcname = ut.clipstr(funcname, 8)
-    with util_print.Indenter('  <' + funcname + '>  ', enabled=INDENT_TEST):
+    # TODO: make the --exec- prefix specify this instead of --test-
+    exec_mode = EXEC_MODE
+    verbose_timer = not exec_mode and VERBOSE_TIMER
+    nocheckwant = True if exec_mode else None
+    print_face = not exec_mode and PRINT_FACE
+    indent_test = not exec_mode and INDENT_TEST
+
+    with util_print.Indenter('  <' + funcname + '>  ', enabled=indent_test):
         try:
             #+----------------
             # RUN THE TEST WITH A TIMER
-            with util_time.Timer(upper_funcname, verbose=VERBOSE_TIMER) as timer:
+            with util_time.Timer(upper_funcname, verbose=verbose_timer) as timer:
                 if func_is_text:
-                    test_locals = _exec_doctest(src, kwargs)
+                    test_locals = _exec_doctest(src, kwargs, nocheckwant)
                 else:
                     # TEST INPUT IS A LIVE PYTHON FUNCTION
                     test_locals = func_(*args, **kwargs)
@@ -862,17 +893,18 @@ def run_test(func_or_doctesttup, *args, **kwargs):
             #L________________
             #+----------------
             # LOG PASSING TEST
-            printTEST('[TEST.FINISH] %s -- SUCCESS' % (funcname,))
-            if PRINT_FACE:
-                print(HAPPY_FACE)
-            msg = '%.4fs in %s %s\n' % (
-                timer.ellapsed, funcname, frame_fpath)
-            try:
-                ut.write_to('test_times.txt', msg, mode='a')
-                #with open('test_times.txt', 'a') as file_:
-                #    file_.write(msg)
-            except IOError as ex:
-                ut.printex(ex, '[util_test] IOWarning', iswarning=True)
+            if not exec_mode:
+                printTEST('[TEST.FINISH] %s -- SUCCESS' % (funcname,))
+                if print_face:
+                    print(HAPPY_FACE)
+                msg = '%.4fs in %s %s\n' % (
+                    timer.ellapsed, funcname, frame_fpath)
+                try:
+                    ut.write_to('test_times.txt', msg, mode='a')
+                    #with open('test_times.txt', 'a') as file_:
+                    #    file_.write(msg)
+                except IOError as ex:
+                    ut.printex(ex, '[util_test] IOWarning', iswarning=True)
             #L________________
             # RETURN VALID TEST LOCALS
             return test_locals
@@ -932,7 +964,7 @@ def run_test(func_or_doctesttup, *args, **kwargs):
             return False
 
 
-def _exec_doctest(src, kwargs):
+def _exec_doctest(src, kwargs, nocheckwant=None):
     """
     Helper for run_test
 
@@ -950,9 +982,11 @@ def _exec_doctest(src, kwargs):
     except ExitTestException:
         print('Test exited before show')
         pass
-    nocheckwant = util_arg.get_argflag('--no-checkwant', help_='Turns off checking for results')
+    if nocheckwant is None:
+        nocheckwant = util_arg.get_argflag('--no-checkwant', help_='Turns off checking for results')
     if nocheckwant or want is None or want == '':
-        print('warning test does not want anything')
+        if not nocheckwant:
+            print('warning test does not want anything')
     else:
         if want.endswith('\n'):
             want = want[:-1]
@@ -1406,10 +1440,6 @@ def quit_if_noshow():
 def show_if_requested():
     import plottool as pt
     pt.show_if_requested()
-
-
-def doctest_was_requested():
-    return any([arg.startswith('--test-') for arg in sys.argv])
 
 
 if __name__ == '__main__':

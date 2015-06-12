@@ -6,10 +6,10 @@ import functools
 import types
 try:
     import numpy as np
-    HAS_NUMPY = True
+    HAVE_NUMPY = True
 except ImportError:
     # TODO remove numpy
-    HAS_NUMPY = False
+    HAVE_NUMPY = False
     pass
 from utool import util_inject
 from utool._internal.meta_util_six import IntType, LongType, FloatType, BooleanType
@@ -25,7 +25,7 @@ else:
 
 
 # Very odd that I have to put in dtypes in two different ways.
-if HAS_NUMPY:
+if HAVE_NUMPY:
     NUMPY_SCALAR_NAMES = sorted(list(set(
         [str_.replace('numpy.', '')
          for str_ in (type_str(type_) for type_ in np.ScalarType)
@@ -168,7 +168,7 @@ def assert_int(var, lbl='var'):
         print('[tools] VALID_INT_TYPES: %r' % VALID_INT_TYPES)
         raise
 
-if HAS_NUMPY:
+if HAVE_NUMPY:
     if sys.platform == 'win32':
         # Well this is a weird system specific error
         # https://github.com/numpy/numpy/issues/3667
@@ -308,7 +308,7 @@ def get_homogenous_list_type(list_):
     items in the list are of the same type. does not check this
     """
     # TODO Expand and make work correctly
-    if HAS_NUMPY and isinstance(list_, np.ndarray):
+    if HAVE_NUMPY and isinstance(list_, np.ndarray):
         item = list_
     elif isinstance(list_, list) and len(list_) > 0:
         item = list_[0]
