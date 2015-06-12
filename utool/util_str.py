@@ -1085,10 +1085,10 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None, truncate=Fa
         >>> # ENABLE_DOCTEST
         >>> from utool.util_str import *  # NOQA
         >>> import utool as ut
-        >>> list_ = [[(('--verbose-qt', '--verbqt'), bool, False, ''),
-        ...     (('--verbose-qt', '--verbqt'), bool, False, ''), (('--verbose-qt',
-        ...     '--verbqt'), bool, False, ''), (('--verbose-qt', '--verbqt'), bool,
-        ...     False, '')], [(['--nodyn'], bool, False, ''), (['--nodyn'], bool, False,
+        >>> list_ = [[(('--verbose-qt', '--verbqt'), 1, False, ''),
+        ...     (('--verbose-qt', '--verbqt'), 1, False, ''), (('--verbose-qt',
+        ...     '--verbqt'), 1, False, ''), (('--verbose-qt', '--verbqt'), 1,
+        ...     False, '')], [(['--nodyn'], 1, False, ''), (['--nodyn'], 1, False,
         ...     '')]]
         >>> indent_ = ''
         >>> newlines = 2
@@ -1099,14 +1099,14 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None, truncate=Fa
         >>> print(result)
         [
             [
-                (('--verbose-qt', '--verbqt'), <type 'bool'>, False, ''),
-                (('--verbose-qt', '--verbqt'), <type 'bool'>, False, ''),
-                (('--verbose-qt', '--verbqt'), <type 'bool'>, False, ''),
-                (('--verbose-qt', '--verbqt'), <type 'bool'>, False, ''),
+                (('--verbose-qt', '--verbqt'), 1, False, ''),
+                (('--verbose-qt', '--verbqt'), 1, False, ''),
+                (('--verbose-qt', '--verbqt'), 1, False, ''),
+                (('--verbose-qt', '--verbqt'), 1, False, ''),
             ],
             [
-                (['--nodyn'], <type 'bool'>, False, ''),
-                (['--nodyn'], <type 'bool'>, False, ''),
+                (['--nodyn'], 1, False, ''),
+                (['--nodyn'], 1, False, ''),
             ],
         ]
     """
