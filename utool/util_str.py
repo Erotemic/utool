@@ -1084,6 +1084,7 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None, truncate=Fa
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_str import *  # NOQA
+        >>> import utool as ut
         >>> list_ = [[(('--verbose-qt', '--verbqt'), bool, False, ''),
         ...     (('--verbose-qt', '--verbqt'), bool, False, ''), (('--verbose-qt',
         ...     '--verbqt'), bool, False, ''), (('--verbose-qt', '--verbqt'), bool,
