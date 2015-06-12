@@ -33,18 +33,85 @@ QUIET        = meta_util_arg.QUIET
 __REGISTERED_ARGS__ = []
 
 
+def reset_argrecord():
+    """ forgets about the args already parsed """
+    global __REGISTERED_ARGS__
+    __REGISTERED_ARGS__ = []
+
+
+def _register_arg(argstr_list, type_, default, help_):
+    # TODO REGISTER PARENTS
+    global __REGISTERED_ARGS__
+    __REGISTERED_ARGS__.append((argstr_list, type_, default, help_))
+
+
+def autogen_argparse_block(extra_args=[]):
+    """
+    SHOULD TURN ANY REGISTERED ARGS INTO A A NEW PARSING CONFIG
+    FILE FOR BETTER --help COMMANDS
+
+    import utool as ut
+    __REGISTERED_ARGS__ = ut.util_arg.__REGISTERED_ARGS__
+
+    Args:
+        extra_args (list): (default = [])
+
+    CommandLine:
+        python -m utool.util_arg --test-autogen_argparse_block
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> import utool as ut
+        >>> extra_args = []
+        >>> result = ut.autogen_argparse_block(extra_args)
+        >>> print(result)
+    """
+    #import utool as ut  # NOQA
+    #__REGISTERED_ARGS__
+    # TODO FINISHME
+
+    grouped_args = []
+    # Group similar a args
+    for argtup in __REGISTERED_ARGS__:
+        argstr_list, type_, default, help_ = argtup
+        argstr_set = set(argstr_list)
+        # <MULTIKEY_SETATTR>
+        # hack in multikey setattr n**2 yuck
+        found = False
+        for index, (keyset, vals) in enumerate(grouped_args):
+            if len(keyset.intersection(argstr_set)) > 0:
+                # update
+                keyset.update(argstr_set)
+                vals.append(argtup)
+                found = True
+                break
+        if not found:
+            new_keyset = argstr_set
+            new_vals = [argtup]
+            grouped_args.append((new_keyset, new_vals))
+        # </MULTIKEY_SETATTR>
+    # DEBUG
+    multi_groups = []
+    for keyset, vals in grouped_args:
+        if len(vals) > 1:
+            multi_groups.append(vals)
+    if len(multi_groups) > 0:
+        import utool as ut
+        print('Following arg was specified multiple times')
+        print(ut.list_str(multi_groups, newlines=2))
+
+
 @profile
 def get_argflag(argstr_, default=False, help_='', return_was_specified=False, **kwargs):
     """
     Checks if the commandline has a flag or a corresponding noflag
     """
-    global __REGISTERED_ARGS__
     assert isinstance(default, bool), 'default must be boolean'
     argstr_list = meta_util_iter.ensure_iterable(argstr_)
     #if VERYVERBOSE:
     #    print('[util_arg] checking argstr_list=%r' % (argstr_list,))
     # arg registration
-    __REGISTERED_ARGS__.append((argstr_list, bool, default, help_))
+    _register_arg(argstr_list, bool, default, help_)
     parsed_val = default
     was_specified = False
     for argstr in argstr_list:
@@ -99,7 +166,6 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True, re
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest', float)]])" --quest 42
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--nAssign'), int)]])" --nAssign 42
     """
-    global __REGISTERED_ARGS__
     #print(argstr_)
     was_specified = False
     arg_after = default
@@ -109,7 +175,7 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True, re
         # New for loop way (accounts for =)
         argstr_list = meta_util_iter.ensure_iterable(argstr_)
         # arg registration
-        __REGISTERED_ARGS__.append((argstr_list, type_, default, help_))
+        _register_arg(argstr_list, type_, default, help_)
 
         for argx, item in enumerate(sys.argv):
             for argstr in argstr_list:

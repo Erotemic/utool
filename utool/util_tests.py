@@ -950,7 +950,8 @@ def _exec_doctest(src, kwargs):
     except ExitTestException:
         print('Test exited before show')
         pass
-    if want is None or want == '':
+    nocheckwant = util_arg.get_argflag('--no-checkwant', help_='Turns off checking for results')
+    if nocheckwant or want is None or want == '':
         print('warning test does not want anything')
     else:
         if want.endswith('\n'):

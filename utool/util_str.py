@@ -859,7 +859,8 @@ def numeric_str(num, precision=8, **kwargs):
 
 def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
                       recursive=True, indent_='', precision=8,
-                      hack_liststr=False, explicit=False, truncate=False):
+                      hack_liststr=False, explicit=False, truncate=False,
+                      truncatekw=dict()):
     """
     Returns:
         list: a list of human-readable dictionary items
@@ -898,7 +899,8 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
             # recursive call
             return dict_str(val, strvals=strvals, sorted_=sorted_,
                             newlines=newlines, recursive=recursive,
-                            indent_=indent_ + '    ', precision=precision, truncate=truncate)
+                            indent_=indent_ + '    ', precision=precision,
+                            truncate=truncate, truncatekw=truncatekw)
         elif util_type.HAS_NUMPY and isinstance(val, np.ndarray):
             return numpy_str(val, strvals=strvals, precision=precision)
         if hack_liststr and isinstance(val, list):
@@ -1017,6 +1019,8 @@ def list_str_summarized(list_, list_name, maxlen=5):
 def _rectify_countdown_or_bool(count_or_bool):
     """
     used by recrusive functions to specify which level to turn a bool on in
+    counting down yeilds True, True, ..., False
+    conting up yeilds False, False, False, ... True
 
     Args:
         count_or_bool (bool or int): if positive will count down, if negative will count up, if bool will remain same
@@ -1040,6 +1044,8 @@ def _rectify_countdown_or_bool(count_or_bool):
         >>> a7 = (_rectify_countdown_or_bool(False))
         >>> result = [a1, a2, a3, a4, a5, a6, a7]
         >>> print(result)
+        [1.0, 0.0, 0, 0.0, -1.0, True, False]
+
         [1.0, True, False, False, -1.0, True, False]
     """
     import math
@@ -1051,7 +1057,7 @@ def _rectify_countdown_or_bool(count_or_bool):
         if count_or_bool == 0:
             return 0
         sign_ =  math.copysign(1, count_or_bool)
-        count_or_bool_ = count_or_bool - sign_
+        count_or_bool_ = int(count_or_bool - sign_)
         #if count_or_bool_ == 0:
         #    return sign_ == 1
     else:
@@ -1059,7 +1065,49 @@ def _rectify_countdown_or_bool(count_or_bool):
     return count_or_bool_
 
 
-def list_str(list_, indent_='', newlines=1, nobraces=False, *args, **kwargs):
+def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None, *args, **kwargs):
+    r"""
+    Args:
+        list_ (list):
+        indent_ (str): (default = '')
+        newlines (int): (default = 1)
+        nobraces (bool): (default = False)
+        nl (None): alias for newlines (default = None)
+
+    Returns:
+        str: body_str
+
+    CommandLine:
+        python -m utool.util_str --test-list_str
+        python -m utool.util_str --test-list_str --no-checkwant
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> list_ = [[(('--verbose-qt', '--verbqt'), bool, False, ''),
+        ...     (('--verbose-qt', '--verbqt'), bool, False, ''), (('--verbose-qt',
+        ...     '--verbqt'), bool, False, ''), (('--verbose-qt', '--verbqt'), bool,
+        ...     False, '')], [(['--nodyn'], bool, False, ''), (['--nodyn'], bool, False,
+        ...     '')]]
+        >>> indent_ = ''
+        >>> newlines = 2
+        >>> nobraces = False
+        >>> nl = None
+        >>> result = list_str(list_, indent_, newlines, nobraces, nl)
+        >>> print(result)
+        [
+            [
+                (('--verbose-qt', '--verbqt'), <type 'bool'>, False, ''),
+                (('--verbose-qt', '--verbqt'), <type 'bool'>, False, ''),
+                (('--verbose-qt', '--verbqt'), <type 'bool'>, False, ''),
+                (('--verbose-qt', '--verbqt'), <type 'bool'>, False, ''),
+            ],
+            [
+                (['--nodyn'], <type 'bool'>, False, ''),
+                (['--nodyn'], <type 'bool'>, False, ''),
+            ],
+        ]
+    """
     #return '[%s\n]' % indentjoin(list(list_), suffix=',')
     #if newlines is True:
     #    newlines_ = newlines
@@ -1068,7 +1116,12 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, *args, **kwargs):
     #    newlines_ = newlines - 1
     #else:
     #    newlines_ = False
+    if nl is not None:
+        newlines = nl
     newlines_ = _rectify_countdown_or_bool(newlines)
+    #print('--')
+    #print(indent_ + 'newlines = %r' % (newlines,))
+    #print(indent_ + 'newlines_ = %r' % (newlines_,))
 
     itemstr_list = get_itemstr_list(list_, indent_=indent_, newlines=newlines_, *args, **kwargs)
     if isinstance(list_, tuple):
@@ -1076,7 +1129,7 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, *args, **kwargs):
     else:
         leftbrace, rightbrace  = '[', ']'
 
-    if newlines:
+    if newlines is not False and (newlines is True or newlines > 0):
         import utool as ut
         if nobraces:
             body_str = '\n'.join(itemstr_list)
@@ -1094,7 +1147,8 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, *args, **kwargs):
 
 
 def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
-             indent_='', precision=8, hack_liststr=False, truncate=False, nl=None, explicit=False):
+             indent_='', precision=8, hack_liststr=False, truncate=False,
+             nl=None, explicit=False, truncatekw=dict()):
     """
     FIXME: ALL LIST DICT STRINGS ARE VERY SPAGEHETTI RIGHT NOW
     Returns:
@@ -1107,9 +1161,17 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
         >>> from utool.util_str import dict_str, dict_itemstr_list
         >>> import utool
         >>> #REPO_CONFIG = utool.get_default_repo_config()
-        >>> dict_ = {'foo': 'barbarbarbarbar' * 10, 'baz': 'biz'}
-        >>> repo_cfgstr   = dict_str(dict_, strvals=True)
+        >>> dict_ = {'foo': {'spam': 'barbarbarbarbar' * 3, 'eggs': 'jam'}, 'baz': 'barbarbarbarbar' * 3}
+        >>> truncate = 1
+        >>> repo_cfgstr   = dict_str(dict_, strvals=True, truncate=truncate, truncatekw={'maxlen': 20})
         >>> print(repo_cfgstr)
+        {
+            'baz': barbarbarbarbarbarbarbarbarbarbarbarbarbarbar,
+            'foo': {
+                'eggs': jam,
+                's ~~~TRUNCATED~~~ ,
+            },
+        }
     """
     if nl is not None:
         newlines = nl
@@ -1119,19 +1181,21 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
         else:
             return '{}'
     truncate_ = _rectify_countdown_or_bool(truncate)
-    #print('----')
-    #print(indent_ + 'truncate = %r' % (truncate,))
-    #print(indent_ + 'truncate_ = %r' % (truncate_,))
-    #print('----')
+    print('----')
+    print(indent_ + 'truncate = %r' % (truncate,))
+    print(indent_ + 'truncate_ = %r' % (truncate_,))
+    print('----')
 
     itemstr_list = dict_itemstr_list(dict_, strvals, sorted_, newlines,
-                                     recursive, indent_, precision, hack_liststr, explicit, truncate=truncate_)
+                                     recursive, indent_, precision,
+                                     hack_liststr, explicit,
+                                     truncate=truncate_, truncatekw=truncatekw)
     if truncate is not False and (truncate is True or truncate == 0):
-        print('----')
-        print(indent_ + 'truncate = %r' % (truncate,))
-        print(indent_ + 'Truncating')
-        print('----')
-        itemstr_list = [truncate_str(item) for item in itemstr_list]
+        #print('----')
+        #print(indent_ + 'truncate = %r' % (truncate,))
+        #print(indent_ + 'Truncating')
+        #print('----')
+        itemstr_list = [truncate_str(item, **truncatekw) for item in itemstr_list]
     if explicit:
         leftbrace, rightbrace  = 'dict(', ')'
     else:
