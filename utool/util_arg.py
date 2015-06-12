@@ -201,6 +201,7 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True, re
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest 42
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest', float)]])" --quest 42
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--nAssign'), int)]])" --nAssign 42
+        python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--test'), str)]])" --test
     """
     #print(argstr_)
     was_specified = False
@@ -680,7 +681,9 @@ def argparse_dict(default_dict_, lbl=None, verbose=None,
                 val = not notval
                 if not was_specified:
                     truekeys = list(set(make_argstrs(key, ['--'])))
-                    val, was_specified = get_argflag(truekeys, return_was_specified=True)
+                    val_, was_specified = get_argflag(truekeys, return_was_specified=True)
+                    if was_specified:
+                        val = val_
             elif default is False:
                 truekeys = list(set(make_argstrs(key, ['--'])))
                 val, was_specified = get_argflag(truekeys, return_was_specified=True)

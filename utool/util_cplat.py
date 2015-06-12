@@ -268,7 +268,8 @@ def view_directory(dname=None, verbose=True):
         dname = '"%s"' % dname
     import pipes
     dname_ = pipes.quote(dname)
-    os.system(open_prog + ' ' + dname_)
+    command = open_prog + ' ' + dname_
+    os.system(command)
 
 # Alias
 vd = view_directory
