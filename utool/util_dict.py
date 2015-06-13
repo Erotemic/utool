@@ -15,6 +15,31 @@ except ImportError:
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[dict]')
 
 
+def dict_map_apply_vals(dict_, func):
+    """ applies a function to each of the vals in dict_
+
+    Args:
+        dict_ (dict_):  a dictionary
+        func (function):
+
+    Returns:
+        dict_:
+
+    CommandLine:
+        python -m utool.util_dict --test-dict_map_apply_vals
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> dict_ = {'a': [1, 2, 3], 'b': []}
+        >>> func = len
+        >>> result = dict_map_apply_vals(dict_, func)
+        >>> print(result)
+        {'a': 3, 'b': 0}
+    """
+    return {key: func(val) for key, val in six.iteritems(dict_)}
+
+
 class AutoVivification(dict):
     """
     Implementation of perl's autovivification feature.
