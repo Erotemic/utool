@@ -484,17 +484,17 @@ def copy_files_to(src_fpath_list, dst_dpath=None, dst_fpath_list=None, overwrite
         print('[util_path] L___ DONE COPYING FILES ___')
 
 
-def copy(src, dst, overwrite=True, verbose=True):
+def copy(src, dst, overwrite=True, deeplink=True, verbose=True, dryrun=False):
     import utool as ut
     if ut.isiterable(src) and not ut.isiterable(dst):
         ut.copy_files_to(src, dst, overwrite=overwrite, verbose=verbose)
         # list to non list
         pass
     else:
-        return copy_single(src, dst, overwrite=overwrite, verbose=verbose)
+        return copy_single(src, dst, overwrite=overwrite, deeplink=deeplink, dryrun=dryrun, verbose=verbose)
 
 
-def copy_single(src, dst, overwrite=True, verbose=True):
+def copy_single(src, dst, overwrite=True, verbose=True, deeplink=True, dryrun=False):
     """
     Args:
         src (str): file or directory to copy
@@ -521,14 +521,21 @@ def copy_single(src, dst, overwrite=True, verbose=True):
         else:
             prefix = 'C'
             if verbose:
-                print('[util_path] [Copying]: ')
+                if dryrun:
+                    print('[util_path] [DryRun]: ')
+                else:
+                    print('[util_path] [Copying]: ')
         if verbose:
             print('[%s] | %s' % (prefix, src))
             print('[%s] ->%s' % (prefix, dst))
-        if isdir(src):
-            shutil.copytree(src, dst)
-        else:
-            shutil.copy2(src, dst)
+        if not dryrun:
+            if not deeplink and islink(src):
+                linkto = os.readlink(src)
+                symlink(linkto, dst)
+            elif isdir(src):
+                shutil.copytree(src, dst)
+            else:
+                shutil.copy2(src, dst)
     else:
         prefix = 'Miss'
         if verbose:

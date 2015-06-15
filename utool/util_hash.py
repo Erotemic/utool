@@ -102,12 +102,49 @@ def hashstr_arr(arr, lbl='arr', **kwargs):
 def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
     """
     python -c "import utool as ut; print(ut.hashstr('abcd'))"
+
+    Args:
+        data (?):
+        hashlen (int): (default = 16)
+        alphabet (list): list of characters:
+
+    Returns:
+        str: hashstr
+
+    CommandLine:
+        python -m utool.util_hash --test-hashstr
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_hash import *  # NOQA
+        >>> data = 'foobar'
+        >>> hashlen = 16
+        >>> alphabet = ALPHABET
+        >>> hashstr = hashstr(data, hashlen, alphabet)
+        >>> result = ('hashstr = %s' % (str(hashstr),))
+        >>> print(result)
+        hashstr = mi5yum60mbxhyp+x
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_hash import *  # NOQA
+        >>> data = ''
+        >>> hashlen = 16
+        >>> alphabet = ALPHABET
+        >>> hashstr = hashstr(data, hashlen, alphabet)
+        >>> result = ('hashstr = %s' % (str(hashstr),))
+        >>> print(result)
+        hashstr = 0000000000000000
     """
     if isinstance(data, tuple):
         data = repr(data)
     if six.PY3:
         if isinstance(data, str):
             data = data.encode('utf-8')
+    if isinstance(data, six.string_types) and len(data) == 0:
+        # Make a special hash for empty data
+        hashstr = (alphabet[0] * hashlen)
+        return hashstr
     # Get a 128 character hex string
     hashstr = hashlib.sha512(data).hexdigest()
     #if six.PY3:
