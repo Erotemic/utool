@@ -39,6 +39,8 @@ def dict_map_apply_vals(dict_, func):
     """
     return {key: func(val) for key, val in six.iteritems(dict_)}
 
+dict_val_map = dict_map_apply_vals
+
 
 class AutoVivification(dict):
     """

@@ -206,12 +206,38 @@ def textblock(multiline_text):
     return new_text
 
 
-def indent(string, indent='    '):
+def indent(str_, indent='    '):
     """
     Indents a block of text
+
+    Args:
+        str_ (str):
+        indent (str): (default = '    ') TODO rename to indent_ or rename func
+
+    Returns:
+        str:
+
+    CommandLine:
+        python -m utool.util_str --test-indent
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> str_ = 'foobar\nbazbiz'
+        >>> indent = '    '
+        >>> result = indent(str_, indent)
+        >>> print(result)
     """
-    indent_ = indent
-    return indent_ + string.replace('\n', '\n' + indent_)
+    return indent + indent_rest(str_, indent)
+
+
+def indent_rest(str_, indent='    '):
+    """ TODO fix name """
+    return str_.replace('\n', '\n' + indent)
+
+
+def indentcat(str1, str2, indent='    '):
+    return str1  + str2.replace('\n', '\n' + indent)
 
 
 def indentjoin(strlist, indent='\n    ', suffix=''):
@@ -786,7 +812,7 @@ def numpy_str2(arr, **kwargs):
     return numpy_str(arr, **kwargs)
 
 
-def numpy_str(arr, strvals=False, precision=8, pr=None, force_dtype=True, suppress_small=None, **kwargs):
+def numpy_str(arr, strvals=False, precision=8, pr=None, force_dtype=True, suppress_small=None, max_line_width=None, threshold=None, **kwargs):
     """
     suppress_small = False turns off scientific representation
     """
@@ -800,7 +826,10 @@ def numpy_str(arr, strvals=False, precision=8, pr=None, force_dtype=True, suppre
         valstr = np.array_str(arr, precision=precision, suppress_small=suppress_small, **kwargs)
     else:
         #valstr = np.array_repr(arr, precision=precision)
-        valstr = array_repr2(arr, precision=precision, force_dtype=force_dtype, suppress_small=suppress_small, **kwargs)
+        valstr = array_repr2(arr, precision=precision, force_dtype=force_dtype,
+                             suppress_small=suppress_small,
+                             max_line_width=max_line_width,
+                             threshold=threshold, **kwargs)
         numpy_vals = itertools.chain(util_type.NUMPY_SCALAR_NAMES, ['array'])
         for npval in numpy_vals:
             valstr = valstr.replace(npval, 'np.' + npval)
@@ -963,7 +992,8 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
 
 
 def get_itemstr_list(list_, strvals=False, newlines=True,
-                      recursive=True, indent_='', precision=8, **listkws):
+                      recursive=True, indent_='', precision=8, label_list=None,
+                     **listkws):
     """
     TODO: have this replace dict_itemstr list or at least most functionality in
     it. have it make two itemstr lists over keys and values and then combine
@@ -974,7 +1004,7 @@ def get_itemstr_list(list_, strvals=False, newlines=True,
     else:
         valfunc = repr
 
-    def recursive_valfunc(val):
+    def recursive_valfunc(val, sublabels=None):
         new_indent = indent_ + '    ' if newlines else indent_
         if isinstance(val, dict):
             # recursive call
@@ -987,21 +1017,36 @@ def get_itemstr_list(list_, strvals=False, newlines=True,
         if isinstance(val, (tuple, list)):
             return list_str(val, strvals=strvals, newlines=newlines,
                             recursive=recursive, indent_=new_indent,
-                            precision=precision, **listkws)
+                            precision=precision, label_list=sublabels,
+                            **listkws)
         elif util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
-            return numpy_str(val, strvals=strvals, precision=precision)
+            # TODO: generally pass down args
+            suppress_small = listkws.get('suppress_small', None)
+            return numpy_str(val, strvals=strvals, precision=precision, suppress_small=suppress_small)
         else:
             # base case
             return valfunc(val)
 
     _valstr = recursive_valfunc if recursive else valfunc
 
-    def make_item_str(item):
-        val_str = _valstr(item)
-        item_str = val_str + ','
+    def make_item_str(item, label=None):
+        if isinstance(label, (list, tuple)):
+            val_str = _valstr(item, label)
+        else:
+            val_str = _valstr(item)
+        if isinstance(label, six.string_types):
+            prefix = label + ' = '
+            #item_str = prefix + indent_rest(val_str, ' ' * len(prefix))
+            item_str = horiz_string(prefix,  val_str)
+        else:
+            item_str = val_str + ','
         return item_str
 
-    itemstr_list = [make_item_str(item) for item in list_]
+    if label_list is not None:
+        assert len(label_list) == len(list_)
+        itemstr_list = [make_item_str(item, label) for item, label in zip(list_, label_list)]
+    else:
+        itemstr_list = [make_item_str(item) for item in list_]
     return itemstr_list
 
 
@@ -1063,7 +1108,7 @@ def _rectify_countdown_or_bool(count_or_bool):
     return count_or_bool_
 
 
-def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None, truncate=False, truncatekw={}, **listkw):
+def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None, truncate=False, truncatekw={}, label_list=None, **listkw):
     r"""
     Args:
         list_ (list):
@@ -1126,7 +1171,9 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None, truncate=Fa
     #print(indent_ + 'newlines = %r' % (newlines,))
     #print(indent_ + 'newlines_ = %r' % (newlines_,))
 
-    itemstr_list = get_itemstr_list(list_, indent_=indent_, newlines=newlines_, truncate=truncate_, truncatekw=truncatekw, **listkw)
+    itemstr_list = get_itemstr_list(list_, indent_=indent_, newlines=newlines_,
+                                    truncate=truncate_, truncatekw=truncatekw,
+                                    label_list=label_list, **listkw)
     if isinstance(list_, tuple):
         leftbrace, rightbrace  = '(', ')'
     else:
@@ -1134,7 +1181,7 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None, truncate=Fa
 
     if newlines is not False and (newlines is True or newlines > 0):
         import utool as ut
-        if nobraces:
+        if nobraces or label_list is not None:
             body_str = '\n'.join(itemstr_list)
             retstr = body_str
         else:
@@ -1238,10 +1285,13 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
 
 def horiz_string(*args, **kwargs):
     """
-    Horizontally prints objects
+    Horizontally concatenates strings reprs preserving indentation
 
-    Prints a list of objects ensuring that the next item in the list
+    Concats a list of objects ensuring that the next item in the list
     is all the way to the right of any previous items.
+
+    CommandLine:
+        python -m utool.util_str --test-horiz_string
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -1282,12 +1332,13 @@ def horiz_string(*args, **kwargs):
         str_ = None
         if precision is not None:
             # Hack in numpy precision
-            try:
-                import numpy as np
-                if isinstance(val, np.ndarray):
-                    str_ = np.array_str(val, precision=precision, suppress_small=True)
-            except ImportError:
-                pass
+            if util_type.HAVE_NUMPY:
+                try:
+                    import numpy as np
+                    if isinstance(val, np.ndarray):
+                        str_ = np.array_str(val, precision=precision, suppress_small=True)
+                except ImportError:
+                    pass
         if str_ is None:
             str_ = str(val_list[sx])
         # continue with formating

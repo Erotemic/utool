@@ -129,6 +129,7 @@ def get_dev_hints():
         # Numpy Hints
         ('shape'    , ('tuple', 'array dimensions')),
         ('chipshape'    , ('tuple', 'height, width')),
+        ('rng'    , ('RandomState', 'random number generator')),
 
         # Opencv hings
         ('dsize'    , ('tuple', 'width, height')),

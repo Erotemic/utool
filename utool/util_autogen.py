@@ -322,6 +322,7 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
         'img_in'     : 'vt.imread(img_fpath)',
         'bbox'       : '(10, 10, 50, 50)',
         'theta'      : '0.0',
+        'rng'      : 'np.random.RandomState(0)',
     }
     import_depends_map = {
         'ibeis':    'import ibeis',
