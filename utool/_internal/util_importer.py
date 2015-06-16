@@ -321,16 +321,20 @@ def dynamic_import(modname, IMPORT_TUPLES, developing=True, ignore_froms=[],
             print("attempting to update: %r" % init_fpath)
             assert exists(init_fpath)
             new_lines = []
-            broken = False
+            editing = False
+            updated = False
             with open(init_fpath, 'r') as file_:
                 lines = file_.readlines()
                 for line in lines:
-                    new_lines.append(line)
+                    if not editing:
+                        new_lines.append(line)
                     if line.strip().startswith('# <AUTOGEN_INIT>'):
-                        new_lines.append('\n' + new_else + '\n    # </AUTOGEN_INIT>')
-                        broken = True
-                        break
-            if broken:
+                        new_lines.append('\n' + new_else + '\n    # </AUTOGEN_INIT>\n')
+                        editing = True
+                        updated = True
+                    if line.strip().startswith('# </AUTOGEN_INIT>'):
+                        editing = False
+            if updated:
                 print("writing updated file: %r" % init_fpath)
                 new_text = ''.join(new_lines)
                 with open(init_fpath, 'w') as file_:
