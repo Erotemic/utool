@@ -180,11 +180,10 @@ if DOELSE:
                                 item_hist, knapsack, negative_minclamp_inplace, 
                                 norm_zero_one, normalize, rad_to_deg, safe_div, 
                                 safe_max, safe_pdist, search_utool, 
-                                triangular_number, unique_row_indexes, 
-                                unixtime_hourdiff, unpack_items_sorted, 
+                                triangular_number, unixtime_hourdiff, 
+                                unpack_items_sorted, 
                                 unpack_items_sorted_by_lenvalue, 
-                                unpack_items_sorted_by_value, 
-                                void_rowview_numpy, xywh_to_tlbr,) 
+                                unpack_items_sorted_by_value, xywh_to_tlbr,) 
     from utool.util_aliases import (OrderedDict, ddict, iprod, namedtuple, 
                                     odict, product,) 
     from utool.util_arg import (ArgumentParser2, DEBUG2, NOT_QUIET, NO_ASSERTS, 

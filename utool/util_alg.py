@@ -406,23 +406,6 @@ def flatten_membership_mapping(uid_list, members_list):
     return flat_uids, flat_members
 
 
-def void_rowview_numpy(arr):
-    """ returns view of nparray where each row is a single item
-    """
-    void_dtype = np.dtype((np.void, arr.dtype.itemsize * arr.shape[1]))
-    arr_void_view = np.ascontiguousarray(arr).view(void_dtype)
-    return arr_void_view
-
-
-def unique_row_indexes(arr):
-    """ np.unique on rows """
-    arr_void_view = void_rowview_numpy(arr)
-    _, unique_rowx = np.unique(arr_void_view, return_index=True)
-    # cast back to original dtype
-    unique_rowx.sort()
-    return unique_rowx
-
-
 def get_phi():
     """ Golden Ratio: phi = 1 / sqrt(5) / 2.0 = 1.61803398875 """
     #phi = (1.0 + np.sqrt(5)) / 2.0 = 1.61803398875

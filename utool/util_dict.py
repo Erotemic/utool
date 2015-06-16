@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """ convinience functions for dictionaries """
 from __future__ import absolute_import, division, print_function
 from collections import defaultdict, OrderedDict
@@ -821,6 +822,8 @@ def dict_hist(item_list):
 
 def merge_dicts(*args):
     r"""
+    add / concatenate / join / merge / combine dictionaries
+
     Returns:
         dict: mergedict_
 
