@@ -57,6 +57,11 @@ def truepath_relative(path, otherpath=None):
     return normpath(relpath(path, otherpath))
 
 
+def tail(fpath, n=2):
+    """ Alias for path_ndir_split """
+    return path_ndir_split(fpath, n=n)
+
+
 def path_ndir_split(path_, n, force_unix=True, winroot='C:'):
     r"""
     Shows only a little bit of the path. Up to the n bottom-level directories
@@ -936,11 +941,6 @@ def get_module_subdir_list(module_fpath):
         _modsubdir_list.append(dname)
     modsubdir_list = _modsubdir_list[::-1]
     return modsubdir_list
-
-
-def tail(fpath, n=2):
-    """ Alias for path_ndir_split """
-    return path_ndir_split(fpath, n=n)
 
 
 def ls(path, pattern='*'):

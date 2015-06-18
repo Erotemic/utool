@@ -147,9 +147,35 @@ def get_nonconflicting_string(base_fmtstr, conflict_set, offset=0):
             return base_str
 
 
-def get_nonconflicting_path(base_fmtstr, dpath, offset=0):
+def get_nonconflicting_path_old(base_fmtstr, dpath, offset=0):
+    r"""
+    base_fmtstr must have a %d in it
+    """
     import utool as ut
     from os.path import basename
+
+    pattern = '*'
+    dname_list = ut.glob(dpath, pattern, recursive=False,
+                               with_files=True, with_dirs=True)
+    conflict_set = set([basename(dname) for dname in dname_list])
+
+    newname = ut.get_nonconflicting_string(base_fmtstr, conflict_set, offset=offset)
+    newpath = join(dpath, newname)
+    return newpath
+
+
+def get_nonconflicting_path(path_, dpath=None, offset=0):
+    r"""
+    """
+    import utool as ut
+    from os.path import basename, dirname
+
+    if dpath is None:
+        dpath = dirname(path_)
+    base_fmtstr = basename(path_)
+    if '%' not in base_fmtstr:
+        base_fmtstr += '%d'
+
     pattern = '*'
     dname_list = ut.glob(dpath, pattern, recursive=False,
                                with_files=True, with_dirs=True)
@@ -635,9 +661,40 @@ class InteractiveIter(object):
     Choose next value interactively
 
     iterable should be a list, not a generator. sorry
+
     """
     def __init__(iiter, iterable=None, enabled=True, startx=0,
-                 default_action='next', custom_actions=[], wraparound=False, display_item=True):
+                 default_action='next', custom_actions=[], wraparound=False,
+                 display_item=True, verbose=True):
+        r"""
+        Args:
+            iterable (None): (default = None)
+            enabled (bool): (default = True)
+            startx (int): (default = 0)
+            default_action (str): (default = 'next')
+            custom_actions (list): (default = [])
+            wraparound (bool): (default = False)
+            display_item (bool): (default = True)
+            verbose (bool):  verbosity flag(default = True)
+
+        CommandLine:
+            python -m utool.util_dev --test-InteractiveIter.__init__
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from utool.util_dev import *  # NOQA
+            >>> iterable = [1, 2, 3]
+            >>> enabled = True
+            >>> startx = 0
+            >>> default_action = 'next'
+            >>> custom_actions = []
+            >>> wraparound = False
+            >>> display_item = True
+            >>> verbose = True
+            >>> iiter = InteractiveIter(iterable, enabled, startx, default_action, custom_actions, wraparound, display_item, verbose)
+            >>> for _ in iiter:
+            >>>     pass
+        """
         import utool as ut
         iiter.wraparound = wraparound
         iiter.enabled = enabled
@@ -659,7 +716,21 @@ class InteractiveIter(object):
         iiter.action_keys = {tup[0]: tup[1] for tup in iiter.action_tuples}
         iiter.index = startx
         iiter.display_item = display_item
+        iiter.verbose = verbose
         pass
+
+    @classmethod
+    def eventloop(cls, custom_actions=[]):
+        """
+        For use outside of iteration wrapping. Makes an interactive event loop
+        custom_actions should be specified in format
+        [dispname, keys, desc, func]
+        """
+        iiter = cls([None], custom_actions=custom_actions, verbose=False)
+        print('[IITER] Begining interactive main loop')
+        for _ in iiter:
+            pass
+        return iiter
 
     def __iter__(iiter):
         import utool as ut
@@ -667,29 +738,35 @@ class InteractiveIter(object):
             for item in ut.ProgressIter(iiter.iterable, lbl='nointeract: '):
                 yield item
             raise StopIteration()
-        assert isinstance(iiter.iterable, INDEXABLE_TYPES)
+        assert isinstance(iiter.iterable, INDEXABLE_TYPES), 'input is not iterable'
         iiter.num_items = len(iiter.iterable)
-        print('[IITER] Begin interactive iteration: %r items\n' % (iiter.num_items))
+        if iiter.verbose:
+            print('[IITER] Begin interactive iteration: %r items\n' % (iiter.num_items))
         if iiter.num_items == 0:
             raise StopIteration
         mark_, end_ = util_progress.log_progress(total=iiter.num_items, lbl='interaction: ', freq=1)
         while True:
-            print('')
+            if iiter.verbose:
+                print('')
             if iiter.wraparound:
                 iiter.index = iiter.index % len(iiter.iterable)
             if iiter.index >= len(iiter.iterable):
-                print('Got to end the end of the iterable')
+                if iiter.verbose:
+                    print('Got to end the end of the iterable')
                 break
             mark_(iiter.index)
             item = iiter.iterable[iiter.index]
-            print('')
+            if iiter.verbose:
+                print('')
             yield item
-            print('')
+            if iiter.verbose:
+                print('')
             mark_(iiter.index)
-            print('')
-            print('[IITER] current index=%r' % (iiter.index,))
-            if iiter.display_item:
-                print('[IITER] current item=%r' % (item,))
+            if iiter.verbose:
+                print('')
+                print('[IITER] current index=%r' % (iiter.index,))
+                if iiter.display_item:
+                    print('[IITER] current item=%r' % (item,))
             ans = iiter.prompt()
             action = iiter.handle_ans(ans)
             REFRESH_ON_BAD_INPUT = False

@@ -13,10 +13,12 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[io]')
 __PRINT_IO__ = True
 __PRINT_WRITES__ = __PRINT_IO__
 __PRINT_READS__  =  __PRINT_IO__
+#__FORCE_PRINT_READS__ =
+#__FORCE_PRINT_WRITES__ =
 
 
 def write_to(fpath, to_write, aslines=False, verbose=False,
-             onlyifdiff=False, mode='w'):
+             onlyifdiff=False, mode='w', n=2):
     """ Writes text to a file
 
     Args:
@@ -33,7 +35,7 @@ def write_to(fpath, to_write, aslines=False, verbose=False,
             print('[util_io] * no difference')
             return
     if verbose or (verbose is None and __PRINT_WRITES__):
-        print('[util_io] * Writing to text file: %r ' % util_path.tail(fpath))
+        print('[util_io] * Writing to text file: %r ' % util_path.tail(fpath, n=2))
     with open(fpath, mode) as file_:
         if aslines:
             file_.writelines(to_write)

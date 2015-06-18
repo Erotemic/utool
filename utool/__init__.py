@@ -300,7 +300,7 @@ if DOELSE:
                                 enable_garbage_collection, ensure_str_list, 
                                 find_exe, find_interesting_stats, 
                                 garbage_collect, get_clipboard, get_cython_exe, 
-                                get_jagged_stats, get_nonconflicting_path, 
+                                get_jagged_stats, get_nonconflicting_path_old, 
                                 get_nonconflicting_string, get_object_base, 
                                 get_object_size, get_object_size_str, 
                                 get_partial_func_name, get_stats, 

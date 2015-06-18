@@ -308,6 +308,35 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
     Starts interactive session. Similar to keyboard command in matlab.
     Wrapper around IPython.embed
 
+    Notes:
+        #https://github.com/ipython/ipython/wiki/Cookbook%3a-Updating-code-for-use-with-IPython-0.11-and-later
+
+        import IPython
+        x = 3
+        IPython.embed()
+        c = IPython.Config()
+        c.InteractiveShellApp.exec_lines = [
+            '%pylab qt4',
+            "print 'System Ready!'",
+        ]
+
+        def foo():
+            return x + 3
+
+        a = 3
+        def bar():
+            return a + 3
+        bar()
+        #NameError: global name 'a' is not defined
+
+
+        from IPython.terminal.ipapp import TerminalIPythonApp
+        x = 3
+        app = TerminalIPythonApp.instance()
+        app.initialize(argv=[]) # argv=[] instructs IPython to ignore sys.argv
+        app.start()
+
+
     Args:
         parent_locals (None):
         parent_globals (None):
@@ -454,7 +483,13 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
 
                 # instance comes from  IPython.config.configurable.SingletonConfigurable.instance
             """
-            IPython.embed()
+            c = IPython.Config()
+            c.InteractiveShellApp.exec_lines = [
+                '%pylab qt4',
+                "print 'System Ready!'",
+            ]
+            IPython.embed(config=c)
+            #IPython.embed()
             #config = IPython.terminal.ipapp.load_default_config()
             #config.InteractiveShellEmbed = config.TerminalInteractiveShell
             #module = sys.modules[parent_globals['__name__']]
@@ -919,7 +954,7 @@ TB = util_arg.get_flag('--tb')
 
 def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
             locals_=None, iswarning=False, tb=TB, pad_stdout=True, N=0,
-            use_stdout=False, reraise=False, msg_=None, keys=None):
+            use_stdout=False, reraise=False, msg_=None, keys=None, colored=None):
     """
     Prints (and/or logs) an exception with relevant info
 
@@ -957,7 +992,7 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
     if msg is True:
         key_list = get_caller_locals()
         msg = msg_
-    exstr = formatex(ex, msg, prefix, key_list, locals_, iswarning, tb=tb)
+    exstr = formatex(ex, msg, prefix, key_list, locals_, iswarning, tb=tb, colored=colored)
     # get requested print function
     if use_stdout:
         def print_func(*args):
@@ -981,7 +1016,7 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
 
 def formatex(ex, msg='[!?] Caught exception',
              prefix=None, key_list=[], locals_=None, iswarning=False, tb=False,
-             N=0, keys=None):
+             N=0, keys=None, colored=None):
     """ Formats an exception with relevant info """
     # Get error prefix and local info
     if prefix is None:
@@ -998,8 +1033,9 @@ def formatex(ex, msg='[!?] Caught exception',
     if tb or FORCE_TB:
         from utool import util_cplat
         tbtext = traceback.format_exc()
-        COLORED_EXCEPTIONS = not util_cplat.WIN32
-        COLORED_EXCEPTIONS = False  # disable
+        COLORED_EXCEPTIONS = colored if colored is not None else not util_cplat.WIN32
+        #COLORED_EXCEPTIONS = not util_cplat.WIN32
+        #COLORED_EXCEPTIONS =  False  # disable
         if COLORED_EXCEPTIONS:
             # TODO: rectify with duplicate in util_inject
             try:
@@ -1014,8 +1050,8 @@ def formatex(ex, msg='[!?] Caught exception',
                 formatted_text = pygments.highlight(tbtext, lexer, formatter)
                 tbtext = formatted_text
         errstr_list.append(tbtext)
-    #errstr_list.append(prefix + ' ' + str(msg) + '\n%r: %s' % (type(ex), str(ex)))
-    errstr_list.append(prefix + ' ' + str(msg) + '\ntype(ex)=%r' % (type(ex),))
+    errstr_list.append(prefix + ' ' + str(msg) + '\n%r: %s' % (type(ex), str(ex)))
+    #errstr_list.append(prefix + ' ' + str(msg) + '\ntype(ex)=%r' % (type(ex),))
     parse_locals_keylist(locals_, key_list, errstr_list, prefix)
     errstr_list.append('</!!! %s !!!>' % ex_tag)
     return '\n'.join(errstr_list)
