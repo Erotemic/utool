@@ -40,7 +40,13 @@ def dict_map_apply_vals(dict_, func):
     """
     return {key: func(val) for key, val in six.iteritems(dict_)}
 
+# Figure out good name for thsi
 dict_val_map = dict_map_apply_vals
+
+
+def map_dict_vals(func, dict_):
+    """ probably a better version of dict_map_apply_vals """
+    return {key: func(val) for key, val in six.iteritems(dict_)}
 
 
 class AutoVivification(dict):

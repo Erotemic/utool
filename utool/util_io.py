@@ -7,6 +7,7 @@ except ImportError:
     HAVE_LOCKFILE = False
 from utool import util_path
 from utool import util_inject
+from os.path import splitext
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[io]')
 
 
@@ -106,8 +107,20 @@ def lock_and_save_cPkl(fpath, data, verbose=False):
         return save_cPkl(fpath, data, verbose)
 
 
-def save_hdf5(fpath, data, verbose=False, compression='gzip'):
+def load_data(fpath, data):
+    ext = splitext(fpath)[1]
+    if ext in ['.pickle', '.cPkl', '.pkl']:
+        return load_cPkl(fpath, data)
+    elif ext in ['.hdf5']:
+        return load_hdf5(fpath, data)
+    else:
+        assert False
+
+
+def save_hdf5(fpath, data, verbose=False, compression='lzf'):
     r"""
+    restricted save of data using hdf5. Can only save ndarrays and dicts of ndarrays
+
     Args:
         fpath (?):
         data (ndarray):
@@ -124,6 +137,7 @@ def save_hdf5(fpath, data, verbose=False, compression='gzip'):
 
     References:
         http://docs.h5py.org/en/latest/quick.html
+        http://docs.h5py.org/en/latest/mpi.html
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -131,11 +145,11 @@ def save_hdf5(fpath, data, verbose=False, compression='gzip'):
         >>> import numpy as np
         >>> import utool as ut
         >>> # build test data
+        >>> rng = np.random.RandomState(0)
+        >>> data = (rng.rand(100000, 128) * 255).astype(np.uint8).copy()
         >>> verbose = True
         >>> fpath = 'myfile.hdf5'
-        >>> np.random.seed(0)
-        >>> compression = 'gzip'
-        >>> data = (np.random.rand(100000, 128) * 255).astype(np.uint8).copy()
+        >>> compression = 'lzf'
         >>> # execute function
         >>> ut.delete(fpath)
         >>> save_hdf5(fpath, data, verbose, compression)
@@ -168,24 +182,57 @@ def save_hdf5(fpath, data, verbose=False, compression='gzip'):
         100 loops, best of 3: 3.92 ms per loop
         100 loops, best of 3: 6.22 ms per loop
 
+    Notes:
+        pip install mpi4py
+
     """
     import h5py
     from os.path import basename
-    chunks = True
+    import numpy as np
+    chunks = True  # True enables auto-chunking
     fname = basename(fpath)
-    shape = data.shape
-    dtype = data.dtype
-    if verbose or (verbose is None and __PRINT_WRITES__):
-        print('[util_io] * save_hdf5(%r, data)' % (util_path.tail(fpath),))
-    with h5py.File(fpath, 'w') as file_:
-        dset = file_.create_dataset(fname, shape,  dtype, chunks=chunks, compression=compression)
-        dset[...] = data
+
+    # check for parallel hdf5
+    #have_mpi = h5py.h5.get_config().mpi
+    #if have_mpi:
+    #    import mpi4py
+    #    h5kw = dict(driver='mpio', comm=mpi4py.MPI.COMM_WORLD)
+    #    # cant use compression with mpi
+    #    #ValueError: Unable to create dataset (Parallel i/o does not support filters yet)
+    #else:
+    h5kw = {}
+
+    if isinstance(data, dict):
+        import six
+        assert all([isinstance(vals, np.ndarray) for vals in six.itervalues(data)]), 'can only save dicts as ndarrays'
+        # file_ = h5py.File(fpath, 'w', **h5kw)
+        with h5py.File(fpath, mode='w', **h5kw) as file_:
+            grp = file_.create_group(fname)
+            for key, val in six.iteritems(data):
+                dset = grp.create_dataset(
+                    key, val.shape,  val.dtype, chunks=chunks, compression=compression)
+                dset[...] = val
+    else:
+        assert isinstance(data, np.ndarray)
+        shape = data.shape
+        dtype = data.dtype
+        if verbose or (verbose is None and __PRINT_WRITES__):
+            print('[util_io] * save_hdf5(%r, data)' % (util_path.tail(fpath),))
+        # file_ = h5py.File(fpath, 'w', **h5kw)
+        with h5py.File(fpath, mode='w', **h5kw) as file_:
+            #file_.create_dataset(
+            #    fname, shape,  dtype, chunks=chunks, compression=compression,
+            #    data=data)
+            dset = file_.create_dataset(
+                fname, shape,  dtype, chunks=chunks, compression=compression)
+            dset[...] = data
 
 
 def load_hdf5(fpath, verbose=False):
     import h5py
     from os.path import basename
     import numpy as np
+    import six
     fname = basename(fpath)
     #file_ = h5py.File(fpath, 'r')
     #file_.values()
@@ -193,11 +240,25 @@ def load_hdf5(fpath, verbose=False):
     if verbose or (verbose is None and __PRINT_READS__):
         print('[util_io] * load_hdf5(%r, data)' % (util_path.tail(fpath),))
     with h5py.File(fpath, 'r') as file_:
-        dset = file_[fname]
-        shape = dset.shape
-        dtype = dset.dtype
-        data = np.empty(shape, dtype=dtype)
-        dset.read_direct(data)
+        value = file_[fname]
+        if isinstance(value, h5py.Group):
+            grp = value
+            data = {}
+            for key, dset in six.iteritems(grp):
+                shape = dset.shape
+                dtype = dset.dtype
+                subdata = np.empty(shape, dtype=dtype)
+                dset.read_direct(subdata)
+                data[key] = subdata
+                pass
+        elif isinstance(value, h5py.Dataset):
+            dset = value
+            shape = dset.shape
+            dtype = dset.dtype
+            data = np.empty(shape, dtype=dtype)
+            dset.read_direct(data)
+        else:
+            assert False
     return data
 
 
