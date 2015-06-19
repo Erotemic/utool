@@ -103,7 +103,7 @@ def init_worker():
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 
-def init_pool(num_procs=None, maxtasksperchild=None):
+def init_pool(num_procs=None, maxtasksperchild=None, quiet=QUIET, **kwargs):
     """ warning this might not be the right hting to do """
     global __POOL__
     if PAR_VERBOSE:
@@ -111,7 +111,7 @@ def init_pool(num_procs=None, maxtasksperchild=None):
     if num_procs is None:
         # Get number of cpu cores
         num_procs = get_default_numprocs()
-    if not QUIET:
+    if not quiet:
         print('[util_parallel.init_pool] initializing pool with %d processes' % num_procs)
     if num_procs == 1:
         print('[util_parallel.init_pool] num_procs=1, Will process in serial')
@@ -129,13 +129,13 @@ def init_pool(num_procs=None, maxtasksperchild=None):
 
 
 @atexit.register
-def close_pool(terminate=False):
+def close_pool(terminate=False, quiet=QUIET):
     global __POOL__
     if PAR_VERBOSE:
         print('[util_parallel] close_pool()')
 
     if __POOL__ is not None:
-        if not QUIET:
+        if not quiet:
             if terminate:
                 print('[util_parallel] terminating pool')
             else:
@@ -149,7 +149,7 @@ def close_pool(terminate=False):
         __POOL__ = None
 
 
-def _process_serial(func, args_list, args_dict={}, nTasks=None):
+def _process_serial(func, args_list, args_dict={}, nTasks=None, quiet=QUIET):
     """
     Serial process map
 
@@ -170,7 +170,7 @@ def _process_serial(func, args_list, args_dict={}, nTasks=None):
     return result_list
 
 
-def _process_parallel(func, args_list, args_dict={}, nTasks=None):
+def _process_parallel(func, args_list, args_dict={}, nTasks=None, quiet=QUIET):
     """
     Parallel process map
 
@@ -197,12 +197,13 @@ def _process_parallel(func, args_list, args_dict={}, nTasks=None):
     # Get the results
     result_list = [ap.get() for ap in apply_results]
     if __EAGER_JOIN__:
-        close_pool()
+        close_pool(quiet=quiet)
     return result_list
 
 
 def _generate_parallel(func, args_list, ordered=True, chunksize=1,
-                       prog=True, verbose=True, nTasks=None, freq=None):
+                       prog=True, verbose=True, quiet=QUIET, nTasks=None,
+                       freq=None):
     """
     Parallel process generator
     """
@@ -228,11 +229,11 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
         for result in result_generator:
             yield result
         if __EAGER_JOIN__:
-            close_pool()
+            close_pool(quiet=quiet)
     except Exception as ex:
         util_dbg.printex(ex, 'Parallel Generation Failed!', '[utool]', tb=True)
         if __EAGER_JOIN__:
-            close_pool()
+            close_pool(quiet=quiet)
         print('__SERIAL_FALLBACK__ = %r' % __SERIAL_FALLBACK__)
         if __SERIAL_FALLBACK__:
             print('Trying to handle error by falling back to serial')
@@ -268,17 +269,18 @@ def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None, freq
         util_time.toc(tt)
 
 
-def ensure_pool(warn=False):
+def ensure_pool(warn=False, quiet=QUIET):
     try:
         assert __POOL__ is not None, 'must init_pool() first'
     except AssertionError as ex:
         if warn:
             print('(WARNING) AssertionError: ' + str(ex))
-        init_pool()
+        init_pool(quiet=quiet)
 
 
 def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
-             chunksize=1, prog=True, verbose=True, nTasks=None, freq=None):
+             chunksize=1, prog=True, verbose=True, quiet=QUIET, nTasks=None,
+             freq=None):
     """
 
     Args:
@@ -325,7 +327,7 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
     # Check conditions under which we force serial
     force_serial_ = nTasks == 1 or nTasks < MIN_PARALLEL_TASKS or force_serial
     if not force_serial_:
-        ensure_pool()
+        ensure_pool(quiet=quiet)
     if force_serial_ or isinstance(__POOL__, int):
         if PAR_VERBOSE or verbose:
             print('[util_parallel.generate] generate_serial')
@@ -335,11 +337,12 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
             print('[util_parallel.generate] generate_parallel')
         return _generate_parallel(func, args_list, ordered=ordered,
                                   chunksize=chunksize, prog=prog,
-                                  verbose=verbose, nTasks=nTasks, freq=freq)
+                                  verbose=verbose, quiet=quiet, nTasks=nTasks,
+                                  freq=freq)
 
 
 def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__,
-            nTasks=None):
+            nTasks=None, quiet=QUIET):
     """
     Use ut.generate rather than ut.process
 
@@ -366,19 +369,21 @@ def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__,
         >>> assert flag_list0 == flag_list1
     """
 
-    ensure_pool()
+    ensure_pool(quiet=quiet)
     if nTasks is None:
         nTasks = len(args_list)
     if __POOL__ == 1 or force_serial:
         if not QUIET:
             print('[util_parallel] executing %d %s tasks in serial' %
                   (nTasks, get_funcname(func)))
-        result_list = _process_serial(func, args_list, args_dict, nTasks=nTasks)
+        result_list = _process_serial(func, args_list, args_dict, nTasks=nTasks,
+                                      quiet=quiet)
     else:
         if not QUIET:
             print('[util_parallel] executing %d %s tasks using %d processes' %
                   (nTasks, get_funcname(func), __POOL__._processes))
-        result_list = _process_parallel(func, args_list, args_dict, nTasks=nTasks)
+        result_list = _process_parallel(func, args_list, args_dict, nTasks=nTasks,
+                                        quiet=quiet)
     return result_list
 
 
