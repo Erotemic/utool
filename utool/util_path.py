@@ -614,20 +614,29 @@ def win_shortcut(source, link_name):
     """
     Attempt to create windows shortcut
     TODO: TEST / FIXME
+
+    References:
+        http://stackoverflow.com/questions/1447575/symlinks-on-windows
     """
-    import ctypes
-    csl = ctypes.windll.kernel32.CreateSymbolicLinkW
-    csl.argtypes = (ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint32)
-    csl.restype = ctypes.c_ubyte
-    flags = 1 if isdir(source) else 0
-    retval = csl(link_name, source, flags)
-    if retval == 0:
-        #warn_msg = '[util_path] Unable to create symbolic link on windows.'
-        #print(warn_msg)
-        #warnings.warn(warn_msg, category=UserWarning)
-        if checkpath(link_name):
-            return True
-        raise ctypes.WinError()
+    if True:
+        import ctypes
+        kdll = ctypes.windll.LoadLibrary("kernel32.dll")
+        code = 1 if isdir(source) else 0
+        kdll.CreateSymbolicLinkA(source, link_name, code)
+    else:
+        import ctypes
+        csl = ctypes.windll.kernel32.CreateSymbolicLinkW
+        csl.argtypes = (ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint32)
+        csl.restype = ctypes.c_ubyte
+        flags = 1 if isdir(source) else 0
+        retval = csl(link_name, source, flags)
+        if retval == 0:
+            #warn_msg = '[util_path] Unable to create symbolic link on windows.'
+            #print(warn_msg)
+            #warnings.warn(warn_msg, category=UserWarning)
+            if checkpath(link_name):
+                return True
+            raise ctypes.WinError()
 
 
 def symlink(path, link, noraise=False):
@@ -641,6 +650,8 @@ def symlink(path, link, noraise=False):
         noraise (bool):
 
     """
+    path = normpath(path)
+    link = normpath(link)
     if os.path.islink(link):
         print('[util_path] symlink %r exists' % (link))
         return
@@ -651,9 +662,11 @@ def symlink(path, link, noraise=False):
             os_symlink(path, link)
         else:
             win_shortcut(path, link)
-    except Exception:
+    except Exception as ex:
         checkpath(link, True)
         checkpath(path, True)
+        import utool as ut
+        ut.printex(ex, 'error making symlink', iswarning=noraise)
         if not noraise:
             raise
 

@@ -245,10 +245,14 @@ def view_directory(dname=None, verbose=True):
         dname (str): directory name
         verbose (bool):
 
+    CommandLine:
+        python -m utool.util_cplat --test-view_directory
+
     Example:
         >>> # DOCTEST_DISABLE
         >>> from utool.util_cplat import *  # NOQA
-        >>> dname = None
+        >>> import utool as ut
+        >>> dname = ut.truepath('~')
         >>> verbose = True
         >>> view_directory(dname, verbose)
     """
@@ -258,17 +262,23 @@ def view_directory(dname=None, verbose=True):
     if verbose:
         print('[cplat] view_directory(%r) ' % dname)
     dname = os.getcwd() if dname is None else dname
-    open_prog = {'win32': 'explorer.exe',
-                 'linux': 'nautilus',
-                 'darwin': 'open'}[OS_TYPE]
+    open_prog = {
+            'win32': 'explorer.exe',
+            'linux': 'nautilus',
+            'darwin': 'open'
+            }[OS_TYPE]
     dname = normpath(dname)
     if STRICT:
         assert checkpath(dname, verbose=verbose)
     if dname.find(' ') != -1 and not dname.startswith(('"', '\'')):
         dname = '"%s"' % dname
     import pipes
-    dname_ = pipes.quote(dname)
+    if WIN32:
+        dname_ = dname
+    else:
+        dname_ = pipes.quote(dname)
     command = open_prog + ' ' + dname_
+    print(command)
     os.system(command)
 
 # Alias
