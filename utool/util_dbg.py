@@ -1033,7 +1033,7 @@ def formatex(ex, msg='[!?] Caught exception',
     if tb or FORCE_TB:
         from utool import util_cplat
         tbtext = traceback.format_exc()
-        COLORED_EXCEPTIONS = colored if colored is not None else not util_cplat.WIN32
+        COLORED_EXCEPTIONS = colored if colored is not None else (False and not util_cplat.WIN32)
         #COLORED_EXCEPTIONS = not util_cplat.WIN32
         #COLORED_EXCEPTIONS =  False  # disable
         if COLORED_EXCEPTIONS:
