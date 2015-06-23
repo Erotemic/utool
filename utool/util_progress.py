@@ -283,10 +283,12 @@ class ProgressIter(object):
         return msg_fmtstr_index
 
     def build_msg_fmtstr_time(self, lbl, invert_rate, backspace):
+        with_wall = True
         msg_fmtstr_time = ''.join((
-            'rate=%3.3f seconds/iter, ' if invert_rate else 'rate=%4.2f Hz, ',
-            'eta: %s, ',
-            'ellapsed: %s,',
+            'rate=%3.3f seconds/iter, ' if invert_rate else 'rate=%4.2f Hz,',
+            ' etr: %s,',
+            ' ellapsed: %s,',
+            ' wall: %s ' + time.tzname[0] if with_wall else '',
             '\n' if backspace else '',
         ))
         return msg_fmtstr_time
@@ -390,10 +392,14 @@ class ProgressIter(object):
                     if DEBUG_FREQ_ADJUST:
                         print('[prog] Adusting frequency to: %r' % freq)
                         print('L___')
-                msg = msg_fmtstr % (self.count,
-                                    1.0 / iters_per_second if self.invert_rate else iters_per_second,
-                                    str(datetime.timedelta(seconds=int(est_seconds_left))),
-                                    str(datetime.timedelta(seconds=int(total_seconds))),)
+                msg = msg_fmtstr % (
+                    self.count,
+                    1.0 / iters_per_second if self.invert_rate else iters_per_second,
+                    str(datetime.timedelta(seconds=int(est_seconds_left))),
+                    str(datetime.timedelta(seconds=int(total_seconds))),
+                    time.strftime('%H:%M'),
+                )
+
                 #est_timeunit_left,
                 #total_timeunit)
                 PROGRESS_WRITE(msg)
@@ -402,7 +408,12 @@ class ProgressIter(object):
         est_seconds_left = 0
         now_time = default_timer()
         total_seconds = (now_time - start_time)
-        msg = msg_fmtstr % (nTotal, 1.0 / iters_per_second if self.invert_rate else iters_per_second, str(datetime.timedelta(seconds=int(est_seconds_left))), str(datetime.timedelta(seconds=int(total_seconds))),)
+        msg = msg_fmtstr % (
+            nTotal, 1.0 / iters_per_second if self.invert_rate else iters_per_second,
+            str(datetime.timedelta(seconds=int(est_seconds_left))),
+            str(datetime.timedelta(seconds=int(total_seconds))),
+            time.strftime('%H:%M'),
+        )
         PROGRESS_WRITE(msg)
         PROGRESS_WRITE('\n')
         PROGRESS_FLUSH()
@@ -563,7 +574,7 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
     #    they are, but doctest gets very angry if its not in this format
 
     # TODO: Option to display rate of progress
-    # TODO: Option to display eta
+    # TODO: Option to display estimated time remaining
     global AGGROFLUSH
     # Alias kwargs with simpler names
     if num is not None:
