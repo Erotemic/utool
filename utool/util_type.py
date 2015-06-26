@@ -27,10 +27,10 @@ else:
 # Very odd that I have to put in dtypes in two different ways.
 if HAVE_NUMPY:
     NUMPY_SCALAR_NAMES = sorted(list(set(
-        [str_.replace('numpy.', '')
+        (str_.replace('numpy.', '')
          for str_ in (type_str(type_) for type_ in np.ScalarType)
          if str_.startswith('numpy.')
-         ])))
+         ))))
 
     VALID_INT_TYPES = (IntType, LongType,
                        np.typeDict['int64'],

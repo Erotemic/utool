@@ -29,8 +29,8 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[util_path
 PRINT_CALLER = util_arg.get_argflag('--print-caller')  # FIXME: name
 
 __IMG_EXTS = ['.jpg', '.jpeg', '.png', '.tif', '.tiff', '.ppm']
-__LOWER_EXTS = [ext.lower() for ext in __IMG_EXTS]
-__UPPER_EXTS = [ext.upper() for ext in __IMG_EXTS]
+__LOWER_EXTS = list(ext.lower() for ext in __IMG_EXTS)
+__UPPER_EXTS = list(ext.upper() for ext in __IMG_EXTS)
 IMG_EXTENSIONS =  set(__LOWER_EXTS + __UPPER_EXTS)
 
 

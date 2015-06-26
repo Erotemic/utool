@@ -24,7 +24,7 @@ __DYNAMIC__ = '--dyn' in sys.argv
 # THESE COMMANDS WILL WRITE THE IMPORT FILE
 """
 python -c "import utool" --dump-utool-init
-python -c "import utool" --update-utool-init
+python -c "import utool" --update-utool-init --dyn
 """
 
 __VERYVERBOSE__ = '--veryverbose' in sys.argv or '--very-verbose' in sys.argv
@@ -505,8 +505,8 @@ if DOELSE:
                                  dirsplit, ensure_crossplat_path,
                                  ensure_mingw_drive, ensure_native_path,
                                  ensure_unixslash, ensuredir, ensurepath,
-                                 existing_subpath, ext, extend_regex,
-                                 file_bytes, file_megabytes, find_lib_fpath,
+                                 existing_subpath, extend_regex, file_bytes,
+                                 file_megabytes, find_lib_fpath,
                                  fixwin32_shortname, fnames_to_fpaths,
                                  fpaths_to_fnames, get_basename_noext_list,
                                  get_basepath_list, get_ext_list,
@@ -628,8 +628,7 @@ if DOELSE:
                                  is_func_or_method_or_partial, is_funclike,
                                  is_int, is_list, is_listlike, is_str,
                                  is_tuple, is_type, is_valid_floattype,
-                                 smart_cast, smart_cast2, str_, try_cast,
-                                 type_str,)
+                                 smart_cast, smart_cast2, try_cast, type_str,)
     from utool.util_tests import (BIGFACE, DEBUG_SRC, EXEC_MODE,
                                   ExitTestException, HAPPY_FACE,
                                   HAPPY_FACE_BIG, HAPPY_FACE_SMALL,
