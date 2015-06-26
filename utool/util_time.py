@@ -237,13 +237,15 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=1, strict=False):
             return -1
 
 
-def unixtime_to_datetime(unixtime, timefmt='%Y/%m/%d %H:%M:%S'):
+def unixtime_to_datetime(unixtime, timefmt='%Y/%m/%d %H:%M:%S', isutc=True):
     if unixtime == -1:
         return 'NA'
     if unixtime is None:
         return None
-    return datetime.datetime.utcfromtimestamp(unixtime).strftime(timefmt)
-    #return datetime.datetime.fromtimestamp(unixtime).strftime(timefmt)
+    if isutc:
+        return datetime.datetime.utcfromtimestamp(unixtime).strftime(timefmt)
+    else:
+        return datetime.datetime.fromtimestamp(unixtime).strftime(timefmt)
 
 
 def unixtime_to_timedelta(unixtime_diff):

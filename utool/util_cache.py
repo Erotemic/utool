@@ -759,15 +759,128 @@ def get_lru_cache(max_size=5):
         >>> cache_obj[5] = 5
         >>> cache_obj[6] = 6
         >>> # verify results
-        >>> result = str(cache_obj)
+        >>> result = str(ut.dict_str(cache_obj, nl=False))
         >>> print(result)
-        {2: 2, 3: 3, 4: 4, 5: 5, 6: 6}
+        {2: 2, 3: 3, 4: 4, 5: 5, 6: 6,}
     """
-    #import utool as ut
-    import lru
-    #lru = ut.tryimport('lru', 'git+https://github.com/amitdev/lru-dict', ensure=True)
-    cache_obj = lru.LRU(max_size)
+    USE_C_LRU = False
+    if USE_C_LRU:
+        #import utool as ut
+        import lru
+        #lru = ut.tryimport('lru', 'git+https://github.com/amitdev/lru-dict', ensure=True)
+        cache_obj = lru.LRU(max_size)
+    else:
+        cache_obj = LRUDict(max_size)
     return cache_obj
+
+
+import collections
+
+
+class LRUDict(object):
+    """
+    Pure python implementation for lru cache fallback
+
+    References:
+        http://www.kunxi.org/blog/2014/05/lru-cache-in-python/
+
+    Args:
+        max_size (int): (default = 5)
+
+    Returns:
+        LRUDict: cache_obj
+
+    CommandLine:
+        python -m utool.util_cache --test-LRUDict
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_cache import *  # NOQA
+        >>> max_size = 5
+        >>> self = LRUDict(max_size)
+        >>> for count in range(0, 5):
+        ...     self[count] = count
+        >>> print(self)
+        >>> self[0]
+        >>> for count in range(5, 8):
+        ...     self[count] = count
+        >>> print(self)
+        >>> del self[5]
+        >>> assert 4 in self
+        >>> result = ('self = %r' % (self,))
+        >>> print(result)
+        self = LRUDict({
+            4: 4,
+            0: 0,
+            6: 6,
+            7: 7,
+        })
+    """
+
+    def __init__(self, max_size):
+        self._max_size = max_size
+        self._cache = collections.OrderedDict()
+
+    def has_key(self, item):
+        return item in self
+
+    def __contains__(self, item):
+        return item in self._cache
+
+    def __delitem__(self, key):
+        del self._cache[key]
+
+    def __str__(self):
+        import utool as ut
+        return ut.dict_str(self._cache, nl=False)
+
+    def __repr__(self):
+        import utool as ut
+        return 'LRUDict(' + ut.dict_str(self._cache) + ')'
+        #return repr(self._cache)
+
+    def __iter__(self):
+        return iter(self._cache)
+
+    def items(self):
+        return self._cache.items()
+
+    def keys(self):
+        return self._cache.keys()
+
+    def values(self):
+        return self._cache.values()
+
+    def iteritems(self):
+        return self._cache.iteritems()
+
+    def iterkeys(self):
+        return self._cache.iterkeys()
+
+    def itervalues(self):
+        return self._cache.itervalues()
+
+    def clear(self):
+        return self._cache.clear()
+
+    def __len__(self):
+        return len(self._cache)
+
+    def __getitem__(self, key):
+        try:
+            value = self._cache.pop(key)
+            self._cache[key] = value
+            return value
+        except KeyError:
+            raise
+
+    def __setitem__(self, key, value):
+        try:
+            self._cache.pop(key)
+        except KeyError:
+            if len(self._cache) >= self._max_size:
+                self._cache.popitem(last=False)
+        self._cache[key] = value
 
 
 def time_different_diskstores():

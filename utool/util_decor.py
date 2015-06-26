@@ -690,6 +690,9 @@ def preserve_sig(wrapper, orig_func, force=False):
         checkout funcsigs
         https://funcsigs.readthedocs.org/en/latest/
 
+    CommandLine:
+        python -m utool.util_decor --test-preserve_sig
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
@@ -697,13 +700,15 @@ def preserve_sig(wrapper, orig_func, force=False):
         >>> def myfunction(self, listinput_, arg1, *args, **kwargs):
         >>>     " just a test function "
         >>>     return [x + 1 for x in listinput_]
+        >>> #orig_func = ut.list_take
         >>> orig_func = myfunction
         >>> wrapper = ut.accepts_scalar_input2([0])(orig_func)
         >>> _wrp_preserve1 = ut.preserve_sig(wrapper, orig_func, True)
         >>> _wrp_preserve2 = ut.preserve_sig(wrapper, orig_func, False)
-        >>> print(ut.get_func_sourcecode(_wrp_preserve1))
-        >>> print(ut.get_func_sourcecode(_wrp_preserve2))
-
+        >>> print('_wrp_preserve2 = %r' % (_wrp_preserve1,))
+        >>> print('_wrp_preserve2 = %r' % (_wrp_preserve2,))
+        >>> print('source _wrp_preserve1 = %s' % (ut.get_func_sourcecode(_wrp_preserve1),))
+        >>> print('source _wrp_preserve2 = %s' % (ut.get_func_sourcecode(_wrp_preserve2)),)
         >>> result = str(_wrp_preserve1)
         >>> print(result)
     """
@@ -766,7 +771,9 @@ def preserve_sig(wrapper, orig_func, force=False):
         # Define the new function on the fly
         # (I wish there was a non exec / eval way to do this)
         #print(src)
-        six.exec_(src, globals_, locals_)
+        code = compile(src, '<string>', 'exec')
+        six.exec_(code, globals_, locals_)
+        #six.exec_(src, globals_, locals_)
         # Use functools.update_wapper to complete preservation
         _wrp_preserve = functools.update_wrapper(locals_['_wrp_preserve'], orig_func)
         # Keep debug info

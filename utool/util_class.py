@@ -484,6 +484,19 @@ class KwargsWrapper(collections.Mapping):
         return len(self.obj.__dict__)
 
 
+def remove_private_obfuscation(self):
+    """
+    removes the python obfuscation of class privates so they can be executed as
+    they appear in class source. Useful when playing with IPython.
+    """
+    classname = self.__class__.__name__
+    attrlist = [attr for attr in dir(self) if attr.startswith('_' + classname + '__')]
+    for attr in attrlist:
+        method = getattr(self, attr)
+        truename = attr.replace('_' + classname + '__', '__')
+        setattr(self, truename, method)
+
+
 if __name__ == '__main__':
     """
     python -c "import utool; utool.doctest_funcs(utool.util_class, allexamples=True)"

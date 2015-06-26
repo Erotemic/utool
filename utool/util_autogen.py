@@ -552,7 +552,7 @@ def make_default_docstr(func,
     return default_docstr
 
 
-def make_default_module_maintest(modname):
+def make_default_module_maintest(modname, modpath=None):
     """
     make_default_module_maintest
 
@@ -580,22 +580,65 @@ def make_default_module_maintest(modname):
     # otherwise their could be odd platform specific errors.
     #python -c "import utool, {modname};
     # utool.doctest_funcs({modname}, allexamples=True)"
+    #in_pythonpath, module_type, path = find_modname_in_pythonpath(modname)
+    # only use the -m if it is part of a package directory
+    from os.path import exists, dirname, join, expanduser, normpath
+    use_modrun = exists(join(dirname(modpath), '__init__.py'))
+
+    if use_modrun:
+        pyargs = '-m ' + modname
+    else:
+        if not ut.WIN32:
+            pyargs = normpath(modpath).replace(expanduser('~'), '~')
+
     text = ut.codeblock(
         '''
         if __name__ == '__main__':
             """
             CommandLine:
-                python -m {modname}
-                python -m {modname} --allexamples
-                python -m {modname} --allexamples --noface --nosrc
+                python {pyargs}
+                python {pyargs} --allexamples
+                python {pyargs} --allexamples --noface --nosrc
             """
             import multiprocessing
             multiprocessing.freeze_support()  # for win32
             import utool as ut  # NOQA
             ut.doctest_funcs()
         '''
-    ).format(modname=modname)
+    ).format(pyargs=pyargs)
     return text
+
+
+def is_modname_in_pythonpath(modname):
+    in_pythonpath, module_type, path = find_modname_in_pythonpath(modname)
+    print(module_type)
+    return in_pythonpath
+
+
+def find_modname_in_pythonpath(modname):
+    import sys
+    from os.path import exists, join
+    rel_modpath = modname.replace('.', '/')
+    in_pythonpath = False
+    module_type = None
+    path_list = sys.path
+    path_list = os.environ['PATH'].split(os.pathsep)
+    for path in path_list:
+        full_modpath = join(path, rel_modpath)
+        if exists(full_modpath + '.py'):
+            in_pythonpath = True
+            module_type = 'module'
+            break
+        if exists(join(full_modpath, '__init__.py')):
+            in_pythonpath = True
+            module_type = 'package'
+            break
+    return in_pythonpath, module_type, path
+
+    #ut.get_modpath_from_modname(modname)
+    #import imp
+    #tup = imp.find_module(modname)
+    #(file, filename, (suffix, mode, type))
 
 
 if __name__ == '__main__':

@@ -977,8 +977,10 @@ def _exec_doctest(src, kwargs, nocheckwant=None):
     #test_globals['print'] = doctest_print
     # EXEC FUNC
     #six.exec_(src, test_globals, test_locals)  # adds stack to debug trace
+    code = compile(src, '<string>', 'exec')
     try:
-        exec(src, test_globals, test_locals)
+        exec(code, test_globals, test_locals)
+        #exec(src, test_globals, test_locals)
     except ExitTestException:
         print('Test exited before show')
         pass

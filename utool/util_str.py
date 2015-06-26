@@ -474,7 +474,7 @@ def _magnitude_str(abs_num, magnitude, prefix_, suffix):
     return unit_str
 
 
-def byte_str2(nBytes):
+def byte_str2(nBytes, precision=2):
     """
     Automatically chooses relevant unit (KB, MB, or GB) for displaying some
     number of bytes.
@@ -495,16 +495,16 @@ def byte_str2(nBytes):
     """
     nAbsBytes = abs(nBytes)
     if nAbsBytes < 2.0 ** 10:
-        return byte_str(nBytes, 'KB')
+        return byte_str(nBytes, 'KB', precision=precision)
     if nAbsBytes < 2.0 ** 20:
-        return byte_str(nBytes, 'KB')
+        return byte_str(nBytes, 'KB', precision=precision)
     if nAbsBytes < 2.0 ** 30:
-        return byte_str(nBytes, 'MB')
+        return byte_str(nBytes, 'MB', precision=precision)
     else:
-        return byte_str(nBytes, 'GB')
+        return byte_str(nBytes, 'GB', precision=precision)
 
 
-def byte_str(nBytes, unit='bytes'):
+def byte_str(nBytes, unit='bytes', precision=2):
     """
     representing the number of bytes with the chosen unit
 
@@ -521,7 +521,7 @@ def byte_str(nBytes, unit='bytes'):
         nUnit = nBytes / (2.0 ** 30)
     else:
         raise NotImplementedError('unknown nBytes=%r unit=%r' % (nBytes, unit))
-    return '%.2f %s' % (nUnit, unit)
+    return ('%.' + str(precision) + 'f %s') % (nUnit, unit)
 
 
 def file_megabytes_str(fpath):

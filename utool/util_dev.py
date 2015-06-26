@@ -1442,9 +1442,9 @@ def _memory_profile(with_gc=False):
         %reset array
     """
     import utool as ut
-    import guppy
     if with_gc:
         garbage_collect()
+    import guppy
     hp = guppy.hpy()
     print('[hpy] Waiting for heap output...')
     heap_output = hp.heap()
@@ -1498,20 +1498,29 @@ def garbage_collect():
     gc.collect()
 
 
-def get_object_size(obj):
+def get_object_size(obj, fallback_type=None, follow_pointers=False):
     seen = set([])
     def _get_object_size(obj):
-        if (obj is None or isinstance(obj, (str, int, bool, float))):
-            return sys.getsizeof(obj)
-
         object_id = id(obj)
         if object_id in seen:
             return 0
+        if (obj is None or isinstance(obj, (str, int, bool, float))):
+            return sys.getsizeof(obj)
         seen.add(object_id)
 
         totalsize = sys.getsizeof(obj)
         if isinstance(obj, np.ndarray):
-            totalsize += obj.nbytes
+            if not obj.flags['OWNDATA']:
+                # somebody else owns the data, returned size may be smaller than sobj.nbytes
+                # because sys.getsizeof will return the container size.
+                # if owndata is true sys.getsizeof returns the actual size
+                if follow_pointers:
+                    totalsize += obj.nbytes
+                pass
+            # TODO: check if a view or is memmapped
+            # Nothing to do sys.getsizeof does the right thing sorta
+            #totalsize += obj.nbytes
+            pass
         elif (isinstance(obj, (tuple, list, set, frozenset))):
             for item in obj:
                 totalsize += _get_object_size(item)
@@ -1530,25 +1539,32 @@ def get_object_size(obj):
     return _get_object_size(obj)
 
 
-def print_object_size_tree(obj):
+def print_object_size_tree(obj, lbl='obj'):
     """ Needs work """
+    from utool import util_str
+    from utool import util_type
+
+    byte_str2 = util_str.byte_str2
 
     def _get_object_size_tree(obj, indent='', lbl='obj', seen=None):
         if (obj is None or isinstance(obj, (str, int, bool, float))):
             return [sys.getsizeof(obj)]
         object_id = id(obj)
         if object_id in seen:
+            print(indent + '%s ' % ('(seen) ' + lbl,))
             return []
         seen.add(object_id)
         size_list = [(lbl, sys.getsizeof(obj))]
-        print(indent + '%s = %s ' % (lbl, str(sys.getsizeof(obj))))
         if isinstance(obj, np.ndarray):
             size_list.append(obj.nbytes)
-            print(indent + '%s = %s ' % ('arr', obj.nbytes))
+            print(indent + '%s = %s ' % ('(ndarray) ' + lbl, byte_str2(obj.nbytes)))
         elif (isinstance(obj, (tuple, list, set, frozenset))):
+            typestr = util_type.type_str(type(obj))
+            print(indent + '(%s) %s = %s ' % (typestr, lbl, byte_str2(sys.getsizeof(obj))))
             for item in obj:
                 size_list += _get_object_size_tree(item, indent + '   ', 'item', seen)
         elif isinstance(obj, dict):
+            print(indent + '(dict) %s = %s ' % (lbl, byte_str2(sys.getsizeof(obj))))
             try:
                 for key, val in six.iteritems(obj):
                     size_list += _get_object_size_tree(key, indent + '   ', key, seen)
@@ -1557,11 +1573,11 @@ def print_object_size_tree(obj):
                 print(key)
                 raise
         elif isinstance(obj, object) and hasattr(obj, '__dict__'):
-            size_list += _get_object_size_tree(obj.__dict__, indent + '   ', 'dict', seen)
-            return size_list
+            print(indent + '(object) %s = %s ' % (lbl, byte_str2(sys.getsizeof(obj))))
+            size_list += _get_object_size_tree(obj.__dict__, indent + '   ', '__dict__', seen)
         return size_list
     seen = set([])
-    _get_object_size_tree(obj, '', 'obj', seen)
+    _get_object_size_tree(obj, indent='', lbl=lbl, seen=seen)
     del seen
 
 

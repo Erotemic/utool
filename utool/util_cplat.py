@@ -59,6 +59,24 @@ def get_free_diskbytes(dir_):
         return bytes_
 
 
+def get_file_info(fpath):
+    from utool import util_time
+    import os
+    import time
+    from collections import OrderedDict
+    statbuf = os.stat(fpath)
+    info = OrderedDict(
+        [
+            ('filesize', get_file_nBytes_str(fpath)),
+            ('last_modified', util_time.unixtime_to_datetime(statbuf.st_mtime, isutc=False) + ' ' + time.tzname[0]),
+            ('last_accessed', util_time.unixtime_to_datetime(statbuf.st_atime, isutc=False) + ' ' + time.tzname[0]),
+            ('created', util_time.unixtime_to_datetime(statbuf.st_ctime, isutc=False) + ' ' + time.tzname[0]),
+        ]
+    )
+    return info
+    #print "Modification time:",statbuf.st_mtime
+
+
 def get_file_nBytes(fpath):
     return os.path.getsize(fpath)
 
@@ -147,6 +165,89 @@ def get_dynlib_dependencies(lib_path):
     # objdump -p C:\Python27\Lib\site-packages\PIL\_imaging.pyd | grep dll
     # dumpbin /dependents C:\Python27\Lib\site-packages\PIL\_imaging.pyd
     # depends /c /a:1 /f:1 C:\Python27\Lib\site-packages\PIL\_imaging.pyd
+
+
+def get_dynlib_exports(lib_path):
+    """
+    Executes tools for inspecting dynamic library dependencies depending on the
+    current platform. Returns the names of callable functions.
+
+    Args:
+        lib_path (str):
+
+    Returns:
+        str: depend_out
+
+    CommandLine:
+        python -m utool.util_cplat --test-get_dynlib_exports
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_cplat import *  # NOQA
+        >>> lib_path = '/home/joncrall/venv/local/lib/python2.7/site-packages/pyflann/lib/libflann.so'
+        >>> depend_out = get_dynlib_exports(lib_path)
+        >>> result = ('depend_out = %s' % (str(depend_out),))
+        >>> print(result)
+    """
+    if LINUX:
+        '''
+        nm_fpath = '/usr/bin/nm'
+        exportssout, err, ret = cmd(nm_fpath, '-D', lib_path, '|', 'c++filt', verbose=False)
+        lines = exportssout.split('\n')
+        #lines = [line[19:] for line in line]
+        others = []
+        info = []
+        for line in lines:
+            if line == '':
+                continue
+            line = ut.remove_doublspaces(line)
+            words = line.split(' ')
+            if len(words) > 2:
+                # address, type_, rest
+                rest = ' '.join(words[2:])
+                info.append((rest, words[0], words[1]))
+            else:
+                others.append(line)
+
+        # remove duplicate address spaces
+        info = ut.unique_keep_order2(info)
+        # remove stdlib
+        info = [line for line in info if 'std::' not in line[0]]
+        info = [line for line in info if not line[0].startswith('typeinfo')]
+        info = [line for line in info if not line[0].startswith('vtable')]
+        info = [line for line in info if 'flann' in line[0]]
+        info = [line for line in info if 'flann_' in line[0]]
+
+        info2 = []
+        for rest, loc, type_ in info:
+            parts = rest.split(' ')
+            rettype = parts[0]
+            rest2 = ' '.join(parts[1:])
+            if not rest2.startswith('__'):
+                info2.append((rettype, rest2, type_))
+                #info2.append((rettype, rest2, type_, loc))
+
+        len([line for line in info if 'flann' in line[0]])
+
+        len([(line.split(' ')[0], line.split(' ')[1], ' '.join(line.split(' ')[2:])) for line in lines])
+        len([line for line in lines if line.startswith('flann::')])
+        len([line for line in lines if 'flann_' in line])
+        len([line for line in lines if not line.endswith(')') and 'flann_' in line])
+        # HACK: FIND A CORRECT PARSING
+        return info2
+        '''
+    elif DARWIN:
+        otool_fpath = '/opt/local/bin/otool'
+        exportssout, err, ret = cmd(otool_fpath, '-L', lib_path, verbose=False)
+        #TODO
+    elif WIN32:
+        exportssout, err, ret = cmd('objdump', '-p', lib_path, verbose=False)
+        #TODO
+        #fnmatch.filter(depend_out.split('\n'), '*DLL*')
+        #relevant_lines = [line for line in depend_out.splitlines() if 'DLL Name:' in line]
+        #depend_out = '\n'.join(relevant_lines)
+    assert ret == 0, 'bad dependency check'
+    return exportssout
 
 
 def get_dynamic_lib_globstrs():
@@ -263,10 +364,10 @@ def view_directory(dname=None, verbose=True):
         print('[cplat] view_directory(%r) ' % dname)
     dname = os.getcwd() if dname is None else dname
     open_prog = {
-            'win32': 'explorer.exe',
-            'linux': 'nautilus',
-            'darwin': 'open'
-            }[OS_TYPE]
+        'win32': 'explorer.exe',
+        'linux': 'nautilus',
+        'darwin': 'open'
+    }[OS_TYPE]
     dname = normpath(dname)
     if STRICT:
         assert checkpath(dname, verbose=verbose)
