@@ -347,6 +347,25 @@ def accepts_scalar_input(func):
     It lets the user pass either a vector or a scalar to a function, as long as
     the function treats everything like a vector. Input and output is sanitized
     to the user expected format on return.
+
+    Args:
+        func (func):
+
+    Returns:
+        func: wrp_asi
+
+    CommandLine:
+        python -m utool.util_decor --test-accepts_scalar_input
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_decor import *  # NOQA
+        >>> @accepts_scalar_input
+        ... def foobar(self, list_):
+        ...     return [x + 1 for x in list_]
+        >>> self = None  # dummy self because this decorator is for classes
+        >>> assert 2 == foobar(self, 1)
+        >>> assert [2, 3] == foobar(self, [1, 2])
     """
     #@on_exception_report_input
     @ignores_exc_tb(outer_wrapper=False)
@@ -360,7 +379,8 @@ def accepts_scalar_input(func):
             return func(self, input_, *args, **kwargs)
         else:
             # If input is scalar, wrap input, execute, and unpack result
-            ret = func(self, (input_,), *args, **kwargs)
+            #ret = func(self, (input_,), *args, **kwargs)
+            ret = func(self, [input_], *args, **kwargs)
             if ret is not None:
                 return ret[0]
     wrp_asi = preserve_sig(wrp_asi, func)

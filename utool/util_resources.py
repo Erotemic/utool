@@ -22,6 +22,9 @@ try:
         a process's memory that is held in RAM.)
         """
         # MAXRSS is expressed in kilobytes. Convert to bytes
+        # FIXME: MAXRSS is NOT expressed in kilobytes. use resource.getpagesize to Convert to bytes
+        # References: http://stackoverflow.com/questions/938733/total-memory-used-by-python-process
+        #resource.getpagesize
         maxrss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024
         return maxrss
 
@@ -98,7 +101,7 @@ def print_resource_usage():
 def get_resource_usage_str():
     usage_str_list = [
         ('+______________________'),
-        ('|    RESOURCE_USAGE    '),
+        ('|    RESOURCE_USAGE    process.get_memory_info()[0] / float(2 ** 20) '),
         ('|  * current_memory = %s' % byte_str2(current_memory_usage())),
     ]
     try:
@@ -115,6 +118,9 @@ def get_resource_usage_str():
 
 
 def current_memory_usage():
+    """
+    Returns this programs current memory usage in bytes
+    """
     import psutil
     meminfo = psutil.Process(os.getpid()).get_memory_info()
     rss = meminfo[0]  # Resident Set Size / Mem Usage
@@ -175,16 +181,25 @@ def num_cpus():
 
 
 def available_memory():
+    """
+    Returns total system wide available memory in bytes
+    """
     import psutil
     return psutil.virtual_memory().available
 
 
 def total_memory():
+    """
+    Returns total system wide memory in bytes
+    """
     import psutil
     return psutil.virtual_memory().total
 
 
 def used_memory():
+    """
+    Returns total system wide used memory in bytes
+    """
     return total_memory() - available_memory()
 
 

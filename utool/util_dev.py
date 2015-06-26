@@ -501,8 +501,10 @@ class MemoryTracker(object):
         if disable is None:
             disable = ENABLE_MEMTRACK
         self.disabled = disable  # disable by default
-        self.init_nBytes = self.get_available_memory()
-        self.prev_nBytes = None
+        self.init_available_nBytes = self.get_available_memory()
+        self.prev_available_nBytes = None
+        self.init_used_nBytes = self.get_used_memory()
+        self.prev_used_nBytes = None
         self.weakref_dict = {}  # weakref.WeakValueDictionary()
         self.weakref_dict2 = {}
         self.report(lbl)
@@ -514,6 +516,83 @@ class MemoryTracker(object):
     @_disableable
     def collect(self):
         gc.collect()
+
+    @_disableable
+    def report(self, lbl=''):
+        from utool.util_str import byte_str2
+        self.collect()
+        available_nBytes = self.get_available_memory()
+        used_nBytes = self.get_used_memory()
+        print('[memtrack] +----')
+        if self.prev_available_nBytes is not None:
+            diff_avail = self.prev_available_nBytes - available_nBytes
+            print('[memtrack] | [%s] diff(avail) = %s' % (lbl, byte_str2(diff_avail)))
+        else:
+            print('[memtrack] | new MemoryTracker(%s)' % (lbl,))
+        if self.prev_used_nBytes is not None:
+            diff_used = used_nBytes - self.prev_used_nBytes
+            print('[memtrack] | [%s] diff(used) = %s' % (lbl, byte_str2(diff_used)))
+
+        total_diff_avail = self.init_available_nBytes - available_nBytes
+        total_diff_used = self.init_available_nBytes - available_nBytes
+        print('[memtrack] | Total diff(avail) = %s' % (byte_str2(total_diff_avail)))
+        print('[memtrack] | Total diff(used) = %s' % (byte_str2(total_diff_used)))
+        print('[memtrack] | Available Memory = %s' %  (byte_str2(available_nBytes),))
+        print('[memtrack] | Used Memory      = %s' %  (byte_str2(used_nBytes),))
+        self.report_objs()
+        print('[memtrack] L----')
+        self.prev_available_nBytes = available_nBytes
+        self.prev_used_nBytes = used_nBytes
+
+    @_disableable
+    def get_available_memory(self):
+        from utool import util_resources
+        return util_resources.available_memory()
+
+    @_disableable
+    def get_used_memory(self):
+        from utool import util_resources
+        return util_resources.current_memory_usage()
+
+    @_disableable
+    def track_obj(self, obj, name):
+        oid = id(obj)
+        if not isinstance(obj, weakref.ref):
+            obj = weakref.ref(obj)
+        #obj_weakref = weakref.ref(obj)
+        self.weakref_dict[oid] = obj
+        self.weakref_dict2[oid] = name
+        del obj
+
+    @_disableable
+    def report_obj(self, obj, name=None):
+        if not isinstance(obj, weakref.ref):
+            obj = weakref.ref(obj)
+        report_memsize(obj, name)
+
+    def report_type(self, class_, more=False):
+        # Get existing objects of the requested type
+        existing_objs = [obj for obj in gc.get_objects() if isinstance(obj, class_)]
+        print('There are %d objects of type %s using %s' % (len(existing_objs), class_, get_object_size_str(existing_objs)))
+        if more:
+            for obj in existing_objs:
+                self.report_obj(obj)
+
+    @_disableable
+    def report_objs(self):
+        if len(self.weakref_dict) == 0:
+            return
+        import utool
+        with utool.Indenter('[memtrack] '):
+            #print('[memtrack] +----')
+            for oid in self.weakref_dict.iterkeys():
+                obj = self.weakref_dict[oid]
+                if not isinstance(obj, weakref.ref):
+                    obj = weakref.ref(obj)
+                name = self.weakref_dict2[oid]
+                report_memsize(obj, name)
+                del obj
+        #print('[memtrack] L----')
 
     @_disableable
     def report_largest(self):
@@ -543,66 +622,10 @@ class MemoryTracker(object):
         #size_list = [utool.get_object_size(obj) for obj in obj_list]
         pass
 
-    @_disableable
-    def report(self, lbl=''):
-        from utool.util_str import byte_str2
-        self.collect()
-        nBytes = self.get_available_memory()
-        print('[memtrack] +----')
-        if self.prev_nBytes is not None:
-            diff = self.prev_nBytes - nBytes
-            print('[memtrack] | [%s] diff = %s' % (lbl, byte_str2(diff)))
-        else:
-            print('[memtrack] | new MemoryTracker(%s)' % (lbl,))
-
-        total_diff = self.init_nBytes - nBytes
-        print('[memtrack] | Total diff = %s' % (byte_str2(total_diff)))
-        print('[memtrack] | Available Memory = %s' %  (byte_str2(nBytes),))
-        self.report_objs()
-        print('[memtrack] L----')
-        self.prev_nBytes = nBytes
-
-    @_disableable
-    def get_available_memory(self):
-        from utool.util_resources import available_memory
-        return available_memory()
-
-    @_disableable
-    def track_obj(self, obj, name):
-        oid = id(obj)
-        if not isinstance(obj, weakref.ref):
-            obj = weakref.ref(obj)
-        #obj_weakref = weakref.ref(obj)
-        self.weakref_dict[oid] = obj
-        self.weakref_dict2[oid] = name
-        del obj
-
-    @_disableable
-    def report_obj(self, obj, name=None):
-        if not isinstance(obj, weakref.ref):
-            obj = weakref.ref(obj)
-        report_memsize(obj, name)
-
-    @_disableable
-    def report_objs(self):
-        if len(self.weakref_dict) == 0:
-            return
-        import utool
-        with utool.Indenter('[memtrack] '):
-            #print('[memtrack] +----')
-            for oid in self.weakref_dict.iterkeys():
-                obj = self.weakref_dict[oid]
-                if not isinstance(obj, weakref.ref):
-                    obj = weakref.ref(obj)
-                name = self.weakref_dict2[oid]
-                report_memsize(obj, name)
-                del obj
-        #print('[memtrack] L----')
-
 
 def report_memsize(obj, name=None, verbose=True):
     #import types
-    import utool
+    import utool as ut
     if name is None:
         name = 'obj'
 
@@ -610,7 +633,7 @@ def report_memsize(obj, name=None, verbose=True):
         obj = weakref.ref(obj)
 
     if obj() is None:
-        with utool.Indenter('|   '):
+        with ut.Indenter('|   '):
             print('+----')
             print('Memsize: ')
             print('type(%s) = %r' % (name, type(obj())))
@@ -620,11 +643,11 @@ def report_memsize(obj, name=None, verbose=True):
 
     referents = gc.get_referents(obj())
     referers  = gc.get_referrers(obj())
-    with utool.Indenter('|   '):
+    with ut.Indenter('|   '):
         print('+----')
         print('Memsize: ')
         print('type(%s) = %r' % (name, type(obj())))
-        print('%s is using: %s' % (name, utool.get_object_size_str(obj())))
+        print('%s is using: %s' % (name, ut.get_object_size_str(obj())))
         print('%s has %d referents' % (name, len(referents)))
         print('%s has %d referers' % (name, len(referers)))
         if verbose:
@@ -642,13 +665,18 @@ def report_memsize(obj, name=None, verbose=True):
                         print('    func(referer).func_name = %s' % (referer.func_name))
                     except Exception:
                         pass
+                    try:
+                        #if isinstance(referer, frames.FrameType)
+                        print('    len(referer) = %s' % (len(referer)))
+                    except Exception:
+                        pass
                     if isinstance(referer, dict):
                         print('    len(referer) = %r' % len(referer))
                         if len(referer) < 30:
-                            keystr = utool.packstr(repr(referer.keys()), 60, newline_prefix='        ')
+                            keystr = ut.packstr(repr(referer.keys()), 60, newline_prefix='        ')
                             print('    referer.keys = %s' % (keystr),)
                     print('    id(referer) = %r' % id(referer))
-                    #print('referer = ' + utool.truncate_str(repr(referer)))
+                    #print('referer = ' + ut.truncate_str(repr(referer)))
                     print('  </Referer %d>' % count)
         del obj
         del referents
@@ -1533,6 +1561,9 @@ def get_object_size(obj, fallback_type=None, follow_pointers=False):
                 print(key)
                 raise
         elif isinstance(obj, object) and hasattr(obj, '__dict__'):
+            if hasattr(obj, 'used_memory'):
+                # hack for flann objects
+                totalsize += obj.used_memory()
             totalsize += _get_object_size(obj.__dict__)
             return totalsize
         return totalsize
@@ -1573,7 +1604,12 @@ def print_object_size_tree(obj, lbl='obj'):
                 print(key)
                 raise
         elif isinstance(obj, object) and hasattr(obj, '__dict__'):
-            print(indent + '(object) %s = %s ' % (lbl, byte_str2(sys.getsizeof(obj))))
+            if hasattr(obj, 'used_memory'):
+                size_ = obj.used_memory()
+                print(indent + '(flann?) %s = %s ' % (lbl, byte_str2(size_)))
+                size_list += [size_]
+            else:
+                print(indent + '(object) %s = %s ' % (lbl, byte_str2(sys.getsizeof(obj))))
             size_list += _get_object_size_tree(obj.__dict__, indent + '   ', '__dict__', seen)
         return size_list
     seen = set([])

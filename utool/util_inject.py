@@ -541,7 +541,7 @@ if '--inject-color' in sys.argv:
     inject_colored_exceptions()
 
 # Inject this module with itself!
-print, print_, printDBG, rrr, profile = inject(__name__, '[inject]')
+print, rrr, profile = inject2(__name__, '[inject]')
 
 
 if __name__ == '__main__':
