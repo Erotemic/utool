@@ -562,7 +562,10 @@ def make_default_module_maintest(modname, modpath=None):
         modname (str):  module name
 
     Returns:
-        str: text
+        str: text source code
+
+    CommandLine:
+        python -m utool.util_autogen --test-make_default_module_maintest
 
     References:
         http://legacy.python.org/dev/peps/pep-0338/
@@ -583,7 +586,8 @@ def make_default_module_maintest(modname, modpath=None):
     #in_pythonpath, module_type, path = find_modname_in_pythonpath(modname)
     # only use the -m if it is part of a package directory
     from os.path import exists, dirname, join, expanduser, normpath
-    use_modrun = exists(join(dirname(modpath), '__init__.py'))
+
+    use_modrun = modpath is None or exists(join(dirname(modpath), '__init__.py'))
 
     if use_modrun:
         pyargs = '-m ' + modname
