@@ -1,4 +1,14 @@
 # -*- coding: utf-8 -*-
+"""
+Hashing convinience functions
+
+You should opt to use a hash*27 function over a hash* function.
+
+
+TODO: the same hashing algorithm should be used everywhere
+Currently there is a mix of sha1, sha256, and sha512 in different places.
+
+"""
 from __future__ import absolute_import, division, print_function
 import hashlib
 import copy
@@ -142,7 +152,7 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
     python -c "import utool as ut; print(ut.hashstr('abcd'))"
 
     Args:
-        data (?):
+        data (hashable):
         hashlen (int): (default = 16)
         alphabet (list): list of characters:
 
@@ -334,6 +344,7 @@ def image_uuid(pil_img):
     References:
         http://stackoverflow.com/questions/23565889/jpeg-images-have-different-pixel-values-across-multiple-devices
     """
+    print('WARNING DO NOT USE utool.util_hash.image_uuid UNSAFE AND DEPRICATED')
     # Get the bytes of the image
     img_bytes_ = pil_img.tobytes()
     uuid_ = hashable_to_uuid(img_bytes_)
@@ -407,6 +418,7 @@ def hashable_to_uuid(hashable_):
         >>> result = str(uuid_)
         >>> print(result)
         b1d57811-11d8-4f7b-3fe4-5a0852e59758
+
     """
     # Hash the bytes
     #try:

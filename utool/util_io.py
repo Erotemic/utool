@@ -107,12 +107,12 @@ def lock_and_save_cPkl(fpath, data, verbose=False):
         return save_cPkl(fpath, data, verbose)
 
 
-def load_data(fpath, data):
+def load_data(fpath):
     ext = splitext(fpath)[1]
     if ext in ['.pickle', '.cPkl', '.pkl']:
-        return load_cPkl(fpath, data)
+        return load_cPkl(fpath)
     elif ext in ['.hdf5']:
-        return load_hdf5(fpath, data)
+        return load_hdf5(fpath)
     else:
         assert False
 

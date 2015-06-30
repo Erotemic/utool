@@ -342,13 +342,16 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
         'img':       ['img_fpath', 'vt'],
     }
 
-    def find_arg_defaultval(argname, val):
+    def find_arg_defaultrepr(argname, val):
+        import types
         if val == '?':
             if argname in default_argval_map:
                 val = ut.PythonStatement(default_argval_map[argname])
                 if argname in import_depends_map:
                     import_lines.append(import_depends_map[argname])
-        return val
+        elif isinstance(val, types.ModuleType):
+            return val.__name__
+        return repr(val)
 
     # augment argname list with dependencies
     dependant_argnames = []  # deque()
@@ -377,14 +380,14 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
     num_unknown = (len(argname_list_) - len(defaults_))
     default_vals = ['?'] * num_unknown + list(defaults_)
     arg_val_iter = zip(argname_list_, default_vals)
-    infered_defaults = [find_arg_defaultval(argname, val)
+    infered_defaults = [find_arg_defaultrepr(argname, val)
                         for argname, val in arg_val_iter]
-    arg_inferval_iter = zip(argname_list_, infered_defaults)
-    argdef_lines = ['%s = %r' % (argname, inferval)
-                    for argname, inferval in arg_inferval_iter]
+    argdef_lines = ['%s = %s' % (argname, inferrepr)
+                    for argname, inferrepr in
+                    zip(argname_list_, infered_defaults)]
     import_lines = ut.unique_ordered(import_lines)
 
-    if any([inferval == '?' for inferval in infered_defaults]):
+    if any([inferrepr == repr('?') for inferrepr in infered_defaults]):
         examplecode_lines.append('# DISABLE_DOCTEST')
     else:
         # Enable the test if it can be run immediately

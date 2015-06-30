@@ -153,6 +153,11 @@ def get_dev_hints():
           'mapping from query feature index to ' + VAL_BREF)),
         ('.*x2_.*' , ('ndarray', None)),
         ('.+2_.*'  , ('dict', None)),
+        ('dpath'  , ('str', 'directory path')),
+        ('dname'  , ('str', 'directory name')),
+        ('fpath'  , ('str', 'file path')),
+        ('fname'  , ('str', 'file name')),
+        ('pattern'  , ('str', '')),
     ])
     return registered_hints
 
@@ -223,7 +228,14 @@ def infer_arg_types_and_descriptions(argname_list, defaults):
     # append defaults to descriptions
     for argx in range(len(argdesc_list)):
         if hasdefault_list[argx]:
-            argdesc_list[argx] += '(default = %r)' % (argdefault_list[argx],)
+            import types
+            if isinstance(argdefault_list[argx], types.ModuleType):
+                defaultrepr = argdefault_list[argx].__name__
+            else:
+                defaultrepr = repr(argdefault_list[argx])
+            #import utool as ut
+            #ut.embed()
+            argdesc_list[argx] += '(default = %s)' % (defaultrepr,)
     return argtype_list, argdesc_list, argdefault_list, hasdefault_list
 
 
@@ -681,11 +693,14 @@ def parse_return_type(sourcecode):
 def exec_func_sourcecode(func, globals_, locals_, key_list):
     """ execs a func and returns requested local vars """
     import utool as ut
-    sourcecode = get_func_sourcecode(func, stripdef=True, stripret=True)
+    sourcecode = ut.get_func_sourcecode(func, stripdef=True, stripret=True)
     six.exec_(sourcecode, globals_, locals_)
     # Draw intermediate steps
-    var_list = ut.dict_take( locals_, key_list)
-    return var_list
+    if key_list is None:
+        return locals_
+    else:
+        var_list = ut.dict_take( locals_, key_list)
+        return var_list
 
 exec_func_src = exec_func_sourcecode
 
@@ -775,14 +790,15 @@ def get_func_argspec(func):
 
 
 def infer_function_info(func):
-    """
+    r"""
     Infers information for make_default_docstr
 
     Args:
         func (function): live python function
 
     CommandLine:
-        python -m utool.util_inspect --test-infer_function_info
+        python -m utool.util_inspect --test-infer_function_info:0
+        python -m utool.util_inspect --exec-infer_function_info:1 --funcname=ibeis_cnn.models.siam.ignore_hardest_cases --exec-mode
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -790,7 +806,24 @@ def infer_function_info(func):
         >>> import utool as ut
         >>> #func = ut.infer_function_info
         >>> #func = ut.Timer.tic
+        >>> import ibeis_cnn
+        >>> #func = ibeis_cnn.models.siam.ignore_hardest_cases
         >>> func = get_func_sourcecode
+        >>> funcinfo = infer_function_info(func)
+        >>> result = ut.dict_str(funcinfo.__dict__)
+        >>> print(result)
+
+    Example:
+        >>> # SCRIPT
+        >>> from utool.util_inspect import *  # NOQA
+        >>> import utool as ut
+        >>> funcname = ut.get_argval('--funcname')
+        >>> # Parse out custom function
+        >>> modname = '.'.join(funcname.split('.')[0:-1])
+        >>> script = 'import {modname}\nfunc = {funcname}'.format(modname=modname, funcname=funcname)
+        >>> globals_, locals_ = {}, {}
+        >>> exec(script, globals_, locals_)
+        >>> func = locals_['func']
         >>> funcinfo = infer_function_info(func)
         >>> result = ut.dict_str(funcinfo.__dict__)
         >>> print(result)

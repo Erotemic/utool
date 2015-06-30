@@ -41,11 +41,11 @@ def toc(tt, return_msg=False, write_msg=True):
         return ellapsed
 
 
-def get_printable_timestamp():
-    return get_timestamp('printable')
+def get_printable_timestamp(isutc=False):
+    return get_timestamp('printable', isutc=isutc)
 
 
-def get_timestamp(format_='filename', use_second=False, delta_seconds=None):
+def get_timestamp(format_='filename', use_second=False, delta_seconds=None, isutc=False):
     """
     get_timestamp
 
@@ -67,9 +67,11 @@ def get_timestamp(format_='filename', use_second=False, delta_seconds=None):
         >>> print(stamp)
         >>> assert len(stamp) == len('15:43:04 2015/02/24')
     """
-    now = datetime.datetime.now()
     # TODO: time.timezone
-    #now = datetime.datetime.utcnow()
+    if isutc:
+        now = datetime.datetime.utcnow()
+    else:
+        now = datetime.datetime.now()
     if delta_seconds is not None:
         now += datetime.timedelta(seconds=delta_seconds)
     if format_ == 'tag':
@@ -94,9 +96,11 @@ def get_timestamp(format_='filename', use_second=False, delta_seconds=None):
     return stamp
 
 
-def get_datestamp(explicit=True):
-    now = datetime.datetime.now()
-    #now = datetime.datetime.utcnow()
+def get_datestamp(explicit=True, isutc=False):
+    if isutc:
+        now = datetime.datetime.utcnow()
+    else:
+        now = datetime.datetime.now()
     stamp = '%04d-%02d-%02d' % (now.year, now.month, now.day)
     if explicit:
         return 'ymd-' + stamp + time.timezone[0]
@@ -166,7 +170,7 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=1, strict=False):
         timestamp_format (int):
 
     Returns:
-        int: unixtime seconds from 1970
+        int: unixtime seconds from 1970 (currently not UTC; this will change)
 
     CommandLine:
         python -m utool.util_time --test-exiftime_to_unixtime
@@ -237,7 +241,7 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=1, strict=False):
             return -1
 
 
-def unixtime_to_datetime(unixtime, timefmt='%Y/%m/%d %H:%M:%S', isutc=True):
+def unixtime_to_datetime(unixtime, timefmt='%Y/%m/%d %H:%M:%S', isutc=False):
     if unixtime == -1:
         return 'NA'
     if unixtime is None:
@@ -429,19 +433,19 @@ def get_posix_timedelta_str2(posixtime):
 #    return timedelta_str
 
 
-def get_month():
-    return datetime.datetime.now().month
+#def get_month():
+#    return datetime.datetime.now().month
 
 
-def get_day():
-    return datetime.datetime.now().day
+#def get_day():
+#    return datetime.datetime.now().day
 
 
-def get_year():
-    return datetime.datetime.now().year
+#def get_year():
+#    return datetime.datetime.now().year
 
 
-def get_timestats_str(unixtime_list, newlines=False, full=True):
+def get_timestats_str(unixtime_list, newlines=False, full=True, isutc=False):
     r"""
     Args:
         unixtime_list (list):
@@ -460,7 +464,7 @@ def get_timestats_str(unixtime_list, newlines=False, full=True):
         >>> unixtime_list = [0, 0 + 60*60*5 , 10+ 60*60*5, 100+ 60*60*5, 1000+ 60*60*5]
         >>> newlines = True
         >>> full = False
-        >>> timestat_str = get_timestats_str(unixtime_list, newlines, full=full)
+        >>> timestat_str = get_timestats_str(unixtime_list, newlines, full=full, isutc=True)
         >>> result = ut.align(str(timestat_str), ':')
         >>> print(result)
         {
@@ -477,7 +481,7 @@ def get_timestats_str(unixtime_list, newlines=False, full=True):
         >>> import utool as ut
         >>> unixtime_list = [0, 0 + 60*60*5 , 10+ 60*60*5, 100+ 60*60*5, 1000+ 60*60*5, float('nan'), 0]
         >>> newlines = True
-        >>> timestat_str = get_timestats_str(unixtime_list, newlines)
+        >>> timestat_str = get_timestats_str(unixtime_list, newlines, isutc=True)
         >>> result = ut.align(str(timestat_str), ':')
         >>> print(result)
         {
@@ -494,18 +498,18 @@ def get_timestats_str(unixtime_list, newlines=False, full=True):
 
     """
     import utool as ut
-    datetime_stats = get_timestats_dict(unixtime_list, full=full)
+    datetime_stats = get_timestats_dict(unixtime_list, full=full, isutc=isutc)
     timestat_str = ut.dict_str(datetime_stats, newlines=newlines)
     return timestat_str
 
 
-def get_timestats_dict(unixtime_list, full=True):
+def get_timestats_dict(unixtime_list, full=True, isutc=False):
     import utool as ut
     unixtime_stats = ut.get_stats(unixtime_list, use_nan=True)
     datetime_stats = {}
     for key in ['max', 'min', 'mean']:
         try:
-            datetime_stats[key] = ut.unixtime_to_datetime(unixtime_stats[key])
+            datetime_stats[key] = ut.unixtime_to_datetime(unixtime_stats[key], isutc=isutc)
         except KeyError:
             pass
     for key in ['std']:

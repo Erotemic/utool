@@ -471,6 +471,10 @@ def copy_files_to(src_fpath_list, dst_dpath=None, dst_fpath_list=None, overwrite
     if dst_fpath_list is None:
         ensuredir(dst_dpath, verbose=veryverbose)
         dst_fpath_list = [join(dst_dpath, basename(fpath)) for fpath in src_fpath_list]
+    else:
+        assert dst_dpath is None, 'dst_dpath was specified but overrided'
+        assert len(dst_fpath_list) == len(src_fpath_list), 'bad correspondence'
+
     exists_list = list(map(exists, dst_fpath_list))
     if verbose:
         print('[util_path]  * %d files already exist dst_dpath' % (sum(exists_list),))
@@ -491,10 +495,13 @@ def copy_files_to(src_fpath_list, dst_dpath=None, dst_fpath_list=None, overwrite
 
 def copy(src, dst, overwrite=True, deeplink=True, verbose=True, dryrun=False):
     import utool as ut
-    if ut.isiterable(src) and not ut.isiterable(dst):
-        ut.copy_files_to(src, dst, overwrite=overwrite, verbose=verbose)
-        # list to non list
-        pass
+    if ut.isiterable(src):
+        if not ut.isiterable(dst):
+            # list to non list
+            ut.copy_files_to(src, dst, overwrite=overwrite, verbose=verbose)
+        else:
+            # list to list
+            ut.copy_files_to(src, dst_fpath_list=dst, overwrite=overwrite, verbose=verbose)
     else:
         return copy_single(src, dst, overwrite=overwrite, deeplink=deeplink, dryrun=dryrun, verbose=verbose)
 
@@ -689,48 +696,98 @@ def glob_python_modules(dirname, **kwargs):
     return glob(dirname, '*.py', recursive=True, with_dirs=False)
 
 
-def glob(dirname, pattern, recursive=False, with_files=True, with_dirs=True,  maxdepth=None,
-         **kwargs):
+def glob(dpath, pattern, recursive=False, with_files=True, with_dirs=True,
+         maxdepth=None, exclude_dirs=[], fullpath=True, **kwargs):
     """
     Globs directory for pattern
 
     Args:
-        dirname    (str):
-        pattern    (str):
-        recursive  (bool):
-        with_files (bool):
-        with_dirs  (bool):
-        maxdepth   (None):
+        dpath (str):  directory path
+        pattern (str):
+        recursive (bool): (default = False)
+        with_files (bool): (default = True)
+        with_dirs (bool): (default = True)
+        maxdepth (None): (default = None)
+        exclude_dirs (list): (default = [])
 
     Returns:
         list: path_list
 
     SeeAlso:
         iglob
+
+    CommandLine:
+        python -m utool.util_path --test-glob
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
+        >>> from os.path import dirname
+        >>> dpath = dirname(ut.__file__)
+        >>> pattern = '__*.py'
+        >>> recursive = True
+        >>> with_files = True
+        >>> with_dirs = True
+        >>> maxdepth = None
+        >>> fullpath = False
+        >>> exclude_dirs = ['_internal', join(dpath, 'experimental')]
+        >>> path_list = glob(dpath, pattern, recursive, with_files, with_dirs, maxdepth, exclude_dirs, fullpath)
+        >>> result = ('path_list = %s' % (ut.list_str(path_list),))
+        >>> print(result)
+        path_list = [
+            '__init__.py',
+            'tests/__init__.py',
+        ]
     """
-    if dirname.find('*') >= 0:
-        print('warning: star in dirname')
-    gen = iglob(dirname, pattern, recursive=recursive,
+    if dpath.find('*') >= 0:
+        print('warning: star in dpath. should be in pattern')
+    gen = iglob(dpath, pattern, recursive=recursive,
                 with_files=with_files, with_dirs=with_dirs, maxdepth=maxdepth,
-                **kwargs)
+                fullpath=fullpath, exclude_dirs=exclude_dirs, **kwargs)
     path_list = list(gen)
     return path_list
 
 
-def iglob(dirname, pattern, recursive=False, with_files=True, with_dirs=True,
-          maxdepth=None, **kwargs):
+def iglob(dpath, pattern, recursive=False, with_files=True, with_dirs=True,
+          maxdepth=None, exclude_dirs=[], fullpath=True, **kwargs):
     """
     Iteratively globs directory for pattern
+
+    Args:
+        dpath (str):  directory path
+        pattern (str):
+        recursive (bool): (default = False)
+        with_files (bool): (default = True)
+        with_dirs (bool): (default = True)
+        maxdepth (None): (default = None)
+        exclude_dirs (list): (default = [])
+
+    Yields:
+        path
     """
     if kwargs.get('verbose', False):  # log what i'm going to do
-        print('[util_path] glob(dirname=%r)' % truepath(dirname,))
+        print('[util_path] glob(dpath=%r)' % truepath(dpath,))
     nFiles = 0
     nDirs  = 0
     current_depth = 0
-    dirname_ = truepath(dirname)
-    posx1 = len(dirname_) + len(os.path.sep)
+    dpath_ = truepath(dpath)
+    posx1 = len(dpath_) + len(os.path.sep)
+    #exclude_dirs_rel = [relpath(dpath_, dir_) for dir_ in exclude_dirs]
+    #exclude_dirs_rel = [relpath(dpath_, dir_) for dir_ in exclude_dirs]
     #print('\n\n\n')
-    for root, dirs, files in os.walk(dirname_):
+    import utool as ut
+    print('exclude_dirs = %s' % (ut.list_str(exclude_dirs),))
+    for root, dirs, files in os.walk(dpath_, topdown=True):
+        # Modifying dirs in-place will prune the subsequent files and directories visitied by os.walk
+        # References: http://stackoverflow.com/questions/19859840/excluding-directories-in-os-walk
+        rel_root = relpath(root, dpath_)
+        #print('rel_root = %r' % (rel_root,))
+        #if len(dirs) > 0:
+        #    print('dirs = %s' % (ut.list_str([join(rel_root, d) for d in dirs]),))
+        if len(exclude_dirs) > 0:
+            dirs[:] = [d for d in dirs if normpath(join(rel_root, d)) not in exclude_dirs]
+
         # yeild data
         # print it only if you want
         if maxdepth is not None:
@@ -745,14 +802,21 @@ def iglob(dirname, pattern, recursive=False, with_files=True, with_dirs=True,
         #print('-----------')
         if with_files:
             for fname in fnmatch.filter(files, pattern):
-                fpath = join(root, fname)
                 nFiles += 1
-                yield fpath
+                fpath = join(root, fname)
+                if fullpath:
+                    yield fpath
+                else:
+                    yield relpath(fpath, dpath_)
+
         if with_dirs:
             for dname in fnmatch.filter(dirs, pattern):
                 dpath = join(root, dname)
                 nDirs += 1
-                yield dpath
+                if fullpath:
+                    yield dpath
+                else:
+                    yield relpath(dpath, dpath_)
         if not recursive:
             break
     if kwargs.get('verbose', False):  # log what i've done
