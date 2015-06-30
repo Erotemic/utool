@@ -732,6 +732,7 @@ def glob(dpath, pattern, recursive=False, with_files=True, with_dirs=True,
         >>> maxdepth = None
         >>> fullpath = False
         >>> exclude_dirs = ['_internal', join(dpath, 'experimental')]
+        >>> print('exclude_dirs = ' + ut.list_str(exclude_dirs))
         >>> path_list = glob(dpath, pattern, recursive, with_files, with_dirs, maxdepth, exclude_dirs, fullpath)
         >>> result = ('path_list = %s' % (ut.list_str(path_list),))
         >>> print(result)

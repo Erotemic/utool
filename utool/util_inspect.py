@@ -806,8 +806,6 @@ def infer_function_info(func):
         >>> import utool as ut
         >>> #func = ut.infer_function_info
         >>> #func = ut.Timer.tic
-        >>> import ibeis_cnn
-        >>> #func = ibeis_cnn.models.siam.ignore_hardest_cases
         >>> func = get_func_sourcecode
         >>> funcinfo = infer_function_info(func)
         >>> result = ut.dict_str(funcinfo.__dict__)
