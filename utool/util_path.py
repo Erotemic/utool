@@ -777,17 +777,22 @@ def iglob(dpath, pattern, recursive=False, with_files=True, with_dirs=True,
     #exclude_dirs_rel = [relpath(dpath_, dir_) for dir_ in exclude_dirs]
     #exclude_dirs_rel = [relpath(dpath_, dir_) for dir_ in exclude_dirs]
     #print('\n\n\n')
-    import utool as ut
-    print('exclude_dirs = %s' % (ut.list_str(exclude_dirs),))
+    #import utool as ut
+    #print('exclude_dirs = %s' % (ut.list_str(exclude_dirs),))
     for root, dirs, files in os.walk(dpath_, topdown=True):
         # Modifying dirs in-place will prune the subsequent files and directories visitied by os.walk
         # References: http://stackoverflow.com/questions/19859840/excluding-directories-in-os-walk
         rel_root = relpath(root, dpath_)
+        rel_root2 = relpath(root, dirname(dpath_))
         #print('rel_root = %r' % (rel_root,))
         #if len(dirs) > 0:
         #    print('dirs = %s' % (ut.list_str([join(rel_root, d) for d in dirs]),))
         if len(exclude_dirs) > 0:
             dirs[:] = [d for d in dirs if normpath(join(rel_root, d)) not in exclude_dirs]
+            # hack
+            dirs[:] = [d for d in dirs if normpath(join(rel_root2, d)) not in exclude_dirs]
+            # check abs path as well
+            dirs[:] = [d for d in dirs if normpath(join(root, d)) not in exclude_dirs]
 
         # yeild data
         # print it only if you want
