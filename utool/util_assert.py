@@ -135,6 +135,7 @@ def assert_inbounds(num, low, high, msg='', eq=False, verbose=not util_arg.QUIET
         high (scalar):
         msg (str):
     """
+    from utool import util_str
     if util_arg.NO_ASSERTS:
         return
     passed = util_alg.inbounds(num, low, high, eq=eq)
@@ -149,9 +150,10 @@ def assert_inbounds(num, low, high, msg='', eq=False, verbose=not util_arg.QUIET
         msg_ = 'num=%r is out of bounds=(%r, %r)' % (failednum, failedlow, failedhigh)
         raise AssertionError(msg_ + '\n' + msg)
     else:
-        op = '<=' if eq else '<'
-        fmtstr = 'Passed assert_inbounds: {low} {op} {num} {op} {high}'
-        print(fmtstr.format(low=low, op=op, num=num, high=high))
+        if verbose:
+            op = '<=' if eq else '<'
+            fmtstr = 'Passed assert_inbounds: {low} {op} {num} {op} {high}'
+            print(fmtstr.format(low=low, op=op, num=util_str.truncate_str(str(num)), high=high))
 
 
 def assert_almost_eq(arr_test, arr_target, thresh=1E-11):

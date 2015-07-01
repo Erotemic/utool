@@ -419,13 +419,80 @@ def get_phi_ratio1():
 
 def is_prime(num):
     """
+    naive function for finding primes. Good for stress testing
+
     References:
         http://thelivingpearl.com/2013/01/06/how-to-find-prime-numbers-in-python/
+
+    CommandLine:
+        python -m utool.util_alg --test-is_prime
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> with ut.Timer('isprime'):
+        >>>     series = [is_prime(n) for n in range(30)]
+        >>> result = ('primes = %s' % (str(ut.list_where(series[0:10])),))
+        >>> print(result)
+        primes = [2, 3, 5, 7]
     """
+    if num < 2:
+        return False
     for j in range(2, num):
         if (num % j) == 0:
             return False
     return True
+
+
+def fibonacci_recursive(n):
+    """
+    CommandLine:
+        python -m utool.util_alg --test-fibonacci_recursive
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> with ut.Timer('fib rec'):
+        >>>     series = [fibonacci_recursive(n) for n in range(30)]
+        >>> result = ('series = %s' % (str(series[0:10]),))
+        >>> print(result)
+        series = [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+    """
+    if n < 2:
+        return n
+    return fibonacci_recursive(n - 2) + fibonacci_recursive(n - 1)
+
+
+def fibonacci_iterative(n):
+    """
+    Args:
+        n (ing):
+
+    Returns:
+        ing: a
+
+    References:
+        http://stackoverflow.com/questions/15047116/a-iterative-algorithm-for-fibonacci-numbers
+
+    CommandLine:
+        python -m utool.util_alg --test-fibonacci_iterative
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> with ut.Timer('fib iter'):
+        >>>     series = [fibonacci_iterative(n) for n in range(30)]
+        >>> result = ('series = %s' % (str(series[0:10]),))
+        >>> print(result)
+        series = [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+    """
+    a, b = 0, 1
+    for _ in range(0, n):
+        a, b = b, a + b
+    return a
+
+
+fibonacci = fibonacci_iterative
 
 
 def deg_to_rad(degree):
@@ -469,17 +536,38 @@ def get_nth_prime(n, max_prime=4100, safe=True):
     return nth_prime
 
 
-def get_nth_prime_bruteforce(n):
-    num = 2
-    num_primes_found = 0
+def get_nth_prime_bruteforce(n, start_guess=2, start_num_primes=0):
+    guess = start_guess
+    num_primes_found = start_num_primes
     while True:
-        if is_prime(num):
+        if is_prime(guess):
             num_primes_found += 1
         if num_primes_found == n:
-            nth_prime = num
+            nth_prime = guess
             break
-        num += 1
+        guess += 1
     return nth_prime
+
+
+def get_prime_index(prime):
+    guess = 2
+    num_primes_found = 0
+    while True:
+        if is_prime(guess):
+            num_primes_found += 1
+            if guess == prime:
+                return num_primes_found
+        else:
+            assert guess != prime, 'input=%r is not prime. has %r primes less than it' % (prime, num_primes_found)
+        guess += 1
+
+
+def generate_primes(start_guess=2):
+    guess = start_guess
+    while True:
+        if is_prime(guess):
+            yield guess
+        guess += 1
 
 
 def inbounds(num, low, high, eq=False):

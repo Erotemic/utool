@@ -116,16 +116,17 @@ def init_pool(num_procs=None, maxtasksperchild=None, quiet=QUIET, **kwargs):
     if num_procs == 1:
         print('[util_parallel.init_pool] num_procs=1, Will process in serial')
         __POOL__ = 1
-        return
+        return __POOL__
     if STRICT:
         #assert __POOL__ is None, 'pool is a singleton. can only initialize once'
         assert multiprocessing.current_process().name, 'can only initialize from main process'
     if __POOL__ is not None:
         print('[util_parallel.init_pool] close pool before reinitializing')
-        return
+        return __POOL__
     # Create the pool of processes
     #__POOL__ = multiprocessing.Pool(processes=num_procs, initializer=init_worker, maxtasksperchild=maxtasksperchild)
     __POOL__ = new_pool(num_procs, init_worker, maxtasksperchild)
+    return __POOL__
 
 
 @atexit.register
@@ -216,8 +217,19 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
         prefix = '[util_parallel._generate_parallel]'
         fmtstr = prefix + 'executing %d %s tasks using %d processes with chunksize=%r'
         print(fmtstr % (nTasks, get_funcname(func), __POOL__._processes, chunksize))
-    pmap_func = __POOL__.imap if ordered else __POOL__.imap_unordered
-    raw_generator = pmap_func(func, args_list, chunksize)
+
+    #import utool as ut
+    #buffered = ut.get_argflag('--buffered')
+    buffered = False
+    if buffered:
+        # current tests indicate that normal pool.imap is faster than buffered
+        # generation
+        source_gen = (func(args) for args in args_list)
+        raw_generator = buffered_generator(source_gen)
+    else:
+        pmap_func = __POOL__.imap if ordered else __POOL__.imap_unordered
+        raw_generator = pmap_func(func, args_list, chunksize)
+
     # Get iterator with or without progress
     result_generator = (
         util_progress.ProgressIter(raw_generator, nTotal=nTasks, lbl=get_funcname(func) + ': ', freq=freq)
@@ -226,6 +238,7 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
     if __TIME_GENERATE__:
         tt = util_time.tic('_generate_parallel func=' + get_funcname(func))
     try:
+        # Start generating
         for result in result_generator:
             yield result
         if __EAGER_JOIN__:
@@ -275,7 +288,7 @@ def ensure_pool(warn=False, quiet=QUIET):
     except AssertionError as ex:
         if warn:
             print('(WARNING) AssertionError: ' + str(ex))
-        init_pool(quiet=quiet)
+        return init_pool(quiet=quiet)
 
 
 def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
@@ -339,6 +352,162 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
                                   chunksize=chunksize, prog=prog,
                                   verbose=verbose, quiet=quiet, nTasks=nTasks,
                                   freq=freq)
+
+
+#class Sentinal(object):
+#    """
+#    Lightweight object that can be used as a sentinal in iter instead of None
+#    Never generate this in a buffered generator
+#    """
+#
+#    def __eq__(self, other):
+#        return isinstance(other, self.__class__)
+#
+#    def __getstate__(self):
+#        return {}
+#
+#    def __setstate__(self, state):
+#        pass
+
+
+def buffered_generator(source_gen, buffer_size=2):
+    """
+    Generator that runs a slow source generator in a separate process.
+
+    My generate function still seems faster on test cases.
+    However, this function is more flexible in its compatability.
+
+    Args:
+        source_gen (iterable): slow generator
+        buffer_size (int): the maximal number of items to pre-generate
+            (length of the buffer) (default = 2)
+
+    References:
+        Taken from Sander Dieleman's data augmentation pipeline
+        https://github.com/benanne/kaggle-ndsb/blob/11a66cdbddee16c69514b9530a727df0ac6e136f/buffering.py
+
+    CommandLine:
+        python -m utool.util_parallel --test-buffered_generator:0
+        python -m utool.util_parallel --test-buffered_generator:1
+
+    Example:
+        >>> # UNSTABLE_DOCTEST
+        >>> from utool.util_parallel import *  # NOQA
+        >>> import utool as ut
+        >>> num = 2 ** 14
+        >>> func = ut.is_prime
+        >>> data = [38873] * num
+        >>> data = list(range(num))
+        >>> with ut.Timer('serial') as t1:
+        ...     result1 = list(map(func, data))
+        >>> with ut.Timer('buffer') as t2:
+        ...     result2 = list(ut.buffered_generator(map(func, data), buffer_size=2))
+        >>> with ut.Timer('generate') as t3:
+        ...     result3 = list(ut.generate(func, data, chunksize=2, quiet=True, verbose=False))
+        >>> assert len(result1) == num and len(result2) == num and len(result3) == num
+        >>> assert result3 == result2, 'inconsistent results'
+        >>> assert result1 == result2, 'inconsistent results'
+
+    Example1:
+        >>> # UNSTABLE_DOCTEST
+        >>> # This test confirms that generate seems to just be better
+        >>> # Test the case when there is a expensive process between the generator calls
+        >>> import utool as ut
+        >>> import time
+        >>> # Time it takes to compute x
+        >>> import timeit
+        >>> # 1.61 ms = 0.00161 seconds
+        >>> #prime = 38873
+        >>> prime = 346373
+        >>> #gentime = timeit.timeit('ut.is_prime(' + str(prime) + ')', setup='import utool as ut', number=500) / 1000.0
+        >>> with ut.Timer('gentime') as t:
+        ...     ut.is_prime(prime)
+        >>> gentime = t.ellapsed
+        >>> #gentime   = 0.0016368601322174071
+        >>> # sleeptime should be greater than the amount of time it takes to generate
+        >>> # an xdata
+        >>> #sleeptime = 0.01500
+        >>> #sleeptime = gentime
+        >>> #
+        >>> #def sleepfunc(sleeptime=sleeptime):
+        >>> #    import time
+        >>> #    time.sleep(sleeptime)
+        >>> def sleepfunc(prime=prime):
+        >>>     import utool as ut
+        >>>     ut.is_prime(prime)
+        >>>     ut.is_prime(prime)
+        >>>     ut.is_prime(prime)
+        >>>     ut.is_prime(prime)
+        >>> with ut.Timer('gentime') as t:
+        ...     sleepfunc()
+        >>> sleeptime = t.ellapsed
+        >>> target_looptime = 4.0  # run each loop for about 2 seconds max
+        >>> #thresh = 3.0
+        >>> thresh = 10.
+        >>> # compute amount of loops to run
+        >>> num_loops = int(target_looptime / (gentime + sleeptime))
+        >>> gentime = t.ellapsed
+        >>> data = [prime] * num_loops
+        >>> func = ut.is_prime
+        >>> total_sleeptime = sleeptime * num_loops
+        >>> total_gentime = gentime * num_loops
+        >>> print('gentime = %r' % (gentime,))
+        >>> print('sleeptime = %r' % (sleeptime,))
+        >>> print('est time in sleep = %r' % (total_sleeptime,))
+        >>> print('est time in gen = %r' % (total_gentime,))
+        >>> if target_looptime < thresh:
+        >>>     with ut.Timer('serial') as t1:
+        >>>         for x in map(func, data):
+        >>>             #time.sleep(sleeptime)
+        >>>             sleepfunc()
+        >>> with ut.Timer('buffer') as t2:
+        >>>     for x in ut.buffered_generator(map(func, data), buffer_size=8):
+        >>>         sleepfunc()
+        >>>         #time.sleep(sleeptime)
+        >>> with ut.Timer('generator') as t3:
+        >>>     for x in ut.generate(func, data, chunksize=4, quiet=True, verbose=False):
+        >>>         sleepfunc()
+        >>>         #time.sleep(sleeptime)
+        >>> def parallel_efficiency(t, total_sleeptime, total_gentime):
+        >>>     return 1 - ((t.ellapsed - total_sleeptime) / total_gentime)
+        >>> if target_looptime < thresh:
+        >>>     print('efficiency 1 = %.3f%%' % (100 * parallel_efficiency(t1, total_sleeptime, total_gentime),))
+        >>> print('efficiency 2 = %.3f%%' % (100 * parallel_efficiency(t2, total_sleeptime, total_gentime),))
+        >>> print('efficiency 3 = %.2f%%' % (100 * parallel_efficiency(t3, total_sleeptime, total_gentime),))
+
+    """
+    if buffer_size < 2:
+        raise RuntimeError("Minimal buffer_ size is 2!")
+
+    buffer_ = multiprocessing.Queue(maxsize=buffer_size - 1)
+    # the effective buffer_ size is one less, because the generation process
+    # will generate one extra element and block until there is room in the buffer_.
+
+    # previously None was used as a sentinal, which fails when source_gen genrates None
+    # need to make object that it will not be generated by the process
+    sentinal = StopIteration  # mildly hacky use of StopIteration exception
+
+    #print('\ncreate sentinal: ' + repr(sentinal))
+
+    def _buffered_generation_process(source_gen, buffer_, sentinal):
+        for data in source_gen:
+            buffer_.put(data, block=True)
+        buffer_.put(sentinal)  # sentinel: signal the end of the iterator
+        buffer_.close()  # unfortunately this does not suffice as a signal: if buffer_.get()
+        # was called and subsequently the buffer_ is closed, it will block forever.
+
+    process = multiprocessing.Process(target=_buffered_generation_process, args=(source_gen, buffer_, sentinal))
+    #__pool__ = ensure_pool(quiet=False)
+    #if __pool__ is not None and not isinstance(__pool__, int):
+    #    process = __pool__.Process(target=_buffered_generation_process, args=(source_gen, buffer_, sentinal))
+    #    if __EAGER_JOIN__:
+    #        close_pool(quiet=False)
+    #else:
+    #    process = multiprocessing.Process(target=_buffered_generation_process, args=(source_gen, buffer_, sentinal))
+    process.start()
+
+    for data in iter(buffer_.get, sentinal):
+        yield data
 
 
 def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__,

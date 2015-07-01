@@ -527,6 +527,16 @@ def cmd(*args, **kwargs):
     # It should be able to spit out stdout in realtime.
     # Should be able to configure detatchment, shell, and sudo.
 
+    Kwargs:
+        quiet (bool) :
+        silence (bool) :
+        verbose (bool) :
+        detatch (bool) :
+        shell (bool) :
+        sudo (bool) :
+        pad_stdout (bool) :
+        dryrun (bool) :
+
     Returns:
         tuple: (None, None, None)
 
@@ -608,6 +618,9 @@ def cmd(*args, **kwargs):
         if not quiet:
             print('[ut.cmd] RUNNING: %r' % (args,))
         # Open a subprocess with a pipe
+        if kwargs.get('dryrun', False):
+            print('[ut.cmd] Exiting because dryrun=True')
+            return None, None, None
         proc = subprocess.Popen(args, stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT, shell=shell,
                                 universal_newlines=True)

@@ -2005,6 +2005,54 @@ def get_partial_func_name(func, precision=3):
     name = name_part + '(' + args_part + kwargs_part + ')'
     return name
 
+
+#def find_prime_that_takes_time(requested_time):
+#    """ temp func. yes I know I'm cute """
+#    requested_time = 0.013
+#    import utool as ut
+
+#    num = 2
+#    num_iters = 100
+#    verbose = False
+#    #guess = 164309
+#    guess = 328619
+#    guess = 346373
+#    #ut.get_prime_index(328619)
+#    #nth = 0
+#    verbose = True
+#    prime_gen = ut.generate_primes(guess)
+#    while True:
+#        with ut.Timer(verbose=verbose) as t:
+#            prime = six.next(prime_gen)
+#            if verbose:
+#                print('prime = %r' % (prime,))
+#            #nth += 1
+#        if t.ellapsed > requested_time * 3:
+#            print('prime = %r' % (prime,))
+#            with ut.Timer(msg='ISPRIME', verbose=verbose) as t:
+#                ut.is_prime(prime)
+#            break
+
+#    #start_guess = 2
+#    #start_num_primes = 0
+#    #nth = 2 ** 12
+#    #num = ut.get_nth_prime_bruteforce(nth, start_guess=start_guess, start_num_primes=start_num_primes)
+#    #print('(n=%r)th prime = %r' % (nth, num))
+#    #start_guess = num
+#    #start_num_primes = (nth - 1)
+
+#    while True:
+#        with ut.Timer(verbose=verbose) as t:
+#            ut.is_prime(num)
+#        if t.ellapsed < requested_time:
+#            num = (num * 2 + 1)
+#        else:
+#            break
+#        num_iters -= 1
+#        if num_iters == 0:
+#            break
+
+
 if __name__ == '__main__':
     """
     CommandLine:

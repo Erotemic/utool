@@ -1641,12 +1641,14 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_cons
             for len_, cumsum in zip(len_list, cumsum_list):
                 value = level_shape_list[cumsum - 1]
                 if len_ > thresh:
-                    consec_str += str(value) + '] * ' + str(len_) + ' + ['
+                    consec_str += str(value) + '] * ' + str(len_)
+                    consec_str += ' + ['
                 else:
                     consec_str += str(value) + ', '
             #if consec_str.endswith(', '):
             #    consec_str = consec_str[:-2]
             consec_str = consec_str.rstrip(', ').rstrip(']')
+            consec_str += ']'
             consec_str += ']'
             level_shape_list = consec_str
     return level_shape_list
