@@ -220,15 +220,15 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
 
     #import utool as ut
     #buffered = ut.get_argflag('--buffered')
-    buffered = False
-    if buffered:
-        # current tests indicate that normal pool.imap is faster than buffered
-        # generation
-        source_gen = (func(args) for args in args_list)
-        raw_generator = buffered_generator(source_gen)
-    else:
-        pmap_func = __POOL__.imap if ordered else __POOL__.imap_unordered
-        raw_generator = pmap_func(func, args_list, chunksize)
+    #buffered = False
+    #if buffered:
+    #    # current tests indicate that normal pool.imap is faster than buffered
+    #    # generation
+    #    source_gen = (func(args) for args in args_list)
+    #    raw_generator = buffered_generator(source_gen)
+    #else:
+    pmap_func = __POOL__.imap if ordered else __POOL__.imap_unordered
+    raw_generator = pmap_func(func, args_list, chunksize)
 
     # Get iterator with or without progress
     result_generator = (
