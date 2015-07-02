@@ -103,32 +103,34 @@ def hashstr_arr(arr, lbl='arr', pathsafe=False, **kwargs):
         pathsafe (bool): (default = False)
 
     Returns:
-        ?: arr_uid
+        str: arr_hashstr
 
     CommandLine:
         python -m utool.util_hash --test-hashstr_arr
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
+        >>> import numpy as np
         >>> arr = np.array([[1, 2, 3], [4, 5, 6]])
         >>> lbl = 'arr'
         >>> pathsafe = False
-        >>> arr_uid = hashstr_arr(arr, lbl, pathsafe, alphabet=ALPHABET_27)
-        >>> result = ('arr_uid = %s' % (str(arr_uid),))
+        >>> arr_hashstr = hashstr_arr(arr, lbl, pathsafe, alphabet=ALPHABET_27)
+        >>> result = ('arr_hashstr = %s' % (str(arr_hashstr),))
         >>> print(result)
-        arr_uid = arr((23)gghxvkzwtbuxjwkp)
+        arr_hashstr = arr((2,3)gghxvkzwtbuxjwkp)
 
     Example2:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
+        >>> import numpy as np
         >>> arr = np.array([[1, 2, 3], [4, 5, 6]])
         >>> lbl = 'arr'
         >>> pathsafe = True
-        >>> arr_uid = hashstr_arr(arr, lbl, pathsafe, alphabet=ALPHABET_27)
-        >>> result = ('arr_uid = %s' % (str(arr_uid),))
+        >>> arr_hashstr = hashstr_arr(arr, lbl, pathsafe, alphabet=ALPHABET_27)
+        >>> result = ('arr_hashstr = %s' % (str(arr_hashstr),))
         >>> print(result)
-        arr_uid = arr-_23_gghxvkzwtbuxjwkp-
+        arr_hashstr = arr-_2,3_gghxvkzwtbuxjwkp-
     """
     if isinstance(arr, list):
         arr = tuple(arr)  # force arrays into a tuple for hashability
@@ -140,10 +142,10 @@ def hashstr_arr(arr, lbl='arr', pathsafe=False, **kwargs):
     if isinstance(arr, tuple):
         arr_shape = lbrace1 + str(len(arr)) + rbrace1
     else:
-        arr_shape = lbrace1 + ''.join(list(map(str, arr.shape))) + rbrace1
-    arr_hash = hashstr(arr, **kwargs)
-    arr_uid = ''.join([lbl, lbrace2, arr_shape, arr_hash, rbrace2])
-    return arr_uid
+        arr_shape = lbrace1 + ','.join(list(map(str, arr.shape))) + rbrace1
+    arr_hashstr_ = hashstr(arr, **kwargs)
+    arr_hashstr = ''.join([lbl, lbrace2, arr_shape, arr_hashstr_, rbrace2])
+    return arr_hashstr
 
 
 @profile
