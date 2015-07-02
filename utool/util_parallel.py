@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Module to executes the same function with different arguments in parallel.
 """
@@ -23,7 +24,7 @@ util_inject.noinject('[parallel]')
 
 QUIET   = util_arg.QUIET
 SILENT  = util_arg.SILENT
-PAR_VERBOSE = util_arg.VERBOSE or util_arg.get_argflag(('--verbose-par', '--verbpar'))
+VERBOSE_PARALLEL = util_arg.VERBOSE or util_arg.get_argflag(('--verbose-par', '--verbpar', '--verbose-parallel', '--verbparallel'))
 STRICT  = util_arg.STRICT
 
 if SILENT:
@@ -32,10 +33,10 @@ if SILENT:
 
 __POOL__ = None
 __EAGER_JOIN__      = not util_arg.get_argflag('--noclose-pool')
-__TIME_GENERATE__   = util_arg.get_argflag('--time-generate')
 __NUM_PROCS__       = util_arg.get_argval('--num-procs', int, default=None)
 __FORCE_SERIAL__    = util_arg.get_argflag(('--utool-force-serial', '--force-serial', '--serial'))
 __SERIAL_FALLBACK__ = not util_arg.get_argflag('--noserial-fallback')
+__TIME_GENERATE__   = VERBOSE_PARALLEL or util_arg.get_argflag('--time-generate')
 
 
 MIN_PARALLEL_TASKS = 2
@@ -106,7 +107,7 @@ def init_worker():
 def init_pool(num_procs=None, maxtasksperchild=None, quiet=QUIET, **kwargs):
     """ warning this might not be the right hting to do """
     global __POOL__
-    if PAR_VERBOSE:
+    if VERBOSE_PARALLEL:
         print('[util_parallel] init_pool()')
     if num_procs is None:
         # Get number of cpu cores
@@ -132,7 +133,7 @@ def init_pool(num_procs=None, maxtasksperchild=None, quiet=QUIET, **kwargs):
 @atexit.register
 def close_pool(terminate=False, quiet=QUIET):
     global __POOL__
-    if PAR_VERBOSE:
+    if VERBOSE_PARALLEL:
         print('[util_parallel] close_pool()')
 
     if __POOL__ is not None:
@@ -213,7 +214,7 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=1,
         nTasks = len(args_list)
     if chunksize is None:
         chunksize = max(1, nTasks // (__POOL__._processes ** 2))
-    if verbose:
+    if verbose or VERBOSE_PARALLEL:
         prefix = '[util_parallel._generate_parallel]'
         fmtstr = prefix + 'executing %d %s tasks using %d processes with chunksize=%r'
         print(fmtstr % (nTasks, get_funcname(func), __POOL__._processes, chunksize))
@@ -331,10 +332,10 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
     if nTasks is None:
         nTasks = len(args_list)
     if nTasks == 0:
-        if PAR_VERBOSE or verbose:
+        if VERBOSE_PARALLEL or verbose:
             print('[util_parallel.generate] submitted 0 tasks')
         return iter([])
-    if PAR_VERBOSE or verbose:
+    if VERBOSE_PARALLEL or verbose:
         print('[util_parallel.generate] ordered=%r' % ordered)
         print('[util_parallel.generate] force_serial=%r' % force_serial)
     # Check conditions under which we force serial
@@ -342,11 +343,11 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
     if not force_serial_:
         ensure_pool(quiet=quiet)
     if force_serial_ or isinstance(__POOL__, int):
-        if PAR_VERBOSE or verbose:
+        if VERBOSE_PARALLEL or verbose:
             print('[util_parallel.generate] generate_serial')
         return _generate_serial(func, args_list, prog=prog, nTasks=nTasks)
     else:
-        if PAR_VERBOSE or verbose:
+        if VERBOSE_PARALLEL or verbose:
             print('[util_parallel.generate] generate_parallel')
         return _generate_parallel(func, args_list, ordered=ordered,
                                   chunksize=chunksize, prog=prog,

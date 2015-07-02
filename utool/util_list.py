@@ -1572,7 +1572,7 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_cons
         >>> print(result)
         (2, 3, 4)
 
-    Example0:
+    Example1:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> list_ = [[[[[1]]], [3, 4, 33]], [[1], [2, 3], [4, [5, 5]]], [1, 3]]
@@ -1580,7 +1580,7 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_cons
         >>> print(result)
         [[(1, 1, 1), 3], [1, 2, [1, 2]], 2]
 
-    Example1:
+    Example2:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> list_ = [[[[[1]]], [3, 4, 33]], [[1], [2, 3], [4, [5, 5]]], [1, 3]]
@@ -1588,7 +1588,7 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_cons
         >>> print(result)
         [[(1, '1'), 3], [1, 2, [1, '2']], 2]
 
-    Example2:
+    Example3:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> list_ = [[[1, 2], [1, 2, 3]], None]
@@ -1596,13 +1596,20 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_cons
         >>> print(result)
         [[2, 3], 1]
 
-    Example3:
+    Example4:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> list_ = [[3, 2], [3, 2], [3, 2], [3, 2], [3, 2], [3, 2], [9, 5, 3], [2, 2]]
         >>> result = depth_profile(list_, compress_homogenous=True, compress_consecutive=True)
         >>> print(result)
         [2] * 6 + [3, 2]
+
+    Example5:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [[[3, 9], 2], [[3, 9], 2], [[3, 9], 2], [[3, 9], 2]]  #, [3, 2], [3, 2]]
+        >>> result = depth_profile(list_, compress_homogenous=True, compress_consecutive=True)
+        >>> print(result)
 
     """
     level_shape_list = []
@@ -1649,7 +1656,7 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_cons
             #    consec_str = consec_str[:-2]
             consec_str = consec_str.rstrip(', ').rstrip(']')
             consec_str += ']'
-            consec_str += ']'
+            #consec_str += ']'
             level_shape_list = consec_str
     return level_shape_list
 

@@ -618,8 +618,8 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         if hasattr(testable, '__ut_parent_class__'):
             # HACK for getting classname.funcname
             testname2 = testable.__ut_parent_class__.__name__ + '.' + testname
-            print('TESTNAME2')
-            print('testname2 = %r' % (testname2,))
+            #print('TESTNAME2')
+            #print('testname2 = %r' % (testname2,))
         examples, wants, linenums, func_lineno, docstr = get_doctest_examples(testable)
         if len(examples) > 0:
             for testno , srcwant_tup in enumerate(zip(examples, wants)):
@@ -774,6 +774,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     mod_doctest_tup = get_module_doctest_tup(testable_list, check_flags, module,
                                              allexamples, needs_enable, N=1, verbose=verbose)
     enabled_testtup_list, frame_fpath, all_testflags, module  = mod_doctest_tup
+    modname = ut.get_modname_from_modpath(frame_fpath)
     #L__________________
     #+-------------------
     # Run enabled examles
@@ -781,6 +782,8 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     nFail = 0
     failed_flag_list = []
     nTotal = len(enabled_testtup_list)
+    if ut.get_argflag(('--edit-test-file', '--etf')):
+        ut.editfile(frame_fpath)
     for testtup in enabled_testtup_list:
         name, num, src, want, flag = testtup
         print('\n\n')
@@ -789,7 +792,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
         if EXEC_MODE:
             print(' ---- EXEC ' + name.upper() + ':' + str(num) + '---')
         else:
-            print(' ---- DOCTEST ' + name.upper() + ':' + str(num) + '---')
+            print(' ---- DOCTEST ' + modname + ' ' + name.upper() + ':' + str(num) + '---')
         if PRINT_SRC or VERBOSE_TEST:
             print(ut.msgblock('EXEC SRC', src))
         test_globals = module.__dict__.copy()

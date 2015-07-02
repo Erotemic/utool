@@ -430,6 +430,7 @@ def is_prime(num):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
         >>> with ut.Timer('isprime'):
         >>>     series = [is_prime(n) for n in range(30)]
         >>> result = ('primes = %s' % (str(ut.list_where(series[0:10])),))
@@ -452,8 +453,9 @@ def fibonacci_recursive(n):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
         >>> with ut.Timer('fib rec'):
-        >>>     series = [fibonacci_recursive(n) for n in range(30)]
+        >>>     series = [fibonacci_recursive(n) for n in range(20)]
         >>> result = ('series = %s' % (str(series[0:10]),))
         >>> print(result)
         series = [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
@@ -480,8 +482,9 @@ def fibonacci_iterative(n):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
         >>> with ut.Timer('fib iter'):
-        >>>     series = [fibonacci_iterative(n) for n in range(30)]
+        >>>     series = [fibonacci_iterative(n) for n in range(20)]
         >>> result = ('series = %s' % (str(series[0:10]),))
         >>> print(result)
         series = [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
