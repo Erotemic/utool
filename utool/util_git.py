@@ -7,6 +7,7 @@ from os.path import exists, join, dirname, split, isdir
 from utool._internal import meta_util_git as mu  # NOQA
 from utool._internal.meta_util_git import get_repo_dirs, get_repo_dname  # NOQA
 from utool import util_inject
+from utool import util_arg
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[git]')
 
 repo_list = mu.repo_list
@@ -20,6 +21,7 @@ set_userid = mu.set_userid
 PROJECT_REPO_DIRS = []
 PROJECT_REPO_URLS = []
 CODE_DIR = None
+DRY_RUN = util_arg.get_argflag('--dryrun')
 
 
 def set_code_dir(code_dir):
@@ -39,22 +41,66 @@ def get_project_repo_dirs():
     return PROJECT_REPO_DIRS
 
 
-def gitcmd(repo, command, sudo=False):
+def gitcmd(repo, command, sudo=False, dryrun=DRY_RUN):
     print("+****gitcmd*******")
     print('repo=%s' % repo)
+    if not isinstance(command, (tuple, list)):
+        command_list = [command]
+    else:
+        command_list = command
+    print('command=%s' % '\n        '.join([cmd_ for cmd_ in command_list]))
     os.chdir(repo)
     #if command.find('git') != 0:
     #    command = 'git ' + command
-    if not sudo or sys.platform.startswith('win32'):
-        ret = os.system(command)
-    else:
-        ret = os.system('sudo ' + command)
-    verbose = True
-    if verbose:
-        print('ret = %r' % (ret,))
-    if ret != 0:
-        raise Exception('Failed command')
+    ret = None
+    if not dryrun:
+        for count, cmd in enumerate(command_list):
+            assert cmd.startswith('git '), 'invalid git command'
+            if not sudo or sys.platform.startswith('win32'):
+                ret = os.system(cmd)
+            else:
+                ret = os.system('sudo ' + cmd)
+            verbose = True
+            if verbose:
+                print('ret(%d) = %r' % (count, ret,))
+            if ret != 0:
+                raise Exception('Failed command %r' % (cmd,))
     print("L***********")
+
+
+def rename_branch(old_branch_name, new_branch_name, repo='.', remote='origin', dryrun=DRY_RUN):
+    r"""
+    References:
+        http://stackoverflow.com/questions/1526794/rename-master-branch-for-both-local-and-remote-git-repositories?answertab=votes#tab-top
+        http://stackoverflow.com/questions/9524933/renaming-a-branch-in-github
+
+    CommandLine:
+        python -m utool.util_git --test-rename_branch --old=mymaster --new=ibeis_master --dryrun
+
+    Example:
+        >>> # SCRIPT
+        >>> from utool.util_git import *  # NOQA
+        >>> repo = ut.get_argval('--repo', str, '.')
+        >>> remote = ut.get_argval('--remote', str, 'origin')
+        >>> old_branch_name = ut.get_argval('--old', str, None)
+        >>> new_branch_name = ut.get_argval('--new', str, None)
+        >>> rename_branch(old_branch_name, new_branch_name, repo, remote)
+    """
+    import utool as ut
+    repo = ut.truepath(repo)
+    fmtdict = dict(remote=remote,
+                   old_branch_name=old_branch_name,
+                   new_branch_name=new_branch_name)
+    command_list = [
+        'git checkout {old_branch_name}'.format(**fmtdict),
+        # rename branch
+        'git branch -m {old_branch_name} {new_branch_name}'.format(**fmtdict),
+        # delete old branch
+        'git push {remote} :{old_branch_name}'.format(**fmtdict),
+        # push new branch
+        'git push {remote} {new_branch_name}'.format(**fmtdict),
+    ]
+    gitcmd(repo, command_list, dryrun=dryrun)
 
 
 def std_build_command(repo='.'):
@@ -156,6 +202,12 @@ def is_gitrepo(repo_dir):
 
 
 if __name__ == '__main__':
-    command = ' '.join(sys.argv[1:])
-    # Apply command to all repos
-    gg_command(command)
+    import multiprocessing
+    import utool as ut  # NOQA
+    multiprocessing.freeze_support()  # for win32
+    if ut.doctest_was_requested():
+        ut.doctest_funcs()
+    else:
+        command = ' '.join(sys.argv[1:])
+        # Apply command to all repos
+        gg_command(command)
