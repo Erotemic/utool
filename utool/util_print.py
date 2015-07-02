@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 try:
     import numpy as np
@@ -9,7 +10,7 @@ import sys
 from utool._internal import meta_util_arg
 from utool import util_str
 from utool import util_inject
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[print]')
+print, rrr, profile = util_inject.inject2(__name__, '[print]')
 
 QUIET        = meta_util_arg.QUIET
 VERBOSE      = meta_util_arg.VERBOSE
@@ -150,23 +151,23 @@ class PrintStartEndContext(object):
             print('L___ END ' + self.msg)
 
 
-class NpPrintOpts(object):
-    def __init__(self, **kwargs):
-        self.orig_opts = np.get_printoptions()
-        self.new_opts = kwargs
-    def __enter__(self):
-        np.set_printoptions(**self.new_opts)
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        np.set_printoptions(**self.orig_opts)
-        if exc_traceback is not None:
-            print('[util_print] ERROR IN TRACEBACK: ' + str(exc_value))
-            return False
+#class NpPrintOpts(object):
+#    def __init__(self, **kwargs):
+#        self.orig_opts = np.get_printoptions()
+#        self.new_opts = kwargs
+#    def __enter__(self):
+#        np.set_printoptions(**self.new_opts)
+#    def __exit__(self, exc_type, exc_value, exc_traceback):
+#        np.set_printoptions(**self.orig_opts)
+#        if exc_traceback is not None:
+#            print('[util_print] ERROR IN TRACEBACK: ' + str(exc_value))
+#            return False
 
 
-def full_numpy_repr(arr):
-    with NpPrintOpts(threshold=np.uint64(-1)):
-        arr_repr = repr(arr)
-    return arr_repr
+#def full_numpy_repr(arr):
+#    with NpPrintOpts(threshold=np.uint64(-1)):
+#        arr_repr = repr(arr)
+#    return arr_repr
 
 
 def printVERBOSE(msg, verbarg):

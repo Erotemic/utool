@@ -816,8 +816,11 @@ def numpy_str(arr, strvals=False, precision=8, pr=None, force_dtype=True, suppre
     """
     suppress_small = False turns off scientific representation
     """
+    kwargs = kwargs.copy()
     if 'suppress' in kwargs:
         suppress_small = kwargs['suppress']
+    if max_line_width is None and 'linewidth' in kwargs:
+        max_line_width = kwargs.pop('linewidth')
 
     if pr is not None:
         precision = pr
@@ -1856,6 +1859,34 @@ def lorium_ipsum():
     est laborum.
     """
     return ipsum_str
+
+
+def bubbletext(text, font='cybermedium'):
+    r"""
+    Other fonts include: cybersmall, cybermedium, and cyberlarge
+
+    import pyfiglet
+    TODO move elsewhere
+
+    References:
+        http://www.figlet.org/
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import utool as ut
+        >>> bubble_text1 = ut.bubbletext('TESTING', font='cyberlarge')
+        >>> bubble_text2 = ut.bubbletext('BUBBLE', font='cybermedium')
+        >>> bubble_text3 = ut.bubbletext('TEXT', font='cyberlarge')
+        >>> print('\n'.join([bubble_text1, bubble_text2, bubble_text3]))
+    """
+    # TODO: move this function elsewhere
+    import utool as ut
+    pyfiglet = ut.tryimport('pyfiglet', 'git+https://github.com/pwaller/pyfiglet')
+    if pyfiglet is None:
+        return text
+    else:
+        bubble_text = pyfiglet.figlet_format(text, font=font)
+        return bubble_text
 
 
 if __name__ == '__main__':

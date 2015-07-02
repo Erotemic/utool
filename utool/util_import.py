@@ -8,6 +8,57 @@ from utool import util_arg
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[import]')
 
 
+def tryimport(modname, pipiname=None, ensure=False):
+    """
+    CommandLine:
+        python -m utool.util_import --test-tryimport
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_tests import *   # NOQA
+        >>> import utool as ut
+        >>> modname = 'pyfiglet'
+        >>> pipiname = 'git+https://github.com/pwaller/pyfiglet'
+        >>> pyfiglet = ut.tryimport(modname, pipiname)
+        >>> assert pyfiglet is None or isinstance(pyfiglet, types.ModuleType), 'unknown error'
+
+    Example2:
+        >>> # UNSTABLE_DOCTEST
+        >>> # disabled because not everyone has access to being a super user
+        >>> from utool.util_tests import *   # NOQA
+        >>> import utool as ut
+        >>> modname = 'lru'
+        >>> pipiname = 'git+https://github.com/amitdev/lru-dict'
+        >>> lru = ut.tryimport(modname, pipiname, ensure=True)
+        >>> assert isinstance(lru, types.ModuleType), 'did not ensure lru'
+    """
+    if pipiname is None:
+        pipiname = modname
+    try:
+        module = __import__(modname)
+        return module
+    except ImportError as ex:
+        import utool
+        base_pipcmd = 'pip install %s' % pipiname
+        if not utool.WIN32:
+            pipcmd = 'sudo ' + base_pipcmd
+            sudo = True
+        else:
+            pipcmd = base_pipcmd
+            sudo = False
+        msg = 'unable to find module %r. Please install: %s' % (str(modname), str(pipcmd))
+        print(msg)
+        utool.printex(ex, msg, iswarning=True)
+        if ensure:
+            #raise NotImplementedError('not ensuring')
+            utool.cmd(base_pipcmd, sudo=sudo)
+            module = tryimport(modname, pipiname, ensure=False)
+            if module is None:
+                raise AssertionError('Cannot ensure modname=%r please install using %r'  % (modname, pipcmd))
+            return module
+        return None
+
+
 lazy_module_attrs =  ['_modname', '_module', '_load_module']
 
 

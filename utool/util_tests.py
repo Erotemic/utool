@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Helpers for tests
 
@@ -24,6 +25,7 @@ from utool import util_arg
 from utool import util_path
 from utool import util_time
 from utool import util_inject
+from utool import util_dbg
 from utool._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[tests]')
 
@@ -31,11 +33,13 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[tests]')
 VERBOSE_TEST = util_arg.get_argflag(('--verbtest', '--verb-test', '--verbose-test'))
 #PRINT_SRC = not util_arg.get_argflag(('--noprintsrc', '--nosrc'))
 DEBUG_SRC = not util_arg.get_argflag('--nodbgsrc')
-PRINT_SRC = util_arg.get_argflag(('--printsrc', '--src', '--show-src', '--showsrc'))
+PRINT_SRC = util_arg.get_argflag(('--printsrc', '--src', '--show-src', '--showsrc'),
+                                 help_='show docstring source when running tests')
 PRINT_FACE = not util_arg.get_argflag(('--noprintface', '--noface'))
 #BIGFACE = False
 BIGFACE = util_arg.get_argflag('--bigface')
-SYSEXIT_ON_FAIL = util_arg.get_argflag('--sysexitonfail')
+SYSEXIT_ON_FAIL = util_arg.get_argflag(('--sysexitonfail', '--fastfail'),
+                                       help_='Force testing harness to exit on first test failure')
 VERBOSE_TIMER = not util_arg.get_argflag('--no-time-tests')
 INDENT_TEST   = False
 EXEC_MODE = util_arg.get_argflag('--exec-mode', help_='dummy flag that will be removed')
@@ -315,7 +319,8 @@ def get_doctest_examples(func_or_class):
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_tests import *  # NOQA
-        >>> func_or_class = tryimport
+        >>> import utool as ut
+        >>> func_or_class = ut.tryimport
         >>> testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr = get_doctest_examples(func_or_class)
         >>> result = str(len(testsrc_list) + len(testwant_list))
         >>> print(testsrc_list)
@@ -1002,9 +1007,8 @@ def _exec_doctest(src, kwargs, nocheckwant=None):
             errmsg1 = ''
             try:
                 import utool as ut
-                util_arg.get_argflag('--colorex')
                 difftext = ut.get_textdiff(result, want)
-                if ut.get_argflag('--colorex'):
+                if util_dbg.COLORED_EXCEPTIONS:
                     difftext = ut.get_colored_diff(difftext)
                 errmsg1 += ('DIFF/GOT/EXPECTED\n' + difftext + '\n')
             except ImportError:
@@ -1030,99 +1034,26 @@ def printTEST(msg, wait=False):
     # raw_input('press enter to continue')
 
 
-def tryimport(modname, pipiname=None, ensure=False):
-    """
-    CommandLine:
-        python -m utool.util_tests --test-tryimport
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from utool.util_tests import *   # NOQA
-        >>> modname = 'pyfiglet'
-        >>> pipiname = 'git+https://github.com/pwaller/pyfiglet'
-        >>> pyfiglet = tryimport(modname, pipiname)
-        >>> assert pyfiglet is None or isinstance(pyfiglet, types.ModuleType), 'unknown error'
-
-    Example2:
-        >>> # UNSTABLE_DOCTEST
-        >>> # disabled because not everyone has access to being a super user
-        >>> from utool.util_tests import *   # NOQA
-        >>> modname = 'lru'
-        >>> pipiname = 'git+https://github.com/amitdev/lru-dict'
-        >>> lru = tryimport(modname, pipiname, ensure=True)
-        >>> assert isinstance(lru, types.ModuleType), 'did not ensure lru'
-    """
-    if pipiname is None:
-        pipiname = modname
-    try:
-        module = __import__(modname)
-        return module
-    except ImportError as ex:
-        import utool
-        base_pipcmd = 'pip install %s' % pipiname
-        if not utool.WIN32:
-            pipcmd = 'sudo ' + base_pipcmd
-            sudo = True
-        else:
-            pipcmd = base_pipcmd
-            sudo = False
-        msg = 'unable to find module %r. Please install: %s' % (str(modname), str(pipcmd))
-        print(msg)
-        utool.printex(ex, msg, iswarning=True)
-        if ensure:
-            #raise NotImplementedError('not ensuring')
-            utool.cmd(base_pipcmd, sudo=sudo)
-            module = tryimport(modname, pipiname, ensure=False)
-            if module is None:
-                raise AssertionError('Cannot ensure modname=%r please install using %r'  % (modname, pipcmd))
-            return module
-        return None
-
-
-def bubbletext(text, font='cybermedium'):
-    r"""
-    Other fonts include: cybersmall, cybermedium, and cyberlarge
-
-    import pyfiglet
-
-    References:
-        http://www.figlet.org/
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> import utool
-        >>> bubble_text1 = utool.bubbletext('TESTING', font='cyberlarge')
-        >>> bubble_text2 = utool.bubbletext('BUBBLE', font='cybermedium')
-        >>> bubble_text3 = utool.bubbletext('TEXT', font='cyberlarge')
-        >>> print('\n'.join([bubble_text1, bubble_text2, bubble_text3]))
-    """
-    # TODO: move this function elsewhere
-    pyfiglet = tryimport('pyfiglet', 'git+https://github.com/pwaller/pyfiglet')
-    if pyfiglet is None:
-        return text
-    else:
-        bubble_text = pyfiglet.figlet_format(text, font=font)
-        return bubble_text
-
-
 def make_run_tests_script_text(test_headers, test_argvs, quick_tests=None,
                                repodir=None, exclude_list=[]):
     """
     Autogeneration function
+
+    TODO move to util_autogen or just depricate
 
     Examples:
         >>> from utool.util_tests import *  # NOQA
         >>> import utool  # NOQA
         >>> testdirs = ['~/code/ibeis/test_ibs*.py']
     """
-    import utool
+    import utool as ut
     from os.path import relpath, join, dirname  # NOQA
 
     exclude_list += ['__init__.py']
 
     # General format of the testing script
 
-    script_fmtstr = utool.codeblock(
+    script_fmtstr = ut.codeblock(
         r'''
         #!/bin/bash
         # Runs all tests
@@ -1228,7 +1159,7 @@ def make_run_tests_script_text(test_headers, test_argvs, quick_tests=None,
         END_TESTS
         ''')
 
-    testcmdline_fmtstr = utool.codeblock(
+    testcmdline_fmtstr = ut.codeblock(
         r'''
         case $i in --notest{header_lower})
             export {testflag}=OFF
@@ -1240,7 +1171,7 @@ def make_run_tests_script_text(test_headers, test_argvs, quick_tests=None,
         esac
         ''')
 
-    header_test_block_fmstr = utool.codeblock(
+    header_test_block_fmstr = ut.codeblock(
         r'''
 
         #---------------------------------------------
@@ -1270,7 +1201,7 @@ def make_run_tests_script_text(test_headers, test_argvs, quick_tests=None,
     dirdef_list = []
     header_test_block_list = []
 
-    known_tests = utool.ddict(list)
+    known_tests = ut.ddict(list)
 
     # Tests to always run
     if quick_tests is not None:
@@ -1315,7 +1246,7 @@ def make_run_tests_script_text(test_headers, test_argvs, quick_tests=None,
                                         testflag=testflag,)
         testcmdline = testcmdline_fmtstr.format(**testcmdline_fmtdict)
 
-        #utool.ls(dpath)
+        #ut.ls(dpath)
 
         # VERY HACK BIT OF CODE
 
@@ -1326,15 +1257,15 @@ def make_run_tests_script_text(test_headers, test_argvs, quick_tests=None,
                 repo_path = dirname(dirname(module.__file__))
             else:
                 repo_path = repodir
-            dpath_ = utool.unixpath(util_path.unixjoin(repo_path, dpath))
+            dpath_ = ut.unixpath(util_path.unixjoin(repo_path, dpath))
 
             if header_upper == 'OTHER':
                 # Hacky way to grab any other tests not explicitly seen in this directory
-                _testfpath_list = list(set(utool.glob(dpath_, '*.py')) - set(known_tests[dpath_]))
-                #_testfpath_list = utool.glob(dpath_, '*.py')
+                _testfpath_list = list(set(ut.glob(dpath_, '*.py')) - set(known_tests[dpath_]))
+                #_testfpath_list = ut.glob(dpath_, '*.py')
                 #set(known_tests[dpath_])
             else:
-                _testfpath_list = utool.flatten([utool.glob(dpath_, pat) for pat in pats])
+                _testfpath_list = ut.flatten([ut.glob(dpath_, pat) for pat in pats])
 
             def not_excluded(x):
                 return not any([x.find(exclude) > -1 for exclude in exclude_list])
@@ -1349,12 +1280,12 @@ def make_run_tests_script_text(test_headers, test_argvs, quick_tests=None,
         else:
             testline_list = testcmds
 
-        testlines_block = utool.indentjoin(testline_list).strip('\n')
+        testlines_block = ut.indentjoin(testline_list).strip('\n')
 
         # Construct test block for this type
         header_text = header_upper + ' TESTS'
         headerfont = 'cybermedium'
-        header_bubble_text =  utool.indent(utool.bubbletext(header_text, headerfont).strip())
+        header_bubble_text =  ut.indent(ut.bubbletext(header_text, headerfont).strip())
         header_test_block_dict = dict(
             testflag=testflag,
             header_text=header_text,
@@ -1367,11 +1298,11 @@ def make_run_tests_script_text(test_headers, test_argvs, quick_tests=None,
         default_flag_line_list.append(default_flag_line)
         testcmdline_list.append(testcmdline)
 
-    runtests_bubbletext = bubbletext('RUN TESTS', 'cyberlarge')
+    runtests_bubbletext = ut.bubbletext('RUN TESTS', 'cyberlarge')
 
     test_block = '\n'.join(header_test_block_list)
     dirdef_block = '\n'.join(dirdef_list)
-    testdefault_block = utool.indent('\n'.join(default_flag_line_list))
+    testdefault_block = ut.indent('\n'.join(default_flag_line_list))
     testdefaulton_block = '\n'.join(defaulton_flag_line_list)
     testcmdline_block = '\n'.join(testcmdline_list)
 
@@ -1389,6 +1320,9 @@ def make_run_tests_script_text(test_headers, test_argvs, quick_tests=None,
 
 
 def find_doctestable_modnames(dpath_list=None, exclude_doctests_fnames=[], exclude_dirs=[]):
+    """
+    Tries to find files with a call to ut.doctest_funcs in the __main__ part
+    """
     import utool as ut
     fpath_list, lines_list, lxs_list = ut.grep('doctest_funcs',
                                                dpath_list=dpath_list,

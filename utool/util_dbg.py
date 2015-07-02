@@ -30,6 +30,7 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[dbg]')
 
 RAISE_ALL = util_arg.get_argflag('--raise-all', help='Causes ut.printex to always reraise errors')
 FORCE_TB = util_arg.get_argflag('--force-tb', help='Causes ut.printex to always print traceback')
+COLORED_EXCEPTIONS = util_arg.get_argflag(('--colorex', '--cex'))
 
 # --- Exec Strings ---
 IPYTHON_EMBED_STR = r'''
@@ -1033,10 +1034,10 @@ def formatex(ex, msg='[!?] Caught exception',
     if tb or FORCE_TB:
         from utool import util_cplat
         tbtext = traceback.format_exc()
-        COLORED_EXCEPTIONS = colored if colored is not None else (False and not util_cplat.WIN32)
+        colored_exceptions = colored if colored is not None else (False and not util_cplat.WIN32)
         #COLORED_EXCEPTIONS = not util_cplat.WIN32
         #COLORED_EXCEPTIONS =  False  # disable
-        if COLORED_EXCEPTIONS or util_arg.get_argflag('--colorex'):
+        if colored_exceptions or COLORED_EXCEPTIONS:
             # TODO: rectify with duplicate in util_inject
             try:
                 import pygments
@@ -1208,8 +1209,8 @@ def printvar2(varstr, attr='', typepad=0):
 
 
 def printvar(locals_, varname, attr='.shape', typepad=0):
-    npprintopts = np.get_printoptions()
-    np.set_printoptions(threshold=5)
+    #npprintopts = np.get_printoptions()
+    #np.set_printoptions(threshold=5)
     dotpos = varname.find('.')
     # Locate var
     if dotpos == -1:
@@ -1234,14 +1235,14 @@ def printvar(locals_, varname, attr='.shape', typepad=0):
         print('[var] %s len(%s) = %s' % (typestr, varname, varstr))
     else:
         print('[var] %s %s = %r' % (typestr, varname, var))
-    np.set_printoptions(**npprintopts)
+    #np.set_printoptions(**npprintopts)
 
 
-def my_numpy_printops(linewidth=200, threshold=500, precision=8, edgeitems=5):
-    np.set_printoptions(linewidth=linewidth,
-                        precision=precision,
-                        edgeitems=edgeitems,
-                        threshold=threshold)
+#def my_numpy_printops(linewidth=200, threshold=500, precision=8, edgeitems=5):
+#    np.set_printoptions(linewidth=linewidth,
+#                        precision=precision,
+#                        edgeitems=edgeitems,
+#                        threshold=threshold)
 
 
 def dict_dbgstr(dict_name, locals_=None):
