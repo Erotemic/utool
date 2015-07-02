@@ -1002,7 +1002,11 @@ def _exec_doctest(src, kwargs, nocheckwant=None):
             errmsg1 = ''
             try:
                 import utool as ut
-                errmsg1 += ('DIFF/GOT/EXPECTED\n' + ut.get_textdiff(result, want)) + '\n'
+                util_arg.get_argflag('--colorex')
+                difftext = ut.get_textdiff(result, want)
+                if ut.get_argflag('--colorex'):
+                    difftext = ut.get_colored_diff(difftext)
+                errmsg1 += ('DIFF/GOT/EXPECTED\n' + difftext + '\n')
             except ImportError:
                 errmsg1 += ('REPR_GOT: result=\n%r\n' % (result))
                 errmsg1 += ('REPR_EXPECTED: want=\n%r\n' % (want))

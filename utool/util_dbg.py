@@ -1036,7 +1036,7 @@ def formatex(ex, msg='[!?] Caught exception',
         COLORED_EXCEPTIONS = colored if colored is not None else (False and not util_cplat.WIN32)
         #COLORED_EXCEPTIONS = not util_cplat.WIN32
         #COLORED_EXCEPTIONS =  False  # disable
-        if COLORED_EXCEPTIONS:
+        if COLORED_EXCEPTIONS or util_arg.get_argflag('--colorex'):
             # TODO: rectify with duplicate in util_inject
             try:
                 import pygments

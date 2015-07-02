@@ -1550,7 +1550,7 @@ def list_deep_types(list_):
 
 
 def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_consecutive=False):
-    """
+    r"""
     Returns a nested list corresponding the shape of the nested structures
     lists represent depth, tuples represent shape. The values of the items do
     not matter. only the lengths.
@@ -1610,6 +1610,18 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_cons
         >>> list_ = [[[3, 9], 2], [[3, 9], 2], [[3, 9], 2], [[3, 9], 2]]  #, [3, 2], [3, 2]]
         >>> result = depth_profile(list_, compress_homogenous=True, compress_consecutive=True)
         >>> print(result)
+        (4, [2, 1])
+
+    Example6:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [[[[1, 2]], [1, 2]], [[[1, 2]], [1, 2]], [[[0, 2]], [1]]]
+        >>> result1 = depth_profile(list_, compress_homogenous=True, compress_consecutive=False)
+        >>> result2 = depth_profile(list_, compress_homogenous=True, compress_consecutive=True)
+        >>> result = str(result1) + '\n' + str(result2)
+        >>> print(result)
+        [[(1, 2), 2], [(1, 2), 2], [(1, 2), 1]]
+        [[(1, 2), 2]] * 2 + [[(1, 2), 1]]
 
     """
     level_shape_list = []
@@ -1652,11 +1664,14 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_cons
                     consec_str += ' + ['
                 else:
                     consec_str += str(value) + ', '
-            #if consec_str.endswith(', '):
-            #    consec_str = consec_str[:-2]
-            consec_str = consec_str.rstrip(', ').rstrip(']')
+            if consec_str.endswith(', '):
+                consec_str = consec_str[:-2]
+                #consec_str += ']'
+            #consec_str = consec_str.rstrip(', ').rstrip(']')
+            #consec_str = consec_str.rstrip(', ')
+            #if consec_str.endswith(']'):
+            #    consec_str = consec_str[:-1]
             consec_str += ']'
-            #consec_str += ']'
             level_shape_list = consec_str
     return level_shape_list
 

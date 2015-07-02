@@ -241,6 +241,22 @@ def print_python_code(text):
         print(text)
 
 
+def get_colored_diff(text):
+    import pygments
+    import utool as ut
+    try:
+        if ut.WIN32:
+            formater = pygments.formatters.terminal256.Terminal256Formatter()
+        else:
+            import pygments.formatters.terminal
+            formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
+        lexer = pygments.lexers.get_lexer_by_name('diff')
+        return (pygments.highlight(text, lexer, formater))
+    except Exception:
+        raise
+        return text
+
+
 def print_difftext(text):
     """
     Args:
@@ -251,19 +267,20 @@ def print_difftext(text):
         #autopep8 ingest_data.py --diff | python -m utool.util_print --test-print_difftext
 
     """
-    import pygments
-    import utool as ut
-    try:
-        if ut.WIN32:
-            formater = pygments.formatters.terminal256.Terminal256Formatter()
-        else:
-            import pygments.formatters.terminal
-            formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
-        lexer = pygments.lexers.get_lexer_by_name('diff')
-        print(pygments.highlight(text, lexer, formater))
-    except Exception:
-        raise
-        print(text)
+    print(get_colored_diff(text))
+    #import pygments
+    #import utool as ut
+    #try:
+    #    if ut.WIN32:
+    #        formater = pygments.formatters.terminal256.Terminal256Formatter()
+    #    else:
+    #        import pygments.formatters.terminal
+    #        formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
+    #    lexer = pygments.lexers.get_lexer_by_name('diff')
+    #    print(pygments.highlight(text, lexer, formater))
+    #except Exception:
+    #    raise
+    #    print(text)
 
 
 def colorprint(msg, color):
