@@ -507,6 +507,9 @@ def get_timestats_dict(unixtime_list, full=True, isutc=False):
     import utool as ut
     unixtime_stats = ut.get_stats(unixtime_list, use_nan=True)
     datetime_stats = {}
+    if unixtime_stats.get('empty_list', False):
+        datetime_stats = unixtime_stats
+        return datetime_stats
     for key in ['max', 'min', 'mean']:
         try:
             datetime_stats[key] = ut.unixtime_to_datetime(unixtime_stats[key], isutc=isutc)
@@ -523,6 +526,7 @@ def get_timestats_dict(unixtime_list, full=True, isutc=False):
         pass
 
     if full:
+        #unused_keys = (set(unixtime_stats.keys()) - set(datetime_stats.keys())
         for key in ['nMax', 'num_nan', 'shape', 'nMin']:
             datetime_stats[key] = unixtime_stats[key]
     #print('Unused keys = %r' % (set(unixtime_stats.keys()) - set(datetime_stats.keys()),))

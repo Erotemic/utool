@@ -273,8 +273,8 @@ def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False, verbose=
 
 def delete(path, dryrun=False, recursive=True, verbose=VERBOSE, print_exists=True, ignore_errors=True, **kwargs):
     """ Removes a file or directory """
-    #if verbose:
-    print('[util_path] Deleting path=%r' % path)
+    if not QUIET:
+        print('[util_path] Deleting path=%r' % path)
     if not exists(path):
         if print_exists and not QUIET:
             msg = ('..does not exist!')
@@ -287,6 +287,8 @@ def delete(path, dryrun=False, recursive=True, verbose=VERBOSE, print_exists=Tru
         flag = flag and remove_dirs(path, **rmargs)
     elif isfile(path):
         flag = remove_file(path, **rmargs)
+    if not QUIET:
+        print('[util_path] Finished deleting path=%r' % path)
     return flag
 
 
@@ -1594,6 +1596,31 @@ def ensure_mingw_drive(win32_path):
     mingw_drive = '/' + win32_drive[:-1].lower()
     mingw_path = mingw_drive + _path
     return mingw_path
+
+
+class ChdirContext(object):
+    """
+    References http://www.astropython.org/snippet/2009/10/chdir-context-manager
+    """
+    def __init__(self, dpath=None, stay=False):
+        self.stay = stay
+        self.curdir = os.getcwd()
+        self.dpath = dpath
+
+    def __enter__(self):
+        if self.dpath is not None:
+            print('Change directory to %r' % (self.dpath,))
+            os.chdir(self.dpath)
+        return self
+
+    def __exit__(self, type_, value, trace):
+        if not self.stay:
+            print('Change directory to %r' % (self.curdir,))
+            os.chdir(self.curdir)
+        if trace is not None:
+            if VERBOSE:
+                print('[util_path] Error in chdir context manager!: ' + str(value))
+            return False  # return a falsey value on error
 
 
 if __name__ == '__main__':

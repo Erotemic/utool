@@ -46,6 +46,7 @@ class PrefInternal(DynamicStruct.DynStruct):
         _intern.hidden  = hidden   # A node can be hidden
         _intern.fpath   = fpath    # A node is cached to
         _intern.depeq   = depeq    # A node depends on
+        _intern.editable = True    # A node can be uneditable
         _intern._frozen_type = None     # A node's value type
         # Some preferences are constrained to a list of choices
         if choices is not None:
@@ -137,6 +138,7 @@ class Pref(PrefNode):
     def ensure_attr(self, attr, default):
         if not hasattr(self, attr):
             setattr(self, attr, default)
+        return getattr(self, attr)
 
     # -------------------
     # Attribute Setters

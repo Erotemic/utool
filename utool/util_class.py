@@ -293,6 +293,78 @@ def makeForwardingMetaclass(forwarding_dest_getter, whitelist, base_class=object
     return ForwardingMetaclass
 
 
+def test_reloading_metaclass():
+    r"""
+    CommandLine:
+        python -m utool.util_class --test-test_reloading_metaclass
+
+    References:
+        http://stackoverflow.com/questions/8122734/pythons-imp-reload-function-is-not-working
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_class import *  # NOQA
+        >>> result = test_reloading_metaclass()
+        >>> print(result)
+    """
+    import utool as ut
+    testdir = ut.ensure_app_resource_dir('utool', 'metaclass_tests')
+    testfoo_fpath = ut.unixjoin(testdir, 'testfoo.py')
+    # os.chdir(testdir)
+    #with ut.ChdirContext(testdir, stay=ut.inIPython()):
+    with ut.ChdirContext(testdir):
+        foo_code1 = ut.codeblock(
+            r'''
+            # STARTBLOCK
+            import utool as ut
+            import six
+
+
+            @six.add_metaclass(ut.ReloadingMetaclass)
+            class Foo(object):
+                def __init__(self):
+                    pass
+
+            spamattr = 'version1'
+            # ENDBLOCK
+            '''
+        )
+        foo_code2 = ut.codeblock(
+            r'''
+            # STARTBLOCK
+            import utool as ut
+            import six
+
+
+            @six.add_metaclass(ut.ReloadingMetaclass)
+            class Foo(object):
+                def __init__(self):
+                    pass
+
+                def bar(self):
+                    return 'spam'
+
+            eggsattr = 'version2'
+            # ENDBLOCK
+            '''
+        )
+        # Write a testclass to disk
+        ut.delete(testfoo_fpath)
+        ut.write_to(testfoo_fpath, foo_code1, verbose=True)
+        testfoo = ut.import_module_from_fpath(testfoo_fpath)
+        #import testfoo
+        foo = testfoo.Foo()
+        print('foo = %r' % (foo,))
+        assert not hasattr(foo, 'bar'), 'foo should not have a bar attr'
+        ut.delete(testfoo_fpath + 'c')  # remove the pyc file because of the identical creation time
+        ut.write_to(testfoo_fpath, foo_code2, verbose=True)
+        assert not hasattr(foo, 'bar'), 'foo should still not have a bar attr'
+        foo.rrr()
+        assert foo.bar() == 'spam'
+        ut.delete(testfoo_fpath)
+        print('Reloading worked nicely')
+
+
 class ReloadingMetaclass(type):
     """
     Classes with this metaclass will be able to reload themselves
@@ -302,14 +374,17 @@ class ReloadingMetaclass(type):
     they will be called after and before reload respectively. Any
     inject_instance functions should be handled there.
 
+    SeeAlso:
+        test_reloading_metaclass - shows a working example of this doctest
+
     Example:
         >>> # DIABLE_DOCTEST
         >>> from utool.util_class import *  # NOQA
         >>> import utool as ut
         >>> @six.add_metaclass(ut.ReloadingMetaclass)
-        >>> class Foo():
+        >>> class Foo(object):
         ...     def __init__(self):
-        ...        pass
+        ...         pass
         >>> # You can edit foo on disk and call rrr in ipython
         >>> # if you add a new function to it
         >>> foo = Foo()
@@ -318,11 +393,11 @@ class ReloadingMetaclass(type):
         >>> # there will be no easy way to write to it.
         >>> # This does work when you run from ipython
         >>> @six.add_metaclass(ut.ReloadingMetaclass)
-        >>> class Foo():
+        >>> class Foo(object):
         ...     def __init__(self):
-        ...        pass
+        ...         pass
         ...     def bar(self):
-        ...        return "spam"
+        ...         return 'spam'
         >>> foo.rrr()
         >>> result = foo.bar()
         >>> print(result)
@@ -331,79 +406,173 @@ class ReloadingMetaclass(type):
     def __init__(metaself, name, bases, dct):
         super(ReloadingMetaclass, metaself).__init__(name, bases, dct)
         #print('Making rrr for %r' % (name,))
+        rrr = private_rrr_factory()
+        #def rrr(self, verbose=True):
+        #    classname = self.__class__.__name__
+        #    try:
+        #        modname = self.__class__.__module__
+        #        if verbose:
+        #            print('reloading ' + classname + ' from ' + modname)
+        #        # --HACK--
+        #        if hasattr(self, '_on_reload'):
+        #            self._on_reload()
 
-        def rrr(self, verbose=True):
-            classname = self.__class__.__name__
-            try:
-                modname = self.__class__.__module__
-                if verbose:
-                    print('reloading ' + classname + ' from ' + modname)
-                # --HACK--
-                if hasattr(self, '_on_reload'):
-                    self._on_reload()
+        #        NEW = True
+        #        if NEW:
+        #            # Do for all inheriting classes
+        #            def find_base_clases(_class, find_base_clases=None):
+        #                class_list = []
+        #                for _baseclass in _class.__bases__:
+        #                    class_list.extend(find_base_clases(_baseclass, find_base_clases))
+        #                if _class is not object:
+        #                    class_list.append(_class)
+        #                return class_list
 
-                NEW = True
-                if NEW:
-                    # Do for all inheriting classes
-                    def find_base_clases(_class, find_base_clases=None):
-                        class_list = []
-                        for _baseclass in _class.__bases__:
-                            class_list.extend(find_base_clases(_baseclass, find_base_clases))
-                        if _class is not object:
-                            class_list.append(_class)
-                        return class_list
+        #            _class = self.__class__
+        #            class_list = find_base_clases(_class, find_base_clases)
+        #            for _class in class_list:
+        #                if verbose:
+        #                    print('reloading parent ' + _class.__name__ + ' from ' + _class.__module__)
+        #                if _class.__module__ != '__main__':
+        #                    module_ = sys.modules[_class.__module__]
+        #                    if hasattr(module_, 'rrr'):
+        #                        module_.rrr()
+        #                    else:
+        #                        import imp
+        #                        imp.reload(module_)
+        #                _newclass = getattr(module_, _class.__name__)
+        #                reload_class_methods(self, _newclass)
+        #        else:
+        #            # --------
+        #            # Reload the parent module if it is not main
+        #            module = sys.modules[modname]
+        #            if modname != '__main__':
+        #                if hasattr(module, 'rrr'):
+        #                    module.rrr()
+        #                else:
+        #                    import imp
+        #                    imp.reload(module)
+        #            # --------
+        #            # Reload parent classes (if inherited)
+        #            # TODO: figure out how to do this
+        #            #for _baseclass in self.__class__.__bases__:
+        #            #    if hasattr(_baseclass, 'rrr'):
+        #            #        print('Reloading parent: %r' % (_baseclass))
+        #            #        # make a bound rrr method that belongs to the parent instance
+        #            #        base_rrr = _baseclass.rrr.__get__(self, _baseclass)
+        #            #        base_rrr(verbose=verbose)
+        #            # Get new class definition
+        #            class_ = getattr(module, classname)
+        #            reload_class_methods(self, class_)
+        #        # --HACK--
+        #        # TODO: handle injected definitions
+        #        if hasattr(self, '_initialize_self'):
+        #            self._initialize_self()
+        #    except Exception as ex:
+        #        import utool as ut
+        #        ut.printex(ex, 'Error Reloading Class', keys=[
+        #            'modname',
+        #            'module',
+        #            'class_',
+        #            'self', ])
+        #        #ut.embed()
+        #        #print(ut.dict_str(module.__dict__))
+        #        raise
+        metaself.rrr = rrr
 
-                    _class = self.__class__
-                    class_list = find_base_clases(_class, find_base_clases)
-                    for _class in class_list:
-                        if verbose:
-                            print('reloading parent ' + _class.__name__ + ' from ' + _class.__module__)
-                        if _class.__module__ != '__main__':
-                            module_ = sys.modules[_class.__module__]
-                            if hasattr(module_, 'rrr'):
-                                module_.rrr()
-                            else:
-                                import imp
-                                imp.reload(module_)
-                        _newclass = getattr(module_, _class.__name__)
-                        reload_class_methods(self, _newclass)
-                else:
-                    # --------
-                    # Reload the parent module if it is not main
-                    module = sys.modules[modname]
-                    if modname != '__main__':
-                        if hasattr(module, 'rrr'):
-                            module.rrr()
+
+def private_rrr_factory():
+    def rrr(self, verbose=True):
+        classname = self.__class__.__name__
+        try:
+            modname = self.__class__.__module__
+            if verbose:
+                print('reloading ' + classname + ' from ' + modname)
+            # --HACK--
+            if hasattr(self, '_on_reload'):
+                self._on_reload()
+
+            NEW = True
+            if NEW:
+                # Do for all inheriting classes
+                def find_base_clases(_class, find_base_clases=None):
+                    class_list = []
+                    for _baseclass in _class.__bases__:
+                        class_list.extend(find_base_clases(_baseclass, find_base_clases))
+                    if _class is not object:
+                        class_list.append(_class)
+                    return class_list
+
+                _class = self.__class__
+                class_list = find_base_clases(_class, find_base_clases)
+                for _class in class_list:
+                    if verbose:
+                        print('reloading parent ' + _class.__name__ + ' from ' + _class.__module__)
+                    if _class.__module__ != '__main__':
+                        module_ = sys.modules[_class.__module__]
+                        if hasattr(module_, 'rrr'):
+                            module_.rrr()
                         else:
                             import imp
-                            imp.reload(module)
-                    # --------
-                    # Reload parent classes (if inherited)
-                    # TODO: figure out how to do this
-                    #for _baseclass in self.__class__.__bases__:
-                    #    if hasattr(_baseclass, 'rrr'):
-                    #        print('Reloading parent: %r' % (_baseclass))
-                    #        # make a bound rrr method that belongs to the parent instance
-                    #        base_rrr = _baseclass.rrr.__get__(self, _baseclass)
-                    #        base_rrr(verbose=verbose)
-                    # Get new class definition
-                    class_ = getattr(module, classname)
-                    reload_class_methods(self, class_)
-                # --HACK--
-                # TODO: handle injected definitions
-                if hasattr(self, '_initialize_self'):
-                    self._initialize_self()
-            except Exception as ex:
-                import utool as ut
-                ut.printex(ex, 'Error Reloading Class', keys=[
-                    'modname',
-                    'module',
-                    'class_',
-                    'self', ])
-                #ut.embed()
-                #print(ut.dict_str(module.__dict__))
-                raise
-        metaself.rrr = rrr
+                            import utool as ut
+                            print('reloading ' + _class.__module__ + ' with imp')
+                            try:
+                                imp.reload(module_)
+                            except ImportError:
+                                print('fallback reloading ' + _class.__module__ + ' with imp')
+                                # one last thing to try. probably used ut.import_module_from_fpath
+                                # when importing this module
+                                imp.load_source(module_.__name__, module_.__file__)
+                    _newclass = getattr(module_, _class.__name__)
+                    reload_class_methods(self, _newclass)
+            else:
+                # --------
+                # Reload the parent module if it is not main
+                module = sys.modules[modname]
+                if modname != '__main__':
+                    if hasattr(module, 'rrr'):
+                        module.rrr()
+                    else:
+                        import imp
+                        imp.reload(module)
+                # --------
+                # Reload parent classes (if inherited)
+                # TODO: figure out how to do this
+                #for _baseclass in self.__class__.__bases__:
+                #    if hasattr(_baseclass, 'rrr'):
+                #        print('Reloading parent: %r' % (_baseclass))
+                #        # make a bound rrr method that belongs to the parent instance
+                #        base_rrr = _baseclass.rrr.__get__(self, _baseclass)
+                #        base_rrr(verbose=verbose)
+                # Get new class definition
+                class_ = getattr(module, classname)
+                reload_class_methods(self, class_)
+            # --HACK--
+            # TODO: handle injected definitions
+            if hasattr(self, '_initialize_self'):
+                self._initialize_self()
+        except Exception as ex:
+            import utool as ut
+            ut.printex(ex, 'Error Reloading Class', keys=[
+                'modname',
+                'module',
+                'class_',
+                'self', ])
+            #ut.embed()
+            #print(ut.dict_str(module.__dict__))
+            raise
+    return rrr
+
+
+def reloading_meta_metaclass_factory(BASE_TYPE=type):
+    """ hack for pyqt """
+    class ReloadingMetaclass2(BASE_TYPE):
+        def __init__(metaself, name, bases, dct):
+            super(ReloadingMetaclass, metaself).__init__(name, bases, dct)
+            #print('Making rrr for %r' % (name,))
+            rrr = private_rrr_factory()
+            metaself.rrr = rrr
+    return ReloadingMetaclass2
 
 
 def reload_class_methods(self, class_):

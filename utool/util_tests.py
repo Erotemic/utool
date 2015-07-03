@@ -1382,7 +1382,7 @@ def quit_if_noshow():
 
 def show_if_requested():
     import plottool as pt
-    pt.show_if_requested()
+    pt.show_if_requested(N=2)
 
 
 if __name__ == '__main__':
