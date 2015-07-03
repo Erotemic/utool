@@ -514,11 +514,10 @@ def private_rrr_factory():
                             module_.rrr()
                         else:
                             import imp
-                            import utool as ut
                             print('reloading ' + _class.__module__ + ' with imp')
                             try:
                                 imp.reload(module_)
-                            except ImportError:
+                            except (ImportError, AttributeError):
                                 print('fallback reloading ' + _class.__module__ + ' with imp')
                                 # one last thing to try. probably used ut.import_module_from_fpath
                                 # when importing this module
