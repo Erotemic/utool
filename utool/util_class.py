@@ -568,7 +568,7 @@ def reloading_meta_metaclass_factory(BASE_TYPE=type):
     """ hack for pyqt """
     class ReloadingMetaclass2(BASE_TYPE):
         def __init__(metaself, name, bases, dct):
-            super(ReloadingMetaclass, metaself).__init__(name, bases, dct)
+            super(ReloadingMetaclass2, metaself).__init__(name, bases, dct)
             #print('Making rrr for %r' % (name,))
             rrr = private_rrr_factory()
             metaself.rrr = rrr
