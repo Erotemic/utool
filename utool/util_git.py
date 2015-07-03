@@ -55,7 +55,7 @@ def gitcmd(repo, command, sudo=False, dryrun=DRY_RUN):
     ret = None
     if not dryrun:
         for count, cmd in enumerate(command_list):
-            assert cmd.startswith('git '), 'invalid git command'
+            #assert cmd.startswith('git '), 'invalid git command'
             if not sudo or sys.platform.startswith('win32'):
                 ret = os.system(cmd)
             else:
