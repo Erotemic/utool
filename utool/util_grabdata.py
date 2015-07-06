@@ -291,7 +291,7 @@ def clear_test_img_cache():
         ut.delete(fpath)
 
 
-def grab_test_imgpath(key, allow_external=True):
+def grab_test_imgpath(key, allow_external=True, verbose=True):
     """
     Gets paths to standard / fun test images.
     Downloads them if they dont exits
@@ -331,7 +331,7 @@ def grab_test_imgpath(key, allow_external=True):
     else:
         testimg_fname = key
         testimg_url = TESTIMG_URL_DICT[key]
-        testimg_fpath = grab_file_url(testimg_url, fname=testimg_fname)
+        testimg_fpath = grab_file_url(testimg_url, fname=testimg_fname, verbose=verbose)
     return testimg_fpath
 
 
