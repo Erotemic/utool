@@ -259,8 +259,10 @@ if DOELSE:
                                   makeForwardingMetaclass, 
                                   make_class_method_decorator, 
                                   make_class_postinject_decorator, oset, 
-                                  reload_class_methods, 
-                                  remove_private_obfuscation,) 
+                                  private_rrr_factory, reload_class_methods, 
+                                  reloading_meta_metaclass_factory, 
+                                  remove_private_obfuscation, 
+                                  test_reloading_metaclass,) 
     from utool.util_csv import (make_csv_table, numpy_to_csv,) 
     from utool.util_config import (get_default_global_config, 
                                    get_default_repo_config, read_repo_config, 
@@ -379,14 +381,14 @@ if DOELSE:
                                        make_cfglbls, 
                                        make_constrained_cfg_and_lbl_list, 
                                        testdata_grid_search,) 
-    from utool.util_git import (CODE_DIR, PROJECT_REPO_DIRS, PROJECT_REPO_URLS, 
-                                checkout_repos, ensure_project_repos, 
-                                ensure_repos, get_project_repo_dirs, 
-                                get_repo_dirs, get_repo_dname, gg_command, 
-                                gitcmd, is_gitrepo, isdir, pull_repos, 
-                                repo_list, set_code_dir, set_project_repos, 
-                                set_userid, setup_develop_repos, 
-                                std_build_command,) 
+    from utool.util_git import (CODE_DIR, DRY_RUN, PROJECT_REPO_DIRS, 
+                                PROJECT_REPO_URLS, checkout_repos, 
+                                ensure_project_repos, ensure_repos, 
+                                get_project_repo_dirs, get_repo_dirs, 
+                                get_repo_dname, gg_command, gitcmd, is_gitrepo, 
+                                isdir, pull_repos, rename_branch, repo_list, 
+                                set_code_dir, set_project_repos, set_userid, 
+                                setup_develop_repos, std_build_command,) 
     from utool.util_latex import (compile_latex_text, compress_pdf, 
                                   ensure_colvec, ensure_rowvec, escape_latex, 
                                   find_ghostscript_exe, get_latex_figure_str, 
@@ -498,7 +500,7 @@ if DOELSE:
                                   make_incrementer, npfind, random_indexes, 
                                   random_sample, sample_domain, spaced_indexes, 
                                   spaced_items, tiled_range,) 
-    from utool.util_path import (IMG_EXTENSIONS, PRINT_CALLER, 
+    from utool.util_path import (ChdirContext, IMG_EXTENSIONS, PRINT_CALLER, 
                                  append_suffixlist_to_namelist, assert_exists, 
                                  assertpath, augpath, basename_noext, 
                                  checkpath, copy, copy_all, copy_files_to, 
