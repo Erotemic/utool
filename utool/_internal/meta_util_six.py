@@ -1,8 +1,8 @@
 from __future__ import absolute_import, division, print_function
+import functools
 import six
 
 if six.PY2:
-    import functools
     import types
     def get_funcname(func):
         try:
@@ -41,6 +41,8 @@ elif six.PY3:
     BooleanType = bool
     FloatType = float
     def get_funcname(func):
+        if isinstance(func, functools.partial):
+            return get_funcname(func.func)
         return getattr(func, '__name__')
     def set_funcname(func, newname):
         return setattr(func, '__name__', newname)

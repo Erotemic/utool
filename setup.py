@@ -41,11 +41,16 @@ def utool_setup():
         'six >= 1.8.0',
         'psutil >= 2.1.3',
         'parse >= 1.6.6',
-        'lockfile >= 0.10.2',
         #'numpy >= 1.8.0',  # TODO REMOVE DEPENDENCY
         'numpy',  # 1.10 has hard time in comparison
         #'decorator',
     ]
+    import platform
+
+    if platform.python_version().startswith('2.7'):
+        INSTALL_REQUIRES += [
+            'lockfile >= 0.10.2',
+        ]
 
     INSTALL_OPTIONAL = [
         'astor',
