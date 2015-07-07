@@ -595,11 +595,18 @@ def parse_return_type(sourcecode):
 
     if sourcecode is None:
         return_type, return_name, return_header = (None, None, None)
-        return return_type, return_name, return_header
+        return return_type, return_name, return_header, None
 
     #source_lines = sourcecode.splitlines()
     sourcecode = 'from __future__ import print_function\n' + sourcecode
-    pt = ast.parse(sourcecode)
+    try:
+        pt = ast.parse(sourcecode)
+    except Exception:
+        return_type, return_name, return_header = (None, None, None)
+        raise
+        return return_type, return_name, return_header, None
+        #print(sourcecode)
+        #ut.printex(ex, 'Error Parsing')
 
     assert isinstance(pt, ast.Module), str(type(pt))
 
@@ -742,7 +749,9 @@ def get_func_sourcecode(func, stripdef=False, stripret=False):
         sourcecode = get_func_sourcecode(func2)
     elif sourcefile is not None and sourcefile != '<string>':
         try:
+            #print(func)
             sourcecode = inspect.getsource(func)
+            #print(sourcecode)
         except OSError as ex:
             ut.printex(ex, 'Error getting source', keys=['sourcefile'])
             raise
@@ -827,27 +836,39 @@ def infer_function_info(func):
         >>> print(result)
     """
     import utool as ut
-    current_doc = inspect.getdoc(func)
-    needs_surround = current_doc is None or len(current_doc) == 0
-    argspec = ut.get_func_argspec(func)
-    (argname_list, varargs, varkw, defaults) = argspec
+    try:
+        current_doc = inspect.getdoc(func)
+        needs_surround = current_doc is None or len(current_doc) == 0
+        argspec = ut.get_func_argspec(func)
+        (argname_list, varargs, varkw, defaults) = argspec
 
-    # See util_inspect
-    argtype_list, argdesc_list, argdefault_list, hasdefault_list = ut.infer_arg_types_and_descriptions(argname_list, defaults)
+        # See util_inspect
+        argtype_list, argdesc_list, argdefault_list, hasdefault_list = ut.infer_arg_types_and_descriptions(argname_list, defaults)
 
-    # Move source down to base indentation, but remember original indentation
-    sourcecode = get_func_sourcecode(func)
-    num_indent = ut.get_indentation(sourcecode)
-    sourcecode = ut.unindent(sourcecode)
+        # Move source down to base indentation, but remember original indentation
+        sourcecode = get_func_sourcecode(func)
+        num_indent = ut.get_indentation(sourcecode)
+        sourcecode = ut.unindent(sourcecode)
 
-    if sourcecode is not None:
-        returninfo = ut.parse_return_type(sourcecode)
-    else:
-        returninfo = None, None, None, ''
-    return_type, return_name, return_header, return_desc = returninfo
+        if sourcecode is not None:
+            returninfo = ut.parse_return_type(sourcecode)
+        else:
+            returninfo = None, None, None, ''
+        return_type, return_name, return_header, return_desc = returninfo
 
-    modname = func.__module__
-    funcname = ut.get_funcname(func)
+        modname = func.__module__
+        funcname = ut.get_funcname(func)
+    except Exception as ex:
+        #print('dealing with infer function error')
+        #print('has utinfo? ' + str(hasattr(func, '_utinfo')))
+        #sourcefile = inspect.getsourcefile(func)  # NOQA
+        ut.printex(ex, 'Error Infering Function Info', keys=[
+            'func',
+            'sourcefile',
+            'sourcecode',
+            'argspec',
+        ])
+        raise
 
     class FunctionInfo(object):
         def __init__(self):

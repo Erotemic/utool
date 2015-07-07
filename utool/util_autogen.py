@@ -103,6 +103,14 @@ def auto_docstr(modname, funcname, verbose=True, moddir=None, **kwargs):
     if isinstance(modname, str):
         module = __import__(modname)
         import imp
+        #import inspect
+        #imp.reload(inspect)
+        # Try removing pyc if it exists
+        #print(module.__file__)
+        if module.__file__.endswith('.pyc'):
+            ut.delete(module.__file__, verbose=False)
+            module = __import__(modname)
+        #print(module.__file__)
         imp.reload(module)
         try:
             # FIXME: PYTHON 3
@@ -111,6 +119,7 @@ def auto_docstr(modname, funcname, verbose=True, moddir=None, **kwargs):
                 try:
                     import {modname}
                     module = {modname}
+                    #print('Trying to reload module=%r' % (module,))
                     imp.reload(module)
                 except Exception:
                     # If it fails maybe the module is not in the path
@@ -495,7 +504,6 @@ def make_default_docstr(func,
     ismethod       = funcinfo.ismethod
 
     docstr_parts = []
-
     # Header part
     if with_header:
         header_block = funcname
