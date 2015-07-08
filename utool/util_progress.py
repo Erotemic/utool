@@ -240,6 +240,7 @@ class ProgressIter(object):
         self.report_unit        = kwargs.get('report_unit', 'seconds')
         self.autoadjust         = kwargs.get('autoadjust', True)  # autoadjust frequency of reporting
         self.time_thresh        = kwargs.pop('time_thresh', None)
+        self.prog_hook      = kwargs.pop('prog_hook', None)
         #self.time_thresh_growth = kwargs.pop('time_thresh_growth', 1.0)
         self.time_thresh_growth = kwargs.pop('time_thresh_growth', 1.0)
         self.with_totaltime = False
@@ -399,6 +400,8 @@ class ProgressIter(object):
                     str(datetime.timedelta(seconds=int(total_seconds))),
                     time.strftime('%H:%M'),
                 )
+                if self.prog_hook is not None:
+                    self.prog_hook(self.count, nTotal)
 
                 #est_timeunit_left,
                 #total_timeunit)

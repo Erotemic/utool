@@ -400,7 +400,7 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
     exec(execstr_dict(parent_locals,  'parent_locals'))
     print('')
     print('================')
-    print(ut.bubbletext('EMBEDING'))
+    print(ut.bubbletext('EMBEDDING'))
     print('================')
     print('[util] embedding')
     import IPython
