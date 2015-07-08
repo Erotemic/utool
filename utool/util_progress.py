@@ -26,6 +26,7 @@ VALID_PROGRESS_TYPES = ['none', 'dots', 'fmtstr', 'simple']
 AGGROFLUSH = util_arg.get_argflag('--aggroflush')
 PROGGRESS_BACKSPACE = not util_arg.get_argflag(('--screen', '--progress-backspace'))
 NO_PROGRESS = util_arg.get_argflag(('--no-progress', '--noprogress'))
+FORCE_ALL_PROGRESS = util_arg.get_argflag(('--force-all-progress',))
 #('--screen' not in sys.argv and '--progress-backspace' not in sys.argv)
 
 
@@ -240,7 +241,14 @@ class ProgressIter(object):
         self.report_unit        = kwargs.get('report_unit', 'seconds')
         self.autoadjust         = kwargs.get('autoadjust', True)  # autoadjust frequency of reporting
         self.time_thresh        = kwargs.pop('time_thresh', None)
-        self.prog_hook      = kwargs.pop('prog_hook', None)
+        self.prog_hook          = kwargs.pop('prog_hook', None)
+
+        if FORCE_ALL_PROGRESS:
+            self.freq = 1
+            self.autoadjust = False
+
+        if self.prog_hook is not None:
+            self.prog_hook.register_progiter(self)
         #self.time_thresh_growth = kwargs.pop('time_thresh_growth', 1.0)
         self.time_thresh_growth = kwargs.pop('time_thresh_growth', 1.0)
         self.with_totaltime = False
@@ -347,7 +355,13 @@ class ProgressIter(object):
 
         # Write initial message
         PROGRESS_WRITE(self.build_msg_fmtstr_index(nTotal, self.lbl) % (self.count))
+        force_newlines = not self.backspace
+        if force_newlines:
+            PROGRESS_WRITE('\n')
+
         PROGRESS_FLUSH()
+        if self.prog_hook is not None:
+            self.prog_hook(self.count, nTotal)
 
         # Prepare for iteration
         msg_fmtstr = self.build_msg_fmtstr(nTotal, self.lbl,
@@ -400,13 +414,14 @@ class ProgressIter(object):
                     str(datetime.timedelta(seconds=int(total_seconds))),
                     time.strftime('%H:%M'),
                 )
-                if self.prog_hook is not None:
-                    self.prog_hook(self.count, nTotal)
-
                 #est_timeunit_left,
                 #total_timeunit)
                 PROGRESS_WRITE(msg)
+                if force_newlines:
+                    PROGRESS_WRITE('\n')
                 PROGRESS_FLUSH()
+                if self.prog_hook is not None:
+                    self.prog_hook(self.count, nTotal)
         # FINISH PROGRESS INFO
         est_seconds_left = 0
         now_time = default_timer()
