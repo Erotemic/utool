@@ -1153,10 +1153,10 @@ def list_images(img_dpath_, ignore_list=[], recursive=False, fullpath=False,
     return gname_list
 
 
-def assert_exists(path):
+def assert_exists(path, msg=''):
     if NO_ASSERTS:
         return
-    assert exists(path), 'path=%r does not exist!' % path
+    assert exists(path), 'path=%r does not exist! %s' % (path, msg)
 
 
 def grepfile(fpath, regexpr_list, reflags=0):

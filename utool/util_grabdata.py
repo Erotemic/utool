@@ -335,6 +335,30 @@ def grab_test_imgpath(key, allow_external=True, verbose=True):
     return testimg_fpath
 
 
+def grab_selenium_chromedriver():
+    """
+    Automatically download selenium chrome driver if needed
+    """
+    import utool as ut
+    import os
+    import stat
+    # TODO: use a better download dir (but it must be in the PATh or selenium freaks out)
+    chromedriver_dpath = ut.ensuredir(ut.truepath('~/bin'))
+    chromedriver_fpath = join(chromedriver_dpath, 'chromedriver')
+    if not ut.checkpath(chromedriver_fpath):
+        assert chromedriver_dpath in os.environ['PATH'].split(os.pathsep)
+        # TODO: make this work for windows as well
+        if ut.LINUX and ut.util_cplat.is64bit_python():
+            ut.grab_zipped_url('http://chromedriver.storage.googleapis.com/2.16/chromedriver_linux64.zip', download_dir=chromedriver_dpath)
+        else:
+            raise AssertionError('unsupported chrome driver getter script')
+        if not ut.WIN32:
+            st = os.stat(chromedriver_fpath)
+            os.chmod(chromedriver_fpath, st.st_mode | stat.S_IEXEC)
+    ut.assert_exists(chromedriver_fpath)
+    return chromedriver_fpath
+
+
 def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
                   delay=None, spoof=False, fname=None, verbose=True, redownload=False):
     """
