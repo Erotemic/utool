@@ -450,18 +450,6 @@ def ensuredir(path_, verbose=VERYVERBOSE, info=False, mode=0o1777):
     #return True
 
 
-def assertpath(path_, **kwargs):
-    """ Asserts that a patha exists """
-    if NO_ASSERTS:
-        return
-    if path_ is None:
-        raise AssertionError('Asserted path is None')
-    if path_ == '':
-        raise AssertionError('Asserted path is the empty string')
-    if not checkpath(path_, **kwargs):
-        raise AssertionError('Asserted path does not exist: ' + path_)
-
-
 # ---File Copy---
 
 def copy_worker(args):
@@ -1181,10 +1169,24 @@ def list_images(img_dpath_, ignore_list=[], recursive=False, fullpath=False,
     return gname_list
 
 
-def assert_exists(path, msg=''):
+def assertpath(path_, msg='', **kwargs):
+    """ Asserts that a patha exists """
     if NO_ASSERTS:
         return
-    assert exists(path), 'path=%r does not exist! %s' % (path, msg)
+    if path_ is None:
+        raise AssertionError('path is None! %s' % (path_, msg))
+    if path_ == '':
+        raise AssertionError('path=%r is the empty string! %s' % (path_, msg))
+    if not checkpath(path_, **kwargs):
+        raise AssertionError('path=%r does not exist! %s' % (path_, msg))
+
+
+assert_exists = assertpath
+#def assert_exists(path, msg='', **kwargs):
+#    if NO_ASSERTS:
+#        return
+#    return assertpath(path, msg, **kwargs)
+#    #assert exists(path), 'path=%r does not exist! %s' % (path, msg)
 
 
 def grepfile(fpath, regexpr_list, reflags=0):
