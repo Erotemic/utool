@@ -180,18 +180,50 @@ def get_argflag(argstr_, default=False, help_='', return_was_specified=False, **
 # This has diverged and is now better
 #from utool._internal.meta_util_arg import get_argval
 @profile
-def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True, return_was_specified=False):
+def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True, return_was_specified=False, argv=sys.argv):
     """ Returns a value of an argument specified on the command line after some flag
 
+    Args:
+        argstr_ (str or tuple): string or tuple of strings denoting the command line values to parse
+        type_ (None): type of the variable to parse (default = None)
+        default (None): (default = None)
+        help_ (None): help for this argument (not fully integrated) (default = None)
+        smartcast (bool): tries to be smart about casting the parsed strings (default = True)
+        return_was_specified (bool): (default = False)
+        argv (None): override sys.argv with custom command line vector (default = None)
+
+    CommandLine:
+        python -m utool.util_arg --test-get_argval
+
     Examples:
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_arg import *  # NOQA
+        >>> import utool as ut
         >>> import sys
-        >>> sys.argv.extend(['--spam', 'eggs', '--quest=holy grail', '--ans=42'])
-        >>> res1 = get_argval('--spam', type_=str, default=None)
-        >>> res2 = get_argval('--quest', type_=str, default=None)
-        >>> res3 = get_argval('--ans', type_=int, default=None)
-        >>> result = ', '.join(map(str, (res1, res2, res3)))
+        >>> argv = ['--spam', 'eggs', '--quest=holy grail', '--ans=42', '--the-val=1,2,3']
+        >>> argstr1_ = '--spam'
+        >>> argstr2_ = '--quest'
+        >>> argstr3_ = ('--ans', '--foo')
+        >>> argstr4_ = ('--not-there', '--absent')
+        >>> argstr5_ = '--the_val'
+        >>> res1 = get_argval(argstr1_, type_=str, default=None, argv=argv)
+        >>> res2 = get_argval(argstr2_, type_=str, default=None, argv=argv)
+        >>> res3 = get_argval(argstr3_, type_=int, default=None, argv=argv)
+        >>> res4 = get_argval(argstr4_, argv=argv)
+        >>> res5 = get_argval(argstr5_, type_=list, argv=argv)
+        >>> argstr_list = [argstr1_, argstr2_, argstr3_, argstr4_, argstr5_]
+        >>> res_list = [res1, res2, res3, res4, res5]
+        >>> result = ut.dict_str(ut.odict(zip(argstr_list, res_list)))
+        >>> #result = ', '.join(map(str, (res1, res2, res3)))
         >>> print(result)
+        {
+            '--spam': 'eggs',
+            '--quest': 'holy grail',
+            ('--ans', '--foo'): 42,
+            ('--not-there', '--absent'): None,
+            '--the_val': [1, 2, 3],
+        }
+
         eggs, holy grail, 42
 
     CommandLine:
@@ -214,14 +246,39 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True, re
         # arg registration
         _register_arg(argstr_list, type_, default, help_)
 
-        for argx, item in enumerate(sys.argv):
+        # expand out hypens
+        EXPAND_HYPENS = True
+        if EXPAND_HYPENS:
+            argstr_list2 = []
+            seen_ = set([])
+            for argstr in argstr_list:
+                if argstr not in seen_:
+                    argstr_list2.append(argstr)
+                    seen_.add(argstr)
+                if argstr.startswith('--'):
+                    num = 2
+                elif argstr.startswith('-'):
+                    num = 1
+                else:
+                    continue
+                argstr2_0 = argstr[0:num] + argstr[num:].replace('_', '-')
+                argstr2_1 = argstr[0:num] + argstr[num:].replace('-', '_')
+                if argstr2_0 not  in seen_:
+                    argstr_list2.append(argstr2_0)
+                    seen_.add(argstr2_0)
+                if argstr2_1 not  in seen_:
+                    argstr_list2.append(argstr2_1)
+                    seen_.add(argstr2_1)
+            argstr_list = argstr_list2
+
+        for argx, item in enumerate(argv):
             for argstr in argstr_list:
                 if item == argstr:
                     if type_ is bool:
                         arg_after = True
                         was_specified = True
                         break
-                    if argx < len(sys.argv):
+                    if argx < len(argv):
                         if type_ is list:
                             # HACK FOR LIST. TODO INTEGRATE
                             arg_after = parse_arglist_hack(argx)
@@ -229,10 +286,10 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True, re
                                 arg_after = list(map(util_type.smart_cast2, arg_after))
                         else:
                             if type_ is None:
-                                #arg_after = util_type.try_cast(sys.argv[argx + 1], type_)
-                                arg_after = util_type.smart_cast2(sys.argv[argx + 1])
+                                #arg_after = util_type.try_cast(argv[argx + 1], type_)
+                                arg_after = util_type.smart_cast2(argv[argx + 1])
                             else:
-                                arg_after = util_type.try_cast(sys.argv[argx + 1], type_)
+                                arg_after = util_type.try_cast(argv[argx + 1], type_)
                         was_specified = True
                         break
                 elif item.startswith(argstr + '='):

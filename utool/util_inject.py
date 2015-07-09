@@ -1,8 +1,10 @@
 """
-Injects code into live modules or into text source files
+Injects code into live modules or into text source files.
+
+Basic use case is to extend the print function into a logging function
 """
 from __future__ import absolute_import, division, print_function
-from six.moves import builtins
+from six.moves import builtins, range, zip, map  # NOQA
 #import builtins
 import sys
 from functools import wraps
@@ -27,6 +29,13 @@ __LOGGING__    = '--logging'    in sys.argv
 __DEBUG_ALL__  = '--debug-all'  in sys.argv
 __DEBUG_PROF__ = '--debug-prof' in sys.argv or '--debug-profile' in sys.argv
 DEBUG_PRINT = '--debug-print' in sys.argv
+DEBUG_PRINT_N = meta_util_arg.get_argval('--debug-print-N', type_=str, default=None)
+if DEBUG_PRINT_N is not None:
+    DEBUG_PRINT_N = list(map(int, DEBUG_PRINT_N.split(',')))
+    DEBUG_PRINT = True
+elif DEBUG_PRINT:
+    DEBUG_PRINT_N = 0
+
 QUIET = '--quiet' in sys.argv
 SILENT = '--silent' in sys.argv
 VERYVERBOSE = meta_util_arg.VERYVERBOSE
@@ -165,7 +174,7 @@ def inject_print_functions(module_name=None, module_prefix='[???]', DEBUG=False,
             def print(*args):
                 """ debugging logging builtins.print """
                 from utool._internal.meta_util_dbg import get_caller_name
-                calltag = ''.join(('[caller:', get_caller_name(), ']' ))
+                calltag = ''.join(('[caller:', get_caller_name(N=DEBUG_PRINT_N), ']' ))
                 util_logging.__UTOOL_PRINT__(calltag, *args)
         else:
             def print(*args):
