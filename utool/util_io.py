@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-from six.moves import cPickle
+from six.moves import cPickle as pickle
 try:
     import lockfile
     HAVE_LOCKFILE = True
@@ -8,14 +8,21 @@ except ImportError:
 from utool import util_path
 from utool import util_inject
 from os.path import splitext
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError as ex:
+    HAS_NUMPY = False
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[io]')
 
 
 __PRINT_IO__ = True
 __PRINT_WRITES__ = __PRINT_IO__
 __PRINT_READS__  =  __PRINT_IO__
-#__FORCE_PRINT_READS__ =
-#__FORCE_PRINT_WRITES__ =
+__FORCE_PRINT_READS__ = False
+__FORCE_PRINT_WRITES__ = False
+#__FORCE_PRINT_READS__ = True
+#__FORCE_PRINT_WRITES__ = True
 
 
 def write_to(fpath, to_write, aslines=False, verbose=False,
@@ -82,18 +89,18 @@ writeto = write_to
 
 def save_cPkl(fpath, data, verbose=None):
     """ Saves data to a pickled file with optional verbosity """
-    if verbose or (verbose is None and __PRINT_WRITES__):
+    if verbose or (verbose is None and __PRINT_WRITES__) or __FORCE_PRINT_WRITES__:
         print('[util_io] * save_cPkl(%r, data)' % (util_path.tail(fpath),))
     with open(fpath, 'wb') as file_:
-        cPickle.dump(data, file_, cPickle.HIGHEST_PROTOCOL)
+        pickle.dump(data, file_, pickle.HIGHEST_PROTOCOL)
 
 
 def load_cPkl(fpath, verbose=None):
     """ Loads a pickled file with optional verbosity """
-    if verbose or (verbose is None and __PRINT_READS__):
+    if verbose or (verbose is None and __PRINT_READS__) or __FORCE_PRINT_READS__:
         print('[util_io] * load_cPkl(%r)' % (util_path.tail(fpath),))
     with open(fpath, 'rb') as file_:
-        data = cPickle.load(file_)
+        data = pickle.load(file_)
     return data
 
 
@@ -113,8 +120,24 @@ def load_data(fpath):
         return load_cPkl(fpath)
     elif ext in ['.hdf5']:
         return load_hdf5(fpath)
+    elif HAS_NUMPY and ext in ['.npz']:
+        # TODO load_numpy print
+        return np.load(fpath)
     else:
-        assert False
+        assert False, 'unknown ext=%r for fpath=%r' % (ext, fpath)
+
+
+def save_data(fpath, data, mmap_mode=None):
+    ext = splitext(fpath)[1]
+    if ext in ['.pickle', '.cPkl', '.pkl']:
+        return save_cPkl(fpath, data)
+    elif ext in ['.hdf5']:
+        return save_hdf5(fpath, data)
+    elif HAS_NUMPY and ext in ['.npz']:
+        # TODO save_numpy
+        return np.save(fpath, data, mmap_mode=mmap_mode)
+    else:
+        assert False, 'unknown ext=%r for fpath=%r' % (ext, fpath)
 
 
 def save_hdf5(fpath, data, verbose=False, compression='lzf'):
@@ -186,6 +209,8 @@ def save_hdf5(fpath, data, verbose=False, compression='lzf'):
         pip install mpi4py
 
     """
+    if verbose or (verbose is None and __PRINT_WRITES__) or __FORCE_PRINT_WRITES__:
+        print('[util_io] * save_hdf5(%r, data)' % (util_path.tail(fpath),))
     import h5py
     from os.path import basename
     import numpy as np
@@ -237,8 +262,8 @@ def load_hdf5(fpath, verbose=False):
     #file_ = h5py.File(fpath, 'r')
     #file_.values()
     #file_.keys()
-    if verbose or (verbose is None and __PRINT_READS__):
-        print('[util_io] * load_hdf5(%r, data)' % (util_path.tail(fpath),))
+    if verbose or (verbose is None and __PRINT_READS__) or __FORCE_PRINT_READS__:
+        print('[util_io] * load_hdf5(%r)' % (util_path.tail(fpath),))
     with h5py.File(fpath, 'r') as file_:
         value = file_[fname]
         if isinstance(value, h5py.Group):
