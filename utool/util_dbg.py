@@ -303,6 +303,12 @@ def import_testdata():
     return import_testdata.func_code.co_code
 
 
+def breakpoint():
+    import utool as ut
+    if ut.get_argflag('--break'):
+        ut.embed(N=1)
+
+
 def embed(parent_locals=None, parent_globals=None, exec_lines=None,
           remove_pyqt_hook=True, N=0):
     """
