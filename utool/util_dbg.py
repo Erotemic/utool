@@ -303,10 +303,12 @@ def import_testdata():
     return import_testdata.func_code.co_code
 
 
-def breakpoint():
+def breakpoint(*tags):
     import utool as ut
     if ut.get_argflag('--break'):
         ut.embed(N=1)
+        return True
+    return False
 
 
 def embed(parent_locals=None, parent_globals=None, exec_lines=None,
