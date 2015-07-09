@@ -376,30 +376,58 @@ def checkpath(path_, verbose=VERYVERBOSE, n=None, info=VERYVERBOSE):
 
     Returns:
         true if ``path_`` exists on the filesystem show only the top n directories
+
+    Args:
+        path_ (?):
+        verbose (bool):  verbosity flag(default = False)
+        n (None): (default = None)
+        info (bool): (default = False)
+
+    CommandLine:
+        python -m utool.util_path --test-checkpath
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
+        >>> path_ = ut.__file__
+        >>> verbose = True
+        >>> n = None
+        >>> info = False
+        >>> result = checkpath(path_, verbose, n, info)
+        >>> print(result)
+        True
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
+        >>> path_ = ut.__file__ + 'foobar'
+        >>> verbose = True
+        >>> result = checkpath(path_, verbose, n=None, info=True)
+        >>> print(result)
+        False
     """
     path_ = normpath(path_)
+    does_exist = exists(path_)
     if verbose:
         #print_('[utool] checkpath(%r)' % (path_))
         pretty_path = path_ndir_split(path_, n)
         caller_name = util_dbg.get_caller_name()
         print('[%s] checkpath(%r)' % (caller_name, pretty_path))
-        if exists(path_):
+        if does_exist:
             path_type = get_path_type(path_)
             #path_type = 'file' if isfile(path_) else 'directory'
             print('[%s] ...(%s) exists' % (caller_name, path_type,))
         else:
             print('[%s] ... does not exist' % (caller_name))
-            if info:
-                #print('[util_path]  ! Does not exist')
-                _longest_path = longest_existing_path(path_)
-                _longest_path_type = get_path_type(_longest_path)
-                print('[util_path] ... The longest existing path is: %r' % _longest_path)
-                print('[util_path] ... and has type %r' % (_longest_path_type,))
-
-            return False
-        return True
-    else:
-        return exists(path_)
+    if not does_exist and info:
+        #print('[util_path]  ! Does not exist')
+        _longest_path = longest_existing_path(path_)
+        _longest_path_type = get_path_type(_longest_path)
+        print('[util_path] ... The longest existing path is: %r' % _longest_path)
+        print('[util_path] ... and has type %r' % (_longest_path_type,))
+    return does_exist
 
 
 def ensurepath(path_, verbose=VERYVERBOSE):
