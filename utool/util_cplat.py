@@ -59,6 +59,10 @@ def get_free_diskbytes(dir_):
         return bytes_
 
 
+def is_file_writable(fpath):
+    return os.access(fpath, os.W_OK)
+
+
 def get_file_info(fpath):
     from utool import util_time
     import os
