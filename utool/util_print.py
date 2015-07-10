@@ -224,6 +224,48 @@ def print_python_code(text):
         print(list(pygments.styles.get_all_styles()))
 
     """
+    print_code(text, 'python')
+    #import pygments
+    #import utool as ut
+    ##with ut.embed_on_exception_context:
+    #try:
+    #    if ut.WIN32:
+    #        #formater = pygments.formatters.terminal256.Terminal256Formatter()
+    #        formater = pygments.formatters.terminal256.Terminal256Formatter()
+    #    else:
+    #        import pygments.formatters.terminal
+    #        formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
+    #    #, colorscheme='darkbg')
+    #    lexer = pygments.lexers.get_lexer_by_name('python')
+    #    print(pygments.highlight(text, lexer, formater))
+    #except Exception:
+    #    raise
+    #    print(text)
+
+
+def print_code(text, lexer_name='python'):
+    r"""
+    Args:
+        text (?):
+
+    CommandLine:
+        python -m utool.util_print --test-print_python_code
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_print import *  # NOQA
+        >>> import utool as ut
+        >>> # build test data
+        >>> text = ut.read_from(ut.__file__.replace('.pyc', '.py'))
+        >>> # execute function
+        >>> print_python_code(text)
+
+    Ignore:
+        import pygments
+        print(ut.list_str(list(pygments.formatters.get_all_formatters())))
+        print(list(pygments.styles.get_all_styles()))
+
+    """
     import pygments
     import utool as ut
     #with ut.embed_on_exception_context:
@@ -235,7 +277,7 @@ def print_python_code(text):
             import pygments.formatters.terminal
             formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
         #, colorscheme='darkbg')
-        lexer = pygments.lexers.get_lexer_by_name('python')
+        lexer = pygments.lexers.get_lexer_by_name(lexer_name)
         print(pygments.highlight(text, lexer, formater))
     except Exception:
         raise

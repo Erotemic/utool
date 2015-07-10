@@ -59,6 +59,22 @@ def get_free_diskbytes(dir_):
         return bytes_
 
 
+def chmod_add_executable(fpath, group=True, user=True):
+    """
+    References:
+        http://stackoverflow.com/questions/15607903/python-module-os-chmodfile-664-does-not-change-the-permission-to-rw-rw-r-bu
+        http://www.tutorialspoint.com/python/os_chmod.htm
+    """
+    import stat
+    orig_mode = os.stat(fpath).st_mode
+    new_mode = orig_mode
+    if group:
+        new_mode |= stat.S_IXGRP
+    if user:
+        new_mode |= stat.S_IXGRP | stat.S_IEXEC
+    os.chmod(fpath, new_mode)
+
+
 def is_file_writable(fpath):
     return os.access(fpath, os.W_OK)
 

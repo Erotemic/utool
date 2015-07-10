@@ -25,7 +25,38 @@ __FORCE_PRINT_WRITES__ = False
 #__FORCE_PRINT_WRITES__ = True
 
 
-def write_to(fpath, to_write, aslines=False, verbose=False,
+def load_data(fpath, mmap_mode=None):
+    """ More generic interface to load data """
+    ext = splitext(fpath)[1]
+    if ext in ['.pickle', '.cPkl', '.pkl']:
+        return load_cPkl(fpath)
+    elif ext in ['.hdf5']:
+        return load_hdf5(fpath)
+    elif ext in ['.txt']:
+        return load_text(fpath)
+    elif HAS_NUMPY and ext in ['.npz']:
+        return load_numpy(fpath, mmap_mode=mmap_mode)
+    else:
+        assert False, 'unknown ext=%r for fpath=%r' % (ext, fpath)
+
+
+def save_data(fpath, data):
+    """ More generic interface to write data """
+    ext = splitext(fpath)[1]
+    if ext in ['.pickle', '.cPkl', '.pkl']:
+        return save_cPkl(fpath, data)
+    elif ext in ['.hdf5']:
+        return save_hdf5(fpath, data)
+    elif ext in ['.txt']:
+        return save_text(fpath)
+    elif HAS_NUMPY and ext in ['.npz']:
+        # TODO save_numpy
+        return np.save(fpath, data, )
+    else:
+        assert False, 'unknown ext=%r for fpath=%r' % (ext, fpath)
+
+
+def write_to(fpath, to_write, aslines=False, verbose=None,
              onlyifdiff=False, mode='w', n=2):
     """ Writes text to a file
 
@@ -42,7 +73,7 @@ def write_to(fpath, to_write, aslines=False, verbose=False,
         if ut.hashstr(read_from(fpath)) == ut.hashstr(to_write):
             print('[util_io] * no difference')
             return
-    if verbose or (verbose is None and __PRINT_WRITES__):
+    if verbose or (verbose is None and __PRINT_WRITES__) or __FORCE_PRINT_WRITES__:
         print('[util_io] * Writing to text file: %r ' % util_path.tail(fpath, n=2))
     with open(fpath, mode) as file_:
         if aslines:
@@ -62,7 +93,7 @@ def read_from(fpath, verbose=None, aslines=False, strict=True):
     Returns:
         text from fpath
     """
-    if verbose or (verbose is None and __PRINT_READS__):
+    if verbose or (verbose is None and __PRINT_READS__) or __FORCE_PRINT_READS__:
         print('[util_io] * Reading text file: %r ' % util_path.tail(fpath))
     try:
         if not util_path.checkpath(fpath, verbose=verbose, n=3):
@@ -85,6 +116,8 @@ def read_from(fpath, verbose=None, aslines=False, strict=True):
 # aliases
 readfrom = read_from
 writeto = write_to
+save_text = write_to
+load_text = read_from
 
 
 def save_cPkl(fpath, data, verbose=None):
@@ -112,32 +145,6 @@ def lock_and_load_cPkl(fpath, verbose=False):
 def lock_and_save_cPkl(fpath, data, verbose=False):
     with lockfile.LockFile(fpath + '.lock'):
         return save_cPkl(fpath, data, verbose)
-
-
-def load_data(fpath):
-    ext = splitext(fpath)[1]
-    if ext in ['.pickle', '.cPkl', '.pkl']:
-        return load_cPkl(fpath)
-    elif ext in ['.hdf5']:
-        return load_hdf5(fpath)
-    elif HAS_NUMPY and ext in ['.npz']:
-        # TODO load_numpy print
-        return np.load(fpath)
-    else:
-        assert False, 'unknown ext=%r for fpath=%r' % (ext, fpath)
-
-
-def save_data(fpath, data, mmap_mode=None):
-    ext = splitext(fpath)[1]
-    if ext in ['.pickle', '.cPkl', '.pkl']:
-        return save_cPkl(fpath, data)
-    elif ext in ['.hdf5']:
-        return save_hdf5(fpath, data)
-    elif HAS_NUMPY and ext in ['.npz']:
-        # TODO save_numpy
-        return np.save(fpath, data, mmap_mode=mmap_mode)
-    else:
-        assert False, 'unknown ext=%r for fpath=%r' % (ext, fpath)
 
 
 def save_hdf5(fpath, data, verbose=False, compression='lzf'):
@@ -323,7 +330,7 @@ def save_pytables(fpath, data, verbose=False):
     #shape = data.shape
     #dtype = data.dtype
     #file_ = tables.open_file(fpath)
-    if verbose or (verbose is None and __PRINT_WRITES__):
+    if verbose or (verbose is None and __PRINT_WRITES__) or __FORCE_PRINT_WRITES__:
         print('[util_io] * save_pytables(%r, data)' % (util_path.tail(fpath),))
     with tables.open_file(fpath, 'w') as file_:
         atom = tables.Atom.from_dtype(data.dtype)
@@ -339,11 +346,23 @@ def load_pytables(fpath, verbose=False):
     #from os.path import basename
     #fname = basename(fpath)
     #file_ = tables.open_file(fpath)
-    if verbose or (verbose is None and __PRINT_READS__):
+    if verbose or (verbose is None and __PRINT_READS__) or __FORCE_PRINT_READS__:
         print('[util_io] * load_pytables(%r, data)' % (util_path.tail(fpath),))
     with tables.open_file(fpath, 'r') as file_:
         data = file_.root.data.read()
     return data
+
+
+def load_numpy(fpath, mmap_mode=None, verbose=None):
+    if verbose or (verbose is None and __PRINT_READS__) or __FORCE_PRINT_READS__:
+        print('[util_io] * load_numpy(%r)' % util_path.tail(fpath))
+    return np.load(fpath, mmap_mode=mmap_mode)
+
+
+def save_numpy(fpath, data, verbose=None):
+    if verbose or (verbose is None and __PRINT_WRITES__) or __FORCE_PRINT_WRITES__:
+        print('[util_io] * save_numpy(%r, data)' % util_path.tail(fpath))
+    return np.save(fpath, data)
 
 
 #def save_capnp(fpath, data, verbose=False):
@@ -386,3 +405,16 @@ def try_decode(x):
             print(('%20s: ' % (codec,)) + x.decode(codec))
         except Exception:
             print(('%20s: ' % (codec,)) + 'FAILED')
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m utool.util_io
+        python -m utool.util_io --allexamples
+        python -m utool.util_io --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
