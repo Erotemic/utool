@@ -415,8 +415,10 @@ def grab_selenium_chromedriver():
     return chromedriver_fpath
 
 
-def grab_selenium_driver(driver_name):
+def grab_selenium_driver(driver_name=None):
     from selenium import webdriver
+    if driver_name is None:
+        driver_name = 'firefox'
     if driver_name.lower() == 'chrome':
         grab_selenium_chromedriver()
         return webdriver.Chrome()
