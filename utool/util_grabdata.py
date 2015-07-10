@@ -415,6 +415,18 @@ def grab_selenium_chromedriver():
     return chromedriver_fpath
 
 
+def grab_selenium_driver(driver_name):
+    from selenium import webdriver
+    if driver_name.lower() == 'chrome':
+        grab_selenium_chromedriver()
+        return webdriver.Chrome()
+    elif driver_name.lower() == 'firefox':
+        grab_selenium_chromedriver()
+        return webdriver.Firefox()
+    else:
+        raise AssertionError('unknown name = %r' % (driver_name,))
+
+
 def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
                   delay=None, spoof=False, fname=None, verbose=True, redownload=False):
     """

@@ -905,14 +905,14 @@ def run_test(func_or_doctesttup, *args, **kwargs):
                 printTEST('[TEST.FINISH] %s -- SUCCESS' % (funcname,))
                 if print_face:
                     print(HAPPY_FACE)
-                msg = '%.4fs in %s %s\n' % (
-                    timer.ellapsed, funcname, frame_fpath)
-                try:
-                    ut.write_to('test_times.txt', msg, mode='a')
-                    #with open('test_times.txt', 'a') as file_:
-                    #    file_.write(msg)
-                except IOError as ex:
-                    ut.printex(ex, '[util_test] IOWarning', iswarning=True)
+                WITH_TIMES = True
+                if WITH_TIMES:
+                    timemsg = '%.4fs in %s %s\n' % (
+                        timer.ellapsed, funcname, frame_fpath)
+                    try:
+                        ut.write_to('test_times.txt', timemsg, mode='a')
+                    except IOError as ex:
+                        ut.printex(ex, '[util_test] IOWarning', iswarning=True)
             #L________________
             # RETURN VALID TEST LOCALS
             return test_locals
