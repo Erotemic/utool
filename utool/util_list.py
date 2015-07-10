@@ -1858,8 +1858,10 @@ def filter_startswith(list_, str_):
     return list(filter(item_startswith, list_))
 
 
-def list_rotate(list_, n):
+def list_roll(list_, n):
     """
+    Like numpy.roll for python lists
+
     Args:
         list_ (list):
         n (int):
@@ -1875,11 +1877,14 @@ def list_rotate(list_, n):
         >>> from utool.util_list import *  # NOQA
         >>> list_ = [1, 2, 3, 4, 5]
         >>> n = 2
-        >>> result = list_rotate(list_, n)
+        >>> result = list_roll(list_, n)
         >>> print(result)
-        [3, 4, 5, 1, 2]
+        [4, 5, 1, 2, 3]
+
+    Ignore:
+        np.roll(list_, n)
     """
-    return list_[n:] + list_[:n]
+    return list_[-n:] + list_[:-n]
 
 
 def list_argmax(list_):

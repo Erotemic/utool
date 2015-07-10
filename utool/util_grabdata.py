@@ -155,6 +155,39 @@ def open_url_in_browser(url):
     return webbrowser.open(url)
 
 
+def get_prefered_browser(pref_list=[], fallback=True):
+    r"""
+    Args:
+        browser_preferences (list): (default = [])
+        fallback (bool): uses default if non of preferences work (default = True)
+
+    CommandLine:
+        python -m utool.util_grabdata --test-get_prefered_browser
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_grabdata import *  # NOQA
+        >>> browser_preferences = ['firefox', 'chrome', 'safari']
+        >>> fallback = True
+        >>> filename = get_prefered_browser(browser_preferences, fallback)
+        >>> result = ('filename = %s' % (str(filename),))
+        >>> print(result)
+    """
+    import webbrowser
+    import utool as ut
+    pref_list = ut.ensure_iterable(pref_list)
+    for browsername in pref_list:
+        try:
+            browser = webbrowser.get(browsername)
+            return browser
+        except webbrowser.Error:
+            pass
+    if fallback:
+        return webbrowser
+    else:
+        raise AssertionError('No browser meets preferences')
+
+
 def download_url(url, filename=None, spoof=False):
     r""" downloads a url to a filename.
 
@@ -338,6 +371,28 @@ def grab_test_imgpath(key, allow_external=True, verbose=True):
 def grab_selenium_chromedriver():
     """
     Automatically download selenium chrome driver if needed
+
+    CommandLine:
+        python -m utool.util_grabdata --test-grab_selenium_chromedriver:1
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> ut.grab_selenium_chromedriver()
+        >>> import selenium.webdriver
+        >>> driver = selenium.webdriver.Chrome()
+        >>> driver.get('http://www.google.com')
+        >>> search_field = driver.find_element_by_name('q')
+        >>> search_field.send_keys('puppies')
+        >>> search_field.send_keys(selenium.webdriver.common.keys.Keys.ENTER)
+
+    Example1:
+        >>> # DISABLE_DOCTEST
+        >>> import selenium.webdriver
+        >>> driver = selenium.webdriver.Firefox()
+        >>> driver.get('http://www.google.com')
+        >>> search_field = driver.find_element_by_name('q')
+        >>> search_field.send_keys('puppies')
+        >>> search_field.send_keys(selenium.webdriver.common.keys.Keys.ENTER)
     """
     import utool as ut
     import os
@@ -356,6 +411,7 @@ def grab_selenium_chromedriver():
             st = os.stat(chromedriver_fpath)
             os.chmod(chromedriver_fpath, st.st_mode | stat.S_IEXEC)
     ut.assert_exists(chromedriver_fpath)
+    os.environ['webdriver.chrome.driver'] = chromedriver_fpath
     return chromedriver_fpath
 
 
