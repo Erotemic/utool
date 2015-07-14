@@ -4,13 +4,6 @@ import six
 import functools
 #import warnings
 import types
-try:
-    import numpy as np
-    HAVE_NUMPY = True
-except ImportError:
-    # TODO remove numpy
-    HAVE_NUMPY = False
-    pass
 from utool import util_inject
 from utool._internal.meta_util_six import IntType, LongType, FloatType, BooleanType
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[type]')
@@ -25,7 +18,9 @@ else:
 
 
 # Very odd that I have to put in dtypes in two different ways.
-if HAVE_NUMPY:
+try:
+    import numpy as np
+    HAVE_NUMPY = True
     NUMPY_SCALAR_NAMES = sorted(list(set(
         (str_.replace('numpy.', '')
          for str_ in (type_str(type_) for type_ in np.ScalarType)
@@ -51,7 +46,9 @@ if HAVE_NUMPY:
     VALID_BOOL_TYPES = (BooleanType, np.bool_)
     NP_NDARRAY = np.ndarray
     LISTLIKE_TYPES = (tuple, list, NP_NDARRAY)
-else:
+except ImportError, AttributeError:
+    # TODO remove numpy
+    HAVE_NUMPY = False
     VALID_INT_TYPES = (IntType, LongType,)
     VALID_FLOAT_TYPES = (FloatType,)
     VALID_BOOL_TYPES = (BooleanType,)

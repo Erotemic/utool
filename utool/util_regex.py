@@ -20,6 +20,10 @@ RE_KWARGS = {'flags': RE_FLAGS}
 REGEX_VARNAME = '[A-Za-z_][A-Za-z0-9_]*'
 
 
+def regex_or(list_):
+    return '(' + '|'.join(list_) + ')'
+
+
 def extend_regex(regexpr):
     regex_map = {
         r'\<': r'\b(?=\w)',

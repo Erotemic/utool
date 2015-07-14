@@ -308,10 +308,15 @@ class Pref(PrefNode):
                 # HACK FOR IPYTHON
                 pass
             else:
-                import utool
-                if utool.VERBOSE:
-                    utool.printex(ex, 'Pref object missing named attribute', keys=['self._intern.name', 'name'], iswarning=True)
-                raise AttributeError('Pref object is missing named attribute: name=%r. You might try running ibeis with --nocache-pref to see if that fixes things.'  % name)
+                import utool as ut
+                if ut.DEBUG2 and ut.VERBOSE:
+                    ut.printex(ex, 'Pref object missing named attribute',
+                                  keys=['self._intern.name', 'name'],
+                                  iswarning=True)
+                raise AttributeError(
+                    ('Pref object is missing named attribute: name=%r.'
+                     'You might try running ibeis with --nocache-pref '
+                     'to see if that fixes things.')  % name)
                 #raise
 
     def iteritems(self):
