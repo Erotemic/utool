@@ -46,7 +46,7 @@ try:
     VALID_BOOL_TYPES = (BooleanType, np.bool_)
     NP_NDARRAY = np.ndarray
     LISTLIKE_TYPES = (tuple, list, NP_NDARRAY)
-except ImportError, AttributeError:
+except (ImportError, AttributeError):
     # TODO remove numpy
     HAVE_NUMPY = False
     VALID_INT_TYPES = (IntType, LongType,)
