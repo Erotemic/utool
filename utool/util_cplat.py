@@ -314,8 +314,9 @@ def startfile(fpath, detatch=True, quote=False):
         raise Exception('Cannot start nonexistant file: %r' % fpath)
     #if quote:
     #    fpath = '"%s"' % (fpath,)
-    import pipes
-    fpath = pipes.quote(fpath)
+    if not WIN32:
+        import pipes
+        fpath = pipes.quote(fpath)
     if LINUX:
         #out, err, ret = cmd(['xdg-open', fpath], detatch=True)
         outtup = cmd(('xdg-open', fpath), detatch=detatch)
