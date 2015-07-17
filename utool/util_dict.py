@@ -793,7 +793,7 @@ def dict_find_other_sameval_keys(dict_, key):
     return other_keys
 
 
-def dict_hist(item_list):
+def dict_hist(item_list, ordered=False):
     r"""
     Builds a histogram of items in item_list
 
@@ -823,6 +823,10 @@ def dict_hist(item_list):
     for item in item_list:
         hist_[item] += 1
     hist_ = dict(hist_)
+    if ordered:
+        import utool as ut
+        key_order = ut.sortedby(list(hist_.keys()), list(hist_.values()))
+        hist_ = order_dict_by(hist_, key_order)
     return hist_
 
 

@@ -891,7 +891,7 @@ def numeric_str(num, precision=8, **kwargs):
 
 def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
                       recursive=True, indent_='', precision=8,
-                      hack_liststr=False, explicit=False, truncate=False,
+                      hack_liststr=False, explicit=False, truncate=False, key_order=None,
                       truncatekw=dict()):
     """
     Returns:
@@ -932,7 +932,7 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
             return dict_str(val, strvals=strvals, sorted_=sorted_,
                             newlines=newlines, recursive=recursive,
                             indent_=indent_ + '    ', precision=precision,
-                            truncate=truncate, truncatekw=truncatekw)
+                            truncate=truncate, truncatekw=truncatekw, key_order=key_order)
         elif util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
             return numpy_str(val, strvals=strvals, precision=precision)
         if hack_liststr and isinstance(val, list):
@@ -941,7 +941,6 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
             # base case
             return valfunc(val)
 
-    iteritems = six.iteritems
     #def iteritems(x):
     #    try:
     #        return six.iteritems(x)
@@ -951,12 +950,21 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
         sorted_ = not isinstance(dict_, collections.OrderedDict)
     if sorted_:
         def iteritems(d):
-            try:
-                return iter(sorted(six.iteritems(d)))
-            except TypeError:
-                # catches case where keys are of different types
-                return six.iteritems(d)
+            if key_order is None:
+                try:
+                    return iter(sorted(six.iteritems(d)))
+                except TypeError:
+                    # catches case where keys are of different types
+                    return six.iteritems(d)
+            else:
+                unordered_keys = list(d.keys())
+                other_keys = sorted(list(set(unordered_keys) - set(key_order)))
+                keys = key_order + other_keys
+                return ((key, d[key]) for key in keys)
+
         #iteritems = lambda d: iter(sorted(six.iteritems(d)))
+    else:
+        iteritems = six.iteritems
 
     _valstr = recursive_valfunc if recursive else valfunc
     OLD = False
@@ -1216,7 +1224,7 @@ def obj_str(obj_, **kwargs):
 
 def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
              indent_='', precision=8, hack_liststr=False, truncate=False,
-             nl=None, explicit=False, truncatekw=dict()):
+             nl=None, explicit=False, truncatekw=dict(), key_order=None):
     """
     FIXME: ALL LIST DICT STRINGS ARE VERY SPAGEHETTI RIGHT NOW
     Returns:
@@ -1260,7 +1268,8 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
     itemstr_list = dict_itemstr_list(dict_, strvals, sorted_, newlines,
                                      recursive, indent_, precision,
                                      hack_liststr, explicit,
-                                     truncate=truncate_, truncatekw=truncatekw)
+                                     truncate=truncate_, truncatekw=truncatekw,
+                                     key_order=key_order)
 
     do_truncate = truncate is not False and (truncate is True or truncate == 0)
     if do_truncate:
