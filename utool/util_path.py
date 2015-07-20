@@ -1291,7 +1291,7 @@ def matching_fnames(dpath_list, include_patterns, exclude_dirs=[],
 
 def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
          exclude_dirs=[], greater_exclude_dirs=None,
-         inverse=False, verbose=VERBOSE, reflags=0):
+         inverse=False, verbose=VERBOSE, fpath_list=None, reflags=0):
     """
     Python implementation of grep. NOT FINISHED
 
@@ -1338,7 +1338,10 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
     found_lines_list = []
     found_lxs_list = []
     # Walk through each directory recursively
-    fpath_generator = matching_fnames(dpath_list, include_patterns, exclude_dirs, greater_exclude_dirs, recursive=recursive)
+    if fpath_list is None:
+        fpath_generator = matching_fnames(dpath_list, include_patterns, exclude_dirs, greater_exclude_dirs, recursive=recursive)
+    else:
+        fpath_generator = fpath_list
     extended_regex_list = list(map(extend_regex, regex_list))
     # For each matching filepath
     for fpath in fpath_generator:
@@ -1355,7 +1358,22 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
             found_lines_list.append(found_lines)
             found_lxs_list.append(found_lxs)
     if verbose:
+        print('==========')
+        print('==========')
         print('[util_path] found matches in %d files' % len(found_fpath_list))
+
+        for fpath, found, lxs in zip(found_fpath_list, found_lines_list, found_lxs_list):
+            if len(found) > 0:
+                print('----------------------')
+                print('Found %d line(s) in %r: ' % (len(found), fpath))
+                name = split(fpath)[1]
+                max_line = len(lxs)
+                ndigits = str(len(str(max_line)))
+                fmt_str = '%s : %' + ndigits + 'd |%s'
+                for (lx, line) in zip(lxs, found):
+                    print(fmt_str % (name, lx, line))
+
+        #print('[util_path] found matches in %d files' % len(found_fpath_list))
     return found_fpath_list, found_lines_list, found_lxs_list
 
 
