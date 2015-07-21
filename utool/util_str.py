@@ -1898,6 +1898,26 @@ def bubbletext(text, font='cybermedium'):
         return bubble_text
 
 
+def edit_distance(query, options):
+    """
+    pip install python-Levenshtein
+
+    query = 'hello world'
+    options = ['goodbye world', 'rofl', 'hello', 'world', 'lowo']
+    [7, 9, 6, 6, 7]
+    """
+    import Levenshtein
+    dist_list = [Levenshtein.distance(query, other) for other in options]
+    return dist_list
+
+
+def closet_words(query, options, num=1):
+    import utool as ut
+    dist_list = edit_distance(query, options)
+    ranked_list = ut.sortedby(options, dist_list)
+    return ranked_list[0:num]
+
+
 if __name__ == '__main__':
     """
     CommandLine:
