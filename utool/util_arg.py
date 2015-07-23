@@ -181,7 +181,7 @@ def get_argflag(argstr_, default=False, help_='', return_was_specified=False, **
 #from utool._internal.meta_util_arg import get_argval
 @profile
 def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True, return_was_specified=False, argv=sys.argv):
-    """ Returns a value of an argument specified on the command line after some flag
+    r""" Returns a value of an argument specified on the command line after some flag
 
     Args:
         argstr_ (str or tuple): string or tuple of strings denoting the command line values to parse
@@ -201,20 +201,22 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True, re
         >>> import utool as ut
         >>> import sys
         >>> argv = ['--spam', 'eggs', '--quest=holy grail', '--ans=42', '--the-val=1,2,3']
-        >>> argstr1_ = '--spam'
-        >>> argstr2_ = '--quest'
-        >>> argstr3_ = ('--ans', '--foo')
-        >>> argstr4_ = ('--not-there', '--absent')
-        >>> argstr5_ = '--the_val'
-        >>> res1 = get_argval(argstr1_, type_=str, default=None, argv=argv)
-        >>> res2 = get_argval(argstr2_, type_=str, default=None, argv=argv)
-        >>> res3 = get_argval(argstr3_, type_=int, default=None, argv=argv)
-        >>> res4 = get_argval(argstr4_, argv=argv)
-        >>> res5 = get_argval(argstr5_, type_=list, argv=argv)
-        >>> argstr_list = [argstr1_, argstr2_, argstr3_, argstr4_, argstr5_]
-        >>> res_list = [res1, res2, res3, res4, res5]
+        >>> # specify a list of args and kwargs to get_argval
+        >>> argstr_kwargs_list = [
+        >>>     ('--spam',                    dict(type_=str, default=None, argv=argv)),
+        >>>     ('--quest',                   dict(type_=str, default=None, argv=argv)),
+        >>>     (('--ans', '--foo'),          dict(type_=int, default=None, argv=argv)),
+        >>>     (('--not-there', '--absent'), dict(argv=argv)),
+        >>>     ('--the_val',                 dict(type_=list, argv=argv)),
+        >>>     ('--the-val',                 dict(type_=list, argv=argv)),
+        >>> ]
+        >>> # Execute the command with for each of the test cases
+        >>> res_list = []
+        >>> argstr_list = ut.get_list_column(argstr_kwargs_list, 0)
+        >>> for argstr_, kwargs in argstr_kwargs_list:
+        >>>     res = get_argval(argstr_, **kwargs)
+        >>>     res_list.append(res)
         >>> result = ut.dict_str(ut.odict(zip(argstr_list, res_list)))
-        >>> #result = ', '.join(map(str, (res1, res2, res3)))
         >>> print(result)
         {
             '--spam': 'eggs',
@@ -222,6 +224,7 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True, re
             ('--ans', '--foo'): 42,
             ('--not-there', '--absent'): None,
             '--the_val': [1, 2, 3],
+            '--the-val': [1, 2, 3],
         }
 
         eggs, holy grail, 42
@@ -647,6 +650,9 @@ def argv_flag_dec_true(func):
 
 
 def __argv_flag_dec(func, default=False, quiet=QUIET):
+    """
+    Logic for controlling if a function gets called based on command line
+    """
     flag = meta_util_six.get_funcname(func)
     if flag.find('no') == 0:
         flag = flag[2:]
