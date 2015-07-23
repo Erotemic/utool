@@ -1,6 +1,6 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-# Python
-from six.moves import range, map
+from six.moves import range, map, zip
 import os
 import re
 import textwrap
@@ -8,8 +8,7 @@ try:
     import numpy as np
 except ImportError:
     pass
-from os.path import join, splitext
-# Util
+from os.path import join, splitext, dirname  # NOQA
 from utool import util_cplat
 from utool import util_path
 from utool import util_num
@@ -61,6 +60,8 @@ def compress_pdf(pdf_fpath, output_fname=None):
 
 def make_full_document(text, title=None, preamp_decl={}):
     r"""
+    dummy preamble and document to wrap around latex fragment
+
     Args:
         text (str):
         title (str):
@@ -102,6 +103,7 @@ def make_full_document(text, title=None, preamp_decl={}):
     \usepackage[margin=1.25in]{geometry}
 
     %\pagenumbering{gobble}
+
     ''')
     if title is not None:
         preamp_decl['title'] = title
@@ -124,22 +126,40 @@ def make_full_document(text, title=None, preamp_decl={}):
     return text_
 
 
-def compile_latex_text(input_text, fnum=1, dpath=None, verbose=True, fname=None, title=None, **kwargs):
-    """
+def render_latex_text(input_text, nest_in_doc=False, appname='utool', verbose=True):
+    """ testing function """
+    import utool as ut
+    dpath = ut.get_app_resource_dir(appname)
+    # put a latex framgent in a full document
+    print(input_text)
+    pdf_fpath = ut.compile_latex_text(input_text, dpath=dpath, verbose=verbose)
+    ut.startfile(pdf_fpath)
+    return pdf_fpath
+
+
+def compile_latex_text(input_text, fnum=1, dpath=None, verbose=True, fname=None, title=None, nest_in_doc=None, **kwargs):
+    r"""
     pdflatex -shell-escape --synctex=-1 -src-specials -interaction=nonstopmode /home/joncrall/code/ibeis/tmptex/latex_formatter_temp.tex
+
+    CommandLine:
+        python -m utool.util_latex --test-compile_latex_text --show
 
     Example1:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_latex import *  # NOQA
         >>> import utool as ut
         >>> verbose = True
-        >>> dpath = '/home/joncrall/code/ibeis/aidchallenge'
-        >>> ut.vd(dpath)
+        >>> #dpath = '/home/joncrall/code/ibeis/aidchallenge'
+        >>> dpath = dirname(ut.grab_test_imgpath())
+        >>> #ut.vd(dpath)
         >>> orig_fpath_list = ut.list_images(dpath, fullpath=True)
-        >>> figure_str = ut.get_latex_figure_str(new_rel_fpath_list, width_str='2.4in', nCols=2)
+        >>> figure_str = ut.get_latex_figure_str(orig_fpath_list, width_str='2.4in', nCols=2)
         >>> input_text = figure_str
         >>> pdf_fpath = ut.compile_latex_text(input_text, dpath=dpath, verbose=verbose)
         >>> output_pdf_fpath = ut.compress_pdf(pdf_fpath)
+        >>> print(pdf_fpath)
+        >>> ut.quit_if_noshow()
+        >>> ut.startfile(pdf_fpath)
 
         fpath_list
         def clipwhite_ondisk(fpath_in):
@@ -170,7 +190,9 @@ def compile_latex_text(input_text, fnum=1, dpath=None, verbose=True, fname=None,
     #import pylab as plt
     #import matplotlib as mpl
     #verbose = True
-    text = make_full_document(input_text, title=title)
+    if nest_in_doc or (nest_in_doc is None and input_text.find('documentclass') == -1):
+        text = make_full_document(input_text, title=title)
+    #text = make_full_document(input_text, title=title)
     cwd = os.getcwd()
     if dpath is None:
         text_dir = join(cwd, 'tmptex')
@@ -199,6 +221,9 @@ def compile_latex_text(input_text, fnum=1, dpath=None, verbose=True, fname=None,
 
 
 def render(input_text, fnum=1, dpath=None, verbose=True):
+    """
+    fixme or remove
+    """
     import pylab as plt
     import matplotlib as mpl
     #verbose = True
@@ -342,11 +367,43 @@ def replace_all(str_, repltups):
     return ret
 
 
-def make_score_tabular(row_lbls, col_lbls, scores, title=None,
-                       out_of=None, bold_best=True,
-                       replace_rowlbl=None, flip=False):
-    """ tabular for displaying scores """
-    bigger_is_better = True
+def make_score_tabular(row_lbls, col_lbls, values, title=None, out_of=None,
+                       bold_best=True, flip=False, bigger_is_better=True):
+    r"""
+    makes a LaTeX tabular for displaying scores or errors
+
+    Args:
+        row_lbls (list of str):
+        col_lbls (list of str):
+        values (ndarray):
+        title (str):  (default = None)
+        out_of (None): (default = None)
+        bold_best (bool): (default = True)
+        flip (bool): (default = False)
+
+    Returns:
+        str: tabular_str
+
+    CommandLine:
+        python -m utool.util_latex --test-make_score_tabular --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_latex import *  # NOQA
+        >>> import utool as ut
+        >>> row_lbls = ['config1', 'config2']
+        >>> col_lbls = ['metric1', 'metric2']
+        >>> values = np.array([[1, 2], [3, 4]])
+        >>> title = 'title'
+        >>> out_of = 10
+        >>> bold_best = True
+        >>> flip = False
+        >>> tabular_str = make_score_tabular(row_lbls, col_lbls, values, title, out_of, bold_best, flip)
+        >>> result = tabular_str
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> render_latex_text(tabular_str)
+    """
     if flip:
         bigger_is_better = not bigger_is_better
         flip_repltups = [('<', '>'), ('score', 'error')]
@@ -354,11 +411,7 @@ def make_score_tabular(row_lbls, col_lbls, scores, title=None,
         if title is not None:
             title = replace_all(title, flip_repltups)
         if out_of is not None:
-            scores = out_of - scores
-
-    if replace_rowlbl is not None:
-        for ser, rep in replace_rowlbl:
-            row_lbls = [re.sub(ser, rep, lbl) for lbl in row_lbls]
+            values = out_of - values
 
     # Abbreviate based on common substrings
     SHORTEN_ROW_LBLS = True
@@ -386,7 +439,7 @@ def make_score_tabular(row_lbls, col_lbls, scores, title=None,
     col_lbls = ensure_rowvec(col_lbls)
     row_lbls = ensure_colvec(row_lbls)
     _0 = np.vstack([padvec(), row_lbls])
-    _1 = np.vstack([col_lbls, scores])
+    _1 = np.vstack([col_lbls, values])
     body = np.hstack([_0, _1])
     body = [[str_ for str_ in row] for row in body]
     # Fix things in each body cell
@@ -404,11 +457,11 @@ def make_score_tabular(row_lbls, col_lbls, scores, title=None,
             if AUTOFIX_LATEX:
                 body[r][c] = escape_latex(body[r][c])
 
-    # Bold the best scores
+    # Bold the best values
     if bold_best:
-        best_col_scores = scores.max(0) if bigger_is_better else scores.min(0)
-        rows_to_bold = [np.where(scores[:, colx] == best_col_scores[colx])[0]
-                        for colx in range(len(scores.T))]
+        best_col_scores = values.max(0) if bigger_is_better else values.min(0)
+        rows_to_bold = [np.where(values[:, colx] == best_col_scores[colx])[0]
+                        for colx in range(len(values.T))]
         for colx, rowx_list in enumerate(rows_to_bold):
             for rowx in rowx_list:
                 body[rowx + 1][colx + 1] = '\\txtbf{' + body[rowx + 1][colx + 1] + '}'
@@ -421,7 +474,7 @@ def make_score_tabular(row_lbls, col_lbls, scores, title=None,
                 if out_of is not None:
                     body[r][c] = body[r][c] + '/' + str(out_of)
                     if DO_PERCENT:
-                        percent = ' = %.1f%%' % float(100 * scores[r - 1, c - 1] / out_of)
+                        percent = ' = %.1f%%' % float(100 * values[r - 1, c - 1] / out_of)
                         body[r][c] += escape_latex(percent)
 
     # Align columns for pretty printing
