@@ -180,7 +180,8 @@ def get_argflag(argstr_, default=False, help_='', return_was_specified=False, **
 # This has diverged and is now better
 #from utool._internal.meta_util_arg import get_argval
 @profile
-def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True, return_was_specified=False, argv=sys.argv):
+def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
+               return_was_specified=False, argv=sys.argv, verbose=VERBOSE or VERYVERBOSE):
     r""" Returns a value of an argument specified on the command line after some flag
 
     Args:
@@ -238,6 +239,13 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True, re
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--nAssign'), int)]])" --nAssign 42
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--test'), str)]])" --test
     """
+    if verbose:
+        print('[get_argval] Searching Commandline for argstr_=%r' % (argstr_,))
+        #print('[get_argval]  * type_ = %r' % (type_,))
+        #print('[get_argval]  * default = %r' % (default,))
+        #print('[get_argval]  * help_ = %r' % (help_,))
+        #print('[get_argval]  * smartcast = %r' % (smartcast,))
+
     #print(argstr_)
     was_specified = False
     arg_after = default

@@ -327,7 +327,11 @@ def print_difftext(text):
 
 
 def colorprint(msg, color):
-    """ provides some color to terminal output """
+    """ provides some color to terminal output
+
+    python -c "import pygments.console; print(list(pygments.console.codes.keys()))"
+
+    """
     import pygments
     import pygments.console
     print(pygments.console.colorize(color, msg))

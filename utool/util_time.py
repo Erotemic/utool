@@ -242,14 +242,18 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=1, strict=False):
 
 
 def unixtime_to_datetime(unixtime, timefmt='%Y/%m/%d %H:%M:%S', isutc=False):
-    if unixtime == -1:
-        return 'NA'
-    if unixtime is None:
-        return None
-    if isutc:
-        return datetime.datetime.utcfromtimestamp(unixtime).strftime(timefmt)
-    else:
-        return datetime.datetime.fromtimestamp(unixtime).strftime(timefmt)
+    try:
+        if unixtime == -1:
+            return 'NA'
+        if unixtime is None:
+            return None
+        if isutc:
+            return datetime.datetime.utcfromtimestamp(unixtime).strftime(timefmt)
+        else:
+            return datetime.datetime.fromtimestamp(unixtime).strftime(timefmt)
+    except ValueError:
+        raise
+        #return 'NA'
 
 
 def unixtime_to_timedelta(unixtime_diff):
@@ -515,15 +519,24 @@ def get_timestats_dict(unixtime_list, full=True, isutc=False):
             datetime_stats[key] = ut.unixtime_to_datetime(unixtime_stats[key], isutc=isutc)
         except KeyError:
             pass
+        except ValueError as ex:
+            datetime_stats[key]  = 'NA'
+        except Exception as ex:
+            ut.printex(ex, keys=['key', 'unixtime_stats'])
+            raise
     for key in ['std']:
         try:
             datetime_stats[key] = str(ut.get_unix_timedelta(int(round(unixtime_stats[key]))))
         except KeyError:
             pass
+        except ValueError as ex:
+            datetime_stats[key]  = 'NA'
     try:
         datetime_stats['range'] = str(ut.get_unix_timedelta(int(round(unixtime_stats['max'] - unixtime_stats['min']))))
     except KeyError:
         pass
+    except ValueError as ex:
+        datetime_stats['range']  = 'NA'
 
     if full:
         #unused_keys = (set(unixtime_stats.keys()) - set(datetime_stats.keys())

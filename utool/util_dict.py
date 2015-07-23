@@ -546,6 +546,9 @@ def dict_take_gen(dict_, keys, *d):
         >>> print(result)
         correctly got key error
     """
+    if isinstance(keys, six.string_types):
+        # hack for string keys that makes copy-past easier
+        keys = keys.split(', ')
     if len(d) == 0:
         # no default given throws key error
         dictget = dict_.__getitem__

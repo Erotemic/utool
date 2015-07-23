@@ -1018,6 +1018,9 @@ def get_jagged_stats(arr_list, **kwargs):
 
 def get_stats(list_, axis=None, use_nan=False, use_sum=False, datacast=None):
     """
+    TODO:
+        depricate datacast
+
     Args:
         list_ (listlike): values to get statistics of
         axis (int): if ``list_`` is ndarray then this specifies the axis
@@ -1037,7 +1040,7 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, datacast=None):
         >>> import utool
         >>> axis = 0
         >>> np.random.seed(0)
-        >>> list_ = np.random.rand(10, 2)
+        >>> list_ = np.random.rand(10, 2).astype(np.float32)
         >>> stat_dict = get_stats(list_, axis, use_nan=False)
         >>> result = str(utool.dict_str(stat_dict))
         >>> print(result)
@@ -1071,6 +1074,27 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, datacast=None):
             'nMax': 3,
             'shape': (100,),
             'num_nan': 1,
+        }
+
+    Examples1:
+        >>> # ENABLE_DOCTEST
+        >>> import numpy as np
+        >>> import utool
+        >>> axis = 0
+        >>> rng = np.random.RandomState(0)
+        >>> list_ = rng.randint(0, 42, size=100).astype(np.int32)
+        >>> stat_dict = get_stats(list_, axis, use_nan=True)
+        >>> result = str(utool.dict_str(stat_dict))
+        >>> print(result)
+        {
+            'max': 41,
+            'min': 0,
+            'mean': 19.889999,
+            'std': 13.156668,
+            'nMin': 7,
+            'nMax': 3,
+            'shape': (100,),
+            'num_nan': 0,
         }
 
     SeeAlso:
@@ -1111,8 +1135,8 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, datacast=None):
         # number of entries with min val
         nMax = np.sum(nparr == max_val, axis=axis)
         stats_list = [
-            ('max',   datacast(max_val)),
-            ('min',   datacast(min_val)),
+            ('max',   (max_val)),
+            ('min',   (min_val)),
             ('mean',  datacast(mean_)),
             ('std',   datacast(std_)),
             ('nMin',  np.int32(nMin)),

@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+"""
+TODO: box and whisker
+http://tex.stackexchange.com/questions/115210/boxplot-in-latex
+"""
 from __future__ import absolute_import, division, print_function
 from six.moves import range, map, zip
 import os
@@ -347,11 +351,6 @@ def ensure_colvec(arr):
     return arr
 
 
-def padvec(shape=(1, 1)):
-    pad = np.array([[' ' for c in range(shape[1])] for r in range(shape[0])])
-    return pad
-
-
 def escape_latex(unescaped_latex_str):
     ret = unescaped_latex_str
     ret = ret.replace('#', '\\#')
@@ -368,7 +367,9 @@ def replace_all(str_, repltups):
 
 
 def make_score_tabular(row_lbls, col_lbls, values, title=None, out_of=None,
-                       bold_best=True, flip=False, bigger_is_better=True):
+                       bold_best=False, flip=False, bigger_is_better=True,
+                       multicol_lbls=None, FORCE_INT=True, precision=None,
+                       SHORTEN_ROW_LBLS=True):
     r"""
     makes a LaTeX tabular for displaying scores or errors
 
@@ -392,8 +393,8 @@ def make_score_tabular(row_lbls, col_lbls, values, title=None, out_of=None,
         >>> from utool.util_latex import *  # NOQA
         >>> import utool as ut
         >>> row_lbls = ['config1', 'config2']
-        >>> col_lbls = ['metric1', 'metric2']
-        >>> values = np.array([[1, 2], [3, 4]])
+        >>> col_lbls = ['score \leq 1', 'metric2']
+        >>> values = np.array([[1.2, 2], [3.2, 4]])
         >>> title = 'title'
         >>> out_of = 10
         >>> bold_best = True
@@ -406,7 +407,13 @@ def make_score_tabular(row_lbls, col_lbls, values, title=None, out_of=None,
     """
     if flip:
         bigger_is_better = not bigger_is_better
-        flip_repltups = [('<', '>'), ('score', 'error')]
+        flip_repltups = [
+            ('<=', '>'),
+            ('>', '<='),
+            ('\\leq', '\\gt'),
+            ('\\geq', '\\lt'),
+            ('score', 'error')
+        ]
         col_lbls = [replace_all(lbl, flip_repltups) for lbl in col_lbls]
         if title is not None:
             title = replace_all(title, flip_repltups)
@@ -414,7 +421,6 @@ def make_score_tabular(row_lbls, col_lbls, values, title=None, out_of=None,
             values = out_of - values
 
     # Abbreviate based on common substrings
-    SHORTEN_ROW_LBLS = True
     common_rowlbl = None
     if SHORTEN_ROW_LBLS:
         if isinstance(row_lbls, list):
@@ -435,24 +441,47 @@ def make_score_tabular(row_lbls, col_lbls, values, title=None, out_of=None,
             common_rowlbl = row_lbl_list[0]
             row_lbls = ['0']
 
-    # Stack into a tabular body
-    col_lbls = ensure_rowvec(col_lbls)
-    row_lbls = ensure_colvec(row_lbls)
-    _0 = np.vstack([padvec(), row_lbls])
-    _1 = np.vstack([col_lbls, values])
-    body = np.hstack([_0, _1])
-    body = [[str_ for str_ in row] for row in body]
+    # Stack values into a tabular body
+    # TODO: need ability to specify datatypes
+    def ensurelist(row_values):
+        try:
+            return row_values.tolist()
+        except AttributeError:
+            return row_values
+
+    if False:
+        # Numpy formatting
+        def padvec(shape=(1, 1)):
+            pad = np.array([[' ' for c in range(shape[1])] for r in range(shape[0])])
+            return pad
+        col_lbls = ensure_rowvec(col_lbls)
+        row_lbls = ensure_colvec(row_lbls)
+        _0 = np.vstack([padvec(), row_lbls])
+        _1 = np.vstack([col_lbls, values])
+        body = np.hstack([_0, _1])
+        body = [[str_ for str_ in row] for row in body]
+    else:
+        assert len(row_lbls) == len(values)
+        body = [[' '] + col_lbls]
+        body += [[row_lbl] + ensurelist(row_values) for row_lbl, row_values in zip(row_lbls, values)]
+    #import utool as ut
     # Fix things in each body cell
     AUTOFIX_LATEX = True
-    FORCE_INT = True
     DO_PERCENT = True
     for r in range(len(body)):
         for c in range(len(body[0])):
             # In data land
             if r > 0 and c > 0:
+                if precision is not None:
+                    # Hack
+                    import utool as ut
+                    if ut.is_float(body[r][c]):
+                        fmtstr = '%.' + str(precision) + 'f'
+                        body[r][c] = fmtstr % (float(body[r][c]),)
                 # Force integer
                 if FORCE_INT:
                     body[r][c] = str(int(float(body[r][c])))
+            body[r][c] = str(body[r][c])
             # Remove bad formatting;
             if AUTOFIX_LATEX:
                 body[r][c] = escape_latex(body[r][c])
@@ -483,7 +512,7 @@ def make_score_tabular(row_lbls, col_lbls, values, title=None, out_of=None,
     if ALIGN_BODY:
         new_body_cols = []
         for col in body.T:
-            colstrs = list(map(str, col.tolist()))
+            colstrs = list(map(str, ensurelist(col)))
             collens = list(map(len, colstrs))
             maxlen = max(collens)
             newcols = [str_ + (' ' * (maxlen - len(str_))) for str_ in colstrs]
@@ -500,11 +529,18 @@ def make_score_tabular(row_lbls, col_lbls, values, title=None, out_of=None,
     if HLINE_SEP:
         rowsep = hline + '\n'
     rowstr_list = [colsep.join(row) + endl for row in body]
+    # Insert multicolumn names
+    if multicol_lbls is not None:
+        multicol_str = colsep + colsep.join([latex_multicolumn(multicol, size) for multicol, size in multicol_lbls]) + endl
+        rowstr_list = [multicol_str] + rowstr_list
+        extra_rowsep_pos_list += [1]
+
     # Insert title
     if title is not None:
         tex_title = latex_multicolumn(title, len(body[0])) + endl
         rowstr_list = [tex_title] + rowstr_list
         extra_rowsep_pos_list += [2]
+
     # Apply an extra hline (for label)
     for pos in sorted(extra_rowsep_pos_list)[::-1]:
         rowstr_list.insert(pos, '')
@@ -645,6 +681,31 @@ def tabular_join(tabular_body_list, nCols=2):
     tabular = hline.join([tabular_head, tabular_body, tabular_tail])
     return tabular
 
+
+def latex_newcommand(command_name, command_text, num_args=0):
+    newcmd_str = '\\newcommand{\\' + command_name + '}'
+    if num_args > 0:
+        newcmd_str += '[%d]' % (num_args,)
+    newcmd_str += '{'
+    if '\n' in command_text:
+        newcmd_str += '\n'
+    newcmd_str += command_text
+    if '\n' in command_text:
+        newcmd_str += '\n'
+    newcmd_str += '}'
+    return newcmd_str
+
+
+def latex_sanatize_command_name(command_name):
+    import re
+    import utool as ut
+    # remove numbers
+    command_name = re.sub(ut.regex_or(['\\d']), '', command_name)
+    # Remove _ for cammel case
+    def to_cammel_case(str_list):
+        return ''.join([str_[0].upper() + str_[1:] for str_ in str_list])
+    command_name = to_cammel_case(command_name.split('_'))
+    return command_name
 
 if __name__ == '__main__':
     """
