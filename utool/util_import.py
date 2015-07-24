@@ -8,6 +8,40 @@ from utool import util_arg
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[import]')
 
 
+def import_modname(modname):
+    r"""
+    Args:
+        modname (str):  module name
+
+    Returns:
+        module: module
+
+    CommandLine:
+        python -m utool.util_import --test-import_modname
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_import import *  # NOQA
+        >>> modname_list = [
+        >>>     'utool',
+        >>>     'utool._internal',
+        >>>     'utool._internal.meta_util_six',
+        >>>     'utool.util_path',
+        >>>     #'utool.util_path.checkpath',
+        >>> ]
+        >>> modules = [import_modname(modname) for modname in modname_list]
+        >>> result = ([m.__name__ for m in modules])
+        >>> assert result == modname_list
+    """
+    # The __import__ statment is weird
+    if '.' in modname:
+        fromlist = modname.split('.')[-1]
+        module = __import__(modname, {}, {}, fromlist, 0)
+    else:
+        module = __import__(modname, {}, {}, [], 0)
+    return module
+
+
 def tryimport(modname, pipiname=None, ensure=False):
     """
     CommandLine:

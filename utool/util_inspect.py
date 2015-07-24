@@ -267,17 +267,24 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
         include_classes (bool):
         include_methods (bool):
 
+    Yeilds:
+        tuple (str, callable): doctestable
+
+    CommandLine:
+        python -m utool.util_inspect --test-iter_module_doctestable --modname=ibeis.model.hots.chip_match
+
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_inspect import *   # NOQA
         >>> import utool as ut
-        >>> module = ut.util_tests
+        >>> modname = ut.get_argval('--modname', type_=str, default=None)
+        >>> module = ut.util_tests if modname is None else ut.import_modname(modname)
         >>> doctestable_list = list(iter_module_doctestable(module))
-        >>> func_names = ut.get_list_column(doctestable_list, 0)
+        >>> func_names = sorted(ut.get_list_column(doctestable_list, 0))
         >>> print('\n'.join(func_names))
     """
     import ctypes
-    valid_func_types = (types.FunctionType, types.BuiltinFunctionType,
+    valid_func_types = (types.FunctionType, types.BuiltinFunctionType, classmethod,
                         #types.MethodType, types.BuiltinMethodType,
                         )
     if six.PY2:
@@ -319,15 +326,25 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
                 for subkey, subval in six.iteritems(class_.__dict__):
                     # Unbound methods are still typed as functions
                     if isinstance(subval, valid_func_types):
-                        if not isinstance(subval, types.BuiltinFunctionType):
+                        if not isinstance(subval, types.BuiltinFunctionType) and not isinstance(subval, classmethod):
+                            # HACK: __ut_parent_class__ lets util_test have more info ont he func
+                            # should return extra info instead
                             subval.__ut_parent_class__ = class_
                         yield subkey, subval
+                    elif isinstance(val, invalid_types):
+                        pass
+                    else:
+                        #import utool as ut
+                        if util_arg.VERBOSE:
+                            print('[util_inspect] WARNING module %r class %r:' % (module, class_,))
+                            print(' * Unknown if testable val=%r' % (val))
+                            print(' * Unknown if testable type(val)=%r' % type(val))
         elif isinstance(val, invalid_types):
             pass
         else:
             #import utool as ut
             if util_arg.VERBOSE:
-                print('[util_inspect] WARNING:')
+                print('[util_inspect] WARNING in module %r:' % (module,))
                 print(' * Unknown if testable val=%r' % (val))
                 print(' * Unknown if testable type(val)=%r' % type(val))
 

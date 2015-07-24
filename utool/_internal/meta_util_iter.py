@@ -13,6 +13,14 @@ def ensure_iterable(obj):
     CommandLine:
         python -m utool._internal.meta_util_iter --test-ensure_iterable
 
+    Timeit:
+        %timeit ut.ensure_iterable([1])
+        %timeit ut.ensure_iterable(1)
+        %timeit ut.ensure_iterable(np.array(1))
+        %timeit ut.ensure_iterable([1])
+        %timeit [1]
+
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool._internal.meta_util_iter import *  # NOQA

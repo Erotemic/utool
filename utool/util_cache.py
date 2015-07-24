@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import shelve
 import six
+import json
 #import lru
 #git+https://github.com/amitdev/lru-dict
 #import atexit
@@ -287,6 +288,31 @@ class Cacher(object):
         save_cache(self.dpath, self.fname, cfgstr, data)
 
 
+if HAVE_NUMPY:
+    class UtoolJSONEncoder(json.JSONEncoder):
+        numpy_type_tuple = tuple([np.ndarray] + list(set(np.typeDict.values())))
+        def default(self, obj):
+            if isinstance(obj, self.numpy_type_tuple):
+                return obj.tolist()
+            return json.JSONEncoder.default(self, obj)
+else:
+    UtoolJSONEncoder = json.JSONEncoder
+
+
+def to_json(val):
+    """
+    References:
+        http://stackoverflow.com/questions/11561932/why-does-json-dumpslistnp-arange5-fail-while-json-dumpsnp-arange5-tolis
+    """
+    json_str = (json.dumps(val, cls=UtoolJSONEncoder))
+    return json_str
+
+
+def from_json(json_str):
+    val = json.loads(json_str)
+    return val
+
+
 def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults, argnames):
     """
     Dev:
@@ -298,8 +324,8 @@ def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults, arg
         argval = args[argx]
         val = argval
         %timeit repr(argval)
-        %timeit any_repr(argval)
-        %timeit utool.hashstr(any_repr(argval))
+        %timeit to_json(argval)
+        %timeit utool.hashstr(to_json(argval))
         %timeit memoryview(argval)
     """
     #try:
@@ -313,25 +339,16 @@ def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults, arg
     # TODO: Use bytes or memoryview instead of repr
     # Helper funcs
 
-    def any_repr(val):
-        """ hopefully json will be able to compute a string representation """
-        import json
-
-        class NumPyArangeEncoder(json.JSONEncoder):
-            def default(self, obj):
-                if HAVE_NUMPY and isinstance(obj, np.ndarray):
-                    return obj.tolist()  # or map(int, obj)
-                return json.JSONEncoder.default(self, obj)
-
-        data = (json.dumps(val, cls=NumPyArangeEncoder))
-        return data
+    #def any_repr(val):
+    #    """ hopefully json will be able to compute a string representation """
+    #    return data
 
     def bytes_or_repr(val):
         try:
             memview = memoryview(val)
             return memview.tobytes()
         except Exception:
-            return any_repr(val)
+            return to_json(val)
             #if isinstance(val, dict):
             #    dict_keys = list(val.keys())
             #    dict_values = list(val.values())

@@ -892,7 +892,7 @@ def numeric_str(num, precision=8, **kwargs):
 def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
                       recursive=True, indent_='', precision=8,
                       hack_liststr=False, explicit=False, truncate=False, key_order=None,
-                      truncatekw=dict()):
+                      truncatekw=dict(), key_order_metric=None):
     """
     Returns:
         list: a list of human-readable dictionary items
@@ -936,7 +936,7 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
         elif util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
             return numpy_str(val, strvals=strvals, precision=precision)
         if hack_liststr and isinstance(val, list):
-            return list_str(val)
+            return list_str(val, newlines=newlines, precision=precision)
         else:
             # base case
             return valfunc(val)
@@ -951,6 +951,7 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
     if sorted_:
         def iteritems(d):
             if key_order is None:
+                # specify order explicilty
                 try:
                     return iter(sorted(six.iteritems(d)))
                 except TypeError:
@@ -996,6 +997,23 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
         #if isinstance(dict_, dict)
         itemstr_list = [make_item_str(key, val, indent_) for (key, val) in iteritems(dict_)]
         # itemstr_list is fine too. weird
+
+    if key_order_metric == 'strlen':
+        #if key_order is None:
+        #    # specify order explicilty
+        #    try:
+        #        return iter(sorted(six.iteritems(d)))
+        #    except TypeError:
+        #        # catches case where keys are of different types
+        #        return six.iteritems(d)
+        #else:
+        #    unordered_keys = list(d.keys())
+        #    other_keys = sorted(list(set(unordered_keys) - set(key_order)))
+        #    keys = key_order + other_keys
+        import utool as ut
+        metric_list = [len(itemstr) for itemstr in itemstr_list]
+        itemstr_list = ut.sortedby(itemstr_list, metric_list)
+        pass
     #import utool as ut
     #ut.embed()
     #itemstr_list = [fmtstr % (key, _valstr(val)) for (key, val) in iteritems(dict_)]
@@ -1030,6 +1048,8 @@ def get_itemstr_list(list_, strvals=False, newlines=True,
                             recursive=recursive, indent_=new_indent,
                             precision=precision, label_list=sublabels,
                             **listkws)
+        elif precision is not None and isinstance(val, (float)):
+            return ('%.' + str(precision) + 'f') % (val,)
         elif util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
             # TODO: generally pass down args
             suppress_small = listkws.get('suppress_small', None)
@@ -1224,8 +1244,25 @@ def obj_str(obj_, **kwargs):
 
 def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
              indent_='', precision=8, hack_liststr=False, truncate=False,
-             nl=None, explicit=False, truncatekw=dict(), key_order=None):
+             nl=None, explicit=False, truncatekw=dict(), key_order=None, key_order_metric=None):
     """
+
+    Args:
+        dict_ (dict_):  a dictionary
+        strvals (bool): (default = False)
+        sorted_ (None): returns str sorted by a metric (default = None)
+        newlines (bool): can be a coundown variable (default = True)
+        recursive (bool): (default = True)
+        indent_ (str): (default = '')
+        precision (int): (default = 8)
+        hack_liststr (bool): turn recursive liststr parsing on (default = False)
+        truncate (bool): (default = False)
+        nl (None): (default = None)
+        explicit (bool): (default = False)
+        truncatekw (dict): (default = {})
+        key_order (None): overrides default ordering (default = None)
+        key_order_metric (None): special sorting of items
+
     FIXME: ALL LIST DICT STRINGS ARE VERY SPAGEHETTI RIGHT NOW
     Returns:
         str: a human-readable and execable string representation of a dictionary
@@ -1259,17 +1296,18 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
             return 'dict()'
         else:
             return '{}'
+    newlines_ = _rectify_countdown_or_bool(newlines)
     truncate_ = _rectify_countdown_or_bool(truncate)
     #print('----')
     #print(indent_ + 'truncate = %r' % (truncate,))
     #print(indent_ + 'truncate_ = %r' % (truncate_,))
     #print('----')
 
-    itemstr_list = dict_itemstr_list(dict_, strvals, sorted_, newlines,
+    itemstr_list = dict_itemstr_list(dict_, strvals, sorted_, newlines_,
                                      recursive, indent_, precision,
                                      hack_liststr, explicit,
                                      truncate=truncate_, truncatekw=truncatekw,
-                                     key_order=key_order)
+                                     key_order=key_order, key_order_metric=key_order_metric)
 
     do_truncate = truncate is not False and (truncate is True or truncate == 0)
     if do_truncate:
