@@ -110,7 +110,7 @@ def untar_file(targz_fpath, force_commonprefix=True):
 
 
 def unzip_file(zip_fpath, force_commonprefix=True, output_dir=None,
-               prefix=None, remove_commonprefix=False):
+               prefix=None, dryrun=False):
     zip_file = zipfile.ZipFile(zip_fpath)
     if output_dir is None:
         output_dir  = dirname(zip_fpath)
@@ -118,14 +118,14 @@ def unzip_file(zip_fpath, force_commonprefix=True, output_dir=None,
     output_dir  = _extract_archive(zip_fpath, zip_file, archive_namelist,
                                    output_dir, force_commonprefix,
                                    prefix=prefix,
-                                   remove_commonprefix=remove_commonprefix)
+                                   dryrun=dryrun)
     zip_file.close()
     return output_dir
 
 
 def _extract_archive(archive_fpath, archive_file, archive_namelist, output_dir,
                      force_commonprefix=True, prefix=None,
-                     remove_commonprefix=False):
+                     dryrun=False, verbose=not QUIET):
     """
     archive_fpath = zip_fpath
     archive_file = zip_file
@@ -144,17 +144,13 @@ def _extract_archive(archive_fpath, archive_file, archive_namelist, output_dir,
         util_path.ensurepath(output_dir)
 
     for member in archive_namelist:
-        if remove_commonprefix:
-            # hacky hacky hacky
-            from os.path import relpath
-            (dname, fname) = split(relpath(member, archive_basename))
-        else:
-            (dname, fname) = split(member)
+        (dname, fname) = split(member)
         dpath = join(output_dir, dname)
         util_path.ensurepath(dpath)
-        if not QUIET:
+        if verbose:
             print('[utool] Unarchive ' + fname + ' in ' + dpath)
-        archive_file.extract(member, path=output_dir)
+        if not dryrun:
+            archive_file.extract(member, path=output_dir)
     return output_dir
 
 

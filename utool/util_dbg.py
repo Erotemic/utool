@@ -752,7 +752,7 @@ def get_caller_lineno(N=0, strict=True):
     return lineno
 
 
-def get_caller_name(N=0):
+def get_caller_name(N=0, allow_genexpr=True):
     """
     get the name of the function that called you
 
@@ -772,15 +772,28 @@ def get_caller_name(N=0):
         return '[' + ']['.join(name_list) + ']'
     parent_frame = get_parent_frame(N=N + 1)
     caller_name = parent_frame.f_code.co_name
+
+    if not allow_genexpr:
+        count = 0
+        while True:
+            count += 1
+            if caller_name == '<genexpr>':
+                parent_frame = get_parent_frame(N=N + count)
+                caller_name = parent_frame.f_code.co_name
+            else:
+                break
+
     #try:
     #    if 'func' in  parent_frame.f_locals:
     #        caller_name += '(' + meta_util_six.get_funcname(parent_frame.f_locals['func']) + ')'
     #except Exception:
     #    pass
     if caller_name == '<module>':
+        # Make the caller name the filename
         co_filename = parent_frame.f_code.co_filename
         caller_name = splitext(split(co_filename)[1])[0]
     if caller_name == '__init__':
+        # Make the caller name the filename
         caller_name = basename(dirname(co_filename)) + '.' + caller_name
     return caller_name
 

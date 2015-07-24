@@ -79,6 +79,10 @@ def is_file_writable(fpath):
     return os.access(fpath, os.W_OK)
 
 
+def is_file_executable(fpath):
+    return os.access(fpath, os.X_OK)
+
+
 def get_file_info(fpath):
     from utool import util_time
     import os

@@ -413,7 +413,7 @@ def checkpath(path_, verbose=VERYVERBOSE, n=None, info=VERYVERBOSE):
     if verbose:
         #print_('[utool] checkpath(%r)' % (path_))
         pretty_path = path_ndir_split(path_, n)
-        caller_name = util_dbg.get_caller_name()
+        caller_name = util_dbg.get_caller_name(allow_genexpr=False)
         print('[%s] checkpath(%r)' % (caller_name, pretty_path))
         if does_exist:
             path_type = get_path_type(path_)
@@ -1669,6 +1669,66 @@ class ChdirContext(object):
             if VERBOSE:
                 print('[util_path] Error in chdir context manager!: ' + str(value))
             return False  # return a falsey value on error
+
+
+def search_candidate_paths(candidate_path_list, candidate_name_list=None, priority_paths=None, required_subpaths=[], verbose=not QUIET):
+    """
+    searches for existing paths that meed a requirement
+
+    Args:
+        candidate_path_list (list): list of paths to check. If candidate_name_list is specified this is the dpath list instead
+        candidate_name_list (list): specifies several names to check (default = None)
+        priority_paths (None): specifies paths to check first. Ignore candidate_name_list (default = None)
+        required_subpaths (list): specified required directory structure (default = [])
+        verbose (bool):  verbosity flag(default = True)
+
+    Returns:
+        str: return_path
+
+    CommandLine:
+        python -m utool.util_path --test-search_candidate_paths
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> candidate_path_list = [ut.truepath('~/RPI/code/utool'), ut.truepath('~/code/utool')]
+        >>> candidate_name_list = None
+        >>> required_subpaths = []
+        >>> verbose = True
+        >>> priority_paths = None
+        >>> return_path = search_candidate_paths(candidate_path_list, candidate_name_list, priority_paths, required_subpaths, verbose)
+        >>> result = ('return_path = %s' % (str(return_path),))
+        >>> print(result)
+    """
+    print('Searching for candidate paths')
+    import utool as ut
+    from os.path import join, exists
+    import itertools
+
+    if candidate_name_list is not None:
+        candidate_path_list_ = [join(dpath, fname) for dpath, fname in itertools.product(candidate_path_list, candidate_name_list)]
+    else:
+        candidate_path_list_ = candidate_path_list
+
+    if priority_paths is not None:
+        candidate_path_list_ = priority_paths + candidate_path_list_
+
+    return_path = None
+    for path in candidate_path_list_:
+        if path is not None and exists(path):
+            if verbose:
+                print('Found candidate tomcat directory %r' % (path,))
+                print('Checking for approprate structure')
+            # tomcat directory exists. Make sure it also contains a webapps dir
+            subpath_list = [join(path, subpath) for subpath in required_subpaths]
+            if all(ut.checkpath(path_, verbose=verbose) for path_ in subpath_list):
+                return_path = path
+                if verbose:
+                    print('Candidate path meets citera. Returning')
+                return return_path
+                break
+    print('Did not find any candidates')
+    return return_path
 
 
 if __name__ == '__main__':
