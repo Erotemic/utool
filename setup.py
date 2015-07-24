@@ -53,9 +53,8 @@ def utool_setup():
         ]
 
     INSTALL_OPTIONAL = [
+        'autopep8',
         'astor',
-        'sphinx',
-        'sphinxcontrib-napoleon',
         'pyperclip >= 1.5.7',
         'pyfiglet >= 0.7.2',
         'lru-dict >= 1.1.1',  # import as lru
@@ -70,8 +69,10 @@ def utool_setup():
 
     #]
 
-    INSTALL_OPTIONAL_EXTRA = [  # NOQA
+    INSTALL_OPTIONAL_DEV = [  # NOQA
         'guppy',
+        'sphinx',
+        'sphinxcontrib-napoleon',
         'objgraph',
     ]
 
@@ -79,7 +80,7 @@ def utool_setup():
     INSTALL_EXTRA = {item.split(' ')[0]: item for item in INSTALL_OPTIONAL}
 
     # TODO: remove optional depends
-    #INSTALL_OPTIONAL += INSTALL_OPTIONAL_EXTRA
+    #INSTALL_OPTIONAL += INSTALL_OPTIONAL_DEV
     #INSTALL_REQUIRES += INSTALL_OPTIONAL
 
     try:

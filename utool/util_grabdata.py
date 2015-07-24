@@ -109,27 +109,47 @@ def untar_file(targz_fpath, force_commonprefix=True):
     return output_dir
 
 
-def unzip_file(zip_fpath, force_commonprefix=True):
+def unzip_file(zip_fpath, force_commonprefix=True, output_dir=None,
+               prefix=None, remove_commonprefix=False):
     zip_file = zipfile.ZipFile(zip_fpath)
-    output_dir  = dirname(zip_fpath)
+    if output_dir is None:
+        output_dir  = dirname(zip_fpath)
     archive_namelist = zip_file.namelist()
-    output_dir  = _extract_archive(zip_fpath, zip_file, archive_namelist, output_dir, force_commonprefix)
+    output_dir  = _extract_archive(zip_fpath, zip_file, archive_namelist,
+                                   output_dir, force_commonprefix,
+                                   prefix=prefix,
+                                   remove_commonprefix=remove_commonprefix)
     zip_file.close()
     return output_dir
 
 
-def _extract_archive(archive_fpath, archive_file, archive_namelist, output_dir, force_commonprefix=True):
-    # force extracted components into a subdirectory if force_commonprefix is on
-    #return_path = output_diG
+def _extract_archive(archive_fpath, archive_file, archive_namelist, output_dir,
+                     force_commonprefix=True, prefix=None,
+                     remove_commonprefix=False):
+    """
+    archive_fpath = zip_fpath
+    archive_file = zip_file
+    """
+    # force extracted components into a subdirectory if force_commonprefix is
+    # on return_path = output_diG
     # FIXME doesn't work right
+    if prefix is not None:
+        output_dir = join(output_dir, prefix)
+        util_path.ensurepath(output_dir)
+
+    archive_basename, ext = split_archive_ext(basename(archive_fpath))
     if force_commonprefix and commonprefix(archive_namelist) == '':
         # use the archivename as the default common prefix
-        archive_basename, ext = split_archive_ext(basename(archive_fpath))
         output_dir = join(output_dir, archive_basename)
         util_path.ensurepath(output_dir)
 
     for member in archive_namelist:
-        (dname, fname) = split(member)
+        if remove_commonprefix:
+            # hacky hacky hacky
+            from os.path import relpath
+            (dname, fname) = split(relpath(member, archive_basename))
+        else:
+            (dname, fname) = split(member)
         dpath = join(output_dir, dname)
         util_path.ensurepath(dpath)
         if not QUIET:
