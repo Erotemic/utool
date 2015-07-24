@@ -544,6 +544,12 @@ def _run_process(proc):
             raise StopIteration('process finished')
 
 
+def quote_single_command(cmdstr):
+    if ' ' in cmdstr:
+        return '\'' + cmdstr + '\''
+    return cmdstr
+
+
 def cmd(*args, **kwargs):
     r""" A really roundabout way to issue a system call
 
@@ -551,6 +557,10 @@ def cmd(*args, **kwargs):
     # It should work without a hitch on windows or unix.
     # It should be able to spit out stdout in realtime.
     # Should be able to configure detatchment, shell, and sudo.
+
+    FIXME:
+        on a mac ut.cmd('/Users/joncrall/Library/Application Support/ibeis/tomcat/bin/shutdown.sh') will fail due to spaces
+
 
     Kwargs:
         quiet (bool) :
