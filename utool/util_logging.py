@@ -21,7 +21,7 @@ from utool._internal import meta_util_arg
 VERBOSE            = meta_util_arg.VERBOSE
 VERYVERBOSE        = meta_util_arg.VERYVERBOSE
 PRINT_ALL_CALLERS  = meta_util_arg.PRINT_ALL_CALLERS
-LOGGING_VERBOSE    = meta_util_arg.LOGGING_VERBOSE
+LOGGING_VERBOSE    = meta_util_arg.LOGGING_VERBOSE  # --verb-logging
 PRINT_INJECT_ORDER = meta_util_arg.PRINT_INJECT_ORDER
 
 
@@ -82,6 +82,16 @@ def get_current_log_fpath():
     return __CURRENT_LOG_FPATH__
 
 
+def get_current_log_text():
+    fpath = get_current_log_fpath()
+    if fpath is None:
+        text = None
+    else:
+        with open(fpath, 'r') as file_:
+            text = file_.read()
+    return text
+
+
 def get_log_fpath(num='next', appname=None, log_dir=None):
     """
     Returns:
@@ -105,6 +115,10 @@ def get_log_fpath(num='next', appname=None, log_dir=None):
     else:
         log_fpath = join(log_dir, log_fname % num)
     return log_fpath
+
+
+def get_utool_logger():
+    return __UTOOL_ROOT_LOGGER__
 
 
 def add_logging_handler(handler, format_='file'):
