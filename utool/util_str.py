@@ -892,7 +892,7 @@ def numeric_str(num, precision=8, **kwargs):
 def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
                       recursive=True, indent_='', precision=8,
                       hack_liststr=False, explicit=False, truncate=False, key_order=None,
-                      truncatekw=dict(), key_order_metric=None):
+                      truncatekw=dict(), key_order_metric=None, use_numpy=False, **dictkw):
     """
     Returns:
         list: a list of human-readable dictionary items
@@ -932,9 +932,13 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
             return dict_str(val, strvals=strvals, sorted_=sorted_,
                             newlines=newlines, recursive=recursive,
                             indent_=indent_ + '    ', precision=precision,
-                            truncate=truncate, truncatekw=truncatekw, key_order=key_order)
+                            truncate=truncate, truncatekw=truncatekw,
+                            key_order=key_order, use_numpy=use_numpy, **dictkw)
         elif util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
-            return numpy_str(val, strvals=strvals, precision=precision)
+            if use_numpy:
+                return numpy_str(val, strvals=strvals, precision=precision)
+            else:
+                return list_str(val, newlines=newlines, precision=precision)
         if hack_liststr and isinstance(val, list):
             return list_str(val, newlines=newlines, precision=precision)
         else:
@@ -1042,18 +1046,19 @@ def get_itemstr_list(list_, strvals=False, newlines=True,
             #                precision=precision)
             return dict_str(val, strvals=strvals, newlines=newlines,
                             recursive=recursive, indent_=new_indent,
-                            precision=precision, sorted_=True)
+                            precision=precision, sorted_=True,
+                            hack_liststr=listkws.get('hack_liststr', False))
         if isinstance(val, (tuple, list)):
             return list_str(val, strvals=strvals, newlines=newlines,
                             recursive=recursive, indent_=new_indent,
                             precision=precision, label_list=sublabels,
                             **listkws)
-        elif precision is not None and isinstance(val, (float)):
-            return ('%.' + str(precision) + 'f') % (val,)
         elif util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
             # TODO: generally pass down args
             suppress_small = listkws.get('suppress_small', None)
             return numpy_str(val, strvals=strvals, precision=precision, suppress_small=suppress_small)
+        elif precision is not None and (isinstance(val, (float)) or util_type.is_float(val)):
+            return ('%.' + str(precision) + 'f') % (val,)
         else:
             # base case
             return valfunc(val)
@@ -1244,7 +1249,8 @@ def obj_str(obj_, **kwargs):
 
 def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
              indent_='', precision=8, hack_liststr=False, truncate=False,
-             nl=None, explicit=False, truncatekw=dict(), key_order=None, key_order_metric=None):
+             nl=None, explicit=False, truncatekw=dict(), key_order=None,
+             key_order_metric=None, **dictkw):
     """
 
     Args:
@@ -1307,7 +1313,9 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
                                      recursive, indent_, precision,
                                      hack_liststr, explicit,
                                      truncate=truncate_, truncatekw=truncatekw,
-                                     key_order=key_order, key_order_metric=key_order_metric)
+                                     key_order=key_order,
+                                     key_order_metric=key_order_metric,
+                                     **dictkw)
 
     do_truncate = truncate is not False and (truncate is True or truncate == 0)
     if do_truncate:
