@@ -1206,6 +1206,7 @@ def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=No
     #with ut.EmbedOnException():
     #precisionless_types =  (bool,) + six.string_types
     if precision is not None:
+        assert ut.is_int(precision), 'precision must be an integer'
         float_fmtstr = '%.' + str(precision) + 'f'
         for key in list(six.iterkeys(statstr_dict)):
             val = statstr_dict[key]

@@ -24,7 +24,9 @@ util_inject.noinject('[parallel]')
 
 QUIET   = util_arg.QUIET
 SILENT  = util_arg.SILENT
-VERBOSE_PARALLEL = util_arg.VERBOSE or util_arg.get_argflag(('--verbose-par', '--verbpar', '--verbose-parallel', '--verbparallel'))
+VERBOSE_PARALLEL, VERYVERBOSE_PARALLEL = util_arg.get_module_verbosity_flags('par', 'parallel')
+#VERBOSE_PARALLEL = util_arg.VERBOSE or util_arg.get_argflag(('--verbose-par', '--verbpar', '--verbose-parallel', '--verbparallel'))
+#VERYVERBOSE_PARALLEL = util_arg.VERYVERBOSE or util_arg.get_argflag(('--veryverbose-par', '--veryverbpar', '--veryverbose-parallel', '--veryverbparallel'))
 STRICT  = util_arg.STRICT
 
 if SILENT:
@@ -336,7 +338,7 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
         if VERBOSE_PARALLEL or verbose:
             print('[util_parallel.generate] submitted 0 tasks')
         return iter([])
-    if VERBOSE_PARALLEL or verbose:
+    if VERYVERBOSE_PARALLEL:
         print('[util_parallel.generate] ordered=%r' % ordered)
         print('[util_parallel.generate] force_serial=%r' % force_serial)
     # Check conditions under which we force serial

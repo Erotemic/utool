@@ -200,10 +200,10 @@ if DOELSE:
                                 fuzzy_int, get_arg, get_arg_dict, get_argflag, 
                                 get_argv_tail, get_argval, 
                                 get_dict_vals_from_commandline, get_flag, 
-                                get_fpath_args, make_argparse2, 
-                                parse_arglist_hack, parse_cfgstr_list, 
-                                parse_dict_from_argv, reset_argrecord, 
-                                switch_sanataize,) 
+                                get_fpath_args, get_module_verbosity_flags, 
+                                make_argparse2, parse_arglist_hack, 
+                                parse_cfgstr_list, parse_dict_from_argv, 
+                                reset_argrecord, switch_sanataize,) 
     from utool.util_assert import (assert_all_not_None, assert_almost_eq, 
                                    assert_eq, assert_inbounds, assert_lessthan, 
                                    assert_lists_eq, assert_same_len, 
@@ -219,16 +219,17 @@ if DOELSE:
                                     make_returns_or_yeilds_docstr, 
                                     print_auto_docstr, write_modscript_alias,) 
     from utool.util_cache import (BadZipFile, Cachable, Cacher, 
-                                  GlobalShelfContext, LRUDict, cached_func, 
-                                  chain, consensed_cfgstr, delete_global_cache, 
-                                  get_cfgstr_from_args, get_default_appname, 
-                                  get_global_cache_dir, get_global_shelf_fpath, 
-                                  get_lru_cache, global_cache_dump, 
-                                  global_cache_read, global_cache_write, 
-                                  load_cache, save_cache, shelf_open, 
-                                  text_dict_read, text_dict_write, 
-                                  time_different_diskstores, tryload_cache, 
-                                  tryload_cache_list, 
+                                  GlobalShelfContext, LRUDict, 
+                                  UtoolJSONEncoder, cached_func, chain, 
+                                  consensed_cfgstr, delete_global_cache, 
+                                  from_json, get_cfgstr_from_args, 
+                                  get_default_appname, get_global_cache_dir, 
+                                  get_global_shelf_fpath, get_lru_cache, 
+                                  global_cache_dump, global_cache_read, 
+                                  global_cache_write, load_cache, save_cache, 
+                                  shelf_open, text_dict_read, text_dict_write, 
+                                  time_different_diskstores, to_json, 
+                                  tryload_cache, tryload_cache_list, 
                                   tryload_cache_list_with_compute, 
                                   view_global_cache_dir,) 
     from utool.util_cplat import (COMPUTER_NAME, DARWIN, LIB_DICT, 
@@ -248,14 +249,15 @@ if DOELSE:
                                   get_python_dynlib, get_resource_dir, 
                                   get_user_name, geteditor, getroot, inject, 
                                   ipython_paste, is64bit_python, 
-                                  is_file_writable, ls_libs, 
-                                  print_dir_diskspace, print_path, 
+                                  is_file_executable, is_file_writable, 
+                                  ls_libs, print_dir_diskspace, print_path, 
                                   print_system_users, python_executable, 
-                                  run_realtime_process, search_env_paths, 
-                                  send_keyboard_input, set_process_title, 
-                                  shell, spawn_delayed_ipython_paste, 
-                                  startfile, truepath, unixpath, unload_module, 
-                                  vd, view_directory,) 
+                                  quote_single_command, run_realtime_process, 
+                                  search_env_paths, send_keyboard_input, 
+                                  set_process_title, shell, 
+                                  spawn_delayed_ipython_paste, startfile, 
+                                  truepath, unixpath, unload_module, vd, 
+                                  view_directory,) 
     from utool.util_class import (KwargsWrapper, QUIET_CLASS, 
                                   ReloadingMetaclass, VERBOSE_CLASS, 
                                   decorate_class_method, decorate_postinject, 
@@ -345,10 +347,7 @@ if DOELSE:
                                   show_return_value, 
                                   test_ignore_exec_traceback, time_func, 
                                   tracefunc,) 
-    from utool.util_distances import (L1, L2, L2_sift, L2_sqrd, bar_L2_sift, 
-                                      bar_cos_sift, compute_distances, 
-                                      cos_sift, emd, hist_isect, 
-                                      nearest_point,) 
+    from utool.util_distances import (nearest_point,) 
     from utool.util_dict import (AutoVivification, all_dict_combinations, 
                                  all_dict_combinations_lbls, 
                                  all_dict_combinations_ordered, 
@@ -406,8 +405,8 @@ if DOELSE:
                                   latex_sanatize_command_name, latex_scalar, 
                                   long_substr, make_full_document, 
                                   make_score_tabular, make_stats_tabular, 
-                                  padvec, render, render_latex_text, 
-                                  replace_all, tabular_join,) 
+                                  render, render_latex_text, replace_all, 
+                                  tabular_join,) 
     from utool.util_hash import (ALPHABET, ALPHABET_16, ALPHABET_27, BIGBASE, 
                                  DictProxyType, HASH_LEN, augment_uuid, 
                                  convert_hexstr_to_bigbase, deterministic_uuid, 
@@ -416,8 +415,9 @@ if DOELSE:
                                  hashstr_arr, hashstr_arr27, hashstr_md5, 
                                  hashstr_sha1, image_uuid, make_hash, 
                                  random_nonce, random_uuid,) 
-    from utool.util_import import (LazyModule, import_module_from_fpath, 
-                                   lazy_module_attrs, tryimport,) 
+    from utool.util_import import (LazyModule, import_modname, 
+                                   import_module_from_fpath, lazy_module_attrs, 
+                                   tryimport,) 
     from utool.util_inject import (ARGV_DEBUG_FLAGS, DEBUG_PRINT, 
                                    DEBUG_PRINT_N, DUMMYPROF_FUNC, 
                                    HAVE_PYGMENTS, KERNPROF_FUNC, 
@@ -542,9 +542,10 @@ if DOELSE:
                                  relpath_unix, remove_dirs, 
                                  remove_existing_fpaths, remove_file, 
                                  remove_file_list, remove_files_in_dir, 
-                                 remove_fpaths, search_in_dirs, splitdrive, 
-                                 symlink, tail, touch, truepath, 
-                                 truepath_relative, unixjoin, win_shortcut,) 
+                                 remove_fpaths, search_candidate_paths, 
+                                 search_in_dirs, splitdrive, symlink, tail, 
+                                 touch, truepath, truepath_relative, unixjoin, 
+                                 win_shortcut,) 
     from utool.util_print import (Indenter, NO_INDENT, PrintStartEndContext, 
                                   colorprint, get_colored_diff, horiz_print, 
                                   printNOTQUIET, printVERBOSE, printWARN, 
@@ -560,8 +561,9 @@ if DOELSE:
                                      progress_str, simple_progres_func, 
                                      test_progress,) 
     from utool.util_parallel import (BACKEND, MIN_PARALLEL_TASKS, 
-                                     VERBOSE_PARALLEL, buffered_generator, 
-                                     close_pool, ensure_pool, generate, 
+                                     VERBOSE_PARALLEL, VERYVERBOSE_PARALLEL, 
+                                     buffered_generator, close_pool, 
+                                     ensure_pool, generate, 
                                      get_default_numprocs, in_main_process, 
                                      init_pool, init_worker, new_pool, process, 
                                      set_num_procs, spawn_background_process, 

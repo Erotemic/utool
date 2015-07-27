@@ -16,6 +16,16 @@ ensure_iterable = meta_util_iter.ensure_iterable
 isiterable = meta_util_iter.isiterable
 
 
+def wrap_iterable(obj):
+    """
+    Returns:
+        wrapped_obj, was_scalar
+    """
+    was_scalar = not isiterable(obj)
+    wrapped_obj = [obj] if was_scalar else obj
+    return wrapped_obj, was_scalar
+
+
 def next_counter(start=0, step=1):
     r"""
     Args:

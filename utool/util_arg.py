@@ -1,9 +1,13 @@
+# -*- coding: utf-8 -*-
+"""
+Handles command line parsing
+"""
 from __future__ import absolute_import, division, print_function
 import sys
 import six
-# Python
 import os
 import re
+import itertools
 #import six
 import argparse
 from utool import util_inject
@@ -31,6 +35,22 @@ QUIET        = meta_util_arg.QUIET
 #(switch, type, default, help)
 # TODO: make a static help file available via printing
 __REGISTERED_ARGS__ = []
+
+
+def get_module_verbosity_flags(*labels):
+    """ checks for standard flags for enableing module specific verbosity """
+    verbose_prefix_list = ['--verbose-', '--verb']
+    veryverbose_prefix_list = ['--veryverbose-', '--veryverb']
+    verbose_flags = tuple(
+        [prefix + lbl for prefix, lbl in
+         itertools.product(verbose_prefix_list, labels)])
+    veryverbose_flags = tuple(
+        [prefix + lbl for prefix, lbl in
+         itertools.product(veryverbose_prefix_list, labels)])
+    veryverbose_module = VERYVERBOSE or get_argflag(verbose_flags)
+    verbose_module = (veryverbose_module or VERBOSE or
+                      get_argflag(veryverbose_flags))
+    return verbose_module, veryverbose_module
 
 
 def reset_argrecord():
