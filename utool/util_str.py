@@ -892,7 +892,7 @@ def numeric_str(num, precision=8, **kwargs):
 def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
                       recursive=True, indent_='', precision=8,
                       hack_liststr=False, explicit=False, truncate=False, key_order=None,
-                      truncatekw=dict(), key_order_metric=None, use_numpy=False, **dictkw):
+                      truncatekw=dict(), key_order_metric=None, use_numpy=True, **dictkw):
     """
     Returns:
         list: a list of human-readable dictionary items
