@@ -42,7 +42,7 @@ __SERIAL_FALLBACK__ = not util_arg.get_argflag('--noserial-fallback')
 __TIME_GENERATE__   = VERBOSE_PARALLEL or util_arg.get_argflag('--time-generate')
 
 
-MIN_PARALLEL_TASKS = 2
+MIN_PARALLEL_TASKS = 5
 if util_cplat.WIN32:
     MIN_PARALLEL_TASKS = 16
 
