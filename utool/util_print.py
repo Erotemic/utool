@@ -272,6 +272,7 @@ def print_code(text, lexer_name='python'):
     try:
         if ut.WIN32:
             #formater = pygments.formatters.terminal256.Terminal256Formatter()
+            import pygments.formatters.terminal256
             formater = pygments.formatters.terminal256.Terminal256Formatter()
         else:
             import pygments.formatters.terminal
@@ -280,7 +281,7 @@ def print_code(text, lexer_name='python'):
         lexer = pygments.lexers.get_lexer_by_name(lexer_name)
         print(pygments.highlight(text, lexer, formater))
     except Exception:
-        raise
+        #raise
         print(text)
 
 
@@ -296,7 +297,7 @@ def get_colored_diff(text):
         lexer = pygments.lexers.get_lexer_by_name('diff')
         return (pygments.highlight(text, lexer, formater))
     except Exception:
-        raise
+        #raise
         return text
 
 
