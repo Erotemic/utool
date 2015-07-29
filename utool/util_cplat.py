@@ -37,6 +37,15 @@ PYLIB_DICT = {
 }
 
 
+def in_pyinstaller_package():
+    """
+    References:
+        http://stackoverflow.com/questions/22472124/what-is-sys-meipass-in-python
+        http://stackoverflow.com/questions/7674790/bundling-data-files-with-pyinstaller-onefile
+    """
+    return hasattr(sys, '_MEIPASS')
+
+
 def get_free_diskbytes(dir_):
     """
     Returns:
