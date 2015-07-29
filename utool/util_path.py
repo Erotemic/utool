@@ -408,6 +408,7 @@ def checkpath(path_, verbose=VERYVERBOSE, n=None, info=VERYVERBOSE):
         >>> print(result)
         False
     """
+    assert isinstance(path_, six.string_types), 'path_=%r is not a string. type(path_) = %r' % (path_, type(path_))
     path_ = normpath(path_)
     does_exist = exists(path_)
     if verbose:
