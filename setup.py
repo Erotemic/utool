@@ -57,7 +57,6 @@ def utool_setup():
         'astor',
         'pyperclip >= 1.5.7',
         'pyfiglet >= 0.7.2',
-        'lru-dict >= 1.1.1',  # import as lru
     ]
 
     #REQUIRES_LINKS = [
@@ -70,8 +69,10 @@ def utool_setup():
     #]
 
     INSTALL_OPTIONAL_DEV = [  # NOQA
+        'lru-dict >= 1.1.1',  # import as lru
         'guppy',
         'sphinx',
+        'setproctitle',
         'sphinxcontrib-napoleon',
         'objgraph',
     ]

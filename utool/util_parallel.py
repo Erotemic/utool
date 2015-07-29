@@ -42,6 +42,8 @@ __SERIAL_FALLBACK__ = not util_arg.get_argflag('--noserial-fallback')
 __TIME_GENERATE__   = VERBOSE_PARALLEL or util_arg.get_argflag('--time-generate')
 
 
+# FIXME: running tests in IBEIS has errors when this number is low
+# Due to the large number of parallel processes running?
 MIN_PARALLEL_TASKS = 5
 if util_cplat.WIN32:
     MIN_PARALLEL_TASKS = 16
