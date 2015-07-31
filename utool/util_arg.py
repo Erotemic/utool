@@ -122,7 +122,7 @@ def autogen_argparse_block(extra_args=[]):
 
 
 #@profile
-def get_argflag(argstr_, default=False, help_='', return_was_specified=False, **kwargs):
+def get_argflag(argstr_, default=False, help_='', return_was_specified=False, need_prefix=True, **kwargs):
     """
     Checks if the commandline has a flag or a corresponding noflag
 
@@ -166,6 +166,12 @@ def get_argflag(argstr_, default=False, help_='', return_was_specified=False, **
         #    print('[util_arg]   * checking argstr=%r' % (argstr,))
         if not (argstr.find('--') == 0 or (argstr.find('-') == 0 and len(argstr) == 2)):
             raise AssertionError('Invalid argstr: %r' % (argstr,))
+        if not need_prefix:
+            noprefix = argstr.replace('--', '')
+            if noprefix in sys.argv:
+                parsed_val = True
+                was_specified = True
+                break
         #if argstr.find('--no') == 0:
             #argstr = argstr.replace('--no', '--')
         noarg = argstr.replace('--', '--no')
