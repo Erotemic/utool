@@ -20,6 +20,39 @@ RE_KWARGS = {'flags': RE_FLAGS}
 REGEX_VARNAME = '[A-Za-z_][A-Za-z0-9_]*'
 
 
+def convert_text_to_varname(text):
+    r"""
+    Args:
+        text (str): text that might not be a valid variablename
+
+    Returns:
+        str: varname
+
+    CommandLine:
+        python -m utool.util_regex --test-convert_text_to_varname
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_regex import *  # NOQA
+        >>> text = '0) View Application-Files Directory. '
+        >>> varname = convert_text_to_varname(text)
+        >>> result = ('varname = %s' % (str(varname),))
+        >>> print(result)
+        _0_View_ApplicationFiles_Directory_
+    """
+    varname_pattern = '[^a-zA-Z0-9_]'
+    varname = text
+    # Convert spaces to underscores
+    varname = varname.replace(' ', '_')
+    # Remove all other non-varname chars
+    varname = re.sub(varname_pattern, '', varname)
+    # Make sure there are not leading numbers
+    if re.match('^[0-9]', varname):
+        varname = '_' + varname
+    assert re.match(REGEX_VARNAME, varname), 'invalid varname=%r' % (varname,)
+    return varname
+
+
 def regex_or(list_):
     return '(' + '|'.join(list_) + ')'
     #return '|'.join(list_)
