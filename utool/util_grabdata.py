@@ -168,14 +168,14 @@ def open_url_in_browser(url, browsername=None, fallback=False):
         >>> # SCRIPT
         >>> from utool.util_grabdata import *  # NOQA
         >>> url = 'http://www.jrsoftware.org/isdl.php'
-        >>> open_url_in_browser(url)
+        >>> open_url_in_browser(url, 'chrome')
     """
     import webbrowser
     print('[utool] Opening url=%r in browser' % (url,))
     if browsername is None:
         browser = webbrowser.open(url)
     else:
-        browser = get_prefered_browser([browsername], fallback=fallback)
+        browser = get_prefered_browser(pref_list=[browsername], fallback=fallback)
     return browser.open(url)
 
 
@@ -188,6 +188,11 @@ def get_prefered_browser(pref_list=[], fallback=True):
     CommandLine:
         python -m utool.util_grabdata --test-get_prefered_browser
 
+    Ignore:
+        import webbrowser
+        webbrowser._tryorder
+        pref_list = ['chrome', 'firefox', 'google-chrome']
+        pref_list = ['firefox', 'google-chrome']
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_grabdata import *  # NOQA
@@ -200,25 +205,34 @@ def get_prefered_browser(pref_list=[], fallback=True):
     import webbrowser
     import utool as ut
     pref_list = ut.ensure_iterable(pref_list)
+    error_list = []
+
+    # Hack for finding chrome on win32
+    #if ut.WIN32:
+    #    # http://stackoverflow.com/questions/24873302/python-generic-webbrowser-get-open-for-chrome-exe-does-not-work
+    #    win32_chrome_fpath = 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe'
+    #    win32_chrome_browsername = win32_chrome_fpath + ' %s'
+    #    win32_map = {
+    #        'chrome': win32_chrome_browsername,
+    #        'google-chrome': win32_chrome_browsername,
+    #    }
+    #    for browsername, win32_browsername in win32_map.items():
+    #        index = ut.listfind(pref_list, browsername)
+    #        if index is not None and True:  # ut.checkpath(win32_browsername):
+    #            pref_list.insert(index + 1, win32_browsername)
+
     for browsername in pref_list:
         try:
             browser = webbrowser.get(browsername)
             return browser
         except webbrowser.Error as ex:
-            if ut.WIN32 and browsername == 'chrome':
-                chrome_fpath = 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe'
-                browsername = chrome_fpath + ' %s'
-                try:
-                    browser = webbrowser.get(browsername)
-                    return browser
-                except webbrowser.Error as ex:
-                    pass
+            error_list.append(ex)
             print(ex)
             pass
     if fallback:
         return webbrowser
     else:
-        raise AssertionError('No browser meets preferences')
+        raise AssertionError('No browser meets preferences=%r. error_list=%r' % (pref_list, error_list,))
 
 
 def download_url(url, filename=None, spoof=False):
