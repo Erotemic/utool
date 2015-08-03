@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 try:
     import numpy as np
 except ImportError as ex:
     pass
 from six.moves import zip, map
+import six
 from utool import util_type
 from utool import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[csv]')
@@ -130,8 +132,11 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
                 col_str = ['None' if r is None else precision_fmtstr % float(r) for r in col]
             elif coltype is int or util_type.is_int(coltype) or coltype == np.int64:
                 col_str = [_toint(c) for c in iter(col)]
-            elif coltype is str or coltype is unicode or  util_type.is_str(coltype):
-                col_str = [str(c).replace(',', comma_repl) for c in col]
+            elif coltype is str or coltype is six.text_type or  util_type.is_str(coltype):
+                if coltype is six.text_type:
+                    col_str = [six.text_type(c).replace(',', comma_repl) for c in col]
+                else:
+                    col_str = [str(c).replace(',', comma_repl) for c in col]
             else:
                 print('[csv] is_unknown coltype=%r' % (coltype,))
                 col_str = [str(c) for c in iter(col)]

@@ -58,6 +58,10 @@ def regex_or(list_):
     #return '|'.join(list_)
 
 
+def regex_word(w):
+    return r'\b%s\b' % (w,)
+
+
 def extend_regex(regexpr):
     regex_map = {
         r'\<': r'\b(?=\w)',
