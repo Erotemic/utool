@@ -1017,7 +1017,10 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
         import utool as ut
         metric_list = [len(itemstr) for itemstr in itemstr_list]
         itemstr_list = ut.sortedby(itemstr_list, metric_list)
-        pass
+    elif key_order_metric == 'val':
+        import utool as ut
+        metric_list = [val for (key, val) in iteritems(dict_)]
+        itemstr_list = ut.sortedby(itemstr_list, metric_list)
     #import utool as ut
     #ut.embed()
     #itemstr_list = [fmtstr % (key, _valstr(val)) for (key, val) in iteritems(dict_)]

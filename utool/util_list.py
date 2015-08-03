@@ -1895,6 +1895,42 @@ def make_index_lookup(list_):
     return dict(zip(list_, range(len(list_))))
 
 
+def list_transpose(list_):
+    r"""
+    Args:
+        list_ (list):
+
+    Returns:
+        list:
+
+    CommandLine:
+        python -m utool.util_list --test-list_transpose
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [[1, 2], [3, 4]]
+        >>> result = list_transpose(list_)
+        >>> print(result)
+        [(1, 3), (2, 4)]
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [[1, 2, 3], [3, 4]]
+        >>> try:
+        >>>     result = list_transpose(list_)
+        >>> except AssertionError:
+        >>>     pass
+        >>> else:
+        >>>     assert False, 'should error'
+    """
+    #import utool as ut
+    num_cols_set = list(set(list(map(len, list_))))
+    assert len(num_cols_set) == 1, 'inconsistent num_cols_set=%r' % (num_cols_set,)
+    return list(zip(*list_))
+
+
 if __name__ == '__main__':
     """
     CommandLine:
