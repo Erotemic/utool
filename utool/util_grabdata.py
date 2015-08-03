@@ -161,7 +161,11 @@ def open_url_in_browser(url, browsername=None, fallback=False):
     Args:
         url (str): web url
 
+    CommandLine:
+        python -m utool.util_grabdata --test-open_url_in_browser
+
     Example:
+        >>> # SCRIPT
         >>> from utool.util_grabdata import *  # NOQA
         >>> url = 'http://www.jrsoftware.org/isdl.php'
         >>> open_url_in_browser(url)
@@ -169,7 +173,7 @@ def open_url_in_browser(url, browsername=None, fallback=False):
     import webbrowser
     print('[utool] Opening url=%r in browser' % (url,))
     if browsername is None:
-        browser = webbrowser(url)
+        browser = webbrowser.open(url)
     else:
         browser = get_prefered_browser([browsername], fallback=fallback)
     return browser.open(url)
