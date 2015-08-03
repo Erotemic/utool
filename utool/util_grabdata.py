@@ -154,7 +154,7 @@ def _extract_archive(archive_fpath, archive_file, archive_namelist, output_dir,
     return output_dir
 
 
-def open_url_in_browser(url):
+def open_url_in_browser(url, browsername=None, fallback=False):
     """
     open_url_in_browser
 
@@ -168,7 +168,11 @@ def open_url_in_browser(url):
     """
     import webbrowser
     print('[utool] Opening url=%r in browser' % (url,))
-    return webbrowser.open(url)
+    if browsername is None:
+        browser = webbrowser(url)
+    else:
+        browser = get_prefered_browser([browsername], fallback=fallback)
+    return browser.open(url)
 
 
 def get_prefered_browser(pref_list=[], fallback=True):
@@ -196,7 +200,16 @@ def get_prefered_browser(pref_list=[], fallback=True):
         try:
             browser = webbrowser.get(browsername)
             return browser
-        except webbrowser.Error:
+        except webbrowser.Error as ex:
+            if ut.WIN32 and browsername == 'chrome':
+                chrome_fpath = 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe'
+                browsername = chrome_fpath + ' %s'
+                try:
+                    browser = webbrowser.get(browsername)
+                    return browser
+                except webbrowser.Error as ex:
+                    pass
+            print(ex)
             pass
     if fallback:
         return webbrowser

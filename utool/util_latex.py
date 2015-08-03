@@ -707,6 +707,34 @@ def latex_sanatize_command_name(command_name):
     command_name = to_cammel_case(command_name.split('_'))
     return command_name
 
+
+def get_bibtex_dict(bib_fpath):
+    r"""
+    Args:
+        bib_fpath (str):
+
+    Returns:
+        dict: bibtex_dict
+
+    CommandLine:
+        python -m utool.util_latex --test-get_bibtex_dict
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_latex import *  # NOQA
+        >>> import utool as ut
+        >>> bib_fpath = ut.truepath('~/latex/crall-candidacy-2015/My_Library_clean.bib')
+        >>> bibtex_dict = get_bibtex_dict(bib_fpath)
+        >>> result = ('bibtex_dict = %s' % (str(bibtex_dict),))
+        >>> print(result)
+    """
+    import bibtexparser
+    import utool as ut
+    bibtex_str   = ut.readfrom(bib_fpath, verbose=False)
+    bib_database = bibtexparser.loads(bibtex_str)
+    bibtex_dict  = bib_database.get_entry_dict()
+    return bibtex_dict
+
 if __name__ == '__main__':
     """
     CommandLine:
