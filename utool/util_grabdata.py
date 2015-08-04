@@ -248,6 +248,8 @@ def download_url(url, filename=None, spoof=False):
     References:
         http://blog.moleculea.com/2012/10/04/urlretrieve-progres-indicator/
 
+    TODO: Delete any partially downloaded files
+
     Example:
         >>> from utool.util_grabdata import *  # NOQA
         >>> url = 'http://www.jrsoftware.org/download.php/ispack.exe'
@@ -300,6 +302,77 @@ def download_url(url, filename=None, spoof=False):
     print('')
     print('[utool] Finished downloading filename=%r' % (filename,))
     return filename
+
+
+def experiment_download_multiple_urls(url_list):
+    """
+    References:
+        http://stackoverflow.com/questions/1112343/how-do-i-capture-sigint-in-python
+        GracefulInterruptHandler
+        http://stackoverflow.com/questions/16694907/how-to-download-large-file-in-python-with-requests-py
+
+    import signal
+    import sys
+    def signal_handler(signal, frame):
+            print('You pressed Ctrl+C!')
+            sys.exit(0)
+    signal.signal(signal.SIGINT, signal_handler)
+    print('Press Ctrl+C')
+    signal.pause()
+
+    Example:
+        >>>
+        >>> url_list = [
+        >>>     'https://www.dropbox.com/s/jl506apezj42zjz/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe'
+        >>>     'https://www.dropbox.com/s/v1ivnmny6tlc364/vgg.caffe.slice_0_30_None.pickle',
+        >>>     'https://www.dropbox.com/s/v1ivnmny6tlc364/vgg.caffe.slice_0_30_None.pickle',
+        >>>     'https://www.dropbox.com/s/v1ivnmny6tlc364/vgg.caffe.slice_0_30_None.pickle',
+        >>>     'https://www.dropbox.com/s/v1ivnmny6tlc364/vgg.caffe.slice_0_30_None.pickle',
+        >>>     'https://www.dropbox.com/s/v1ivnmny6tlc364/vgg.caffe.slice_0_30_None.pickle',
+        >>>     ]
+        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/L10/L10_R1/S1_L10_R1_PICT0070.JPG'
+        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0001.JPG',
+        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0002.JPG',
+        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0003.JPG',
+        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0004.JPG',
+        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0005.JPG',
+        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0006.JPG',
+        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0007.JPG',
+        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0008.JPG',
+        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0022.JPG',
+        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0023.JPG',
+        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0024.JPG',
+        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0025.JPG',
+        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0026.JPG',
+        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0027.JPG',
+        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0028.JPG',
+        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0029.JPG'
+        >>> ]
+    """
+    import requests
+    import os
+    session = requests.session()
+
+    def session_download_url(url):
+        filename = basename(url)
+        print('[utool] Downloading url=%r to filename=%r' % (url, filename))
+        spoof_header = {'user-agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'}
+        response = session.get(url, headers=spoof_header, stream=True)
+        if response.ok:
+            with open(filename, 'wb') as file_:
+                for chunk in ut.ProgressIter(response.iter_content(chunk_size=1024), nTotal=-1, freq=1):
+                    if chunk:  # filter out keep-alive new chunks
+                        file_.write(chunk)
+                        file_.flush()
+                        os.fsync(file_.fileno())
+        else:
+            print('Error downloading file. response=%r' % (response,))
+            return False
+        return response.ok
+
+    for url in ut.ProgressIter(url_list, 'downlaoding urls'):
+        if not session_download_url(url):
+            break
 
 
 def fix_dropbox_link(dropbox_url):

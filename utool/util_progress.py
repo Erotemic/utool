@@ -383,8 +383,13 @@ class ProgressIter(object):
                 between_count     = self.count - last_count
                 total_seconds     = (now_time - start_time)
                 iters_per_second  = between_count / (float(between_time) + 1E-9)
-                iters_left        = nTotal - self.count
-                est_seconds_left  = iters_left / (iters_per_second + 1E-9)
+                # If the future is known
+                if nTotal is None:
+                    est_seconds_left = -1
+                else:
+                    iters_left        = nTotal - self.count
+                    est_seconds_left  = iters_left / (iters_per_second + 1E-9)
+                # /future
                 last_count        = self.count
                 last_time         = now_time
                 # ADJUST FREQ IF NEEDED
