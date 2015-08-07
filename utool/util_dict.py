@@ -367,7 +367,21 @@ def build_conflict_dict(key_list, val_list):
     return key_to_vals
 
 
-def update_existing(dict1, dict2, copy=False):
+def assert_keys_are_subset(dict1, dict2):
+    """
+    Example:
+        >>> dict1 = {1:1, 2:2, 3:3}
+        >>> dict2 = {2:3, 3:3}
+        >>> assert_keys_are_subset(dict1, dict2)
+        >>> #dict2 = {4:3, 3:3}
+    """
+    keys1 = set(dict1.keys())
+    keys2 = set(dict2.keys())
+    unknown_keys = keys2.difference(keys1)
+    assert len(unknown_keys) == 0, 'unknown_keys=%r' % (unknown_keys,)
+
+
+def update_existing(dict1, dict2, copy=False, allow_new=True):
     r"""
     updates vals in dict1 using vals from dict2 only if the
     key is already in dict1.
@@ -393,6 +407,8 @@ def update_existing(dict1, dict2, copy=False):
         >>> # verify results
         >>> print(result)
     """
+    if not allow_new:
+        assert_keys_are_subset(dict1, dict2)
     if copy:
         dict1 = dict(dict1)
     for key, val in six.iteritems(dict2):
