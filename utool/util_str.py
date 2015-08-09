@@ -1485,7 +1485,7 @@ def get_callable_name(func):
                                         'type(func)=%r') % (func, type(func)))
 
 
-def align(text, character='=', replchar=None):
+def align(text, character='=', replchar=None, pos=0):
     r"""
     Left justifies text on the left side of character
 
@@ -1506,20 +1506,21 @@ def align(text, character='=', replchar=None):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_str import *  # NOQA
         >>> character = '='
-        >>> text = 'a = b\none = two\nthree = fish\n'
+        >>> text = 'a = b=\none = two\nthree = fish\n'
+        >>> print(text)
         >>> result = (align(text, '='))
         >>> print(result)
-        a     = b
+        a     = b=
         one   = two
         three = fish
     """
     line_list = text.splitlines()
-    new_lines = align_lines(line_list, character, replchar)
+    new_lines = align_lines(line_list, character, replchar, pos=pos)
     new_text = '\n'.join(new_lines)
     return new_text
 
 
-def align_lines(line_list, character='=', replchar=None):
+def align_lines(line_list, character='=', replchar=None, pos=0):
     r"""
     Left justifies text on the left side of character
 
@@ -1536,6 +1537,7 @@ def align_lines(line_list, character='=', replchar=None):
         python -m utool.util_str --test-align_lines:0
         python -m utool.util_str --test-align_lines:1
         python -m utool.util_str --test-align_lines:2
+        python -m utool.util_str --test-align_lines:3
 
     Example0:
         >>> # ENABLE_DOCTEST
@@ -1581,21 +1583,61 @@ def align_lines(line_list, character='=', replchar=None):
          'min'   : '1970/01/01 00:01:41',
          'range' : '2:28:32',
          'std'   : '1:13:57',}
+
+    Example3:
+        >>> # ENABLE_DOCEST
+        >>> from utool.util_str import *  # NOQA
+        >>> line_list = 'foofish:\n a = b = c\n one = two = three\nthree=4= fish'.split('\n')
+        >>> character = '='
+        >>> # align the second occurence of a character
+        >>> new_lines = align_lines(line_list, character, pos=None)
+        >>> print(('\n'.join(line_list)))
+        >>> result = ('\n'.join(new_lines))
+        >>> print(result)
+        foofish:
+         a   = b   = c
+         one = two = three
+        three=4    = fish
+
     """
+    if pos is None:
+        # Align all occurences
+        num_pos = max([line.count(character) for line in line_list])
+        pos = list(range(num_pos))
+
+    # Allow multiple alignments
+    if isinstance(pos, list):
+        pos_list = pos
+        # recursive calls
+        new_lines = line_list
+        for pos in pos_list:
+            new_lines = align_lines(new_lines, character=character, replchar=replchar, pos=pos)
+        return new_lines
+
+    # base case
     if replchar is None:
         replchar = character
 
+    # the pos-th character to align
+    lpos = pos
+    rpos = lpos + 1
+
     tup_list = [line.split(character) for line in line_list]
+
+    # Find how much padding is needed
     maxlen = 0
     for tup in tup_list:
-        if len(tup) >= 2:
-            maxlen = max(maxlen, len(tup[0]))
+        if len(tup) >= rpos + 1:
+            left_lenlist = list(map(len, tup[0:rpos]))
+            left_len = sum(left_lenlist) + lpos * len(replchar)
+            maxlen = max(maxlen, left_len)
 
+    # Pad each line to align the pos-th occurence of the chosen character
     new_lines = []
     for tup in tup_list:
-        if len(tup) >= 2:
-            lhs = tup[0]
-            rhs = character.join(tup[1:])
+        if len(tup) >= rpos + 1:
+            lhs = character.join(tup[0:rpos])
+            rhs = character.join(tup[rpos:])
             newline = lhs.ljust(maxlen) + replchar + rhs
             new_lines.append(newline)
         else:
