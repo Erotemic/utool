@@ -7,6 +7,7 @@ except ImportError:
 import six
 import functools
 import sys
+from six.moves import builtins
 from utool._internal import meta_util_arg
 from utool import util_str
 from utool import util_inject
@@ -46,6 +47,8 @@ def horiz_print(*args):
 
 class Indenter(object):
     """
+    Monkey patches modules injected with print to change the way print behaves.
+
     Works with utool.inject to allow for prefixing of all within-context
     print statements in a semi-dynamic manner. There seem to be some bugs
     but it works pretty well.
@@ -67,7 +70,7 @@ class Indenter(object):
     def start(self):
         # Chain functions together rather than overwriting stdout
         if NO_INDENT or not self.enabled:
-            return
+            return builtins.print
         def indent_msg(*args):
             mgs = ', '.join(map(str, args))
             return self.lbl + mgs.replace('\n', '\n' + self.lbl)
@@ -89,6 +92,7 @@ class Indenter(object):
             def indent_print(*args):
                 self.old_print_dict[mod](indent_msg(', '.join(map(str, args))))
             setattr(mod, 'print', indent_print)
+        return indent_print
 
         #push_module_functions(self.old_printDBG_dict, 'printDBG')
         #for mod in self.old_printDBG_dict.keys():
@@ -110,6 +114,7 @@ class Indenter(object):
         #    setattr(mod, 'print', self.old_print_dict[mod])
         #for mod in six.iterkeys(self.old_printDBG_dict):
         #    setattr(mod, 'printDBG', self.old_printDBG_dict[mod])
+        return builtins.print
 
     @profile
     def __enter__(self):
