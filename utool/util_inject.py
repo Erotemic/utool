@@ -123,6 +123,12 @@ def colored_pygments_excepthook(type_, value, tb):
     formatted_text = pygments.highlight(tbtext, lexer, formatter)
     sys.stderr.write(formatted_text)
 
+    #EMBED_ON_ERROR = True
+    # Doesn't work
+    #if EMBED_ON_ERROR:
+    #    import utool as ut
+    #    ut.embed(N=1)
+
 
 def inject_colored_exceptions():
     """

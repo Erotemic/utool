@@ -1,6 +1,9 @@
 import sys
 
 
+IGNORE_TRACEBACK = not ('--nosmalltb' in sys.argv or '--noignoretb' in sys.argv)  # FIXME: dupliated in util_decor
+
+
 # Module for funcs that need python 2 syntax to work in python 2
 def ignores_exc_tb(*args, **kwargs):
     """
@@ -19,10 +22,10 @@ def ignores_exc_tb(*args, **kwargs):
         https://github.com/jcrocholl/pep8/issues/34  # NOQA
         http://legacy.python.org/dev/peps/pep-3109/
     """
-    import utool as ut
     outer_wrapper = kwargs.get('outer_wrapper', True)
     def ignores_exc_tb_closure(func):
-        if not ut.IGNORE_TRACEBACK:
+        from utool import util_decor
+        if not IGNORE_TRACEBACK:
             # if the global enforces that we should not ignore anytracebacks
             # then just return the original function without any modifcation
             return func
@@ -45,7 +48,7 @@ def ignores_exc_tb(*args, **kwargs):
                     pass
                 raise exc_type, exc_value, exc_traceback
         if outer_wrapper:
-            wrp_noexectb = ut.preserve_sig(wrp_noexectb, func)
+            wrp_noexectb = util_decor.preserve_sig(wrp_noexectb, func)
         return wrp_noexectb
     if len(args) == 1:
         # called with one arg means its a function call

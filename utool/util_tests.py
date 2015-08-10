@@ -46,6 +46,29 @@ EXEC_MODE = util_arg.get_argflag('--exec-mode', help_='dummy flag that will be r
 
 ModuleDoctestTup = namedtuple('ModuleDoctestTup', ('enabled_testtup_list', 'frame_fpath', 'all_testflags', 'module'))
 
+
+class TestTuple(object):
+    """
+    Simple container for test objects to replace old tuple format
+    exec mode specifies if the test is being run as a script
+    """
+    def __init__(self, name, num, src, want, flag, frame_fpath=None, exec_mode=False):
+        self.name = name  # function / class / testable name
+        self.num = num    # doctest index
+        self.src = src    # doctest src
+        self.want = want  # doctest required result (optional)
+        self.flag = flag  # doctest commandline flags
+        self.frame_fpath = frame_fpath  # parent file fpath
+        self.exec_mode = exec_mode      # flags if running as script
+
+##debug_decor = lambda func: func
+
+#if VERBOSE_TEST:
+#    from utool import util_decor
+#    #debug_decor = util_decor.indent_func
+#    #debug_decor = util_decor.tracefunc
+
+
 HAPPY_FACE_BIG = r'''
                .-""""""-.
              .'          '.
@@ -151,7 +174,8 @@ def get_module_testlines(module_list, remove_pyc=True, verbose=True,
                                                  verbose=verbose, **kwargs)
         enabled_testtup_list, frame_fpath, all_testflags, module_ = mod_doctest_tup
         for testtup in enabled_testtup_list:
-            testflag = testtup[-1]
+            #testflag = testtup[-1]
+            testflag = testtup.flag
             if remove_pyc:
                 # FIXME python 3 __pycache__/*.pyc
                 frame_fpath = frame_fpath.replace('.pyc', '.py')
@@ -287,6 +311,7 @@ def parse_doctest_from_docstr(docstr):
     return testheader_list, testsrc_list, testwant_list, testlineoffset_list
 
 
+#@debug_decor
 def get_doctest_examples(func_or_class):
     """
     get_doctest_examples
@@ -346,6 +371,7 @@ def get_doctest_examples(func_or_class):
     """
     import utool as ut
     if VERBOSE_TEST:
+        print('[util_test][DEPTH 3] get_doctest_examples()')
         print('[util_test] + parsing %r for doctest' % (func_or_class))
         print('[util_test] - name = %r' % (func_or_class.__name__,))
         if hasattr(func_or_class, '__ut_parent_class__'):
@@ -482,12 +508,12 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     Returns:
         ModuleDoctestTup : (enabled_testtup_list, frame_fpath, all_testflags, module)
             enabled_testtup_list (list): a list of testtup
-                testtup (tuple): (name, num, src, want, flag1) describes a valid doctest in the module
+                testtup (tuple): (name, num, src, want, flag) describes a valid doctest in the module
                     name  (str): test name
                     num   (str): test number of the module / function / class / method
                     src   (str): test source code
                     want  (str): expected test result
-                    flag1 (str): a valid commandline flag to enable this test
+                    flag  (str): a valid commandline flag to enable this test
             frame_fpath (str):
                 module fpath that will be tested
             module (module):
@@ -496,6 +522,8 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                 the command line arguments that will enable different tests
     """
     #+------------------------
+    if VERBOSE_TEST:
+        print('[util_test.get_module_doctest_tup][DEPTH 2] get_module_doctest_tup()')
     import utool as ut  # NOQA
     if needs_enable is None:
         needs_enable = not ut.get_argflag('--enableall')
@@ -540,8 +568,8 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     # Get testable functions
     try:
         if verbose or VERBOSE_TEST:
-            print('[util_test] Iterating over module funcs')
-            print('[util_test] module =%r' % (module,))
+            print('[util_test.get_module_doctest_tup] Iterating over module funcs')
+            print('[util_test.get_module_doctest_tup] module =%r' % (module,))
 
         for key, val in ut.iter_module_doctestable(module):
             docstr = inspect.getdoc(val)
@@ -698,6 +726,8 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
             testflag = ut.get_argflag(valid_flags)
             # TODO: run in exec mode
             exec_mode = prefix == '--exec-'  # NOQA
+            if testflag:
+                break
 
         #if VERBOSE_TEST:
         #    print('... testflag=%r' % (testflag,))
@@ -712,8 +742,10 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         if testenabled:
             if VERBOSE_TEST:
                 print('... enabling test')
-            new_testtup = (name, num, src, want, flag1)
-            enabled_testtup_list.append(new_testtup)
+            testtup = TestTuple(name, num, src, want, flag1,
+                                frame_fpath=frame_fpath,
+                                exec_mode=exec_mode)
+            enabled_testtup_list.append(testtup)
         else:
             if VERBOSE_TEST:
                 print('... disableing test')
@@ -773,8 +805,10 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     multiprocessing.freeze_support()  # just in case
     #+-------------------
     ut.inject_colored_exceptions()
-    if verbose:
-        print('[util_test.doctest_funcs] Running doctest funcs')
+    if verbose or VERBOSE_TEST:
+        if VERBOSE_TEST:
+            print('[util_test.doctest_funcs][DEPTH 1] doctest_funcs()')
+        print('[util_test.doctest_funcs] Running doctest_funcs')
     # parse out testable doctesttups
     mod_doctest_tup = get_module_doctest_tup(testable_list, check_flags, module,
                                              allexamples, needs_enable, N=1, verbose=verbose)
@@ -790,7 +824,11 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     if ut.get_argflag(('--edit-test-file', '--etf')):
         ut.editfile(frame_fpath)
     for testtup in enabled_testtup_list:
-        name, num, src, want, flag = testtup
+        name = testtup.name
+        num  = testtup.num
+        src  = testtup.src
+        want = testtup.want
+        flag = testtup.flag
         print('\n\n')
         print('--------------------------------------------------------------')
         print('--------------------------------------------------------------')
@@ -803,8 +841,9 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
         test_globals = module.__dict__.copy()
         try:
             testkw = dict(globals=test_globals, want=want)
-            testtup
-            test_locals = ut.run_test((name,  src, frame_fpath), **testkw)
+            assert testtup.frame_fpath == frame_fpath
+            #test_locals = ut.run_test((name,  src, frame_fpath), **testkw)
+            test_locals = ut.run_test(testtup, **testkw)
             is_pass = (test_locals is not False)
             if is_pass:
                 if VERBOSE_TEST:
@@ -829,10 +868,19 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     #+-------------------
     # Print Results
     if nTotal == 0:
-        print('No test flags sepcified.')
-        print('Please choose one of the following flags or specify --enableall')
-        print('Valid test argflags:\n' + '    --allexamples' +
-                ut.indentjoin(all_testflags, '\n    '))
+        valid_test_argflags = ['--allexamples'] + all_testflags
+        warning_msg = ut.codeblock(
+            r'''
+            No test flags sepcified
+            Please choose one of the following flags or specify --enableall
+            Valid test argflags:
+            ''') + ut.indentjoin(valid_test_argflags, '\n    ')
+        warning_msg = ut.indent(warning_msg, '[util_test.doctest_funcs]')
+        ut.colorprint(warning_msg, 'red')
+        #print('[util_test.doctest_funcs] No test flags sepcified.')
+        #print('[util_test.doctest_funcs] Please choose one of the following flags or specify --enableall')
+        #print('[util_test.doctest_funcs] Valid test argflags:\n' + '    --allexamples' +
+        #        ut.indentjoin(all_testflags, '\n    '))
 
     if not EXEC_MODE:
         print('+-------')
@@ -855,24 +903,31 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     return (nPass, nTotal, failed_cmd_list)
 
 
-def run_test(func_or_doctesttup, *args, **kwargs):
+def run_test(func_or_testtup, *args, **kwargs):
     """
     Runs the test function with success / failure printing
 
     Args:
-        func_or_doctesttup (func or tuple): function or doctest tuple
+        func_or_testtup (func or tuple): function or doctest tuple
 
     Varargs/Kwargs:
         Anything that needs to be passed to <func_>
     """
     import utool as ut
-    func_is_text = isinstance(func_or_doctesttup, tuple)
-    if func_is_text:
-        (funcname, src, frame_fpath) = func_or_doctesttup
+    #func_is_testtup = isinstance(func_or_testtup, tuple)
+    func_is_testtup = isinstance(func_or_testtup, TestTuple)
+    if func_is_testtup:
+        testtup = func_or_testtup
+        src         = testtup.src
+        funcname    = testtup.name
+        frame_fpath = testtup.frame_fpath
+        #(funcname, src, frame_fpath) = func_or_testtup
+        WITH_TIMES = not testtup.exec_mode  # exec mode specifies if the test is being run as a script
     else:
-        func_ = func_or_doctesttup
+        func_ = func_or_testtup
         funcname = get_funcname(func_)
         frame_fpath = ut.get_funcfpath(func_)
+        WITH_TIMES = True
     upper_funcname = funcname.upper()
     if ut.VERBOSE:
         printTEST('[TEST.BEGIN] %s ' % (sys.executable))
@@ -892,7 +947,7 @@ def run_test(func_or_doctesttup, *args, **kwargs):
             #+----------------
             # RUN THE TEST WITH A TIMER
             with util_time.Timer(upper_funcname, verbose=verbose_timer) as timer:
-                if func_is_text:
+                if func_is_testtup:
                     test_locals = _exec_doctest(src, kwargs, nocheckwant)
                 else:
                     # TEST INPUT IS A LIVE PYTHON FUNCTION
@@ -905,7 +960,6 @@ def run_test(func_or_doctesttup, *args, **kwargs):
                 printTEST('[TEST.FINISH] %s -- SUCCESS' % (funcname,))
                 if print_face:
                     print(HAPPY_FACE)
-                WITH_TIMES = True
                 if WITH_TIMES:
                     timemsg = '%.4fs in %s %s\n' % (
                         timer.ellapsed, funcname, frame_fpath)
@@ -926,12 +980,13 @@ def run_test(func_or_doctesttup, *args, **kwargs):
             exc_type, exc_value, tb = sys.exc_info()
             if PRINT_FACE:
                 print(SAD_FACE)
-            if func_is_text:
+            if func_is_testtup:
                 print('Failed in module: %r' % frame_fpath)
                 if DEBUG_SRC:
                     src_with_lineno = ut.number_text_lines(src)
                     print(ut.msgblock('FAILED DOCTEST IN %s' % (funcname,), src_with_lineno))
                 #ut.embed()
+
                 #print('\n... test encountered error. sys.exit(1)\n')
                 #sys.exit(1)
                 #failed_execline = traceback.format_tb(tb)[-1]
@@ -943,7 +998,7 @@ def run_test(func_or_doctesttup, *args, **kwargs):
                 #    print('Failed on line: %s' % failed_line)
             if util_arg.SUPER_STRICT:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
-                if not func_is_text:
+                if not func_is_testtup:
                     # Remove this function from stack strace
                     # dont do this for execed code
                     exc_traceback = exc_traceback.tb_next

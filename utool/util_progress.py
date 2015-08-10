@@ -138,6 +138,7 @@ class ProgressIter(object):
         with_totaltime (bool):
         backspace (bool):
         pad_stdout (bool):
+        autoadjust (bool): no adjusting frequency if True (default False)
         wfreq (None): alias for write_freq
         ffreq (None): alias for flush_freq
         total (None): alias for nTotal
@@ -218,9 +219,9 @@ class ProgressIter(object):
         >>> print(ut.truncate_str(str(results1)))
 
     """
-    def new_init(self, iterable=None, lbl='ProgIter', nTotal=None, freq=4,
-                 newlines=False):
-        pass
+    #def new_init(self, iterable=None, lbl='ProgIter', nTotal=None, freq=4,
+    #             newlines=False):
+    #    pass
 
     def __init__(self, iterable=None, *args, **kwargs):
         self.iterable = iterable

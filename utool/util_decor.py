@@ -25,7 +25,7 @@ SIG_PRESERVE = util_arg.get_argflag('--sigpreserve')
 #SIG_PRESERVE = not util_arg.SAFE or util_arg.get_argflag('--sigpreserve')
 ONEX_REPORT_INPUT = '--onex-report-input' in sys.argv
 #IGNORE_TRACEBACK = '--smalltb' in sys.argv or '--ignoretb' in sys.argv
-IGNORE_TRACEBACK = not ('--nosmalltb' in sys.argv or '--noignoretb' in sys.argv)
+IGNORE_TRACEBACK = not ('--nosmalltb' in sys.argv or '--noignoretb' in sys.argv)  # FIXME: dupliated in _internal/py2_syntax_funcs
 
 # do not ignore traceback when profiling
 PROFILING = hasattr(builtins, 'profile')
@@ -732,16 +732,18 @@ def preserve_sig(wrapper, orig_func, force=False):
         >>> result = str(_wrp_preserve1)
         >>> print(result)
     """
-    import utool as ut
+    from utool._internal import meta_util_six
+    from utool import util_str
+    from utool import util_inspect
 
     if wrapper is orig_func:
         # nothing to do
         return orig_func
-    orig_docstr = ut.get_funcdoc(orig_func)
+    orig_docstr = meta_util_six.get_funcdoc(orig_func)
     orig_docstr = '' if orig_docstr is None else orig_docstr
-    orig_argspec = ut.get_func_argspec(orig_func)
+    orig_argspec = util_inspect.get_func_argspec(orig_func)
     wrap_name = meta_util_six.get_funccode(wrapper).co_name
-    orig_name = ut.get_funcname(orig_func)
+    orig_name = meta_util_six.get_funcname(orig_func)
 
     # At the very least preserve info in a dictionary
     _utinfo = {}
@@ -804,13 +806,12 @@ def preserve_sig(wrapper, orig_func, force=False):
         # PRESERVES SOME SIGNATURES NO EXEC
         # signature preservation is turned off. just preserve the name.
         # Does not use any exec or eval statments.
-        import utool as ut
         _wrp_preserve = functools.update_wrapper(wrapper, orig_func)
         # Just do something to preserve signature
 
     DEBUG_WRAPPED_DOCSTRING = False
     if DEBUG_WRAPPED_DOCSTRING:
-        new_docstr_fmtstr = ut.codeblock(
+        new_docstr_fmtstr = util_str.codeblock(
             '''
             Wrapped function {wrap_name}({orig_name})
 
@@ -820,7 +821,7 @@ def preserve_sig(wrapper, orig_func, force=False):
             '''
         )
     else:
-        new_docstr_fmtstr = ut.codeblock(
+        new_docstr_fmtstr = util_str.codeblock(
             '''
             {orig_docstr}
             '''
@@ -828,7 +829,7 @@ def preserve_sig(wrapper, orig_func, force=False):
     new_docstr = new_docstr_fmtstr.format(wrap_name=wrap_name,
                                           orig_name=orig_name, orig_docstr=orig_docstr,
                                           orig_argspec=orig_argspec)
-    ut.set_funcdoc(_wrp_preserve, new_docstr)
+    meta_util_six.set_funcdoc(_wrp_preserve, new_docstr)
     _wrp_preserve._utinfo = _utinfo
     return _wrp_preserve
 

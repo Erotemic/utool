@@ -20,7 +20,7 @@ BadZipfile = zipfile.BadZipfile
 
 
 def archive_files(archive_fpath, fpath_list, small=True, allowZip64=False,
-                  overwrite=False):
+                  overwrite=False, verbose=True):
     """
     Args:
         archive_fpath (str): path to zipfile to create
@@ -36,17 +36,26 @@ def archive_files(archive_fpath, fpath_list, small=True, allowZip64=False,
         python -m utool.util_grabdata --test-archive_files
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # UNSTABLE_DOCTEST
         >>> from utool.util_grabdata import *  # NOQA
         >>> # build test data
-        >>> archive_fpath = '?'
-        >>> fpath_list = '?'
+        >>> archive_fpath = ut.get_app_resource_dir('utool', 'testarchive.zip')
+        >>> fpath_list = [ut.grab_test_imgpath(key) for key in ut.TESTIMG_URL_DICT]
         >>> small = True
         >>> allowZip64 = False
         >>> # execute function
         >>> result = archive_files(archive_fpath, fpath_list, small, allowZip64)
         >>> # verify results
         >>> print(result)
+
+    Ignore:
+        # http://superuser.com/questions/281573/what-are-the-best-options-to-use-when-compressing-files-using-7-zip
+        # Create a small 7zip archive
+        7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on archive.7z dir1
+        7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on ibeis-linux-binary.7z ibeis
+
+        # Create a small zip archive
+        7za a -mm=Deflate -mfb=258 -mpass=15 -r ibeis-linux-binary.zip ibeis
 
     """
     import utool as ut
@@ -56,7 +65,7 @@ def archive_files(archive_fpath, fpath_list, small=True, allowZip64=False,
     print('Archiving %d files' % len(fpath_list))
     compression = zipfile.ZIP_DEFLATED if small else zipfile.ZIP_STORED
     with zipfile.ZipFile(archive_fpath, 'w', compression, allowZip64) as myzip:
-        for fpath in fpath_list:
+        for fpath in ut.ProgressIter(fpath_list, lbl='archiving files', enabled=verbose):
             arcname = relpath(fpath, dirname(archive_fpath))
             myzip.write(fpath, arcname)
 
