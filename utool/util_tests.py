@@ -823,6 +823,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     nTotal = len(enabled_testtup_list)
     if ut.get_argflag(('--edit-test-file', '--etf')):
         ut.editfile(frame_fpath)
+    exec_mode = all([testtup.exec_mode for testtup in enabled_testtup_list])
     for testtup in enabled_testtup_list:
         name = testtup.name
         num  = testtup.num
@@ -882,7 +883,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
         #print('[util_test.doctest_funcs] Valid test argflags:\n' + '    --allexamples' +
         #        ut.indentjoin(all_testflags, '\n    '))
 
-    if not EXEC_MODE:
+    if not EXEC_MODE and not exec_mode:
         print('+-------')
         print('| finished testing fpath=%r' % (frame_fpath,))
         print('| passed %d / %d' % (nPass, nTotal))
@@ -916,18 +917,18 @@ def run_test(func_or_testtup, *args, **kwargs):
     import utool as ut
     #func_is_testtup = isinstance(func_or_testtup, tuple)
     func_is_testtup = isinstance(func_or_testtup, TestTuple)
+    exec_mode = EXEC_MODE
     if func_is_testtup:
         testtup = func_or_testtup
         src         = testtup.src
         funcname    = testtup.name
         frame_fpath = testtup.frame_fpath
         #(funcname, src, frame_fpath) = func_or_testtup
-        WITH_TIMES = not testtup.exec_mode  # exec mode specifies if the test is being run as a script
+        exec_mode = testtup.exec_mode
     else:
         func_ = func_or_testtup
         funcname = get_funcname(func_)
         frame_fpath = ut.get_funcfpath(func_)
-        WITH_TIMES = True
     upper_funcname = funcname.upper()
     if ut.VERBOSE:
         printTEST('[TEST.BEGIN] %s ' % (sys.executable))
@@ -936,7 +937,6 @@ def run_test(func_or_testtup, *args, **kwargs):
     #print('  <' + funcname + '>  ')
     #short_funcname = ut.clipstr(funcname, 8)
     # TODO: make the --exec- prefix specify this instead of --test-
-    exec_mode = EXEC_MODE
     verbose_timer = not exec_mode and VERBOSE_TIMER
     nocheckwant = True if exec_mode else None
     print_face = not exec_mode and PRINT_FACE
@@ -960,7 +960,7 @@ def run_test(func_or_testtup, *args, **kwargs):
                 printTEST('[TEST.FINISH] %s -- SUCCESS' % (funcname,))
                 if print_face:
                     print(HAPPY_FACE)
-                if WITH_TIMES:
+                if not exec_mode:
                     timemsg = '%.4fs in %s %s\n' % (
                         timer.ellapsed, funcname, frame_fpath)
                     try:
