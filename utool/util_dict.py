@@ -261,21 +261,34 @@ def all_dict_combinations(varied_dict):
     return dict_list
 
 
-def all_dict_combinations_lbls(varied_dict):
-    """ returns a label for each variation in a varydict.
+def all_dict_combinations_lbls(varied_dict, allow_lone_singles=False):
+    """
+    returns a label for each variation in a varydict.
+
     It tries to not be oververbose and returns only what parameters are varied
     in each label.
 
     CommandLine:
         python -m utool.util_dict --test-all_dict_combinations_lbls
+        python -m utool.util_dict --exec-all_dict_combinations_lbls:1
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> import utool
+        >>> from utool.util_dict import *  # NOQA
         >>> varied_dict = {'logdist_weight': [0.0, 1.0], 'pipeline_root': ['vsmany'], 'sv_on': [True, False, None]}
         >>> comb_lbls = utool.all_dict_combinations_lbls(varied_dict)
         >>> result = (utool.list_str(comb_lbls))
         >>> print(result)
+        [
+            'logdist_weight=0.0,sv_on=True',
+            'logdist_weight=0.0,sv_on=False',
+            'logdist_weight=0.0,sv_on=None',
+            'logdist_weight=1.0,sv_on=True',
+            'logdist_weight=1.0,sv_on=False',
+            'logdist_weight=1.0,sv_on=None',
+        ]
+
         [
             "(('logdist_weight', 0.0), ('sv_on', True))",
             "(('logdist_weight', 0.0), ('sv_on', False))",
@@ -285,26 +298,47 @@ def all_dict_combinations_lbls(varied_dict):
             "(('logdist_weight', 1.0), ('sv_on', None))",
         ]
 
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import utool as ut
+        >>> from utool.util_dict import *  # NOQA
+        >>> varied_dict = {'logdist_weight': [0.0], 'pipeline_root': ['vsmany'], 'sv_on': [True]}
+        >>> allow_lone_singles = True
+        >>> comb_lbls = ut.all_dict_combinations_lbls(varied_dict, allow_lone_singles)
+        >>> result = (ut.list_str(comb_lbls))
+        >>> print(result)
         [
-            "(('sv_on', True), ('logdist_weight', 0.0))",
-            "(('sv_on', True), ('logdist_weight', 1.0))",
-            "(('sv_on', False), ('logdist_weight', 0.0))",
-            "(('sv_on', False), ('logdist_weight', 1.0))",
-            "(('sv_on', None), ('logdist_weight', 0.0))",
-            "(('sv_on', None), ('logdist_weight', 1.0))",
+            'logdist_weight=0.0,pipeline_root=vsmany,sv_on=True',
         ]
 
-    #ut.list_type_profile(comb_lbls)
+        [
+            "(('logdist_weight', 0.0), ('pipeline_root', 'vsmany'), ('sv_on', True))",
+        ]
+
     """
-    # TODO dont do sorted if it an ordered dict
-    multitups_list = [[(key, val) for val in val_list]
-                      for key, val_list in iteritems_sorted(varied_dict)
-                      if isinstance(val_list, (list, tuple)) and len(val_list) > 1]
-    comb_lbls = list(map(str, list(iprod(*multitups_list))))
+    is_lone_single = all([
+        isinstance(val_list, (list, tuple)) and len(val_list) == 1
+        for key, val_list in iteritems_sorted(varied_dict)
+    ])
+    if allow_lone_singles and is_lone_single:
+        # all entries have one length
+        multitups_list = [
+            [(key, val) for val in val_list]
+            for key, val_list in iteritems_sorted(varied_dict)
+        ]
+    else:
+        multitups_list = [
+            [(key, val) for val in val_list]
+            for key, val_list in iteritems_sorted(varied_dict)
+            if isinstance(val_list, (list, tuple)) and len(val_list) > 1]
+    combtup_list = list(iprod(*multitups_list))
+    comb_lbls = [','.join(['%s=%s' % (key, val if isinstance(val, six.string_types) else repr(val)) for (key, val) in combtup]) for combtup in combtup_list]
+    #comb_lbls = list(map(str, comb_pairs))
     return comb_lbls
 
 
 def iteritems_sorted(dict_):
+    """ change to iteritems ordered """
     if isinstance(dict_, OrderedDict):
         return six.iteritems(dict_)
     else:
