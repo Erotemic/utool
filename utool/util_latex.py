@@ -104,6 +104,7 @@ def make_full_document(text, title=None, preamp_decl={}):
     \usepackage{graphicx,adjustbox}
     \usepackage{multirow}
     \usepackage[T1]{fontenc}
+    \usepackage{booktabs}
     \usepackage[margin=1.25in]{geometry}
 
     %\pagenumbering{gobble}
@@ -284,13 +285,13 @@ def render(input_text, fnum=1, dpath=None, verbose=True):
         #        util_path.delete(text_dir)
 
 
-def latex_multicolumn(data, ncol=2):
+def latex_multicolumn(data, ncol=2, alignstr='|c|'):
     data = escape_latex(data)
-    return r'\multicolumn{%d}{|c|}{%s}' % (ncol, data)
+    return r'\multicolumn{%d}{%s}{%s}' % (ncol, alignstr, data)
 
 
 def latex_multirow(data, nrow=2):
-    return r'\multirow{%d}{*}{|c|}{%s}' % (nrow, data)
+    return r'\multirow{%d}{*}{%s}' % (nrow, data)
 
 
 def latex_get_stats(lbl, data, mode=0):
@@ -369,7 +370,7 @@ def replace_all(str_, repltups):
 def make_score_tabular(row_lbls, col_lbls, values, title=None, out_of=None,
                        bold_best=False, flip=False, bigger_is_better=True,
                        multicol_lbls=None, FORCE_INT=True, precision=None,
-                       SHORTEN_ROW_LBLS=True):
+                       SHORTEN_ROW_LBLS=True, col_align='l', centerline=True):
     r"""
     makes a LaTeX tabular for displaying scores or errors
 
@@ -386,7 +387,8 @@ def make_score_tabular(row_lbls, col_lbls, values, title=None, out_of=None,
         str: tabular_str
 
     CommandLine:
-        python -m utool.util_latex --test-make_score_tabular --show
+        python -m utool.util_latex --test-make_score_tabular:0 --show
+        python -m utool.util_latex --test-make_score_tabular:1 --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -400,6 +402,24 @@ def make_score_tabular(row_lbls, col_lbls, values, title=None, out_of=None,
         >>> bold_best = True
         >>> flip = False
         >>> tabular_str = make_score_tabular(row_lbls, col_lbls, values, title, out_of, bold_best, flip)
+        >>> result = tabular_str
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> render_latex_text(tabular_str)
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_latex import *  # NOQA
+        >>> import utool as ut
+        >>> row_lbls = ['config1', 'config2']
+        >>> col_lbls = ['score \leq 1', 'metric2', 'foobar']
+        >>> multicol_lbls = [('spam', 1), ('eggs', 2)]
+        >>> values = np.array([[1.2, 2, -3], [3.2, 4, -2]])
+        >>> title = 'title'
+        >>> out_of = 10
+        >>> bold_best = True
+        >>> flip = False
+        >>> tabular_str = make_score_tabular(row_lbls, col_lbls, values, title, out_of, bold_best, flip, multicol_lbls=multicol_lbls)
         >>> result = tabular_str
         >>> print(result)
         >>> ut.quit_if_noshow()
@@ -468,23 +488,29 @@ def make_score_tabular(row_lbls, col_lbls, values, title=None, out_of=None,
     # Fix things in each body cell
     AUTOFIX_LATEX = True
     DO_PERCENT = True
-    for r in range(len(body)):
-        for c in range(len(body[0])):
-            # In data land
-            if r > 0 and c > 0:
-                if precision is not None:
-                    # Hack
-                    import utool as ut
-                    if ut.is_float(body[r][c]):
-                        fmtstr = '%.' + str(precision) + 'f'
-                        body[r][c] = fmtstr % (float(body[r][c]),)
-                # Force integer
-                if FORCE_INT:
-                    body[r][c] = str(int(float(body[r][c])))
-            body[r][c] = str(body[r][c])
-            # Remove bad formatting;
-            if AUTOFIX_LATEX:
-                body[r][c] = escape_latex(body[r][c])
+    try:
+        for r in range(len(body)):
+            for c in range(len(body[0])):
+                # In data land
+                if r > 0 and c > 0:
+                    if precision is not None:
+                        # Hack
+                        import utool as ut
+                        if ut.is_float(body[r][c]):
+                            fmtstr = '%.' + str(precision) + 'f'
+                            body[r][c] = fmtstr % (float(body[r][c]),)
+                    # Force integer
+                    if FORCE_INT:
+                        body[r][c] = str(int(float(body[r][c])))
+                body[r][c] = str(body[r][c])
+                # Remove bad formatting;
+                if AUTOFIX_LATEX:
+                    body[r][c] = escape_latex(body[r][c])
+    except Exception as ex:
+        print('len(row_lbls) = %r' % (len(row_lbls),))
+        print('len(col_lbls) = %r' % (len(col_lbls),))
+        ut.printex(ex, keys=['r', 'c'])
+        raise
 
     # Bold the best values
     if bold_best:
@@ -522,42 +548,62 @@ def make_score_tabular(row_lbls, col_lbls, values, title=None, out_of=None,
     # Build Body (and row layout)
     HLINE_SEP = True
     rowsep = ''
-    colsep = '&'
+    colsep = ' & '
     endl = '\\\\\n'
     hline = r'\hline'
-    extra_rowsep_pos_list = [1]
+    #extra_rowsep_pos_list = [1]  # rows to insert an extra hline after
+    extra_rowsep_pos_list = []  # rows to insert an extra hline after
     if HLINE_SEP:
         rowsep = hline + '\n'
+    # rowstr list holds blocks of rows
     rowstr_list = [colsep.join(row) + endl for row in body]
+    rowsep_list = [rowsep for row in rowstr_list[0:-1]]  # should be len 1 less than rowstr_list
     # Insert multicolumn names
     if multicol_lbls is not None:
-        multicol_str = colsep + colsep.join([latex_multicolumn(multicol, size) for multicol, size in multicol_lbls]) + endl
+        # TODO: label of the row labels
+        multicol_str = latex_multirow('', 2) + colsep + colsep.join([latex_multicolumn(multicol, size, 'c|') for multicol, size in multicol_lbls]) + endl
+        ncols = sum([tup[1] for tup in multicol_lbls])
+        mcol_sep = '\\cline{2-%d}\n' % (ncols + 1,)
         rowstr_list = [multicol_str] + rowstr_list
-        extra_rowsep_pos_list += [1]
+        rowsep_list = [mcol_sep] + rowsep_list
+        #extra_rowsep_pos_list += [1]
 
     # Insert title
     if title is not None:
         tex_title = latex_multicolumn(title, len(body[0])) + endl
         rowstr_list = [tex_title] + rowstr_list
-        extra_rowsep_pos_list += [2]
+        rowsep_list = [rowsep] + rowsep_list
+        #extra_rowsep_pos_list += [2]
 
     # Apply an extra hline (for label)
+    #extra_rowsep_pos_list = []
     for pos in sorted(extra_rowsep_pos_list)[::-1]:
         rowstr_list.insert(pos, '')
-    tabular_body = rowsep.join(rowstr_list)
+        rowsep_list.insert(pos, rowsep)
+    #tabular_body = rowsep.join(rowstr_list)
+    from six.moves import zip_longest
+    tabular_body = ''.join([row if sep is None else row + sep for row, sep in zip_longest(rowstr_list, rowsep_list)])
 
     # Build Column Layout
     col_layout_sep = '|'
-    col_layout_list = ['l'] * len(body[0])
-    extra_collayoutsep_pos_list = [1]
+    col_layout_list = [col_align] * len(body[0])
+    #extra_collayoutsep_pos_list = [1]
+    extra_collayoutsep_pos_list = []
     for pos in  sorted(extra_collayoutsep_pos_list)[::-1]:
         col_layout_list.insert(pos, '')
     col_layout = col_layout_sep.join(col_layout_list)
 
-    tabular_head = (r'\begin{tabular}{|%s|}' % col_layout) + '\n'
-    tabular_tail = r'\end{tabular}'
+    if centerline:
+        tabular_head = r'\centerline{' + '\n' + (r'\begin{tabular}{|%s|}' % col_layout) + '\n'
+        tabular_tail = r'\end{tabular}' + '\n' + '}'
+    else:
+        tabular_head = (r'\begin{tabular}{|%s|}' % col_layout) + '\n'
+        tabular_tail = r'\end{tabular}'
 
     tabular_str = rowsep.join([tabular_head, tabular_body, tabular_tail])
+    topsep = '\\hline\n' if True else '\\toprule\n'
+    botsep = '\\hline\n' if True else '\\bottomrule\n'
+    tabular_str = tabular_head + topsep + tabular_body + botsep + tabular_tail
 
     if common_rowlbl is not None:
         #tabular_str += escape_latex('\n\nThe following parameters were held fixed:\n' + common_rowlbl)
