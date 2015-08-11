@@ -34,8 +34,8 @@ if SILENT:
         pass
 
 __POOL__ = None
-#__EAGER_JOIN__      = not util_arg.get_argflag('--noclose-pool')
 __EAGER_JOIN__      = util_arg.get_argflag('--eager-join')
+__EAGER_JOIN__      = not util_arg.get_argflag('--noclose-pool')
 __NUM_PROCS__       = util_arg.get_argval('--num-procs', int, default=None)
 __FORCE_SERIAL__    = util_arg.get_argflag(('--utool-force-serial', '--force-serial', '--serial'))
 __SERIAL_FALLBACK__ = not util_arg.get_argflag('--noserial-fallback')
@@ -44,7 +44,8 @@ __TIME_GENERATE__   = VERBOSE_PARALLEL or util_arg.get_argflag('--time-generate'
 
 # FIXME: running tests in IBEIS has errors when this number is low
 # Due to the large number of parallel processes running?
-MIN_PARALLEL_TASKS = 5
+MIN_PARALLEL_TASKS = 4
+#MIN_PARALLEL_TASKS = 16
 if util_cplat.WIN32:
     MIN_PARALLEL_TASKS = 16
 
@@ -183,6 +184,7 @@ def _process_parallel(func, args_list, args_dict={}, nTasks=None, quiet=QUIET):
 
     Use generate instead
     """
+    global __POOL__
     # Define progress observers
     if nTasks is None:
         nTasks = len(args_list)
@@ -208,17 +210,18 @@ def _process_parallel(func, args_list, args_dict={}, nTasks=None, quiet=QUIET):
     return result_list
 
 
-def _generate_parallel(func, args_list, ordered=True, chunksize=1,
+def _generate_parallel(func, args_list, ordered=True, chunksize=None,
                        prog=True, verbose=True, quiet=QUIET, nTasks=None,
                        freq=None):
     """
     Parallel process generator
     """
+    global __POOL__
     prog = prog and verbose
     if nTasks is None:
         nTasks = len(args_list)
     if chunksize is None:
-        chunksize = max(1, nTasks // (__POOL__._processes ** 2))
+        chunksize = max(min(4, nTasks), nTasks // (__POOL__._processes ** 2))
     if verbose or VERBOSE_PARALLEL:
         prefix = '[util_parallel._generate_parallel]'
         fmtstr = prefix + 'executing %d %s tasks using %d processes with chunksize=%r'
@@ -289,6 +292,7 @@ def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None, freq
 
 
 def ensure_pool(warn=False, quiet=QUIET):
+    global __POOL__
     try:
         assert __POOL__ is not None, 'must init_pool() first'
     except AssertionError as ex:
@@ -298,7 +302,7 @@ def ensure_pool(warn=False, quiet=QUIET):
 
 
 def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
-             chunksize=1, prog=True, verbose=True, quiet=QUIET, nTasks=None,
+             chunksize=None, prog=True, verbose=True, quiet=QUIET, nTasks=None,
              freq=None):
     """
 
@@ -317,6 +321,9 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
 
     CommandLine:
         python -m utool.util_parallel --test-generate
+        python -m utool.util_parallel --test-generate:1
+        python -m utool.util_parallel --test-generate:2
+        python -m utool.util_parallel --test-generate:3
         python -m utool.util_parallel --test-generate --verbose
 
     Example:
@@ -332,6 +339,74 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
         >>> flag_list1 = list(flag_generator1)
         >>> print('ASSERTING')
         >>> assert flag_list0 == flag_list1
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> # Trying to recreate the freeze seen in IBEIS
+        >>> import utool as ut
+        >>> print('TESTING SERIAL')
+        >>> flag_generator0 = ut.generate(ut.is_prime, range(0, 1))
+        >>> flag_list0 = list(flag_generator0)
+        >>> flag_generator1 = ut.generate(ut.fibonacci_recursive, range(0, 1))
+        >>> flag_list1 = list(flag_generator1)
+        >>> print('TESTING PARALLEL')
+        >>> flag_generator2 = ut.generate(ut.is_prime, range(0, 12))
+        >>> flag_list2 = list(flag_generator2)
+        >>> flag_generator3 = ut.generate(ut.fibonacci_recursive, range(0, 12))
+        >>> flag_list3 = list(flag_generator3)
+        >>> print('flag_list0 = %r' % (flag_list0,))
+        >>> print('flag_list1 = %r' % (flag_list1,))
+        >>> print('flag_list2 = %r' % (flag_list1,))
+        >>> print('flag_list3 = %r' % (flag_list1,))
+
+    Example:
+        >>> # UNSTABLE_DOCTEST
+        >>> # Trying to recreate the freeze seen in IBEIS
+        >>> import vtool as vt
+        >>> #def gen_chip(tup):
+        >>> #    import vtool as vt
+        >>> #    cfpath, gfpath, bbox, theta, new_size, filter_list = tup
+        >>> #    chipBGR = vt.compute_chip(gfpath, bbox, theta, new_size, filter_list)
+        >>> #    height, width = chipBGR.shape[0:2]
+        >>> #    vt.imwrite(cfpath, chipBGR)
+        >>> #    return cfpath, width, height
+        >>> import utool as ut
+        >>> from ibeis.model.preproc.preproc_chip import gen_chip
+        >>> #from ibeis.model.preproc.preproc_feat import gen_feat_worker
+        >>> key_list = ['grace.jpg', 'easy1.png', 'ada2.jpg', 'easy3.png',
+        >>>             'hard3.png', 'zebra.png', 'patsy.jpg', 'ada.jpg',
+        >>>             'carl.jpg', 'lena.png', 'easy2.png']
+        >>> img_fpath_list = [ut.grab_test_imgpath(key) for key in key_list]
+        >>> arg_list1 = [(ut.augpath(img_fpath, '_testgen'), img_fpath, (0, 0, 100, 100), 0.0, (545, 372), []) for img_fpath in img_fpath_list[0:1]]
+        >>> arg_list2 = [(ut.augpath(img_fpath, '_testgen'), img_fpath, (0, 0, 100, 100), 0.0, (545, 372), []) for img_fpath in img_fpath_list]
+        >>> #arg_list3 = [(count, fpath, {}) for count, fpath in enumerate(ut.get_list_column(arg_list1, 0))]
+        >>> #arg_list4 = [(count, fpath, {}) for count, fpath in enumerate(ut.get_list_column(arg_list2, 0))]
+        >>> ut.remove_file_list(ut.get_list_column(arg_list2, 0))
+        >>> chips1 = [x for x in ut.generate(gen_chip, arg_list1)]
+        >>> chips2 = [y for y in ut.generate(gen_chip, arg_list2, force_serial=True)]
+        >>> #feats3 = [z for z in ut.generate(gen_feat_worker, arg_list3)]
+        >>> #feats4 = [w for w in ut.generate(gen_feat_worker, arg_list4)]
+
+    Example:
+        >>> # UNSTABLE_DOCTEST
+        >>> # Trying to recreate the freeze seen in IBEIS
+        >>> # Extremely weird case: freezes only if dsize > (313, 313) AND __testwarp was called beforehand.
+        >>> # otherwise the parallel loop works fine.
+        >>> import vtool as vt
+        >>> import utool as ut
+        >>> from ibeis.model.preproc.preproc_chip import gen_chip
+        >>> import cv2
+        >>> from utool.util_parallel import __testwarp
+        >>> key_list = ['grace.jpg', 'easy1.png', 'ada2.jpg', 'easy3.png',
+        >>>             'hard3.png', 'zebra.png', 'patsy.jpg', 'ada.jpg',
+        >>>             'carl.jpg', 'lena.png', 'easy2.png']
+        >>> img_fpath_list = [ut.grab_test_imgpath(key) for key in key_list]
+        >>> arg_list1 = [(vt.imread(fpath),) for fpath in img_fpath_list[0:1]]
+        >>> arg_list2 = [(vt.imread(fpath),) for fpath in img_fpath_list]
+        >>> #new1 = [x for x in ut.generate(__testwarp, arg_list1)]
+        >>> new1 =  __testwarp(arg_list1[0])
+        >>> new2 = [y for y in ut.generate(__testwarp, arg_list2, force_serial=False)]
+        >>> print('new2 = %r' % (new2,))
 
     """
     if nTasks is None:
@@ -358,6 +433,25 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
                                   chunksize=chunksize, prog=prog,
                                   verbose=verbose, quiet=quiet, nTasks=nTasks,
                                   freq=freq)
+
+
+def __testwarp(tup):
+    # THIS DOES NOT CAUSE A PROBLEM FOR SOME FREAKING REASON
+    import cv2
+    import numpy as np
+    import vtool as vt
+    img = tup[0]
+    M = vt.rotation_mat3x3(.1)[0:2].dot(vt.translation_mat3x3(-10, 10))
+    #new = cv2.warpAffine(img, M[0:2], (500, 500), flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_CONSTANT)
+    # ONLY FAILS WHEN OUTPUT SIZE IS LARGE
+    #dsize = (314, 314)  # (313, 313) does not cause the error
+    dsize = (500, 500)  # (313, 313) does not cause the error
+    dst = np.empty(dsize[::-1], dtype=img.dtype)
+    #new = cv2.warpAffine(img, M[0:2], dsize)
+    print('Warping?')
+    new = cv2.warpAffine(img, M[0:2], dsize, dst)
+    print(dst is new)
+    return new
 
 
 #class Sentinal(object):
