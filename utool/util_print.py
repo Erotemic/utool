@@ -96,10 +96,10 @@ class Indenter(object):
 
         #push_module_functions(self.old_printDBG_dict, 'printDBG')
         #for mod in self.old_printDBG_dict.keys():
-            #@functools.wraps(self.old_printDBG_dict[mod])
-            #def indent_printDBG(msg):
-            #    self.old_printDBG_dict[mod](indent_msg(msg))
-            #setattr(mod, 'printDBG', indent_printDBG)
+        #    @functools.wraps(self.old_printDBG_dict[mod])
+        #    def indent_printDBG(msg):
+        #        self.old_printDBG_dict[mod](indent_msg(msg))
+        #    setattr(mod, 'printDBG', indent_printDBG)
 
     @profile
     def stop(self):
@@ -271,10 +271,10 @@ def print_code(text, lexer_name='python'):
         print(list(pygments.styles.get_all_styles()))
 
     """
-    import pygments
     import utool as ut
     #with ut.embed_on_exception_context:
     try:
+        import pygments
         if ut.WIN32:
             #formater = pygments.formatters.terminal256.Terminal256Formatter()
             import pygments.formatters.terminal256
@@ -291,9 +291,9 @@ def print_code(text, lexer_name='python'):
 
 
 def get_colored_diff(text):
-    import pygments
     import utool as ut
     try:
+        import pygments
         if ut.WIN32:
             formater = pygments.formatters.terminal256.Terminal256Formatter()
         else:
@@ -338,9 +338,12 @@ def colorprint(msg, color):
     python -c "import pygments.console; print(list(pygments.console.codes.keys()))"
 
     """
-    import pygments
-    import pygments.console
-    print(pygments.console.colorize(color, msg))
+    try:
+        import pygments
+        import pygments.console
+        print(pygments.console.colorize(color, msg))
+    except ImportError:
+        print(msg)
 
 
 def print_locals():
