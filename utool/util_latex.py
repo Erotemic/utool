@@ -370,7 +370,7 @@ def replace_all(str_, repltups):
 def make_score_tabular(row_lbls, col_lbls, values, title=None, out_of=None,
                        bold_best=False, flip=False, bigger_is_better=True,
                        multicol_lbls=None, FORCE_INT=True, precision=None,
-                       SHORTEN_ROW_LBLS=True, col_align='l', centerline=True):
+                       SHORTEN_ROW_LBLS=False, col_align='l', centerline=True):
     r"""
     makes a LaTeX tabular for displaying scores or errors
 
@@ -389,6 +389,7 @@ def make_score_tabular(row_lbls, col_lbls, values, title=None, out_of=None,
     CommandLine:
         python -m utool.util_latex --test-make_score_tabular:0 --show
         python -m utool.util_latex --test-make_score_tabular:1 --show
+        python -m utool.util_latex --test-make_score_tabular:2 --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -397,6 +398,23 @@ def make_score_tabular(row_lbls, col_lbls, values, title=None, out_of=None,
         >>> row_lbls = ['config1', 'config2']
         >>> col_lbls = ['score \leq 1', 'metric2']
         >>> values = np.array([[1.2, 2], [3.2, 4]])
+        >>> title = 'title'
+        >>> out_of = 10
+        >>> bold_best = True
+        >>> flip = False
+        >>> tabular_str = make_score_tabular(row_lbls, col_lbls, values, title, out_of, bold_best, flip)
+        >>> result = tabular_str
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> render_latex_text(tabular_str)
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_latex import *  # NOQA
+        >>> import utool as ut
+        >>> row_lbls = ['config1']
+        >>> col_lbls = ['score \leq 1', 'metric2']
+        >>> values = np.array([[1.2, 2]])
         >>> title = 'title'
         >>> out_of = 10
         >>> bold_best = True
@@ -509,6 +527,8 @@ def make_score_tabular(row_lbls, col_lbls, values, title=None, out_of=None,
     except Exception as ex:
         print('len(row_lbls) = %r' % (len(row_lbls),))
         print('len(col_lbls) = %r' % (len(col_lbls),))
+        print('len(values) = %r' % (values,))
+        print('ut.depth_profile(values) = %r' % (ut.depth_profile(values),))
         ut.printex(ex, keys=['r', 'c'])
         raise
 

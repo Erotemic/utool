@@ -63,6 +63,10 @@ def regex_word(w):
 
 
 def extend_regex(regexpr):
+    r"""
+    Extends the syntax of regular expressions by replacing convineince syntax
+      with re friendly syntax. Nameely things that I use in vim like \<\>
+    """
     regex_map = {
         r'\<': r'\b(?=\w)',
         r'\>': r'\b(?!\w)',

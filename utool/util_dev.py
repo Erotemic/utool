@@ -1551,8 +1551,27 @@ def garbage_collect():
     gc.collect()
 
 
-def get_object_size(obj, fallback_type=None, follow_pointers=False):
+def get_object_size(obj, fallback_type=None, follow_pointers=False, exclude_modules=True):
+    """
+    CommandLine:
+        python -m utool.util_dev --test-get_object_size
+
+    Example:
+        >>> # UNSTABLE_DOCTEST
+        >>> from ibeis.experiments.experiment_harness import *  # NOQA
+        >>> import ibeis
+        >>> species = ibeis.const.Species.ZEB_PLAIN
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> qaids = ibs.get_valid_aids(species=species)
+        >>> daids = ibs.get_valid_aids(species=species)
+        >>> qreq_ = ibs.new_query_request(qaids, daids, verbose=True)
+        >>> nBytes = ut.get_object_size(qreq_)
+        >>> result = (ut.byte_str2(nBytes))
+        >>> print('result = %r' % (result,))
+    """
+    import utool as ut
     seen = set([])
+    import types
     def _get_object_size(obj):
         object_id = id(obj)
         if object_id in seen:
@@ -1562,35 +1581,52 @@ def get_object_size(obj, fallback_type=None, follow_pointers=False):
         seen.add(object_id)
 
         totalsize = sys.getsizeof(obj)
-        if isinstance(obj, np.ndarray):
-            if not obj.flags['OWNDATA']:
-                # somebody else owns the data, returned size may be smaller than sobj.nbytes
-                # because sys.getsizeof will return the container size.
-                # if owndata is true sys.getsizeof returns the actual size
-                if follow_pointers:
-                    totalsize += obj.nbytes
+        try:
+            if isinstance(obj, (ut.DynStruct, ut.Pref)):
+                # dont deal with dynstruct shenanigans
+                return
+            elif exclude_modules and isinstance(obj, types.ModuleType):
+                return 0
+            elif isinstance(obj, np.ndarray):
+                if not obj.flags['OWNDATA']:
+                    # somebody else owns the data, returned size may be smaller than sobj.nbytes
+                    # because sys.getsizeof will return the container size.
+                    # if owndata is true sys.getsizeof returns the actual size
+                    if follow_pointers:
+                        totalsize += obj.nbytes
+                    pass
+                # TODO: check if a view or is memmapped
+                # Nothing to do sys.getsizeof does the right thing sorta
+                #totalsize += obj.nbytes
                 pass
-            # TODO: check if a view or is memmapped
-            # Nothing to do sys.getsizeof does the right thing sorta
-            #totalsize += obj.nbytes
+            elif (isinstance(obj, (tuple, list, set, frozenset))):
+                for item in obj:
+                    totalsize += _get_object_size(item)
+            elif isinstance(obj, dict):
+                try:
+                    for key, val in six.iteritems(obj):
+                        totalsize += _get_object_size(key)
+                        totalsize += _get_object_size(val)
+                except RuntimeError:
+                    print(key)
+                    print(type(obj))
+                    raise
+            elif isinstance(obj, object) and hasattr(obj, '__dict__'):
+                if hasattr(obj, 'used_memory') and not isinstance(obj, type):
+                    # hack for flann objects
+                    totalsize += obj.used_memory()
+                totalsize += _get_object_size(obj.__dict__)
+                return totalsize
+        #except TypeError as ex:
+        except Exception as ex:
+            print(type(obj))
+            ut.printex(ex, 'may be an error in _get_object_size')
             pass
-        elif (isinstance(obj, (tuple, list, set, frozenset))):
-            for item in obj:
-                totalsize += _get_object_size(item)
-        elif isinstance(obj, dict):
-            try:
-                for key, val in six.iteritems(obj):
-                    totalsize += _get_object_size(key)
-                    totalsize += _get_object_size(val)
-            except RuntimeError:
-                print(key)
-                raise
-        elif isinstance(obj, object) and hasattr(obj, '__dict__'):
-            if hasattr(obj, 'used_memory'):
-                # hack for flann objects
-                totalsize += obj.used_memory()
-            totalsize += _get_object_size(obj.__dict__)
-            return totalsize
+            #import utool as ut
+            #print('obj = %r' % (obj,))
+            #ut.printex(ex)
+            #ut.embed()
+            #raise RuntimeError(str(ex))  # from ex
         return totalsize
     return _get_object_size(obj)
 
