@@ -116,6 +116,10 @@ def ensure_list_size(list_, size_):
 
 # --- List Searching --- #
 
+def get_list_column_slice(list_, start=None, stop=None, stride=None):
+    return list(util_iter.iget_list_column_slice(list_, start, stop, stride))
+
+
 def get_list_column(list_, colx):
     r"""
     accepts a list of (indexables) and returns a list of indexables
@@ -1085,6 +1089,10 @@ def list_compress(list_, flag_list):
     return filter_items(list_, flag_list)
 
 
+def list_ziptake(items_list, indexes_list):
+    return [list_take(list_, index_list) for list_, index_list in zip(items_list, indexes_list)]
+
+
 def list_take(list_, index_list):
     """ like np.take but for lists
 
@@ -1266,11 +1274,36 @@ def sample_zip(items_list, num_samples, allow_overflow=False, per_bin=1):
 
 
 def sample_lists(items_list, num=1, seed=None):
+    r"""
+    Args:
+        items_list (list):
+        num (int): (default = 1)
+        seed (None): (default = None)
+
+    Returns:
+        list: samples_list
+
+    CommandLine:
+        python -m utool.util_list --exec-sample_lists
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> items_list = [[], [1, 2, 3], [4], [5, 6], [7, 8, 9, 10]]
+        >>> num = 2
+        >>> seed = 0
+        >>> samples_list = sample_lists(items_list, num, seed)
+        >>> result = ('samples_list = %s' % (str(samples_list),))
+        >>> print(result)
+        samples_list = [[], [3, 2], [4], [5, 6], [10, 9]]
+    """
     if seed is not None:
-        np.random.seed(seed)
+        rng = np.random.RandomState(seed)
+    else:
+        rng = np.random
     def random_choice(items, num):
         size = min(len(items), num)
-        return np.random.choice(items, size, replace=False).tolist()
+        return rng.choice(items, size, replace=False).tolist()
     samples_list = [random_choice(items, num)
                     if len(items) > 0 else []
                     for items in items_list]

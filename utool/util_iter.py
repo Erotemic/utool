@@ -74,6 +74,15 @@ def iget_list_column(list_, colx):
         return (row[colx] for row in list_)
 
 
+def iget_list_column_slice(list_, start=None, stop=None, stride=None):
+    """ iterator version of get_list_column """
+    if isinstance(start, slice):
+        slice_ = start
+    else:
+        slice_ = slice(start, stop, stride)
+    return (row[slice_] for row in list_)
+
+
 def itertwo(iterable):
     iter1 = iter(iterable)
     iter2 = iter(iterable)

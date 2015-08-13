@@ -197,8 +197,26 @@ def load_cache(dpath, fname, cfgstr, verbose=None):
         >>> result = str(data)
         >>> print(result)
     """
+    if verbose is None:
+        verbose = util_arg.NOT_QUIET
     fpath = _args2_fpath(dpath, fname, cfgstr, '.cPkl')
-    return util_io.load_cPkl(fpath, verbose)
+    if not exists(fpath):
+        if verbose:
+            print('[util_io] ... cache does not exist: dpath=%s cfgstr=%r' % (basename(dpath), cfgstr,))
+        raise IOError(2, 'No such file or directory: %r' % (fpath,))
+    else:
+        if verbose:
+            print('[util_io] ... cache exists: dpath=%s cfgstr=%r' % (basename(dpath), cfgstr,))
+    try:
+        data = util_io.load_cPkl(fpath, verbose)
+    except IOError:
+        if verbose:
+            print('[util_io] ... cache miss dpath=%s cfgstr=%r' % (basename(dpath), cfgstr,))
+        raise
+    else:
+        if verbose:
+            print('[util_io] ... cache hit')
+    return data
 
 
 def tryload_cache(dpath, fname, cfgstr, verbose=None):

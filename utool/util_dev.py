@@ -1151,6 +1151,9 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, datacast=None):
         stat_dict = OrderedDict(stats_list)
     return stat_dict
 
+
+get_statdict = get_stats
+
 # --- Info Strings ---
 
 

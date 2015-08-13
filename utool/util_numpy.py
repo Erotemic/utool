@@ -119,7 +119,7 @@ def intersect2d(A, B):
     #return arr[np.sort(idx)]
 
 
-def deterministic_shuffle(list_, seed=1):
+def deterministic_shuffle(list_, seed=0):
     r"""
     Args:
         list_ (list):
@@ -134,52 +134,40 @@ def deterministic_shuffle(list_, seed=1):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_numpy import *  # NOQA
-        >>> list_ = [1,2,3,4,5,6]
+        >>> list_ = [1, 2, 3, 4, 5, 6]
         >>> seed = 1
         >>> list_ = deterministic_shuffle(list_, seed)
         >>> result = str(list_)
         >>> print(result)
-        [4, 6, 1, 3, 2, 5]
+        [3, 2, 5, 1, 4, 6]
     """
-    rand_seed = np.uint32(np.random.rand() * np.uint(0 - 2) / 2)
-    if not isinstance(list_, (np.ndarray, list)):
-        list_ = list(list_)
-    seed_ = len(list_) + seed
-    np.random.seed(seed_)
-    np.random.shuffle(list_)
-    np.random.seed(rand_seed)  # reseed
+    rng = np.random.RandomState(seed)
+    rng.shuffle(list_)
     return list_
 
 
-def listlike_copy(list_):
+def random_sample(list_, nSample, strict=False, rng=np.random, seed=None):
+    """
+    Grabs data randomly
+    """
+    if seed is not None:
+        rng = np.random.RandomState(seed)
     if isinstance(list_, list):
         list2_ = list_[:]
     else:
         list2_ = np.copy(list_)
-    return list2_
-
-
-def random_sample(list_, nSample, strict=False):
-    """ Grabs data randomly, but in a repeatable way """
-    list2_ = listlike_copy(list_)
-    np.random.shuffle(list2_)
+    rng.shuffle(list2_)
     if nSample is None and strict is False:
         return list2_
     if not strict:
-        nSample = min(nSample, len(list2_))
+        nSample = min(max(0, nSample), len(list2_))
     sample_list = list2_[:nSample]
     return sample_list
 
 
-def deterministic_sample(list_, nSample, seed=1, strict=False):
+def deterministic_sample(list_, nSample, seed=0, strict=False):
     """ Grabs data randomly, but in a repeatable way """
-    list2_ = listlike_copy(list_)
-    deterministic_shuffle(list2_, seed)
-    if nSample is None and strict is False:
-        return list2_
-    if not strict:
-        nSample = min(nSample, len(list2_))
-    sample_list = list2_[:nSample]
+    sample_list = random_sample(list_, nSample, strict=strict, seed=seed)
     return sample_list
 
 

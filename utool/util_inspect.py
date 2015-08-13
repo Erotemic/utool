@@ -140,6 +140,7 @@ def get_dev_hints():
         ('str_' , ('str', None)),
         ('.*_str' , ('str', None)),
         ('.*_?list_?' , ('list', None)),
+        ('dict_?\d?' , ('dict', None)),
         ('.*_tup' , ('tuple', None)),
         ('.*_sublist' , ('list', None)),
         ('fpath[0-9]?' , ('str', 'file path string')),

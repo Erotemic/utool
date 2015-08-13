@@ -16,6 +16,7 @@ import six
 from six.moves import zip, range, reduce
 from utool import util_type
 from utool import util_inject
+from utool import util_decor
 try:
     import scipy.spatial.distance as spdist
     HAVE_SCIPY = True
@@ -618,7 +619,6 @@ def knapsack(items, maxweight):
 
     # Return the value of the most valuable subsequence of the first i
     # elements in items whose weights sum to no more than j.
-    from utool import util_decor
     @util_decor.memoize_nonzero
     def bestvalue(i, j):
         if i == 0:
@@ -638,6 +638,119 @@ def knapsack(items, maxweight):
             j -= items[i - 1][1]
     result.reverse()
     return bestvalue(len(items), maxweight), result
+
+
+def maximum_distance_subset(items, K):
+    """
+    Returns a subset of size K from items with the maximum pairwise distance
+
+    References:
+        http://stackoverflow.com/questions/12278528/find-subset-with-elements-that-are-furthest-apart-from-eachother
+        http://stackoverflow.com/questions/13079563/how-does-condensed-distance-matrix-work-pdist
+
+    Recurance:
+        Let X[n,k] be the solution for selecting k elements from first n elements items.
+        X[n, k] = max( max( X[m, k - 1] + (sum_{p in prev_solution} dist(o, p)) for o < n and o not in prev solution) ) for m < n.
+
+    Example:
+        >>> import scipy.spatial.distance as spdist
+        >>> items = [1, 6, 20, 21, 22]
+
+    CommandLine:
+        python -m utool.util_alg --exec-maximum_distance_subset
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> #items = [1, 2, 3, 4, 5, 6, 7]
+        >>> items = [1, 6, 20, 21, 22]
+        >>> K = 3
+        >>> result = maximum_distance_subset(items, K)
+        >>> print(result)
+    """
+    points = np.array(items)[:, None]
+
+    if False:
+        # alternative definition (not sure if works)
+        distmat = spdist.squareform(spdist.pdist(points, lambda x, y: np.abs(x - y)))
+        D = np.triu(distmat)
+        remaining_idxs = np.arange(len(D))
+        for count in range(len(points) - K):
+            values = D.sum(axis=1) + D.sum(axis=0)
+            remove_idx = values.argmin()  # index with minimum pairwise distance
+            remaining_idxs = np.delete(remaining_idxs, remove_idx)
+            D = np.delete(np.delete(D, remove_idx, axis=0), remove_idx, axis=1)
+        value = D.sum()
+        subset_idx = remaining_idxs.tolist()
+        value, subset_idx
+        subset = points.take(subset_idx)
+        print((value, subset_idx, subset))
+
+    sortx = points.T[0].argsort()[::-1]
+    sorted_points = points.take(sortx, axis=0)
+    pairwise_distance = spdist.pdist(sorted_points, lambda x, y: np.abs(x - y))
+    distmat = (spdist.squareform(pairwise_distance))
+
+    def condensed_idx(i, j):
+        if i >= len(sorted_points) or j >= len(sorted_points):
+            raise IndexError('i=%r j=%r out of range' % (i, j))
+        elif i == j:
+            return None
+        elif j < i:
+            i, j = j, i
+        return (i * len(sorted_points) + j) - (i * (i + 1) // 2) - (i) - (1)
+
+    def dist(i, j):
+        idx = condensed_idx(i, j)
+        return 0 if idx is None else pairwise_distance[idx]
+
+    from utool import util_decor
+
+    @util_decor.memoize_nonzero
+    def optimal_solution(n, k):
+        """
+        Givem sorted items sorted_points
+        Pick subset_idx of size k from sorted_points[:n] with maximum pairwise distance
+        Dynamic programming solution
+        """
+        "# FIXME BROKEN "
+        assert n <= len(sorted_points) and k <= len(sorted_points)
+        if k < 2 or n < 2 or n < k:
+            # BASE CASE
+            value, subset_idx =  0, []
+        elif k == 2:
+            # BASE CASE
+            # when k==2 we choose the maximum pairwise pair
+            subdist = np.triu(distmat[0:n, 0:n])
+            maxpos = subdist.argmax()
+            ix, jx = np.unravel_index(maxpos, subdist.shape)
+            value = distmat[ix, jx]
+            subset_idx = [ix, jx]
+        else:
+            # RECURSIVE CASE
+            value = 0
+            subset_idx = None
+            # MAX OVER ALL OTHER NODES (might not need a full on loop here, but this will definitely work)
+            for m in range(k - 1, n):
+                # Choose which point to add would maximize the distance with the previous best answer.
+                prev_value, prev_subset_idx = optimal_solution(m, k - 1)
+                for o in range(n):
+                    if o in prev_subset_idx:
+                        continue
+                    add_value = sum([distmat[o, px] for px in prev_subset_idx])
+                    cur_value = prev_value + add_value
+                    if cur_value > value:
+                        value = cur_value
+                        subset_idx = prev_subset_idx + [o]
+        return value, subset_idx
+
+    value, sorted_subset_idx = optimal_solution(len(points), K)
+    subset_idx = sortx.take(sorted_subset_idx)
+    subset = points.take(subset_idx)
+    print((value, subset_idx, subset))
+    return value, subset_idx, subset
+    #np.array([[dist(i, k) if k < i else 0 for k in range(len(A))] for i in range(len(A))])
+    #raise NotImplementedError('unfinished')
 
 
 def cumsum(num_list):
@@ -698,6 +811,10 @@ def haversine(latlon1, latlon2):
 
 def unixtime_hourdiff(x, y):
     return np.abs((x - y)) / (60. ** 2)
+
+
+def absdiff(x, y):
+    return np.abs(np.subtract(x, y))
 
 
 def safe_pdist(arr, *args, **kwargs):

@@ -221,7 +221,7 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=None,
     if nTasks is None:
         nTasks = len(args_list)
     if chunksize is None:
-        chunksize = max(min(4, nTasks), nTasks // (__POOL__._processes ** 2))
+        chunksize = max(min(4, nTasks), min(8, nTasks // (__POOL__._processes ** 2)))
     if verbose or VERBOSE_PARALLEL:
         prefix = '[util_parallel._generate_parallel]'
         fmtstr = prefix + 'executing %d %s tasks using %d processes with chunksize=%r'

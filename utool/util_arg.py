@@ -122,7 +122,8 @@ def autogen_argparse_block(extra_args=[]):
 
 
 #@profile
-def get_argflag(argstr_, default=False, help_='', return_was_specified=False, need_prefix=True, **kwargs):
+def get_argflag(argstr_, default=False, help_='', return_specified=None,
+                need_prefix=True, return_was_specified=False, **kwargs):
     """
     Checks if the commandline has a flag or a corresponding noflag
 
@@ -130,10 +131,13 @@ def get_argflag(argstr_, default=False, help_='', return_was_specified=False, ne
         argstr_ (str, list, or tuple): the flag to look for
         default (bool): dont use this (default = False)
         help_ (str): a help string (default = '')
-        return_was_specified (bool): returns if flag was specified or not (default = False)
+        return_specified (bool): returns if flag was specified or not (default = False)
 
     Returns:
         tuple: (parsed_val, was_specified)
+
+    TODO:
+        depricate return_was_specified
 
     CommandLine:
         python -m utool.util_arg --exec-get_argflag --noface --exec-mode
@@ -148,8 +152,8 @@ def get_argflag(argstr_, default=False, help_='', return_was_specified=False, ne
         >>> argstr_ = '--foo'
         >>> default = False
         >>> help_ = ''
-        >>> return_was_specified = True
-        >>> (parsed_val, was_specified) = get_argflag(argstr_, default, help_, return_was_specified)
+        >>> return_specified = True
+        >>> (parsed_val, was_specified) = get_argflag(argstr_, default, help_, return_specified)
         >>> result = ('(parsed_val, was_specified) = %s' % (str((parsed_val, was_specified)),))
         >>> print(result)
     """
@@ -196,7 +200,10 @@ def get_argflag(argstr_, default=False, help_='', return_was_specified=False, ne
             was_specified = True
             break
 
-    if return_was_specified:
+    if return_specified is None:
+        return_specified = return_was_specified
+
+    if return_specified:
         return parsed_val, was_specified
     else:
         return parsed_val
@@ -207,7 +214,7 @@ def get_argflag(argstr_, default=False, help_='', return_was_specified=False, ne
 #from utool._internal.meta_util_arg import get_argval
 @profile
 def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
-               return_was_specified=False, argv=sys.argv, verbose=VERBOSE or VERYVERBOSE):
+               return_specified=None, argv=sys.argv, verbose=VERBOSE or VERYVERBOSE, return_was_specified=False):
     r""" Returns a value of an argument specified on the command line after some flag
 
     Args:
@@ -216,8 +223,11 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
         default (None): (default = None)
         help_ (None): help for this argument (not fully integrated) (default = None)
         smartcast (bool): tries to be smart about casting the parsed strings (default = True)
-        return_was_specified (bool): (default = False)
+        return_specified (bool): (default = False)
         argv (None): override sys.argv with custom command line vector (default = None)
+
+    TODO:
+        depricate return_was_specified
 
     CommandLine:
         python -m utool.util_arg --test-get_argval
@@ -271,6 +281,9 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
         #print('[get_argval]  * default = %r' % (default,))
         #print('[get_argval]  * help_ = %r' % (help_,))
         #print('[get_argval]  * smartcast = %r' % (smartcast,))
+
+    if return_specified is None:
+        return_specified = return_was_specified
 
     #print(argstr_)
     was_specified = False
@@ -350,14 +363,14 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
         import utool as ut
         ut.printex(ex, 'problem in arg_val')
         pass
-    if return_was_specified:
+    if return_specified:
         return arg_after, was_specified
     else:
         return arg_after
 
 
 @profile
-def parse_cfgstr_list(cfgstr_list, smartcast=True):
+def parse_cfgstr_list(cfgstr_list, smartcast=True, oldmode=True):
     """
     Parses a list of items in the format
     ['var1:val1', 'var2:val2', 'var3:val3']
@@ -384,9 +397,19 @@ def parse_cfgstr_list(cfgstr_list, smartcast=True):
     """
     cfgdict = {}
     for item in cfgstr_list:
-        keyval_tup = item.replace('=', ':').split(':')
-        assert len(keyval_tup) == 2, '[!] Invalid cfgitem=%r' % (item,)
-        key, val = keyval_tup
+        if oldmode:
+            keyval_tup = item.replace('=', ':').split(':')
+            assert len(keyval_tup) == 2, '[!] Invalid cfgitem=%r' % (item,)
+            key, val = keyval_tup
+        else:
+            keyval_tup = item.split('=')
+            if len(keyval_tup) == 1:
+                # single specifications are interpeted as booleans
+                key = keyval_tup[0]
+                val = True
+            else:
+                assert len(keyval_tup) == 2, '[!] Invalid cfgitem=%r' % (item,)
+                key, val = keyval_tup
         if smartcast:
             val = util_type.smart_cast2(val)
         cfgdict[key] = val
@@ -779,22 +802,22 @@ def argparse_dict(default_dict_, lbl=None, verbose=None,
             val = default
             if default is True:
                 falsekeys = list(set(make_argstrs(key, ['--no', '--no-'])))
-                notval, was_specified = get_argflag(falsekeys, return_was_specified=True)
+                notval, was_specified = get_argflag(falsekeys, return_specified=True)
                 val = not notval
                 if not was_specified:
                     truekeys = list(set(make_argstrs(key, ['--'])))
-                    val_, was_specified = get_argflag(truekeys, return_was_specified=True)
+                    val_, was_specified = get_argflag(truekeys, return_specified=True)
                     if was_specified:
                         val = val_
             elif default is False:
                 truekeys = list(set(make_argstrs(key, ['--'])))
-                val, was_specified = get_argflag(truekeys, return_was_specified=True)
+                val, was_specified = get_argflag(truekeys, return_specified=True)
         else:
             argtup = list(set(make_argstrs(key, ['--'])))
             #if key == 'foo':
             #    import utool as ut
             #    ut.embed()
-            val, was_specified = get_argval(argtup, type_=type_, default=default, return_was_specified=True)
+            val, was_specified = get_argval(argtup, type_=type_, default=default, return_specified=True)
         return val, was_specified
 
     dict_  = {}

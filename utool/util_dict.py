@@ -261,7 +261,7 @@ def all_dict_combinations(varied_dict):
     return dict_list
 
 
-def all_dict_combinations_lbls(varied_dict, allow_lone_singles=False):
+def all_dict_combinations_lbls(varied_dict, remove_singles=True, allow_lone_singles=False):
     """
     returns a label for each variation in a varydict.
 
@@ -304,7 +304,7 @@ def all_dict_combinations_lbls(varied_dict, allow_lone_singles=False):
         >>> from utool.util_dict import *  # NOQA
         >>> varied_dict = {'logdist_weight': [0.0], 'pipeline_root': ['vsmany'], 'sv_on': [True]}
         >>> allow_lone_singles = True
-        >>> comb_lbls = ut.all_dict_combinations_lbls(varied_dict, allow_lone_singles)
+        >>> comb_lbls = ut.all_dict_combinations_lbls(varied_dict, allow_lone_singles=allow_lone_singles)
         >>> result = (ut.list_str(comb_lbls))
         >>> print(result)
         [
@@ -320,7 +320,7 @@ def all_dict_combinations_lbls(varied_dict, allow_lone_singles=False):
         isinstance(val_list, (list, tuple)) and len(val_list) == 1
         for key, val_list in iteritems_sorted(varied_dict)
     ])
-    if allow_lone_singles and is_lone_single:
+    if not remove_singles or (allow_lone_singles and is_lone_single):
         # all entries have one length
         multitups_list = [
             [(key, val) for val in val_list]
@@ -415,14 +415,20 @@ def assert_keys_are_subset(dict1, dict2):
     assert len(unknown_keys) == 0, 'unknown_keys=%r' % (unknown_keys,)
 
 
-def update_existing(dict1, dict2, copy=False, allow_new=True):
+def augdict(dict1, dict2):
+    return update_existing(dict1, dict2, copy=True)
+
+
+def update_existing(dict1, dict2, copy=False, assert_exists=False):
     r"""
     updates vals in dict1 using vals from dict2 only if the
     key is already in dict1.
 
     Args:
-        dict1 (dict)
+        dict1 (dict):
         dict2 (dict):
+        copy (bool): if true modifies dictionary in place (default = False)
+        assert_exists (bool): if True throws error if new key specified (default = False)
 
     CommandLine:
         python -m utool.util_dict --test-update_existing
@@ -441,7 +447,7 @@ def update_existing(dict1, dict2, copy=False, allow_new=True):
         >>> # verify results
         >>> print(result)
     """
-    if not allow_new:
+    if assert_exists:
         assert_keys_are_subset(dict1, dict2)
     if copy:
         dict1 = dict(dict1)

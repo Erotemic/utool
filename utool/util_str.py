@@ -102,6 +102,13 @@ def tupstr(tuple_):
 # --- Strings ----
 
 
+def scalar_str(val, precision=None):
+    if precision is not None and (isinstance(val, (float)) or util_type.is_float(val)):
+        return ('%.' + str(precision) + 'f') % (val,)
+    else:
+        return str(val)
+
+
 def remove_chars(str_, char_list):
     """
     removes all chars in char_list from str_
@@ -521,7 +528,9 @@ def byte_str(nBytes, unit='bytes', precision=2):
         nUnit = nBytes / (2.0 ** 30)
     else:
         raise NotImplementedError('unknown nBytes=%r unit=%r' % (nBytes, unit))
-    return ('%.' + str(precision) + 'f %s') % (nUnit, unit)
+    return scalar_str(nUnit, precision) + ' ' + unit
+    #fmtstr = ('%.'
+    #return ('%.' + str(precision) + 'f %s') % (nUnit, unit)
 
 
 def file_megabytes_str(fpath):
@@ -880,8 +889,9 @@ def numeric_str(num, precision=8, **kwargs):
     import numbers
     if np.isscalar(num):
         if not isinstance(num, numbers.Integral):
-            fmtstr = ('%.' + str(precision) + 'f')
-            return fmtstr  % num
+            return scalar_str(num, precision)
+            #fmtstr = ('%.' + str(precision) + 'f')
+            #return fmtstr  % num
         else:
             return '%d' % (num)
         return
@@ -1061,7 +1071,8 @@ def get_itemstr_list(list_, strvals=False, newlines=True,
             suppress_small = listkws.get('suppress_small', None)
             return numpy_str(val, strvals=strvals, precision=precision, suppress_small=suppress_small)
         elif precision is not None and (isinstance(val, (float)) or util_type.is_float(val)):
-            return ('%.' + str(precision) + 'f') % (val,)
+            return scalar_str(val, precision)
+            #return ('%.' + str(precision) + 'f') % (val,)
         else:
             # base case
             return valfunc(val)
@@ -1253,7 +1264,7 @@ def obj_str(obj_, **kwargs):
 def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
              indent_='', precision=8, hack_liststr=False, truncate=False,
              nl=None, explicit=False, truncatekw=dict(), key_order=None,
-             key_order_metric=None, **dictkw):
+             key_order_metric=None, nobraces=False, align=False, **dictkw):
     """
 
     Args:
@@ -1329,10 +1340,19 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
         itemstr_list = [truncate_str(item, **truncatekw) for item in itemstr_list]
 
     leftbrace, rightbrace  = ('dict(', ')') if explicit else ('{', '}')
+    if nobraces:
+        leftbrace = ''
+        rightbrace = ''
+
     if newlines:
         import utool as ut
-        body_str = '\n'.join([ut.indent(itemstr, '    ') for itemstr in itemstr_list])
-        retstr =  (leftbrace + '\n' + body_str + '\n' + rightbrace)
+        if nobraces:
+            retstr =  '\n'.join(itemstr_list)
+        else:
+            body_str = '\n'.join([ut.indent(itemstr, '    ') for itemstr in itemstr_list])
+            retstr =  (leftbrace + '\n' + body_str + '\n' + rightbrace)
+            if align:
+                retstr = ut.align(retstr, ':')
     else:
         retstr = leftbrace + ' '.join(itemstr_list) + rightbrace
     # Is there a way to make truncate for dict_str compatible with list_str?
@@ -1638,7 +1658,14 @@ def align_lines(line_list, character='=', replchar=None, pos=0):
         if len(tup) >= rpos + 1:
             lhs = character.join(tup[0:rpos])
             rhs = character.join(tup[rpos:])
+            # pad the new line with requested justification
+            #if False:
             newline = lhs.ljust(maxlen) + replchar + rhs
+            #else:
+            #    if lpos < 1:
+            #        newline = lhs.rjust(maxlen) + replchar + rhs
+            #    else:
+            #        newline = lhs.ljust(maxlen) + replchar + rhs
             new_lines.append(newline)
         else:
             new_lines.append(replchar.join(tup))
