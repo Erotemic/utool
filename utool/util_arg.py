@@ -737,7 +737,8 @@ def __argv_flag_dec(func, default=False, quiet=QUIET):
         else:
             PRINT_DISABLED_FLAGDEC = not get_argflag('--noinform', help_='does not print disabled flag decorators')
             if not quiet and PRINT_DISABLED_FLAGDEC:
-                print('\n~~~ %s ~~~' % flag)
+                #print('\n~~~ %s ~~~' % flag)
+                print('~~~ %s ~~~' % flag)
     meta_util_six.set_funcname(GaurdWrapper, meta_util_six.get_funcname(func))
     return GaurdWrapper
 

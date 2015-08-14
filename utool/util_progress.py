@@ -244,6 +244,10 @@ class ProgressIter(object):
         self.time_thresh        = kwargs.pop('time_thresh', None)
         self.prog_hook          = kwargs.pop('prog_hook', None)
 
+        self.parent_index       = kwargs.pop('parent_index', 0)
+        self.parent_nTotal      = kwargs.pop('parent_nTotal', 1)
+        self.parent_offset      = self.parent_index * self.nTotal
+
         if FORCE_ALL_PROGRESS:
             self.freq = 1
             self.autoadjust = False
@@ -331,7 +335,7 @@ class ProgressIter(object):
         PROGRESS_WRITE = util_logging.__UTOOL_WRITE__
         PROGRESS_FLUSH = util_logging.__UTOOL_FLUSH__
 
-        nTotal        = self.nTotal
+        nTotal        = self.nTotal * self.parent_nTotal  # hack
         freq          = self.freq
         self.count    = 0
         between_count = 0
@@ -372,8 +376,10 @@ class ProgressIter(object):
         start_time    = default_timer()
         last_time     = start_time
 
+        start = 1 + self.parent_offset
+
         # Wrap the for loop with a generator
-        for self.count, item in enumerate(self.iterable, start=1):
+        for self.count, item in enumerate(self.iterable, start=start):
             # GENERATE
             yield item
             # DO PROGRESS INFO
@@ -470,6 +476,8 @@ class ProgressIter(object):
         #msg = msg_fmtstr % (self.count + 1, iters_per_second, est_timeunit_left)
         #print('freq = %r' % freq)
         #self.end(self.count + 1)
+
+    #def make_substep_progiters():
 
     def iter_without_rate(self):
         if self.mark is None:

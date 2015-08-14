@@ -251,7 +251,8 @@ def all_dict_combinations(varied_dict):
     #             else [(key, val_list)]
     #             for (key, val_list) in six.iteritems(varied_dict)]
     tups_list = [[(key, val) for val in val_list]
-                 if isinstance(val_list, (list, tuple))
+                 if isinstance(val_list, (list))
+                 #if isinstance(val_list, (list, tuple))
                  else [(key, val_list)]
                  for (key, val_list) in iteritems_sorted(varied_dict)]
     dict_list = [dict(tups) for tups in iprod(*tups_list)]
@@ -566,6 +567,9 @@ def delete_dict_keys(dict_, key_list):
     for key in valid_keys:
         del dict_[key]
     return dict_
+
+
+delete_keys = delete_dict_keys
 
 
 def dict_take_gen(dict_, keys, *d):
@@ -891,7 +895,7 @@ def dict_hist(item_list, ordered=False):
 
 def merge_dicts(*args):
     r"""
-    add / concatenate / join / merge / combine dictionaries
+    add / concatenate / union / join / merge / combine dictionaries
 
     Returns:
         dict: mergedict_
@@ -919,6 +923,35 @@ def merge_dicts(*args):
     for dict_ in iter_:
         mergedict_.update(dict_)
     return mergedict_
+
+
+def dict_intersection(dict1, dict2, onlykeys=False):
+    r"""
+    Args:
+        dict1 (dict):
+        dict2 (dict):
+        onlykeys (bool): (default = False)
+
+    Returns:
+        ?: mergedict_
+
+    CommandLine:
+        python -m utool.util_dict --exec-dict_intersection
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> dict1 = {'a': 1, 'b': 2, 'c': 3, 'd': 4}
+        >>> dict2 = {'b': 2, 'c': 3, 'd': 5, 'e': 21, 'f': 42}
+        >>> onlykeys = False
+        >>> mergedict_ = dict_intersection(dict1, dict2, onlykeys)
+        >>> result = ('mergedict_ = %s' % (str(mergedict_),))
+        >>> print(result)
+        mergedict_ = {'c': 3, 'b': 2}
+    """
+    keys3 = set(dict1.keys()).intersection(set(dict2.keys()))
+    dict3 = {key: dict1[key] for key in keys3 if dict1[key] == dict2[key]}
+    return dict3
 
 
 if __name__ == '__main__':
