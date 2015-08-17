@@ -803,7 +803,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     import multiprocessing
     import utool as ut  # NOQA
     multiprocessing.freeze_support()  # just in case
-    #+-------------------
+
     ut.inject_colored_exceptions()
     if verbose or VERBOSE_TEST:
         if VERBOSE_TEST:
@@ -814,6 +814,9 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
                                              allexamples, needs_enable, N=1, verbose=verbose)
     enabled_testtup_list, frame_fpath, all_testflags, module  = mod_doctest_tup
     modname = ut.get_modname_from_modpath(frame_fpath)
+    #+-------------------
+    if ut.is_developer():
+        ut.change_term_title('DocTest ' + modname)
     #L__________________
     #+-------------------
     # Run enabled examles

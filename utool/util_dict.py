@@ -417,7 +417,7 @@ def assert_keys_are_subset(dict1, dict2):
 
 
 def augdict(dict1, dict2):
-    return update_existing(dict1, dict2, copy=True)
+    return update_existing(dict1, dict2, copy=True, assert_exists=True)
 
 
 def update_existing(dict1, dict2, copy=False, assert_exists=False):
@@ -952,6 +952,10 @@ def dict_intersection(dict1, dict2, onlykeys=False):
     keys3 = set(dict1.keys()).intersection(set(dict2.keys()))
     dict3 = {key: dict1[key] for key in keys3 if dict1[key] == dict2[key]}
     return dict3
+
+
+def dict_filter_nones(dict_):
+    return {key: val for key, val in six.iteritems(dict_) if val is not None}
 
 
 if __name__ == '__main__':

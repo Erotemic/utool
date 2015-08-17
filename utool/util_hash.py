@@ -106,31 +106,34 @@ def hashstr_arr(arr, lbl='arr', pathsafe=False, **kwargs):
         str: arr_hashstr
 
     CommandLine:
+        python -m utool.util_hash --exec-hashstr_arr
         python -m utool.util_hash --test-hashstr_arr
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> import numpy as np
-        >>> arr = np.array([[1, 2, 3], [4, 5, 6]])
+        >>> arr = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float64)
         >>> lbl = 'arr'
+        >>> kwargs = {}
         >>> pathsafe = False
         >>> arr_hashstr = hashstr_arr(arr, lbl, pathsafe, alphabet=ALPHABET_27)
         >>> result = ('arr_hashstr = %s' % (str(arr_hashstr),))
         >>> print(result)
-        arr_hashstr = arr((2,3)gghxvkzwtbuxjwkp)
+        arr_hashstr = arr((2,3)daukyreqnhfejkfs)
 
     Example2:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> import numpy as np
-        >>> arr = np.array([[1, 2, 3], [4, 5, 6]])
+        >>> arr = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float64)
+        >>> kwargs = {}
         >>> lbl = 'arr'
         >>> pathsafe = True
         >>> arr_hashstr = hashstr_arr(arr, lbl, pathsafe, alphabet=ALPHABET_27)
         >>> result = ('arr_hashstr = %s' % (str(arr_hashstr),))
         >>> print(result)
-        arr_hashstr = arr-_2,3_gghxvkzwtbuxjwkp-
+        arr_hashstr = arr-_2,3_daukyreqnhfejkfs-
     """
     if isinstance(arr, list):
         arr = tuple(arr)  # force arrays into a tuple for hashability
@@ -142,6 +145,7 @@ def hashstr_arr(arr, lbl='arr', pathsafe=False, **kwargs):
     if isinstance(arr, tuple):
         arr_shape = lbrace1 + str(len(arr)) + rbrace1
     else:
+        # Arr should be an ndarray here. append info about the ndarray
         arr_shape = lbrace1 + ','.join(list(map(str, arr.shape))) + rbrace1
     arr_hashstr_ = hashstr(arr, **kwargs)
     arr_hashstr = ''.join([lbl, lbrace2, arr_shape, arr_hashstr_, rbrace2])

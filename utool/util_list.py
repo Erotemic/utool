@@ -19,6 +19,7 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[list]')
 
 # --- List Allocations ---
 
+
 def lmap(func, iter_):
     """
     list map - eagerly evaulates map like in python2
@@ -1069,6 +1070,26 @@ def sortedby2(item_list, *args, **kwargs):
     sorted_tups = sorted(tup_list, key=key, reverse=reverse)
     sorted_list = [tup[0] for tup in sorted_tups]
     return sorted_list
+
+
+def list_unflat_take(items_list, unflat_index_list):
+    r"""
+    Args:
+        items_list (list):
+        unflat_index_list (list):
+
+    CommandLine:
+        python -m utool.util_list --exec-list_unflat_take
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> items_list = [1, 2, 3, 4, 5]
+        >>> unflat_index_list = [[0, 1], [2, 3], [0, 4]]
+        >>> result = list_unflat_take(items_list, unflat_index_list)
+        >>> print(result)
+    """
+    return [list_unflat_take(items_list, xs) if isinstance(xs, list) else list_take(items_list, xs) for xs in unflat_index_list]
 
 
 def list_argsort(*args, **kwargs):
