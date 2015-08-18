@@ -802,6 +802,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     """
     import multiprocessing
     import utool as ut  # NOQA
+    ut.start_logging()
     multiprocessing.freeze_support()  # just in case
 
     ut.inject_colored_exceptions()
@@ -833,6 +834,8 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
         src  = testtup.src
         want = testtup.want
         flag = testtup.flag
+        if ut.is_developer():
+            ut.change_term_title('DocTest ' + modname + ' ' + name)
         print('\n\n')
         print('--------------------------------------------------------------')
         print('--------------------------------------------------------------')

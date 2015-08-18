@@ -429,7 +429,7 @@ def parse_arglist_hack(argx):
     return arglist
 
 
-def get_arg_dict(argv=None):
+def get_arg_dict(argv=None, prefix_list=['--']):
     r"""
     Yet another way for parsing args
 
@@ -474,11 +474,15 @@ def get_arg_dict(argv=None):
     if argv is None:
         argv = sys.argv
     arg_dict = {}
+
+    def startswith_prefix(arg):
+        return any([arg.startswith(prefix) for prefix in prefix_list])
+
     def argx_has_value(argv, argx):
         # Check if has a value
         if argv[argx].find('=') > -1:
             return True
-        if argx + 1 < len(argv) and not argv[argx + 1].startswith('--'):
+        if argx + 1 < len(argv) and not startswith_prefix(argv[argx + 1]):
             return True
         return False
 
@@ -490,15 +494,17 @@ def get_arg_dict(argv=None):
 
     for argx in range(len(argv)):
         arg = argv[argx]
-        if arg.startswith('--'):
-            argname = arg[2:]
-            if argx_has_value(argv, argx):
-                if arg.find('=') > -1:
-                    argname = arg[2:arg.find('=')]
-                argvalue = get_arg_value(argv, argx)
-                arg_dict[argname] = argvalue
-            else:
-                arg_dict[argname] = True
+        for prefix in prefix_list:
+            if arg.startswith(prefix):
+                argname = arg[len(prefix):]
+                if argx_has_value(argv, argx):
+                    if arg.find('=') > -1:
+                        argname = arg[len(prefix):arg.find('=')]
+                    argvalue = get_arg_value(argv, argx)
+                    arg_dict[argname] = argvalue
+                else:
+                    arg_dict[argname] = True
+                break
     return arg_dict
 
 # Backwards Compatibility Aliases

@@ -12,14 +12,12 @@ def tiled_range(range_, cols):
     #np.tile(np.arange(num_qf).reshape(num_qf, 1), (1, k_vsmany))
 
 
-def random_indexes(max_index, subset_size=None, seed=None):
+def random_indexes(max_index, subset_size=None, seed=None, rng=None):
     """ random unrepeated indicies """
     subst_ = np.arange(0, max_index)
-    if seed is None:
-        np.random.shuffle(subst_)
-    else:
-        randstate = np.random.RandomState(seed=seed)
-        randstate.shuffle(subst_)
+    if rng is None:
+        rng = np.random if seed is None else np.random.RandomState(seed=seed)
+    rng.shuffle(subst_)
     if subset_size is None:
         subst = subst_
     else:
