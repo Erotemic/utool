@@ -241,7 +241,7 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=None,
 
     # Get iterator with or without progress
     result_generator = (
-        util_progress.ProgressIter(raw_generator, nTotal=nTasks, lbl=get_funcname(func) + ': ', freq=freq)
+        util_progress.ProgressIter(raw_generator, nTotal=nTasks, lbl=get_funcname(func) + ': ', freq=freq, autoadjust=False)
         if prog else raw_generator
     )
     if __TIME_GENERATE__:

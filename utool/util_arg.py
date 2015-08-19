@@ -47,10 +47,11 @@ def get_module_verbosity_flags(*labels):
     veryverbose_flags = tuple(
         [prefix + lbl for prefix, lbl in
          itertools.product(veryverbose_prefix_list, labels)])
-    veryverbose_module = VERYVERBOSE or get_argflag(verbose_flags)
-    verbose_module = (veryverbose_module or VERBOSE or
-                      get_argflag(veryverbose_flags))
+    veryverbose_module = get_argflag(veryverbose_flags) or VERYVERBOSE
+    verbose_module = (get_argflag(verbose_flags) or veryverbose_module or VERBOSE)
     return verbose_module, veryverbose_module
+
+get_verbflag = get_module_verbosity_flags
 
 
 def reset_argrecord():

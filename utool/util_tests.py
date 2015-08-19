@@ -817,7 +817,8 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     modname = ut.get_modname_from_modpath(frame_fpath)
     #+-------------------
     if ut.is_developer():
-        ut.change_term_title('DocTest ' + modname)
+        ut.change_term_title('DocTest ' + ' '.join(sys.argv))
+        #ut.change_term_title('DocTest ' + modname)
     #L__________________
     #+-------------------
     # Run enabled examles
@@ -834,8 +835,8 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
         src  = testtup.src
         want = testtup.want
         flag = testtup.flag
-        if ut.is_developer():
-            ut.change_term_title('DocTest ' + modname + ' ' + name)
+        #if ut.is_developer():
+        #    ut.change_term_title('DocTest ' + modname + ' ' + name)
         print('\n\n')
         print('--------------------------------------------------------------')
         print('--------------------------------------------------------------')
@@ -904,6 +905,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
                             for flag_ in failed_flag_list]
         #failed_cmd_list = ['python %s %s' % (frame_fpath, flag_)
         #                    for flag_ in failed_flag_list]
+        print('Failed sys.argv = %r' % (' '.join(sys.argv),))
         print('Failed Tests:')
         print('\n'.join(failed_cmd_list))
     #L__________________

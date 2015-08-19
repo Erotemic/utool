@@ -89,7 +89,7 @@ def inject_instance(self, classtype=None, allow_override=False,
                     print('[utool] Warning: using subclass=%r' % (classtype_,))
                     break
         func_list = __CLASSTYPE_ATTRIBUTES__[classtype]
-        if verbose or util_arg.VERBOSE:
+        if verbose:
             print('[util_class] injecting %d methods\n   with classtype=%r\n   into %r' % (len(func_list), classtype, self,))
         for func in func_list:
             if VERBOSE_CLASS:

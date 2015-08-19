@@ -515,7 +515,9 @@ def dict_subset(dict_, keys):
         >>> print(result)
         {'K': 3, 'dcvs_clip_max': 0.2,}
     """
-    subdict_ = {key: dict_[key] for key in keys}
+    item_sublist = [(key, dict_[key]) for key in keys]
+    #subdict_ = type(dict_)(item_sublist)  # maintain old dict format
+    subdict_ = OrderedDict(item_sublist)  # maintain old dict format
     return subdict_
 
 

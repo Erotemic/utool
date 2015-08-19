@@ -355,7 +355,12 @@ class ProgressIter(object):
         #time_thresh = 0.5
         max_between_time = -1.0
         max_between_count = -1.0  # why is this different? # because frequency varies
+
+        # TODO: should be kept as a statistic that uses the max time from a
+        # list of iterations divided by the size of that list that will account
+        # for buffering issues
         iters_per_second = -1
+
         #est_timeunit_left = -1
 
         # Write initial message
