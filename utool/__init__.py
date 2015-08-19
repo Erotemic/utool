@@ -596,7 +596,7 @@ if DOELSE:
                                 TRIPLE_DOUBLE_QUOTE, TRIPLE_SINGLE_QUOTE, 
                                 align, align_lines, array2string2, array_repr2, 
                                 bbox_str, bubbletext, byte_str, byte_str2, 
-                                clipstr, closet_words, codeblock, cond_phrase, 
+                                clipstr, closet_words, codeblock, conj_phrase, 
                                 dict_aliased_repr, dict_itemstr_list, dict_str, 
                                 doctest_code_line, doctest_repr, edit_distance, 
                                 extend_global_aliases, file_megabytes_str, 

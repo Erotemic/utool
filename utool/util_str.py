@@ -1910,19 +1910,16 @@ def get_textdiff(text1, text2, num_context_lines=0):
     return '\n'.join(diff_lines)
 
 
-def cond_phrase(list_, cond='or'):
+def conj_phrase(list_, cond='or'):
     """
-    takes a list of words and joins them using english conjunction rules
-
-    not sure what the right name for this should be
-    something to do with conjunctions?
+    Joins a list of words using English conjunction rules
 
     Args:
         list_ (list):  of strings
-        cond (str): a conjunction
+        cond (str): a conjunction (or, and, but)
 
     Returns:
-        str: the conditional phrase
+        str: the joined cconjunction phrase
 
     References:
         http://en.wikipedia.org/wiki/Conjunction_(grammar)
@@ -1931,7 +1928,7 @@ def cond_phrase(list_, cond='or'):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_str import *  # NOQA
         >>> list_ = ['a', 'b', 'c']
-        >>> result = cond_phrase(list_, 'or')
+        >>> result = conj_phrase(list_, 'or')
         >>> print(result)
         a, b, or c
 
@@ -1939,7 +1936,7 @@ def cond_phrase(list_, cond='or'):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_str import *  # NOQA
         >>> list_ = ['a', 'b']
-        >>> result = cond_phrase(list_, 'and')
+        >>> result = conj_phrase(list_, 'and')
         >>> print(result)
         a and b
     """

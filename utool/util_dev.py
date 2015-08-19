@@ -855,7 +855,7 @@ class InteractiveIter(object):
     def prompt(iiter):
         import utool as ut
         def _or_phrase(list_):
-            return ut.cond_phrase(list(map(repr, list_)), 'or')
+            return ut.conj_phrase(list(map(repr, list_)), 'or')
         msg_list = ['enter %s to %s' % (_or_phrase(tup[1]), tup[2])
                     for tup in iiter.action_tuples]
         msg = ut.indentjoin(msg_list, '\n | * ')
@@ -885,8 +885,8 @@ def user_cmdline_prompt(msg=''):
     #ans_list_no = ['no', 'n']
     ##ans_list_yes = ['yes', 'y']
     #prompt_str = prompt_fmtstr.format(
-    #    no_phrase=ut.cond_phrase(ans_list_no),
-    #    embed_phrase=ut.cond_phrase(ans_list_embed),
+    #    no_phrase=ut.conj_phrase(ans_list_no),
+    #    embed_phrase=ut.conj_phrase(ans_list_embed),
     #    decidemsg=decidemsg
     #)
     #prompt_block = ut.msgblock('USER_INPUT', prompt_str)
@@ -913,7 +913,7 @@ def are_you_sure(msg=''):
         print('accepting based on command line flag')
         return True
     valid_ans = ['yes', 'y']
-    valid_prompt = util_str.cond_phrase(valid_ans, 'or')
+    valid_prompt = util_str.conj_phrase(valid_ans, 'or')
     ans = input('Are you sure?\n Enter %s to accept\n' % valid_prompt)
     return ans.lower() in valid_ans
 

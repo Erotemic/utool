@@ -489,7 +489,7 @@ def grab_test_imgpath(key='lena.png', allow_external=True, verbose=True):
             raise AssertionError(
                 'testimg_fpath=%r not found did you mean %s' % (
                     testimg_fpath,
-                    ut.cond_phrase(get_valid_test_imgkeys(), 'or')))
+                    ut.conj_phrase(get_valid_test_imgkeys(), 'or')))
     else:
         testimg_fname = key
         testimg_url = TESTIMG_URL_DICT[key]
