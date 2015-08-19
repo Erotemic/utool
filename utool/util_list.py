@@ -1907,6 +1907,32 @@ def list_transpose(list_):
     return list(zip(*list_))
 
 
+def remove_items_by_index(list_, index_list):
+    """
+    Args:
+        list_ (list):
+        index_list (list):
+
+    CommandLine:
+        python -m utool.util_list --exec-remove_items_by_index
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [8, 1, 8, 1, 6, 6, 3, 4, 4, 5, 6]
+        >>> index_list = [2, -1]
+        >>> result = remove_items_by_index(list_, index_list)
+        >>> print(result)
+    """
+    # Rectify negative indicies
+    index_list_ = [len(list_) + index if index < 0 else index for index in index_list]
+    # Remove largest indicies first
+    index_list_ = sorted(index_list_, reverse=True)
+    for index in index_list_:
+        del list_[index]
+    return list_
+
+
 if __name__ == '__main__':
     """
     CommandLine:

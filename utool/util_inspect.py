@@ -730,7 +730,7 @@ def exec_func_sourcecode(func, globals_, locals_, key_list):
 exec_func_src = exec_func_sourcecode
 
 
-def get_func_sourcecode(func, stripdef=False, stripret=False):
+def get_func_sourcecode(func, stripdef=False, stripret=False, strip_docstr=False, remove_linenums=None):
     """
     wrapper around inspect.getsource but takes into account utool decorators
     strip flags are very hacky as of now
@@ -800,6 +800,57 @@ def get_func_sourcecode(func, stripdef=False, stripret=False):
         #print(sourcecode_)
         sourcecode = sourcecode_
         pass
+    if strip_docstr:
+        # pip install pyminifier
+        # References: http://code.activestate.com/recipes/576704/
+        #from pyminifier import minification, token_utils
+        def remove_docstrings(source):
+            """
+            TODO: commit to pyminifier
+            """
+            import tokenize
+            from six.moves import StringIO
+            io_obj = StringIO(source)
+            out = ''
+            prev_toktype = tokenize.INDENT
+            last_lineno = -1
+            last_col = 0
+            for tok in tokenize.generate_tokens(io_obj.readline):
+                token_type = tok[0]
+                token_string = tok[1]
+                start_line, start_col = tok[2]
+                end_line, end_col = tok[3]
+                if start_line > last_lineno:
+                    last_col = 0
+                if start_col > last_col:
+                    out += (' ' * (start_col - last_col))
+                ## Remove comments:
+                #if token_type == tokenize.COMMENT:
+                #    pass
+                #elif token_type == tokenize.STRING:
+                if token_type == tokenize.STRING:
+                    if prev_toktype != tokenize.INDENT:
+                        # This is likely a docstring; double-check we're not inside an operator:
+                        if prev_toktype != tokenize.NEWLINE:
+                            if start_col > 0:
+                                out += token_string
+                else:
+                    out += token_string
+                prev_toktype = token_type
+                last_col = end_col
+                last_lineno = end_line
+            return out
+        sourcecode = remove_docstrings(sourcecode)
+        #sourcecode = minification.remove_comments_and_docstrings(sourcecode)
+        #tokens = token_utils.listified_tokenizer(sourcecode)
+        #minification.remove_comments(tokens)
+        #minification.remove_docstrings(tokens)
+        #token_utils.untokenize(tokens)
+
+    if remove_linenums is not None:
+        source_lines = sourcecode.strip('\n').split('\n')
+        ut.remove_items_by_index(source_lines, remove_linenums)
+        sourcecode = '\n'.join(source_lines)
     return sourcecode
     #else:
     #return get_func_sourcecode(func._utinfo['src'])
