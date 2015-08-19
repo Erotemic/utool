@@ -1735,6 +1735,12 @@ def long_fname_format(fmt_str, fmt_dict, hashable_keys=[], max_len=64, hashlen=1
     return fname
 
 
+def multi_replace(str_, search_list, repl_list):
+    for search, repl in zip(search_list, repl_list):
+        str_ = str_.replace(search, repl)
+    return str_
+
+
 def replace_nonquoted_text(text, search_list, repl_list):
     """
     replace_nonquoted_text

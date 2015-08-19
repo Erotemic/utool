@@ -21,6 +21,11 @@ def get_first_None_position(list_):
     return None
 
 
+def assert_all_in(key_list, valid_list, msg=''):
+    missing_keys = set(key_list).difference(set(valid_list))
+    assert len(missing_keys) == 0, 'missing_keys = %r. %s' % (missing_keys, msg)
+
+
 def assert_all_not_None(list_, list_name='some_list', key_list=[], verbose=not util_arg.QUIET,
                         veryverbose=False):
     if util_arg.NO_ASSERTS:
