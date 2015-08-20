@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """ convinience functions for dictionaries """
 from __future__ import absolute_import, division, print_function
+import operator
 from collections import defaultdict, OrderedDict
 from itertools import product as iprod
 from six.moves import zip
@@ -927,15 +928,17 @@ def merge_dicts(*args):
     return mergedict_
 
 
-def dict_intersection(dict1, dict2, onlykeys=False):
+def dict_intersection(dict1, dict2, combine=False, combine_op=operator.add):
     r"""
     Args:
         dict1 (dict):
         dict2 (dict):
-        onlykeys (bool): (default = False)
+        combine (bool): Combines keys only if the values are equal if False else
+            values are combined using combine_op (default = False)
+        combine_op (builtin_function_or_method): (default = operator.add)
 
     Returns:
-        ?: mergedict_
+        dict: mergedict_
 
     CommandLine:
         python -m utool.util_dict --exec-dict_intersection
@@ -945,14 +948,17 @@ def dict_intersection(dict1, dict2, onlykeys=False):
         >>> from utool.util_dict import *  # NOQA
         >>> dict1 = {'a': 1, 'b': 2, 'c': 3, 'd': 4}
         >>> dict2 = {'b': 2, 'c': 3, 'd': 5, 'e': 21, 'f': 42}
-        >>> onlykeys = False
-        >>> mergedict_ = dict_intersection(dict1, dict2, onlykeys)
+        >>> eq_vals = False
+        >>> mergedict_ = dict_intersection(dict1, dict2, eq_vals)
         >>> result = ('mergedict_ = %s' % (str(mergedict_),))
         >>> print(result)
         mergedict_ = {'c': 3, 'b': 2}
     """
     keys3 = set(dict1.keys()).intersection(set(dict2.keys()))
-    dict3 = {key: dict1[key] for key in keys3 if dict1[key] == dict2[key]}
+    if combine:
+        dict3 = {key: combine_op(dict1[key], dict2[key]) for key in keys3}
+    else:
+        dict3 = {key: dict1[key] for key in keys3 if dict1[key] == dict2[key]}
     return dict3
 
 

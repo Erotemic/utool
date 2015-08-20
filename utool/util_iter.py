@@ -83,10 +83,112 @@ def iget_list_column_slice(list_, start=None, stop=None, stride=None):
     return (row[slice_] for row in list_)
 
 
-def itertwo(iterable):
-    iter1 = iter(iterable)
-    iter2 = iter(iterable)
+def iter_window(iterable, size=2, step=1, wrap=False):
+    """
+    iterates through iterable with a window size
+    generalizeation of itertwo
+
+    Args:
+        iterable (iter): an iterable sequence
+        size (int): window size (default = 2)
+        wrap (bool): wraparound (default = False)
+
+    Returns:
+        iter: returns windows in a sequence
+
+    CommandLine:
+        python -m utool.util_iter --exec-iter_window
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_iter import *  # NOQA
+        >>> iterable = [1, 2, 3, 4, 5, 6]
+        >>> size, step, wrap = 3, 1, True
+        >>> window_iter = iter_window(iterable, size, step, wrap)
+        >>> window_list = list(window_iter)
+        >>> result = ('window_list = %r' % (window_list,))
+        >>> print(result)
+        window_list = [(1, 2, 3), (2, 3, 4), (3, 4, 5), (4, 5, 6), (5, 6, 1), (6, 1, 2)]
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_iter import *  # NOQA
+        >>> iterable = [1, 2, 3, 4, 5, 6]
+        >>> size, step, wrap = 3, 2, True
+        >>> window_iter = iter_window(iterable, size, step, wrap)
+        >>> window_list = list(window_iter)
+        >>> result = ('window_list = %r' % (window_list,))
+        >>> print(result)
+        window_list = [(1, 2, 3), (3, 4, 5), (5, 6, 1)]
+    """
+    # itertools.tee may be slow, but works on all iterables
+    iter_list = itertools.tee(iterable, size)
+    if wrap:
+        iter_list = [iter_list[0]] + list(map(itertools.cycle, iter_list[1:]))
+    # Step each iterator the approprate number of times
+    for count, iter_ in enumerate(iter_list[1:], start=1):
+        for _ in range(count):
+            six.next(iter_)
+    _window_iter = zip(*iter_list)
+    window_iter = itertools.islice(_window_iter, 0, None, step)
+    return window_iter
+
+
+def itertwo(iterable, wrap=False):
+    r"""
+    equivalent to iter_window(iterable, 2, 1, wrap)
+
+    Args:
+        iterable (iter): an iterable sequence
+        wrap (bool): if True, returns with wraparound
+
+    Returns:
+        iter: returns edges in a sequence
+
+    CommandLine:
+        python -m utool.util_iter --test-itertwo
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_iter import *  # NOQA
+        >>> iterable = [1, 2, 3, 4]
+        >>> wrap = False
+        >>> edges = list(itertwo(iterable, wrap))
+        >>> result = ('edges = %r' % (edges,))
+        >>> print(result)
+        edges = [(1, 2), (2, 3), (3, 4)]
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_iter import *  # NOQA
+        >>> iterable = [1, 2, 3, 4]
+        >>> wrap = True
+        >>> edges = list(itertwo(iterable, wrap))
+        >>> result = ('edges = %r' % (edges,))
+        >>> print(result)
+        edges = [(1, 2), (2, 3), (3, 4), (4, 1)]
+
+    Example3:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_iter import *  # NOQA
+        >>> iterable = iter([1, 2, 3, 4])
+        >>> wrap = False
+        >>> edge_iter = itertwo(iterable, wrap)
+        >>> edges = list(edge_iter)
+        >>> result = ('edges = %r' % (edges,))
+        >>> ut.assert_eq(len(list(iterable)), 0, 'iterable should have been used up')
+        >>> print(result)
+        edges = [(1, 2), (2, 3), (3, 4)]
+    """
+    # itertools.tee may be slow, but works on all iterables
+    iter1, iter2 = itertools.tee(iterable, 2)
+    if wrap:
+        iter2 = itertools.cycle(iter2)
     six.next(iter2)
+    #item_list = list(item_list)  # input can not be a consumable generator need to eagerly evaluate
+    #iter1 = iter(item_list)
+    #iter2 = iter(item_list) if not wrap else itertools.cycle(item_list)
+    #six.next(iter2)
     return zip(iter1, iter2)
 
 
