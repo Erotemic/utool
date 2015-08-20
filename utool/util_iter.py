@@ -124,12 +124,14 @@ def iter_window(iterable, size=2, step=1, wrap=False):
     # itertools.tee may be slow, but works on all iterables
     iter_list = itertools.tee(iterable, size)
     if wrap:
+        # Secondary iterables need to be cycled for wraparound
         iter_list = [iter_list[0]] + list(map(itertools.cycle, iter_list[1:]))
     # Step each iterator the approprate number of times
     for count, iter_ in enumerate(iter_list[1:], start=1):
         for _ in range(count):
             six.next(iter_)
     _window_iter = zip(*iter_list)
+    # Account for the step size
     window_iter = itertools.islice(_window_iter, 0, None, step)
     return window_iter
 
