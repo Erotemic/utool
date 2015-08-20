@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Module that handles string formating and manipulation of varoius data
 """
