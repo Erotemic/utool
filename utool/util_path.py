@@ -705,14 +705,14 @@ def symlink(path, link, noraise=False):
 
 
 def file_bytes(fpath):
-    """
+    r"""
     returns size of file in bytes (int)
     """
     return os.stat(fpath).st_size
 
 
 def file_megabytes(fpath):
-    """
+    r"""
     returns size of file in megabytes (float)
     """
     return os.stat(fpath).st_size / (2.0 ** 20)
@@ -724,7 +724,7 @@ def glob_python_modules(dirname, **kwargs):
 
 def glob(dpath, pattern, recursive=False, with_files=True, with_dirs=True,
          maxdepth=None, exclude_dirs=[], fullpath=True, **kwargs):
-    """
+    r"""
     Globs directory for pattern
 
     Args:
@@ -761,6 +761,7 @@ def glob(dpath, pattern, recursive=False, with_files=True, with_dirs=True,
         >>> print('exclude_dirs = ' + ut.list_str(exclude_dirs))
         >>> path_list = glob(dpath, pattern, recursive, with_files, with_dirs, maxdepth, exclude_dirs, fullpath)
         >>> result = ('path_list = %s' % (ut.list_str(path_list),))
+        >>> result = result.replace(r'\\', '/')
         >>> print(result)
         path_list = [
             '__init__.py',
@@ -778,7 +779,7 @@ def glob(dpath, pattern, recursive=False, with_files=True, with_dirs=True,
 
 def iglob(dpath, pattern, recursive=False, with_files=True, with_dirs=True,
           maxdepth=None, exclude_dirs=[], fullpath=True, **kwargs):
-    """
+    r"""
     Iteratively globs directory for pattern
 
     Args:

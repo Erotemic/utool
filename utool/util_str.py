@@ -822,7 +822,7 @@ def numpy_str2(arr, **kwargs):
     return numpy_str(arr, **kwargs)
 
 
-def numpy_str(arr, strvals=False, precision=8, pr=None, force_dtype=True, suppress_small=None, max_line_width=None, threshold=None, **kwargs):
+def numpy_str(arr, strvals=False, precision=None, pr=None, force_dtype=True, suppress_small=None, max_line_width=None, threshold=None, **kwargs):
     """
     suppress_small = False turns off scientific representation
     """
@@ -853,7 +853,7 @@ def numpy_str(arr, strvals=False, precision=8, pr=None, force_dtype=True, suppre
     return valstr
 
 
-def numeric_str(num, precision=8, **kwargs):
+def numeric_str(num, precision=None, **kwargs):
     """
     Args:
         num (scalar or array):
@@ -901,7 +901,7 @@ def numeric_str(num, precision=8, **kwargs):
 
 
 def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
-                      recursive=True, indent_='', precision=8,
+                      recursive=True, indent_='', precision=None,
                       hack_liststr=False, explicit=False, truncate=False, key_order=None,
                       truncatekw=dict(), key_order_metric=None, use_numpy=True, **dictkw):
     """
@@ -1041,7 +1041,7 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
 
 
 def get_itemstr_list(list_, strvals=False, newlines=True,
-                      recursive=True, indent_='', precision=8, label_list=None,
+                      recursive=True, indent_='', precision=None, label_list=None,
                      **listkws):
     """
     TODO: have this replace dict_itemstr list or at least most functionality in
@@ -1265,7 +1265,7 @@ def obj_str(obj_, **kwargs):
 
 
 def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
-             indent_='', precision=8, hack_liststr=False, truncate=False,
+             indent_='', precision=None, hack_liststr=False, truncate=False,
              nl=None, explicit=False, truncatekw=dict(), key_order=None,
              key_order_metric=None, nobraces=False, align=False, **dictkw):
     """

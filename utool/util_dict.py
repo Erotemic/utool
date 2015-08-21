@@ -953,7 +953,7 @@ def dict_union3(dict1, dict2, combine=False, combine_op=operator.add):
         >>> mergedict_ = dict_union3(dict1, dict2, combine, combine_op)
         >>> result = ('mergedict_ = %s' % (str(mergedict_),))
         >>> print(result)
-        mergedict_ = {'c': 3, 'b': 2}
+        mergedict_ = {'a': 1, 'c': 6, 'b': 4, 'e': 21, 'd': 9, 'f': 42}
     """
     keys1 = set(dict1.keys())
     keys2 = set(dict2.keys())

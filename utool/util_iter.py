@@ -84,7 +84,7 @@ def iget_list_column_slice(list_, start=None, stop=None, stride=None):
 
 
 def iter_window(iterable, size=2, step=1, wrap=False):
-    """
+    r"""
     iterates through iterable with a window size
     generalizeation of itertwo
 
