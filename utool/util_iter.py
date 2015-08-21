@@ -150,7 +150,7 @@ def itertwo(iterable, wrap=False):
     CommandLine:
         python -m utool.util_iter --test-itertwo
 
-    Example:
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_iter import *  # NOQA
         >>> iterable = [1, 2, 3, 4]
@@ -160,7 +160,7 @@ def itertwo(iterable, wrap=False):
         >>> print(result)
         edges = [(1, 2), (2, 3), (3, 4)]
 
-    Example2:
+    Example1:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_iter import *  # NOQA
         >>> iterable = [1, 2, 3, 4]
@@ -170,9 +170,10 @@ def itertwo(iterable, wrap=False):
         >>> print(result)
         edges = [(1, 2), (2, 3), (3, 4), (4, 1)]
 
-    Example3:
+    Example2:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_iter import *  # NOQA
+        >>> python.exe -m utool.util_iter --test-itertwo:2
         >>> iterable = iter([1, 2, 3, 4])
         >>> wrap = False
         >>> edge_iter = itertwo(iterable, wrap)
