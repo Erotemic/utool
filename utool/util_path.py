@@ -410,6 +410,13 @@ def checkpath(path_, verbose=VERYVERBOSE, n=None, info=VERYVERBOSE):
     """
     assert isinstance(path_, six.string_types), 'path_=%r is not a string. type(path_) = %r' % (path_, type(path_))
     path_ = normpath(path_)
+    if sys.platform.startswith('win32'):
+        # convert back to windows style path if using unix style
+        if path_.startswith('\\'):
+            dirs = path_.split('\\')
+            if len(dirs) > 1 and len(dirs[0]) == 0 and len(dirs[1]) == 1:
+                dirs[1] = dirs[1].upper() + ':'
+                path_ = '\\'.join(dirs[1:])
     does_exist = exists(path_)
     if verbose:
         #print_('[utool] checkpath(%r)' % (path_))
