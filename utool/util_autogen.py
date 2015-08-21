@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import os
 from utool import util_inject
+import six
 from collections import deque  # NOQA
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
 
@@ -46,8 +47,8 @@ def autofix_codeblock(codeblock, max_line_len=80,
     Uses autopep8 to format a block of code
 
     Example:
-        >>> import utool
-        >>> codeblock = utool.codeblock(
+        >>> import utool as ut
+        >>> codeblock = ut.codeblock(
             '''
             def func( with , some = 'Problems' ):
 
@@ -58,7 +59,7 @@ def autofix_codeblock(codeblock, max_line_len=80,
                     # syntax might not be perfect due to being cut off
                     ommiting_this_line_still_works=   True
             ''')
-        >>> fixed_codeblock = utool.autofix_codeblock(codeblock)
+        >>> fixed_codeblock = ut.autofix_codeblock(codeblock)
         >>> print(fixed_codeblock)
     """
     # FIXME idk how to remove the blank line following the function with
@@ -77,30 +78,49 @@ def autofix_codeblock(codeblock, max_line_len=80,
     return fixed_codeblock
 
 
-def auto_docstr(modname, funcname, verbose=True, moddir=None, **kwargs):
-    """
-    called from vim. Uses strings of filename and modnames to build docstr
-
+def load_func_from_module(modname, funcname, verbose=True, moddir=None):
+    r"""
     Args:
-        modname (str):
-        funcname (str):
+        modname (str):  module name
+        funcname (str):  function name
+        verbose (bool):  verbosity flag(default = True)
+        moddir (None): (default = None)
 
-    Returns:
-        docstr
+    CommandLine:
+        python -m utool.util_autogen --exec-load_func_from_module
 
     Example:
-        >>> import utool
-        >>> utool.util_autogen.rrr(verbose=False)
-        >>> #docstr = utool.auto_docstr('ibeis.model.hots.smk.smk_index', 'compute_negentropy_names')
-        >>> modname = 'utool.util_autogen'
-        >>> funcname = 'auto_docstr'
-        >>> docstr = utool.util_autogen.auto_docstr(modname, funcname)
-        >>> print(docstr)
+        >>> # UNSTABLE_DOCTEST
+        >>> from utool.util_autogen import *  # NOQA
+        >>> modname = 'plottool.plots'
+        >>> funcname = 'multi_plot'
+        >>> verbose = True
+        >>> moddir = None
+        >>> func, module, error_str = load_func_from_module(modname, funcname, verbose, moddir)
+        >>> source = ut.get_func_sourcecode(func, strip_docstr=True, strip_comments=True)
+        >>> keyname = ut.named_field('keyname', ut.REGEX_VARNAME)
+        >>> default = ut.named_field('default', '[\'\"A-Za-z_][A-Za-z0-9_\'\"]*')
+        >>> pattern = re.escape('kwargs.get(\'') + keyname + re.escape('\',')
+        >>> re.compile(pattern)
+        >>> kwarg_keys = [match.groupdict()['keyname'] for match in re.finditer(pattern, source)]
+        >>> #ut.regex_or([
+        >>> #    re.escape('kwargs.get(\'') + keyname + re.escape('\','),
+        >>> #    #re.escape('kwargs.get("') + keyname + re.escape('",'),
+        >>> #    #re.escape('kwargs.get(\'') + keyname + re.escape('\')'),
+        >>> #    #re.escape('kwargs.get("') + keyname + re.escape('")'),
+        >>> #    #re.escape('kwargs.get(\'') + keyname + '\', *' + default + re.escape(')'),
+        >>> #    #re.escape('kwargs.get("') + keyname + '", *' + default + re.escape(')'),
+        >>> #    #re.escape('''kwargs.get('%s', %s)''') % (keyname, default),
+        >>> #    #re.escape('''kwargs.get("%s", %s)''') % (keyname, default),
+        >>> #])
     """
-    import utool
-    import utool as ut  # NOQA
-    docstr = 'error'
-    if isinstance(modname, str):
+    import utool as ut
+    func = None
+    module = None
+    error_str = None
+    if not isinstance(modname, six.string_types):
+        error_str = 'modname=%r is not a string. bad input' % (modname,)
+    else:
         module = __import__(modname)
         import imp
         #import inspect
@@ -114,7 +134,7 @@ def auto_docstr(modname, funcname, verbose=True, moddir=None, **kwargs):
         imp.reload(module)
         try:
             # FIXME: PYTHON 3
-            execstr = utool.codeblock(
+            execstr = ut.codeblock(
                 '''
                 try:
                     import {modname}
@@ -139,41 +159,158 @@ def auto_docstr(modname, funcname, verbose=True, moddir=None, **kwargs):
                         finally:
                             os.chdir(orig_dir)
                 import imp
-                import utool
-                imp.reload(utool.util_autogen)
-                imp.reload(utool.util_inspect)
-                #if hasattr(module, '{funcname}'):
-                #else:
+                import utool as ut
+                imp.reload(ut.util_autogen)
+                imp.reload(ut.util_inspect)
                 try:
                     func = module.{funcname}
-                    docstr = utool.util_autogen.make_default_docstr(func, **kwargs)
                 except AttributeError:
                     docstr = 'Could not find attribute funcname={funcname} in modname={modname} This might be a reloading issue'
                     imp.reload(module)
                 '''
             ).format(**locals())
-            exec_globals = globals()
             exec_locals = locals()
+            exec_globals = globals()
             exec(execstr, exec_globals, exec_locals)
-            docstr = exec_locals['docstr']
-            #, globals(), locals())
-            #return 'BARFOOO' +  docstr
-            return docstr
-            #print(execstr)
+            func = exec_locals.get('func', None)
+            module = exec_locals.get('module', None)
         except Exception as ex2:
             docstr = 'error ' + str(ex2)
             if verbose:
-                import utool
-                #utool.printex(ex1, 'ex1')
-                utool.printex(ex2, 'ex2', tb=True)
+                import utool as ut
+                #ut.printex(ex1, 'ex1')
+                ut.printex(ex2, 'ex2', tb=True)
             testcmd = 'python -c "import utool; print(utool.auto_docstr(\'%s\', \'%s\'))"' % (modname, funcname)
-            error_str = utool.formatex(ex2, 'ex2', tb=True, keys=['modname', 'funcname', 'testcmd'])
+            error_str = ut.formatex(ex2, 'ex2', tb=True, keys=['modname', 'funcname', 'testcmd'])
             error_str += '---' + execstr
-            return error_str
-            #return docstr + '\n' + execstr
+    return func, module, error_str
+
+
+def auto_docstr(modname, funcname, verbose=True, moddir=None, **kwargs):
+    """
+    called from vim. Uses strings of filename and modnames to build docstr
+
+    Args:
+        modname (str):
+        funcname (str):
+
+    Returns:
+        docstr
+
+    Example:
+        >>> import utool as ut
+        >>> ut.util_autogen.rrr(verbose=False)
+        >>> #docstr = ut.auto_docstr('ibeis.model.hots.smk.smk_index', 'compute_negentropy_names')
+        >>> modname = 'ut.util_autogen'
+        >>> funcname = 'auto_docstr'
+        >>> docstr = ut.util_autogen.auto_docstr(modname, funcname)
+        >>> print(docstr)
+    """
+    import utool as ut
+    func, module, error_str = load_func_from_module(modname, funcname, verbose=verbose, moddir=moddir)
+    if error_str is None:
+        docstr = ut.util_autogen.make_default_docstr(func, **kwargs)
     else:
-        docstr = 'error'
+        docstr = error_str
     return docstr
+
+
+#def auto_docstr_old(modname, funcname, verbose=True, moddir=None, **kwargs):
+#    """
+#    called from vim. Uses strings of filename and modnames to build docstr
+
+#    Args:
+#        modname (str):
+#        funcname (str):
+
+#    Returns:
+#        docstr
+
+#    Example:
+#        >>> import utool as ut
+#        >>> ut.util_autogen.rrr(verbose=False)
+#        >>> #docstr = ut.auto_docstr('ibeis.model.hots.smk.smk_index', 'compute_negentropy_names')
+#        >>> modname = 'ut.util_autogen'
+#        >>> funcname = 'auto_docstr'
+#        >>> docstr = ut.util_autogen.auto_docstr(modname, funcname)
+#        >>> print(docstr)
+#    """
+#    import utool as ut
+#    docstr = 'error'
+#    if isinstance(modname, str):
+#        module = __import__(modname)
+#        import imp
+#        #import inspect
+#        #imp.reload(inspect)
+#        # Try removing pyc if it exists
+#        #print(module.__file__)
+#        if module.__file__.endswith('.pyc'):
+#            ut.delete(module.__file__, verbose=False)
+#            module = __import__(modname)
+#        #print(module.__file__)
+#        imp.reload(module)
+#        try:
+#            # FIXME: PYTHON 3
+#            execstr = ut.codeblock(
+#                '''
+#                try:
+#                    import {modname}
+#                    module = {modname}
+#                    #print('Trying to reload module=%r' % (module,))
+#                    imp.reload(module)
+#                except Exception:
+#                    # If it fails maybe the module is not in the path
+#                    if moddir is not None:
+#                        try:
+#                            import imp
+#                            import os
+#                            orig_dir = os.getcwd()
+#                            os.chdir(moddir)
+#                            modname_str = '{modname}'
+#                            modinfo = imp.find_module(modname_str, [moddir])
+#                            module = imp.load_module(modname_str, *modinfo)
+#                            #print('loaded module=%r' % (module,))
+#                        except Exception as ex:
+#                            ut.printex(ex, 'failed to imp.load_module')
+#                            pass
+#                        finally:
+#                            os.chdir(orig_dir)
+#                import imp
+#                import utool as ut
+#                imp.reload(ut.util_autogen)
+#                imp.reload(ut.util_inspect)
+#                #if hasattr(module, '{funcname}'):
+#                #else:
+#                try:
+#                    func = module.{funcname}
+#                    docstr = ut.util_autogen.make_default_docstr(func, **kwargs)
+#                except AttributeError:
+#                    docstr = 'Could not find attribute funcname={funcname} in modname={modname} This might be a reloading issue'
+#                    imp.reload(module)
+#                '''
+#            ).format(**locals())
+#            exec_globals = globals()
+#            exec_locals = locals()
+#            exec(execstr, exec_globals, exec_locals)
+#            docstr = exec_locals['docstr']
+#            #, globals(), locals())
+#            #return 'BARFOOO' +  docstr
+#            return docstr
+#            #print(execstr)
+#        except Exception as ex2:
+#            docstr = 'error ' + str(ex2)
+#            if verbose:
+#                import utool as ut
+#                #ut.printex(ex1, 'ex1')
+#                ut.printex(ex2, 'ex2', tb=True)
+#            testcmd = 'python -c "import utool; print(utool.auto_docstr(\'%s\', \'%s\'))"' % (modname, funcname)
+#            error_str = ut.formatex(ex2, 'ex2', tb=True, keys=['modname', 'funcname', 'testcmd'])
+#            error_str += '---' + execstr
+#            return error_str
+#            #return docstr + '\n' + execstr
+#    else:
+#        docstr = 'error'
+#    return docstr
 
 
 def print_auto_docstr(modname, funcname):
@@ -503,6 +640,7 @@ def make_default_docstr(func,
     needs_surround = funcinfo.needs_surround
     funcname       = funcinfo.funcname
     ismethod       = funcinfo.ismethod
+    kwarg_keys     = funcinfo.kwarg_keys
 
     docstr_parts = []
     # Header part
@@ -516,6 +654,12 @@ def make_default_docstr(func,
         arg_docstr = make_args_docstr(argname_list, argtype_list, argdesc_list, ismethod)
         argsblock = make_docstr_block(argheader, arg_docstr)
         docstr_parts.append(argsblock)
+
+    with_kw = with_args
+    if with_kw and len(kwarg_keys) > 0:
+        kwargs_docstr = ', '.join(kwarg_keys)
+        kwargsblock = make_docstr_block('Kwargs', kwargs_docstr)
+        docstr_parts.append(kwargsblock)
 
     # Return / Yeild part
     if with_ret and return_header is not None:
@@ -594,7 +738,7 @@ def make_default_module_maintest(modname, modpath=None):
     # Need to use python -m to run a module
     # otherwise their could be odd platform specific errors.
     #python -c "import utool, {modname};
-    # utool.doctest_funcs({modname}, allexamples=True)"
+    # ut.doctest_funcs({modname}, allexamples=True)"
     #in_pythonpath, module_type, path = find_modname_in_pythonpath(modname)
     # only use the -m if it is part of a package directory
     from os.path import exists, dirname, join, expanduser, normpath

@@ -732,7 +732,11 @@ def exec_func_sourcecode(func, globals_, locals_, key_list):
 exec_func_src = exec_func_sourcecode
 
 
-def get_func_sourcecode(func, stripdef=False, stripret=False, strip_docstr=False, remove_linenums=None):
+def get_func_kwargs(func, stripdef=False, stripret=False, strip_docstr=False, remove_linenums=None):
+    pass
+
+
+def get_func_sourcecode(func, stripdef=False, stripret=False, strip_docstr=False, strip_comments=False, remove_linenums=None):
     """
     wrapper around inspect.getsource but takes into account utool decorators
     strip flags are very hacky as of now
@@ -802,13 +806,13 @@ def get_func_sourcecode(func, stripdef=False, stripret=False, strip_docstr=False
         #print(sourcecode_)
         sourcecode = sourcecode_
         pass
-    if strip_docstr:
+    if strip_docstr or strip_comments:
         # pip install pyminifier
         # References: http://code.activestate.com/recipes/576704/
         #from pyminifier import minification, token_utils
-        def remove_docstrings(source):
+        def remove_docstrings_or_comments(source):
             """
-            TODO: commit to pyminifier
+            TODO: commit clean version to pyminifier
             """
             import tokenize
             from six.moves import StringIO
@@ -826,11 +830,10 @@ def get_func_sourcecode(func, stripdef=False, stripret=False, strip_docstr=False
                     last_col = 0
                 if start_col > last_col:
                     out += (' ' * (start_col - last_col))
-                ## Remove comments:
-                #if token_type == tokenize.COMMENT:
-                #    pass
-                #elif token_type == tokenize.STRING:
-                if token_type == tokenize.STRING:
+                # Remove comments:
+                if strip_comments and token_type == tokenize.COMMENT:
+                    pass
+                elif strip_docstr and token_type == tokenize.STRING:
                     if prev_toktype != tokenize.INDENT:
                         # This is likely a docstring; double-check we're not inside an operator:
                         if prev_toktype != tokenize.NEWLINE:
@@ -842,7 +845,7 @@ def get_func_sourcecode(func, stripdef=False, stripret=False, strip_docstr=False
                 last_col = end_col
                 last_lineno = end_line
             return out
-        sourcecode = remove_docstrings(sourcecode)
+        sourcecode = remove_docstrings_or_comments(sourcecode)
         #sourcecode = minification.remove_comments_and_docstrings(sourcecode)
         #tokens = token_utils.listified_tokenizer(sourcecode)
         #minification.remove_comments(tokens)
@@ -867,6 +870,24 @@ def get_func_argspec(func):
         return argspec
     argspec = inspect.getargspec(func)
     return argspec
+
+
+def parse_kwarg_keys(source):
+    """ very hacky way to infer some of the kwarg keys
+
+    TODO: use a code parse tree here.  Use hints.  Find other docstrings of
+    functions that are called with kwargs. Find the name of the kwargs
+    variable.
+    """
+
+    #source = ut.get_func_sourcecode(func, strip_docstr=True, strip_comments=True)
+    import utool as ut
+    keyname = ut.named_field('keyname', ut.REGEX_VARNAME)
+    #default = ut.named_field('default', '[\'\"A-Za-z_][A-Za-z0-9_\'\"]*')
+    pattern = re.escape('kwargs.get(\'') + keyname + re.escape('\',')
+    re.compile(pattern)
+    kwarg_keys = [match.groupdict()['keyname'] for match in re.finditer(pattern, source)]
+    return kwarg_keys
 
 
 def infer_function_info(func):
@@ -918,6 +939,7 @@ def infer_function_info(func):
 
         # Move source down to base indentation, but remember original indentation
         sourcecode = get_func_sourcecode(func)
+        kwarg_keys = ut.parse_kwarg_keys(sourcecode)
         num_indent = ut.get_indentation(sourcecode)
         sourcecode = ut.unindent(sourcecode)
 
@@ -951,6 +973,7 @@ def infer_function_info(func):
     funcinfo.argdesc_list = argdesc_list
     funcinfo.argdefault_list = argdefault_list
     funcinfo.hasdefault_list = hasdefault_list
+    funcinfo.kwarg_keys = kwarg_keys
     funcinfo.varargs = varargs
     funcinfo.varkw = varkw
     funcinfo.defaults = defaults
