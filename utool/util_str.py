@@ -952,6 +952,8 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
                 return list_str(val, newlines=newlines, precision=precision)
         if hack_liststr and isinstance(val, list):
             return list_str(val, newlines=newlines, precision=precision)
+        elif precision is not None and (isinstance(val, (float)) or util_type.is_float(val)):
+            return scalar_str(val, precision)
         else:
             # base case
             return valfunc(val)

@@ -1159,7 +1159,7 @@ get_statdict = get_stats
 
 def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=None,
                   precision=None, axis=0, stat_dict=None, use_nan=False,
-                  align=False):
+                  align=False, **kwargs):
     """
     Returns the string version of get_stats
 

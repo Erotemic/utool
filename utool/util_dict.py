@@ -928,6 +928,44 @@ def merge_dicts(*args):
     return mergedict_
 
 
+def dict_union3(dict1, dict2, combine=False, combine_op=operator.add):
+    r"""
+    Args:
+        dict1 (dict):
+        dict2 (dict):
+        combine (bool): Combines keys only if the values are equal if False else
+            values are combined using combine_op (default = False)
+        combine_op (builtin_function_or_method): (default = operator.add)
+
+    Returns:
+        dict: mergedict_
+
+    CommandLine:
+        python -m utool.util_dict --exec-dict_intersection
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> dict1 = {'a': 1, 'b': 2, 'c': 3, 'd': 4}
+        >>> dict2 = {'b': 2, 'c': 3, 'd': 5, 'e': 21, 'f': 42}
+        >>> combine = False
+        >>> combine_op = operator.add
+        >>> mergedict_ = dict_union3(dict1, dict2, combine, combine_op)
+        >>> result = ('mergedict_ = %s' % (str(mergedict_),))
+        >>> print(result)
+        mergedict_ = {'c': 3, 'b': 2}
+    """
+    keys1 = set(dict1.keys())
+    keys2 = set(dict2.keys())
+    keys3 = keys1.intersection(keys2)
+    dict3 = {key: combine_op(dict1[key], dict2[key]) for key in keys3}
+    for key in keys1.difference(keys3):
+        dict3[key] = dict1[key]
+    for key in keys2.difference(keys3):
+        dict3[key] = dict2[key]
+    return dict3
+
+
 def dict_intersection(dict1, dict2, combine=False, combine_op=operator.add):
     r"""
     Args:
@@ -944,12 +982,12 @@ def dict_intersection(dict1, dict2, combine=False, combine_op=operator.add):
         python -m utool.util_dict --exec-dict_intersection
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
         >>> dict1 = {'a': 1, 'b': 2, 'c': 3, 'd': 4}
         >>> dict2 = {'b': 2, 'c': 3, 'd': 5, 'e': 21, 'f': 42}
-        >>> eq_vals = False
-        >>> mergedict_ = dict_intersection(dict1, dict2, eq_vals)
+        >>> combine = False
+        >>> mergedict_ = dict_intersection(dict1, dict2, combine)
         >>> result = ('mergedict_ = %s' % (str(mergedict_),))
         >>> print(result)
         mergedict_ = {'c': 3, 'b': 2}
