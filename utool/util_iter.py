@@ -173,7 +173,7 @@ def itertwo(iterable, wrap=False):
     Example2:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_iter import *  # NOQA
-        >>> python.exe -m utool.util_iter --test-itertwo:2
+        >>> import utool as ut
         >>> iterable = iter([1, 2, 3, 4])
         >>> wrap = False
         >>> edge_iter = itertwo(iterable, wrap)
