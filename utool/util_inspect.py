@@ -854,7 +854,7 @@ def get_func_sourcecode(func, stripdef=False, stripret=False, strip_docstr=False
 
     if remove_linenums is not None:
         source_lines = sourcecode.strip('\n').split('\n')
-        ut.remove_items_by_index(source_lines, remove_linenums)
+        ut.delete_items_by_index(source_lines, remove_linenums)
         sourcecode = '\n'.join(source_lines)
     return sourcecode
     #else:

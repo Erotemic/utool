@@ -409,8 +409,8 @@ def parse_cfgstr_list(cfgstr_list, smartcast=True, oldmode=True):
                 key = keyval_tup[0]
                 val = True
             else:
-                assert len(keyval_tup) == 2, '[!] Invalid cfgitem=%r' % (item,)
-                key, val = keyval_tup
+                assert len(keyval_tup) >= 2, '[!] Invalid cfgitem=%r' % (item,)
+                key, val = keyval_tup[0], '='.join(keyval_tup[1:])
         if smartcast:
             val = util_type.smart_cast2(val)
         cfgdict[key] = val

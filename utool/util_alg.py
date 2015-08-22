@@ -11,6 +11,7 @@ except ImportError:
     # TODO remove numpy
     pass
 from collections import defaultdict
+from functools import partial
 import operator
 import six
 from six.moves import zip, range, reduce
@@ -294,6 +295,162 @@ def group_items(item_list, groupid_list):
     for groupid, item in sorted_pairs:
         groupid2_items[groupid].append(item)
     return groupid2_items
+
+
+def hierarchical_group_items(item_list, groupids_list):
+    """
+    Generalization of group_item. Convert a flast list of ids into a heirarchical dictionary.
+
+    TODO: move to util_dict
+
+    Reference:
+        http://stackoverflow.com/questions/10193235/python-translate-a-table-to-a-hierarchical-dictionary
+
+    Args:
+        item_list (list):
+        groupids_list (list):
+
+    CommandLine:
+        python -m utool.util_alg --exec-hierarchical_group_items
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> item_list     = [1, 2, 3, 4, 5, 6, 7, 8]
+        >>> groupids_list = [[1, 2, 1, 2, 1, 2, 1, 2], [3, 2, 2, 2, 3, 1, 1, 1]]
+        >>> tree = hierarchical_group_items(item_list, groupids_list)
+        >>> result = ('tree = ' + ut.dict_str(tree, nl=1))
+        >>> print(result)
+        tree = {
+            1: {1: [7], 2: [3], 3: [1, 5],},
+            2: {1: [6, 8], 2: [2, 4],},
+        }
+    """
+    # Construct a defaultdict type with the appropriate number of levels
+    num_groups = len(groupids_list)
+    leaf_type = partial(defaultdict, list)
+    if num_groups > 1:
+        node_type = leaf_type
+        for _ in range(len(groupids_list) - 2):
+            node_type = partial(defaultdict, node_type)
+        root_type = node_type
+    else:
+        root_type = leaf_type
+    tree = defaultdict(root_type)
+    #
+    groupid_tuple_list = list(zip(*groupids_list))
+    for groupid_tuple, item in zip(groupid_tuple_list, item_list):
+        node = tree
+        for groupid in groupid_tuple:
+            node = node[groupid]
+        node.append(item)
+    return tree
+
+
+from utool import util_iter
+
+
+def iflatten_dict_values(node, depth=0):
+    if isinstance(node, dict):
+        _iter = (iflatten_dict_values(value) for value in six.itervalues(node))
+        return util_iter.iflatten(_iter)
+    else:
+        return node
+
+
+#def iflatten_dict_items(node, depth=0):
+#    if isinstance(node, dict):
+#        six.iteritems(node)
+#        _iter = ((key, iflatten_dict_items(value)) for key, value in six.iteritems(node))
+#        return util_iter.iflatten(_iter)
+#    else:
+#        return node
+
+
+#def iflatten_dict_keys(node, depth=0):
+#    if isinstance(node, dict):
+#        _iter = (iflatten_dict_keys(value) for key, value in six.iteritems(node))
+#        return util_iter.iflatten(_iter)
+#    else:
+#        return node
+
+
+def hierarchical_map_vals(func, node, max_depth=None, depth=0):
+    """
+    node is a dict tree like structure with leaves of type list
+
+    TODO: move to util_dict
+
+    CommandLine:
+        python -m utool.util_alg --exec-hierarchical_map_vals
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
+        >>> item_list     = [1, 2, 3, 4, 5, 6, 7, 8]
+        >>> groupids_list = [[1, 2, 1, 2, 1, 2, 1, 2], [3, 2, 2, 2, 3, 1, 1, 1]]
+        >>> tree = ut.hierarchical_group_items(item_list, groupids_list)
+        >>> len_tree = ut.hierarchical_map_vals(len, tree)
+        >>> result = ('len_tree = ' + ut.dict_str(len_tree, nl=1))
+        >>> print(result)
+        len_tree = {
+            1: {1: 1, 2: 1, 3: 2,},
+            2: {1: 2, 2: 2,},
+        }
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
+        >>> ut.rrrr(False)
+        >>> depth = 4
+        >>> item_list     = list(range(2 ** (depth + 1)))
+        >>> num = len(item_list) // 2
+        >>> groupids_list = []
+        >>> total = 0
+        >>> for level in range(depth):
+        >>>     num2 = len(item_list) // int((num * 2))
+        >>>     levelids = ut.flatten([[total + 2 * x + 1] * num + [total + 2 * x + 2] * num for x in range(num2)])
+        >>>     groupids_list.append(levelids)
+        >>>     total += num2 * 2
+        >>>     num //= 2
+        >>> print('groupids_list = %s' % (ut.list_str(groupids_list, nl=1),))
+        >>> print('depth = %r' % (len(groupids_list),))
+        >>> tree = ut.hierarchical_group_items(item_list, groupids_list)
+        >>> print('tree = ' + ut.dict_str(tree, nl=None))
+        >>> flat_tree_values = list(ut.iflatten_dict_values(tree))
+        >>> assert sorted(flat_tree_values) == sorted(item_list)
+        >>> print('flat_tree_values = ' + str(flat_tree_values))
+        >>> #print('flat_tree_keys = ' + str(list(ut.iflatten_dict_keys(tree))))
+        >>> #print('iflatten_dict_items = ' + str(list(ut.iflatten_dict_items(tree))))
+        >>> len_tree = ut.hierarchical_map_vals(len, tree, max_depth=4)
+        >>> result = ('len_tree = ' + ut.dict_str(len_tree, nl=None))
+        >>> print(result)
+
+    """
+    if not isinstance(node, dict):
+        return func(node)
+    elif max_depth is not None and depth >= max_depth:
+        #return func(node)
+        return {key: func(val) for key, val in six.iteritems(node)}
+    else:
+        # recursion
+        return {key: hierarchical_map_vals(func, val, max_depth, depth + 1) for key, val in six.iteritems(node)}
+
+
+#def hierarchical_map_nodes(func, node, max_depth=None, depth=0):
+#    """
+#    applies function to non-leaf nodes
+#    """
+#    if not isinstance(node, dict):
+#        return node
+#    elif max_depth is not None and depth >= max_depth:
+#        #return func(node)
+#        return func(node)
+#    else:
+#        # recursion
+#        return {key: func(hierarchical_map_vals(func, val, max_depth, depth + 1)) for key, val in six.iteritems(node)}
 
 
 def search_utool(pat):

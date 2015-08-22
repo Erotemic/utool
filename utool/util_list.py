@@ -1678,11 +1678,15 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_cons
         [[(1, 2), 2]] * 2 + [[(1, 2), 1]]
 
     """
+    if isinstance(list_, dict):
+        list_ = list(list_.values())   # handle dict
     level_shape_list = []
     # For a pure bottom level list return the length
     if not any(map(util_type.is_listlike, list_)):
         return len(list_)
     for item in list_:
+        if isinstance(item, dict):
+            item = list(item.values())  # handle dict
         if util_type.is_listlike(item):
             if max_depth is None:
                 level_shape_list.append(depth_profile(item, None))
@@ -1907,22 +1911,23 @@ def list_transpose(list_):
     return list(zip(*list_))
 
 
-def remove_items_by_index(list_, index_list):
+def delete_items_by_index(list_, index_list):
     """
     Args:
         list_ (list):
         index_list (list):
 
     CommandLine:
-        python -m utool.util_list --exec-remove_items_by_index
+        python -m utool.util_list --exec-delete_items_by_index
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> list_ = [8, 1, 8, 1, 6, 6, 3, 4, 4, 5, 6]
         >>> index_list = [2, -1]
-        >>> result = remove_items_by_index(list_, index_list)
+        >>> result = delete_items_by_index(list_, index_list)
         >>> print(result)
+        [8, 1, 1, 6, 6, 3, 4, 4, 5]
     """
     # Rectify negative indicies
     index_list_ = [len(list_) + index if index < 0 else index for index in index_list]

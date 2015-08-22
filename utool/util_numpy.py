@@ -13,7 +13,31 @@ def tiled_range(range_, cols):
 
 
 def random_indexes(max_index, subset_size=None, seed=None, rng=None):
-    """ random unrepeated indicies """
+    """ random unrepeated indicies
+
+    Args:
+        max_index (?):
+        subset_size (None): (default = None)
+        seed (None): (default = None)
+        rng (RandomState):  random number generator(default = None)
+
+    Returns:
+        ?: subst
+
+    CommandLine:
+        python -m utool.util_numpy --exec-random_indexes
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_numpy import *  # NOQA
+        >>> max_index = 10
+        >>> subset_size = None
+        >>> seed = None
+        >>> rng = np.random.RandomState(0)
+        >>> subst = random_indexes(max_index, subset_size, seed, rng)
+        >>> result = ('subst = %s' % (str(subst),))
+        >>> print(result)
+    """
     subst_ = np.arange(0, max_index)
     if rng is None:
         rng = np.random if seed is None else np.random.RandomState(seed=seed)
@@ -147,6 +171,31 @@ def deterministic_shuffle(list_, seed=0):
 def random_sample(list_, nSample, strict=False, rng=np.random, seed=None):
     """
     Grabs data randomly
+
+    Args:
+        list_ (list):
+        nSample (?):
+        strict (bool): (default = False)
+        rng (module):  random number generator(default = numpy.random)
+        seed (None): (default = None)
+
+    Returns:
+        list: sample_list
+
+    CommandLine:
+        python -m utool.util_numpy --exec-random_sample
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_numpy import *  # NOQA
+        >>> list_ = np.arange(10)
+        >>> nSample = 4
+        >>> strict = False
+        >>> rng = np.random.RandomState(0)
+        >>> seed = None
+        >>> sample_list = random_sample(list_, nSample, strict, rng, seed)
+        >>> result = ('sample_list = %s' % (str(sample_list),))
+        >>> print(result)
     """
     if seed is not None:
         rng = np.random.RandomState(seed)

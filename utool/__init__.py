@@ -507,7 +507,7 @@ if DOELSE:
                                  multi_replace, not_list, or_lists,
                                  partial_imap_1to1, print_duplicate_map,
                                  priority_argsort, priority_sort,
-                                 recursive_replace, remove_items_by_index,
+                                 recursive_replace, delete_items_by_index,
                                  replace_nones, safe_listget, safe_slice,
                                  sample_lists, sample_zip, scalar_input_map,
                                  setdiff_ordered, setintersect_ordered,
