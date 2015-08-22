@@ -1150,13 +1150,14 @@ def hierarchical_map_vals(func, node, max_depth=None, depth=0):
         >>> from utool.util_dict import *  # NOQA
         >>> import utool as ut
         >>> depth = 4
-        >>> item_list     = list(range(2 ** (depth + 1)))
+        >>> item_list = list(range(2 ** (depth + 1)))
         >>> num = len(item_list) // 2
         >>> groupids_list = []
         >>> total = 0
         >>> for level in range(depth):
         ...     num2 = len(item_list) // int((num * 2))
-        ...     nonflat_levelids = [([total + 2 * x + 1] * num + [total + 2 * x + 2] * num) for x in range(num2)]
+        ...     #nonflat_levelids = [([total + 2 * x + 1] * num + [total + 2 * x + 2] * num) for x in range(num2)]
+        ...     nonflat_levelids = [([1] * num + [2] * num) for x in range(num2)]
         ...     levelids = ut.flatten(nonflat_levelids)
         ...     groupids_list.append(levelids)
         ...     total += num2 * 2
