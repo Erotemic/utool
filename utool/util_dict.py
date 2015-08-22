@@ -943,7 +943,7 @@ def dict_union3(dict1, dict2, combine=False, combine_op=operator.add):
         dict: mergedict_
 
     CommandLine:
-        python -m utool.util_dict --exec-dict_intersection
+        python -m utool.util_dict --exec-dict_union3
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -953,9 +953,9 @@ def dict_union3(dict1, dict2, combine=False, combine_op=operator.add):
         >>> combine = False
         >>> combine_op = operator.add
         >>> mergedict_ = dict_union3(dict1, dict2, combine, combine_op)
-        >>> result = ('mergedict_ = %s' % (str(mergedict_),))
+        >>> result = ('mergedict_ = %s' % (ut.dict_str(mergedict_, nl=False),))
         >>> print(result)
-        mergedict_ = {'a': 1, 'c': 6, 'b': 4, 'e': 21, 'd': 9, 'f': 42}
+        mergedict_ = {'a': 1, 'b': 4, 'c': 6, 'd': 9, 'e': 21, 'f': 42}
     """
     keys1 = set(dict1.keys())
     keys2 = set(dict2.keys())
@@ -1155,7 +1155,8 @@ def hierarchical_map_vals(func, node, max_depth=None, depth=0):
         >>> total = 0
         >>> for level in range(depth):
         >>>     num2 = len(item_list) // int((num * 2))
-        >>>     levelids = ut.flatten([[total + 2 * x + 1] * num + [total + 2 * x + 2] * num for x in range(num2)])
+        >>>     nonflat_levelids = [([total + 2 * x + 1] * num + [total + 2 * x + 2] * num) for x in range(num2)]
+        >>>     levelids = ut.flatten(nonflat_levelids)
         >>>     groupids_list.append(levelids)
         >>>     total += num2 * 2
         >>>     num //= 2
