@@ -948,6 +948,7 @@ def dict_union3(dict1, dict2, combine=False, combine_op=operator.add):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> dict1 = {'a': 1, 'b': 2, 'c': 3, 'd': 4}
         >>> dict2 = {'b': 2, 'c': 3, 'd': 5, 'e': 21, 'f': 42}
         >>> combine = False
@@ -1154,12 +1155,12 @@ def hierarchical_map_vals(func, node, max_depth=None, depth=0):
         >>> groupids_list = []
         >>> total = 0
         >>> for level in range(depth):
-        >>>     num2 = len(item_list) // int((num * 2))
-        >>>     nonflat_levelids = [([total + 2 * x + 1] * num + [total + 2 * x + 2] * num) for x in range(num2)]
-        >>>     levelids = ut.flatten(nonflat_levelids)
-        >>>     groupids_list.append(levelids)
-        >>>     total += num2 * 2
-        >>>     num //= 2
+        ...     num2 = len(item_list) // int((num * 2))
+        ...     nonflat_levelids = [([total + 2 * x + 1] * num + [total + 2 * x + 2] * num) for x in range(num2)]
+        ...     levelids = ut.flatten(nonflat_levelids)
+        ...     groupids_list.append(levelids)
+        ...     total += num2 * 2
+        ...     num //= 2
         >>> print('groupids_list = %s' % (ut.list_str(groupids_list, nl=1),))
         >>> print('depth = %r' % (len(groupids_list),))
         >>> tree = ut.hierarchical_group_items(item_list, groupids_list)
