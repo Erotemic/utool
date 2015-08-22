@@ -1182,7 +1182,7 @@ def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=No
         >>> stat_str = get_stats_str(list_, newlines, keys, exclude_keys, lbl, precision)
         >>> result = str(stat_str)
         >>> print(result)
-        {'max': 5, 'min': 1, 'mean': 3, 'std': 1.41, 'nMin': 1, 'nMax': 1, 'shape': (5,),}
+        {'max': 5, 'min': 1, 'mean': 3, 'std': 1.41, 'nMin': 1, 'nMax': 1, 'shape': (5,)}
 
     SeeAlso:
         print_stats
@@ -1264,7 +1264,7 @@ def print_stats(list_, lbl=None, newlines=False, precision=2):
         >>> newlines = False
         >>> precision = 2
         >>> result = print_stats(list_, lbl, newlines, precision)
-        {'max': 5, 'min': 1, 'mean': 3, 'std': 1.41, 'nMin': 1, 'nMax': 1, 'shape': (5,),}
+        {'max': 5, 'min': 1, 'mean': 3, 'std': 1.41, 'nMin': 1, 'nMax': 1, 'shape': (5,)}
 
     SeeAlso:
         get_stats_str

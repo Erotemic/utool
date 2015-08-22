@@ -392,7 +392,7 @@ def parse_cfgstr_list(cfgstr_list, smartcast=True, oldmode=True):
         >>> cfgdict = parse_cfgstr_list(cfgstr_list, smartcast)
         >>> result = ut.dict_str(cfgdict, sorted_=True, newlines=False)
         >>> print(result)
-        {'var1': 'val1', 'var2': 1, 'var3': 1.0, 'var4': None,}
+        {'var1': 'val1', 'var2': 1, 'var3': 1.0, 'var4': None}
 
         {'var4': None, 'var1': 'val1', 'var3': 1.0, 'var2': 1}
     """

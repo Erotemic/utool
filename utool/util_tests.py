@@ -13,7 +13,7 @@ TODO:
 """
 from __future__ import absolute_import, division, print_function
 import six
-from six.moves import builtins
+#from six.moves import builtins
 from collections import namedtuple
 import inspect
 import types
@@ -465,6 +465,7 @@ def doctest_module_list(module_list):
     nPass_list = []
     nTotal_list = []
     failed_cmds_list = []
+    error_reports_list = []
     print('[util_test] Running doctests on module list')
 
     failed_doctest_fname = 'failed_doctests.txt'
@@ -472,12 +473,13 @@ def doctest_module_list(module_list):
         file_.write('\n-------\n\n')
         file_.write(ut.get_printable_timestamp() + '\n')
         file_.write('logfile (only present if logging) = %r\n' % (ut.util_logging.get_current_log_fpath(),))
-        testkw = dict(allexamples=True)
+        testkw = dict(allexamples=True, return_error_report=True)
         for module in module_list:
-            (nPass, nTotal, failed_list) = ut.doctest_funcs(module=module, **testkw)
+            (nPass, nTotal, failed_list, error_report_list) = ut.doctest_funcs(module=module, **testkw)
             nPass_list.append(nPass)
             nTotal_list.append(nTotal)
             failed_cmds_list.append(failed_list)
+            error_reports_list.append(error_report_list)
             # Write failed tests to disk
             for cmd in failed_list:
                 file_.write(cmd + '\n')
@@ -486,6 +488,14 @@ def doctest_module_list(module_list):
         file_.write('PASSED %d / %d' % (nPass, nTotal))
 
     failed_cmd_list = ut.flatten(failed_cmds_list)
+    error_report_list = ut.filter_Nones(ut.flatten(error_reports_list))
+    if len(error_report_list) > 0:
+        print('\nPrinting %d error reports' % (len(error_report_list),))
+        for count, error_report in enumerate(error_report_list):
+            print('\n=== Error Report %d / %d' % (count, len(error_report_list)))
+            print(error_report)
+        print('--- Done printing error reports ----')
+
     print('')
     print('+========')
     print('| FINISHED TESTING %d MODULES' % (len(module_list),))
@@ -765,7 +775,7 @@ def doctest_was_requested():
 
 
 def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples=None,
-                  needs_enable=None, strict=False, verbose=True):
+                  needs_enable=None, strict=False, verbose=True, return_error_report=False):
     """
     Main entry point into utools main module doctest harness
     Depth 1)
@@ -825,6 +835,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     nPass = 0
     nFail = 0
     failed_flag_list = []
+    error_report_list = []
     nTotal = len(enabled_testtup_list)
     if ut.get_argflag(('--edit-test-file', '--etf')):
         ut.editfile(frame_fpath)
@@ -844,14 +855,15 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
             print(' ---- EXEC ' + name.upper() + ':' + str(num) + '---')
         else:
             print(' ---- DOCTEST ' + modname + ' ' + name.upper() + ':' + str(num) + '---')
+
         if PRINT_SRC or VERBOSE_TEST:
             print(ut.msgblock('EXEC SRC', src))
         test_globals = module.__dict__.copy()
         try:
-            testkw = dict(globals=test_globals, want=want)
+            testkw = dict(globals=test_globals, want=want, return_error_report=True)
             assert testtup.frame_fpath == frame_fpath
             #test_locals = ut.run_test((name,  src, frame_fpath), **testkw)
-            test_locals = ut.run_test(testtup, **testkw)
+            test_locals, error_report = ut.run_test(testtup, **testkw)
             is_pass = (test_locals is not False)
             if is_pass:
                 if VERBOSE_TEST:
@@ -866,6 +878,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
                 print('Seems to fail. ')
             nFail += 1
             failed_flag_list.append(flag)
+            error_report_list.append(error_report)
             if strict or util_arg.SUPER_STRICT:
                 raise
             else:
@@ -909,10 +922,13 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
         print('Failed Tests:')
         print('\n'.join(failed_cmd_list))
     #L__________________
-    return (nPass, nTotal, failed_cmd_list)
+    if return_error_report:
+        return (nPass, nTotal, failed_cmd_list, error_report_list)
+    else:
+        return (nPass, nTotal, failed_cmd_list)
 
 
-def run_test(func_or_testtup, *args, **kwargs):
+def run_test(func_or_testtup, return_error_report=False, *args, **kwargs):
     """
     Runs the test function with success / failure printing
 
@@ -924,6 +940,7 @@ def run_test(func_or_testtup, *args, **kwargs):
     """
     import utool as ut
     #func_is_testtup = isinstance(func_or_testtup, tuple)
+    # NOTE: isinstance is not gaurenteed not work here if ut.rrrr has been called
     func_is_testtup = isinstance(func_or_testtup, TestTuple)
     exec_mode = EXEC_MODE
     if func_is_testtup:
@@ -939,8 +956,9 @@ def run_test(func_or_testtup, *args, **kwargs):
         frame_fpath = ut.get_funcfpath(func_)
     upper_funcname = funcname.upper()
     if ut.VERBOSE:
-        printTEST('[TEST.BEGIN] %s ' % (sys.executable))
-        printTEST('[TEST.BEGIN] %s ' % (funcname,))
+        print('\n=============================')
+        print('**[TEST.BEGIN] %s ' % (sys.executable))
+        print('**[TEST.BEGIN] %s ' % (funcname,))
     #print('  <funcname>  ')
     #print('  <' + funcname + '>  ')
     #short_funcname = ut.clipstr(funcname, 8)
@@ -948,9 +966,11 @@ def run_test(func_or_testtup, *args, **kwargs):
     verbose_timer = not exec_mode and VERBOSE_TIMER
     nocheckwant = True if exec_mode else None
     print_face = not exec_mode and PRINT_FACE
-    indent_test = not exec_mode and INDENT_TEST
+    #indent_test = not exec_mode and INDENT_TEST
+    error_report = None
 
-    with util_print.Indenter('  <' + funcname + '>  ', enabled=indent_test):
+    #with util_print.Indenter('  <' + funcname + '>  ', enabled=indent_test):
+    if True:
         try:
             #+----------------
             # RUN THE TEST WITH A TIMER
@@ -965,7 +985,8 @@ def run_test(func_or_testtup, *args, **kwargs):
             #+----------------
             # LOG PASSING TEST
             if not exec_mode:
-                printTEST('[TEST.FINISH] %s -- SUCCESS' % (funcname,))
+                print('\n=============================')
+                print('**[TEST.FINISH] %s -- SUCCESS' % (funcname,))
                 if print_face:
                     print(HAPPY_FACE)
                 if not exec_mode:
@@ -977,22 +998,29 @@ def run_test(func_or_testtup, *args, **kwargs):
                         ut.printex(ex, '[util_test] IOWarning', iswarning=True)
             #L________________
             # RETURN VALID TEST LOCALS
+            if return_error_report:
+                return test_locals, error_report
             return test_locals
 
         except Exception as ex:
             import utool as ut
             # Get locals in the wrapped function
             ut.printex(ex, tb=True)
-            #printTEST('[TEST.FINISH] %s -- FAILED:\n    type(ex)=%s\n    ex=%s' % (funcname, type(ex), ex))
-            printTEST('[TEST.FINISH] %s -- FAILED:\n    type(ex)=%s' % (funcname, type(ex)))
+            error_report_lines = ['**[TEST.ERROR] %s -- FAILED:\n    type(ex)=%s' % (funcname, type(ex))]
+            error_report_lines.append(ut.formatex(ex, tb=True))
+            def print_report(msg):
+                error_report_lines.append(msg)
+                print(msg)
+            print_report('\n=============================')
+            print_report('**[TEST.FINISH] %s -- FAILED:\n    type(ex)=%s' % (funcname, type(ex)))
             exc_type, exc_value, tb = sys.exc_info()
             if PRINT_FACE:
-                print(SAD_FACE)
+                print_report(SAD_FACE)
             if func_is_testtup:
-                print('Failed in module: %r' % frame_fpath)
-                if DEBUG_SRC:
+                print_report('Failed in module: %r' % frame_fpath)
+                if True or DEBUG_SRC:
                     src_with_lineno = ut.number_text_lines(src)
-                    print(ut.msgblock('FAILED DOCTEST IN %s' % (funcname,), src_with_lineno))
+                    print_report(ut.msgblock('FAILED DOCTEST IN %s' % (funcname,), src_with_lineno))
                 #ut.embed()
 
                 #print('\n... test encountered error. sys.exit(1)\n')
@@ -1032,7 +1060,9 @@ def run_test(func_or_testtup, *args, **kwargs):
                 print('[util_test] exiting with sys.exit(1)')
                 sys.exit(1)
             #raise
-            return False
+            if return_error_report:
+                error_report = '\n'.join(error_report_lines)
+                return False, error_report
 
 
 def _exec_doctest(src, kwargs, nocheckwant=None):
@@ -1088,13 +1118,6 @@ def _exec_doctest(src, kwargs, nocheckwant=None):
         #assert result == want, 'result is not the same as want'
     return test_locals
     #print('\n'.join(output_lines))
-
-
-def printTEST(msg, wait=False):
-    builtins.print('\n=============================')
-    builtins.print('**' + msg)
-    #if INTERACTIVE and wait:
-    # raw_input('press enter to continue')
 
 
 def make_run_tests_script_text(test_headers, test_argvs, quick_tests=None,

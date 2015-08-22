@@ -1232,8 +1232,9 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None, truncate=Fa
     else:
         leftbrace, rightbrace  = '[', ']'
 
+    import utool as ut
+
     if newlines is not False and (newlines is True or newlines > 0):
-        import utool as ut
         if nobraces or label_list is not None:
             body_str = '\n'.join(itemstr_list)
             retstr = body_str
@@ -1357,7 +1358,10 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
             if align:
                 retstr = ut.align(retstr, ':')
     else:
-        retstr = leftbrace + ' '.join(itemstr_list) + rightbrace
+        # hack away last comma
+        sequence_str = ' '.join(itemstr_list)
+        sequence_str = sequence_str.rstrip(',')
+        retstr = leftbrace +  sequence_str + rightbrace
     # Is there a way to make truncate for dict_str compatible with list_str?
     #print('----')
     #print(indent_ + 'truncate = %r' % (truncate,))

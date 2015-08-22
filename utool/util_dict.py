@@ -4,9 +4,11 @@ from __future__ import absolute_import, division, print_function
 import operator
 from collections import defaultdict, OrderedDict
 from itertools import product as iprod
+from functools import partial
 from six.moves import zip
 from utool import util_inject
 from utool import util_list
+from utool import util_iter
 import six
 try:
     import numpy as np
@@ -134,7 +136,7 @@ def dict_stack(dict_list, key_prefix=''):
         >>> # verify results
         >>> result = ut.dict_str(dict_stacked, sorted_=True, newlines=False)
         >>> print(result)
-        {'a': [1, 2], 'b': [2, 3], 'c': [4],}
+        {'a': [1, 2], 'b': [2, 3], 'c': [4]}
 
         {'a': [1, 2], 'c': [4], 'b': [2, 3]}
 
@@ -163,15 +165,17 @@ def invert_dict(dict_):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> dict_ = {'a': 1, 'b': 2}
         >>> inverted_dict = invert_dict(dict_)
-        >>> result = inverted_dict
+        >>> result = ut.dict_str(inverted_dict, nl=False)
         >>> print(result)
         {1: 'a', 2: 'b'}
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> dict_ = OrderedDict([(2, 'good',), (1, 'ok',), (0, 'junk',), (None, 'UNKNOWN',),])
         >>> inverted_dict = invert_dict(dict_)
         >>> result = inverted_dict
@@ -224,21 +228,21 @@ def all_dict_combinations(varied_dict):
         >>> result = str(ut.list_str(dict_list))
         >>> print(result)
         [
-            {'logdist_weight': 0.0, 'pipeline_root': 'vsmany', 'sv_on': True,},
-            {'logdist_weight': 0.0, 'pipeline_root': 'vsmany', 'sv_on': False,},
-            {'logdist_weight': 0.0, 'pipeline_root': 'vsmany', 'sv_on': None,},
-            {'logdist_weight': 1.0, 'pipeline_root': 'vsmany', 'sv_on': True,},
-            {'logdist_weight': 1.0, 'pipeline_root': 'vsmany', 'sv_on': False,},
-            {'logdist_weight': 1.0, 'pipeline_root': 'vsmany', 'sv_on': None,},
+            {'logdist_weight': 0.0, 'pipeline_root': 'vsmany', 'sv_on': True},
+            {'logdist_weight': 0.0, 'pipeline_root': 'vsmany', 'sv_on': False},
+            {'logdist_weight': 0.0, 'pipeline_root': 'vsmany', 'sv_on': None},
+            {'logdist_weight': 1.0, 'pipeline_root': 'vsmany', 'sv_on': True},
+            {'logdist_weight': 1.0, 'pipeline_root': 'vsmany', 'sv_on': False},
+            {'logdist_weight': 1.0, 'pipeline_root': 'vsmany', 'sv_on': None},
         ]
 
         [
-            {'pipeline_root': 'vsmany', 'sv_on': True, 'logdist_weight': 0.0,},
-            {'pipeline_root': 'vsmany', 'sv_on': True, 'logdist_weight': 1.0,},
-            {'pipeline_root': 'vsmany', 'sv_on': False, 'logdist_weight': 0.0,},
-            {'pipeline_root': 'vsmany', 'sv_on': False, 'logdist_weight': 1.0,},
-            {'pipeline_root': 'vsmany', 'sv_on': None, 'logdist_weight': 0.0,},
-            {'pipeline_root': 'vsmany', 'sv_on': None, 'logdist_weight': 1.0,},
+            {'pipeline_root': 'vsmany', 'sv_on': True, 'logdist_weight': 0.0},
+            {'pipeline_root': 'vsmany', 'sv_on': True, 'logdist_weight': 1.0},
+            {'pipeline_root': 'vsmany', 'sv_on': False, 'logdist_weight': 0.0},
+            {'pipeline_root': 'vsmany', 'sv_on': False, 'logdist_weight': 1.0},
+            {'pipeline_root': 'vsmany', 'sv_on': None, 'logdist_weight': 0.0},
+            {'pipeline_root': 'vsmany', 'sv_on': None, 'logdist_weight': 1.0},
         ]
 
     Ignore:
@@ -442,12 +446,10 @@ def update_existing(dict1, dict2, copy=False, assert_exists=False):
         >>> dict1 = {'a': 1, 'b': 2, 'c': 3}
         >>> dict2 = {'a': 2, 'd': 3}
         >>> # execute function
-        >>> result = update_existing(dict1, dict2)
+        >>> dict1_ = update_existing(dict1, dict2)
         >>> assert 'd' not in dict1
         >>> assert dict1['a'] == 2
-        >>> assert result is dict1
-        >>> # verify results
-        >>> print(result)
+        >>> assert dict1_ is dict1
     """
     if assert_exists:
         assert_keys_are_subset(dict1, dict2)
@@ -460,7 +462,9 @@ def update_existing(dict1, dict2, copy=False, assert_exists=False):
 
 
 # backwards compatibility
-updateif_haskey = update_existing
+#updateif_haskey = update_existing
+def updateif_haskey(*args, **kwargs):
+    return update_existing(*args, **kwargs)
 
 
 def dict_update_newkeys(dict_, dict2):
@@ -472,17 +476,15 @@ def dict_update_newkeys(dict_, dict2):
 
 def is_dicteq(dict1_, dict2_, almosteq_ok=True, verbose_err=True):
     """ Checks to see if dicts are the same. Performs recursion. Handles numpy """
-    import utool
-    from utool import util_alg
-    from utool import util_dbg
+    import utool as ut
     assert len(dict1_) == len(dict2_), 'dicts are not of same length'
     try:
         for (key1, val1), (key2, val2) in zip(dict1_.items(), dict2_.items()):
             assert key1 == key2, 'key mismatch'
             assert type(val1) == type(val2), 'vals are not same type'
             if HAVE_NUMPY and np.iterable(val1):
-                if almosteq_ok and utool.is_float(val1):
-                    assert np.all(util_alg.almost_eq(val1, val2)), 'float vals are not within thresh'
+                if almosteq_ok and ut.is_float(val1):
+                    assert np.all(ut.almost_eq(val1, val2)), 'float vals are not within thresh'
                 else:
                     assert all([np.all(x1 == x2) for (x1, x2) in zip(val1, val2)]), 'np vals are different'
             elif isinstance(val1, dict):
@@ -491,7 +493,7 @@ def is_dicteq(dict1_, dict2_, almosteq_ok=True, verbose_err=True):
                 assert val1 == val2, 'vals are different'
     except AssertionError as ex:
         if verbose_err:
-            util_dbg.printex(ex)
+            ut.printex(ex)
         return False
     return True
 
@@ -514,7 +516,7 @@ def dict_subset(dict_, keys):
         >>> subdict_ = dict_subset(dict_, keys)
         >>> result = ut.dict_str(subdict_, sorted_=True, newlines=False)
         >>> print(result)
-        {'K': 3, 'dcvs_clip_max': 0.2,}
+        {'K': 3, 'dcvs_clip_max': 0.2}
     """
     item_sublist = [(key, dict_[key]) for key in keys]
     #subdict_ = type(dict_)(item_sublist)  # maintain old dict format
@@ -562,7 +564,7 @@ def delete_dict_keys(dict_, key_list):
         >>> # verify results
         >>> result = ut.dict_str(dict_, newlines=False)
         >>> print(result)
-        {'churches': 1, 'very small rocks': 2,}
+        {'churches': 1, 'very small rocks': 2}
 
     """
     invalid_keys = set(key_list) - set(six.iterkeys(dict_))
@@ -918,7 +920,7 @@ def merge_dicts(*args):
         >>> mergedict_ = merge_dicts(x, y)
         >>> result = ut.dict_str(mergedict_, sorted_=True, newlines=False)
         >>> print(result)
-        {'a': 1, 'b': 3, 'c': 4,}
+        {'a': 1, 'b': 3, 'c': 4}
 
     """
     iter_ = iter(args)
@@ -1002,6 +1004,197 @@ def dict_intersection(dict1, dict2, combine=False, combine_op=operator.add):
 
 def dict_filter_nones(dict_):
     return {key: val for key, val in six.iteritems(dict_) if val is not None}
+
+
+def group_items(item_list, groupid_list):
+    """
+    group_items
+
+    Args:
+        item_list (list):
+        groupid_list (list):
+
+    Returns:
+        dict: groupid2_items mapping groupids to a list of items
+
+    SeeAlso:
+        vtool.group_indices - much faster numpy grouping algorithm
+        vtool.apply_gropuing - second part to faster numpy grouping algorithm
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
+        >>> item_list    = [ 'ham',      'jam',    'spam',     'eggs', 'cheese', 'bannana']
+        >>> groupid_list = ['protein', 'fruit', 'protein',  'protein',  'dairy',   'fruit']
+        >>> groupid2_items = ut.group_items(item_list, groupid_list)
+        >>> result = ut.dict_str(groupid2_items, newlines=False, strvals=False)
+        >>> print(result)
+        {'dairy': ['cheese'], 'fruit': ['bannana', 'jam'], 'protein': ['eggs', 'ham', 'spam']}
+
+        {'protein': ['eggs', 'ham', 'spam'], 'fruit': ['bannana', 'jam'], 'dairy': ['cheese']}
+    """
+    # Sort by groupid for cache efficiency
+    sorted_pairs = sorted(list(zip(groupid_list, item_list)))
+    # Initialize dict of lists
+    groupid2_items = defaultdict(list)
+    # Insert each item into the correct group
+    for groupid, item in sorted_pairs:
+        groupid2_items[groupid].append(item)
+    return groupid2_items
+
+
+def hierarchical_group_items(item_list, groupids_list):
+    """
+    Generalization of group_item. Convert a flast list of ids into a heirarchical dictionary.
+
+    TODO: move to util_dict
+
+    Reference:
+        http://stackoverflow.com/questions/10193235/python-translate-a-table-to-a-hierarchical-dictionary
+
+    Args:
+        item_list (list):
+        groupids_list (list):
+
+    CommandLine:
+        python -m utool.util_dict --exec-hierarchical_group_items
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
+        >>> item_list     = [1, 2, 3, 4, 5, 6, 7, 8]
+        >>> groupids_list = [[1, 2, 1, 2, 1, 2, 1, 2], [3, 2, 2, 2, 3, 1, 1, 1]]
+        >>> tree = hierarchical_group_items(item_list, groupids_list)
+        >>> result = ('tree = ' + ut.dict_str(tree, nl=1))
+        >>> print(result)
+        tree = {
+            1: {1: [7], 2: [3], 3: [1, 5]},
+            2: {1: [6, 8], 2: [2, 4]},
+        }
+    """
+    # Construct a defaultdict type with the appropriate number of levels
+    num_groups = len(groupids_list)
+    leaf_type = partial(defaultdict, list)
+    if num_groups > 1:
+        node_type = leaf_type
+        for _ in range(len(groupids_list) - 2):
+            node_type = partial(defaultdict, node_type)
+        root_type = node_type
+    else:
+        root_type = leaf_type
+    tree = defaultdict(root_type)
+    #
+    groupid_tuple_list = list(zip(*groupids_list))
+    for groupid_tuple, item in zip(groupid_tuple_list, item_list):
+        node = tree
+        for groupid in groupid_tuple:
+            node = node[groupid]
+        node.append(item)
+    return tree
+
+
+def iflatten_dict_values(node, depth=0):
+    if isinstance(node, dict):
+        _iter = (iflatten_dict_values(value) for value in six.itervalues(node))
+        return util_iter.iflatten(_iter)
+    else:
+        return node
+
+
+#def iflatten_dict_items(node, depth=0):
+#    if isinstance(node, dict):
+#        six.iteritems(node)
+#        _iter = ((key, iflatten_dict_items(value)) for key, value in six.iteritems(node))
+#        return util_iter.iflatten(_iter)
+#    else:
+#        return node
+
+
+#def iflatten_dict_keys(node, depth=0):
+#    if isinstance(node, dict):
+#        _iter = (iflatten_dict_keys(value) for key, value in six.iteritems(node))
+#        return util_iter.iflatten(_iter)
+#    else:
+#        return node
+
+
+def hierarchical_map_vals(func, node, max_depth=None, depth=0):
+    """
+    node is a dict tree like structure with leaves of type list
+
+    TODO: move to util_dict
+
+    CommandLine:
+        python -m utool.util_dict --exec-hierarchical_map_vals
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
+        >>> item_list     = [1, 2, 3, 4, 5, 6, 7, 8]
+        >>> groupids_list = [[1, 2, 1, 2, 1, 2, 1, 2], [3, 2, 2, 2, 3, 1, 1, 1]]
+        >>> tree = ut.hierarchical_group_items(item_list, groupids_list)
+        >>> len_tree = ut.hierarchical_map_vals(len, tree)
+        >>> result = ('len_tree = ' + ut.dict_str(len_tree, nl=1))
+        >>> print(result)
+        len_tree = {
+            1: {1: 1, 2: 1, 3: 2},
+            2: {1: 2, 2: 2},
+        }
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
+        >>> depth = 4
+        >>> item_list     = list(range(2 ** (depth + 1)))
+        >>> num = len(item_list) // 2
+        >>> groupids_list = []
+        >>> total = 0
+        >>> for level in range(depth):
+        >>>     num2 = len(item_list) // int((num * 2))
+        >>>     levelids = ut.flatten([[total + 2 * x + 1] * num + [total + 2 * x + 2] * num for x in range(num2)])
+        >>>     groupids_list.append(levelids)
+        >>>     total += num2 * 2
+        >>>     num //= 2
+        >>> print('groupids_list = %s' % (ut.list_str(groupids_list, nl=1),))
+        >>> print('depth = %r' % (len(groupids_list),))
+        >>> tree = ut.hierarchical_group_items(item_list, groupids_list)
+        >>> print('tree = ' + ut.dict_str(tree, nl=None))
+        >>> flat_tree_values = list(ut.iflatten_dict_values(tree))
+        >>> assert sorted(flat_tree_values) == sorted(item_list)
+        >>> print('flat_tree_values = ' + str(flat_tree_values))
+        >>> #print('flat_tree_keys = ' + str(list(ut.iflatten_dict_keys(tree))))
+        >>> #print('iflatten_dict_items = ' + str(list(ut.iflatten_dict_items(tree))))
+        >>> len_tree = ut.hierarchical_map_vals(len, tree, max_depth=4)
+        >>> result = ('len_tree = ' + ut.dict_str(len_tree, nl=None))
+        >>> print(result)
+
+    """
+    if not isinstance(node, dict):
+        return func(node)
+    elif max_depth is not None and depth >= max_depth:
+        #return func(node)
+        return {key: func(val) for key, val in six.iteritems(node)}
+    else:
+        # recursion
+        return {key: hierarchical_map_vals(func, val, max_depth, depth + 1) for key, val in six.iteritems(node)}
+
+
+#def hierarchical_map_nodes(func, node, max_depth=None, depth=0):
+#    """
+#    applies function to non-leaf nodes
+#    """
+#    if not isinstance(node, dict):
+#        return node
+#    elif max_depth is not None and depth >= max_depth:
+#        #return func(node)
+#        return func(node)
+#    else:
+#        # recursion
+#        return {key: func(hierarchical_map_vals(func, val, max_depth, depth + 1)) for key, val in six.iteritems(node)}
 
 
 if __name__ == '__main__':
