@@ -237,6 +237,26 @@ def listclip(list_, num, fromback=False):
     return sublist
 
 
+def find_list_indexes(list_, item_list):
+    """
+    Args:
+        list_ (list): list of items to be searched
+        item_list (list): list of items to find
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = ['a', 'b', 'c']
+        >>> item_list = ['d', 'c', 'b', 'f']
+        >>> index_list = find_list_indexes(list_, item_list)
+        >>> result = ('index_list = %r' % (index_list,))
+        >>> print(result)
+        index_list = [None, 2, 1, None]
+    """
+    index_list = [listfind(list_, item) for item in item_list]
+    return index_list
+
+
 def listfind(list_, tofind):
     r"""
     get the position of item ``tofind`` in ``list_`` if it exists
@@ -257,15 +277,6 @@ def listfind(list_, tofind):
         >>> result = listfind(list_, tofind)
         >>> print(result)
         1
-
-    Example2:
-        >>> # ENABLE_DOCTEST
-        >>> from utool.util_list import *  # NOQA
-        >>> list_ = ['a', 'b', 'c']
-        >>> tofind = 'd'
-        >>> result = listfind(list_, tofind)
-        >>> print(result)
-        None
     """
     try:
         return list_.index(tofind)
