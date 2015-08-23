@@ -276,6 +276,7 @@ def print_code(text, lexer_name='python'):
     try:
         import pygments
         if ut.WIN32:
+            assert False
             #formater = pygments.formatters.terminal256.Terminal256Formatter()
             import pygments.formatters.terminal256
             formater = pygments.formatters.terminal256.Terminal256Formatter()
