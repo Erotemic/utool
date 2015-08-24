@@ -398,6 +398,8 @@ def parse_cfgstr_list(cfgstr_list, smartcast=True, oldmode=True):
     """
     cfgdict = {}
     for item in cfgstr_list:
+        if item == '':
+            continue
         if oldmode:
             keyval_tup = item.replace('=', ':').split(':')
             assert len(keyval_tup) == 2, '[!] Invalid cfgitem=%r' % (item,)

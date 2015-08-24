@@ -90,8 +90,15 @@ def try_cast(var, type_, default=None):
 
 
 def smart_cast(var, type_):
-    if type_ in VALID_BOOL_TYPES and is_str(var):
-        return bool_from_str(var)
+    """
+    casts var to type, and tries to be clever when var is a string
+    """
+    if is_str(var):
+        if type_ in VALID_BOOL_TYPES:
+            return bool_from_str(var)
+        if type_ is slice:
+            args = [None if len(arg) == 0 else int(arg) for arg in var.split(':')]
+            return slice(*args)
     return type_(var)
 
 
@@ -132,6 +139,8 @@ def smart_cast2(var):
             return False
         elif lower == 'none':
             return None
+        if var.startswith('[') and var.endswith(']'):
+            return [smart_cast2(subvar) for subvar in var[1:-1].split(',')]
         type_list = [int, float]
         for type_ in type_list:
             castvar = try_cast(var, type_)

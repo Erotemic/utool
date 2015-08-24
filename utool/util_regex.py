@@ -110,6 +110,10 @@ def named_field(key, regex):
     return r'(?P<%s>%s)' % (key, regex)
 
 
+def negative_lookahead(regex):
+    return '(?!' + regex + ')'
+
+
 def whole_word(regex):
     return r'\b%s\b' % regex
 
