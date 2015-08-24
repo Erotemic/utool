@@ -52,6 +52,11 @@ def map_dict_vals(func, dict_):
     return {key: func(val) for key, val in six.iteritems(dict_)}
 
 
+def map_dict_keys(func, dict_):
+    """ probably a better version of dict_map_apply_vals """
+    return {func(key): val for key, val in six.iteritems(dict_)}
+
+
 class AutoVivification(dict):
     """
     Implementation of perl's autovivification feature.

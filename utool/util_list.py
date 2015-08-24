@@ -860,58 +860,6 @@ def is_subset_of_any(set_, other_sets):
     return any([set_.issubset(other_set) for other_set in other_sets])
 
 
-def setdiff_ordered(list1, list2):
-    """
-    returns list1 elements that are not in list2. preserves order of list1
-
-    setdiff_ordered
-
-    Args:
-        list1 (list):
-        list2 (list):
-
-    Returns:
-        list: new_list
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from utool.util_list import *  # NOQA
-        >>> list1 = ['featweight_rowid', 'feature_rowid', 'config_rowid', 'featweight_forground_weight']
-        >>> list2 = [u'featweight_rowid']
-        >>> new_list = setdiff_ordered(list1, list2)
-        >>> result = new_list
-        >>> print(result)
-        ['feature_rowid', 'config_rowid', 'featweight_forground_weight']
-    """
-    return [item for item in list1 if item not in set(list2)]
-
-
-def setintersect_ordered(list1, list2):
-    """
-    returns list1 elements that are in list2. preserves order of list1
-
-    setintersect_ordered
-
-    Args:
-        list1 (list):
-        list2 (list):
-
-    Returns:
-        list: new_list
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from utool.util_list import *  # NOQA
-        >>> list1 = [1, 2, 3, 5, 8, 13, 21]
-        >>> list2 = [6, 4, 2, 21, 8]
-        >>> new_list = setintersect_ordered(list1, list2)
-        >>> result = new_list
-        >>> print(result)
-        [2, 8, 21]
-    """
-    return [item for item in list1 if item in set(list2)]
-
-
 def flag_unique_items(list_):
     """
     Returns a list of flags corresponding to the first time an item is seen
@@ -1012,6 +960,58 @@ unique_ordered = unique_keep_order2
 
 def unique_unordered(list_):
     return list(set(list_))
+
+
+def setdiff_ordered(list1, list2):
+    """
+    returns list1 elements that are not in list2. preserves order of list1
+
+    setdiff_ordered
+
+    Args:
+        list1 (list):
+        list2 (list):
+
+    Returns:
+        list: new_list
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list1 = ['featweight_rowid', 'feature_rowid', 'config_rowid', 'featweight_forground_weight']
+        >>> list2 = [u'featweight_rowid']
+        >>> new_list = setdiff_ordered(list1, list2)
+        >>> result = new_list
+        >>> print(result)
+        ['feature_rowid', 'config_rowid', 'featweight_forground_weight']
+    """
+    return [item for item in list1 if item not in set(list2)]
+
+
+def setintersect_ordered(list1, list2):
+    """
+    returns list1 elements that are in list2. preserves order of list1
+
+    setintersect_ordered
+
+    Args:
+        list1 (list):
+        list2 (list):
+
+    Returns:
+        list: new_list
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list1 = [1, 2, 3, 5, 8, 13, 21]
+        >>> list2 = [6, 4, 2, 21, 8]
+        >>> new_list = setintersect_ordered(list1, list2)
+        >>> result = new_list
+        >>> print(result)
+        [2, 8, 21]
+    """
+    return [item for item in list1 if item in set(list2)]
 
 
 def sortedby(item_list, key_list, reverse=False):

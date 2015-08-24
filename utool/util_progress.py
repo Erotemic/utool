@@ -243,6 +243,7 @@ class ProgressIter(object):
         self.autoadjust         = kwargs.get('autoadjust', True)  # autoadjust frequency of reporting
         self.time_thresh        = kwargs.pop('time_thresh', None)
         self.prog_hook          = kwargs.pop('prog_hook', None)
+        self.separate           = kwargs.pop('separate', False)
 
         self.parent_index       = kwargs.pop('parent_index', 0)
         self.parent_nTotal      = kwargs.pop('parent_nTotal', 1)
@@ -364,8 +365,11 @@ class ProgressIter(object):
         #est_timeunit_left = -1
 
         # Write initial message
-        PROGRESS_WRITE(self.build_msg_fmtstr_index(nTotal, self.lbl) % (self.count))
         force_newlines = not self.backspace
+        print_sep = self.separate
+        if print_sep:
+            print('---------')
+        PROGRESS_WRITE(self.build_msg_fmtstr_index(nTotal, self.lbl) % (self.count))
         if force_newlines:
             PROGRESS_WRITE('\n')
 
@@ -376,6 +380,7 @@ class ProgressIter(object):
         # Prepare for iteration
         msg_fmtstr = self.build_msg_fmtstr(nTotal, self.lbl,
                                            self.invert_rate, self.backspace)
+
         # TODO: on windows is time.clock better?
         # http://exnumerus.blogspot.com/2011/02/how-to-quickly-plot-multiple-line.html
         start_time    = default_timer()
@@ -433,6 +438,8 @@ class ProgressIter(object):
                 )
                 #est_timeunit_left,
                 #total_timeunit)
+                if print_sep:
+                    print('---------')
                 PROGRESS_WRITE(msg)
                 if force_newlines:
                     PROGRESS_WRITE('\n')

@@ -336,8 +336,29 @@ def print_difftext(text):
 def colorprint(msg, color):
     """ provides some color to terminal output
 
+    assert color in ['', 'yellow', 'blink', 'lightgray', 'underline',
+    'darkyellow', 'blue', 'darkblue', 'faint', 'fuchsia', 'black', 'white',
+    'red', 'brown', 'turquoise', 'bold', 'darkred', 'darkgreen', 'reset',
+    'standout', 'darkteal', 'darkgray', 'overline', 'purple', 'green', 'teal',
+    'fuscia']
+
+
     python -c "import pygments.console; print(list(pygments.console.codes.keys()))"
 
+    Args:
+        msg (?):
+        color (?):
+
+    CommandLine:
+        python -m utool.util_print --exec-colorprint
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_print import *  # NOQA
+        >>> import pygments.console
+        >>> msg_list = list(pygments.console.codes.keys())
+        >>> color_list = list(pygments.console.codes.keys())
+        >>> [colorprint(msg, color) for msg, color in zip(msg_list, color_list)]
     """
     try:
         import pygments
