@@ -140,7 +140,10 @@ def smart_cast2(var):
         elif lower == 'none':
             return None
         if var.startswith('[') and var.endswith(']'):
-            return [smart_cast2(subvar) for subvar in var[1:-1].split(',')]
+            #import re
+            #subvar_list = re.split(r',\s*' + ut.negative_lookahead(r'[^\[\]]*\]'), var[1:-1])
+            subvar_list = var[1:-1].split(',')
+            return [smart_cast2(subvar) for subvar in subvar_list]
         type_list = [int, float]
         for type_ in type_list:
             castvar = try_cast(var, type_)
