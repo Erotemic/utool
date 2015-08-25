@@ -873,20 +873,48 @@ def get_func_argspec(func):
 
 
 def parse_kwarg_keys(source):
-    """ very hacky way to infer some of the kwarg keys
+    r""" very hacky way to infer some of the kwarg keys
 
     TODO: use a code parse tree here.  Use hints.  Find other docstrings of
     functions that are called with kwargs. Find the name of the kwargs
     variable.
-    """
 
+
+    Args:
+        source (?):
+
+    Returns:
+        ?: kwarg_keys
+
+    CommandLine:
+        python -m utool.util_inspect --exec-parse_kwarg_keys
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_inspect import *  # NOQA
+        >>> source = "\n  kwargs.get('foo', None)\n  kwargs.pop('bar', 3)\n  \"kwargs.get('baz', None)\""
+        >>> print(source)
+        >>> kwarg_keys = parse_kwarg_keys(source)
+        >>> result = ('kwarg_keys = %s' % (str(kwarg_keys),))
+        >>> print(result)
+
+    """
     #source = ut.get_func_sourcecode(func, strip_docstr=True, strip_comments=True)
+    import re
     import utool as ut
     keyname = ut.named_field('keyname', ut.REGEX_VARNAME)
+    esc = re.escape
     #default = ut.named_field('default', '[\'\"A-Za-z_][A-Za-z0-9_\'\"]*')
-    pattern = re.escape('kwargs.get(\'') + keyname + re.escape('\',')
-    re.compile(pattern)
-    kwarg_keys = [match.groupdict()['keyname'] for match in re.finditer(pattern, source)]
+    itemgetter = ut.regex_or(['get', 'pop'])
+    pattern = esc('kwargs.') + itemgetter + esc('(\'') + keyname + esc('\',')
+    #not_quotes = '^' + ut.positive_lookbehind(r'[^\'\"]*')
+    #not_quotes = ut.regex_or(['^', r'\n']) + r'[^\'\"]*'
+    #not_quotes = r'[^\'\"]*'
+    not_quotes = r'^[^\'\"]*'
+    pattern = not_quotes + pattern
+    regex = re.compile(pattern, flags=re.MULTILINE)
+    #print(pattern)
+    kwarg_keys = [match.groupdict()['keyname'] for match in regex.finditer(source)]
     return kwarg_keys
 
 

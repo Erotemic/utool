@@ -903,6 +903,20 @@ def dict_hist(item_list, ordered=False):
     return hist_
 
 
+def dict_hist_cumsum(hist_, reverse=True):
+    """ VERY HACKY """
+    import utool as ut
+    items = hist_.items()
+    if reverse:
+        items = sorted(items)[::-1]
+    else:
+        items = sorted(items)
+    key_list = ut.get_list_column(items, 0)
+    val_list = ut.get_list_column(items, 1)
+    cumhist_ = dict(zip(key_list, np.cumsum(val_list)))
+    return cumhist_
+
+
 def merge_dicts(*args):
     r"""
     add / concatenate / union / join / merge / combine dictionaries
@@ -1189,6 +1203,9 @@ def hierarchical_map_vals(func, node, max_depth=None, depth=0):
     else:
         # recursion
         return {key: hierarchical_map_vals(func, val, max_depth, depth + 1) for key, val in six.iteritems(node)}
+
+
+hmap_vals = hierarchical_map_vals
 
 
 #def hierarchical_map_nodes(func, node, max_depth=None, depth=0):

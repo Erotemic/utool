@@ -110,8 +110,40 @@ def named_field(key, regex):
     return r'(?P<%s>%s)' % (key, regex)
 
 
+def positive_lookahead(regex):
+    return '(?=' + regex + ')'
+
+
+def positive_lookbehind(regex):
+    return '(?<=' + regex + ')'
+
+
 def negative_lookahead(regex):
     return '(?!' + regex + ')'
+
+
+def negative_lookbehind(regex):
+    r"""
+    Args:
+        regex (?):
+
+    Returns:
+        ?:
+
+    CommandLine:
+        python -m utool.util_regex --exec-negative_lookbehind
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_regex import *  # NOQA
+        >>> regex = re.escape('\'')
+        >>> pattern = negative_lookbehind(regex) + 'foo'
+        >>> match1 = re.search(pattern, '\'foo\'')
+        >>> match2 = re.search(pattern, '"foo"')
+        >>> match3 = re.search(pattern, '\' foo\'')
+        >>> match4 = re.search(pattern, '" foo"')
+    """
+    return '(?<!' + regex + ')'
 
 
 def whole_word(regex):

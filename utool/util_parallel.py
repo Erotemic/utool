@@ -326,6 +326,9 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
         python -m utool.util_parallel --test-generate:3
         python -m utool.util_parallel --test-generate --verbose
 
+        python -c "import multiprocessing; print(multiprocessing.__version__)"
+        python -c "import cv2; print(cv2.__version__)"
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
@@ -391,7 +394,7 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
         >>> # UNSTABLE_DOCTEST
         >>> # Trying to recreate the freeze seen in IBEIS
         >>> # Extremely weird case: freezes only if dsize > (313, 313) AND __testwarp was called beforehand.
-        >>> # otherwise the parallel loop works fine.
+        >>> # otherwise the parallel loop works fine. Could be an opencv 3.0.0-dev issue.
         >>> import vtool as vt
         >>> import utool as ut
         >>> from ibeis.model.preproc.preproc_chip import gen_chip
@@ -406,7 +409,7 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
         >>> #new1 = [x for x in ut.generate(__testwarp, arg_list1)]
         >>> new1 =  __testwarp(arg_list1[0])
         >>> new2 = [y for y in ut.generate(__testwarp, arg_list2, force_serial=False)]
-        >>> print('new2 = %r' % (new2,))
+        >>> #print('new2 = %r' % (new2,))
 
     #Example4:
     #    >>> # Freakin weird. When IBEIS Runs generate it doesn't close the processes
