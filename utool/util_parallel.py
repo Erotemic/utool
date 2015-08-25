@@ -340,7 +340,7 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
         >>> print('ASSERTING')
         >>> assert flag_list0 == flag_list1
 
-    Example:
+    Example1:
         >>> # ENABLE_DOCTEST
         >>> # Trying to recreate the freeze seen in IBEIS
         >>> import utool as ut
@@ -359,7 +359,7 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
         >>> print('flag_list2 = %r' % (flag_list1,))
         >>> print('flag_list3 = %r' % (flag_list1,))
 
-    Example:
+    Example2:
         >>> # UNSTABLE_DOCTEST
         >>> # Trying to recreate the freeze seen in IBEIS
         >>> import vtool as vt
@@ -387,7 +387,7 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
         >>> #feats3 = [z for z in ut.generate(gen_feat_worker, arg_list3)]
         >>> #feats4 = [w for w in ut.generate(gen_feat_worker, arg_list4)]
 
-    Example:
+    Example3:
         >>> # UNSTABLE_DOCTEST
         >>> # Trying to recreate the freeze seen in IBEIS
         >>> # Extremely weird case: freezes only if dsize > (313, 313) AND __testwarp was called beforehand.
@@ -407,6 +407,21 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
         >>> new1 =  __testwarp(arg_list1[0])
         >>> new2 = [y for y in ut.generate(__testwarp, arg_list2, force_serial=False)]
         >>> print('new2 = %r' % (new2,))
+
+    #Example4:
+    #    >>> # Freakin weird. When IBEIS Runs generate it doesn't close the processes
+    #    >>> # UNSTABLE_DOCTEST
+    #    >>> # python -m utool.util_parallel --test-generate:4
+    #    >>> # Trying to see if we can recreate the problem where there are
+    #    >>> # defunct python processes
+    #    >>> import utool as ut
+    #    >>> #num = 8700  # parallel is slower for smaller numbers
+    #    >>> num = 70000  # parallel has an initial (~.1 second startup overhead)
+    #    >>> print('TESTING PARALLEL')
+    #    >>> flag_generator1 = list(ut.generate(ut.is_prime, range(0, num)))
+    #    >>> flag_generator1 = list(ut.generate(ut.is_prime, range(0, num)))
+    #    >>> import time
+    #    >>> time.sleep(10)
 
     """
     if nTasks is None:
