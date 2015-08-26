@@ -352,12 +352,40 @@ def ensure_colvec(arr):
     return arr
 
 
-def escape_latex(unescaped_latex_str):
-    ret = unescaped_latex_str
-    ret = ret.replace('#', '\\#')
-    ret = ret.replace('%', '\\%')
-    ret = ret.replace('_', '\\_')
-    return ret
+#def escape_latex(unescaped_latex_str):
+#    ret = unescaped_latex_str
+#    ret = ret.replace('#', '\\#')
+#    ret = ret.replace('%', '\\%')
+#    ret = ret.replace('_', '\\_')
+#    return ret
+
+def escape_latex(text):
+    r"""
+    Args:
+        text (str): a plain text message
+
+    Returns:
+        str: the message escaped to appear correctly in LaTeX
+
+    References:
+        http://stackoverflow.com/questions/16259923/how-can-i-escape-latex-special-characters-inside-django-templates
+    """
+    conv = {
+        '&': r'\&',
+        '%': r'\%',
+        '$': r'\$',
+        '#': r'\#',
+        '_': r'\_',
+        '{': r'\{',
+        '}': r'\}',
+        '~': r'\textasciitilde{}',
+        '^': r'\^{}',
+        '\\': r'\textbackslash{}',
+        '<': r'\textless',
+        '>': r'\textgreater',
+    }
+    regex = re.compile('|'.join(re.escape(unicode(key)) for key in sorted(conv.keys(), key=lambda item: - len(item))))
+    return regex.sub(lambda match: conv[match.group()], text)
 
 
 def replace_all(str_, repltups):
