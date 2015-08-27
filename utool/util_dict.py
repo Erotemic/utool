@@ -711,6 +711,27 @@ def dict_where_len0(dict_):
 
 
 def order_dict_by(dict_, key_order):
+    r"""
+    Args:
+        dict_ (dict_):  a dictionary
+        key_order (list):
+
+    Returns:
+        dict: sorted_dict
+
+    CommandLine:
+        python -m utool.util_dict --exec-order_dict_by
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> dict_ = {1:1, 2:2, 3:3, 4:4}
+        >>> key_order = [4,2,3,1]
+        >>> sorted_dict = order_dict_by(dict_, key_order)
+        >>> result = ('sorted_dict = %s' % (ut.dict_str(sorted_dict, nl=False),))
+        >>> print(result)
+        sorted_dict = {4: 4, 2: 2, 3: 3, 1: 1}
+    """
     sorted_item_list = [(key, dict_[key]) for key in key_order if key in dict_]
     sorted_dict = OrderedDict(sorted_item_list)
     return sorted_dict
@@ -1026,13 +1047,14 @@ def dict_filter_nones(dict_):
     return {key: val for key, val in six.iteritems(dict_) if val is not None}
 
 
-def group_items(item_list, groupid_list):
+def group_items(item_list, groupid_list, sorted_=True):
     """
     group_items
 
     Args:
         item_list (list):
         groupid_list (list):
+        sorted_ (bool): if True preserves the ordering of items within groups (default = True)
 
     Returns:
         dict: groupid2_items mapping groupids to a list of items
@@ -1054,12 +1076,15 @@ def group_items(item_list, groupid_list):
 
         {'protein': ['eggs', 'ham', 'spam'], 'fruit': ['bannana', 'jam'], 'dairy': ['cheese']}
     """
-    # Sort by groupid for cache efficiency
-    sorted_pairs = sorted(list(zip(groupid_list, item_list)))
+    if sorted_:
+        # Sort by groupid for cache efficiency
+        pair_list = sorted(list(zip(groupid_list, item_list)), key=lambda tup: tup[0])
+    else:
+        pair_list = list(zip(groupid_list, item_list))
     # Initialize dict of lists
     groupid2_items = defaultdict(list)
     # Insert each item into the correct group
-    for groupid, item in sorted_pairs:
+    for groupid, item in pair_list:
         groupid2_items[groupid].append(item)
     return groupid2_items
 

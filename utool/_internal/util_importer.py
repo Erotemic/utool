@@ -324,7 +324,10 @@ def dynamic_import(modname, IMPORT_TUPLES, developing=True, ignore_froms=[],
             new_lines = []
             editing = False
             updated = False
+            #start_tag = '# <AUTOGEN_INIT>'
+            #end_tag = '# </AUTOGEN_INIT>'
             with open(init_fpath, 'r') as file_:
+                #text = file_.read()
                 lines = file_.readlines()
                 for line in lines:
                     if not editing:
@@ -335,6 +338,8 @@ def dynamic_import(modname, IMPORT_TUPLES, developing=True, ignore_froms=[],
                         updated = True
                     if line.strip().startswith('# </AUTOGEN_INIT>'):
                         editing = False
+            # TODO:
+            #new_text = util_str.replace_between_tags(text, new_else, start_tag, end_tag)
             if updated:
                 print("writing updated file: %r" % init_fpath)
                 new_text = ''.join(new_lines)

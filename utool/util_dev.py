@@ -700,7 +700,7 @@ class InteractiveIter(object):
             enabled (bool): (default = True)
             startx (int): (default = 0)
             default_action (str): (default = 'next')
-            custom_actions (list): (default = [])
+            custom_actions (list): list of 4-tuple (name, actions, help, func) (default = [])
             wraparound (bool): (default = False)
             display_item (bool): (default = True)
             verbose (bool):  verbosity flag(default = True)
@@ -727,6 +727,13 @@ class InteractiveIter(object):
         iiter.wraparound = wraparound
         iiter.enabled = enabled
         iiter.iterable = iterable
+
+        for actiontup in custom_actions:
+            if isinstance(custom_actions, tuple):
+                pass
+            else:
+                pass
+
         iiter.custom_actions = ut.get_list_column(custom_actions, [0, 1, 2])
         iiter.custom_funcs = ut.get_list_column(custom_actions, 3)
         iiter.action_tuples = [
@@ -773,6 +780,18 @@ class InteractiveIter(object):
         if iiter.num_items == 0:
             raise StopIteration
         mark_, end_ = util_progress.log_progress(total=iiter.num_items, lbl='interaction: ', freq=1)
+        prompt_on_start = False
+        if prompt_on_start:
+            ans = iiter.prompt()
+            action = iiter.handle_ans(ans)
+            REFRESH_ON_BAD_INPUT = False
+            if not REFRESH_ON_BAD_INPUT:
+                while action is False:
+                    ans = iiter.prompt()
+                    action = iiter.handle_ans(ans)
+            if action == 'IPython':
+                ut.embed(N=1)
+
         while True:
             if iiter.verbose:
                 print('')
@@ -846,8 +865,11 @@ class InteractiveIter(object):
                 key = tup[0]
                 if chack_if_answer_was(iiter.action_keys[key]):
                     value  = parse_str_value(ans)
+                    # cal custom function
+                    print('Calling custom action func')
                     func(iiter, key, value)
-                    return True
+                    # Custom funcs dont cause iteration
+                    return False
             print('Unknown ans=%r' % (ans,))
             return False
         return True
@@ -855,7 +877,7 @@ class InteractiveIter(object):
     def prompt(iiter):
         import utool as ut
         def _or_phrase(list_):
-            return ut.conj_phrase(list(map(repr, list_)), 'or')
+            return ut.conj_phrase(list(map(repr, map(str, list_))), 'or')
         msg_list = ['enter %s to %s' % (_or_phrase(tup[1]), tup[2])
                     for tup in iiter.action_tuples]
         msg = ut.indentjoin(msg_list, '\n | * ')

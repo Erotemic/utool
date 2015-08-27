@@ -395,10 +395,11 @@ def replace_all(str_, repltups):
     return ret
 
 
-def make_score_tabular(row_lbls, col_lbls, values, title=None, out_of=None,
-                       bold_best=False, flip=False, bigger_is_better=True,
-                       multicol_lbls=None, FORCE_INT=True, precision=None,
-                       SHORTEN_ROW_LBLS=False, col_align='l', centerline=True):
+def make_score_tabular(
+        row_lbls, col_lbls, values, title=None, out_of=None, bold_best=False,
+        flip=False, bigger_is_better=True, multicol_lbls=None, FORCE_INT=False,
+        precision=None, SHORTEN_ROW_LBLS=False, col_align='l', col_sep='|',
+        multicol_sep='|', centerline=True, astable=False):
     r"""
     makes a LaTeX tabular for displaying scores or errors
 
@@ -595,21 +596,29 @@ def make_score_tabular(row_lbls, col_lbls, values, title=None, out_of=None,
 
     # Build Body (and row layout)
     HLINE_SEP = True
-    rowsep = ''
-    colsep = ' & '
+    rowvalsep = ''
+    colvalsep = ' & '
     endl = '\\\\\n'
     hline = r'\hline'
     #extra_rowsep_pos_list = [1]  # rows to insert an extra hline after
     extra_rowsep_pos_list = []  # rows to insert an extra hline after
     if HLINE_SEP:
-        rowsep = hline + '\n'
+        rowvalsep = hline + '\n'
     # rowstr list holds blocks of rows
-    rowstr_list = [colsep.join(row) + endl for row in body]
-    rowsep_list = [rowsep for row in rowstr_list[0:-1]]  # should be len 1 less than rowstr_list
+    rowstr_list = [colvalsep.join(row) + endl for row in body]
+    #rowstr_list = [row[0] + rowlbl_sep + colvalsep.join(row[1:]) + endl for row in body]
+    #rowstr_list = [(
+    #    ('' if len(row) == 0 else row[0])
+    #    if len(row) <= 1 else
+    #    row[0] + rowlblcol_sep + colvalsep.join(row[1:]) + endl)
+    #    for row in body]
+    rowsep_list = [rowvalsep for row in rowstr_list[0:-1]]  # should be len 1 less than rowstr_list
     # Insert multicolumn names
     if multicol_lbls is not None:
         # TODO: label of the row labels
-        multicol_str = latex_multirow('', 2) + colsep + colsep.join([latex_multicolumn(multicol, size, 'c|') for multicol, size in multicol_lbls]) + endl
+        multicol_sep
+        multicols = [latex_multicolumn(multicol, size, 'c' + multicol_sep) for multicol, size in multicol_lbls]
+        multicol_str = latex_multirow('', 2) + colvalsep + colvalsep.join(multicols) + endl
         ncols = sum([tup[1] for tup in multicol_lbls])
         mcol_sep = '\\cline{2-%d}\n' % (ncols + 1,)
         rowstr_list = [multicol_str] + rowstr_list
@@ -620,35 +629,45 @@ def make_score_tabular(row_lbls, col_lbls, values, title=None, out_of=None,
     if title is not None:
         tex_title = latex_multicolumn(title, len(body[0])) + endl
         rowstr_list = [tex_title] + rowstr_list
-        rowsep_list = [rowsep] + rowsep_list
+        rowsep_list = [rowvalsep] + rowsep_list
         #extra_rowsep_pos_list += [2]
 
     # Apply an extra hline (for label)
     #extra_rowsep_pos_list = []
     for pos in sorted(extra_rowsep_pos_list)[::-1]:
         rowstr_list.insert(pos, '')
-        rowsep_list.insert(pos, rowsep)
-    #tabular_body = rowsep.join(rowstr_list)
+        rowsep_list.insert(pos, rowvalsep)
+    #tabular_body = rowvalsep.join(rowstr_list)
     from six.moves import zip_longest
     tabular_body = ''.join([row if sep is None else row + sep for row, sep in zip_longest(rowstr_list, rowsep_list)])
 
     # Build Column Layout
-    col_layout_sep = '|'
     col_layout_list = [col_align] * len(body[0])
     #extra_collayoutsep_pos_list = [1]
     extra_collayoutsep_pos_list = []
     for pos in  sorted(extra_collayoutsep_pos_list)[::-1]:
         col_layout_list.insert(pos, '')
-    col_layout = col_layout_sep.join(col_layout_list)
+    #col_layaout_sep_list = rowlblcol_sep  # TODO
+    rowlblcol_sep = '|'
+    if len(col_layout_list) > 1:
+        col_layout = col_layout_list[0] + rowlblcol_sep + col_sep.join(col_layout_list[1:])
+    else:
+        col_layout = col_sep.join(col_layout_list)
+
+    tabular_head = (r'\begin{tabular}{|%s|}' % col_layout) + '\n'
+    tabular_tail = r'\end{tabular}'
 
     if centerline:
-        tabular_head = r'\centerline{' + '\n' + (r'\begin{tabular}{|%s|}' % col_layout) + '\n'
-        tabular_tail = r'\end{tabular}' + '\n' + '}'
-    else:
-        tabular_head = (r'\begin{tabular}{|%s|}' % col_layout) + '\n'
-        tabular_tail = r'\end{tabular}'
+        tabular_head = r'\centerline{' + '\n' + tabular_head
+        tabular_tail = tabular_tail + '}'
 
-    tabular_str = rowsep.join([tabular_head, tabular_body, tabular_tail])
+    if astable:
+        tabular_head = r'\begin{table}' + '\n' + tabular_head
+        lblstr = latex_sanatize_command_name(title)
+        caption = escape_latex(title)
+        tabular_tail = tabular_tail + '\n\caption{%s}\n\label{tbl:%s}\n\end{table}' % (caption, lblstr)
+
+    tabular_str = rowvalsep.join([tabular_head, tabular_body, tabular_tail])
     topsep = '\\hline\n' if True else '\\toprule\n'
     botsep = '\\hline\n' if True else '\\bottomrule\n'
     tabular_str = tabular_head + topsep + tabular_body + botsep + tabular_tail
@@ -791,14 +810,32 @@ def latex_newcommand(command_name, command_text, num_args=0):
 
 
 def latex_sanatize_command_name(command_name):
+    r"""
+    Args:
+        command_name (?):
+
+    Returns:
+        ?: command_name
+
+    CommandLine:
+        python -m utool.util_latex --exec-latex_sanatize_command_name
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_latex import *  # NOQA
+        >>> command_name = '#foo'
+        >>> command_name = latex_sanatize_command_name(command_name)
+        >>> result = ('command_name = %s' % (str(command_name),))
+        >>> print(result)
+    """
     import re
-    import utool as ut
     # remove numbers
-    command_name = re.sub(ut.regex_or(['\\d']), '', command_name)
+    command_name = re.sub(r'[\d' + re.escape('#()[]{}') + ']', '', command_name)
     # Remove _ for cammel case
     def to_cammel_case(str_list):
-        return ''.join([str_[0].upper() + str_[1:] for str_ in str_list])
-    command_name = to_cammel_case(command_name.split('_'))
+            # hacky
+            return ''.join([str_ if len(str_) < 1 else str_[0].upper() + str_[1:] for str_ in str_list])
+    command_name = to_cammel_case(re.split('[_ ]', command_name)[::2])
     return command_name
 
 

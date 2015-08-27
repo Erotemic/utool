@@ -37,6 +37,22 @@ else:
     TAUSTR = 'tau'
 
 
+def replace_between_tags(text, repl_, start_tag, end_tag):
+    new_lines = []
+    editing = False
+    lines = text.split('\n')
+    for line in lines:
+        if not editing:
+            new_lines.append(line)
+        if line.strip().startswith(start_tag):
+            new_lines.append(repl_ + '\n' + end_tag + '\n')
+            editing = True
+        if line.strip().startswith(end_tag):
+            editing = False
+    new_text = '\n'.join(new_lines)
+    return new_text
+
+
 def theta_str(theta, taustr=TAUSTR, fmtstr='{coeff:,.1f}{taustr}'):
     r"""
     Format theta so it is interpretable in base 10
@@ -1266,7 +1282,7 @@ def obj_str(obj_, **kwargs):
 
 
 def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
-             indent_='', precision=None, hack_liststr=False, truncate=False,
+             indent_='', precision=None, hack_liststr=None, truncate=False,
              nl=None, explicit=False, truncatekw=dict(), key_order=None,
              key_order_metric=None, nobraces=False, align=False, **dictkw):
     """
@@ -1326,6 +1342,9 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
     #print(indent_ + 'truncate = %r' % (truncate,))
     #print(indent_ + 'truncate_ = %r' % (truncate_,))
     #print('----')
+
+    if hack_liststr is None and nl is not None:
+        hack_liststr = True
 
     itemstr_list = dict_itemstr_list(dict_, strvals, sorted_, newlines_,
                                      recursive, indent_, precision,

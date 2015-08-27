@@ -658,7 +658,7 @@ if DOELSE:
                                  get_printable_timestamp, get_timedelta_str,
                                  get_timestamp, get_timestats_dict,
                                  get_timestats_str, get_unix_timedelta, tic,
-                                 timestamp, toc, unixtime_to_datetime,
+                                 timestamp, toc, unixtime_to_datetimestr,
                                  unixtime_to_timedelta,)
     from utool.util_type import (BooleanType, FloatType, IntType,
                                  LISTLIKE_TYPES, LongType, NP_NDARRAY,

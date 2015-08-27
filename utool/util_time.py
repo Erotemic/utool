@@ -241,7 +241,10 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=1, strict=False):
             return -1
 
 
-def unixtime_to_datetime(unixtime, timefmt='%Y/%m/%d %H:%M:%S', isutc=False):
+def unixtime_to_datetimestr(unixtime, timefmt='%Y/%m/%d %H:%M:%S', isutc=False):
+    """
+    TODO: ranme to datetimestr
+    """
     try:
         if unixtime == -1:
             return 'NA'
@@ -254,6 +257,20 @@ def unixtime_to_datetime(unixtime, timefmt='%Y/%m/%d %H:%M:%S', isutc=False):
     except ValueError:
         raise
         #return 'NA'
+
+
+def unixtime_to_datetimeobj(unixtime, isutc=False):
+    try:
+        if unixtime == -1:
+            return 'NA'
+        if unixtime is None:
+            return None
+        if isutc:
+            return datetime.datetime.utcfromtimestamp(unixtime)
+        else:
+            return datetime.datetime.fromtimestamp(unixtime)
+    except ValueError:
+        raise
 
 
 def unixtime_to_timedelta(unixtime_diff):
@@ -516,7 +533,7 @@ def get_timestats_dict(unixtime_list, full=True, isutc=False):
         return datetime_stats
     for key in ['max', 'min', 'mean']:
         try:
-            datetime_stats[key] = ut.unixtime_to_datetime(unixtime_stats[key], isutc=isutc)
+            datetime_stats[key] = ut.unixtime_to_datetimestr(unixtime_stats[key], isutc=isutc)
         except KeyError:
             pass
         except ValueError as ex:

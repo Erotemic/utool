@@ -519,10 +519,32 @@ def filter_valid_kwargs(func, dict_):
 
 
 def get_kwdefaults(func):
+    r"""
+    Args:
+        func (?):
+
+    Returns:
+        dict:
+
+    CommandLine:
+        python -m utool.util_inspect --exec-get_kwdefaults
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_inspect import *  # NOQA
+        >>> func = get_func_sourcecode
+        >>> kwdefaults = get_kwdefaults(func)
+        >>> print('kwdefaults = %r' % (kwdefaults,))
+    """
     argspec = inspect.getargspec(func)
-    if argspec.keywords is None or argspec.defaults is None:
-        return {}
-    kwdefaults = dict(zip(argspec.keywords, argspec.defaults))
+    kwdefaults = {}
+    if argspec.args is None or argspec.defaults is None:
+        pass
+    else:
+        kwdefaults = dict(zip(argspec.args[::-1], argspec.defaults[::-1]))
+    if argspec.keywords:
+        # TODO parse for kwargs.get/pop
+        pass
     return kwdefaults
 
 

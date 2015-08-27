@@ -101,9 +101,9 @@ def get_file_info(fpath):
     info = OrderedDict(
         [
             ('filesize', get_file_nBytes_str(fpath)),
-            ('last_modified', util_time.unixtime_to_datetime(statbuf.st_mtime, isutc=False) + ' ' + time.tzname[0]),
-            ('last_accessed', util_time.unixtime_to_datetime(statbuf.st_atime, isutc=False) + ' ' + time.tzname[0]),
-            ('created', util_time.unixtime_to_datetime(statbuf.st_ctime, isutc=False) + ' ' + time.tzname[0]),
+            ('last_modified', util_time.unixtime_to_datetimestr(statbuf.st_mtime, isutc=False) + ' ' + time.tzname[0]),
+            ('last_accessed', util_time.unixtime_to_datetimestr(statbuf.st_atime, isutc=False) + ' ' + time.tzname[0]),
+            ('created', util_time.unixtime_to_datetimestr(statbuf.st_ctime, isutc=False) + ' ' + time.tzname[0]),
         ]
     )
     return info

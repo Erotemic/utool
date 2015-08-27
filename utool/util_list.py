@@ -860,26 +860,6 @@ def is_subset_of_any(set_, other_sets):
     return any([set_.issubset(other_set) for other_set in other_sets])
 
 
-def flag_unique_items(list_):
-    """
-    Returns a list of flags corresponding to the first time an item is seen
-
-    Args:
-        list_ (list): list of items
-
-    Returns:
-        flag_list
-    """
-    seen = set()
-    def unseen(item):
-        if item in seen:
-            return False
-        seen.add(item)
-        return True
-    flag_list = [unseen(item) for item in list_]
-    return flag_list
-
-
 def priority_sort(list_, priority):
     r"""
     Args:
@@ -936,15 +916,15 @@ def priority_argsort(list_, priority):
     return sortx
 
 
-def unique_keep_order2(list_):
+def flag_unique_items(list_):
     """
-    pure python version of unique_keep_ordered
+    Returns a list of flags corresponding to the first time an item is seen
 
     Args:
-        list_ (list):
+        list_ (list): list of items
 
     Returns:
-        unique_list : unique list which maintains order
+        flag_list
     """
     seen = set()
     def unseen(item):
@@ -952,7 +932,55 @@ def unique_keep_order2(list_):
             return False
         seen.add(item)
         return True
-    unique_list = [item for item in list_ if unseen(item)]
+    flag_list = [unseen(item) for item in list_]
+    return flag_list
+
+
+def iflag_unique_items(list_):
+    """
+    Returns a list of flags corresponding to the first time an item is seen
+
+    Args:
+        list_ (list): list of items
+
+    Returns:
+        flag_iter
+    """
+    seen = set()
+    def unseen(item):
+        if item in seen:
+            return False
+        seen.add(item)
+        return True
+    flag_iter = (unseen(item) for item in list_)
+    return flag_iter
+
+
+def unique_keep_order2(list_):
+    """
+    pure python version of unique_keep_ordered
+    TODO: change name
+
+    Args:
+        list_ (list):
+
+    Returns:
+        list: unique_list - unique list which maintains order
+
+    CommandLine:
+        python -m utool.util_list --exec-unique_keep_order2
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [4, 6, 6, 0, 6, 1, 0, 2, 2, 1]
+        >>> unique_list = unique_keep_order2(list_)
+        >>> result = ('unique_list = %s' % (str(unique_list),))
+        >>> print(result)
+        unique_list = [4, 6, 0, 1, 2]
+    """
+    flag_list = flag_unique_items(list_)
+    unique_list = list_compress(list_, flag_list)
     return unique_list
 
 unique_ordered = unique_keep_order2
@@ -1123,6 +1151,10 @@ def list_compress(list_, flag_list):
 
 def list_ziptake(items_list, indexes_list):
     return [list_take(list_, index_list) for list_, index_list in zip(items_list, indexes_list)]
+
+
+def list_compresstake(items_list, flags_list):
+    return [list_compress(list_, flags) for list_, flags in zip(items_list, flags_list)]
 
 
 def list_take(list_, index_list):
