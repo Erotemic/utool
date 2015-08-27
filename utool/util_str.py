@@ -1705,7 +1705,7 @@ def get_freespace_str(dir_='.'):
 
 
 # FIXME: HASHLEN is a global var in util_hash
-def long_fname_format(fmt_str, fmt_dict, hashable_keys=[], max_len=64, hashlen=16, ABS_MAX_LEN=255):
+def long_fname_format(fmt_str, fmt_dict, hashable_keys=[], max_len=64, hashlen=16, ABS_MAX_LEN=255, hack27=False):
     """
     Formats a string and hashes certain parts if the resulting string becomes
     too long. Used for making filenames fit onto disk.
@@ -1745,7 +1745,10 @@ def long_fname_format(fmt_str, fmt_dict, hashable_keys=[], max_len=64, hashlen=1
         # Copy because we will overwrite fmt_dict values with hashed values
         fmt_dict_ = fmt_dict.copy()
         for key in hashable_keys:
-            fmt_dict_[key] = util_hash.hashstr(fmt_dict_[key], hashlen=hashlen)
+            if hack27:
+                fmt_dict_[key] = util_hash.hashstr27(fmt_dict_[key], hashlen=hashlen)
+            else:
+                fmt_dict_[key] = util_hash.hashstr(fmt_dict_[key], hashlen=hashlen)
             fname = fmt_str.format(**fmt_dict_)
             if len(fname) <= max_len:
                 break

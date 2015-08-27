@@ -678,7 +678,22 @@ def make_score_tabular(
     return tabular_str
 
 
-def get_latex_figure_str(fpath_list, caption_str=None, label_str=None, width_str=r'\textwdith', height_str=None, nCols=None, dpath=None):
+def get_latex_figure_str2(fpath_list, cmdname, **kwargs):
+    """ hack for candidacy """
+    import utool as ut
+    # Make relative paths
+    from os.path import relpath
+    start = ut.truepath('~/latex/crall-candidacy-2015')
+    fpath_list = [relpath(fpath, start) for fpath in fpath_list]
+    cmdname = ut.latex_sanatize_command_name(cmdname)
+
+    kwargs['caption_str'] = cmdname
+    figure_str  = ut.get_latex_figure_str(fpath_list, **kwargs)
+    latex_block = ut.latex_newcommand(cmdname, figure_str)
+    return latex_block
+
+
+def get_latex_figure_str(fpath_list, caption_str=None, label_str=None, width_str=r'\textwidth', height_str=None, nCols=None, dpath=None):
     r"""
     Args:
         fpath_list (list):
@@ -835,7 +850,9 @@ def latex_sanatize_command_name(command_name):
     def to_cammel_case(str_list):
             # hacky
             return ''.join([str_ if len(str_) < 1 else str_[0].upper() + str_[1:] for str_ in str_list])
-    command_name = to_cammel_case(re.split('[_ ]', command_name)[::2])
+    #command_name = to_cammel_case(re.split('[_ ]', command_name)[::2])
+    str_list = re.split('[_ ]', command_name)
+    command_name = to_cammel_case(str_list)
     return command_name
 
 
