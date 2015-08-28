@@ -317,7 +317,7 @@ def get_unix_timedelta_str(unixtime_diff):
     return timestr
 
 
-def get_timedelta_str(timedelta):
+def get_timedelta_str(timedelta, exclude_zeros=False):
     """
     get_timedelta_str
 
@@ -343,18 +343,23 @@ def get_timedelta_str(timedelta):
     minutes, seconds = divmod(rem, 60)
     fmtstr_list = []
     fmtdict = {}
+
+    def append_cases(unit, fmtlbl):
+        if not exclude_zeros or unit != 0:
+            if unit == 1:
+                fmtstr_list.append('{%s} %s' % (fmtlbl, fmtlbl))
+            else:
+                fmtstr_list.append('{%s} %ss' % (fmtlbl, fmtlbl))
+            fmtdict[fmtlbl] = unit
+
     if abs(days) > 0:
-        fmtstr_list.append('{days} days')
-        fmtdict['days'] = days
+        append_cases(days, 'day')
     if len(fmtstr_list) > 0 or abs(hours) > 0:
-        fmtstr_list.append('{hours} hours')
-        fmtdict['hours'] = hours
+        append_cases(hours, 'hour')
     if len(fmtstr_list) > 0 or abs(minutes) > 0:
-        fmtstr_list.append('{minutes} minutes')
-        fmtdict['minutes'] = minutes
+        append_cases(minutes, 'minute')
     if len(fmtstr_list) > 0 or abs(seconds) > 0:
-        fmtstr_list.append('{seconds} seconds')
-        fmtdict['seconds'] = seconds
+        append_cases(seconds, 'second')
     fmtstr = ' '.join(fmtstr_list)
     timedelta_str = fmtstr.format(**fmtdict)
     return timedelta_str

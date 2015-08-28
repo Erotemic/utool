@@ -662,9 +662,12 @@ def make_score_tabular(
         tabular_tail = tabular_tail + '}'
 
     if astable:
+        #tabular_head = r'\begin{centering}' + '\n' + tabular_head
+        tabular_head = r'\centering' + '\n' + tabular_head
         tabular_head = r'\begin{table}' + '\n' + tabular_head
         lblstr = latex_sanatize_command_name(title)
         caption = escape_latex(title)
+        #tabular_head = r'\end{centering}' + '\n' + tabular_head
         tabular_tail = tabular_tail + '\n\caption{%s}\n\label{tbl:%s}\n\end{table}' % (caption, lblstr)
 
     tabular_str = rowvalsep.join([tabular_head, tabular_body, tabular_tail])

@@ -203,6 +203,8 @@ def random_sample(list_, nSample, strict=False, rng=np.random, seed=None):
         list2_ = list_[:]
     else:
         list2_ = np.copy(list_)
+    if len(list2_) == 0 and not strict:
+        return list2_
     rng.shuffle(list2_)
     if nSample is None and strict is False:
         return list2_

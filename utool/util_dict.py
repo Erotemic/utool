@@ -49,7 +49,11 @@ dict_val_map = dict_map_apply_vals
 
 def map_dict_vals(func, dict_):
     """ probably a better version of dict_map_apply_vals """
-    return {key: func(val) for key, val in six.iteritems(dict_)}
+    if isinstance(dict_, OrderedDict):
+        keyval_list = [(key, func(val)) for key, val in six.iteritems(dict_)]
+        return OrderedDict(keyval_list)
+    else:
+        return {key: func(val) for key, val in six.iteritems(dict_)}
 
 
 def map_dict_keys(func, dict_):
@@ -1224,10 +1228,16 @@ def hierarchical_map_vals(func, node, max_depth=None, depth=0):
         return func(node)
     elif max_depth is not None and depth >= max_depth:
         #return func(node)
-        return {key: func(val) for key, val in six.iteritems(node)}
+        return map_dict_vals(func, node)
+        #return {key: func(val) for key, val in six.iteritems(node)}
     else:
         # recursion
-        return {key: hierarchical_map_vals(func, val, max_depth, depth + 1) for key, val in six.iteritems(node)}
+        #return {key: hierarchical_map_vals(func, val, max_depth, depth + 1) for key, val in six.iteritems(node)}
+        keyval_list = [(key, hierarchical_map_vals(func, val, max_depth, depth + 1)) for key, val in six.iteritems(node)]
+        if isinstance(node, OrderedDict):
+            return OrderedDict(keyval_list)
+        else:
+            return dict(keyval_list)
 
 
 hmap_vals = hierarchical_map_vals
