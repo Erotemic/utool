@@ -482,6 +482,7 @@ def get_arg_dict(argv=None, prefix_list=['--'], type_hints={}):
             'no-figtitle': True,
             'notitle': True,
             'save': '~/latex/crall-candidacy-2015/figures/IBEIS_PZ_0303.jpg',
+            't': ['foo', 'bar', 'baz', 'biz'],
             'test-show_name': True,
         }
     """

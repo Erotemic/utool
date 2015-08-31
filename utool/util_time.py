@@ -310,7 +310,7 @@ def get_unix_timedelta_str(unixtime_diff):
         >>> timestr_list = [get_unix_timedelta_str(_) for _ in [-9001, -1, 0, 1, 9001]]
         >>> result = str(timestr_list)
         >>> print(result)
-        ['2 hours 30 minutes 1 seconds', '1 seconds', '0 seconds', '1 seconds', '2 hours 30 minutes 1 seconds']
+        ['2 hours 30 minutes 1 second', '1 second', '0 seconds', '1 second', '2 hours 30 minutes 1 second']
     """
     timedelta = get_unix_timedelta(unixtime_diff)
     timestr = get_timedelta_str(timedelta)

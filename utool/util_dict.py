@@ -729,6 +729,7 @@ def order_dict_by(dict_, key_order):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> dict_ = {1:1, 2:2, 3:3, 4:4}
         >>> key_order = [4,2,3,1]
         >>> sorted_dict = order_dict_by(dict_, key_order)
@@ -1076,9 +1077,7 @@ def group_items(item_list, groupid_list, sorted_=True):
         >>> groupid2_items = ut.group_items(item_list, groupid_list)
         >>> result = ut.dict_str(groupid2_items, newlines=False, strvals=False)
         >>> print(result)
-        {'dairy': ['cheese'], 'fruit': ['bannana', 'jam'], 'protein': ['eggs', 'ham', 'spam']}
-
-        {'protein': ['eggs', 'ham', 'spam'], 'fruit': ['bannana', 'jam'], 'dairy': ['cheese']}
+        {'dairy': ['cheese'], 'fruit': ['jam', 'bannana'], 'protein': ['ham', 'spam', 'eggs']}
     """
     if sorted_:
         # Sort by groupid for cache efficiency
@@ -1194,7 +1193,7 @@ def hierarchical_map_vals(func, node, max_depth=None, depth=0):
         }
 
     Example1:
-        >>> # ENABLE_DOCTEST
+        >>> # UNSTABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
         >>> import utool as ut
         >>> depth = 4

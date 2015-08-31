@@ -1050,8 +1050,6 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
         import utool as ut
         metric_list = [val for (key, val) in iteritems(dict_)]
         itemstr_list = ut.sortedby(itemstr_list, metric_list)
-    #import utool as ut
-    #ut.embed()
     #itemstr_list = [fmtstr % (key, _valstr(val)) for (key, val) in iteritems(dict_)]
     return itemstr_list
 
@@ -1137,7 +1135,8 @@ def _rectify_countdown_or_bool(count_or_bool):
     conting up yeilds False, False, False, ... True
 
     Args:
-        count_or_bool (bool or int): if positive will count down, if negative will count up, if bool will remain same
+        count_or_bool (bool or int): if positive will count down, if negative
+            will count up, if bool will remain same
 
     Returns:
         int or bool: count_or_bool_
@@ -1177,7 +1176,8 @@ def _rectify_countdown_or_bool(count_or_bool):
     return count_or_bool_
 
 
-def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None, truncate=False, truncatekw={}, label_list=None, **listkw):
+def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
+             truncate=False, truncatekw={}, label_list=None, **listkw):
     r"""
     Args:
         list_ (list):
@@ -1209,7 +1209,8 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None, truncate=Fa
         >>> truncate = ut.get_argval('--truncate', type_=None, default=False)
         >>> nobraces = False
         >>> nl = None
-        >>> result = list_str(list_, indent_, newlines, nobraces, nl, truncate=truncate, truncatekw={'maxlen': 10})
+        >>> result = list_str(list_, indent_, newlines, nobraces, nl,
+        >>>                   truncate=truncate, truncatekw={'maxlen': 10})
         >>> print(result)
         [
             [
