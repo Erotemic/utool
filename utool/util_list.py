@@ -1161,17 +1161,17 @@ def list_take(list_, index_list):
     """ like np.take but for lists
 
     Args:
-        list_ (list):
-        index_list (list):
+        list_ (list): some indexable object
+        index_list (list, slice, int): some indexing object
 
     Returns:
-        list or scalar:
+        list or scalar: subset of the list
 
     CommandLine:
         python -m utool.util_list --test-list_take
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> list_ = [0, 1, 2, 3]
         >>> index_list = [2, 0]
@@ -1180,13 +1180,22 @@ def list_take(list_, index_list):
         [2, 0]
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> list_ = [0, 1, 2, 3]
         >>> index = 2
         >>> result = list_take(list_, index)
         >>> print(result)
         2
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [0, 1, 2, 3]
+        >>> index = slice(1, None, 2)
+        >>> result = list_take(list_, index)
+        >>> print(result)
+        [1, 3]
     """
     try:
         return [list_[index] for index in index_list]

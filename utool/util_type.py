@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 import sys
 import six
 import functools
+import re
 #import warnings
 import types
 from utool import util_inject
@@ -96,9 +97,14 @@ def smart_cast(var, type_):
     if is_str(var):
         if type_ in VALID_BOOL_TYPES:
             return bool_from_str(var)
-        if type_ is slice:
+        elif type_ is slice:
             args = [None if len(arg) == 0 else int(arg) for arg in var.split(':')]
             return slice(*args)
+        elif type_ is list:
+            subvar_list = var.split(',')
+            return [smart_cast2(subvar) for subvar in subvar_list]
+        elif type_ == 'fuzzy_subset':
+            return fuzzy_subset(var)
     return type_(var)
 
 
@@ -142,8 +148,7 @@ def smart_cast2(var):
         if var.startswith('[') and var.endswith(']'):
             #import re
             #subvar_list = re.split(r',\s*' + ut.negative_lookahead(r'[^\[\]]*\]'), var[1:-1])
-            subvar_list = var[1:-1].split(',')
-            return [smart_cast2(subvar) for subvar in subvar_list]
+            return smart_cast(var[1:-1], list)
         type_list = [int, float]
         for type_ in type_list:
             castvar = try_cast(var, type_)
@@ -164,6 +169,37 @@ def bool_from_str(str_):
         return False
     else:
         raise TypeError('string does not represent boolean')
+
+
+def fuzzy_subset(str_):
+    """
+    converts a string into an argument to list_take
+    """
+    if str_ is None:
+        return str_
+    if ':' in str_:
+        return smart_cast(str_, slice)
+    if str_.startswith('['):
+        return smart_cast(str_[1:-1], list)
+    else:
+        return smart_cast(str_, list)
+
+
+def fuzzy_int(str_):
+    """
+    lets some special strings be interpreted as ints
+    """
+    try:
+        ret = int(str_)
+        return ret
+    except Exception:
+        # Parse comma separated values as ints
+        if re.match(r'\d*,\d*,?\d*', str_):
+            return tuple(map(int, str_.split(',')))
+        # Parse range values as ints
+        if re.match(r'\d*:\d*:?\d*', str_):
+            return tuple(range(*map(int, str_.split(':'))))
+        raise
 
 
 def assert_int(var, lbl='var'):

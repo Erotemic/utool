@@ -630,6 +630,7 @@ def maximum_distance_subset(items, K):
         >>> K = 3
         >>> result = maximum_distance_subset(items, K)
         >>> print(result)
+        (42.0, array([4, 3, 0]), array([22, 21,  1]))
     """
     points = np.array(items)[:, None]
 
@@ -647,7 +648,7 @@ def maximum_distance_subset(items, K):
         subset_idx = remaining_idxs.tolist()
         value, subset_idx
         subset = points.take(subset_idx)
-        print((value, subset_idx, subset))
+        #print((value, subset_idx, subset))
 
     sortx = points.T[0].argsort()[::-1]
     sorted_points = points.take(sortx, axis=0)
@@ -710,7 +711,7 @@ def maximum_distance_subset(items, K):
     value, sorted_subset_idx = optimal_solution(len(points), K)
     subset_idx = sortx.take(sorted_subset_idx)
     subset = points.take(subset_idx)
-    print((value, subset_idx, subset))
+    #print((value, subset_idx, subset))
     return value, subset_idx, subset
     #np.array([[dist(i, k) if k < i else 0 for k in range(len(A))] for i in range(len(A))])
     #raise NotImplementedError('unfinished')

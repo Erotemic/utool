@@ -6,7 +6,6 @@ from __future__ import absolute_import, division, print_function
 import sys
 import six
 import os
-import re
 import itertools
 #import six
 import argparse
@@ -215,7 +214,8 @@ def get_argflag(argstr_, default=False, help_='', return_specified=None,
 #from utool._internal.meta_util_arg import get_argval
 @profile
 def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
-               return_specified=None, argv=sys.argv, verbose=VERBOSE or VERYVERBOSE, return_was_specified=False):
+               return_specified=None, argv=None, verbose=VERBOSE or
+               VERYVERBOSE, return_was_specified=False):
     r""" Returns a value of an argument specified on the command line after some flag
 
     Args:
@@ -276,6 +276,9 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--nAssign'), int)]])" --nAssign 42
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--test'), str)]])" --test
     """
+    if argv is None:
+        argv = sys.argv
+
     if verbose:
         print('[get_argval] Searching Commandline for argstr_=%r' % (argstr_,))
         #print('[get_argval]  * type_ = %r' % (type_,))
@@ -322,6 +325,8 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
                     seen_.add(argstr2_1)
             argstr_list = argstr_list2
 
+        debug = VERYVERBOSE
+
         for argx, item in enumerate(argv):
             for argstr in argstr_list:
                 if item == argstr:
@@ -332,15 +337,25 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
                     if argx < len(argv):
                         if type_ is list:
                             # HACK FOR LIST. TODO INTEGRATE
-                            arg_after = parse_arglist_hack(argx)
+                            if debug:
+                                print('[get_argval] ... argstr=%r' % (argstr,))
+                                print('[get_argval] ... Found noequal list argx=%r' % (argx,))
+                            arg_after = parse_arglist_hack(argx, argv=argv)
+                            if debug:
+                                print('[get_argval] ... arg_after=%r' % (arg_after,))
+                                print('argv=%r' % (argv,))
                             if smartcast:
                                 arg_after = list(map(util_type.smart_cast2, arg_after))
+                                if debug:
+                                    print('[get_argval] ... smartcast arg_after=%r' % (arg_after,))
                         else:
                             if type_ is None:
                                 #arg_after = util_type.try_cast(argv[argx + 1], type_)
                                 arg_after = util_type.smart_cast2(argv[argx + 1])
                             else:
                                 arg_after = util_type.try_cast(argv[argx + 1], type_)
+                        if was_specified:
+                            print('WARNING: argstr=%r already specified' % (argstr,))
                         was_specified = True
                         break
                 elif item.startswith(argstr + '='):
@@ -349,6 +364,8 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
                         #import utool as ut
                         #ut.embed()
                         # HACK FOR LIST. TODO INTEGRATE
+                        if verbose:
+                            print('[get_argval] ... Found equal list')
                         val_after_ = val_after.rstrip(']').lstrip('[')
                         arg_after = val_after_.split(',')
                         if smartcast:
@@ -358,12 +375,16 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
                             arg_after = util_type.smart_cast2(val_after)
                         else:
                             arg_after = util_type.try_cast(val_after, type_)
+                    if was_specified:
+                        print('WARNING: argstr=%r already specified' % (argstr,))
                     was_specified = True
                     break
     except Exception as ex:
         import utool as ut
         ut.printex(ex, 'problem in arg_val')
         pass
+    if verbose:
+        print('[get_argval] ... Parsed arg_after=%r, was_specified=%r' % (arg_after, was_specified))
     if return_specified:
         return arg_after, was_specified
     else:
@@ -419,12 +440,14 @@ def parse_cfgstr_list(cfgstr_list, smartcast=True, oldmode=True):
     return cfgdict
 
 
-def parse_arglist_hack(argx):
+def parse_arglist_hack(argx, argv=None):
+    if argv is None:
+        argv = sys.argv
     arglist = []
     #import utool as ut
     #ut.embed()
-    for argx2 in range(argx + 1, len(sys.argv)):
-        listarg = sys.argv[argx2]
+    for argx2 in range(argx + 1, len(argv)):
+        listarg = argv[argx2]
         if listarg.startswith('-'):
             break
         else:
@@ -432,11 +455,12 @@ def parse_arglist_hack(argx):
     return arglist
 
 
-def get_arg_dict(argv=None, prefix_list=['--']):
+def get_arg_dict(argv=None, prefix_list=['--'], type_hints={}):
     r"""
     Yet another way for parsing args
 
     CommandLine:
+        python -m utool.util_arg --exec-get_arg_dict
         python -m utool.util_arg --test-get_arg_dict
 
     Example:
@@ -444,8 +468,8 @@ def get_arg_dict(argv=None, prefix_list=['--']):
         >>> from utool.util_arg import *  # NOQA
         >>> import utool as ut
         >>> import shlex
-        >>> argv = shlex.split('--test-show_name --name=IBEIS_PZ_0303 --db testdb3 --save "~/latex/crall-candidacy-2015/figures/IBEIS_PZ_0303.jpg" --dpath figures --caption="Shadowed"  --figsize=11,3 --no-figtitle --notitle')
-        >>> arg_dict = ut.get_arg_dict(argv)
+        >>> argv = shlex.split('--test-show_name --name=IBEIS_PZ_0303 --db testdb3 --save "~/latex/crall-candidacy-2015/figures/IBEIS_PZ_0303.jpg" --dpath figures --caption="Shadowed"  --figsize=11,3 --no-figtitle -t foo bar baz biz --notitle')
+        >>> arg_dict = ut.get_arg_dict(argv, prefix_list=['--', '-'], type_hints={'t': list})
         >>> result = ut.dict_str(arg_dict)
         >>> # verify results
         >>> print(result)
@@ -459,19 +483,6 @@ def get_arg_dict(argv=None, prefix_list=['--']):
             'notitle': True,
             'save': '~/latex/crall-candidacy-2015/figures/IBEIS_PZ_0303.jpg',
             'test-show_name': True,
-        }
-
-
-        {
-            'name': 'IBEIS_PZ_0303',
-            'test-show_name': True,
-            'db': 'testdb3',
-            'notitle': True,
-            'dpath': 'figures',
-            'no-figtitle': True,
-            'caption': 'Shadowed',
-            'save': '~/latex/crall-candidacy-2015/figures/IBEIS_PZ_0303.jpg',
-            'figsize': '11,3',
         }
     """
     if argv is None:
@@ -489,11 +500,15 @@ def get_arg_dict(argv=None, prefix_list=['--']):
             return True
         return False
 
-    def get_arg_value(argv, argx):
+    def get_arg_value(argv, argx, argname):
         if argv[argx].find('=') > -1:
             return '='.join(argv[argx].split('=')[1:])
         else:
-            return argv[argx + 1]
+            type_ = type_hints.get(argname, None)
+            if type_ is None:
+                return argv[argx + 1]
+            else:
+                return parse_arglist_hack(argx, argv=argv)
 
     for argx in range(len(argv)):
         arg = argv[argx]
@@ -503,7 +518,7 @@ def get_arg_dict(argv=None, prefix_list=['--']):
                 if argx_has_value(argv, argx):
                     if arg.find('=') > -1:
                         argname = arg[len(prefix):arg.find('=')]
-                    argvalue = get_arg_value(argv, argx)
+                    argvalue = get_arg_value(argv, argx, argname)
                     arg_dict[argname] = argvalue
                 else:
                     arg_dict[argname] = True
@@ -541,23 +556,6 @@ def switch_sanataize(switch):
     return dest, switch
 
 
-def fuzzy_int(str_):
-    """
-    lets some special strings be interpreted as ints
-    """
-    try:
-        ret = int(str_)
-        return ret
-    except Exception:
-        # Parse comma separated values as ints
-        if re.match(r'\d*,\d*,?\d*', str_):
-            return tuple(map(int, str_.split(',')))
-        # Parse range values as ints
-        if re.match(r'\d*:\d*:?\d*', str_):
-            return tuple(range(*map(int, str_.split(':'))))
-        raise
-
-
 class ArgumentParser2(object):
     """ Wrapper around argparse.ArgumentParser with convinence functions """
     def __init__(self, parser):
@@ -583,10 +581,10 @@ class ArgumentParser2(object):
         self.add_arg(switch, dest=dest, action=action, default=default, **kwargs)
 
     def add_int(self, switch, *args, **kwargs):
-        self.add_meta(switch, fuzzy_int,  *args, **kwargs)
+        self.add_meta(switch, util_type.fuzzy_int,  *args, **kwargs)
 
     def add_intlist(self, switch, *args, **kwargs):
-        self.add_meta(switch, fuzzy_int,  *args, nargs='*', **kwargs)
+        self.add_meta(switch, util_type.fuzzy_int,  *args, nargs='*', **kwargs)
 
     add_ints = add_intlist
 
