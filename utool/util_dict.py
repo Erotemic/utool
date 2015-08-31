@@ -1036,9 +1036,9 @@ def dict_intersection(dict1, dict2, combine=False, combine_op=operator.add):
         >>> dict2 = {'b': 2, 'c': 3, 'd': 5, 'e': 21, 'f': 42}
         >>> combine = False
         >>> mergedict_ = dict_intersection(dict1, dict2, combine)
-        >>> result = ('mergedict_ = %s' % (str(mergedict_),))
+        >>> result = ('mergedict_ = %s' % (ut.dict_str(mergedict_, nl=False),))
         >>> print(result)
-        mergedict_ = {'c': 3, 'b': 2}
+        mergedict_ = {'b': 2, 'c': 3}
     """
     keys3 = set(dict1.keys()).intersection(set(dict2.keys()))
     if combine:
