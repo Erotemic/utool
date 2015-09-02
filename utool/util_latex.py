@@ -690,13 +690,13 @@ def get_latex_figure_str2(fpath_list, cmdname, **kwargs):
     fpath_list = [relpath(fpath, start) for fpath in fpath_list]
     cmdname = ut.latex_sanatize_command_name(cmdname)
 
-    kwargs['caption_str'] = cmdname
+    kwargs['caption_str'] = kwargs.get('caption_str', cmdname)
     figure_str  = ut.get_latex_figure_str(fpath_list, **kwargs)
     latex_block = ut.latex_newcommand(cmdname, figure_str)
     return latex_block
 
 
-def get_latex_figure_str(fpath_list, caption_str=None, label_str=None, width_str=r'\textwidth', height_str=None, nCols=None, dpath=None):
+def get_latex_figure_str(fpath_list, caption_str=None, label_str=None, width_str=r'\textwidth', height_str=None, nCols=None, dpath=None, colsep=' '):
     r"""
     Args:
         fpath_list (list):
@@ -720,8 +720,12 @@ def get_latex_figure_str(fpath_list, caption_str=None, label_str=None, width_str
         >>> print(result)
     """
     import utool as ut
+
+    if nCols is None:
+        nCols = len(fpath_list)
+
     if width_str is not None:
-        graphics_sizestr = '[width=%s]' % (width_str)
+        graphics_sizestr = '[width=%.1f%s]' % (1.0 / nCols, width_str)
     elif height_str is not None:
         graphics_sizestr = '[height=%s]' % (height_str)
     else:
@@ -729,10 +733,8 @@ def get_latex_figure_str(fpath_list, caption_str=None, label_str=None, width_str
 
     if dpath is not None:
         fpath_list = [ut.relpath_unix(fpath_, dpath) for fpath_ in fpath_list]
-    graphics_list = [r'\includegraphics%s{%s}' % (graphics_sizestr, fpath,) for fpath in fpath_list]
 
-    if nCols is None:
-        nCols = len(graphics_list)
+    graphics_list = [r'\includegraphics%s{%s}' % (graphics_sizestr, fpath,) for fpath in fpath_list]
     #nRows = len(graphics_list) // nCols
 
     # Add separators
@@ -745,7 +747,7 @@ def get_latex_figure_str(fpath_list, caption_str=None, label_str=None, width_str
 
     #graphics_body = '\n&\n'.join(graphics_list)
     graphics_body = ''.join(graphics_list_)
-    header_str = ' '.join(['c'] * nCols)
+    header_str = colsep.join(['c'] * nCols)
 
     tabular_body =  ut.codeblock(
         r'''
@@ -827,10 +829,10 @@ def latex_newcommand(command_name, command_text, num_args=0):
     return newcmd_str
 
 
-def latex_sanatize_command_name(command_name):
+def latex_sanatize_command_name(_cmdname):
     r"""
     Args:
-        command_name (?):
+        _cmdname (?):
 
     Returns:
         ?: command_name
@@ -841,12 +843,22 @@ def latex_sanatize_command_name(command_name):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_latex import *  # NOQA
-        >>> command_name = '#foo'
-        >>> command_name = latex_sanatize_command_name(command_name)
+        >>> _cmdname = '#foo'
+        >>> command_name = latex_sanatize_command_name(_cmdname)
         >>> result = ('command_name = %s' % (str(command_name),))
         >>> print(result)
     """
     import re
+    command_name = _cmdname
+    try:
+        def subroman(match):
+            import roman
+            return roman.toRoman(int(match.groupdict()['num']))
+        import utool as ut
+        command_name = re.sub(ut.named_field('num', r'\d+'), subroman, command_name)
+    except ImportError as ex:
+        ut.printex(ex)
+        raise
     # remove numbers
     command_name = re.sub(r'[\d' + re.escape('#()[]{}') + ']', '', command_name)
     # Remove _ for cammel case
