@@ -106,6 +106,9 @@ def make_full_document(text, title=None, preamp_decl={}):
     \usepackage[T1]{fontenc}
     \usepackage{booktabs}
     \usepackage[margin=1.25in]{geometry}
+    \usepackage{caption}
+    \usepackage{subcaption}
+
 
     %\pagenumbering{gobble}
 
@@ -219,7 +222,11 @@ def compile_latex_text(input_text, fnum=1, dpath=None, verbose=True, fname=None,
         util_cplat.cmd(*args, verbose=verbose, **kwargs)
         assert util_path.checkpath(pdf_fpath, verbose=verbose), 'latex failed'
     except Exception as ex:
+        import utool as ut
+        print('Error compiling')
+        ut.print_code(text, 'latex')
         ut.printex(ex, 'LATEX ERROR')
+        raise
     finally:
         os.chdir(cwd)
     return pdf_fpath
@@ -684,10 +691,11 @@ def make_score_tabular(
 def get_latex_figure_str2(fpath_list, cmdname, **kwargs):
     """ hack for candidacy """
     import utool as ut
-    # Make relative paths
     from os.path import relpath
-    start = ut.truepath('~/latex/crall-candidacy-2015')
-    fpath_list = [relpath(fpath, start) for fpath in fpath_list]
+    # Make relative paths
+    if kwargs.pop('relpath', True):
+        start = ut.truepath('~/latex/crall-candidacy-2015')
+        fpath_list = [relpath(fpath, start) for fpath in fpath_list]
     cmdname = ut.latex_sanatize_command_name(cmdname)
 
     kwargs['caption_str'] = kwargs.get('caption_str', cmdname)
@@ -696,7 +704,10 @@ def get_latex_figure_str2(fpath_list, cmdname, **kwargs):
     return latex_block
 
 
-def get_latex_figure_str(fpath_list, caption_str=None, label_str=None, width_str=r'\textwidth', height_str=None, nCols=None, dpath=None, colsep=' '):
+def get_latex_figure_str(fpath_list, caption_str=None, label_str=None,
+                         width_str=r'\textwidth', height_str=None, nCols=None,
+                         dpath=None, colpos_sep=' ', nlsep='',
+                         use_sublbls=None, use_frame=True):
     r"""
     Args:
         fpath_list (list):
@@ -724,8 +735,15 @@ def get_latex_figure_str(fpath_list, caption_str=None, label_str=None, width_str
     if nCols is None:
         nCols = len(fpath_list)
 
+    USE_SUBFIGURE = True
+
     if width_str is not None:
-        graphics_sizestr = '[width=%.1f%s]' % (1.0 / nCols, width_str)
+        colwidth = (1.0 / nCols)
+        if USE_SUBFIGURE:
+            colwidth *= .95
+            graphics_sizestr = ('%.2f' % (colwidth,)) + width_str
+        else:
+            graphics_sizestr = '[width=%.1f%s]' % (colwidth, width_str)
     elif height_str is not None:
         graphics_sizestr = '[height=%s]' % (height_str)
     else:
@@ -734,43 +752,100 @@ def get_latex_figure_str(fpath_list, caption_str=None, label_str=None, width_str
     if dpath is not None:
         fpath_list = [ut.relpath_unix(fpath_, dpath) for fpath_ in fpath_list]
 
-    graphics_list = [r'\includegraphics%s{%s}' % (graphics_sizestr, fpath,) for fpath in fpath_list]
+    if USE_SUBFIGURE:
+        # References: https://en.wikibooks.org/wiki/LaTeX/Floats,_Figures_and_Captions#Subfloats
+        # TODO ? http://tex.stackexchange.com/questions/159290/how-can-i-place-a-vertical-rule-between-subfigures
+        # Use subfigures
+        graphics_list = []
+        sublbl_prefix = label_str if label_str is not None else ''
+        for count, fpath in enumerate(fpath_list):
+            """
+            print(', '.join([str(x) + ':' + chr(x) for x in range(65, 123)]))
+            print(', '.join([str(x) + ':' + chr(x) for x in range(97, 123)]))
+            """
+            CHRLBLS = True
+            if CHRLBLS:
+                subchar = chr(97 + count)
+            else:
+                subchar = str(count)
+            subfigure_str = ''
+            if len(fpath_list) > 1:
+                subfigure_str += '\\begin{subfigure}[b]{' + graphics_sizestr + '}\n'
+                subfigure_str += '\\centering\n'
+            if use_frame:
+                subfigure_str += '\\frame{'
+            subfigure_str += '\\includegraphics[width=\\textwidth]{%s}' % (fpath,)
+            if use_frame:
+                subfigure_str += '}'
+            if use_sublbls is True or use_sublbls is None and len(fpath_list) > 1:
+                subfigure_str += '\\caption{}'
+                subfigure_str += '\\label{sfig:' + sublbl_prefix + subchar + '}\n'
+            if len(fpath_list) > 1:
+                subfigure_str += '\\end{subfigure}'
+            graphics_list.append(subfigure_str)
+    else:
+        if True:
+            graphics_list = [
+                r'\includegraphics%s{%s}\captionof{figure}{%s}' % (
+                    graphics_sizestr, fpath, 'fd',
+                    #'(' + str(count) + ')'
+                    #'(' + chr(97 + count) + ')'
+                )
+                for count, fpath in enumerate(fpath_list)]
+        else:
+            graphics_list = [r'\includegraphics%s{%s}' % (graphics_sizestr, fpath,) for fpath in fpath_list]
+        #graphics_list = [r'\includegraphics%s{%s}' % (graphics_sizestr, fpath,) ]
     #nRows = len(graphics_list) // nCols
 
     # Add separators
+    NL = '\n'
+    col_spacer_mid = NL + '~' + '% --' + NL if USE_SUBFIGURE else NL + '&' + NL
+    col_spacer_end = NL + r'\\' + '% --' + NL if USE_SUBFIGURE else NL + r'\\' + nlsep + NL
     sep_list = [
-        '\n&\n' if count % nCols > 0 else '\n\\\\\n'
+        col_spacer_mid  if count % nCols > 0 else col_spacer_end
         for count in range(1, len(graphics_list) + 1)
     ]
-    sep_list[-1] = ''
+    if len(sep_list) > 0:
+        sep_list[-1] = ''
     graphics_list_ = [graphstr + sep for graphstr, sep in zip(graphics_list, sep_list)]
 
     #graphics_body = '\n&\n'.join(graphics_list)
     graphics_body = ''.join(graphics_list_)
-    header_str = colsep.join(['c'] * nCols)
+    header_str = colpos_sep.join(['c'] * nCols)
 
-    tabular_body =  ut.codeblock(
-        r'''
-        \begin{tabular}{%s}
-        %s
-        \end{tabular}
-        '''
-    ) % (header_str, graphics_body)
+    if USE_SUBFIGURE:
+        figure_body = graphics_body
+    else:
+        figure_body =  ut.codeblock(
+            r'''
+            \begin{tabular}{%s}
+            %s
+            \end{tabular}
+            '''
+        ) % (header_str, graphics_body)
     if caption_str is not None:
         #tabular_body += '\n\caption{\\footnotesize{%s}}' % (caption_str,)
-        tabular_body += '\n\caption{%s}' % (caption_str,)
+        figure_body += '\n\caption{%s}' % (caption_str,)
     if label_str is not None:
-        tabular_body += '\n\label{fig:%s}' % (label_str,)
+        figure_body += '\n\label{fig:%s}' % (label_str,)
+    #figure_fmtstr = ut.codeblock(
+    #    r'''
+    #    \begin{figure*}
+    #    \begin{center}
+    #    %s
+    #    \end{center}
+    #    \end{figure*}
+    #    '''
+    #)
     figure_fmtstr = ut.codeblock(
         r'''
         \begin{figure*}
-        \begin{center}
+        \centering
         %s
-        \end{center}
         \end{figure*}
         '''
     )
-    figure_str = figure_fmtstr % (tabular_body)
+    figure_str = figure_fmtstr % (figure_body)
     return figure_str
 
 
