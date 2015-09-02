@@ -34,7 +34,7 @@ def load_data(fpath, mmap_mode=None):
         return load_hdf5(fpath)
     elif ext in ['.txt']:
         return load_text(fpath)
-    elif HAS_NUMPY and ext in ['.npz']:
+    elif HAS_NUMPY and ext in ['.npz', '.npy']:
         return load_numpy(fpath, mmap_mode=mmap_mode)
     else:
         assert False, 'unknown ext=%r for fpath=%r' % (ext, fpath)
