@@ -49,7 +49,7 @@ def save_data(fpath, data):
         return save_hdf5(fpath, data)
     elif ext in ['.txt']:
         return save_text(fpath)
-    elif HAS_NUMPY and ext in ['.npz']:
+    elif HAS_NUMPY and ext in ['.npz', '.npy']:
         # TODO save_numpy
         return np.save(fpath, data, )
     else:
