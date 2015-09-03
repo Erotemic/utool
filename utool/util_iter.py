@@ -423,6 +423,8 @@ def interleave(args):
 
 
 def interleave2(*iterables):
+    #from six.moves import izip_longest
+    #izip_longest(args)
     raise NotImplementedError('not sure if this implementation is correct')
     return chain.from_iterable(zip(*iterables))
 

@@ -51,46 +51,43 @@ def test_progress():
     import utool as ut
     #import time
     #ut.rrrr()
-
     print('_________________')
-
     numiter = 50
     sleeptime = 1E-4
-
     with ut.Timer():
         for x in ut.ProgressIter(range(0, numiter), freq=4):
             time.sleep(sleeptime)
-
     print('_________________')
     print('No frequncy run:')
-
     with ut.Timer():
         for x in range(0, numiter):
             time.sleep(sleeptime)
-
     print('_________________')
-
     numiter = 500
     sleeptime = 8E-7
-
     with ut.Timer():
         for x in ut.ProgressIter(range(0, numiter), freq=4):
             time.sleep(sleeptime)
-
     print('_________________')
-
     with ut.Timer():
         for x in ut.ProgressIter(range(0, numiter), freq=100):
             time.sleep(sleeptime)
-
     print('_________________')
     print('No frequncy run:')
-
     with ut.Timer():
         for x in range(0, numiter):
             time.sleep(sleeptime)
-
     print('_________________')
+    # Test nested iter
+    progiter1 = ut.ProgressIter(range(0, 10), lbl='prog1', freq=1, adjust=False)
+    for count1 in progiter1:
+        progiter_partials = progiter1.get_subindexers(1)
+        progiter2 = progiter_partials[0](range(0, 7), lbl='sub_prog1', freq=1, adjust=False)
+        for count2 in progiter2:
+            pass
+        #progiter3 = progiter_partials[1](range(0, 3), lbl='sub_prog2', freq=1, adjust=False)
+        #for count3 in progiter3:
+        #    pass
 
 
 def get_nTotalChunks(nTotal, chunksize):
@@ -240,14 +237,21 @@ class ProgressIter(object):
         #self.report_unit       = kwargs.get('report_unit', 'minutes')
         self.enabled            = kwargs.get('enabled', True)
         self.report_unit        = kwargs.get('report_unit', 'seconds')
-        self.autoadjust         = kwargs.get('autoadjust', True)  # autoadjust frequency of reporting
+        self.autoadjust         = kwargs.get('autoadjust', kwargs.get('adjust', True))  # autoadjust frequency of reporting
         self.time_thresh        = kwargs.pop('time_thresh', None)
         self.prog_hook          = kwargs.pop('prog_hook', None)
         self.separate           = kwargs.pop('separate', False)
 
+        # FIXME: get these subinder things working
+        # ~/code/guitool/guitool/guitool_components.py
+        self.substep_min        = kwargs.pop('substep_min', 0)
+        self.substep_size       = kwargs.pop('substep_size', 1)
+        self.level              = kwargs.pop('level', 0)
+
         self.parent_index       = kwargs.pop('parent_index', 0)
         self.parent_nTotal      = kwargs.pop('parent_nTotal', 1)
         self.parent_offset      = self.parent_index * self.nTotal
+        #self.start_offset       = self.substep_min
 
         if FORCE_ALL_PROGRESS:
             self.freq = 1
@@ -292,6 +296,35 @@ class ProgressIter(object):
                 return self.iter_rate()
             else:
                 return self.iter_without_rate()
+
+    def get_subindexers(prog_iter, num_substeps):
+        # FIXME and  make this a method of progiter
+        step_min = ((prog_iter.count - 1) / prog_iter.nTotal) * prog_iter.substep_size + prog_iter.substep_min
+        step_size = (1.0 / prog_iter.nTotal) * prog_iter.substep_size
+
+        substep_size = step_size / num_substeps
+        substep_min_list = [(step * substep_size) + step_min for step in range(num_substeps)]
+        #level = prog_iter.level + 1
+        from functools import partial
+        DEBUG = False
+        if DEBUG:
+            with ut.Indenter(' ' * 4 * prog_iter.level):
+                print('\n')
+                print('+____<NEW SUBSTEPS>____')
+                print('Making %d substeps for prog_iter.lbl = %s' % (num_substeps, prog_iter.lbl,))
+                print(' * step_min         = %.2f' % (step_min,))
+                print(' * step_size        = %.2f' % (step_size,))
+                print(' * substep_size     = %.2f' % (substep_size,))
+                print(' * substep_min_list = %r' % (substep_min_list,))
+                print(r'L____</NEW SUBSTEPS>____')
+                print('\n')
+        #subprog_partial_list = [partial(ProgressIter, substep_min=substep_min, substep_size=substep_size, level=level) for substep_min in substep_min_list]
+        subprog_partial_list = [
+            partial(ProgressIter,
+                    parent_nTotal=prog_iter.nTotal * num_substeps,
+                    parent_index=(prog_iter.count - 1) + (prog_iter.nTotal * step))
+            for step in range(num_substeps)]
+        return subprog_partial_list
 
     def build_msg_fmtstr_index(self, nTotal, lbl):
         msg_fmtstr_index = ''.join(('\r', lbl, ' %4d/', str(nTotal), '...  ',))
@@ -369,7 +402,7 @@ class ProgressIter(object):
         print_sep = self.separate
         if print_sep:
             print('---------')
-        PROGRESS_WRITE(self.build_msg_fmtstr_index(nTotal, self.lbl) % (self.count))
+        PROGRESS_WRITE(self.build_msg_fmtstr_index(nTotal, self.lbl) % (self.parent_offset))
         if force_newlines:
             PROGRESS_WRITE('\n')
 
@@ -446,19 +479,20 @@ class ProgressIter(object):
                 PROGRESS_FLUSH()
                 if self.prog_hook is not None:
                     self.prog_hook(self.count, nTotal)
-        # FINISH PROGRESS INFO
-        est_seconds_left = 0
-        now_time = default_timer()
-        total_seconds = (now_time - start_time)
-        msg = msg_fmtstr % (
-            nTotal, 1.0 / iters_per_second if self.invert_rate else iters_per_second,
-            str(datetime.timedelta(seconds=int(est_seconds_left))),
-            str(datetime.timedelta(seconds=int(total_seconds))),
-            time.strftime('%H:%M'),
-        )
-        PROGRESS_WRITE(msg)
-        PROGRESS_WRITE('\n')
-        PROGRESS_FLUSH()
+        if (self.count) % freq != 0:
+            # If the final line of progress was not written in the loop, write it here
+            est_seconds_left = 0
+            now_time = default_timer()
+            total_seconds = (now_time - start_time)
+            msg = msg_fmtstr % (
+                self.count, 1.0 / iters_per_second if self.invert_rate else iters_per_second,
+                str(datetime.timedelta(seconds=int(est_seconds_left))),
+                str(datetime.timedelta(seconds=int(total_seconds))),
+                time.strftime('%H:%M'),
+            )
+            PROGRESS_WRITE(msg)
+            PROGRESS_WRITE('\n')
+            PROGRESS_FLUSH()
         #cumrate = 1E-9
         #self.nTotal = len(self.iterable)
         # for:

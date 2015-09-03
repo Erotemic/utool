@@ -109,9 +109,7 @@ def make_full_document(text, title=None, preamp_decl={}):
     \usepackage{caption}
     \usepackage{subcaption}
 
-
     %\pagenumbering{gobble}
-
     ''')
     if title is not None:
         preamp_decl['title'] = title
@@ -134,9 +132,11 @@ def make_full_document(text, title=None, preamp_decl={}):
     return text_
 
 
-def render_latex_text(input_text, nest_in_doc=False, appname='utool', verbose=True):
+def render_latex_text(input_text, nest_in_doc=False, appname='utool', verbose=None):
     """ testing function """
     import utool as ut
+    if verbose is None:
+        verbose = ut.VERBOSE
     dpath = ut.get_app_resource_dir(appname)
     # put a latex framgent in a full document
     print(input_text)
@@ -649,17 +649,34 @@ def make_score_tabular(
     tabular_body = ''.join([row if sep is None else row + sep for row, sep in zip_longest(rowstr_list, rowsep_list)])
 
     # Build Column Layout
-    col_layout_list = [col_align] * len(body[0])
+    col_align_list = [col_align] * len(body[0])
     #extra_collayoutsep_pos_list = [1]
     extra_collayoutsep_pos_list = []
     for pos in  sorted(extra_collayoutsep_pos_list)[::-1]:
-        col_layout_list.insert(pos, '')
+        col_align_list.insert(pos, '')
     #col_layaout_sep_list = rowlblcol_sep  # TODO
+
     rowlblcol_sep = '|'
-    if len(col_layout_list) > 1:
-        col_layout = col_layout_list[0] + rowlblcol_sep + col_sep.join(col_layout_list[1:])
-    else:
-        col_layout = col_sep.join(col_layout_list)
+    # Build build internal seprations between column alignments
+    # Defaults to just the normal col_sep
+    col_align_sep_list = [col_sep] * (len(col_align_list) - 1)
+    # Adjust for the separations between row labels and the actual row data
+    if len(col_align_sep_list) > 0:
+        col_align_sep_list[0] = rowlblcol_sep
+    # Continue multicolumn sepratation
+    if multicol_lbls is not None:
+        multicol_offsets = ut.cumsum(ut.get_list_column(multicol_lbls, 1))
+        for offset in multicol_offsets:
+            if offset < len(col_align_sep_list):
+                col_align_sep_list[offset] = multicol_sep
+
+    from six.moves import zip_longest
+    col_layout = ''.join(ut.flatten([ut.filter_Nones(tup) for tup in zip_longest(col_align_list, col_align_sep_list)]))
+
+    #if len(col_align_list) > 1:
+    #    col_layout = col_align_list[0] + rowlblcol_sep + col_sep.join(col_align_list[1:])
+    #else:
+    #    col_layout = col_sep.join(col_align_list)
 
     tabular_head = (r'\begin{tabular}{|%s|}' % col_layout) + '\n'
     tabular_tail = r'\end{tabular}'
@@ -707,7 +724,7 @@ def get_latex_figure_str2(fpath_list, cmdname, **kwargs):
 def get_latex_figure_str(fpath_list, caption_str=None, label_str=None,
                          width_str=r'\textwidth', height_str=None, nCols=None,
                          dpath=None, colpos_sep=' ', nlsep='',
-                         use_sublbls=None, use_frame=True):
+                         use_sublbls=None, use_frame=False):
     r"""
     Args:
         fpath_list (list):
@@ -773,7 +790,7 @@ def get_latex_figure_str(fpath_list, caption_str=None, label_str=None,
                 subfigure_str += '\\begin{subfigure}[b]{' + graphics_sizestr + '}\n'
                 subfigure_str += '\\centering\n'
             if use_frame:
-                subfigure_str += '\\frame{'
+                subfigure_str += '\\fbox{'
             subfigure_str += '\\includegraphics[width=\\textwidth]{%s}' % (fpath,)
             if use_frame:
                 subfigure_str += '}'
@@ -799,7 +816,7 @@ def get_latex_figure_str(fpath_list, caption_str=None, label_str=None,
 
     # Add separators
     NL = '\n'
-    col_spacer_mid = NL + '~' + '% --' + NL if USE_SUBFIGURE else NL + '&' + NL
+    col_spacer_mid = NL + '~~' + '% --' + NL if USE_SUBFIGURE else NL + '&' + NL
     col_spacer_end = NL + r'\\' + '% --' + NL if USE_SUBFIGURE else NL + r'\\' + nlsep + NL
     sep_list = [
         col_spacer_mid  if count % nCols > 0 else col_spacer_end
@@ -928,7 +945,15 @@ def latex_sanatize_command_name(_cmdname):
     try:
         def subroman(match):
             import roman
-            return roman.toRoman(int(match.groupdict()['num']))
+            try:
+                groupdict = match.groupdict()
+                num = int(groupdict['num'])
+                if num == 0:
+                    return ''
+                return roman.toRoman(num)
+            except Exception as ex:
+                ut.printex(ex, keys=['groupdict'])
+                raise
         import utool as ut
         command_name = re.sub(ut.named_field('num', r'\d+'), subroman, command_name)
     except ImportError as ex:
