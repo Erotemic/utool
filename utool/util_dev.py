@@ -770,7 +770,7 @@ class InteractiveIter(object):
     def __iter__(iiter):
         import utool as ut
         if not iiter.enabled:
-            for item in ut.ProgressIter(iiter.iterable, lbl='nointeract: '):
+            for item in ut.ProgressIter(iiter.iterable, lbl='nointeract: ', freq=1, adjust=False):
                 yield item
             raise StopIteration()
         assert isinstance(iiter.iterable, INDEXABLE_TYPES), 'input is not iterable'

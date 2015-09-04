@@ -237,7 +237,8 @@ class ProgressIter(object):
         #self.report_unit       = kwargs.get('report_unit', 'minutes')
         self.enabled            = kwargs.get('enabled', True)
         self.report_unit        = kwargs.get('report_unit', 'seconds')
-        self.autoadjust         = kwargs.get('autoadjust', kwargs.get('adjust', True))  # autoadjust frequency of reporting
+        #self.autoadjust         = kwargs.get('autoadjust', kwargs.get('adjust', True))  # autoadjust frequency of reporting
+        self.autoadjust         = kwargs.get('autoadjust', kwargs.get('adjust', False))  # autoadjust frequency of reporting
         self.time_thresh        = kwargs.pop('time_thresh', None)
         self.prog_hook          = kwargs.pop('prog_hook', None)
         self.separate           = kwargs.pop('separate', False)
