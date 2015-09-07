@@ -556,61 +556,62 @@ def file_megabytes_str(fpath):
 
 
 # <Alias repr funcs>
-GLOBAL_TYPE_ALIASES = []
+# TODO: Remove any type of global information
 
+USE_GLOBAL_INFO = False
+if USE_GLOBAL_INFO:
 
-def extend_global_aliases(type_aliases):
-    """
-    State function for aliased_repr calls
-    """
-    global GLOBAL_TYPE_ALIASES
-    GLOBAL_TYPE_ALIASES.extend(type_aliases)
+    GLOBAL_TYPE_ALIASES = []
 
+    def extend_global_aliases(type_aliases):
+        """
+        State function for aliased_repr calls
+        """
+        global GLOBAL_TYPE_ALIASES
+        GLOBAL_TYPE_ALIASES.extend(type_aliases)
 
-def var_aliased_repr(var, type_aliases):
-    """
-    Replaces unweildy type strings with predefined more human-readable aliases
+    def var_aliased_repr(var, type_aliases):
+        """
+        Replaces unweildy type strings with predefined more human-readable aliases
 
-    Args:
-        var: some object
+        Args:
+            var: some object
 
-    Returns:
-        str: an "intelligently" chosen string representation of var
-    """
-    global GLOBAL_TYPE_ALIASES
-    # Replace aliased values
-    for alias_type, alias_name in (type_aliases + GLOBAL_TYPE_ALIASES):
-        if isinstance(var, alias_type):
-            return alias_name + '<' + str(id(var)) + '>'
-    return repr(var)
+        Returns:
+            str: an "intelligently" chosen string representation of var
+        """
+        global GLOBAL_TYPE_ALIASES
+        # Replace aliased values
+        for alias_type, alias_name in (type_aliases + GLOBAL_TYPE_ALIASES):
+            if isinstance(var, alias_type):
+                return alias_name + '<' + str(id(var)) + '>'
+        return repr(var)
 
+    def list_aliased_repr(list_, type_aliases=[]):
+        """
+        Replaces unweildy type strings with predefined more human-readable aliases
 
-def list_aliased_repr(list_, type_aliases=[]):
-    """
-    Replaces unweildy type strings with predefined more human-readable aliases
+        Args:
+            list_ (list): ``list`` to get repr
 
-    Args:
-        list_ (list): ``list`` to get repr
+        Returns:
+            str: string representation of ``list_``
+        """
+        return [var_aliased_repr(item, type_aliases)
+                for item in list_]
 
-    Returns:
-        str: string representation of ``list_``
-    """
-    return [var_aliased_repr(item, type_aliases)
-            for item in list_]
+    def dict_aliased_repr(dict_, type_aliases=[]):
+        """
+        Replaces unweildy type strings with predefined more human-readable aliases
 
+        Args:
+            dict_ (dict): dictionary to get repr
 
-def dict_aliased_repr(dict_, type_aliases=[]):
-    """
-    Replaces unweildy type strings with predefined more human-readable aliases
-
-    Args:
-        dict_ (dict): dictionary to get repr
-
-    Returns:
-        str: string representation of ``dict_``
-    """
-    return ['%s : %s' % (key, var_aliased_repr(val, type_aliases))
-            for (key, val) in six.iteritems(dict_)]
+        Returns:
+            str: string representation of ``dict_``
+        """
+        return ['%s : %s' % (key, var_aliased_repr(val, type_aliases))
+                for (key, val) in six.iteritems(dict_)]
 
 # </Alias repr funcs>
 
@@ -623,7 +624,9 @@ def func_str(func, args=[], kwargs={}, type_aliases=[], packed=False,
     Returns:
         str: a representation of func with args, kwargs, and type_aliases
     """
-    repr_list = list_aliased_repr(args, type_aliases) + dict_aliased_repr(kwargs)
+    #repr_list = list_aliased_repr(args, type_aliases) + dict_aliased_repr(kwargs)
+    import utool as ut
+    repr_list = ut.list_str(args, type_aliases) + dict_aliased_repr(kwargs)
     argskwargs_str = newlined_list(repr_list, ', ', textwidth=80)
     func_str = '%s(%s)' % (meta_util_six.get_funcname(func), argskwargs_str)
     if packed:

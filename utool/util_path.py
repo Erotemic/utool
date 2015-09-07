@@ -542,44 +542,49 @@ def copy_single(src, dst, overwrite=True, verbose=True, deeplink=True, dryrun=Fa
 
     If src is a folder this copy is recursive.
     """
-    if exists(src):
-        if not isdir(src) and isdir(dst):
-            # copying file to directory
-            dst = join(dst, basename(src))
-        if exists(dst):
-            if overwrite:
-                prefix = 'C+O'
-                if verbose:
-                    print('[util_path] [Copying + Overwrite]:')
-            else:
-                prefix = 'Skip'
-                if verbose:
-                    print('[%s] ->%s' % (prefix, dst))
-                return
-        else:
-            prefix = 'C'
-            if verbose:
-                if dryrun:
-                    print('[util_path] [DryRun]: ')
+    try:
+        if exists(src):
+            if not isdir(src) and isdir(dst):
+                # copying file to directory
+                dst = join(dst, basename(src))
+            if exists(dst):
+                if overwrite:
+                    prefix = 'C+O'
+                    if verbose:
+                        print('[util_path] [Copying + Overwrite]:')
                 else:
-                    print('[util_path] [Copying]: ')
-        if verbose:
-            print('[%s] | %s' % (prefix, src))
-            print('[%s] ->%s' % (prefix, dst))
-        if not dryrun:
-            if not deeplink and islink(src):
-                linkto = os.readlink(src)
-                symlink(linkto, dst)
-            elif isdir(src):
-                shutil.copytree(src, dst)
+                    prefix = 'Skip'
+                    if verbose:
+                        print('[%s] ->%s' % (prefix, dst))
+                    return
             else:
-                shutil.copy2(src, dst)
-    else:
-        prefix = 'Miss'
-        if verbose:
-            print('[util_path] [Cannot Copy]: ')
-            print('[%s] src=%s does not exist!' % (prefix, src))
-            print('[%s] dst=%s' % (prefix, dst))
+                prefix = 'C'
+                if verbose:
+                    if dryrun:
+                        print('[util_path] [DryRun]: ')
+                    else:
+                        print('[util_path] [Copying]: ')
+            if verbose:
+                print('[%s] | %s' % (prefix, src))
+                print('[%s] ->%s' % (prefix, dst))
+            if not dryrun:
+                if not deeplink and islink(src):
+                    linkto = os.readlink(src)
+                    symlink(linkto, dst)
+                elif isdir(src):
+                    shutil.copytree(src, dst)
+                else:
+                    shutil.copy2(src, dst)
+        else:
+            prefix = 'Miss'
+            if verbose:
+                print('[util_path] [Cannot Copy]: ')
+                print('[%s] src=%s does not exist!' % (prefix, src))
+                print('[%s] dst=%s' % (prefix, dst))
+    except Exception as ex:
+        import utool as ut
+        ut.printex(ex, 'Error copying single', keys=['src', 'dst'])
+        raise
 
 
 def copy_all(src_dir, dest_dir, glob_str_list, recursive=False):

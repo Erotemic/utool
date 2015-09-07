@@ -234,6 +234,7 @@ def tryload_cache(dpath, fname, cfgstr, verbose=None):
         return None
 
 
+@profile
 def tryload_cache_list(dpath, fname, cfgstr_list, verbose=False):
     """
     loads a list of similar cached datas. Returns flags that needs to be computed
@@ -243,6 +244,7 @@ def tryload_cache_list(dpath, fname, cfgstr_list, verbose=False):
     return data_list, ismiss_list
 
 
+@profile
 def tryload_cache_list_with_compute(dpath, fname, cfgstr_list, compute_fn, *args):
     """
     tries to load data, but computes it if it can't give a compute function

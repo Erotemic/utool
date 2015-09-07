@@ -603,8 +603,132 @@ def knapsack(items, maxweight):
     return bestvalue(len(items), maxweight), result
 
 
-def maximum_distance_subset(items, K):
+def max_size_max_distance_subset(items, min_thresh=0, Kstart=2, verbose=False):
+    r"""
+    Args:
+        items (?):
+        min_thresh (int): (default = 0)
+        Kstart (int): (default = 2)
+
+    Returns:
+        ?: prev_subset_idx
+
+    CommandLine:
+        python -m utool.util_alg --exec-max_size_max_distance_subset
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> items = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        >>> min_thresh = 3
+        >>> Kstart = 2
+        >>> verbose = True
+        >>> prev_subset_idx = max_size_max_distance_subset(items, min_thresh, Kstart, verbose=verbose)
+        >>> result = ('prev_subset_idx = %s' % (str(prev_subset_idx),))
+        >>> print(result)
     """
+    import utool as ut
+    assert Kstart >= 2, 'must start with group of size 2'
+    best_idxs = []
+    for K in range(Kstart, len(items)):
+        if verbose:
+            print('Running subset chooser')
+        value, subset_idx, subset = ut.maximum_distance_subset(items, K=K, verbose=verbose)
+        if verbose:
+            print('subset = %r' % (subset,))
+            print('subset_idx = %r' % (subset_idx,))
+            print('value = %r' % (value,))
+        distances = ut.safe_pdist(subset[:, None])
+        if np.any(distances < min_thresh):
+            break
+        best_idxs = subset_idx
+    return best_idxs
+
+
+def maximin_distance_subset1d(items, K=None, min_thresh=None, verbose=False):
+    """
+    Greedy algorithm, may be exact for 1d case.
+
+    CommandLine:
+        python -m utool.util_alg --exec-maximin_distance_subset1d
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> import utool as ut
+        >>> from utool.util_alg import *  # NOQA
+        >>> #items = [1, 2, 3, 4, 5, 6, 7]
+        >>> items = [20, 1, 1, 9, 21, 6, 22]
+        >>> min_thresh = 5
+        >>> K = None
+        >>> result = maximin_distance_subset1d(items, K, min_thresh, verbose=True)
+        >>> print(result)
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> import utool as ut
+        >>> from utool.util_alg import *  # NOQA
+        >>> #items = [1, 2, 3, 4, 5, 6, 7]
+        >>> items = [0, 1]
+        >>> min_thresh = 5
+        >>> K = None
+        >>> result = maximin_distance_subset1d(items, K, min_thresh, verbose=True)
+        >>> print(result)
+    """
+    import utool as ut
+    import vtool as vt
+    points = np.array(items)[:, None]
+    # Initial sorting of 1d points
+    initial_sortx = points.argsort(axis=0).flatten()
+    points = points.take(initial_sortx, axis=0)
+
+    if K is None:
+        K = len(items)
+
+    def distfunc(x, y):
+        return np.abs(x - y)
+
+    assert points.shape[1] == 1
+    assert len(points) >= K, 'cannot return subset'
+    if K == 1:
+        current_idx = [0]
+    else:
+        current_idx = [0, -1]
+        if min_thresh is not None and distfunc(points[0], points[-1])[0] < min_thresh:
+            current_idx = [0]
+    chosen_mask = vt.index_to_boolmask(current_idx, len(points))
+
+    for k in range(2, K):
+        unchosen_idx = np.nonzero(~chosen_mask)[0]
+        unchosen_items = points.compress(~chosen_mask, axis=0)
+        chosen_items = points.compress(chosen_mask, axis=0)
+        distances = distfunc(unchosen_items, chosen_items.T)
+        min_distances = distances.min(axis=1)
+        argx = min_distances.argmax()
+        if min_thresh is not None:
+            if min_distances[argx] < min_thresh:
+                break
+        new_idx = unchosen_idx[argx]
+        chosen_mask[new_idx] = True
+
+    # Put chosen mask back in the input order of items
+    chosen_items_mask = chosen_mask.take(initial_sortx.argsort())
+    chosen_items_idxs = np.nonzero(chosen_items_mask)[0]
+    chosen_items = ut.list_take(items, chosen_items_idxs)
+    #current_idx = np.nonzero(chosen_mask)[0]
+    if verbose:
+        print('Chose subset')
+        chosen_points = points.compress(chosen_mask, axis=0)
+        distances = (spdist.pdist(chosen_points, distfunc))
+        print('chosen_items_idxs = %r' % (chosen_items_idxs,))
+        print('chosen_items = %r' % (chosen_items,))
+        print('distances = %r' % (distances,))
+    return chosen_items_idxs, chosen_items
+
+
+def maximum_distance_subset(items, K, verbose=False):
+    """
+    FIXME: I believe this does not work.
+
     Returns a subset of size K from items with the maximum pairwise distance
 
     References:
@@ -632,6 +756,9 @@ def maximum_distance_subset(items, K):
         >>> print(result)
         (42.0, array([4, 3, 0]), array([22, 21,  1]))
     """
+    if verbose:
+        print('maximum_distance_subset len(items)=%r, K=%r' % (len(items), K,))
+
     points = np.array(items)[:, None]
 
     if False:
