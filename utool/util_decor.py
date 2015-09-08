@@ -691,6 +691,18 @@ def lazyfunc(func):
     return wrapper
 
 
+def apply_docstr(docstr_func):
+    """
+    Changes docstr of one functio to that of another
+    """
+    def docstr_applier(func):
+        #docstr = meta_util_six.get_funcdoc(docstr_func)
+        #meta_util_six.set_funcdoc(func, docstr)
+        preserved_func = preserve_sig(func, docstr_func)
+        return preserved_func
+    return docstr_applier
+
+
 def preserve_sig(wrapper, orig_func, force=False):
     """
     Decorates a wrapper function.
