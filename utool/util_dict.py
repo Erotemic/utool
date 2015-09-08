@@ -434,7 +434,7 @@ def augdict(dict1, dict2):
     return update_existing(dict1, dict2, copy=True, assert_exists=True)
 
 
-def update_existing(dict1, dict2, copy=False, assert_exists=False):
+def update_existing(dict1, dict2, copy=False, assert_exists=False, alias_dict=None):
     r"""
     updates vals in dict1 using vals from dict2 only if the
     key is already in dict1.
@@ -444,6 +444,13 @@ def update_existing(dict1, dict2, copy=False, assert_exists=False):
         dict2 (dict):
         copy (bool): if true modifies dictionary in place (default = False)
         assert_exists (bool): if True throws error if new key specified (default = False)
+
+    Args:
+        dict1 (dict):
+        dict2 (dict):
+        copy (bool): (default = False)
+        assert_exists (bool): (default = False)
+        alias_dict (dict): dictionary of alias keys for dict2 (default = None)
 
     CommandLine:
         python -m utool.util_dict --test-update_existing
@@ -464,9 +471,15 @@ def update_existing(dict1, dict2, copy=False, assert_exists=False):
         assert_keys_are_subset(dict1, dict2)
     if copy:
         dict1 = dict(dict1)
-    for key, val in six.iteritems(dict2):
-        if key in dict1:
-            dict1[key] = val
+    if alias_dict is None:
+        for key, val in six.iteritems(dict2):
+            if key in dict1:
+                dict1[key] = val
+    else:
+        for key, val in six.iteritems(dict2):
+            key = alias_dict.get(key, key)
+            if key in dict1:
+                dict1[key] = val
     return dict1
 
 

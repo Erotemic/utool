@@ -626,7 +626,7 @@ def func_str(func, args=[], kwargs={}, type_aliases=[], packed=False,
     """
     #repr_list = list_aliased_repr(args, type_aliases) + dict_aliased_repr(kwargs)
     import utool as ut
-    repr_list = ut.list_str(args, type_aliases) + dict_aliased_repr(kwargs)
+    repr_list = ut.list_str(args, type_aliases) + ut.dict_str(kwargs)
     argskwargs_str = newlined_list(repr_list, ', ', textwidth=80)
     func_str = '%s(%s)' % (meta_util_six.get_funcname(func), argskwargs_str)
     if packed:
@@ -966,7 +966,9 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
                             key_order=key_order, use_numpy=use_numpy, **dictkw)
         elif util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
             if use_numpy:
-                return numpy_str(val, strvals=strvals, precision=precision)
+                force_dtype = dictkw.get('force_dtype', True)
+                return numpy_str(val, strvals=strvals, precision=precision,
+                                 force_dtype=force_dtype)
             else:
                 return list_str(val, newlines=newlines, precision=precision)
         if hack_liststr and isinstance(val, list):
