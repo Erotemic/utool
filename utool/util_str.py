@@ -405,16 +405,6 @@ def packstr(instr, textwidth=160, breakchars=' ', break_words=True,
     return str_
 
 
-def newlined_list(list_, joinstr=', ', textwidth=160):
-    """ Converts a list to a string but inserts a new line after textwidth chars """
-    newlines = ['']
-    for word in list_:
-        if len(newlines[-1]) + len(word) > textwidth:
-            newlines.append('')
-        newlines[-1] += word + joinstr
-    return '\n'.join(newlines)
-
-
 def joins(string, list_, with_head=True, with_tail=False, tostrip='\n'):
     head = string if with_head else ''
     tail = string if with_tail else ''
@@ -616,6 +606,19 @@ if USE_GLOBAL_INFO:
 # </Alias repr funcs>
 
 
+def newlined_list(list_, joinstr=', ', textwidth=160):
+    """
+    Converts a list to a string but inserts a new line after textwidth chars
+    DEPRICATE
+    """
+    newlines = ['']
+    for word in enumerate(list_):
+        if len(newlines[-1]) + len(word) > textwidth:
+            newlines.append('')
+        newlines[-1] += word + joinstr
+    return '\n'.join(newlines)
+
+
 def func_str(func, args=[], kwargs={}, type_aliases=[], packed=False,
              packkw=None):
     """
@@ -623,21 +626,53 @@ def func_str(func, args=[], kwargs={}, type_aliases=[], packed=False,
 
     Returns:
         str: a representation of func with args, kwargs, and type_aliases
+
+    Args:
+        func (function):
+        args (list): argument values (default = [])
+        kwargs (dict): kwargs values (default = {})
+        type_aliases (list): (default = [])
+        packed (bool): (default = False)
+        packkw (None): (default = None)
+
+    Returns:
+        str: func_str
+
+    CommandLine:
+        python -m utool.util_str --exec-func_str
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> func = byte_str
+        >>> args = [1024, 'MB']
+        >>> kwargs = dict(precision=2)
+        >>> type_aliases = []
+        >>> packed = False
+        >>> packkw = None
+        >>> _str = func_str(func, args, kwargs, type_aliases, packed, packkw)
+        >>> result = _str
+        >>> print(result)
+        byte_str(1024, 'MB', precision=2)
     """
     #repr_list = list_aliased_repr(args, type_aliases) + dict_aliased_repr(kwargs)
     import utool as ut
-    repr_list = ut.list_str(args, type_aliases) + ut.dict_str(kwargs)
-    argskwargs_str = newlined_list(repr_list, ', ', textwidth=80)
-    func_str = '%s(%s)' % (meta_util_six.get_funcname(func), argskwargs_str)
+    argrepr_list = [] if args is None else ut.get_itemstr_list(args, with_comma=False, nl=False)
+    kwrepr_list = [] if kwargs is None else ut.dict_itemstr_list(kwargs, explicit=True, with_comma=False, nl=False)
+    repr_list = argrepr_list + kwrepr_list
+    #argskwargs_str = newlined_list(repr_list, ', ', textwidth=80)
+    argskwargs_str = ', '.join(repr_list)
+    _str = '%s(%s)' % (meta_util_six.get_funcname(func), argskwargs_str)
     if packed:
         packkw_ = dict(textwidth=80, nlprefix='    ', break_words=False)
         if packkw is not None:
             packkw_.update(packkw_)
-        func_str = packstr(func_str, **packkw_)
-    return func_str
+        _str = packstr(_str, **packkw_)
+    return _str
 
 
-def array_repr2(arr, max_line_width=None, precision=None, suppress_small=None, force_dtype=False, **kwargs):
+def array_repr2(arr, max_line_width=None, precision=None, suppress_small=None,
+                force_dtype=False, **kwargs):
     """ extended version of np.core.numeric.array_repr
 
     ut.editfile(np.core.numeric.__file__)
@@ -661,7 +696,7 @@ def array_repr2(arr, max_line_width=None, precision=None, suppress_small=None, f
     from numpy.core.numeric import _typelessdata
     _typelessdata
 
-    Referencs:
+    References:
         http://stackoverflow.com/questions/28455982/why-are-there-two-np-int64s-in-numpy-core-numeric-typelessdata-why-is-numpy-in/28461928#28461928
     """
     from numpy.core.numeric import _typelessdata
@@ -675,7 +710,9 @@ def array_repr2(arr, max_line_width=None, precision=None, suppress_small=None, f
 
     if arr.size > 0 or arr.shape == (0,):
         separator = ', '
-        lst = array2string2(arr, max_line_width, precision, suppress_small, separator, prefix, **kwargs)
+        lst = array2string2(
+            arr, max_line_width, precision, suppress_small, separator, prefix,
+            **kwargs)
     else:
         # show zero-length shape unless it is (0,)
         lst = '[], shape=%s' % (repr(arr.shape),)
@@ -701,7 +738,8 @@ def array_repr2(arr, max_line_width=None, precision=None, suppress_small=None, f
 
 
 def array2string2(a, max_line_width=None, precision=None, suppress_small=None,
-                  separator=' ', prefix="", style=repr, formatter=None, threshold=None):
+                  separator=' ', prefix="", style=repr, formatter=None,
+                  threshold=None):
     """
     expanded version of np.core.arrayprint.array2string
     """
@@ -723,8 +761,9 @@ def array2string2(a, max_line_width=None, precision=None, suppress_small=None,
         # treat as a null array if any of shape elements == 0
         lst = "[]"
     else:
-        lst = _array2string2(a, max_line_width, precision, suppress_small,
-                             separator, prefix, formatter=formatter, threshold=threshold)
+        lst = _array2string2(
+            a, max_line_width, precision, suppress_small, separator, prefix,
+            formatter=formatter, threshold=threshold)
     return lst
 
 
@@ -921,8 +960,9 @@ def numeric_str(num, precision=None, **kwargs):
 
 def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
                       recursive=True, indent_='', precision=None,
-                      hack_liststr=False, explicit=False, truncate=False, key_order=None,
-                      truncatekw=dict(), key_order_metric=None, use_numpy=True, **dictkw):
+                      hack_liststr=False, explicit=False, truncate=False,
+                      key_order=None, truncatekw=dict(), key_order_metric=None,
+                      use_numpy=True, with_comma=True, **dictkw):
     """
     Returns:
         list: a list of human-readable dictionary items
@@ -963,7 +1003,8 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
                             newlines=newlines, recursive=recursive,
                             indent_=indent_ + '    ', precision=precision,
                             truncate=truncate, truncatekw=truncatekw,
-                            key_order=key_order, use_numpy=use_numpy, **dictkw)
+                            with_comma=with_comma, key_order=key_order,
+                            use_numpy=use_numpy, **dictkw)
         elif util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
             if use_numpy:
                 force_dtype = dictkw.get('force_dtype', True)
@@ -1009,7 +1050,9 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
     OLD = False
     if OLD:
         if explicit:
-            fmtstr = indent_ + '%r: %s,'
+            fmtstr = indent_ + '%r: %s'
+            if with_comma:
+                fmtstr += ','
         itemstr_list = [fmtstr % (key, _valstr(val)) for (key, val) in iteritems(dict_)]
     else:
         def make_item_str(key, val, indent_):
@@ -1024,7 +1067,9 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
             padded_indent = ' ' * min(len(indent_), len(repr_str))
             val_str = val_str.replace('\n', '\n' + padded_indent)  # ' ' * val_indent)
             #val_str = ut.indent(val_str, ' ' * val_indent)
-            item_str = repr_str + val_str + ','
+            item_str = repr_str + val_str
+            if with_comma:
+                item_str += ','
             #print('3)-----------')
             #print(val_str)
             #print('4)===========')
@@ -1059,9 +1104,9 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
     return itemstr_list
 
 
-def get_itemstr_list(list_, strvals=False, newlines=True,
-                      recursive=True, indent_='', precision=None, label_list=None,
-                     **listkws):
+def get_itemstr_list(list_, strvals=False, newlines=True, recursive=True,
+                     indent_='', precision=None, label_list=None,
+                     with_comma=True, **listkws):
     """
     TODO: have this replace dict_itemstr list or at least most functionality in
     it. have it make two itemstr lists over keys and values and then combine
@@ -1082,10 +1127,12 @@ def get_itemstr_list(list_, strvals=False, newlines=True,
             return dict_str(val, strvals=strvals, newlines=newlines,
                             recursive=recursive, indent_=new_indent,
                             precision=precision, sorted_=True,
+                            with_comma=with_comma,
                             hack_liststr=listkws.get('hack_liststr', False))
         if isinstance(val, (tuple, list)):
             return list_str(val, strvals=strvals, newlines=newlines,
                             recursive=recursive, indent_=new_indent,
+                            with_comma=with_comma,
                             precision=precision, label_list=sublabels,
                             **listkws)
         elif util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
@@ -1111,7 +1158,9 @@ def get_itemstr_list(list_, strvals=False, newlines=True,
             #item_str = prefix + indent_rest(val_str, ' ' * len(prefix))
             item_str = horiz_string(prefix,  val_str)
         else:
-            item_str = val_str + ','
+            item_str = val_str
+            if with_comma:
+                item_str += ','
         return item_str
 
     if label_list is not None:
@@ -1230,6 +1279,7 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
             ],
         ]
     """
+    import utool as ut
     #return '[%s\n]' % indentjoin(list(list_), suffix=',')
     #if newlines is True:
     #    newlines_ = newlines
@@ -1249,12 +1299,13 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
     itemstr_list = get_itemstr_list(list_, indent_=indent_, newlines=newlines_,
                                     truncate=truncate_, truncatekw=truncatekw,
                                     label_list=label_list, **listkw)
-    if isinstance(list_, tuple):
-        leftbrace, rightbrace  = '(', ')'
+    if nobraces:
+        leftbrace, rightbrace = '', ''
     else:
-        leftbrace, rightbrace  = '[', ']'
-
-    import utool as ut
+        if isinstance(list_, tuple):
+            leftbrace, rightbrace  = '(', ')'
+        else:
+            leftbrace, rightbrace  = '[', ']'
 
     if newlines is not False and (newlines is True or newlines > 0):
         if nobraces or label_list is not None:
