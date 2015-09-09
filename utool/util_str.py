@@ -2057,7 +2057,7 @@ def doctest_repr(var, varname=None, precision=2, verbose=True):
     import utool as ut
     varname_ = ut.get_varname_from_stack(var, N=1) if varname is None else varname
     if isinstance(var, np.ndarray):
-        line_str = ut.numpy_str(var, precision=precision)
+        line_str = ut.numpy_str(var, precision=precision, suppress_small=True)
     else:
         line_str = repr(var)
     doctest_line_str = doctest_code_line(line_str, varname=varname_, verbose=verbose)
