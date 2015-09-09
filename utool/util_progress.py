@@ -55,7 +55,7 @@ def test_progress():
     numiter = 50
     sleeptime = 1E-4
     with ut.Timer():
-        for x in ut.ProgressIter(range(0, numiter), freq=4):
+        for x in ut.ProgressIter(range(0, numiter), freq=4, adjust=True):
             time.sleep(sleeptime)
     print('_________________')
     print('No frequncy run:')
@@ -66,7 +66,7 @@ def test_progress():
     numiter = 500
     sleeptime = 8E-7
     with ut.Timer():
-        for x in ut.ProgressIter(range(0, numiter), freq=4):
+        for x in ut.ProgressIter(range(0, numiter), freq=4, adjust=True):
             time.sleep(sleeptime)
     print('_________________')
     with ut.Timer():
@@ -198,10 +198,10 @@ class ProgressIter(object):
         >>> from six.moves import range
         >>> num = 1000
         >>> num2 = 10001
-        >>> results1 = [x for x in ut.ProgressIter(range(num), wfreq=10)]
-        >>> results4 = [x for x in ut.ProgressIter(range(num), wfreq=1)]
+        >>> results1 = [x for x in ut.ProgressIter(range(num), wfreq=10, adjust=True)]
+        >>> results4 = [x for x in ut.ProgressIter(range(num), wfreq=1, adjust=True)]
         >>> results2 = [x for x in range(num)]
-        >>> results3 = [x for x in ut.progiter((y + 1 for y in range(num2)), nTotal=num2, wfreq=1000, backspace=True)]
+        >>> results3 = [x for x in ut.progiter((y + 1 for y in range(num2)), nTotal=num2, wfreq=1000, backspace=True, adjust=True)]
         >>> assert results1 == results2
 
     Example1:
@@ -211,7 +211,7 @@ class ProgressIter(object):
         >>> num2 = 10001
         >>> progiter = ut.ProgressIter(range(num2), lbl='testing primes',
         >>>                            report_unit='seconds', freq=1,
-        >>>                            time_thresh=1)
+        >>>                            time_thresh=, adjust=True)
         >>> results1 = [ut.get_nth_prime_bruteforce(29) for x in progiter]
         >>> print(ut.truncate_str(str(results1)))
 

@@ -241,7 +241,9 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=None,
 
     # Get iterator with or without progress
     result_generator = (
-        util_progress.ProgressIter(raw_generator, nTotal=nTasks, lbl=get_funcname(func) + ': ', freq=freq, autoadjust=False)
+        util_progress.ProgressIter(raw_generator, nTotal=nTasks,
+                                   lbl=get_funcname(func) + ': ', freq=freq,
+                                   adjust=False)
         if prog else raw_generator
     )
     if __TIME_GENERATE__:
@@ -260,7 +262,8 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=None,
         if __SERIAL_FALLBACK__:
             print('Trying to handle error by falling back to serial')
             serial_generator = _generate_serial(
-                func, args_list, prog=prog, verbose=verbose, nTasks=nTasks, freq=freq)
+                func, args_list, prog=prog, verbose=verbose, nTasks=nTasks,
+                freq=freq)
             for result in serial_generator:
                 yield result
         else:
@@ -279,7 +282,9 @@ def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None, freq
     prog = prog and verbose and nTasks > 1
     # Get iterator with or without progress
     args_iter = (
-        util_progress.ProgressIter(args_list, nTotal=nTasks, lbl=get_funcname(func) + ': ', freq=freq)
+        util_progress.ProgressIter(args_list, nTotal=nTasks,
+                                   lbl=get_funcname(func) + ': ', freq=freq,
+                                   adjust=False)
         if prog else args_list
     )
     if __TIME_GENERATE__:
@@ -321,6 +326,7 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
 
     CommandLine:
         python -m utool.util_parallel --test-generate
+        python -m utool.util_parallel --test-generate:0
         python -m utool.util_parallel --test-generate:1
         python -m utool.util_parallel --test-generate:2
         python -m utool.util_parallel --test-generate:3
@@ -329,16 +335,16 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
         python -c "import multiprocessing; print(multiprocessing.__version__)"
         python -c "import cv2; print(cv2.__version__)"
 
-    Example:
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
         >>> #num = 8700  # parallel is slower for smaller numbers
         >>> num = 700  # parallel has an initial (~.1 second startup overhead)
         >>> print('TESTING SERIAL')
-        >>> flag_generator0 = ut.generate(ut.is_prime, range(0, num), force_serial=True)
+        >>> flag_generator0 = ut.generate(ut.is_prime, range(0, num), force_serial=True, freq=100)
         >>> flag_list0 = list(flag_generator0)
         >>> print('TESTING PARALLEL')
-        >>> flag_generator1 = ut.generate(ut.is_prime, range(0, num))
+        >>> flag_generator1 = ut.generate(ut.is_prime, range(0, num), freq=100)
         >>> flag_list1 = list(flag_generator1)
         >>> print('ASSERTING')
         >>> assert flag_list0 == flag_list1
@@ -443,7 +449,7 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
     if force_serial_ or isinstance(__POOL__, int):
         if VERBOSE_PARALLEL or verbose:
             print('[util_parallel.generate] generate_serial')
-        return _generate_serial(func, args_list, prog=prog, nTasks=nTasks)
+        return _generate_serial(func, args_list, prog=prog, nTasks=nTasks, freq=freq)
     else:
         if VERBOSE_PARALLEL or verbose:
             print('[util_parallel.generate] generate_parallel')
