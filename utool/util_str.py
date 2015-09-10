@@ -1342,7 +1342,7 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
              indent_='', precision=None, hack_liststr=None, truncate=False,
              nl=None, explicit=False, truncatekw=dict(), key_order=None,
              key_order_metric=None, nobraces=False, align=False, **dictkw):
-    """
+    r"""
 
     Args:
         dict_ (dict_):  a dictionary
@@ -1358,9 +1358,12 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
         explicit (bool): (default = False)
         truncatekw (dict): (default = {})
         key_order (None): overrides default ordering (default = None)
-        key_order_metric (None): special sorting of items
+        key_order_metric (str): special sorting of items. Accepted values:
+            None, 'strlen', 'val'
 
-    FIXME: ALL LIST DICT STRINGS ARE VERY SPAGEHETTI RIGHT NOW
+    FIXME:
+        ALL LIST DICT STRINGS ARE VERY SPAGEHETTI RIGHT NOW
+
     Returns:
         str: a human-readable and execable string representation of a dictionary
 

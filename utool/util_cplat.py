@@ -447,6 +447,7 @@ def __parse_cmd_kwargs(kwargs):
     # maybe thats because I'm a windows admin
     # FIXME: Turn shell off by default and fix __parse_cmd_args
     shell   = kwargs.get('shell', LINUX or DARWIN)
+    # TODO: gksudo
     sudo    = kwargs.get('sudo', False)
     # pads stdout of cmd before and after
     # TODO: rename separate to something else

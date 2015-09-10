@@ -867,7 +867,13 @@ class InteractiveIter(object):
                     value  = parse_str_value(ans)
                     # cal custom function
                     print('Calling custom action func')
-                    func(iiter, key, value)
+                    import utool as ut
+                    argspec = ut.get_func_argspec(func)
+                    if len(argspec.args) == 3:
+                        # Forgot why I had custom functions take args in the first place
+                        func(iiter, key, value)
+                    else:
+                        func()
                     # Custom funcs dont cause iteration
                     return False
             print('Unknown ans=%r' % (ans,))
