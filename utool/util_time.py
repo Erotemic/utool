@@ -241,6 +241,44 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=1, strict=False):
             return -1
 
 
+def parse_timedelta_str(str_):
+    r"""
+    Args:
+        str_ (str):
+
+    Returns:
+        float: timedelta
+
+    CommandLine:
+        python -m utool.util_time --exec-parse_timedelta_str
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_time import *  # NOQA
+        >>> str_ = '24h'
+        >>> timedelta = parse_timedelta_str(str_)
+        >>> result = ('timedelta = %s' % (str(timedelta),))
+        >>> print(result)
+        timedelta = 86400.0
+    """
+    if str_.endswith('m'):
+        timedelta = float(str_[0:-1]) * 60
+    elif str_.endswith('h'):
+        timedelta = float(str_[0:-1]) * 60 * 60
+    elif str_.endswith('s'):
+        timedelta = float(str_[0:-1])
+    else:
+        raise NotImplementedError('Unknown timedelta format %r' % (str_))
+    return timedelta
+
+
+def ensure_timedelta(str_or_num):
+    if isinstance(str_or_num, six.string_types):
+        return parse_timedelta_str(str_or_num)
+    else:
+        return str_or_num
+
+
 def unixtime_to_datetimestr(unixtime, timefmt='%Y/%m/%d %H:%M:%S', isutc=False):
     """
     TODO: ranme to datetimestr

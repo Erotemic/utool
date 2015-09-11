@@ -1729,6 +1729,24 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_cons
         [[(1, 2), 2], [(1, 2), 2], [(1, 2), 1]]
         [[(1, 2), 2]] * 2 + [[(1, 2), 1]]
 
+    Example7:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [[{'a': [1, 2], 'b': [3, 4, 5]}, [1, 2, 3]], None]
+        >>> result = depth_profile(list_, compress_homogenous=True)
+        >>> print(result)
+
+    Example8:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [[[1]], [[[1, 1], [1, 1]]], [[[[1, 3], 1], [[1, 3, 3], 1, 1]]]]
+        >>> result = depth_profile(list_, compress_homogenous=True)
+        >>> print(result)
+
+        # THIS IS AN ERROR???
+        SHOULD BE
+        #[1, 1], [1, 2, 2], (1, ([1, 2]), (
+
     """
     if isinstance(list_, dict):
         list_ = list(list_.values())   # handle dict

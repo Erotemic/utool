@@ -141,7 +141,7 @@ def intersect2d(A, B):
     #return arr[np.sort(idx)]
 
 
-def deterministic_shuffle(list_, seed=0):
+def deterministic_shuffle(list_, seed=None, rng=None):
     r"""
     Args:
         list_ (list):
@@ -163,7 +163,10 @@ def deterministic_shuffle(list_, seed=0):
         >>> print(result)
         [3, 2, 5, 1, 4, 6]
     """
-    rng = np.random.RandomState(seed)
+    if seed is None and rng is None:
+        seed = 0
+    if seed is not None:
+        rng = np.random.RandomState(seed)
     rng.shuffle(list_)
     return list_
 
@@ -214,9 +217,11 @@ def random_sample(list_, nSample, strict=False, rng=np.random, seed=None):
     return sample_list
 
 
-def deterministic_sample(list_, nSample, seed=0, strict=False):
+def deterministic_sample(list_, nSample, seed=None, rng=None, strict=False):
     """ Grabs data randomly, but in a repeatable way """
-    sample_list = random_sample(list_, nSample, strict=strict, seed=seed)
+    if seed is None and rng is None:
+        seed = 0
+    sample_list = random_sample(list_, nSample, strict=strict, seed=seed, rng=rng)
     return sample_list
 
 

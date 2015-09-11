@@ -1062,8 +1062,38 @@ def dict_intersection(dict1, dict2, combine=False, combine_op=operator.add):
     return dict3
 
 
+dict_isect = dict_intersection
+
+
 def dict_filter_nones(dict_):
-    return {key: val for key, val in six.iteritems(dict_) if val is not None}
+    r"""
+    Removes None values
+
+    Args:
+        dict_ (dict):  a dictionary
+
+    Returns:
+        dict:
+
+    CommandLine:
+        python -m utool.util_dict --exec-dict_filter_nones
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
+        >>> dict_ = {1: None, 2: 'blue', 3: 'four', None: 'fun'}
+        >>> dict2_ = dict_filter_nones(dict_)
+        >>> result = ut.dict_str(dict2_, nl=False)
+        >>> print(result)
+        {None: 'fun', 2: 'blue', 3: 'four'}
+    """
+    dict2_ = {
+        key: val
+        for key, val in six.iteritems(dict_)
+        if val is not None
+    }
+    return dict2_
 
 
 def group_items(item_list, groupid_list, sorted_=True):

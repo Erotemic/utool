@@ -895,6 +895,14 @@ def get_func_argspec(func):
     return argspec
 
 
+def parse_func_kwarg_keys(func):
+    """ hacky inference of kwargs keys """
+    sourcecode = get_func_sourcecode(func, strip_docstr=True,
+                                        strip_comments=True)
+    kwkeys = parse_kwarg_keys(sourcecode)
+    return kwkeys
+
+
 def parse_kwarg_keys(source):
     r""" very hacky way to infer some of the kwarg keys
 

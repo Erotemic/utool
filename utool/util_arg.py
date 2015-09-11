@@ -48,6 +48,8 @@ def get_module_verbosity_flags(*labels):
          itertools.product(veryverbose_prefix_list, labels)])
     veryverbose_module = get_argflag(veryverbose_flags) or VERYVERBOSE
     verbose_module = (get_argflag(verbose_flags) or veryverbose_module or VERBOSE)
+    if veryverbose_module:
+        verbose_module = 2
     return verbose_module, veryverbose_module
 
 get_verbflag = get_module_verbosity_flags

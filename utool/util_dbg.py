@@ -643,7 +643,7 @@ def search_stack_for_localvar(varname):
     return None
 
 
-def search_stack_for_var(varname):
+def search_stack_for_var(varname, verbose=util_arg.NOT_QUIET):
     """
     Finds a varable (local or global) somewhere in the stack and returns the value
 
@@ -654,18 +654,22 @@ def search_stack_for_var(varname):
         None if varname is not found else its value
     """
     curr_frame = inspect.currentframe()
-    print(' * Searching parent frames for: ' + str(varname))
+    if verbose:
+        print(' * Searching parent frames for: ' + str(varname))
     frame_no = 0
     while curr_frame.f_back is not None:
         if varname in curr_frame.f_locals.keys():
-            print(' * Found local in frame: ' + str(frame_no))
+            if verbose:
+                print(' * Found local in frame: ' + str(frame_no))
             return curr_frame.f_locals[varname]
         if varname in curr_frame.f_globals.keys():
-            print(' * Found global in frame: ' + str(frame_no))
+            if verbose:
+                print(' * Found global in frame: ' + str(frame_no))
             return curr_frame.f_globals[varname]
         frame_no += 1
         curr_frame = curr_frame.f_back
-    print('... Found nothing in all ' + str(frame_no) + ' frames.')
+    if verbose:
+        print('... Found nothing in all ' + str(frame_no) + ' frames.')
     return None
 
 # Alias
