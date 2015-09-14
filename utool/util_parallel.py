@@ -37,7 +37,8 @@ __POOL__ = None
 __EAGER_JOIN__      = util_arg.get_argflag('--eager-join')
 __EAGER_JOIN__      = not util_arg.get_argflag('--noclose-pool')
 __NUM_PROCS__       = util_arg.get_argval('--num-procs', int, default=None)
-__FORCE_SERIAL__    = util_arg.get_argflag(('--utool-force-serial', '--force-serial', '--serial'))
+#__FORCE_SERIAL__    = util_arg.get_argflag(('--utool-force-serial', '--force-serial', '--serial'))
+__FORCE_SERIAL__    = True
 __SERIAL_FALLBACK__ = not util_arg.get_argflag('--noserial-fallback')
 __TIME_GENERATE__   = VERBOSE_PARALLEL or util_arg.get_argflag('--time-generate')
 
@@ -306,7 +307,7 @@ def ensure_pool(warn=False, quiet=QUIET):
         return init_pool(quiet=quiet)
 
 
-def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
+def generate(func, args_list, ordered=True, force_serial=None,
              chunksize=None, prog=True, verbose=True, quiet=QUIET, nTasks=None,
              freq=None):
     """
@@ -433,6 +434,8 @@ def generate(func, args_list, ordered=True, force_serial=__FORCE_SERIAL__,
     #    >>> time.sleep(10)
 
     """
+    if force_serial is None:
+        force_serial = __FORCE_SERIAL__
     if nTasks is None:
         nTasks = len(args_list)
     if nTasks == 0:
@@ -634,7 +637,7 @@ def buffered_generator(source_gen, buffer_size=2):
         yield data
 
 
-def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__,
+def process(func, args_list, args_dict={}, force_serial=None,
             nTasks=None, quiet=QUIET):
     """
     Use ut.generate rather than ut.process
@@ -661,6 +664,8 @@ def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__,
         >>> flag_list1 = list(flag_generator1)
         >>> assert flag_list0 == flag_list1
     """
+    if force_serial is None:
+        force_serial = __FORCE_SERIAL__
 
     ensure_pool(quiet=quiet)
     if nTasks is None:

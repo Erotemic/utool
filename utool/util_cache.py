@@ -35,6 +35,7 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[cache]')
 
 VERBOSE = util_arg.VERBOSE
 QUIET = util_arg.QUIET
+VERBOSE_CACHE = util_arg.NOT_QUIET
 USE_CACHE = not util_arg.get_argflag('--nocache')
 __SHELF__ = None  # GLOBAL CACHE
 __APPNAME__ = meta_util_constants.default_appname  # the global application name
@@ -203,7 +204,7 @@ def load_cache(dpath, fname, cfgstr, verbose=None):
             print('[util_io] ... cache disabled: dpath=%s cfgstr=%r' % (basename(dpath), cfgstr,))
         raise IOError(3, 'Cache Loading Is Disabled')
     if verbose is None:
-        verbose = util_arg.NOT_QUIET
+        verbose = VERBOSE_CACHE
     fpath = _args2_fpath(dpath, fname, cfgstr, '.cPkl')
     if not exists(fpath):
         if verbose:
