@@ -9,6 +9,7 @@ References:
     http://stackoverflow.com/questions/21071448/redirecting-stdout-and-stderr-to-a-pyqt4-qtextedit-from-a-secondary-thread
 """
 from __future__ import absolute_import, division, print_function
+import six
 from six.moves import builtins
 from os.path import exists, join, realpath
 import logging
@@ -49,6 +50,12 @@ __UTOOL_PRINTDBG__  = __PYTHON_PRINT__
 __UTOOL_WRITE__     = __PYTHON_WRITE__
 __UTOOL_FLUSH__     = __PYTHON_FLUSH__
 __UTOOL_WRITE_BUFFER__ = []
+
+
+if six.PY2:
+    __STR__ = unicode
+else:
+    __STR__ = str
 
 logdir_cacheid = 'log_dpath'
 
@@ -231,7 +238,7 @@ def start_logging(log_fpath=None, mode='a', appname='default', log_dir=None):
         def utool_write(*args):
             """ writes to current utool logs and to sys.stdout.write """
             global __UTOOL_WRITE_BUFFER__
-            msg = ', '.join(map(str, args))
+            msg = ', '.join(map(__STR__, args))
             __UTOOL_WRITE_BUFFER__.append(msg)
             if msg.endswith('\n'):
                 # Flush on newline
@@ -245,14 +252,14 @@ def start_logging(log_fpath=None, mode='a', appname='default', log_dir=None):
                 utool_flush()
                 __UTOOL_ROOT_LOGGER__.info('\n\n----------')
                 __UTOOL_ROOT_LOGGER__.info(ut.get_caller_name(range(0, 20)))
-                return  __UTOOL_ROOT_LOGGER__.info(', '.join(map(str, args)))
+                return  __UTOOL_ROOT_LOGGER__.info(', '.join(map(__STR__, args)))
         else:
             def utool_print(*args):
                 """ standard utool print function """
-                return  __UTOOL_ROOT_LOGGER__.info(', '.join(map(str, args)))
+                return  __UTOOL_ROOT_LOGGER__.info(', '.join(map(__STR__, args)))
         def utool_printdbg(*args):
             """ standard utool print debug function """
-            return  __UTOOL_ROOT_LOGGER__.debug(', '.join(map(str, args)))
+            return  __UTOOL_ROOT_LOGGER__.debug(', '.join(map(__STR__, args)))
         # overwrite the utool printers
         __UTOOL_WRITE__    = utool_write
         __UTOOL_FLUSH__    = utool_flush

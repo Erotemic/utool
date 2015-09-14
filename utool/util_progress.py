@@ -130,7 +130,7 @@ class ProgressIter(object):
         start (bool):
         repl (bool):
         approx (bool):
-        disable (bool):
+        enabled (bool):
         writefreq (int):
         with_totaltime (bool):
         backspace (bool):

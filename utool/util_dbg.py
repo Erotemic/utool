@@ -584,6 +584,23 @@ def quit(num=None, embed_=False):
                     parent_globals=get_parent_globals())
 
 
+def in_jupyter_notebook():
+    """
+    http://stackoverflow.com/questions/15411967/how-can-i-check-if-code-is-executed-in-the-ipython-notebook
+    """
+    try:
+        cfg = get_ipython().config
+        #print('cfg = %s' % (ut.dict_str(cfg),))
+        #x = cfg['IPKernelApp']['parent_appname']
+        # might not work if using jupyter-console
+        if cfg['IPKernelApp']['connection_file'].count('jupyter'):
+            return True
+        else:
+            return False
+    except NameError:
+        return False
+
+
 def inIPython():
     """
     Tests if running in IPython

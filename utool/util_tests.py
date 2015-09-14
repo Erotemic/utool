@@ -1081,7 +1081,6 @@ def _exec_doctest(src, kwargs, nocheckwant=None):
     code = compile(src, '<string>', 'exec')
     try:
         exec(code, test_globals, test_locals)
-        #exec(src, test_globals, test_locals)
     except ExitTestException:
         print('Test exited before show')
         pass

@@ -1873,6 +1873,14 @@ def singular_string(str_, plural_suffix='s', singular_suffix=''):
     return str_[:-1] if str_.endswith(plural_suffix) else str_
 
 
+def pluralize(wordtext, num, plural_suffix='s'):
+    return (wordtext + plural_suffix) if num > 1 else wordtext
+
+
+def quantity_str(typestr, num, plural_suffix='s'):
+    return str(num) + ' ' + pluralize(typestr, num, plural_suffix)
+
+
 def remove_vowels(str_):
     """ strips all vowels from a string """
     for char_ in 'AEOIUaeiou':
