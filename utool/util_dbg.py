@@ -492,13 +492,13 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
 
                 # instance comes from  IPython.config.configurable.SingletonConfigurable.instance
             """
-            c = IPython.Config()
-            c.InteractiveShellApp.exec_lines = [
-                '%pylab qt4',
-                "print 'System Ready!'",
-            ]
-            IPython.embed(config=c)
-            #IPython.embed()
+            #c = IPython.Config()
+            #c.InteractiveShellApp.exec_lines = [
+            #    '%pylab qt4',
+            #    "print 'System Ready!'",
+            #]
+            #IPython.embed(config=c)
+            IPython.embed()
             #config = IPython.terminal.ipapp.load_default_config()
             #config.InteractiveShellEmbed = config.TerminalInteractiveShell
             #module = sys.modules[parent_globals['__name__']]
@@ -597,7 +597,7 @@ def in_jupyter_notebook():
             return True
         else:
             return False
-    except NameError:
+    except (AttributeError, NameError):
         return False
 
 

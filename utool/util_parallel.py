@@ -37,10 +37,13 @@ __POOL__ = None
 __EAGER_JOIN__      = util_arg.get_argflag('--eager-join')
 __EAGER_JOIN__      = not util_arg.get_argflag('--noclose-pool')
 __NUM_PROCS__       = util_arg.get_argval('--num-procs', int, default=None)
-#__FORCE_SERIAL__    = util_arg.get_argflag(('--utool-force-serial', '--force-serial', '--serial'))
-__FORCE_SERIAL__    = True
+__FORCE_SERIAL__    = util_arg.get_argflag(('--utool-force-serial', '--force-serial', '--serial'))
+#__FORCE_SERIAL__    = True
 __SERIAL_FALLBACK__ = not util_arg.get_argflag('--noserial-fallback')
 __TIME_GENERATE__   = VERBOSE_PARALLEL or util_arg.get_argflag('--time-generate')
+
+# Maybe global pooling is not correct?
+USE_GLOBAL_POOL = util_arg.get_argflag('--use_global_pool')
 
 
 # FIXME: running tests in IBEIS has errors when this number is low
@@ -218,15 +221,25 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=None,
     Parallel process generator
     """
     global __POOL__
+    if USE_GLOBAL_POOL:
+        global __POOL__
+        pool = __POOL__
+    else:
+        # Maybe global pools are bad?
+        pool = new_pool(num_procs=get_default_numprocs(),
+                        init_worker=init_worker,
+                        maxtasksperchild=None)
+        #pool = new_pool()
+
     prog = prog and verbose
     if nTasks is None:
         nTasks = len(args_list)
     if chunksize is None:
-        chunksize = max(min(4, nTasks), min(8, nTasks // (__POOL__._processes ** 2)))
+        chunksize = max(min(4, nTasks), min(8, nTasks // (pool._processes ** 2)))
     if verbose or VERBOSE_PARALLEL:
         prefix = '[util_parallel._generate_parallel]'
         fmtstr = prefix + 'executing %d %s tasks using %d processes with chunksize=%r'
-        print(fmtstr % (nTasks, get_funcname(func), __POOL__._processes, chunksize))
+        print(fmtstr % (nTasks, get_funcname(func), pool._processes, chunksize))
 
     #import utool as ut
     #buffered = ut.get_argflag('--buffered')
@@ -237,7 +250,7 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=None,
     #    source_gen = (func(args) for args in args_list)
     #    raw_generator = buffered_generator(source_gen)
     #else:
-    pmap_func = __POOL__.imap if ordered else __POOL__.imap_unordered
+    pmap_func = pool.imap if ordered else pool.imap_unordered
     raw_generator = pmap_func(func, args_list, chunksize)
 
     # Get iterator with or without progress
@@ -254,11 +267,19 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=None,
         for result in result_generator:
             yield result
         if __EAGER_JOIN__:
-            close_pool(quiet=quiet)
+            if USE_GLOBAL_POOL:
+                close_pool(quiet=quiet)
+            else:
+                pool.close()
+                pool.join()
     except Exception as ex:
         util_dbg.printex(ex, 'Parallel Generation Failed!', '[utool]', tb=True)
         if __EAGER_JOIN__:
-            close_pool(quiet=quiet)
+            if USE_GLOBAL_POOL:
+                close_pool(quiet=quiet)
+            else:
+                pool.close()
+                pool.join()
         print('__SERIAL_FALLBACK__ = %r' % __SERIAL_FALLBACK__)
         if __SERIAL_FALLBACK__:
             print('Trying to handle error by falling back to serial')
@@ -328,6 +349,7 @@ def generate(func, args_list, ordered=True, force_serial=None,
     CommandLine:
         python -m utool.util_parallel --test-generate
         python -m utool.util_parallel --test-generate:0
+        python -m utool.util_parallel --test-generate:0 --use-global-pool
         python -m utool.util_parallel --test-generate:1
         python -m utool.util_parallel --test-generate:2
         python -m utool.util_parallel --test-generate:3
@@ -340,14 +362,15 @@ def generate(func, args_list, ordered=True, force_serial=None,
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
         >>> #num = 8700  # parallel is slower for smaller numbers
-        >>> num = 700  # parallel has an initial (~.1 second startup overhead)
+        >>> num = 40000  # parallel has an initial (~.1 second startup overhead)
         >>> print('TESTING SERIAL')
-        >>> flag_generator0 = ut.generate(ut.is_prime, range(0, num), force_serial=True, freq=100)
+        >>> flag_generator0 = ut.generate(ut.is_prime, range(0, num), force_serial=True, freq=num / 4)
         >>> flag_list0 = list(flag_generator0)
         >>> print('TESTING PARALLEL')
-        >>> flag_generator1 = ut.generate(ut.is_prime, range(0, num), freq=100)
+        >>> flag_generator1 = ut.generate(ut.is_prime, range(0, num), freq=num / 10)
         >>> flag_list1 = list(flag_generator1)
         >>> print('ASSERTING')
+        >>> assert len(flag_list1) == num
         >>> assert flag_list0 == flag_list1
 
     Example1:
