@@ -1096,6 +1096,52 @@ def dict_filter_nones(dict_):
     return dict2_
 
 
+def groupby_tags(item_list, tags_list):
+    r"""
+    case where an item can belong to multiple groups
+
+    Args:
+        item_list (list):
+        tags_list (list):
+
+    Returns:
+        dict: groupid2_items
+
+    CommandLine:
+        python -m utool.util_dict --exec-groupby_tags
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> tagged_item_list = {
+        >>>     'spam': ['meat', 'protein', 'food'],
+        >>>     'eggs': ['protein', 'food'],
+        >>>     'cheese': ['dairy', 'protein', 'food'],
+        >>>     'jam':  ['fruit', 'food'],
+        >>>     'banana': ['weapon', 'fruit', 'food'],
+        >>> }
+        >>> item_list = list(tagged_item_list.keys())
+        >>> tags_list = list(tagged_item_list.values())
+        >>> groupid2_items = groupby_tags(item_list, tags_list)
+        >>> result = ('groupid2_items = %s' % (ut.dict_str(groupid2_items),))
+        >>> print(result)
+        groupid2_items = {
+            'dairy': ['cheese'],
+            'food': ['cheese', 'eggs', 'jam', 'banana', 'spam'],
+            'fruit': ['jam', 'banana'],
+            'meat': ['spam'],
+            'protein': ['cheese', 'eggs', 'spam'],
+            'weapon': ['banana'],
+        }
+
+    """
+    groupid2_items = defaultdict(list)
+    for tags, item in zip(tags_list, item_list):
+        for tag in tags:
+            groupid2_items[tag].append(item)
+    return groupid2_items
+
+
 def group_items(item_list, groupid_list, sorted_=True):
     """
     group_items

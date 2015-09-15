@@ -791,7 +791,7 @@ def get_latex_figure_str(fpath_list, caption_str=None, label_str=None,
                 subfigure_str += '\\centering\n'
             if use_frame:
                 subfigure_str += '\\fbox{'
-            subfigure_str += '\\includegraphics[width=\\textwidth]{%s}' % (fpath,)
+            subfigure_str += '\\includegraphics[width=%s]{%s}' % (width_str, fpath,)
             if use_frame:
                 subfigure_str += '}'
             if use_sublbls is True or use_sublbls is None and len(fpath_list) > 1:
