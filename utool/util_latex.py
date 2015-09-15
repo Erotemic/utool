@@ -941,6 +941,7 @@ def latex_sanatize_command_name(_cmdname):
         >>> print(result)
     """
     import re
+    import utool as ut
     command_name = _cmdname
     try:
         def subroman(match):
@@ -954,11 +955,11 @@ def latex_sanatize_command_name(_cmdname):
             except Exception as ex:
                 ut.printex(ex, keys=['groupdict'])
                 raise
-        import utool as ut
         command_name = re.sub(ut.named_field('num', r'\d+'), subroman, command_name)
     except ImportError as ex:
-        ut.printex(ex)
-        raise
+        if ut.SUPER_STRICT:
+            ut.printex(ex)
+            raise
     # remove numbers
     command_name = re.sub(r'[\d' + re.escape('#()[]{}') + ']', '', command_name)
     # Remove _ for cammel case
