@@ -756,7 +756,18 @@ exec_func_src = exec_func_sourcecode
 
 
 def get_func_kwargs(func, stripdef=False, stripret=False, strip_docstr=False, remove_linenums=None):
-    pass
+    """
+    func = ibeis.run_experiment
+    """
+    import utool as ut
+    argspec = ut.get_func_argspec(func)
+    header_kw = dict(zip(argspec.args[::-1], argspec.defaults[::-1]))
+    # TODO
+    if argspec.keywords is not None:
+        # parse our keywords from func body if possible
+        # possibly recursively
+        pass
+    return header_kw
 
 
 def get_func_sourcecode(func, stripdef=False, stripret=False, strip_docstr=False, strip_comments=False, remove_linenums=None):
