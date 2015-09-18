@@ -914,19 +914,18 @@ def parse_func_kwarg_keys(func):
     return kwkeys
 
 
-def parse_kwarg_keys(source):
+def parse_kwarg_keys(source, keywords='kwargs'):
     r""" very hacky way to infer some of the kwarg keys
 
     TODO: use a code parse tree here.  Use hints.  Find other docstrings of
     functions that are called with kwargs. Find the name of the kwargs
     variable.
 
-
     Args:
-        source (?):
+        source (str):
 
     Returns:
-        ?: kwarg_keys
+        list: kwarg_keys
 
     CommandLine:
         python -m utool.util_inspect --exec-parse_kwarg_keys
@@ -948,7 +947,7 @@ def parse_kwarg_keys(source):
     esc = re.escape
     #default = ut.named_field('default', '[\'\"A-Za-z_][A-Za-z0-9_\'\"]*')
     itemgetter = ut.regex_or(['get', 'pop'])
-    pattern = esc('kwargs.') + itemgetter + esc('(\'') + keyname + esc('\',')
+    pattern = esc(keywords + '.') + itemgetter + esc('(\'') + keyname + esc('\',')
     #not_quotes = '^' + ut.positive_lookbehind(r'[^\'\"]*')
     #not_quotes = ut.regex_or(['^', r'\n']) + r'[^\'\"]*'
     #not_quotes = r'[^\'\"]*'

@@ -20,7 +20,7 @@ BadZipfile = zipfile.BadZipfile
 
 
 def archive_files(archive_fpath, fpath_list, small=True, allowZip64=False,
-                  overwrite=False, verbose=True):
+                  overwrite=False, verbose=True, common_prefix=False):
     """
     Args:
         archive_fpath (str): path to zipfile to create
@@ -64,9 +64,13 @@ def archive_files(archive_fpath, fpath_list, small=True, allowZip64=False,
         raise AssertionError('cannot overrwite archive_fpath=%r' % (archive_fpath,))
     print('Archiving %d files' % len(fpath_list))
     compression = zipfile.ZIP_DEFLATED if small else zipfile.ZIP_STORED
+    if common_prefix:
+        rel_arcpath = commonprefix(fpath_list)
+    else:
+        rel_arcpath = dirname(archive_fpath)
     with zipfile.ZipFile(archive_fpath, 'w', compression, allowZip64) as myzip:
-        for fpath in ut.ProgressIter(fpath_list, lbl='archiving files', enabled=verbose):
-            arcname = relpath(fpath, dirname(archive_fpath))
+        for fpath in ut.ProgressIter(fpath_list, lbl='archiving files', enabled=verbose, adjust=True):
+            arcname = relpath(fpath, rel_arcpath)
             myzip.write(fpath, arcname)
 
 

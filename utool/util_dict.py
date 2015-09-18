@@ -9,6 +9,7 @@ from six.moves import zip
 from utool import util_inject
 from utool import util_list
 from utool import util_iter
+import copy
 import six
 try:
     import numpy as np
@@ -430,8 +431,12 @@ def assert_keys_are_subset(dict1, dict2):
     assert len(unknown_keys) == 0, 'unknown_keys=%r' % (unknown_keys,)
 
 
-def augdict(dict1, dict2):
-    return update_existing(dict1, dict2, copy=True, assert_exists=True)
+def augdict(dict1, dict2=None, **kwargs):
+    dict1_ = copy.deepcopy(dict1)
+    if dict2 is not None:
+        dict1_ = update_existing(dict1_, dict2, assert_exists=True)
+    dict1_ = update_existing(dict1_, kwargs, assert_exists=True)
+    return dict1_
 
 
 def update_existing(dict1, dict2, copy=False, assert_exists=False, alias_dict=None):

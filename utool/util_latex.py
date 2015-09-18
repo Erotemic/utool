@@ -406,7 +406,7 @@ def make_score_tabular(
         row_lbls, col_lbls, values, title=None, out_of=None, bold_best=False,
         flip=False, bigger_is_better=True, multicol_lbls=None, FORCE_INT=False,
         precision=None, SHORTEN_ROW_LBLS=False, col_align='l', col_sep='|',
-        multicol_sep='|', centerline=True, astable=False):
+        multicol_sep='|', centerline=True, astable=False, table_position=''):
     r"""
     makes a LaTeX tabular for displaying scores or errors
 
@@ -418,6 +418,7 @@ def make_score_tabular(
         out_of (None): (default = None)
         bold_best (bool): (default = True)
         flip (bool): (default = False)
+        table_position (str) : eg '[h]'
 
     Returns:
         str: tabular_str
@@ -688,7 +689,7 @@ def make_score_tabular(
     if astable:
         #tabular_head = r'\begin{centering}' + '\n' + tabular_head
         tabular_head = r'\centering' + '\n' + tabular_head
-        tabular_head = r'\begin{table}' + '\n' + tabular_head
+        tabular_head = r'\begin{table}' + table_position + '\n' + tabular_head
         lblstr = latex_sanatize_command_name(title)
         caption = escape_latex(title)
         #tabular_head = r'\end{centering}' + '\n' + tabular_head

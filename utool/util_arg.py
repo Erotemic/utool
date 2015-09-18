@@ -277,6 +277,7 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest', float)]])" --quest 42
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--nAssign'), int)]])" --nAssign 42
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--test'), str)]])" --test
+        python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--test'), str)]])" --test "foobar is good" --youbar ok
     """
     if argv is None:
         argv = sys.argv

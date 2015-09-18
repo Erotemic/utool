@@ -363,7 +363,7 @@ def colorprint(msg, color):
     try:
         import pygments
         import pygments.console
-        print(pygments.console.colorize(color, msg))
+        print(pygments.console.colorize(color, msg) + pygments.console.colorize('reset', ''))
     except ImportError:
         print(msg)
 

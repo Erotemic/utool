@@ -288,7 +288,6 @@ def listfind(list_, tofind):
 
 def multi_replace(instr, search_list=[], repl_list=None):
     """
-    DEPRICATE?
     Does a string replace with a list of search and replacements
 
     TODO: rename
