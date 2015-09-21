@@ -608,23 +608,31 @@ def copy_all(src_dir, dest_dir, glob_str_list, recursive=False):
             break
 
 
-def copy_list(src_list, dst_list, lbl='Copying: ', ):
+def copy_list(src_list, dst_list, lbl='Copying',
+              ioerr_ok=False, sherro_ok=False, oserror_ok=False):
     """ Copies all data and stat info """
     # Feb - 6 - 2014 Copy function
-    num_tasks = len(src_list)
+    import utool as ut
     task_iter = zip(src_list, dst_list)
-    mark_progress, end_progress = progress_func(num_tasks, lbl=lbl)
-    def docopy(src, dst, count):
+    def docopy(src, dst):
         try:
             shutil.copy2(src, dst)
         except OSError:
-            return False
+            if ioerr_ok:
+                return False
+            raise
         except shutil.Error:
-            pass
-        mark_progress(count)
+            if sherro_ok:
+                return False
+            raise
+        except IOError:
+            if ioerr_ok:
+                return False
+            raise
         return True
-    success_list = [docopy(src, dst, count) for count, (src, dst) in enumerate(task_iter)]
-    end_progress()
+    success_list = [
+        docopy(src, dst)
+        for (src, dst) in ut.ProgressIter(task_iter, adjust=True, lbl=lbl)]
     return success_list
 
 

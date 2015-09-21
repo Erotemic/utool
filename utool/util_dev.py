@@ -1044,7 +1044,7 @@ def get_jagged_stats(arr_list, **kwargs):
     return stats_dict
 
 
-def get_stats(list_, axis=None, use_nan=False, use_sum=False, datacast=None):
+def get_stats(list_, axis=None, use_nan=False, use_sum=False, datacast=None, use_median=False):
     """
     TODO:
         depricate datacast
@@ -1171,6 +1171,8 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, datacast=None):
             ('nMax',  np.int32(nMax)),
             ('shape', nparr.shape),  # repr(nparr.shape)),
         ]
+        if use_median:
+            stats_list.append(('median', np.nanmedian(nparr)))
         if use_nan:
             stats_list.append(('num_nan', np.isnan(nparr).sum()))
         if use_sum:
@@ -1187,7 +1189,7 @@ get_statdict = get_stats
 
 def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=None,
                   precision=None, axis=0, stat_dict=None, use_nan=False,
-                  align=False, **kwargs):
+                  align=False, use_median=False, **kwargs):
     """
     Returns the string version of get_stats
 
@@ -1220,7 +1222,7 @@ def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=No
     import utool as ut
     # Get stats dict
     if stat_dict is None:
-        stat_dict = get_stats(list_, axis=axis, use_nan=use_nan)
+        stat_dict = get_stats(list_, axis=axis, use_nan=use_nan, use_median=use_median)
     else:
         stat_dict = stat_dict.copy()
     # Keep only included keys if specified

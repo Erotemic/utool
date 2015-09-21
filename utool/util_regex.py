@@ -104,10 +104,13 @@ def regex_split(regex, text):
     return re.split(regex, text, **RE_KWARGS)
 
 
-def named_field(key, regex):
+def named_field(key, regex, vim=False):
     if key is None:
         return regex
-    return r'(?P<%s>%s)' % (key, regex)
+    if vim:
+        return r'\(%s\)' % (regex)
+    else:
+        return r'(?P<%s>%s)' % (key, regex)
 
 
 def positive_lookahead(regex):
