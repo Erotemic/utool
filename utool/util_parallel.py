@@ -34,8 +34,9 @@ if SILENT:
         pass
 
 __POOL__ = None
-__EAGER_JOIN__      = util_arg.get_argflag('--eager-join')
+#__EAGER_JOIN__      = util_arg.get_argflag('--eager-join')
 __EAGER_JOIN__      = not util_arg.get_argflag('--noclose-pool')
+
 __NUM_PROCS__       = util_arg.get_argval('--num-procs', int, default=None)
 __FORCE_SERIAL__    = util_arg.get_argflag(('--utool-force-serial', '--force-serial', '--serial'))
 #__FORCE_SERIAL__    = True
@@ -136,6 +137,8 @@ def init_pool(num_procs=None, maxtasksperchild=None, quiet=QUIET, **kwargs):
         return __POOL__
     # Create the pool of processes
     #__POOL__ = multiprocessing.Pool(processes=num_procs, initializer=init_worker, maxtasksperchild=maxtasksperchild)
+    if not USE_GLOBAL_POOL:
+        raise AssertionError('Global pool initialization is not allowed')
     __POOL__ = new_pool(num_procs, init_worker, maxtasksperchild)
     return __POOL__
 
@@ -143,6 +146,7 @@ def init_pool(num_procs=None, maxtasksperchild=None, quiet=QUIET, **kwargs):
 @atexit.register
 def close_pool(terminate=False, quiet=QUIET):
     global __POOL__
+
     if VERBOSE_PARALLEL:
         print('[util_parallel] close_pool()')
 
@@ -154,6 +158,8 @@ def close_pool(terminate=False, quiet=QUIET):
                 print('[util_parallel] closing pool')
         if not isinstance(__POOL__, int):
             # Must join after close to avoid runtime errors
+            if not USE_GLOBAL_POOL:
+                raise AssertionError('Global pools are not allowed. Should be impossible to call this')
             if terminate:
                 __POOL__.terminate()
             __POOL__.close()
@@ -254,12 +260,13 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=None,
     raw_generator = pmap_func(func, args_list, chunksize)
 
     # Get iterator with or without progress
-    result_generator = (
-        util_progress.ProgressIter(raw_generator, nTotal=nTasks,
-                                   lbl=get_funcname(func) + ': ', freq=freq,
-                                   adjust=False)
-        if prog else raw_generator
-    )
+    if prog:
+        result_generator = util_progress.ProgressIter(
+            raw_generator, nTotal=nTasks, lbl=get_funcname(func) + ': ',
+            freq=freq, adjust=False)
+    else:
+        result_generator = raw_generator
+
     if __TIME_GENERATE__:
         tt = util_time.tic('_generate_parallel func=' + get_funcname(func))
     try:
@@ -470,8 +477,9 @@ def generate(func, args_list, ordered=True, force_serial=None,
         print('[util_parallel.generate] force_serial=%r' % force_serial)
     # Check conditions under which we force serial
     force_serial_ = nTasks == 1 or nTasks < MIN_PARALLEL_TASKS or force_serial
-    if not force_serial_:
-        ensure_pool(quiet=quiet)
+    if USE_GLOBAL_POOL:
+        if not force_serial_:
+            ensure_pool(quiet=quiet)
     if force_serial_ or isinstance(__POOL__, int):
         if VERBOSE_PARALLEL or verbose:
             print('[util_parallel.generate] generate_serial')
@@ -690,7 +698,8 @@ def process(func, args_list, args_dict={}, force_serial=None,
     if force_serial is None:
         force_serial = __FORCE_SERIAL__
 
-    ensure_pool(quiet=quiet)
+    if USE_GLOBAL_POOL:
+        ensure_pool(quiet=quiet)
     if nTasks is None:
         nTasks = len(args_list)
     if __POOL__ == 1 or force_serial:
