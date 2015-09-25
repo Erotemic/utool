@@ -119,9 +119,14 @@ def tupstr(tuple_):
 # --- Strings ----
 
 
-def scalar_str(val, precision=None):
-    if precision is not None and (isinstance(val, (float)) or util_type.is_float(val)):
+def scalar_str(val, precision=None, max_precision=None):
+    isfloat = (isinstance(val, (float)) or util_type.is_float(val))
+    if precision is not None and isfloat:
         return ('%.' + str(precision) + 'f') % (val,)
+    elif max_precision is not None and isfloat:
+        str_ = ('%.' + str(max_precision) + 'f') % (val,)
+        str_ = str_.rstrip('0.')
+        return str_
     else:
         return str(val)
 
