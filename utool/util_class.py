@@ -27,6 +27,7 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[class]', DEBUG=False)
 # FIXME: this does cause weird reimport behavior
 __CLASSTYPE_ATTRIBUTES__ = defaultdict(oset)
 __CLASSTYPE_POSTINJECT_FUNCS__ = defaultdict(oset)
+__CLASSNAME_CLASSKEY_REGISTER__ = defaultdict(oset)
 
 
 #_rrr = rrr
@@ -45,17 +46,17 @@ QUIET_CLASS = util_arg.get_argflag(('--quiet-class', '--quietclass'))
 VERBOSE_CLASS = util_arg.get_argflag(('--verbose-class', '--verbclass')) or (not QUIET_CLASS and util_arg.VERYVERBOSE)
 
 
-def inject_instance(self, classtype=None, allow_override=False,
+def inject_instance(self, classkey=None, allow_override=False,
                     verbose=VERBOSE_CLASS, strict=True):
     """
-    Injects an instance (self) of type (classtype)
-    with all functions registered to (classtype)
+    Injects an instance (self) of type (classkey)
+    with all functions registered to (classkey)
 
     call this in the __init__ class function
 
     Args:
         self: the class instance
-        classtype: key for a class, preferably the class type itself, but it
+        classkey: key for a class, preferably the class type itself, but it
             doesnt have to be
 
     SeeAlso:
@@ -70,27 +71,27 @@ def inject_instance(self, classtype=None, allow_override=False,
     if verbose:
         print('[util_class] begin inject_instance')
     try:
-        if classtype is None:
+        if classkey is None:
             # Probably should depricate this block of code
             # It tries to do too much
-            classtype = self.__class__
-            if classtype == 'ibeis.gui.models_and_views.IBEISTableView':
+            classkey = self.__class__
+            if classkey == 'ibeis.gui.models_and_views.IBEISTableView':
                 # HACK HACK HACK
                 from guitool.__PYQT__ import QtGui
-                classtype = QtGui.QAbstractItemView
-            if len(__CLASSTYPE_ATTRIBUTES__[classtype]) == 0:
-                print('[utool] Warning: no classes of type %r are registered' % (classtype,))
+                classkey = QtGui.QAbstractItemView
+            if len(__CLASSTYPE_ATTRIBUTES__[classkey]) == 0:
+                print('[utool] Warning: no classes of type %r are registered' % (classkey,))
                 print('[utool] type(self)=%r, self=%r' % (type(self), self)),
                 print('[utool] Checking to see if anybody else was registered...')
                 print('[utool] __CLASSTYPE_ATTRIBUTES__ = ' + ut.list_str(__CLASSTYPE_ATTRIBUTES__.keys()))
                 for classtype_, _ in six.iteritems(__CLASSTYPE_ATTRIBUTES__):
                     isinstance(self, classtype_)
-                    classtype = classtype_
+                    classkey = classtype_
                     print('[utool] Warning: using subclass=%r' % (classtype_,))
                     break
-        func_list = __CLASSTYPE_ATTRIBUTES__[classtype]
+        func_list = __CLASSTYPE_ATTRIBUTES__[classkey]
         if verbose:
-            print('[util_class] injecting %d methods\n   with classtype=%r\n   into %r' % (len(func_list), classtype, self,))
+            print('[util_class] injecting %d methods\n   with classkey=%r\n   into %r' % (len(func_list), classkey, self,))
         for func in func_list:
             if VERBOSE_CLASS:
                 print('[util_class] * injecting %r' % (func,))
@@ -99,27 +100,157 @@ def inject_instance(self, classtype=None, allow_override=False,
             if isinstance(func, tuple):
                 func, method_name = func
             inject_func_as_method(self, func, method_name=method_name, allow_override=allow_override)
-        if verbose:
-            print('[util_class] Running postinject functions on %r' % (self,))
-        for func in __CLASSTYPE_POSTINJECT_FUNCS__[classtype]:
-            func(self)
-        if verbose:
-            print('[util_class] Finished injecting instance self=%r' % (self,))
     except Exception as ex:
-        ut.printex(ex, 'ISSUE WHEN INJECTING %r' % (classtype,),
+        ut.printex(ex, 'ISSUE WHEN INJECTING %r' % (classkey,),
                       iswarning=not strict)
         if strict:
             raise
 
 
-def make_class_method_decorator(classtype, modname=None):
+def postinject_instance(self, classkey, verbose=VERBOSE_CLASS):
+    if verbose:
+        print('[util_class] Running postinject functions on %r' % (self,))
+    for func in __CLASSTYPE_POSTINJECT_FUNCS__[classkey]:
+        func(self)
+    if verbose:
+        print('[util_class] Finished injecting instance self=%r' % (self,))
+
+
+def inject_all_external_modules(self, classname,
+                                allow_override='override+warn',
+                                strict=True):
+    """
+    dynamically injects registered module methods into a class instance
+
+    FIXME: naming convention and use this in all places where this clas is used
+    """
+    #import utool as ut
+    injected_modules = get_injected_modules(classname)
+    for module in injected_modules:
+        #print(module)
+        #ut.embed()
+        inject_instance(
+            self, classkey=module.CLASS_INJECT_KEY,
+            allow_override=allow_override, strict=False)
+
+    for module in injected_modules:
+        postinject_instance(
+            self, classkey=module.CLASS_INJECT_KEY)
+
+
+def reload_injected_modules(classname):
+    injected_modules = get_injected_modules(classname)
+    for module in injected_modules:
+        module.rrr()
+
+
+def get_injected_modules(classname):
+    r"""
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_class import __CLASSNAME_CLASSKEY_REGISTER__  # NOQA
+    """
+    modname_list = __CLASSNAME_CLASSKEY_REGISTER__[classname]
+
+    injected_modules = []
+    for modstr in modname_list:
+        parts = modstr.split('.')
+        pkgname = '.'.join(parts[:-1])
+        modname = parts[-1]
+        try:
+            exec('from %s import %s' % (pkgname, modname, ), globals(), locals())
+            module = eval(modname)
+            injected_modules.append(module)
+        except ImportError as ex:
+            ut.printex(ex, 'Cannot load package=%r, module=%r' % (pkgname, modname, ))
+    return injected_modules
+
+
+def autogen_import_list(classname):
+    line_list = []
+    for modname in __CLASSNAME_CLASSKEY_REGISTER__[classname]:
+        parts = modname.split('.')
+        frompart = '.'.join(parts[:-1])
+        imppart = parts[-1]
+        line = 'from %s import %s  # NOQA' % (frompart, imppart)
+        line_list.append(line)
+    src = '\n'.join(line_list)
+    return src
+
+
+def autogen_explicit_injectable_metaclass(classname):
+    r"""
+    Args:
+        classname (?):
+
+    Returns:
+        ?:
+
+    CommandLine:
+        python -m utool.util_class --exec-autogen_explicit_injectable_metaclass
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_class import *  # NOQA
+        >>> from utool.util_class import  __CLASSTYPE_ATTRIBUTES__  # NOQA
+        >>> import ibeis
+        >>> import ibeis.control.IBEISControl
+        >>> classname = ibeis.control.controller_inject.CONTROLLER_CLASSNAME
+        >>> result = autogen_explicit_injectable_metaclass(classname)
+        >>> print(result)
+    """
+    import utool as ut
+    vals_list = []
+
+    def make_redirect(func):
+        # PRESERVES ALL SIGNATURES WITH EXECS
+        src_fmt = r'''
+        def {funcname}{defsig}:
+            """ {orig_docstr}"""
+            return {orig_funcname}{callsig}
+        '''
+        from utool._internal import meta_util_six
+        orig_docstr = meta_util_six.get_funcdoc(func)
+        funcname = meta_util_six.get_funcname(func)
+        orig_funcname = modname.split('.')[-1] + '.' + funcname
+        orig_docstr = '' if orig_docstr is None else orig_docstr
+        import textwrap
+        # Put wrapped function into a scope
+        import inspect
+        argspec = inspect.getargspec(func)
+        (args, varargs, varkw, defaults) = argspec
+        defsig = inspect.formatargspec(*argspec)
+        callsig = inspect.formatargspec(*argspec[0:3])
+        src_fmtdict = dict(funcname=funcname, orig_funcname=orig_funcname,
+                           defsig=defsig, callsig=callsig,
+                           orig_docstr=orig_docstr)
+        src = textwrap.dedent(src_fmt).format(**src_fmtdict)
+        return src
+
+    src_list = []
+
+    for classkey, vals in __CLASSTYPE_ATTRIBUTES__.items():
+        modname = classkey[1]
+        if classkey[0] == classname:
+            vals_list.append(vals)
+            for func in vals:
+                src = make_redirect(func)
+                src = ut.indent(src)
+                src = '\n'.join([_.rstrip() for _ in src.split('\n')])
+                src_list.append(src)
+
+    source_block = autogen_import_list(classname) + '\n\n\n' + 'class ExplicitInject' + classname + '(object):\n' + ''.join(src_list)
+    return source_block
+
+
+def make_class_method_decorator(classkey, modname=None):
     """
     register a class to be injectable
-    classtype is a key that identifies the injected class
+    classkey is a key that identifies the injected class
     REMEMBER to call inject_instance in __init__
 
     Args:
-        classtype : the class to be injected into
+        classkey : the class to be injected into
         modname : the global __name__ of the module youa re injecting from
 
     Returns:
@@ -139,21 +270,29 @@ def make_class_method_decorator(classtype, modname=None):
         >>> shop = CheeseShop()
         >>> assert shop.has_cheese() is False
     """
+    global __APP_MODNAME_REGISTER__
     if util_arg.VERBOSE or VERBOSE_CLASS:
-        print('[util_class] register make_class_method_decorator classtype=%r, modname=%r'
-              % (classtype, modname))
+        print('[util_class] register make_class_method_decorator classkey=%r, modname=%r'
+              % (classkey, modname))
     if modname == '__main__':
         # skips reinjects into main
         print('WARNING: cannot register class functions as __main__')
         return lambda func: func
-    closure_decorate_class_method = functools.partial(decorate_class_method, classtype=classtype)
+    # register that this module was injected into
+    if isinstance(classkey, tuple):
+        classname, _ = classkey
+        __CLASSNAME_CLASSKEY_REGISTER__[classname].append(modname)
+    else:
+        print('Warning not using classkey for %r %r' % (classkey, modname))
+        raise AssertionError('classkey no longer supported. Use class_inject_key instead')
+    closure_decorate_class_method = functools.partial(decorate_class_method, classkey=classkey)
     return closure_decorate_class_method
 
 
-def make_class_postinject_decorator(classtype, modname=None):
+def make_class_postinject_decorator(classkey, modname=None):
     """
     Args:
-        classtype : the class to be injected into
+        classkey : the class to be injected into
         modname : the global __name__ of the module youa re injecting from
 
     Returns:
@@ -163,43 +302,43 @@ def make_class_postinject_decorator(classtype, modname=None):
         make_class_method_decorator
     """
     if util_arg.VERBOSE or VERBOSE_CLASS:
-        print('[util_class] register class_postinject classtype=%r, modname=%r'
-              % (classtype, modname))
+        print('[util_class] register class_postinject classkey=%r, modname=%r'
+              % (classkey, modname))
     if modname == '__main__':
         print('WARNING: cannot register class functions as __main__')
         # skips reinjects into main
         return lambda func: func
-    closure_decorate_postinject = functools.partial(decorate_postinject, classtype=classtype)
+    closure_decorate_postinject = functools.partial(decorate_postinject, classkey=classkey)
     return closure_decorate_postinject
 
 
-def decorate_class_method(func, classtype=None, skipmain=False):
+def decorate_class_method(func, classkey=None, skipmain=False):
     """
-    Will inject all decorated function as methods of classtype
+    Will inject all decorated function as methods of classkey
 
-    classtype is some identifying string, tuple, or object
+    classkey is some identifying string, tuple, or object
 
     func can also be a tuple
     """
     #import utool as ut
     global __CLASSTYPE_ATTRIBUTES__
-    assert classtype is not None, 'must specify classtype'
+    assert classkey is not None, 'must specify classkey'
     #if not (skipmain and ut.get_caller_modname() == '__main__'):
-    __CLASSTYPE_ATTRIBUTES__[classtype].append(func)
+    __CLASSTYPE_ATTRIBUTES__[classkey].append(func)
     return func
 
 
-def decorate_postinject(func, classtype=None, skipmain=False):
+def decorate_postinject(func, classkey=None, skipmain=False):
     """
-    Will perform func with argument self after inject_instance is called on classtype
+    Will perform func with argument self after inject_instance is called on classkey
 
-    classtype is some identifying string, tuple, or object
+    classkey is some identifying string, tuple, or object
     """
     #import utool as ut
     global __CLASSTYPE_POSTINJECT_FUNCS__
-    assert classtype is not None, 'must specify classtype'
+    assert classkey is not None, 'must specify classkey'
     #if not (skipmain and ut.get_caller_modname() == '__main__'):
-    __CLASSTYPE_POSTINJECT_FUNCS__[classtype].append(func)
+    __CLASSTYPE_POSTINJECT_FUNCS__[classkey].append(func)
     return func
 
 
@@ -557,7 +696,6 @@ def private_rrr_factory():
                 'module',
                 'class_',
                 'self', ])
-            #ut.embed()
             #print(ut.dict_str(module.__dict__))
             raise
     return rrr
