@@ -13,13 +13,6 @@ from utool import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[str]')
 
 
-RE_FLAGS = re.MULTILINE | re.DOTALL
-RE_KWARGS = {'flags': RE_FLAGS}
-
-
-REGEX_VARNAME = '[A-Za-z_][A-Za-z0-9_]*'
-
-
 def convert_text_to_varname(text):
     r"""
     Args:
@@ -512,6 +505,23 @@ def sedfile(fpath, regexpr, repl, force=False, verbose=True, veryverbose=False):
     elif verbose:
         print('Nothing changed')
     return None
+
+
+RE_FLAGS = re.MULTILINE | re.DOTALL
+RE_KWARGS = {'flags': RE_FLAGS}
+
+
+REGEX_VARNAME = '[A-Za-z_][A-Za-z0-9_]*'
+REGEX_WHITESPACE =  r'\s*'
+REGEX_INT = regex_word(r'\d\d*')
+REGEX_FLOAT = regex_word(r'\d\d*\.\d\d*')
+
+# FIXME; Include escaped strings
+REGEX_STR = r"'[^']*'"
+REGEX_ESCSTR = r"'(.)*'"
+#REGEX_ESCSTR = r"'(?:\\.|[^'])*'"
+
+REGEX_RVAL = regex_or([REGEX_VARNAME, REGEX_INT, REGEX_FLOAT, REGEX_STR, REGEX_ESCSTR])
 
 
 if __name__ == '__main__':

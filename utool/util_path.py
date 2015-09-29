@@ -1153,8 +1153,11 @@ def is_module_dir(path):
 
 def list_images(img_dpath_, ignore_list=[], recursive=False, fullpath=False,
                 full=None, sort=True):
-    """ TODO: rename to ls_images
-        TODO: Change all instances of fullpath to full
+    """
+    Returns a list of images in a directory. By default returns relative paths.
+
+    TODO: rename to ls_images
+    TODO: Change all instances of fullpath to full
     """
     #if not QUIET:
     #    print(ignore_list)
@@ -1189,6 +1192,9 @@ def list_images(img_dpath_, ignore_list=[], recursive=False, fullpath=False,
     if sort:
         gname_list = sorted(gname_list_)
     return gname_list
+
+
+ls_images = list_images
 
 
 def assertpath(path_, msg='', **kwargs):

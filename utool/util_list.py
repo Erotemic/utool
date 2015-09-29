@@ -284,6 +284,29 @@ def listfind(list_, tofind):
         return None
 
 
+def search_list(text_list, pattern, flags=0):
+    """
+    CommandLine:
+        python -m utool.util_list --test-search_list
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import utool
+        >>> text_list = ['ham', 'jam', 'eggs', 'spam']
+        >>> pattern = '.am'
+        >>> flags = 0
+        >>> (valid_index_list, valid_match_list) = utool.search_list(text_list, pattern, flags)
+        >>> result = str(valid_index_list)
+        >>> print(result)
+        [0, 1, 3]
+    """
+    import re
+    match_list = [re.search(pattern, text, flags=flags) for text in text_list]
+    valid_index_list = [index for index, match in enumerate(match_list) if match is not None]
+    valid_match_list = ut.list_take(match_list, valid_index_list)
+    return valid_index_list, valid_match_list
+
+
 # --- List Modification --- #
 
 def multi_replace(instr, search_list=[], repl_list=None):
@@ -719,9 +742,38 @@ def get_dirty_items(item_list, flag_list):
     return dirty_items
 
 
+def list_compress(item_list, flag_list):
+    """
+    like np.compress but for lists
+
+    Returns items in item list where the corresponding item in flag list is
+    True
+
+    Args:
+        item_list (list): list of items to mask
+        flag_list (list): list of booleans used as a mask
+
+    Returns:
+        list : filtered_items - masked items
+    """
+    assert len(item_list) == len(flag_list), (
+        'lists should correspond. len(item_list)=%r len(flag_list)=%r' %
+        (len(item_list), len(flag_list)))
+    filtered_items = list(util_iter.ifilter_items(item_list, flag_list))
+    return filtered_items
+
+
+def list_ziptake(items_list, indexes_list):
+    return [list_take(list_, index_list) for list_, index_list in zip(items_list, indexes_list)]
+
+
+def list_compresstake(items_list, flags_list):
+    return [list_compress(list_, flags) for list_, flags in zip(items_list, flags_list)]
+
+
 def filter_items(item_list, flag_list):
     """
-    Returns items in item list where the corresponding item in flag list is true
+    Returns items in item list where the corresponding item in flag list is True
 
     Args:
         item_list (list):
@@ -733,12 +785,7 @@ def filter_items(item_list, flag_list):
     SeeAlso:
         util_iter.ifilter_items
     """
-
-    assert len(item_list) == len(flag_list), (
-        'lists should correspond. len(item_list)=%r len(flag_list)=%r' %
-        (len(item_list), len(flag_list)))
-    filtered_items = list(util_iter.ifilter_items(item_list, flag_list))
-    return filtered_items
+    return list_compress(item_list, flag_list)
 
 
 def filterfalse_items(item_list, flag_list):
@@ -1141,19 +1188,6 @@ def list_argsort(*args, **kwargs):
     """
     index_list = list(range(len(args[0])))
     return sortedby2(index_list, *args, **kwargs)
-
-
-def list_compress(list_, flag_list):
-    """ like np.compress but for lists """
-    return filter_items(list_, flag_list)
-
-
-def list_ziptake(items_list, indexes_list):
-    return [list_take(list_, index_list) for list_, index_list in zip(items_list, indexes_list)]
-
-
-def list_compresstake(items_list, flags_list):
-    return [list_compress(list_, flags) for list_, flags in zip(items_list, flags_list)]
 
 
 def list_take(list_, index_list):

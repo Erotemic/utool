@@ -906,15 +906,15 @@ def get_func_argspec(func):
     return argspec
 
 
-def parse_func_kwarg_keys(func):
+def parse_func_kwarg_keys(func, with_vals=False):
     """ hacky inference of kwargs keys """
     sourcecode = get_func_sourcecode(func, strip_docstr=True,
                                         strip_comments=True)
-    kwkeys = parse_kwarg_keys(sourcecode)
+    kwkeys = parse_kwarg_keys(sourcecode, with_vals=with_vals)
     return kwkeys
 
 
-def parse_kwarg_keys(source, keywords='kwargs'):
+def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
     r""" very hacky way to infer some of the kwarg keys
 
     TODO: use a code parse tree here.  Use hints.  Find other docstrings of
@@ -933,9 +933,9 @@ def parse_kwarg_keys(source, keywords='kwargs'):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
-        >>> source = "\n  kwargs.get('foo', None)\n  kwargs.pop('bar', 3)\n  \"kwargs.get('baz', None)\""
+        >>> source = "\n  kwargs.get('foo', None)\n  kwargs.pop('bar', 3)\n kwargs.pop('str', '3fd')\n kwargs.pop('str', '3f\'d')\n  \"kwargs.get('baz', None)\""
         >>> print(source)
-        >>> kwarg_keys = parse_kwarg_keys(source)
+        >>> kwarg_keys = parse_kwarg_keys(source, with_vals=True)
         >>> result = ('kwarg_keys = %s' % (str(kwarg_keys),))
         >>> print(result)
 
@@ -947,16 +947,26 @@ def parse_kwarg_keys(source, keywords='kwargs'):
     esc = re.escape
     #default = ut.named_field('default', '[\'\"A-Za-z_][A-Za-z0-9_\'\"]*')
     itemgetter = ut.regex_or(['get', 'pop'])
-    pattern = esc(keywords + '.') + itemgetter + esc('(\'') + keyname + esc('\',')
+    pattern = esc(keywords + '.') + itemgetter + esc("('") + keyname + esc("',")
+    if with_vals:
+        WS = ut.REGEX_WHITESPACE
+        valname = WS + ut.named_field('valname', ut.REGEX_RVAL) + WS + esc(')')
+        pattern += valname
     #not_quotes = '^' + ut.positive_lookbehind(r'[^\'\"]*')
     #not_quotes = ut.regex_or(['^', r'\n']) + r'[^\'\"]*'
     #not_quotes = r'[^\'\"]*'
     not_quotes = r'^[^\'\"]*'
     pattern = not_quotes + pattern
     regex = re.compile(pattern, flags=re.MULTILINE)
+    #print('pattern = %s' % (pattern,))
     #print(pattern)
-    kwarg_keys = [match.groupdict()['keyname'] for match in regex.finditer(source)]
-    return kwarg_keys
+    groupdict_list = [match.groupdict() for match in regex.finditer(source)]
+    kwarg_keys = [groupdict_['keyname'] for groupdict_ in groupdict_list]
+    if with_vals:
+        kwarg_vals = [ut.smart_cast2(groupdict_['valname']) for groupdict_ in groupdict_list]
+        return list(zip(kwarg_keys, kwarg_vals))
+    else:
+        return kwarg_keys
 
 
 def infer_function_info(func):
