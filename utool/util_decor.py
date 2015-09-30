@@ -446,7 +446,7 @@ def __assert_param_consistency(args, argx_list_):
     except AssertionError as ex:
         print('!!! ASSERTION ERROR IN UTIL_DECOR !!!')
         for argx in argx_list_:
-            print('args[%d] = %r' % (argx, args[argx]))
+            print('[util_decor] args[%d] = %r' % (argx, args[argx]))
         raise ex
 
 
