@@ -910,7 +910,7 @@ def dict_find_other_sameval_keys(dict_, key):
     return other_keys
 
 
-def dict_hist(item_list, ordered=False):
+def dict_hist(item_list, weight_list=None, ordered=False):
     r"""
     Builds a histogram of items in item_list
 
@@ -937,8 +937,11 @@ def dict_hist(item_list, ordered=False):
         {1232: 2, 1: 1, 2: 4, 900: 3, 39: 1}
     """
     hist_ = defaultdict(lambda: 0)
-    for item in item_list:
-        hist_[item] += 1
+    if weight_list is None:
+        import itertools
+        weight_list = itertools.repeat(1)
+    for item, weight in zip(item_list, weight_list):
+        hist_[item] += weight
     hist_ = dict(hist_)
     if ordered:
         import utool as ut
