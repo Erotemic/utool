@@ -697,6 +697,116 @@ def interact_gridsearch_result_images(show_result_func, cfgdict_list,
     pt.set_figtitle(figtitle)
 
 
+def gridsearch_timer(func_list, args_list, niters=None, **searchkw):
+    """
+    Times a series of functions on a series of inputs
+
+    args_list is a list should vary the input sizes
+    can also be a func that take a count param
+
+    items in args_list list or returned by the func should be a tuple so it can be
+    unpacked
+
+    CommandLine:
+        python -m ibeis.annotmatch_funcs --exec-get_annotmatch_rowids_from_aid2 --show
+        python -m ibeis.annotmatch_funcs --exec-get_annotmatch_rowids_from_aid:1 --show
+
+    Args:
+        func_list (list):
+        args_list (list):
+        niters (None): (default = None)
+
+    Returns:
+        dict: time_result
+
+    CommandLine:
+        python -m utool.util_gridsearch --exec-gridsearch_timer --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_gridsearch import *  # NOQA
+        >>> import utool as ut
+        >>> func_list = [ut.fibonacci_recursive, ut.fibonacci_iterative]
+        >>> args_list = list(range(1, 35))
+        >>> niters = None
+        >>> searchkw = {}
+        >>> time_result = gridsearch_timer(func_list, args_list, niters, **searchkw)
+        >>> result = ('time_result = %s' % (str(time_result),))
+        >>> print(result)
+        >>> time_result['plot_timings']()
+        >>> ut.show_if_requested()
+    """
+    import utool as ut
+    timings = ut.ddict(list)
+    if niters is None:
+        niters = len(args_list)
+
+    if ut.is_funclike(args_list):
+        get_args = args_list
+    else:
+        get_args = args_list.__getitem__
+
+    #func_labels = searchkw.get('func_labels', list(range(len(func_list))))
+    func_labels = searchkw.get('func_labels', [ut.get_funcname(func) for func in func_list])
+    use_cache = searchkw.get('use_cache', not ut.get_argflag(('--nocache', '--nocache-time')))
+    assert_eq = searchkw.get('assert_eq', True)
+
+    count_list = list(range(niters))
+    xlabel_list = []
+
+    cache = ut.ShelfCacher('timeings.shelf', enabled=use_cache)
+
+    for count in ut.ProgressIter(count_list, lbl='Testing Timeings'):
+        args_ = get_args(count)
+        xlabel_list.append(args_)
+        if True:
+            # HACK
+            # There is an unhandled corner case that will fail if the function expects a tuple.
+            if not isinstance(args_, tuple):
+                args_ = (args_,)
+        assert isinstance(args_, tuple), 'args_ should be a tuple so it can be unpacked'
+        ret_list = []
+        for func_ in func_list:
+            try:
+                kwargs_ = {}
+                func_cachekey = ut.get_func_result_cachekey(func_, args_, kwargs_)
+                ellapsed = cache.load(func_cachekey)
+            except ut.CacheMissException:
+                with ut.Timer(verbose=False) as t:
+                    ret = func_(*args_)
+                    ret_list.append(ret)
+                ellapsed = t.ellapsed
+                cache.save(func_cachekey, ellapsed)
+            timings[func_].append(ellapsed)
+        if assert_eq:
+            # Hacky, not guarenteed to work if cache is one
+            ut.assert_all_eq(list(map(ut.cachestr_repr, ret_list)))
+
+    cache.close()
+
+    count_to_xtick = searchkw.get('count_to_xtick', lambda x, y: x)
+    xtick_list = [count_to_xtick(count, get_args(count)) for count in count_list]
+
+    def plot_timings():
+        import plottool as pt
+        ydata_list = ut.dict_take(timings, func_list)
+        xdata = xtick_list
+
+        ylabel = 'seconds'
+        xlabel = 'input size'
+
+        pt.multi_plot(
+            xdata, ydata_list, label_list=func_labels,
+            ylabel=ylabel, xlabel=xlabel,
+            **searchkw
+        )
+    time_result = {
+        'plot_timings': plot_timings,
+        'timings': timings,
+    }
+    return time_result
+
+
 if __name__ == '__main__':
     """
     CommandLine:

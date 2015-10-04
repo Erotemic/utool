@@ -1172,7 +1172,7 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, datacast=None, use
             ('shape', nparr.shape),  # repr(nparr.shape)),
         ]
         if use_median:
-            stats_list.append(('median', np.nanmedian(nparr)))
+            stats_list.append(('med', np.nanmedian(nparr)))
         if use_nan:
             stats_list.append(('num_nan', np.isnan(nparr).sum()))
         if use_sum:

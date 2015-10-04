@@ -767,6 +767,10 @@ def list_ziptake(items_list, indexes_list):
     return [list_take(list_, index_list) for list_, index_list in zip(items_list, indexes_list)]
 
 
+def list_zipcompress(items_list, flags_list):
+    return [list_compress(list_, flags) for list_, flags in zip(items_list, flags_list)]
+
+
 def list_compresstake(items_list, flags_list):
     return [list_compress(list_, flags) for list_, flags in zip(items_list, flags_list)]
 

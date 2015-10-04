@@ -328,6 +328,10 @@ def is_tuple(var):
     return isinstance(var, tuple)
 
 
+def is_method(var):
+    return isinstance(var, (types.MethodType,))
+
+
 def is_func_or_method(var):
     return isinstance(var, (types.MethodType, types.FunctionType))
 

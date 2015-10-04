@@ -41,6 +41,32 @@ __SHELF__ = None  # GLOBAL CACHE
 __APPNAME__ = meta_util_constants.default_appname  # the global application name
 
 
+class CacheMissException(Exception):
+    pass
+
+
+#class YACacher(object):
+class ShelfCacher(object):
+    """ yet another cacher """
+    def __init__(self, fpath, enabled=True):
+        self.fpath = fpath
+        self.shelf = None if not enabled else shelve.open(fpath)
+
+    def load(self, cachekey):
+        if self.shelf is None or cachekey not in self.shelf:
+            raise CacheMissException('Cache miss cachekey=%r self.fpath=%r' % (cachekey, self.fpath))
+        else:
+            return self.shelf[cachekey]
+
+    def save(self, cachekey, data):
+        if self.shelf is not None:
+            self.shelf[cachekey] = data
+
+    def close(self):
+        if self.shelf is not None:
+            self.shelf.close()
+
+
 def get_default_appname():
     global __APPNAME__
     return __APPNAME__
@@ -340,11 +366,67 @@ def from_json(json_str):
     return val
 
 
-def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults, argnames):
+def get_func_result_cachekey(func_, args_=tuple(), kwargs_={}):
+    """
+    TODO: recursive partial definitions
+    kwargs = {}
+    args = ([],)
+    """
+    from functools import partial
+    import utool as ut
+    # Rectify partials and whatnot
+    true_args = args_
+    true_kwargs = kwargs_
+    true_func = func_
+    if isinstance(func_, partial):
+        true_func = func_.func
+        if func_.args is not None:
+            true_args = tuple(list(func_.args) + list(args_))
+        if func_.keywords is not None:
+            true_kwargs.update(func_.keywords)
+
+    if ut.is_method(true_func):
+        method = true_func
+        true_func = method.im_func
+        self = method.im_self
+        true_args = tuple([self] + list(true_args))
+
+    # Build up cachekey
+    funcname = ut.get_funcname(true_func)
+    kwdefaults = ut.get_kwdefaults(true_func, parse_source=False)
+    #kwdefaults = ut.get_kwdefaults(true_func, parse_source=True)
+    argnames   = ut.get_argnames(true_func)
+    key_argx = None
+    key_kwds = None
+    func = true_func  # NOQA
+    args = true_args  # NOQA
+    kwargs = true_kwargs  # NOQA
+    args_key = ut.get_cfgstr_from_args(true_func, true_args, true_kwargs, key_argx, key_kwds, kwdefaults, argnames)
+    cachekey = funcname + '(' + args_key + ')'
+    return cachekey
+
+
+def cachestr_repr(val):
+    """
+    Representation of an object as a cache string.
+    """
+    try:
+        memview = memoryview(val)
+        return memview.tobytes()
+    except Exception:
+        try:
+            return to_json(val)
+        except Exception:
+            # SUPER HACK
+            if repr(val.__class__) == "<class 'ibeis.control.IBEISControl.IBEISController'>":
+                return val.get_dbname()
+
+
+def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults, argnames, use_hash=None):
     """
     Dev:
         argx = ['fdsf', '432443432432', 43423432, 'fdsfsd', 3.2, True]
-        memlist = list(map(bytes_or_repr, argx))
+        memlist = list(map(cachestr_repr, argx))
 
     Ignore:
         argx = key_argx[0]
@@ -354,96 +436,46 @@ def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults, arg
         %timeit to_json(argval)
         %timeit utool.hashstr(to_json(argval))
         %timeit memoryview(argval)
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_cache import *  # NOQA
+        >>> use_hash = None
     """
     #try:
     #fmt_str = '%s(%s)'
-    hashstr = util_hash.hashstr
+    import utool as ut
+    hashstr_ = util_hash.hashstr27
     if key_argx is None:
         key_argx = list(range(len(args)))
     if key_kwds is None:
-        key_kwds = list(kwargs.keys())
+        key_kwds = ut.unique_keep_order2(list(kwdefaults.keys()) + list(kwargs.keys()))
 
-    # TODO: Use bytes or memoryview instead of repr
-    # Helper funcs
+    #def kwdval(key):
+    #    return kwargs.get(key, kwdefaults.get(key, None))
+    given_kwargs = ut.merge_dicts(kwdefaults, kwargs)
 
-    #def any_repr(val):
-    #    """ hopefully json will be able to compute a string representation """
-    #    return data
-
-    def bytes_or_repr(val):
-        try:
-            memview = memoryview(val)
-            return memview.tobytes()
-        except Exception:
-            return to_json(val)
-            #if isinstance(val, dict):
-            #    dict_keys = list(val.keys())
-            #    dict_values = list(val.values())
-            #    dict_keys_repr = bytes_or_repr(dict_keys)
-            #    dict_values_repr = bytes_or_repr(dict_values)
-            #    return dict_keys_repr + dict_values_repr
-            #elif isinstance(val, list):
-            #    pass
-            #else:
-            #    return repr(val)
-
-    def hashrepr(val):
-        return hashstr(bytes_or_repr(val))
-
-    def kwdval(key):
-        return kwargs.get(key, kwdefaults.get(key, None))
-
-    arg_hashfmtstr = [argnames[argx] + '(%s)' for argx in key_argx]
-    kwn_hashfmtstr = [kwdefaults.get(key, '???') + '(%s)' for key in key_kwds]
-    cfgstr_fmt = '_' + '_'.join(chain(arg_hashfmtstr, kwn_hashfmtstr))
-    print('cfgstr_fmt = %r' % cfgstr_fmt)
-    print('hashing args')
-    #import utool
-    #with utool.Timer('time') as t:
-    arg_hashiter = [hashrepr(args[argx]) for argx in key_argx]
-    #try:
-    #    if t.ellapsed > 4:
-    #        utool.embed()
-    #except Exception as ex:
-    #    utool.embed()
-    print('hashing kwargs')
-    kwn_hashiter = [hashrepr(kwdval(key)) for key in key_kwds]
-    print('formating args and kwargs')
-    cfgstr = cfgstr_fmt % tuple(chain(arg_hashiter, kwn_hashiter))
-    print('made cfgstr = %r' % cfgstr)
-
-    ## Iter funcs
-    #def argfmter(argx):
-    #    try:
-    #        return fmt_str % (argnames[argx], hashrepr(args[argx]))
-    #    except Exception as ex:
-    #        import utool
-    #        msg = utool.unindent('''
-    #        [argfmter] argx=%r
-    #        [argfmter] len(args)=%r
-    #        [argfmter] map(type, args)) = %r
-    #        [argfmter] %s
-    #        ''') % (argx, len(args), map(type, args), utool.func_str(func),)
-    #        utool.printex(ex, msg, pad_stdout=True)
-    #        raise
-    #def kwdfmter(key):
-    #    return fmt_str % (key, hashrepr(kwdval(key)))
-    #iterfun = list
-    #iterfun = iter
-    #args_hash_iter = [argfmter(argx) for argx in key_argx]
-    #kwds_hash_iter = [kwdfmter(key) for key in key_kwds]
-    #cfgstr = '_' + '_'.join(chain(args_hash_iter, kwds_hash_iter))
-    #except Exception as ex:
-    #    import utool
-    #    try:
-    #        dbg_args_hash_iter = [argfmter(argx) for argx in key_argx if argx < len(args)]
-    #        dbg_kwds_hash_iter = [kwdfmter(key) for key in key_kwds]
-    #        dbg_cfgstr =  '_' + '_'.join(chain(dbg_args_hash_iter, dbg_kwds_hash_iter))
-    #    except Exception:
-    #        pass
-    #    utool.printex(ex, keys=['key_argsx', 'key_kwds', 'kwdefaults',
-    #                            dbg_cfgstr], pad_stdout=True)
-    #    raise
+    arg_hashfmtstr = [argnames[argx] + '=(%s)' for argx in key_argx]
+    #kw_hashfmtstr = [kwdefaults.get(key, '???') + '(%s)' for key in key_kwds]
+    kw_hashfmtstr = [key + '=(%s)' for key in key_kwds]
+    cfgstr_fmt = '_'.join(chain(arg_hashfmtstr, kw_hashfmtstr))
+    #print('cfgstr_fmt = %r' % cfgstr_fmt)
+    argrepr_iter = (cachestr_repr(args[argx]) for argx in key_argx)
+    kwdrepr_iter = (cachestr_repr(given_kwargs[key]) for key in key_kwds)
+    if use_hash is None:
+        #print('conditional hashing args')
+        argcfg_list = [hashstr_(argrepr) if len(argrepr) > 16 else argrepr for argrepr in argrepr_iter]
+        kwdcfg_list =  [hashstr_(kwdrepr) if len(kwdrepr) > 16 else kwdrepr  for kwdrepr in kwdrepr_iter]
+    elif use_hash is True:
+        #print('hashing args')
+        argcfg_list = [hashstr_(argrepr) for argrepr in argrepr_iter]
+        kwdcfg_list =  [hashstr_(kwdrepr) for kwdrepr in kwdrepr_iter]
+    else:
+        argcfg_list = list(argrepr_iter)
+        kwdcfg_list = list(kwdrepr_iter)
+    #print('formating args and kwargs')
+    cfgstr = cfgstr_fmt % tuple(chain(argcfg_list, kwdcfg_list))
+    #print('made cfgstr = %r' % cfgstr)
     return cfgstr
 
 
@@ -456,12 +488,12 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> import utool
+        >>> import utool as ut
         >>> def costly_func(a, b, c='d', *args, **kwargs):
         ...    return ([a] * b, c, args, kwargs)
         >>> ans0 = costly_func(41, 3)
         >>> ans1 = costly_func(42, 3)
-        >>> closure_ = utool.cached_func('costly_func', appname='utool_test', key_argx=[0, 1])
+        >>> closure_ = ut.cached_func('costly_func', appname='utool_test', key_argx=[0, 1])
         >>> efficient_func = closure_(costly_func)
         >>> ans2 = efficient_func(42, 3)
         >>> ans3 = efficient_func(42, 3)
@@ -599,6 +631,13 @@ def shelf_open(fpath):
         ...     print(ut.dict_str(dict_))
     """
     return contextlib.closing(shelve.open(fpath))
+
+
+#class YAWShelf(object):
+#    def __init__(self, shelf_fpath):
+#        self.shelf_fpath = shelf_fpath
+#        import shelve
+#        self.shelf = shelve.open(shelf_fpath)
 
 
 class GlobalShelfContext(object):

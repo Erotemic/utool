@@ -968,6 +968,10 @@ def merge_dicts(*args):
     r"""
     add / concatenate / union / join / merge / combine dictionaries
 
+    Copies the first dictionary given and then repeatedly calls update using
+    the rest of the dicts given in args. Duplicate keys will receive the last
+    value specified the list of dictionaries.
+
     Returns:
         dict: mergedict_
 
@@ -996,13 +1000,11 @@ def merge_dicts(*args):
     return mergedict_
 
 
-def dict_union3(dict1, dict2, combine=False, combine_op=operator.add):
+def dict_union3(dict1, dict2, combine_op=operator.add):
     r"""
     Args:
         dict1 (dict):
         dict2 (dict):
-        combine (bool): Combines keys only if the values are equal if False else
-            values are combined using combine_op (default = False)
         combine_op (builtin_function_or_method): (default = operator.add)
 
     Returns:
@@ -1017,17 +1019,20 @@ def dict_union3(dict1, dict2, combine=False, combine_op=operator.add):
         >>> import utool as ut
         >>> dict1 = {'a': 1, 'b': 2, 'c': 3, 'd': 4}
         >>> dict2 = {'b': 2, 'c': 3, 'd': 5, 'e': 21, 'f': 42}
-        >>> combine = False
         >>> combine_op = operator.add
-        >>> mergedict_ = dict_union3(dict1, dict2, combine, combine_op)
+        >>> mergedict_ = dict_union3(dict1, dict2, combine_op)
         >>> result = ('mergedict_ = %s' % (ut.dict_str(mergedict_, nl=False),))
         >>> print(result)
         mergedict_ = {'a': 1, 'b': 4, 'c': 6, 'd': 9, 'e': 21, 'f': 42}
     """
     keys1 = set(dict1.keys())
     keys2 = set(dict2.keys())
+    # Combine common keys
     keys3 = keys1.intersection(keys2)
+    if len(keys3) > 0 and combine_op is None:
+        raise AssertionError('Can only combine disjoint dicts when combine_op is None')
     dict3 = {key: combine_op(dict1[key], dict2[key]) for key in keys3}
+    # Combine unique keys
     for key in keys1.difference(keys3):
         dict3[key] = dict1[key]
     for key in keys2.difference(keys3):

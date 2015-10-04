@@ -6,6 +6,7 @@ except ImportError:
     HAVE_NUMPY = False
     # TODO remove numpy
     pass
+import operator
 from six.moves import zip
 from utool import util_iter
 from utool import util_alg
@@ -222,6 +223,23 @@ def assert_lessthan(arr_test, arr_max, msg=''):
         msg = '\n'.join(msg_list)
         raise AssertionError(msg)
     return error
+
+
+def assert_all_eq(item_list, eq_=operator.eq):
+    if len(item_list) == 0:
+        return True
+    import six
+    item_iter = iter(item_list)
+    item0 = six.next(item_iter)
+    for count, item in enumerate(item_iter, start=1):
+        flag = eq_(item0, item)
+        if not flag:
+            print('Error:')
+            print('count = %r' % (count,))
+            print('item = %r' % (item,))
+            print('item0 = %r' % (item0,))
+            msg = 'The %d-th item was not equal to item 0' % (count,)
+            raise AssertionError(msg)
 
 
 def assert_eq(var1, var2, msg='', var1_name=None, var2_name=None, verbose=not util_arg.QUIET):

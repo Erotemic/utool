@@ -4,6 +4,7 @@ import types
 import six
 import re
 import functools
+from collections import OrderedDict
 from six.moves import range, zip  # NOQA
 from utool import util_regex
 from utool import util_arg
@@ -13,7 +14,6 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[inspect]'
 
 
 def get_dev_hints():
-    from collections import OrderedDict
     VAL_FIELD = util_regex.named_field('val', '.*')
     VAL_BREF = util_regex.bref_field('val')
 
@@ -519,10 +519,20 @@ def filter_valid_kwargs(func, dict_):
     return valid_dict_
 
 
-def get_kwdefaults(func):
+def dummy_func(arg1, arg2, arg3=None, arg4=[1, 2, 3], arg5={}, **kwargs):
+    """
+    test func for kwargs parseing
+    """
+    foo = kwargs.get('foo', None)
+    bar = kwargs.pop('bar', 4)
+    foobar = str(foo) + str(bar)
+    return foobar
+
+
+def get_kwdefaults(func, parse_source=False):
     r"""
     Args:
-        func (?):
+        func (func):
 
     Returns:
         dict:
@@ -533,19 +543,29 @@ def get_kwdefaults(func):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
-        >>> func = get_func_sourcecode
-        >>> kwdefaults = get_kwdefaults(func)
-        >>> print('kwdefaults = %r' % (kwdefaults,))
+        >>> func = dummy_func
+        >>> parse_source = True
+        >>> kwdefaults = get_kwdefaults(func, parse_source)
+        >>> print('kwdefaults = %s' % (ut.dict_str(kwdefaults),))
     """
+    #import utool as ut
+    #with ut.embed_on_exception_context:
     argspec = inspect.getargspec(func)
     kwdefaults = {}
     if argspec.args is None or argspec.defaults is None:
         pass
     else:
-        kwdefaults = dict(zip(argspec.args[::-1], argspec.defaults[::-1]))
-    if argspec.keywords:
+        args = argspec.args
+        defaults = argspec.defaults
+        #kwdefaults = OrderedDict(zip(argspec.args[::-1], argspec.defaults[::-1]))
+        kwpos = len(args) - len(defaults)
+        kwdefaults = OrderedDict(zip(args[kwpos:], defaults))
+    if parse_source and argspec.keywords:
         # TODO parse for kwargs.get/pop
-        pass
+        keyword_defaults = parse_func_kwarg_keys(func, with_vals=True)
+        for key, val in keyword_defaults:
+            assert key not in kwdefaults, 'parsing error'
+            kwdefaults[key] = val
     return kwdefaults
 
 
@@ -967,6 +987,29 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
         return list(zip(kwarg_keys, kwarg_vals))
     else:
         return kwarg_keys
+
+
+class KWReg(object):
+    """
+    Helper to register keywords for complex keyword parsers
+    """
+    def __init__(kwreg, enabled=False):
+        kwreg.keys = []
+        kwreg.defaults = []
+        kwreg.enabled = enabled
+
+    def __call__(kwreg, key, default):
+        if kwreg.enabled:
+            kwreg.keys.append(key)
+            kwreg.defaults.append(default)
+        return key, default
+
+    @property
+    def defaultkw(kwreg):
+        return dict(zip(kwreg.keys, kwreg.defaults))
+
+    def print_defaultkw(kwreg):
+        print(ut.dict_str(kwreg.defaultkw))
 
 
 def infer_function_info(func):
