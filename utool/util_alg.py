@@ -957,6 +957,12 @@ def absdiff(x, y):
 
 
 def safe_pdist(arr, *args, **kwargs):
+    """
+    Kwargs:
+        metric = ut.absdiff
+    SeeAlso:
+        scipy.spatial.distance.pdist
+    """
     if arr is None or len(arr) < 2:
         return None
     else:
