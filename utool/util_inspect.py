@@ -529,6 +529,10 @@ def dummy_func(arg1, arg2, arg3=None, arg4=[1, 2, 3], arg5={}, **kwargs):
     return foobar
 
 
+def get_kwdefaults2(func, parse_source=False):
+    return get_kwdefaults(func, parse_source=True)
+
+
 def get_kwdefaults(func, parse_source=False):
     r"""
     Args:

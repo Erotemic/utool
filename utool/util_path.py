@@ -1158,6 +1158,33 @@ def list_images(img_dpath_, ignore_list=[], recursive=False, fullpath=False,
 
     TODO: rename to ls_images
     TODO: Change all instances of fullpath to full
+
+    Args:
+        img_dpath_ (?):
+        ignore_list (list): (default = [])
+        recursive (bool): (default = False)
+        fullpath (bool): (default = False)
+        full (None): (default = None)
+        sort (bool): (default = True)
+
+    Returns:
+        list: gname_list
+
+    CommandLine:
+        python -m utool.util_path --exec-list_images
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> img_dpath_ = '?'
+        >>> ignore_list = []
+        >>> recursive = False
+        >>> fullpath = False
+        >>> full = None
+        >>> sort = True
+        >>> gname_list = list_images(img_dpath_, ignore_list, recursive, fullpath, full, sort)
+        >>> result = ('gname_list = %s' % (str(gname_list),))
+        >>> print(result)
     """
     #if not QUIET:
     #    print(ignore_list)
@@ -1168,13 +1195,16 @@ def list_images(img_dpath_, ignore_list=[], recursive=False, fullpath=False,
     gname_list_ = []
     assertpath(img_dpath)
     # Get all the files in a directory recursively
-    for root, dlist, flist in os.walk(truepath(img_dpath)):
+    true_imgpath = truepath(img_dpath)
+    for root, dlist, flist in os.walk(true_imgpath):
         rel_dpath = relpath(root, img_dpath)
         # Ignore directories
         if any([dname in ignore_set for dname in dirsplit(rel_dpath)]):
             continue
         for fname in iter(flist):
-            gname = join(rel_dpath, fname).replace('\\', '/').replace('./', '')
+            gname = join(rel_dpath, fname).replace('\\', '/')
+            if gname.startswith('./'):
+                gname = gname[2:]
             if matches_image(gname):
                 # Ignore Files
                 if gname in ignore_set:

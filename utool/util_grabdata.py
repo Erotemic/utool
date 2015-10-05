@@ -123,22 +123,22 @@ def untar_file(targz_fpath, force_commonprefix=True):
 
 
 def unzip_file(zip_fpath, force_commonprefix=True, output_dir=None,
-               prefix=None, dryrun=False):
+               prefix=None, dryrun=False, overwrite=None):
     zip_file = zipfile.ZipFile(zip_fpath)
     if output_dir is None:
         output_dir  = dirname(zip_fpath)
     archive_namelist = zip_file.namelist()
     output_dir  = _extract_archive(zip_fpath, zip_file, archive_namelist,
                                    output_dir, force_commonprefix,
-                                   prefix=prefix,
-                                   dryrun=dryrun)
+                                   prefix=prefix, dryrun=dryrun,
+                                   overwrite=overwrite)
     zip_file.close()
     return output_dir
 
 
 def _extract_archive(archive_fpath, archive_file, archive_namelist, output_dir,
                      force_commonprefix=True, prefix=None,
-                     dryrun=False, verbose=not QUIET):
+                     dryrun=False, verbose=not QUIET, overwrite=None):
     """
     archive_fpath = zip_fpath
     archive_file = zip_file
@@ -162,7 +162,11 @@ def _extract_archive(archive_fpath, archive_file, archive_namelist, output_dir,
         util_path.ensurepath(dpath)
         if verbose:
             print('[utool] Unarchive ' + fname + ' in ' + dpath)
+
         if not dryrun:
+            if overwrite is False:
+                if exists(join(output_dir, member)):
+                    continue
             archive_file.extract(member, path=output_dir)
     return output_dir
 

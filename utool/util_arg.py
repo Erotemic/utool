@@ -756,7 +756,7 @@ def __argv_flag_dec(func, default=False, quiet=QUIET):
 
 @profile
 def argparse_dict(default_dict_, lbl=None, verbose=None,
-                  only_specified=False, force_keys={}):
+                  only_specified=False, force_keys={}, type_hint=None):
     r"""
     Gets values for a dict based on the command line
 
@@ -806,9 +806,17 @@ def argparse_dict(default_dict_, lbl=None, verbose=None,
             yield prefix + key.replace('-', '_')
             yield prefix + key.replace('_', '-')
 
-    def get_dictkey_cmdline_val(key, default):
+    def get_dictkey_cmdline_val(key, default, type_hint):
         # see if the user gave a commandline value for this dict key
-        type_ = None if default is None else type(default)
+        defaulttype_ = None if default is None else type(default)
+        if type_hint is None:
+            type_ = defaulttype_
+        elif isinstance(type_hint, dict):
+            type_ = type_hint.get(key, defaulttype_)
+        elif isinstance(type_hint, type):
+            type_ = type_hint
+        else:
+            raise NotImplementedError('Unknown type of type_hint=%r' % (type_hint,))
         was_specified = False
         if isinstance(default, bool):
             val = default
@@ -835,7 +843,7 @@ def argparse_dict(default_dict_, lbl=None, verbose=None,
     dict_  = {}
     num_specified = 0
     for key, default in six.iteritems(default_dict_):
-        val, was_specified = get_dictkey_cmdline_val(key, default)
+        val, was_specified = get_dictkey_cmdline_val(key, default, type_hint)
         if VERBOSE_ARGPARSE:
             if was_specified:
                 num_specified += 1
