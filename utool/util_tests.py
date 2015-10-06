@@ -1571,6 +1571,7 @@ if __name__ == '__main__':
         python -m utool.util_tests
         python -m utool.util_tests --allexamples
         python -m utool.util_tests
+
         python -c "import utool; utool.doctest_funcs(module=utool.util_tests, needs_enable=False)"
         /model/preproc/preproc_chip.py --allexamples
     """

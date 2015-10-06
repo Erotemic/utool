@@ -581,7 +581,7 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
 def make_cmdline_docstr(funcname, modname):
     #cmdline_fmtstr = 'python -m {modname} --test-{funcname}'  # --enableall'
     #cmdline_fmtstr = 'python -m {modname} --exec-{funcname}'  # --enableall'
-    if '.' in modname:
+    if False and  '.' in modname and '.' not in funcname:
         pkg = modname.split('.')[0]
         # TODO check if __main__ exists with the necessary utool stuffs
         # TODO check if --show should be given
