@@ -1558,7 +1558,6 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
             print('Finished function test. exiting')
             sys.exit(retcode)
         else:
-            ut.embed()
             print('Did not find any function named %r ' % (test_funcname,))
             print('Searched ' + ut.list_str([mod.__name__ for mod in module_list]))
             sys.exit(0)
