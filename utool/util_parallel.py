@@ -339,6 +339,10 @@ def generate(func, args_list, ordered=True, force_serial=None,
              chunksize=None, prog=True, verbose=True, quiet=QUIET, nTasks=None,
              freq=None):
     """
+    Provides an interfaces to python's multiprocessing module.
+    Esentially maps ``args_list`` onto ``func`` using pool.imap.
+    Useful for embarrassingly parallel loops. Currently does not work with
+    opencv3
 
     Args:
         func (function): function to apply each argument to
@@ -369,7 +373,7 @@ def generate(func, args_list, ordered=True, force_serial=None,
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
         >>> #num = 8700  # parallel is slower for smaller numbers
-        >>> num = 40000  # parallel has an initial (~.1 second startup overhead)
+        >>> num = 10000  # parallel has an initial (~.1 second startup overhead)
         >>> print('TESTING SERIAL')
         >>> flag_generator0 = ut.generate(ut.is_prime, range(0, num), force_serial=True, freq=num / 4)
         >>> flag_list0 = list(flag_generator0)

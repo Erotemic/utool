@@ -291,16 +291,17 @@ def search_list(text_list, pattern, flags=0):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> import utool
+        >>> import utool as ut
         >>> text_list = ['ham', 'jam', 'eggs', 'spam']
         >>> pattern = '.am'
         >>> flags = 0
-        >>> (valid_index_list, valid_match_list) = utool.search_list(text_list, pattern, flags)
+        >>> (valid_index_list, valid_match_list) = ut.search_list(text_list, pattern, flags)
         >>> result = str(valid_index_list)
         >>> print(result)
         [0, 1, 3]
     """
     import re
+    import utool as ut
     match_list = [re.search(pattern, text, flags=flags) for text in text_list]
     valid_index_list = [index for index, match in enumerate(match_list) if match is not None]
     valid_match_list = ut.list_take(match_list, valid_index_list)

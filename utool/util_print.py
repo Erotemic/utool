@@ -27,10 +27,10 @@ def print_dict(dict_, dict_name=None, **kwargs):
     print(dict_name + ' = ' + dict_repr)
 
 
-def print_list(list_):
+def print_list(list_, **kwargs):
     import utool as ut
     list_name = ut.get_varname_from_stack(list_, N=1)
-    print(list_name + ' = ' + util_str.list_str(list_))
+    print(list_name + ' = ' + util_str.list_str(list_, **kwargs))
 
 
 def horiz_print(*args):

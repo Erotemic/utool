@@ -116,7 +116,7 @@ def postinject_instance(self, classkey, verbose=VERBOSE_CLASS):
         print('[util_class] Finished injecting instance self=%r' % (self,))
 
 
-def inject_all_external_modules(self, classname,
+def inject_all_external_modules(self, classname=None,
                                 allow_override='override+warn',
                                 strict=True):
     """
@@ -125,17 +125,26 @@ def inject_all_external_modules(self, classname,
     FIXME: naming convention and use this in all places where this clas is used
     """
     #import utool as ut
-    injected_modules = get_injected_modules(classname)
-    for module in injected_modules:
-        #print(module)
-        #ut.embed()
+    if classname is None:
+        classname = self.__class__.__name__
+    #import utool as ut
+    #ut.embed()
+
+    NEW = True
+    if NEW:
+        classkey_list = [key for key in __CLASSTYPE_ATTRIBUTES__ if key[0] == classname]
+    else:
+        injected_modules = get_injected_modules(classname)
+        classkey_list = [module.CLASS_INJECT_KEY for module in injected_modules]
+
+    for classkey in classkey_list:
         inject_instance(
-            self, classkey=module.CLASS_INJECT_KEY,
+            self, classkey=classkey,
             allow_override=allow_override, strict=False)
 
-    for module in injected_modules:
+    for classkey in classkey_list:
         postinject_instance(
-            self, classkey=module.CLASS_INJECT_KEY)
+            self, classkey=classkey)
 
 
 def reload_injected_modules(classname):
@@ -262,13 +271,16 @@ def make_class_method_decorator(classkey, modname=None):
         >>> class CheeseShop(object):
         ...    def __init__(self):
         ...        import utool as ut
-        ...        ut.inject_instance(self)
+        ...        ut.inject_all_external_modules(self)
         >>> cheeseshop_method = ut.make_class_method_decorator(CheeseShop)
+        >>> shop1 = CheeseShop()
+        >>> assert not hasattr(shop1, 'has_cheese'), 'have not injected yet'
         >>> @cheeseshop_method
         >>> def has_cheese(self):
         >>>     return False
-        >>> shop = CheeseShop()
-        >>> assert shop.has_cheese() is False
+        >>> shop2 = CheeseShop()
+        >>> assert shop2.has_cheese() is False, 'external method not injected'
+        >>> print('Cheese shop does not have cheese. All is well.')
     """
     global __APP_MODNAME_REGISTER__
     if util_arg.VERBOSE or VERBOSE_CLASS:
@@ -281,6 +293,16 @@ def make_class_method_decorator(classkey, modname=None):
     # register that this module was injected into
     if isinstance(classkey, tuple):
         classname, _ = classkey
+        __CLASSNAME_CLASSKEY_REGISTER__[classname].append(modname)
+    elif isinstance(classkey, type):
+        classname = classkey.__name__
+        if modname is not None:
+            assert modname == classkey.__module__, (
+                'modname=%r does not agree with __module__=%r' % (
+                    modname, classkey.__module__))
+        modname = classkey.__module__
+        # Convert to new classkey format
+        classkey = (classname, modname)
         __CLASSNAME_CLASSKEY_REGISTER__[classname].append(modname)
     else:
         print('Warning not using classkey for %r %r' % (classkey, modname))
