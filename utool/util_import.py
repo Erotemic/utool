@@ -8,6 +8,51 @@ from utool import util_arg
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[import]')
 
 
+def package_contents(package, with_pkg=False, with_mod=True, ignore_prefix=[],
+                     ignore_suffix=[]):
+    r"""
+    References:
+        http://stackoverflow.com/questions/1707709/list-all-the-modules-that-are-part-of-a-python-package
+
+    Args:
+        package (?):
+        with_pkg (bool): (default = False)
+        with_mod (bool): (default = True)
+
+    CommandLine:
+        python -m utool.util_import --exec-package_contents
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_import import *  # NOQA
+        >>> import ibeis
+        >>> package = ibeis
+        >>> ignore_prefix = ['ibeis.tests', 'ibeis.control.__SQLITE3__',
+        >>>                  '_autogen_explicit_controller']
+        >>> ignore_suffix = ['_grave']
+        >>> with_pkg = False
+        >>> with_mod = True
+        >>> result = package_contents(package, with_pkg, with_mod,
+        >>>                           ignore_prefix, ignore_suffix)
+        >>> print(ut.list_str(result))
+    """
+    import pkgutil
+    walker = pkgutil.walk_packages(package.__path__,
+                                   prefix=package.__name__ + '.',
+                                   onerror=lambda x: None)
+    module_list = []
+    for importer, modname, ispkg in walker:
+        if any(modname.startswith(prefix) for prefix in ignore_prefix):
+            continue
+        if any(modname.endswith(suffix) for suffix in ignore_suffix):
+            continue
+        if not ispkg and with_mod:
+            module_list.append(modname)
+        if ispkg and with_pkg:
+            module_list.append(modname)
+    return module_list
+
+
 def import_modname(modname):
     r"""
     Args:

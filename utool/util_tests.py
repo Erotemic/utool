@@ -530,6 +530,38 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                 the actual module that will be tested
             all_testflags (list):
                 the command line arguments that will enable different tests
+
+    Args:
+        testable_list (list): a list of functions (default = None)
+        check_flags (bool): (default = True)
+        module (None): (default = None)
+        allexamples (None): (default = None)
+        needs_enable (None): (default = None)
+        N (int): (default = 0)
+        verbose (bool):  verbosity flag(default = True)
+        testslow (bool): (default = False)
+
+    Returns:
+        tuple: mod_doctest_tup
+
+    CommandLine:
+        python -m utool.util_tests --exec-get_module_doctest_tup
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_tests import *  # NOQA
+        >>> import utool as ut
+        >>> testable_list = [ut.util_import.package_contents]
+        >>> check_flags = False
+        >>> module = ut.util_import
+        >>> allexamples = False
+        >>> needs_enable = False
+        >>> N = 0
+        >>> verbose = True
+        >>> testslow = False
+        >>> mod_doctest_tup = get_module_doctest_tup(testable_list, check_flags, module, allexamples, needs_enable, N, verbose, testslow)
+        >>> result = ('mod_doctest_tup = %s' % (ut.list_str(mod_doctest_tup, nl=4),))
+        >>> print(result)
     """
     #+------------------------
     if VERBOSE_TEST:
@@ -539,12 +571,19 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         needs_enable = not ut.get_argflag('--enableall')
         #needs_enable = True
     TEST_ALL_EXAMPLES = allexamples or ut.get_argflag(('--allexamples', '--all-examples'))
-    testable_name_list = []
-    if testable_list is None:
-        testable_list = []
+    parse_testables = True
+    force_enable_testnames = []
     if isinstance(testable_list, types.ModuleType):
+        # hack
         module = testable_list
         testable_list = []
+        testable_name_list = []
+    elif testable_list is None:
+        testable_list = []
+        testable_name_list = []
+    else:
+        testable_name_list = [ut.get_funcname(func) for func in testable_list]
+        parse_testables = False
     #L________________________
     #+------------------------
     # Inspect caller module for testable names
@@ -576,26 +615,27 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     #L________________________
     #+------------------------
     # Get testable functions
-    try:
-        if verbose or VERBOSE_TEST:
-            print('[util_test.get_module_doctest_tup] Iterating over module funcs')
-            print('[util_test.get_module_doctest_tup] module =%r' % (module,))
+    if parse_testables:
+        try:
+            if verbose or VERBOSE_TEST:
+                print('[util_test.get_module_doctest_tup] Iterating over module funcs')
+                print('[util_test.get_module_doctest_tup] module =%r' % (module,))
 
-        for key, val in ut.iter_module_doctestable(module):
-            docstr = inspect.getdoc(val)
-            # FIXME:
-            # BUG: We need to verify that this function actually belongs to this
-            # module. In util_type ndarray is imported and we try to parse it
-            if docstr is not None and docstr.find('Example') >= 0:
-                testable_name_list.append(key)
-                testable_list.append(val)
-                #else:
-                #    if docstr.find('Example') >= 0:
-                #        pass
-                #        #print('[util_dev] DOCTEST DISABLED: %s' % key)
-    except Exception as ex:
-        ut.printex(ex, keys=['frame'])
-        raise
+            for key, val in ut.iter_module_doctestable(module):
+                docstr = inspect.getdoc(val)
+                # FIXME:
+                # BUG: We need to verify that this function actually belongs to this
+                # module. In util_type ndarray is imported and we try to parse it
+                if docstr is not None and docstr.find('Example') >= 0:
+                    testable_name_list.append(key)
+                    testable_list.append(val)
+                    #else:
+                    #    if docstr.find('Example') >= 0:
+                    #        pass
+                    #        #print('[util_dev] DOCTEST DISABLED: %s' % key)
+        except Exception as ex:
+            ut.printex(ex, keys=['frame'])
+            raise
     #if verbose:
     #    for val in testable_list:
     #        print('[util_dev] DOCTEST ENABLED: %s' % val)
@@ -616,7 +656,6 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         test_sentinals.append('UNSTABLE_DOCTEST')
     # FIND THE TEST NAMES REQUESTED
     # Grab sys.argv enabled tests
-    force_enable_testnames = []
     valid_prefix_list = ['--exec-', '--test-']
     for arg in sys.argv:
         for prefix in valid_prefix_list:
@@ -627,10 +666,6 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                 break
     #print(force_enable_testnames)
     def _get_testable_name(testable):
-        """
-        Depth 3)
-        called by get_module_doctest_tup
-        """
         import utool
         try:
             testable_name = testable.func_name
@@ -763,7 +798,8 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     if VERBOSE_TEST:
         indenter.stop()
 
-    mod_doctest_tup = ModuleDoctestTup(enabled_testtup_list, frame_fpath, all_testflags, module)
+    mod_doctest_tup = ModuleDoctestTup(enabled_testtup_list, frame_fpath,
+                                       all_testflags, module)
     #L________________________
     return mod_doctest_tup
 
@@ -778,6 +814,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
                   needs_enable=None, strict=False, verbose=True, return_error_report=False):
     """
     Main entry point into utools main module doctest harness
+    Imports a module and checks flags for the function to run
     Depth 1)
 
     Args:
@@ -821,8 +858,9 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
             print('[util_test.doctest_funcs][DEPTH 1] doctest_funcs()')
         print('[util_test.doctest_funcs] Running doctest_funcs')
     # parse out testable doctesttups
-    mod_doctest_tup = get_module_doctest_tup(testable_list, check_flags, module,
-                                             allexamples, needs_enable, N=1, verbose=verbose)
+    mod_doctest_tup = get_module_doctest_tup(
+        testable_list, check_flags, module, allexamples, needs_enable, N=1,
+        verbose=verbose)
     enabled_testtup_list, frame_fpath, all_testflags, module  = mod_doctest_tup
     modname = ut.get_modname_from_modpath(frame_fpath)
     #+-------------------
@@ -1468,6 +1506,53 @@ def quit_if_noshow():
 def show_if_requested():
     import plottool as pt
     pt.show_if_requested(N=2)
+
+
+def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
+                         test_funcname=None):
+    """
+    Allows a shorthand for __main__ packages of modules to run tests with
+    unique function names
+    """
+    import utool as ut
+
+    test_funcname = ut.get_argval(
+        ('--test-func', '--tfunc', '--tf', '--testfunc'),
+        type_=str, default=test_funcname,
+        help_='specify a function to doctest')
+
+    if test_funcname is not None:
+        print('[utool] __main__ Function Test')
+        if isinstance(module, six.string_types):
+            module = ut.import_modname(module)
+        modname_list = ut.package_contents(module, ignore_prefix=ignore_prefix,
+                                           ignore_suffix=ignore_suffix)
+        # Get only the modules already imported
+        module_list = [sys.modules[modname]
+                       for modname in modname_list if modname in sys.modules]
+        # Search for the module containing the function
+        test_func = None
+        test_module = None
+        if test_funcname.find(':') != -1:
+            test_funcname, testno = test_funcname.split(':')
+            testno = int(testno)
+        else:
+            testno = 0
+        for module in module_list:
+            #test_funcname = 'find_installed_tomcat'
+            if test_funcname in module.__dict__:
+                test_module = module
+                test_func = test_module.__dict__[test_funcname]
+                break
+        if test_func is not None:
+            testsrc = ut.get_doctest_examples(test_func)[0][testno]
+            exec(testsrc, globals(), locals())
+            retcode = 0
+            print('Finished function test. exiting')
+            sys.exit(retcode)
+        else:
+            print('Did not find any function named %r ' % (test_funcname,))
+            print('Searched ' + ut.list_str(module_list))
 
 
 if __name__ == '__main__':

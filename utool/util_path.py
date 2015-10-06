@@ -1758,7 +1758,7 @@ def search_candidate_paths(candidate_path_list, candidate_name_list=None, priori
         >>> result = ('return_path = %s' % (str(return_path),))
         >>> print(result)
     """
-    print('Searching for candidate paths')
+    print('[search_candidate_paths] Searching for candidate paths')
     import utool as ut
     from os.path import join, exists
     import itertools
@@ -1775,17 +1775,17 @@ def search_candidate_paths(candidate_path_list, candidate_name_list=None, priori
     for path in candidate_path_list_:
         if path is not None and exists(path):
             if verbose:
-                print('Found candidate tomcat directory %r' % (path,))
-                print('Checking for approprate structure')
+                print('[search_candidate_paths] Found candidate directory %r' % (path,))
+                print('[search_candidate_paths] ... checking for approprate structure')
             # tomcat directory exists. Make sure it also contains a webapps dir
             subpath_list = [join(path, subpath) for subpath in required_subpaths]
             if all(ut.checkpath(path_, verbose=verbose) for path_ in subpath_list):
                 return_path = path
                 if verbose:
-                    print('Candidate path meets citera. Returning')
+                    print('[search_candidate_paths] Found acceptable path')
                 return return_path
                 break
-    print('Did not find any candidates')
+    print('[search_candidate_paths] Failed to find acceptable path')
     return return_path
 
 

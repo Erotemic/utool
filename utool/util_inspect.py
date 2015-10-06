@@ -45,6 +45,9 @@ def get_dev_hints():
         ('qnid'    , ('int', 'query name id')),
         #
         ('gfpath[0-9]?' , ('str', 'image file path string')),
+        ('_path' , ('str', 'path string')),
+        ('.*_dpath' , ('str', 'directory path string')),
+        ('.*_fpath' , ('str', 'file path string')),
         ('bbox' , ('tuple', 'bounding box in the format (x, y, w, h)')),
         ('theta' , ('float', 'angle in radians')),
         ('ori_thresh' , ('float', 'angle in radians')),
@@ -272,7 +275,7 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
         include_methods (bool):
 
     Yeilds:
-        tuple (str, callable): doctestable
+        tuple (str, callable): (funcname, func) doctestable
 
     CommandLine:
         python -m utool.util_inspect --test-iter_module_doctestable --modname=ibeis.model.hots.chip_match

@@ -335,6 +335,22 @@ def indent_func(input_):
         lbl = '[' + meta_util_six.get_funcname(func) + ']'
         return _indent_decor(lbl)(func)
 
+
+def tracefunc_xml(func):
+    """
+    Causes output of function to be printed in an XML style block
+    """
+    funcname = meta_util_six.get_funcname(func)
+    def wrp_tracefunc2(*args, **kwargs):
+        print('<%s>' % (funcname,))
+        with util_print.Indenter('    '):
+            ret = func(*args, **kwargs)
+        print('</%s>' % (funcname,))
+        return ret
+    wrp_tracefunc2_ = ignores_exc_tb(wrp_tracefunc2)
+    wrp_tracefunc2_ = preserve_sig(wrp_tracefunc2_, func)
+    return wrp_tracefunc2_
+
 #----------
 
 

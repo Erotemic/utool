@@ -669,6 +669,7 @@ def cmd(*args, **kwargs):
         proc = subprocess.Popen(args, stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT, shell=shell,
                                 universal_newlines=True)
+        hack_use_stdout = True
         if detatch:
             if not quiet:
                 print('[ut.cmd] PROCESS DETATCHING. No stdoutput can be reported...')
@@ -685,8 +686,12 @@ def cmd(*args, **kwargs):
                     line_ = line if six.PY2 else line
                     if len(line_) > 0:
                         if not silence:
-                            sys.stdout.write(line_)
-                            sys.stdout.flush()
+                            if hack_use_stdout:
+                                sys.stdout.write(line_)
+                                sys.stdout.flush()
+                            else:
+                                # TODO make this play nicely with loggers
+                                print_(line_)
                         logged_out.append(line)
                 out = '\n'.join(logged_out)
                 (out_, err) = proc.communicate()
