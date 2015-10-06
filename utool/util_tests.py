@@ -1528,8 +1528,11 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
         modname_list = ut.package_contents(module, ignore_prefix=ignore_prefix,
                                            ignore_suffix=ignore_suffix)
         # Get only the modules already imported
-        module_list = [sys.modules[modname]
-                       for modname in modname_list if modname in sys.modules]
+        have_modnames = [modname for modname in modname_list
+                         if modname in sys.modules]
+        missing_modnames = [modname for modname in modname_list
+                            if modname not in sys.modules]
+        module_list = ut.dict_take(sys.modules, have_modnames)
         # Search for the module containing the function
         test_func = None
         test_module = None
@@ -1538,21 +1541,27 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
             testno = int(testno)
         else:
             testno = 0
-        for module in module_list:
+        for module_ in module_list:
             #test_funcname = 'find_installed_tomcat'
-            if test_funcname in module.__dict__:
-                test_module = module
+            if test_funcname in module_.__dict__:
+                test_module = module_
                 test_func = test_module.__dict__[test_funcname]
                 break
         if test_func is not None:
             testsrc = ut.get_doctest_examples(test_func)[0][testno]
-            exec(testsrc, globals(), locals())
+            try:
+                exec(testsrc, globals(), locals())
+            except ExitTestException:
+                print('Test exited before show')
+                pass
             retcode = 0
             print('Finished function test. exiting')
             sys.exit(retcode)
         else:
+            ut.embed()
             print('Did not find any function named %r ' % (test_funcname,))
-            print('Searched ' + ut.list_str(module_list))
+            print('Searched ' + ut.list_str([mod.__name__ for mod in module_list]))
+            sys.exit(0)
 
 
 if __name__ == '__main__':
