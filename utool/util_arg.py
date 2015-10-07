@@ -216,8 +216,8 @@ def get_argflag(argstr_, default=False, help_='', return_specified=None,
 #from utool._internal.meta_util_arg import get_argval
 @profile
 def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
-               return_specified=None, argv=None, verbose=VERBOSE or
-               VERYVERBOSE, return_was_specified=False):
+               return_specified=None, argv=None, verbose=None,
+               debug=None, return_was_specified=False):
     r""" Returns a value of an argument specified on the command line after some flag
 
     Args:
@@ -279,6 +279,12 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--test'), str)]])" --test
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--test'), str)]])" --test "foobar is good" --youbar ok
     """
+    if verbose is None:
+        verbose = VERBOSE or VERYVERBOSE
+
+    if debug is None:
+        debug = VERYVERBOSE
+
     if argv is None:
         argv = sys.argv
 
@@ -328,12 +334,13 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
                     seen_.add(argstr2_1)
             argstr_list = argstr_list2
 
-        debug = VERYVERBOSE
-
         for argx, item in enumerate(argv):
             for argstr in argstr_list:
                 if item == argstr:
                     if type_ is bool:
+                        if debug:
+                            print('[get_argval] ... argstr=%r' % (argstr,))
+                            print('[get_argval] ... Found bool argx=%r' % (argx,))
                         arg_after = True
                         was_specified = True
                         break
@@ -352,6 +359,9 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
                                 if debug:
                                     print('[get_argval] ... smartcast arg_after=%r' % (arg_after,))
                         else:
+                            if debug:
+                                print('[get_argval] ... argstr=%r' % (argstr,))
+                                print('[get_argval] ... Found type_=%r argx=%r' % (type_, argx,))
                             if type_ is None:
                                 #arg_after = util_type.try_cast(argv[argx + 1], type_)
                                 arg_after = util_type.smart_cast2(argv[argx + 1])

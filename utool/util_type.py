@@ -93,6 +93,26 @@ def try_cast(var, type_, default=None):
 def smart_cast(var, type_):
     """
     casts var to type, and tries to be clever when var is a string
+
+    Args:
+        var (object): variable to cast
+        type_ (type or str): type to attempt to cast to
+
+    Returns:
+        object:
+
+    CommandLine:
+        python -m utool.util_type --exec-smart_cast
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_type import *  # NOQA
+        >>> var = '1'
+        >>> type_ = 'fuzzy_subset'
+        >>> result = smart_cast(var, type_)
+        >>> print(result)
+        [1]
+
     """
     if is_str(var):
         if type_ in VALID_BOOL_TYPES:
@@ -103,8 +123,13 @@ def smart_cast(var, type_):
         elif type_ is list:
             subvar_list = var.split(',')
             return [smart_cast2(subvar) for subvar in subvar_list]
-        elif type_ == 'fuzzy_subset':
-            return fuzzy_subset(var)
+        elif isinstance(type_, six.string_types):
+            if type_ == 'fuzzy_subset':
+                return fuzzy_subset(var)
+            #elif type_ == 'fuzzy_int':
+            #    return fuzzy_subset(var)
+            else:
+                raise NotImplementedError('Uknown smart type_=%r' % (type_,))
     return type_(var)
 
 
