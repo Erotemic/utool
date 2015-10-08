@@ -65,7 +65,8 @@ def archive_files(archive_fpath, fpath_list, small=True, allowZip64=False,
     print('Archiving %d files' % len(fpath_list))
     compression = zipfile.ZIP_DEFLATED if small else zipfile.ZIP_STORED
     if common_prefix:
-        rel_arcpath = commonprefix(fpath_list)
+        rel_arcpath = commonprefix(fpath_list)  # Note: common prefix does not care about file structures
+        rel_arcpath = ut.longest_existing_path(rel_arcpath)
     else:
         rel_arcpath = dirname(archive_fpath)
     with zipfile.ZipFile(archive_fpath, 'w', compression, allowZip64) as myzip:
