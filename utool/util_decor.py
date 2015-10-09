@@ -342,10 +342,13 @@ def tracefunc_xml(func):
     """
     funcname = meta_util_six.get_funcname(func)
     def wrp_tracefunc2(*args, **kwargs):
-        print('<%s>' % (funcname,))
+        verbose = kwargs.get('verbose', True)
+        if verbose:
+            print('<%s>' % (funcname,))
         with util_print.Indenter('    '):
             ret = func(*args, **kwargs)
-        print('</%s>' % (funcname,))
+        if verbose:
+            print('</%s>' % (funcname,))
         return ret
     wrp_tracefunc2_ = ignores_exc_tb(wrp_tracefunc2)
     wrp_tracefunc2_ = preserve_sig(wrp_tracefunc2_, func)
