@@ -1092,7 +1092,8 @@ def dict_filter_nones(dict_):
         python -m utool.util_dict --exec-dict_filter_nones
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # UNSTABLE_DOCTEST
+        >>> # fails on python 3 because of dict None order
         >>> from utool.util_dict import *  # NOQA
         >>> import utool as ut
         >>> dict_ = {1: None, 2: 'blue', 3: 'four', None: 'fun'}
