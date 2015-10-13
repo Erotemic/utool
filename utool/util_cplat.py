@@ -414,7 +414,15 @@ def view_directory(dname=None, verbose=True):
         dname_ = pipes.quote(dname)
     command = open_prog + ' ' + dname_
     print(command)
-    os.system(command)
+    # spawn deteched process
+    #args = (open_prog, dname_)
+    #subprocess.Popen(args)
+    #import utool as ut
+    #ut.embed()
+    #pass
+
+    ret = os.system(command)
+    print('ret = %r' % (ret,))
 
 # Alias
 vd = view_directory
