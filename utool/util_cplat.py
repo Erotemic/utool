@@ -415,14 +415,14 @@ def view_directory(dname=None, verbose=True):
     command = open_prog + ' ' + dname_
     print(command)
     # spawn deteched process
-    #args = (open_prog, dname_)
-    #subprocess.Popen(args)
+    args = (open_prog, dname_)
+    subprocess.Popen(args)
     #import utool as ut
     #ut.embed()
     #pass
 
-    ret = os.system(command)
-    print('ret = %r' % (ret,))
+    #ret = os.system(command)
+    #print('ret = %r' % (ret,))
 
 # Alias
 vd = view_directory
