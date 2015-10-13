@@ -420,6 +420,7 @@ def view_directory(dname=None, verbose=True):
     #import utool as ut
     #ut.embed()
     #pass
+    print('[cplat] exit view directory')
 
     #ret = os.system(command)
     #print('ret = %r' % (ret,))
