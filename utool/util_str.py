@@ -2141,6 +2141,18 @@ def closet_words(query, options, num=1):
     return ranked_list[0:num]
 
 
+def to_camel_case(underscore_case):
+    words = underscore_case.split('_')
+    words2 = [
+        word[0].upper() + word[1:]
+        if count > 0 else
+        word
+        for count, word in enumerate(words)
+    ]
+    camel_case_str = ''.join(words2)
+    return camel_case_str
+
+
 if __name__ == '__main__':
     """
     CommandLine:
