@@ -374,8 +374,6 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
                 elif item.startswith(argstr + '='):
                     val_after = ''.join(item.split('=')[1:])
                     if type_ is list:
-                        #import utool as ut
-                        #ut.embed()
                         # HACK FOR LIST. TODO INTEGRATE
                         if verbose:
                             print('[get_argval] ... Found equal list')
@@ -388,6 +386,10 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
                             arg_after = util_type.smart_cast2(val_after)
                         else:
                             arg_after = util_type.try_cast(val_after, type_)
+                            if issubclass(type_, six.string_types):
+                                if arg_after == 'None':
+                                    # hack
+                                    arg_after = None
                     if was_specified:
                         print('WARNING: argstr=%r already specified' % (argstr,))
                     was_specified = True
@@ -756,7 +758,8 @@ def __argv_flag_dec(func, default=False, quiet=QUIET):
             print('L ___ ' + indent_lbl + '___\n')
             return ret
         else:
-            PRINT_DISABLED_FLAGDEC = not get_argflag('--noinform', help_='does not print disabled flag decorators')
+            PRINT_DISABLED_FLAGDEC = not get_argflag(
+                '--noinform', help_='does not print disabled flag decorators')
             if not quiet and PRINT_DISABLED_FLAGDEC:
                 #print('\n~~~ %s ~~~' % flag)
                 print('~~~ %s ~~~' % flag)
@@ -844,10 +847,12 @@ def argparse_dict(default_dict_, lbl=None, verbose=None,
                 val, was_specified = get_argflag(truekeys, return_specified=True)
         else:
             argtup = list(set(make_argstrs(key, ['--'])))
-            #if key == 'foo':
+            #if key == 'species':
             #    import utool as ut
             #    ut.embed()
-            val, was_specified = get_argval(argtup, type_=type_, default=default, return_specified=True)
+            val, was_specified = get_argval(argtup, type_=type_,
+                                            default=default,
+                                            return_specified=True)
         return val, was_specified
 
     dict_  = {}
@@ -866,14 +871,16 @@ def argparse_dict(default_dict_, lbl=None, verbose=None,
     if VERBOSE_ARGPARSE:
         print('[argparse_dict] num_specified = %r' % (num_specified,))
         print('[argparse_dict] force_keys = %r' % (force_keys,))
-    #dict_ = {key: get_dictkey_cmdline_val(key, default) for key, default in six.iteritems(default_dict_)}
+    #dict_ = {key: get_dictkey_cmdline_val(key, default) for key, default in
+    #six.iteritems(default_dict_)}
 
     if verbose:
         for key in dict_:
             if dict_[key] != default_dict_[key]:
                 print('[argparse_dict] GOT ARGUMENT: cfgdict[%r] = %r' % (key, dict_[key]))
 
-    do_helpx = get_argflag('--helpx', help_='Specifies that argparse_dict should print help and quit')
+    do_helpx = get_argflag('--helpx',
+                           help_='Specifies that argparse_dict should print help and quit')
 
     if get_argflag('--help') or do_helpx:
         import utool as ut
@@ -931,7 +938,9 @@ parse_dict_from_argv = argparse_dict
 get_dict_vals_from_commandline = argparse_dict
 
 
-VERBOSE_ARGPARSE = get_argflag(('--verbose-argparse', '--verb-argparse', '--verb-arg', '--verbarg'), help_='debug util_arg')
+VERBOSE_ARGPARSE = get_argflag(
+    ('--verbose-argparse', '--verb-argparse', '--verb-arg', '--verbarg'),
+    help_='debug util_arg')
 
 
 if __name__ == '__main__':
