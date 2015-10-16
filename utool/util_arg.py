@@ -745,7 +745,7 @@ def argv_flag_dec_true(func, **kwargs):
     return __argv_flag_dec(func, default=True, **kwargs)
 
 
-def __argv_flag_dec(func, default=False, quiet=QUIET, use_indent=False):
+def __argv_flag_dec(func, default=False, quiet=QUIET, indent=False):
     """
     Logic for controlling if a function gets called based on command line
     """
@@ -765,12 +765,17 @@ def __argv_flag_dec(func, default=False, quiet=QUIET, use_indent=False):
                       get_argflag('--print-all') or
                       any([get_argflag(_) for _ in alias_flags]))
         if is_flagged:
-            indent_lbl = flag.replace('--', '').replace('print-', '')
+            func_label = flag.replace('--', '').replace('print-', '')
             print('')
-            print('\n+ --- ' + indent_lbl + ' ___')
-            with util_print.Indenter('[%s]' % indent_lbl, enabled=use_indent):
+            print('\n+ --- ' + func_label + ' ___')
+            use_indent = indent is not False
+            if indent is True:
+                indent_ = '[%s]' % func_label
+            else:
+                indent_ = indent
+            with util_print.Indenter(indent_, enabled=use_indent):
                 ret = func(*args, **kwargs)
-            print('L ___ ' + indent_lbl + '___\n')
+            print('L ___ ' + func_label + '___\n')
             return ret
         else:
             PRINT_DISABLED_FLAGDEC = not get_argflag(

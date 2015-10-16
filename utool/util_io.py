@@ -74,7 +74,7 @@ def write_to(fpath, to_write, aslines=False, verbose=None,
             print('[util_io] * no difference')
             return
     if verbose or (verbose is None and __PRINT_WRITES__) or __FORCE_PRINT_WRITES__:
-        print('[util_io] * Writing to text file: %r ' % util_path.tail(fpath, n=2))
+        print('[util_io] * Writing to text file: %r ' % util_path.tail(fpath, n=n))
     with open(fpath, mode) as file_:
         if aslines:
             file_.writelines(to_write)
@@ -82,7 +82,7 @@ def write_to(fpath, to_write, aslines=False, verbose=None,
             file_.write(to_write)
 
 
-def read_from(fpath, verbose=None, aslines=False, strict=True):
+def read_from(fpath, verbose=None, aslines=False, strict=True, n=3):
     """ Reads text from a file
 
     Args:
@@ -94,9 +94,9 @@ def read_from(fpath, verbose=None, aslines=False, strict=True):
         text from fpath
     """
     if verbose or (verbose is None and __PRINT_READS__) or __FORCE_PRINT_READS__:
-        print('[util_io] * Reading text file: %r ' % util_path.tail(fpath))
+        print('[util_io] * Reading text file: %r ' % util_path.tail(fpath, n=n))
     try:
-        if not util_path.checkpath(fpath, verbose=verbose, n=3):
+        if not util_path.checkpath(fpath, verbose=verbose, n=n):
             raise IOError('[io] * FILE DOES NOT EXIST!')
         with open(fpath, 'r') as file_:
             if aslines:
@@ -108,7 +108,7 @@ def read_from(fpath, verbose=None, aslines=False, strict=True):
         from utool.util_dbg import printex
         if verbose or strict:
             printex(ex, ' * Error reading fpath=%r' %
-                    util_path.tail(fpath), '[io]')
+                    util_path.tail(fpath, n=n), '[io]')
         if strict:
             raise
 
@@ -236,13 +236,17 @@ def save_hdf5(fpath, data, verbose=False, compression='lzf'):
 
     if isinstance(data, dict):
         import six
-        assert all([isinstance(vals, np.ndarray) for vals in six.itervalues(data)]), 'can only save dicts as ndarrays'
+        assert all([
+            isinstance(vals, np.ndarray)
+            for vals in six.itervalues(data)
+        ]), ('can only save dicts as ndarrays')
         # file_ = h5py.File(fpath, 'w', **h5kw)
         with h5py.File(fpath, mode='w', **h5kw) as file_:
             grp = file_.create_group(fname)
             for key, val in six.iteritems(data):
                 dset = grp.create_dataset(
-                    key, val.shape,  val.dtype, chunks=chunks, compression=compression)
+                    key, val.shape,  val.dtype, chunks=chunks,
+                    compression=compression)
                 dset[...] = val
     else:
         assert isinstance(data, np.ndarray)
