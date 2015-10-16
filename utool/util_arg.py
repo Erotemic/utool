@@ -11,7 +11,6 @@ import itertools
 import argparse
 from utool import util_inject
 from utool import util_type
-#from utool import util_print
 from utool._internal import meta_util_six, meta_util_arg, meta_util_iter
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[arg]')
 
@@ -720,29 +719,45 @@ def get_fpath_args(arglist_=None, pat='*'):
     return input_path_list
 
 
-def argv_flag_dec(func):
+def argv_flag_dec(*argin, **kwargs):
     """
     Decorators which control program flow based on sys.argv
     the decorated function does not execute without its corresponding
     flag
     """
-    return __argv_flag_dec(func, default=False)
+    kwargs = kwargs.copy()
+    kwargs['default'] = kwargs.get('default', False)
+    from utool import util_decor
+    @util_decor.ignores_exc_tb(outer_wrapper=False)
+    def wrap_argv_flag_dec(func):
+        return __argv_flag_dec(func, **kwargs)
+
+    assert len(argin) < 2, 'specify 0 or 1 args'
+
+    if len(argin) == 1 and util_type.is_funclike(argin[0]):
+        func = argin[0]
+        return wrap_argv_flag_dec(func)
+    else:
+        return wrap_argv_flag_dec
 
 
-def argv_flag_dec_true(func):
-    return __argv_flag_dec(func, default=True)
+def argv_flag_dec_true(func, **kwargs):
+    return __argv_flag_dec(func, default=True, **kwargs)
 
 
-def __argv_flag_dec(func, default=False, quiet=QUIET):
+def __argv_flag_dec(func, default=False, quiet=QUIET, use_indent=False):
     """
     Logic for controlling if a function gets called based on command line
     """
+    from utool import util_decor
     flag = meta_util_six.get_funcname(func)
     if flag.find('no') == 0:
         flag = flag[2:]
     flag = '--' + flag.replace('_', '-')
 
+    @util_decor.ignores_exc_tb(outer_wrapper=False)
     def GaurdWrapper(*args, **kwargs):
+        from utool import util_print
         # FIXME: the --print-all is a hack
         default_ = kwargs.pop('default', default)
         alias_flags = kwargs.pop('alias_flags', [])
@@ -753,8 +768,8 @@ def __argv_flag_dec(func, default=False, quiet=QUIET):
             indent_lbl = flag.replace('--', '').replace('print-', '')
             print('')
             print('\n+ --- ' + indent_lbl + ' ___')
-            #with util_print.Indenter('[%s]' % indent_lbl):
-            ret = func(*args, **kwargs)
+            with util_print.Indenter('[%s]' % indent_lbl, enabled=use_indent):
+                ret = func(*args, **kwargs)
             print('L ___ ' + indent_lbl + '___\n')
             return ret
         else:

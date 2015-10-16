@@ -25,7 +25,8 @@ SIG_PRESERVE = util_arg.get_argflag('--sigpreserve')
 #SIG_PRESERVE = not util_arg.SAFE or util_arg.get_argflag('--sigpreserve')
 ONEX_REPORT_INPUT = '--onex-report-input' in sys.argv
 #IGNORE_TRACEBACK = '--smalltb' in sys.argv or '--ignoretb' in sys.argv
-IGNORE_TRACEBACK = not ('--nosmalltb' in sys.argv or '--noignoretb' in sys.argv)  # FIXME: dupliated in _internal/py2_syntax_funcs
+# FIXME: dupliated in _internal/py2_syntax_funcs
+IGNORE_TRACEBACK = not ('--nosmalltb' in sys.argv or '--noignoretb' in sys.argv)
 
 # do not ignore traceback when profiling
 PROFILING = hasattr(builtins, 'profile')
@@ -275,8 +276,11 @@ def on_exception_report_input(func_=None, force=False):
             except Exception as ex:
                 from utool import util_str
                 arg_strs = ', '.join([repr(util_str.truncate_str(str(arg))) for arg in args])
-                kwarg_strs = ', '.join([util_str.truncate_str('%s=%r' % (key, val)) for key, val in six.iteritems(kwargs)])
-                msg = ('\nERROR: funcname=%r,\n * args=%s,\n * kwargs=%r\n' % (meta_util_six.get_funcname(func), arg_strs, kwarg_strs))
+                kwarg_strs = ', '.join([
+                    util_str.truncate_str('%s=%r' % (key, val))
+                    for key, val in six.iteritems(kwargs)])
+                msg = ('\nERROR: funcname=%r,\n * args=%s,\n * kwargs=%r\n' % (
+                    meta_util_six.get_funcname(func), arg_strs, kwarg_strs))
                 msg += ' * len(args) = %r\n' % len(args)
                 msg += ' * len(kwargs) = %r\n' % len(kwargs)
                 util_dbg.printex(ex, msg, pad_stdout=True)
@@ -482,10 +486,12 @@ def accepts_scalar_input_vector_output(func):
             n element list : [1, 2, 3]        [x, y, z]                      [[X], [Y], [Z]]
             1 element list : [1]              [x]                            [[X]]
             0 element list : []               []                             []
-        There seems to be no real issue here, I be the thing that tripped me up was
-        when using sql and getting multiple columns that returned the values inside of the N-tuple
-        whereas when you get one column you get one element inside of a 1-tuple, no that still makes sense.
-        There was something where when you couln't unpack it becuase it was already empty...
+        There seems to be no real issue here, I be the thing that tripped me up
+        was when using sql and getting multiple columns that returned the
+        values inside of the N-tuple whereas when you get one column you get
+        one element inside of a 1-tuple, no that still makes sense.  There was
+        something where when you couln't unpack it becuase it was already
+        empty...
     """
     @ignores_exc_tb(outer_wrapper=False)
     #@wraps(func)
@@ -874,7 +880,6 @@ def dummy_args_decor(*args, **kwargs):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -c "import utool, utool.util_decor; utool.doctest_funcs(utool.util_decor, allexamples=True)"
         python -c "import utool, utool.util_decor; utool.doctest_funcs(utool.util_decor)"
         python -m utool.util_decor
         python -m utool.util_decor --allexamples

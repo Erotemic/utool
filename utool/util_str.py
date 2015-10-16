@@ -345,7 +345,7 @@ def pack_into(instr, textwidth=160, breakchars=' ', break_words=True,
     #FIXME:
 
     Example:
-        >>> instr = "set_image_uris(ibs<139684018194000>, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], [u'66ec193a-1619-b3b6-216d-1784b4833b61.jpg', u'd8903434-942f-e0f5-d6c2-0dcbe3137bf7.jpg', u'b73b72f4-4acb-c445-e72c-05ce02719d3d.jpg', u'0cd05978-3d83-b2ee-2ac9-798dd571c3b3.jpg', u'0a9bc03d-a75e-8d14-0153-e2949502aba7.jpg', u'2deeff06-5546-c752-15dc-2bd0fdb1198a.jpg', u'a9b70278-a936-c1dd-8a3b-bc1e9a998bf0.png', u'42fdad98-369a-2cbc-67b1-983d6d6a3a60.jpg', u'c459d381-fd74-1d99-6215-e42e3f432ea9.jpg', u'33fd9813-3a2b-774b-3fcc-4360d1ae151b.jpg', u'97e8ea74-873f-2092-b372-f928a7be30fa.jpg', u'588bc218-83a5-d400-21aa-d499832632b0.jpg', u'163a890c-36f2-981e-3529-c552b6d668a3.jpg'], ) "
+        >>> instr = "set_image_uris(ibs<139684018194000>, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], [u'66ec193a-1619-b3b6-216d-1784b4833b61.jpg', u'd8903434-942f-e0f5-d6c2-0dcbe3137bf7.jpg', u'b73b72f4-4acb-c445-e72c-05ce02719d3d.jpg', u'0cd05978-3d83-b2ee-2ac9-798dd571c3b3.jpg', u'0a9bc03d-a75e-8d14-0153-e2949502aba7.jpg', u'2deeff06-5546-c752-15dc-2bd0fdb1198a.jpg', u'a9b70278-a936-c1dd-8a3b-bc1e9a998bf0.png', u'42fdad98-369a-2cbc-67b1-983d6d6a3a60.jpg', u'c459d381-fd74-1d99-6215-e42e3f432ea9.jpg', u'33fd9813-3a2b-774b-3fcc-4360d1ae151b.jpg', u'97e8ea74-873f-2092-b372-f928a7be30fa.jpg', u'588bc218-83a5-d400-21aa-d499832632b0.jpg', u'163a890c-36f2-981e-3529-c552b6d668a3.jpg'], ) "  # NOQA
         >>> textwidth = 160
         >>> breakchars = ' '
         >>> break_words = True
@@ -662,8 +662,11 @@ def func_str(func, args=[], kwargs={}, type_aliases=[], packed=False,
     """
     #repr_list = list_aliased_repr(args, type_aliases) + dict_aliased_repr(kwargs)
     import utool as ut
-    argrepr_list = [] if args is None else ut.get_itemstr_list(args, with_comma=False, nl=False)
-    kwrepr_list = [] if kwargs is None else ut.dict_itemstr_list(kwargs, explicit=True, with_comma=False, nl=False)
+    argrepr_list = ([] if args is None else
+                    ut.get_itemstr_list(args, with_comma=False, nl=False))
+    kwrepr_list = ([] if kwargs is None else
+                   ut.dict_itemstr_list(kwargs, explicit=True,
+                                        with_comma=False, nl=False))
     repr_list = argrepr_list + kwrepr_list
     #argskwargs_str = newlined_list(repr_list, ', ', textwidth=80)
     argskwargs_str = ', '.join(repr_list)
@@ -779,38 +782,39 @@ def _array2string2(a, max_line_width, precision, suppress_small, separator=' ',
     TODO: make a numpy pull request with a fixed version
 
     """
+    arrayprint = np.core.arrayprint
 
     if max_line_width is None:
-        max_line_width = np.core.arrayprint._line_width
+        max_line_width = arrayprint._line_width
 
     if precision is None:
-        precision = np.core.arrayprint._float_output_precision
+        precision = arrayprint._float_output_precision
 
     if suppress_small is None:
-        suppress_small = np.core.arrayprint._float_output_suppress_small
+        suppress_small = arrayprint._float_output_suppress_small
 
     if formatter is None:
-        formatter = np.core.arrayprint._formatter
+        formatter = arrayprint._formatter
 
     if threshold is None:
-        threshold = np.core.arrayprint._summaryThreshold
+        threshold = arrayprint._summaryThreshold
 
     if threshold > 0 and a.size > threshold:
         summary_insert = "..., "
-        data = np.core.arrayprint._leading_trailing(a)
+        data = arrayprint._leading_trailing(a)
     else:
         summary_insert = ""
-        data = np.core.arrayprint.ravel(a)
+        data = arrayprint.ravel(a)
 
-    formatdict = {'bool' : np.core.arrayprint._boolFormatter,
-                  'int' : np.core.arrayprint.IntegerFormat(data),
-                  'float' : np.core.arrayprint.FloatFormat(data, precision, suppress_small),
-                  'longfloat' : np.core.arrayprint.LongFloatFormat(precision),
-                  'complexfloat' : np.core.arrayprint.ComplexFormat(data, precision, suppress_small),
-                  'longcomplexfloat' : np.core.arrayprint.LongComplexFormat(precision),
-                  'datetime' : np.core.arrayprint.DatetimeFormat(data),
-                  'timedelta' : np.core.arrayprint.TimedeltaFormat(data),
-                  'numpystr' : np.core.arrayprint.repr_format,
+    formatdict = {'bool' : arrayprint._boolFormatter,
+                  'int' : arrayprint.IntegerFormat(data),
+                  'float' : arrayprint.FloatFormat(data, precision, suppress_small),
+                  'longfloat' : arrayprint.LongFloatFormat(precision),
+                  'complexfloat' : arrayprint.ComplexFormat(data, precision, suppress_small),
+                  'longcomplexfloat' : arrayprint.LongComplexFormat(precision),
+                  'datetime' : arrayprint.DatetimeFormat(data),
+                  'timedelta' : arrayprint.TimedeltaFormat(data),
+                  'numpystr' : arrayprint.repr_format,
                   'str' : str}
 
     if formatter is not None:
@@ -860,7 +864,8 @@ def _array2string2(a, max_line_width, precision, suppress_small, separator=' ',
                 format_function = formatdict['longcomplexfloat']
             else:
                 format_function = formatdict['complexfloat']
-        elif issubclass(dtypeobj, (np.core.arrayprint._nt.unicode_, np.core.arrayprint._nt.string_)):
+        elif issubclass(dtypeobj, (np.core.arrayprint._nt.unicode_,
+                                   np.core.arrayprint._nt.string_)):
             format_function = formatdict['numpystr']
         elif issubclass(dtypeobj, np.core.arrayprint._nt.datetime64):
             format_function = formatdict['datetime']
@@ -885,7 +890,9 @@ def numpy_str2(arr, **kwargs):
     return numpy_str(arr, **kwargs)
 
 
-def numpy_str(arr, strvals=False, precision=None, pr=None, force_dtype=True, suppress_small=None, max_line_width=None, threshold=None, **kwargs):
+def numpy_str(arr, strvals=False, precision=None, pr=None, force_dtype=True,
+              suppress_small=None, max_line_width=None, threshold=None,
+              **kwargs):
     """
     suppress_small = False turns off scientific representation
     """
@@ -997,7 +1004,12 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
     """
 
     if strvals:
-        valfunc = str
+        #def valfunc(in_):
+        #    if isinstance(in_, unicode):
+        #        return unicode(in_)
+        #    else:
+        #        return str(in_)
+        valfunc = six.text_type
     else:
         valfunc = repr
 
@@ -1143,7 +1155,8 @@ def get_itemstr_list(list_, strvals=False, newlines=True, recursive=True,
         elif util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
             # TODO: generally pass down args
             suppress_small = listkws.get('suppress_small', None)
-            return numpy_str(val, strvals=strvals, precision=precision, suppress_small=suppress_small)
+            return numpy_str(val, strvals=strvals, precision=precision,
+                             suppress_small=suppress_small)
         elif precision is not None and (isinstance(val, (float)) or util_type.is_float(val)):
             return scalar_str(val, precision)
             #return ('%.' + str(precision) + 'f') % (val,)
@@ -1382,7 +1395,7 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
         >>> from utool.util_str import dict_str, dict_itemstr_list
         >>> import utool
         >>> #REPO_CONFIG = utool.get_default_repo_config()
-        >>> dict_ = {'foo': {'spam': 'barbarbarbarbar' * 3, 'eggs': 'jam'}, 'baz': 'barbarbarbarbar' * 3}
+        >>> dict_ = {'foo': {'spam': 'barbarbarbarbar' * 3, 'eggs': 'jam'}, 'baz': 'barbarbarbarbar' * 3}  # NOQA
         >>> truncate = ut.get_argval('--truncate', type_=None, default=1)
         >>> result  = dict_str(dict_, strvals=True, truncate=truncate, truncatekw={'maxlen': 20})
         >>> print(result)
@@ -1770,7 +1783,8 @@ def get_freespace_str(dir_='.'):
 
 
 # FIXME: HASHLEN is a global var in util_hash
-def long_fname_format(fmt_str, fmt_dict, hashable_keys=[], max_len=64, hashlen=16, ABS_MAX_LEN=255, hack27=False):
+def long_fname_format(fmt_str, fmt_dict, hashable_keys=[], max_len=64,
+                      hashlen=16, ABS_MAX_LEN=255, hack27=False):
     """
     Formats a string and hashes certain parts if the resulting string becomes
     too long. Used for making filenames fit onto disk.
@@ -1793,8 +1807,10 @@ def long_fname_format(fmt_str, fmt_dict, hashable_keys=[], max_len=64, hashlen=1
         >>> max_len = 64
         >>> hashlen = 8
         >>> fname0 = utool.long_fname_format(fmt_str, fmt_dict, max_len=None)
-        >>> fname1 = utool.long_fname_format(fmt_str, fmt_dict, hashable_keys, max_len=64, hashlen=8)
-        >>> fname2 = utool.long_fname_format(fmt_str, fmt_dict, hashable_keys, max_len=42, hashlen=8)
+        >>> fname1 = utool.long_fname_format(fmt_str, fmt_dict, hashable_keys,
+        >>>                                  max_len=64, hashlen=8) fname2 =
+        >>> utool.long_fname_format(fmt_str, fmt_dict, hashable_keys, max_len=42,
+        >>>                         hashlen=8)
         >>> print(fname0)
         qaid=5_res_big_long_string___________________________________quuid=blahblahblahblahblahblah
         >>> print(fname1)
@@ -1830,6 +1846,34 @@ def long_fname_format(fmt_str, fmt_dict, hashable_keys=[], max_len=64, hashlen=1
 
 
 def multi_replace(str_, search_list, repl_list):
+    r"""
+    Performs multiple replace functions foreach item in search_list and
+    repl_list.
+
+    Args:
+        str_ (str): string to search
+        search_list (list): list of search strings
+        repl_list (list or str): one or multiple replace strings
+
+    Returns:
+        str: str_
+
+    CommandLine:
+        python -m utool.util_str --exec-multi_replace
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> str_ = 'foo. bar: baz; spam-eggs --- eggs+spam'
+        >>> search_list = ['.', ':', '---']
+        >>> repl_list = '@'
+        >>> str_ = multi_replace(str_, search_list, repl_list)
+        >>> result = ('str_ = %s' % (str(str_),))
+        >>> print(result)
+        str_ = foo@ bar@ baz; spam-eggs @ eggs+spam
+    """
+    if isinstance(repl_list, six.string_types):
+        repl_list = [repl_list] * len(search_list)
     for search, repl in zip(search_list, repl_list):
         str_ = str_.replace(search, repl)
     return str_
@@ -2156,7 +2200,6 @@ def to_camel_case(underscore_case):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -c "import utool, utool.util_str; utool.doctest_funcs(utool.util_str, allexamples=True)"
         python -c "import utool, utool.util_str; utool.doctest_funcs(utool.util_str)"
         python -m utool.util_str
         python -m utool.util_str --allexamples
