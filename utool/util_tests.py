@@ -44,7 +44,9 @@ VERBOSE_TIMER = not util_arg.get_argflag('--no-time-tests')
 INDENT_TEST   = False
 EXEC_MODE = util_arg.get_argflag('--exec-mode', help_='dummy flag that will be removed')
 
-ModuleDoctestTup = namedtuple('ModuleDoctestTup', ('enabled_testtup_list', 'frame_fpath', 'all_testflags', 'module'))
+ModuleDoctestTup = namedtuple('ModuleDoctestTup', ('enabled_testtup_list',
+                                                   'frame_fpath',
+                                                   'all_testflags', 'module'))
 
 
 class TestTuple(object):
@@ -404,7 +406,8 @@ def get_doctest_examples(func_or_class):
     #    if False and docstr in shelf:
     #        testsrc_list, testwant_list = shelf[docstr]
     #    else:
-    testheader_list, testsrc_list, testwant_list, testlineoffset_list = parse_doctest_from_docstr(docstr)
+    (testheader_list, testsrc_list, testwant_list,
+     testlineoffset_list) = parse_doctest_from_docstr(docstr)
     testlinenum_list = [func_lineno + num_funcdef_lines + offset for offset in testlineoffset_list]
     #       shelf[docstr] = testsrc_list, testwant_list
     if VERBOSE_TEST:
@@ -472,10 +475,12 @@ def doctest_module_list(module_list):
     with open(failed_doctest_fname, 'a') as file_:
         file_.write('\n-------\n\n')
         file_.write(ut.get_printable_timestamp() + '\n')
-        file_.write('logfile (only present if logging) = %r\n' % (ut.util_logging.get_current_log_fpath(),))
+        file_.write('logfile (only present if logging) = %r\n' %
+                    (ut.util_logging.get_current_log_fpath(),))
         testkw = dict(allexamples=True, return_error_report=True)
         for module in module_list:
-            (nPass, nTotal, failed_list, error_report_list) = ut.doctest_funcs(module=module, **testkw)
+            (nPass, nTotal, failed_list, error_report_list) = ut.doctest_funcs(
+                module=module, **testkw)
             nPass_list.append(nPass)
             nTotal_list.append(nTotal)
             failed_cmds_list.append(failed_list)
@@ -921,7 +926,8 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
                 raise
             else:
                 if VERBOSE_TEST:
-                    print('Silently Failing: maybe adding the --super-strict flag would help debug?')
+                    print('Silently Failing: '
+                          'maybe adding the --super-strict flag would help debug?')
             pass
     #L__________________
     #+-------------------
@@ -937,7 +943,8 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
         warning_msg = ut.indent(warning_msg, '[util_test.doctest_funcs]')
         ut.colorprint(warning_msg, 'red')
         #print('[util_test.doctest_funcs] No test flags sepcified.')
-        #print('[util_test.doctest_funcs] Please choose one of the following flags or specify --enableall')
+        #print('[util_test.doctest_funcs] Please choose one of the following
+        #flags or specify --enableall')
         #print('[util_test.doctest_funcs] Valid test argflags:\n' + '    --allexamples' +
         #        ut.indentjoin(all_testflags, '\n    '))
 
@@ -1044,7 +1051,8 @@ def run_test(func_or_testtup, return_error_report=False, *args, **kwargs):
             import utool as ut
             # Get locals in the wrapped function
             ut.printex(ex, tb=True)
-            error_report_lines = ['**[TEST.ERROR] %s -- FAILED:\n    type(ex)=%s' % (funcname, type(ex))]
+            error_report_lines = ['**[TEST.ERROR] %s -- FAILED:\n    type(ex)=%s' % (
+                funcname, type(ex))]
             error_report_lines.append(ut.formatex(ex, tb=True))
             def print_report(msg):
                 error_report_lines.append(msg)
@@ -1084,7 +1092,8 @@ def run_test(func_or_testtup, return_error_report=False, *args, **kwargs):
                     ## PYTHON 2.7 DEPRICATED:
                     #if six.PY2:
                     #    raise exc_type, exc_value, exc_traceback.tb_next
-                    #    #exec('raise exc_type, exc_value, exc_traceback.tb_next', globals(), locals())
+                    #    #exec('raise exc_type, exc_value,
+                    #    exc_traceback.tb_next', globals(), locals())
                     ## PYTHON 3.3 NEW METHODS
                     #elif six.PY3:
                     #    ex = exc_type(exc_value)
@@ -1397,7 +1406,8 @@ def make_run_tests_script_text(test_headers, test_argvs, quick_tests=None,
 
             known_tests[dpath_].extend(_testfpath_list)
             #print(_testfpath_list)
-            testfpath_list = [util_path.unixjoin(dpath, relpath(fpath, dpath_)) for fpath in _testfpath_list]
+            testfpath_list = [util_path.unixjoin(dpath, relpath(fpath, dpath_))
+                              for fpath in _testfpath_list]
 
             testline_list = [format_testline(fpath, dirvar) for fpath in testfpath_list]
         else:
@@ -1522,7 +1532,7 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
         help_='specify a function to doctest')
 
     if test_funcname is not None:
-        print('[utool] __main__ Function Test')
+        print('[utool] __main__ Begin Function Test')
         if isinstance(module, six.string_types):
             module = ut.import_modname(module)
         modname_list = ut.package_contents(module, ignore_prefix=ignore_prefix,
@@ -1566,7 +1576,6 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
 if __name__ == '__main__':
     """
     CommandLine:
-        python -c "import utool, utool.util_tests; utool.doctest_funcs(utool.util_tests, allexamples=True)"
         python -c "import utool, utool.util_tests; utool.doctest_funcs(utool.util_tests)"
         python -m utool.util_tests
         python -m utool.util_tests --allexamples

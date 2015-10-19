@@ -2197,6 +2197,17 @@ def to_camel_case(underscore_case):
     return camel_case_str
 
 
+def is_url(str_):
+    """ heuristic check if str is url formatted """
+    return any([
+        str_.startswith('http://'),
+        str_.startswith('https://'),
+        str_.startswith('www.'),
+        '.org/' in str_,
+        '.com/' in str_,
+    ])
+
+
 if __name__ == '__main__':
     """
     CommandLine:
