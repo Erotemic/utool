@@ -347,23 +347,28 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
             time_list (list): list of times for each statment
             result_list (list): list of results values for each statment
 
+    CommandLine:
+        python -m utool.util_dev --exec-timeit_compare
+
     Example:
-        >>> import utool
-        >>> setup = utool.unindent(
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dev import *  # NOQA
+        >>> import utool as ut
+        >>> setup = ut.codeblock(
             '''
             import numpy as np
-            np.random.seed(0)
-            invVR_mats = np.random.rand(1000, 3, 3).astype(np.float64)
+            rng = np.random.RandomState(0)
+            invVR_mats = rng.rand(1000, 3, 3).astype(np.float64)
             ''')
         >>> stmt1 = 'invVR_mats[:, 0:2, 2].T'
         >>> stmt2 = 'invVR_mats.T[2, 0:2]'
-        >>> iterations = 100000
+        >>> iterations = 1000
         >>> verbose = True
         >>> stmt_list = [stmt1, stmt2]
-        >>> utool.timeit_compare(stmt_list, setup='', iterations=1000, verbose=True)
+        >>> ut.timeit_compare(stmt_list, setup=setup, iterations=iterations, verbose=verbose)
     """
     import timeit
-    import utool
+    import utool as ut
 
     for stmtx in range(len(stmt_list)):
         # Hacky way of removing assignment and just getting statement
@@ -389,11 +394,11 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
         sys.stdout.flush()
         #print('+     L________________')
 
-    result_list = [testit(stmt, setup) for stmt in stmt_list]
+    result_list = [ut.testit(stmt, setup) for stmt in stmt_list]
     time_list   = [timeit.timeit(stmt, setup=setup, number=iterations)
                    for stmt in stmt_list]
 
-    passed = utool.util_list.list_allsame(result_list)
+    passed = ut.util_list.list_allsame(result_list)
     if verbose:
         print('| Output:')
         if not passed:
@@ -414,8 +419,8 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
         for count, tup in enumerate(zip(stmt_list, time_list)):
             stmt, time = tup
             print('|    | %3d | %10s | %8s | %s' %
-                  (count, utool.seconds_str(time),
-                   utool.seconds_str(time / iterations), stmt))
+                  (count, ut.seconds_str(time),
+                   ut.seconds_str(time / iterations), stmt))
         #print('|    L___________________________________')
         if verbose:
             print('L_________________')
@@ -450,7 +455,7 @@ def testit(stmt, setup):
 def memory_dump():
     """
     References:
-       from http://stackoverflow.com/questions/141351/how-do-i-find-what-is-using-memory-in-a-python-process-in-a-production-system
+       http://stackoverflow.com/questions/141351/how-do-i-find-what-is-using-memory-in-a-python-process-in-a-production-system
     """
     import cPickle
     dump = open("memory.pickle", 'w')
@@ -573,7 +578,8 @@ class MemoryTracker(object):
     def report_type(self, class_, more=False):
         # Get existing objects of the requested type
         existing_objs = [obj for obj in gc.get_objects() if isinstance(obj, class_)]
-        print('There are %d objects of type %s using %s' % (len(existing_objs), class_, get_object_size_str(existing_objs)))
+        print('There are %d objects of type %s using %s' % (
+            len(existing_objs), class_, get_object_size_str(existing_objs)))
         if more:
             for obj in existing_objs:
                 self.report_obj(obj)
@@ -1357,6 +1363,7 @@ def printableType(val, name=None, parent=None):
 def printableVal(val, type_bit=True, justlength=False):
     """
     Very old way of doing pretty printing. Need to update and refactor.
+    DEPRICATE
     """
     from utool import util_dev
     # Move to util_dev
@@ -1364,7 +1371,8 @@ def printableVal(val, type_bit=True, justlength=False):
     if type(val) is np.ndarray:
         info = npArrInfo(val)
         if info.dtypestr.startswith('bool'):
-            _valstr = '{ shape:' + info.shapestr + ' bittotal: ' + info.bittotal + '}'  # + '\n  |_____'
+            _valstr = '{ shape:' + info.shapestr + ' bittotal: ' + info.bittotal + '}'
+            # + '\n  |_____'
         elif info.dtypestr.startswith('float'):
             _valstr = util_dev.get_stats_str(val)
         else:
@@ -1378,7 +1386,8 @@ def printableVal(val, type_bit=True, justlength=False):
             _valstr = 'len=' + str(len(val))
         else:
             _valstr = '[ ' + (', \n  '.join([str(v) for v in val])) + ' ]'
-    elif hasattr(val, 'get_printable') and type(val) != type:  # WTF? isinstance(val, AbstractPrintable):
+    # ??? isinstance(val, AbstractPrintable):
+    elif hasattr(val, 'get_printable') and type(val) != type:
         _valstr = val.get_printable(type_bit=type_bit)
     elif isinstance(val, dict):
         _valstr = '{\n'
@@ -1498,7 +1507,8 @@ def make_call_graph(func, *args, **kwargs):
 #    """ DEPRICATE. Tries to run a function and profile it """
 #    # Meliae # from meliae import loader # om = loader.load('filename.json') # s = om.summarize();
 #    #http://www.huyng.com/posts/python-performance-analysis/
-#    #Once youve gotten your code setup with the <AT>profile decorator, use kernprof.py to run your script.
+#    #Once youve gotten your code setup with the <AT>profile decorator, use
+#    kernprof.py to run your script.
 #    #kernprof.py -l -v fib.py
 #    import cProfile
 #    print('[util] Profiling Command: ' + cmd)
@@ -1843,7 +1853,11 @@ def compile_cython(fpath, clean=True):
         #])
         plat_link_flags = '-lpython27 -lmsvcr90'
 
-#C:\MinGW\bin\gcc.exe -shared -s build\temp.win32-2.7\Release\vtool\linalg_cython.o build\temp.win32-2.7\Release\vtool\linalg_cython.def -LC:\Python27\libs -LC:\Python27\PCbuild -lpython27 -lmsvcr90 -o  build\lib.win32-2.7\linalg_cython.pyd
+    #C:\MinGW\bin\gcc.exe -shared -s
+    #build\temp.win32-2.7\Release\vtool\linalg_cython.o
+    #build\temp.win32-2.7\Release\vtool\linalg_cython.def -LC:\Python27\libs
+    #-LC:\Python27\PCbuild -lpython27 -lmsvcr90 -o
+    #build\lib.win32-2.7\linalg_cython.pyd
 
     else:
         cc_exe = 'gcc'
@@ -1859,7 +1873,10 @@ def compile_cython(fpath, clean=True):
             '-Wall',
             '-fno-strict-aliasing',
         ])
-    #C:\MinGW\bin\gcc.exe -mdll -O -Wall -IC:\Python27\Lib\site-packages\numpy\core\include -IC:\Python27\include -IC:\Python27\PC -c vtool\linalg_cython.c -o build\temp.win32-2.7\Release\vtool\linalg_cyth
+    #C:\MinGW\bin\gcc.exe -mdll -O -Wall
+    #-IC:\Python27\Lib\site-packages\numpy\core\include -IC:\Python27\include
+    #-IC:\Python27\PC -c vtool\linalg_cython.c -o
+    #build\temp.win32-2.7\Release\vtool\linalg_cyth
 
     pyinclude = '' if len(pyinclude_list) == 0 else '-I' + ' -I'.join(pyinclude_list)
     pylib     = '' if len(pylib_list)     == 0 else '-L' + ' -L'.join(pylib_list)
@@ -1909,7 +1926,8 @@ def compile_cython(fpath, clean=True):
     #out, err, ret = util_cplat.shell(cython_exe + ' ' + fpath)
     #out, err, ret = util_cplat.shell((cython_exe, fpath))
     #if ret == 0:
-    #    out, err, ret = util_cplat.shell(cc_exe + ' ' + gcc_flags + ' -o ' + fname_so + ' ' + fname_c)
+    #    out, err, ret = util_cplat.shell(cc_exe + ' ' + gcc_flags + ' -o ' +
+    #    fname_so + ' ' + fname_c)
     return ret
 
 
@@ -1942,7 +1960,8 @@ def reset_catch_ctrl_c():
     signal.signal(signal.SIGINT, signal.SIG_DFL)  # reset ctrl+c behavior
 
 
-USER_MODE      =  util_arg.get_argflag(('--user-mode', '--no-developer', '--nodev', '--nodeveloper'))
+USER_MODE      =  util_arg.get_argflag(('--user-mode', '--no-developer',
+                                        '--nodev', '--nodeveloper'))
 DEVELOPER_MODE =  util_arg.get_argflag(('--dev-mode', '--developer-mode'))
 #USER_MODE = not DEVELOPER_MODE
 
@@ -2098,53 +2117,6 @@ def get_partial_func_name(func, precision=3):
     )
     name = name_part + '(' + args_part + kwargs_part + ')'
     return name
-
-
-#def find_prime_that_takes_time(requested_time):
-#    """ temp func. yes I know I'm cute """
-#    requested_time = 0.013
-#    import utool as ut
-
-#    num = 2
-#    num_iters = 100
-#    verbose = False
-#    #guess = 164309
-#    guess = 328619
-#    guess = 346373
-#    #ut.get_prime_index(328619)
-#    #nth = 0
-#    verbose = True
-#    prime_gen = ut.generate_primes(guess)
-#    while True:
-#        with ut.Timer(verbose=verbose) as t:
-#            prime = six.next(prime_gen)
-#            if verbose:
-#                print('prime = %r' % (prime,))
-#            #nth += 1
-#        if t.ellapsed > requested_time * 3:
-#            print('prime = %r' % (prime,))
-#            with ut.Timer(msg='ISPRIME', verbose=verbose) as t:
-#                ut.is_prime(prime)
-#            break
-
-#    #start_guess = 2
-#    #start_num_primes = 0
-#    #nth = 2 ** 12
-#    #num = ut.get_nth_prime_bruteforce(nth, start_guess=start_guess, start_num_primes=start_num_primes)
-#    #print('(n=%r)th prime = %r' % (nth, num))
-#    #start_guess = num
-#    #start_num_primes = (nth - 1)
-
-#    while True:
-#        with ut.Timer(verbose=verbose) as t:
-#            ut.is_prime(num)
-#        if t.ellapsed < requested_time:
-#            num = (num * 2 + 1)
-#        else:
-#            break
-#        num_iters -= 1
-#        if num_iters == 0:
-#            break
 
 
 if __name__ == '__main__':
