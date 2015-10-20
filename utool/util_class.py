@@ -43,7 +43,9 @@ __CLASSNAME_CLASSKEY_REGISTER__ = defaultdict(oset)
 
 
 QUIET_CLASS = util_arg.get_argflag(('--quiet-class', '--quietclass'))
-VERBOSE_CLASS = util_arg.get_argflag(('--verbose-class', '--verbclass')) or (not QUIET_CLASS and util_arg.VERYVERBOSE)
+VERBOSE_CLASS = (
+    util_arg.get_argflag(('--verbose-class', '--verbclass')) or
+    (not QUIET_CLASS and util_arg.VERYVERBOSE))
 
 
 def inject_instance(self, classkey=None, allow_override=False,
@@ -83,7 +85,8 @@ def inject_instance(self, classkey=None, allow_override=False,
                 print('[utool] Warning: no classes of type %r are registered' % (classkey,))
                 print('[utool] type(self)=%r, self=%r' % (type(self), self)),
                 print('[utool] Checking to see if anybody else was registered...')
-                print('[utool] __CLASSTYPE_ATTRIBUTES__ = ' + ut.list_str(__CLASSTYPE_ATTRIBUTES__.keys()))
+                print('[utool] __CLASSTYPE_ATTRIBUTES__ = ' +
+                      ut.list_str(__CLASSTYPE_ATTRIBUTES__.keys()))
                 for classtype_, _ in six.iteritems(__CLASSTYPE_ATTRIBUTES__):
                     isinstance(self, classtype_)
                     classkey = classtype_
@@ -91,7 +94,8 @@ def inject_instance(self, classkey=None, allow_override=False,
                     break
         func_list = __CLASSTYPE_ATTRIBUTES__[classkey]
         if verbose:
-            print('[util_class] injecting %d methods\n   with classkey=%r\n   into %r' % (len(func_list), classkey, self,))
+            print('[util_class] injecting %d methods\n   with classkey=%r\n   into %r'
+                  % (len(func_list), classkey, self,))
         for func in func_list:
             if VERBOSE_CLASS:
                 print('[util_class] * injecting %r' % (func,))
@@ -99,7 +103,8 @@ def inject_instance(self, classkey=None, allow_override=False,
             # Allow user to register tuples for aliases
             if isinstance(func, tuple):
                 func, method_name = func
-            inject_func_as_method(self, func, method_name=method_name, allow_override=allow_override)
+            inject_func_as_method(self, func, method_name=method_name,
+                                  allow_override=allow_override)
     except Exception as ex:
         ut.printex(ex, 'ISSUE WHEN INJECTING %r' % (classkey,),
                       iswarning=not strict)
@@ -248,7 +253,9 @@ def autogen_explicit_injectable_metaclass(classname):
                 src = '\n'.join([_.rstrip() for _ in src.split('\n')])
                 src_list.append(src)
 
-    source_block = autogen_import_list(classname) + '\n\n\n' + 'class ExplicitInject' + classname + '(object):\n' + ''.join(src_list)
+    source_block = (autogen_import_list(classname) + '\n\n\n' +
+                    'class ExplicitInject' + classname + '(object):\n' +
+                    ''.join(src_list))
     return source_block
 
 
@@ -364,7 +371,8 @@ def decorate_postinject(func, classkey=None, skipmain=False):
     return func
 
 
-def inject_func_as_method(self, func, method_name=None, class_=None, allow_override=False, allow_main=False):
+def inject_func_as_method(self, func, method_name=None, class_=None,
+                          allow_override=False, allow_main=False):
     """ Injects a function into an object as a method
 
     Wraps func as a bound method of self. Then injects func into self
@@ -402,14 +410,19 @@ def inject_func_as_method(self, func, method_name=None, class_=None, allow_overr
         if old_method is new_method or old_method.im_func is new_method.im_func:
             print('WARNING: Injecting the same function twice: %r' % new_method)
         elif allow_override is False:
-            raise AssertionError('Overrides are not allowed. Already have method_name=%r' % (method_name))
+            raise AssertionError(
+                'Overrides are not allowed. Already have method_name=%r' %
+                (method_name))
         elif allow_override == 'warn':
-            print('WARNING: Overrides are not allowed. Already have method_name=%r. Skipping' % (method_name))
+            print(
+                'WARNING: Overrides are not allowed. Already have method_name=%r. Skipping' %
+                (method_name))
             return
         elif allow_override == 'override+warn':
             #import utool as ut
             #ut.embed()
-            print('WARNING: Overrides are allowed, but dangerous. method_name=%r.' % (method_name))
+            print('WARNING: Overrides are allowed, but dangerous. method_name=%r.' %
+                  (method_name))
             print('old_method = %r, im_func=%s' % (old_method, str(old_method.im_func)))
             print('new_method = %r, im_func=%s' % (new_method, str(new_method.im_func)))
             print(old_method.im_func.func_globals['__name__'])
@@ -593,7 +606,8 @@ class ReloadingMetaclass(type):
         #            class_list = find_base_clases(_class, find_base_clases)
         #            for _class in class_list:
         #                if verbose:
-        #                    print('reloading parent ' + _class.__name__ + ' from ' + _class.__module__)
+        #                    print('reloading parent ' + _class.__name__ + '
+        #                    from ' + _class.__module__)
         #                if _class.__module__ != '__main__':
         #                    module_ = sys.modules[_class.__module__]
         #                    if hasattr(module_, 'rrr'):

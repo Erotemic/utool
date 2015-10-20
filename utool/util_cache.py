@@ -22,6 +22,7 @@ from utool import util_str
 from utool import util_cplat
 from utool import util_inspect
 from utool import util_list
+from utool import util_class  # NOQA
 from utool._internal import meta_util_constants
 try:
     import numpy as np
@@ -54,7 +55,8 @@ class ShelfCacher(object):
 
     def load(self, cachekey):
         if self.shelf is None or cachekey not in self.shelf:
-            raise CacheMissException('Cache miss cachekey=%r self.fpath=%r' % (cachekey, self.fpath))
+            raise CacheMissException(
+                'Cache miss cachekey=%r self.fpath=%r' % (cachekey, self.fpath))
         else:
             return self.shelf[cachekey]
 
@@ -234,7 +236,8 @@ def load_cache(dpath, fname, cfgstr, verbose=None):
     fpath = _args2_fpath(dpath, fname, cfgstr, '.cPkl')
     if not exists(fpath):
         if verbose:
-            print('[util_io] ... cache does not exist: dpath=%s cfgstr=%r' % (basename(dpath), cfgstr,))
+            print('[util_io] ... cache does not exist: dpath=%s cfgstr=%r' % (
+                basename(dpath), cfgstr,))
         raise IOError(2, 'No such file or directory: %r' % (fpath,))
     else:
         if verbose:
@@ -284,7 +287,10 @@ def tryload_cache_list_with_compute(dpath, fname, cfgstr_list, compute_fn, *args
         newdata_list = compute_fn(ismiss_list, *args)
         newcfgstr_list = util_list.list_compress(cfgstr_list, ismiss_list)
         index_list = util_list.list_where(ismiss_list)
-        print('[cache] %d/%d cache hits for %s in %s' % (num_total - len(index_list), num_total, fname, util_path.tail(dpath)))
+        print('[cache] %d/%d cache hits for %s in %s' % (num_total -
+                                                         len(index_list),
+                                                         num_total, fname,
+                                                         util_path.tail(dpath)))
         # Cache write
         for newcfgstr, newdata in zip(newcfgstr_list, newdata_list):
             save_cache(dpath, fname, newcfgstr, newdata, verbose=False)
@@ -292,7 +298,9 @@ def tryload_cache_list_with_compute(dpath, fname, cfgstr_list, compute_fn, *args
         for index, newdata in zip(index_list, newdata_list):
             data_list[index] = newdata
     else:
-        print('[cache] %d/%d cache hits for %s in %s' % (num_total, num_total, fname, util_path.tail(dpath)))
+        print('[cache] %d/%d cache hits for %s in %s' % (num_total, num_total,
+                                                         fname,
+                                                         util_path.tail(dpath)))
     return data_list
 
 
@@ -323,7 +331,8 @@ class Cacher(object):
     def tryload(self, cfgstr=None):
         try:
             if self.verbose:
-                assert cfgstr is not None or self.cfgstr is not None, 'must specify cfgstr in constructor or call'
+                assert cfgstr is not None or self.cfgstr is not None, (
+                    'must specify cfgstr in constructor or call')
                 print('[cache] tryload fname=' + self.fname)
                 print('[cache] cfgstr= ' + self.cfgstr if cfgstr is None else cfgstr)
             return self.load(cfgstr)
@@ -401,7 +410,9 @@ def get_func_result_cachekey(func_, args_=tuple(), kwargs_={}):
     func = true_func  # NOQA
     args = true_args  # NOQA
     kwargs = true_kwargs  # NOQA
-    args_key = ut.get_cfgstr_from_args(true_func, true_args, true_kwargs, key_argx, key_kwds, kwdefaults, argnames)
+    args_key = ut.get_cfgstr_from_args(true_func, true_args, true_kwargs,
+                                       key_argx, key_kwds, kwdefaults,
+                                       argnames)
     cachekey = funcname + '(' + args_key + ')'
     return cachekey
 
@@ -422,7 +433,8 @@ def cachestr_repr(val):
                 return val.get_dbname()
 
 
-def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults, argnames, use_hash=None):
+def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults,
+                         argnames, use_hash=None):
     """
     Dev:
         argx = ['fdsf', '432443432432', 43423432, 'fdsfsd', 3.2, True]
@@ -464,8 +476,10 @@ def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults, arg
     kwdrepr_iter = (cachestr_repr(given_kwargs[key]) for key in key_kwds)
     if use_hash is None:
         #print('conditional hashing args')
-        argcfg_list = [hashstr_(argrepr) if len(argrepr) > 16 else argrepr for argrepr in argrepr_iter]
-        kwdcfg_list =  [hashstr_(kwdrepr) if len(kwdrepr) > 16 else kwdrepr  for kwdrepr in kwdrepr_iter]
+        argcfg_list = [hashstr_(argrepr) if len(argrepr) > 16 else argrepr
+                       for argrepr in argrepr_iter]
+        kwdcfg_list =  [hashstr_(kwdrepr) if len(kwdrepr) > 16 else kwdrepr
+                        for kwdrepr in kwdrepr_iter]
     elif use_hash is True:
         #print('hashing args')
         argcfg_list = [hashstr_(argrepr) for argrepr in argrepr_iter]
@@ -561,7 +575,8 @@ def get_global_cache_dir(appname='default', ensure=False):
     """ Returns (usually) writable directory for an application cache """
     if appname is None or  appname == 'default':
         appname = get_default_appname()
-    global_cache_dir = util_cplat.get_app_resource_dir(appname, meta_util_constants.global_cache_dname)
+    global_cache_dir = util_cplat.get_app_resource_dir(appname,
+                                                       meta_util_constants.global_cache_dname)
     if ensure:
         util_path.ensuredir(global_cache_dir)
     return global_cache_dir
@@ -758,7 +773,9 @@ class Cachable(object):
         if ignore_keys is None:
             save_dict = self.__dict__
         else:
-            save_dict = {key: val for (key, val) in six.iteritems(self.__dict__) if key not in ignore_keys}
+            save_dict = {key: val
+                         for (key, val) in six.iteritems(self.__dict__)
+                         if key not in ignore_keys}
 
         util_io.save_cPkl(fpath, save_dict)
         return fpath
@@ -1028,10 +1045,124 @@ def time_different_diskstores():
     cPickle_read_test2()
 
 
+#@six.add_metaclass(util_class.ReloadingMetaclass)
+#class LazyDict(collections.Mapping):
+class LazyDict(collections.Mapping):
+    """
+    Hacky dictionary where values that are functions are counted as lazy
+
+
+    CommandLine:
+        python -m utool.util_cache --exec-LazyDict
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_cache import *  # NOQA
+        >>> import utool as ut
+        >>> self = ut.LazyDict()
+        >>> self['foo'] = lambda: 5
+        >>> ut.print_dict(self.__dict__)
+        >>> print(self)
+        >>> print(self.keys())
+        >>> ut.print_dict(self.__dict__)
+        >>> self['bar'] = 4
+        >>> print(self)
+        >>> print(self.keys())
+        >>> ut.print_dict(self.__dict__)
+        >>> try:
+        >>>     self['foo'] = lambda: 9
+        >>>     assert False
+        >>> except ValueError:
+        >>>     pass
+        >>> self['biz'] = lambda: 9
+        >>> print(self)
+        >>> print(len(self))
+        >>> d = {}
+        >>> d.update(**self)
+        >>> print(d)
+    """
+    def __init__(self, other=None, **kwargs):
+        # Registered lazy evaluations
+        self._lazy_funcs = {}
+        # Computed results
+        self._lazy_results = {}
+        self.infer_lazy_vals_hack = True
+        if other is not None:
+            self.update(other)
+        if len(kwargs) > 0:
+            self.update(kwargs)
+
+    def evalkey(self, key):
+        if key in self._lazy_results:
+            value  = self._lazy_results[key]
+        else:
+            value = self._lazy_funcs[key]()
+            self._lazy_results[key] = value
+        return value
+
+    def set_lazy_func(self, key, func):
+        if key in self._lazy_results:
+            raise ValueError(
+                ('Cannot add new lazy function for key=%r'
+                 'that has been computed') % (key,))
+        self._lazy_funcs[key] = func
+
+    def __getitem__(self, key):
+        return self.evalkey(key)
+
+    def __setitem__(self, key, value):
+        from utool import util_type
+        # HACK, lazy funcs should all be registered
+        # this should should always just set a value
+        if (self.infer_lazy_vals_hack and
+             util_type.is_funclike(value)):
+            self.set_lazy_func(key, value)
+        else:
+            self._lazy_results[key] = value
+
+    def get(self, key, *d):
+        return self.evalkey(key)
+
+    def update(self, dict_, **kwargs):
+        for key, val in six.iteritems(dict_):
+            self[key] = val
+        for key, val in six.iteritems(kwargs):
+            self[key] = val
+
+    def keys(self):
+        #from utool import util_iter
+        keys_ = set(self._lazy_results.keys())
+        keys_ = keys_.union(set(self._lazy_funcs.keys()))
+        return list(keys_)
+
+    def values(self):
+        return [self[key] for key in self.keys()]
+
+    def __iter__(self):
+        return iter(self.keys())
+
+    def __len__(self):
+        return len(self.keys())
+
+    def asdict(self):
+        dict_ = {key: self[key] for key in self.keys()}
+        return dict_
+
+    def __str__(self):
+        import utool as ut
+        return ut.dict_str(self.asdict())
+
+    #def __getstate__(self):
+    #    state_dict = self.asdict()
+    #    return state_dict
+
+    #def __setstate__(self, state_dict):
+    #    self._lazy_results.update(state_dict)
+
+
 if __name__ == '__main__':
     """
     CommandLine:
-        python -c "import utool, utool.util_cache; utool.doctest_funcs(utool.util_cache, allexamples=True)"
         python -c "import utool, utool.util_cache; utool.doctest_funcs(utool.util_cache)"
         python -m utool.util_cache
         python -m utool.util_cache --allexamples
