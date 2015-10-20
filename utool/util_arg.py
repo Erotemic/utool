@@ -789,7 +789,8 @@ def __argv_flag_dec(func, default=False, quiet=QUIET, indent=False):
 
 @profile
 def argparse_dict(default_dict_, lbl=None, verbose=None,
-                  only_specified=False, force_keys={}, type_hint=None):
+                  only_specified=False, force_keys={}, type_hint=None,
+                  alias_dict={}):
     r"""
     Gets values for a dict based on the command line
 
@@ -879,6 +880,10 @@ def argparse_dict(default_dict_, lbl=None, verbose=None,
     num_specified = 0
     for key, default in six.iteritems(default_dict_):
         val, was_specified = get_dictkey_cmdline_val(key, default, type_hint)
+        for alias_key in alias_dict.get(key, []):
+            val, was_specified = get_dictkey_cmdline_val(alias_key, default, type_hint)
+            if was_specified:
+                break
         if VERBOSE_ARGPARSE:
             if was_specified:
                 num_specified += 1

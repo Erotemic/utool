@@ -699,7 +699,7 @@ class InteractiveIter(object):
     """
     def __init__(iiter, iterable=None, enabled=True, startx=0,
                  default_action='next', custom_actions=[], wraparound=False,
-                 display_item=True, verbose=True):
+                 display_item=False, verbose=True):
         r"""
         Args:
             iterable (None): (default = None)
