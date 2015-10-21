@@ -65,12 +65,14 @@ def archive_files(archive_fpath, fpath_list, small=True, allowZip64=False,
     print('Archiving %d files' % len(fpath_list))
     compression = zipfile.ZIP_DEFLATED if small else zipfile.ZIP_STORED
     if common_prefix:
-        rel_arcpath = commonprefix(fpath_list)  # Note: common prefix does not care about file structures
+        # Note: common prefix does not care about file structures
+        rel_arcpath = commonprefix(fpath_list)
         rel_arcpath = ut.longest_existing_path(rel_arcpath)
     else:
         rel_arcpath = dirname(archive_fpath)
     with zipfile.ZipFile(archive_fpath, 'w', compression, allowZip64) as myzip:
-        for fpath in ut.ProgressIter(fpath_list, lbl='archiving files', enabled=verbose, adjust=True):
+        for fpath in ut.ProgressIter(fpath_list, lbl='archiving files',
+                                     enabled=verbose, adjust=True):
             arcname = relpath(fpath, rel_arcpath)
             myzip.write(fpath, arcname)
 
@@ -118,7 +120,8 @@ def untar_file(targz_fpath, force_commonprefix=True):
     tar_file = tarfile.open(targz_fpath, 'r:gz')
     output_dir = dirname(targz_fpath)
     archive_namelist = [mem.path for mem in tar_file.getmembers()]
-    output_dir = _extract_archive(targz_fpath, tar_file, archive_namelist, output_dir, force_commonprefix)
+    output_dir = _extract_archive(targz_fpath, tar_file, archive_namelist,
+                                  output_dir, force_commonprefix)
     tar_file.close()
     return output_dir
 
@@ -227,7 +230,8 @@ def get_prefered_browser(pref_list=[], fallback=True):
 
     # Hack for finding chrome on win32
     #if ut.WIN32:
-    #    # http://stackoverflow.com/questions/24873302/python-generic-webbrowser-get-open-for-chrome-exe-does-not-work
+    #    #
+    #    http://stackoverflow.com/questions/24873302/python-generic-webbrowser-get-open-for-chrome-exe-does-not-work
     #    win32_chrome_fpath = 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe'
     #    win32_chrome_browsername = win32_chrome_fpath + ' %s'
     #    win32_map = {
@@ -250,7 +254,8 @@ def get_prefered_browser(pref_list=[], fallback=True):
     if fallback:
         return webbrowser
     else:
-        raise AssertionError('No browser meets preferences=%r. error_list=%r' % (pref_list, error_list,))
+        raise AssertionError('No browser meets preferences=%r. error_list=%r' %
+                             (pref_list, error_list,))
 
 
 def download_url(url, filename=None, spoof=False):
@@ -297,11 +302,11 @@ def download_url(url, filename=None, spoof=False):
     if spoof:
         # Different agents that can be used for spoofing
         user_agents = [
-            'Mozilla/5.0 (Windows; U; Windows NT 5.1; it; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11',
+            'Mozilla/5.0 (Windows; U; Windows NT 5.1; it; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11',  # NOQA
             'Opera/9.25 (Windows NT 5.1; U; en)',
-            'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)',
+            'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)',  # NOQA
             'Mozilla/5.0 (compatible; Konqueror/3.5; Linux) KHTML/3.5.5 (like Gecko) (Kubuntu)',
-            'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.0.12) Gecko/20070731 Ubuntu/dapper-security Firefox/1.5.0.12',
+            'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.0.12) Gecko/20070731 Ubuntu/dapper-security Firefox/1.5.0.12',  # NOQA
             'Lynx/2.8.5rel.1 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/1.2.9'
         ]
         class SpoofingOpener(urllib.FancyURLopener, object):
@@ -320,6 +325,23 @@ def download_url(url, filename=None, spoof=False):
     print('')
     print('[utool] Finished downloading filename=%r' % (filename,))
     return filename
+
+
+def url_read(url):
+    if six.PY2:
+        import urllib as _urllib
+    elif six.PY3:
+        import urllib.request as _urllib
+    if url.find('://') == -1:
+        url = 'http://' + url
+    print('Reading data from url=%r' % (url,))
+    try:
+        file_ = _urllib.urlopen(url)
+    except IOError:
+        raise
+    data = file_.read()
+    file_.close()
+    return data
 
 
 def experiment_download_multiple_urls(url_list):
@@ -341,7 +363,7 @@ def experiment_download_multiple_urls(url_list):
     Example:
         >>>
         >>> url_list = [
-        >>>     'https://www.dropbox.com/s/jl506apezj42zjz/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe'
+        >>>     'https://www.dropbox.com/s/jl506apezj42zjz/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe',   # NOQA
         >>>     'https://www.dropbox.com/s/v1ivnmny6tlc364/vgg.caffe.slice_0_30_None.pickle',
         >>>     'https://www.dropbox.com/s/v1ivnmny6tlc364/vgg.caffe.slice_0_30_None.pickle',
         >>>     'https://www.dropbox.com/s/v1ivnmny6tlc364/vgg.caffe.slice_0_30_None.pickle',
@@ -378,7 +400,8 @@ def experiment_download_multiple_urls(url_list):
         response = session.get(url, headers=spoof_header, stream=True)
         if response.ok:
             with open(filename, 'wb') as file_:
-                for chunk in ut.ProgressIter(response.iter_content(chunk_size=1024), nTotal=-1, freq=1):
+                _iter = response.iter_content(chunk_size=1024)
+                for chunk in ut.ProgressIter(_iter, nTotal=-1, freq=1):
                     if chunk:  # filter out keep-alive new chunks
                         file_.write(chunk)
                         file_.flush()
@@ -542,7 +565,8 @@ def grab_selenium_chromedriver():
         assert chromedriver_dpath in os.environ['PATH'].split(os.pathsep)
         # TODO: make this work for windows as well
         if ut.LINUX and ut.util_cplat.is64bit_python():
-            ut.grab_zipped_url('http://chromedriver.storage.googleapis.com/2.16/chromedriver_linux64.zip', download_dir=chromedriver_dpath)
+            url = 'http://chromedriver.storage.googleapis.com/2.16/chromedriver_linux64.zip'
+            ut.grab_zipped_url(url, download_dir=chromedriver_dpath)
         else:
             raise AssertionError('unsupported chrome driver getter script')
         if not ut.WIN32:
@@ -714,7 +738,6 @@ if __name__ == '__main__':
     """
     CommandLine:
         sh -c "python ~/code/utool/utool/util_grabdata.py --all-examples"
-        python -c "import utool, utool.util_grabdata; utool.doctest_funcs(utool.util_grabdata, allexamples=True)"
         python -c "import utool, utool.util_grabdata; utool.doctest_funcs(utool.util_grabdata)"
         python -m utool.util_grabdata
         python -m utool.util_grabdata --allexamples
