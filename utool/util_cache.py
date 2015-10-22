@@ -8,6 +8,7 @@ import json
 #import atexit
 #import inspect
 import contextlib
+import collections
 from six.moves import range, zip  # NOQA
 from os.path import join, normpath, basename, exists
 import functools
@@ -874,9 +875,6 @@ def get_lru_cache(max_size=5):
     return cache_obj
 
 
-import collections
-
-
 class LRUDict(object):
     """
     Pure python implementation for lru cache fallback
@@ -1045,9 +1043,9 @@ def time_different_diskstores():
     cPickle_read_test2()
 
 
-#@six.add_metaclass(util_class.ReloadingMetaclass)
-#class LazyDict(collections.Mapping):
-class LazyDict(collections.Mapping):
+@six.add_metaclass(util_class.ReloadingMetaclass)
+class LazyDict(object):
+    #class LazyDict(collections.Mapping):
     """
     Hacky dictionary where values that are functions are counted as lazy
 
@@ -1061,67 +1059,141 @@ class LazyDict(collections.Mapping):
         >>> import utool as ut
         >>> self = ut.LazyDict()
         >>> self['foo'] = lambda: 5
-        >>> ut.print_dict(self.__dict__)
-        >>> print(self)
-        >>> print(self.keys())
-        >>> ut.print_dict(self.__dict__)
         >>> self['bar'] = 4
-        >>> print(self)
-        >>> print(self.keys())
-        >>> ut.print_dict(self.__dict__)
         >>> try:
         >>>     self['foo'] = lambda: 9
-        >>>     assert False
+        >>>     assert False, 'should not be able to override computable functions'
         >>> except ValueError:
         >>>     pass
         >>> self['biz'] = lambda: 9
-        >>> print(self)
-        >>> print(len(self))
         >>> d = {}
         >>> d.update(**self)
-        >>> print(d)
+        >>> self['spam'] = lambda: 'eggs'
+        >>> self.printinfo()
+        >>> print(self.tostring(is_eager=False))
     """
-    def __init__(self, other=None, **kwargs):
+    def __init__(self, other=None, is_eager=True, **kwargs):
         # Registered lazy evaluations
-        self._lazy_funcs = {}
+        self._eval_funcs = {}
         # Computed results
-        self._lazy_results = {}
+        self._stored_results = {}
         self.infer_lazy_vals_hack = True
+        self.is_eager = is_eager
         if other is not None:
             self.update(other)
         if len(kwargs) > 0:
             self.update(kwargs)
 
-    def evalkey(self, key):
-        if key in self._lazy_results:
-            value  = self._lazy_results[key]
-        else:
-            value = self._lazy_funcs[key]()
-            self._lazy_results[key] = value
-        return value
+    # --- direct interface
 
     def set_lazy_func(self, key, func):
-        if key in self._lazy_results:
+        from utool import util_type
+        assert util_type.is_funclike(func), 'func must be a callable'
+        #if key in self._stored_results:
+        #    raise ValueError(
+        #        ('Cannot add new lazy function for key=%r'
+        #         'that has been computed') % (key,))
+        #if key in self._stored_results:
+        if key in self.reconstructable_keys():
             raise ValueError(
-                ('Cannot add new lazy function for key=%r'
-                 'that has been computed') % (key,))
-        self._lazy_funcs[key] = func
+                ('Cannot overwrite lazy function for key=%r') % (key,))
+        self._eval_funcs[key] = func
 
-    def __getitem__(self, key):
-        return self.evalkey(key)
-
-    def __setitem__(self, key, value):
+    def setitem(self, key, value):
         from utool import util_type
         # HACK, lazy funcs should all be registered
         # this should should always just set a value
+        if key in self.reconstructable_keys():
+            raise ValueError(
+                ('Cannot overwrite lazy function for key=%r') % (key,))
         if (self.infer_lazy_vals_hack and
              util_type.is_funclike(value)):
             self.set_lazy_func(key, value)
         else:
-            self._lazy_results[key] = value
+            self._stored_results[key] = value
+
+    def getitem(self, key, is_eager=None):
+        if is_eager is None:
+            is_eager = self.is_eager
+        if is_eager:
+            return self.eager_eval(key)
+        else:
+            return self.lazy_eval(key)
+
+    def eager_eval(self, key):
+        if key in self._stored_results:
+            value  = self._stored_results[key]
+        else:
+            value = self._eval_funcs[key]()
+            self._stored_results[key] = value
+        return value
+
+    def lazy_eval(self, key):
+        if key in self._stored_results:
+            value  = self._stored_results[key]
+        else:
+            value = self._eval_funcs[key]
+        return value
+
+    def clear_evaluated(self):
+        for key in list(self.evaluated_keys()):
+            del self._stored_results[key]
+
+    def clear_stored(self, keys=None):
+        if keys is None:
+            keys = list(self.stored_keys())
+        for key in keys:
+            del self._stored_results[key]
+
+    def stored_keys(self):
+        """ keys whose vals that have been explicitly set or evaluated """
+        return self._stored_results.keys()
+
+    def reconstructable_keys(self):
+        """ only keys whose vals that have been set with a backup func """
+        return set(self._eval_funcs.keys())
+
+    def all_keys(self):
+        return set(self.stored_keys()).union(set(self.reconstructable_keys()))
+
+    def unevaluated_keys(self):
+        """ keys whose vals can be constructed but have not been """
+        return set(self.reconstructable_keys()) - set(self.stored_keys())
+
+    def evaluated_keys(self):
+        """ only keys whose vals have been evaluated from a stored function """
+        return set(self.reconstructable_keys()) - set(self.unevaluated_keys())
+
+    def nonreconstructable_keys(self):
+        """ only keys whose vals that have been explicitly set without a backup func """
+        return set(self.all_keys()) - self.reconstructable_keys()
+
+    def printinfo(self):
+        print('nonreconstructable_keys = %s' % (self.nonreconstructable_keys(),))
+        print('reconstructable_keys = %s' % (self.reconstructable_keys(),))
+        print('evaluated_keys = %s' % (self.evaluated_keys(),))
+        print('unevaluated_keys = %s' % (self.unevaluated_keys(),))
+
+    def asdict(self, is_eager=None):
+        dict_ = {key: self.getitem(key, is_eager) for key in self.keys()}
+        return dict_
+
+    def tostring(self, is_eager=None, **kwargs):
+        import utool as ut
+        dict_ = self.asdict(is_eager=is_eager)
+        return ut.dict_str(dict_, **kwargs)
+
+    # --- dict interface
+
+    def __setitem__(self, key, value):
+        self.setitem(key, value)
+
+    def __getitem__(self, key):
+        return self.get(key)
 
     def get(self, key, *d):
-        return self.evalkey(key)
+        assert len(d) == 0, 'no support for default yet'
+        return self.getitem(key, self.is_eager)
 
     def update(self, dict_, **kwargs):
         for key, val in six.iteritems(dict_):
@@ -1130,13 +1202,13 @@ class LazyDict(collections.Mapping):
             self[key] = val
 
     def keys(self):
-        #from utool import util_iter
-        keys_ = set(self._lazy_results.keys())
-        keys_ = keys_.union(set(self._lazy_funcs.keys()))
-        return list(keys_)
+        return self.all_keys()
 
     def values(self):
         return [self[key] for key in self.keys()]
+
+    def items(self):
+        return [(key, self[key]) for key in self.keys()]
 
     def __iter__(self):
         return iter(self.keys())
@@ -1144,20 +1216,37 @@ class LazyDict(collections.Mapping):
     def __len__(self):
         return len(self.keys())
 
-    def asdict(self):
-        dict_ = {key: self[key] for key in self.keys()}
-        return dict_
-
     def __str__(self):
-        import utool as ut
-        return ut.dict_str(self.asdict())
+        return self.tostring()
+
+    def __repr__(self):
+        return self.tostring(is_eager=False, nl=False)
 
     #def __getstate__(self):
     #    state_dict = self.asdict()
     #    return state_dict
 
     #def __setstate__(self, state_dict):
-    #    self._lazy_results.update(state_dict)
+    #    self._stored_results.update(state_dict)
+
+
+@six.add_metaclass(util_class.ReloadingMetaclass)
+class LazyList(object):
+    """ very hacky list implemented as a dictionary """
+    def __init__(self):
+        self._hackstore = LazyDict()
+
+    def __len__(self):
+        return len(self._hackstore)
+
+    def __getitem__(self, index):
+        return self._hackstore[index]
+
+    def append(self, item):
+        self._hackstore[len(self._hackstore)] = item
+
+    def tolist(self):
+        return self._hackstore.values()
 
 
 if __name__ == '__main__':

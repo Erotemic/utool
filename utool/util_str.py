@@ -1301,7 +1301,7 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
     #return '[%s\n]' % indentjoin(list(list_), suffix=',')
     #if newlines is True:
     #    newlines_ = newlines
-    ## newlines can either be a bool or countdown variable
+    # newlines can either be a bool or countdown variable
     #elif isinstance(newlines, int):
     #    newlines_ = newlines - 1
     #else:
@@ -2206,6 +2206,40 @@ def is_url(str_):
         '.org/' in str_,
         '.com/' in str_,
     ])
+
+
+def autoformat_pep8(sourcecode, **kwargs):
+    r"""
+    Args:
+        code (str):
+
+    CommandLine:
+        python -m utool.util_str --exec-autoformat_pep8
+
+    Kwargs:
+        'aggressive': 0,
+        'diff': False,
+        'exclude': [],
+        'experimental': False,
+        'files': [u''],
+        'global_config': ~/.config/pep8,
+        'ignore': set([u'E24']),
+        'ignore_local_config': False,
+        'in_place': False,
+        'indent_size': 4,
+        'jobs': 1,
+        'line_range': None,
+        'list_fixes': False,
+        'max_line_length': 79,
+        'pep8_passes': -1,
+        'recursive': False,
+        'select': ,
+        'verbose': 0,
+    """
+    import autopep8
+    pep8_options = autopep8._get_options(kwargs, False)
+    new_source = autopep8.fix_code(sourcecode, pep8_options)
+    return new_source
 
 
 if __name__ == '__main__':

@@ -50,7 +50,7 @@ def get_timestamp(format_='filename', use_second=False, delta_seconds=None, isut
     get_timestamp
 
     Args:
-        format_ (str):
+        format_ (str): (tag, printable, filename, other)
         use_second (bool):
         delta_seconds (None):
 
