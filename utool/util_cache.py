@@ -1072,13 +1072,15 @@ class LazyDict(object):
         >>> self.printinfo()
         >>> print(self.tostring(is_eager=False))
     """
-    def __init__(self, other=None, is_eager=True, **kwargs):
+    def __init__(self, other=None, is_eager=True, verbose=False, **kwargs):
         # Registered lazy evaluations
         self._eval_funcs = {}
         # Computed results
         self._stored_results = {}
         self.infer_lazy_vals_hack = True
-        self.is_eager = is_eager
+        self._is_eager = is_eager
+        self._verbose = verbose
+        self.reprkw = dict(is_eager=False, nl=False)
         if other is not None:
             self.update(other)
         if len(kwargs) > 0:
@@ -1114,7 +1116,7 @@ class LazyDict(object):
 
     def getitem(self, key, is_eager=None):
         if is_eager is None:
-            is_eager = self.is_eager
+            is_eager = self._is_eager
         if is_eager:
             return self.eager_eval(key)
         else:
@@ -1124,6 +1126,8 @@ class LazyDict(object):
         if key in self._stored_results:
             value  = self._stored_results[key]
         else:
+            if self._verbose:
+                print('[util_cache] Evaluating key=%r' % (key,))
             value = self._eval_funcs[key]()
             self._stored_results[key] = value
         return value
@@ -1193,7 +1197,7 @@ class LazyDict(object):
 
     def get(self, key, *d):
         assert len(d) == 0, 'no support for default yet'
-        return self.getitem(key, self.is_eager)
+        return self.getitem(key, self._is_eager)
 
     def update(self, dict_, **kwargs):
         for key, val in six.iteritems(dict_):
@@ -1220,7 +1224,7 @@ class LazyDict(object):
         return self.tostring()
 
     def __repr__(self):
-        return self.tostring(is_eager=False, nl=False)
+        return self.tostring(**self.reprkw)
 
     #def __getstate__(self):
     #    state_dict = self.asdict()
@@ -1233,8 +1237,8 @@ class LazyDict(object):
 @six.add_metaclass(util_class.ReloadingMetaclass)
 class LazyList(object):
     """ very hacky list implemented as a dictionary """
-    def __init__(self):
-        self._hackstore = LazyDict()
+    def __init__(self, **kwargs):
+        self._hackstore = LazyDict(**kwargs)
 
     def __len__(self):
         return len(self._hackstore)

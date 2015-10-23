@@ -364,7 +364,7 @@ class ProgressIter(object):
         #        state.freq = 1
         #        pass
         DEBUG_FREQ_ADJUST = False
-        autoadjust = self.autoadjust
+        adjust = self.autoadjust
         # SETUP VARIABLES
         # HACK: reaquire logging print funcs in case they have changed
         PROGRESS_WRITE = util_logging.__UTOOL_WRITE__
@@ -448,9 +448,10 @@ class ProgressIter(object):
                 # so progress doesnt slow down actual function
                 # TODO: better adjust algorithm
                 time_thresh *= time_thresh_growth
-                if autoadjust and (between_time < time_thresh or between_time > time_thresh * 2.0):
+                if adjust and (between_time < time_thresh or between_time > time_thresh * 2.0):
                     max_between_time = max(max(max_between_time, between_time), 1E-9)
                     max_between_count = max(max_between_count, between_count)
+                    new_freq = max(int(1.3 * time_thresh * max_between_count / max_between_time), 1)
                     if DEBUG_FREQ_ADJUST:
                         print('\n+---')
                         print('[prog] between_count = %r' % between_count)
@@ -459,10 +460,15 @@ class ProgressIter(object):
                         print('[prog] max_between_count = %r' % max_between_count)
                         print('[prog] max_between_time = %r' % max_between_time)
                         print('[prog] Adusting frequency from: %r' % freq)
-                    freq = max(int(1.3 * time_thresh * max_between_count / max_between_time), 1)
-                    if DEBUG_FREQ_ADJUST:
-                        print('[prog] Adusting frequency to: %r' % freq)
+                        print('[prog] Adusting frequency to: %r' % new_freq)
                         print('L___')
+                    max_freq_change = 1000
+                    if (new_freq - freq) > max_freq_change:
+                        freq += max_freq_change
+                    elif (freq - new_freq) > max_freq_change:
+                        freq -= max_freq_change
+                    else:
+                        freq = new_freq
                 msg = msg_fmtstr % (
                     self.count,
                     1.0 / iters_per_second if self.invert_rate else iters_per_second,
@@ -767,10 +773,14 @@ def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
         return lambda count: None, lambda: None
     # none: nothing
     if progress_type == 'none':
-        mark_progress =  lambda count: None
+        def mark_progress_None(count):
+            return None
+        mark_progress = mark_progress_None
     # simple: one dot per progress. no flush.
     if progress_type == 'simple':
-        mark_progress = lambda count: write_fn('.')
+        def mark_progress_simple(count):
+            write_fn('.')
+        mark_progress = mark_progress_simple
     # dots: spaced dots
     if progress_type == 'dots':
         indent_ = '    '
