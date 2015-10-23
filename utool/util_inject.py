@@ -502,6 +502,16 @@ def split_python_text_into_lines(text):
     return lines
 
 
+def inject_python_code2(fpath, patch_code, tag):
+    """ Does autogeneration stuff """
+    import utool as ut
+    text = ut.readfrom(fpath)
+    start_tag = '# <%s>' % tag
+    end_tag = '# </%s>' % tag
+    new_text = ut.replace_between_tags(text, patch_code, start_tag, end_tag)
+    ut.writeto(fpath, new_text)
+
+
 def inject_python_code(fpath, patch_code, tag=None, inject_location='after_imports'):
     """ puts code into files on disk """
     import utool as ut

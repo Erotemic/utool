@@ -26,6 +26,9 @@ def print_dict(dict_, dict_name=None, **kwargs):
     dict_repr = util_str.dict_str(dict_, **kwargs)
     print(dict_name + ' = ' + dict_repr)
 
+printdict = print_dict
+dictprint = print_dict
+
 
 def print_list(list_, **kwargs):
     import utool as ut

@@ -38,6 +38,43 @@ else:
 
 
 def replace_between_tags(text, repl_, start_tag, end_tag):
+    r"""
+    Args:
+        text (str):
+        repl_ (?):
+        start_tag (?):
+        end_tag (?):
+
+    Returns:
+        ?: new_text
+
+    CommandLine:
+        python -m utool.util_str --exec-replace_between_tags
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> text = ut.codeblock(
+            '''
+            class:
+                # <FOO>
+                bar
+                # </FOO>
+                baz
+            ''')
+        >>> repl_ = 'spam'
+        >>> start_tag = '# <FOO>'
+        >>> end_tag = '# </FOO>'
+        >>> new_text = replace_between_tags(text, repl_, start_tag, end_tag)
+        >>> result = ('new_text =\n%s' % (str(new_text),))
+        >>> print(result)
+        new_text =
+        class:
+            # <FOO>
+        spam
+            # </FOO>
+            baz
+    """
     new_lines = []
     editing = False
     lines = text.split('\n')
@@ -45,10 +82,13 @@ def replace_between_tags(text, repl_, start_tag, end_tag):
         if not editing:
             new_lines.append(line)
         if line.strip().startswith(start_tag):
-            new_lines.append(repl_ + '\n' + end_tag + '\n')
+            #new_lines.append(repl_ + '\n' + end_tag + '\n')
+            #new_lines.append(repl_ + '\n' + end_tag)
+            new_lines.append(repl_)
             editing = True
         if line.strip().startswith(end_tag):
             editing = False
+            new_lines.append(line)
     new_text = '\n'.join(new_lines)
     return new_text
 

@@ -57,12 +57,12 @@ def truepath_relative(path, otherpath=None):
     return normpath(relpath(path, otherpath))
 
 
-def tail(fpath, n=2):
+def tail(fpath, n=2, trailing=True):
     """ Alias for path_ndir_split """
-    return path_ndir_split(fpath, n=n)
+    return path_ndir_split(fpath, n=n, trailing=trailing)
 
 
-def path_ndir_split(path_, n, force_unix=True, winroot='C:'):
+def path_ndir_split(path_, n, force_unix=True, winroot='C:', trailing=True):
     r"""
     Shows only a little bit of the path. Up to the n bottom-level directories
 
@@ -70,6 +70,9 @@ def path_ndir_split(path_, n, force_unix=True, winroot='C:'):
 
     Returns:
         (str) the trailing n paths of path.
+
+    CommandLine:
+        python -m utool.util_path --exec-path_ndir_split
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -79,8 +82,8 @@ def path_ndir_split(path_, n, force_unix=True, winroot='C:'):
         ...          r'C:/',
         ...          #r'lonerel',
         ...          #r'reldir/other',
-        ...          #r'/ham',
-        ...          #r'/spam/eggs',
+        ...          r'/ham',
+        ...          r'/spam/eggs',
         ...          r'C:\Program Files (x86)/foobar/bin',]
         >>> N = 2
         >>> iter_ = ut.iprod(paths, range(1, N + 1))
@@ -91,9 +94,11 @@ def path_ndir_split(path_, n, force_unix=True, winroot='C:'):
         >>> line_list = [', '.join(strs) for strs in list_]
         >>> result = '\n'.join(line_list)
         >>> print(result)
-        n=1: 'bar', n=2: 'foo/bar'
+        n=1: '.../bar', n=2: '.../foo/bar'
         n=1: 'C:/', n=2: 'C:/'
-        n=1: 'bin', n=2: 'foobar/bin'
+        n=1: '.../ham', n=2: '/ham'
+        n=1: '.../eggs', n=2: '.../spam/eggs'
+        n=1: '.../bin', n=2: '.../foobar/bin'
     """
     if n is None:
         return ensure_crossplat_path(path_)
@@ -102,19 +107,32 @@ def path_ndir_split(path_, n, force_unix=True, winroot='C:'):
     sep = '/' if force_unix else os.sep
     ndirs_list = []
     head = path_
+    reached_end = False
     for nx in range(n):
+        #print('--')
+        #print('IN head = %r' % (head,))
         head, tail = split(head)
+        #print('head = %r' % (head,))
+        #print('tail = %r' % (tail,))
         if tail == '':
             if head == '':
+                reached_end = True
                 break
             else:
                 root = head if len(ndirs_list) == 0 else head.strip('\\/')
                 ndirs_list.append(root)
+                reached_end = True
                 break
         else:
             ndirs_list.append(tail)
+        #print('ndirs_list = %r' % (ndirs_list,))
+    #if head == '/':
+    #    reached_end = True
     ndirs = sep.join(ndirs_list[::-1])
     cplat_path = ensure_crossplat_path(ndirs)
+    #if trailing and not reached_end:
+    if trailing and not reached_end:
+        cplat_path = '.../' + cplat_path
     return cplat_path
 
 

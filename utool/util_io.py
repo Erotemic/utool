@@ -25,33 +25,33 @@ __FORCE_PRINT_WRITES__ = False
 #__FORCE_PRINT_WRITES__ = True
 
 
-def load_data(fpath, mmap_mode=None):
+def load_data(fpath, **kwargs):
     """ More generic interface to load data """
     ext = splitext(fpath)[1]
     if ext in ['.pickle', '.cPkl', '.pkl']:
-        return load_cPkl(fpath)
+        return load_cPkl(fpath, **kwargs)
     elif ext in ['.hdf5']:
-        return load_hdf5(fpath)
+        return load_hdf5(fpath, **kwargs)
     elif ext in ['.txt']:
-        return load_text(fpath)
+        return load_text(fpath, **kwargs)
     elif HAS_NUMPY and ext in ['.npz', '.npy']:
-        return load_numpy(fpath, mmap_mode=mmap_mode)
+        return load_numpy(fpath, **kwargs)
     else:
         assert False, 'unknown ext=%r for fpath=%r' % (ext, fpath)
 
 
-def save_data(fpath, data):
+def save_data(fpath, data, **kwargs):
     """ More generic interface to write data """
     ext = splitext(fpath)[1]
     if ext in ['.pickle', '.cPkl', '.pkl']:
-        return save_cPkl(fpath, data)
+        return save_cPkl(fpath, data, **kwargs)
     elif ext in ['.hdf5']:
-        return save_hdf5(fpath, data)
+        return save_hdf5(fpath, data, **kwargs)
     elif ext in ['.txt']:
-        return save_text(fpath)
+        return save_text(fpath, **kwargs)
     elif HAS_NUMPY and ext in ['.npz', '.npy']:
         # TODO save_numpy
-        return np.save(fpath, data, )
+        return np.save(fpath, data, **kwargs)
     else:
         assert False, 'unknown ext=%r for fpath=%r' % (ext, fpath)
 
@@ -218,6 +218,12 @@ def save_hdf5(fpath, data, verbose=False, compression='lzf'):
     """
     if verbose or (verbose is None and __PRINT_WRITES__) or __FORCE_PRINT_WRITES__:
         print('[util_io] * save_hdf5(%r, data)' % (util_path.tail(fpath),))
+    if verbose > 1:
+        if isinstance(data, dict):
+            print('[util_io] ... shapes=%r' % ([val.shape for val in data.values()],))
+        else:
+            print('[util_io] ... shape=%r' % (data.shape,))
+
     import h5py
     from os.path import basename
     import numpy as np
@@ -252,8 +258,8 @@ def save_hdf5(fpath, data, verbose=False, compression='lzf'):
         assert isinstance(data, np.ndarray)
         shape = data.shape
         dtype = data.dtype
-        if verbose or (verbose is None and __PRINT_WRITES__):
-            print('[util_io] * save_hdf5(%r, data)' % (util_path.tail(fpath),))
+        #if verbose or (verbose is None and __PRINT_WRITES__):
+        #    print('[util_io] * save_hdf5(%r, data)' % (util_path.tail(fpath),))
         # file_ = h5py.File(fpath, 'w', **h5kw)
         with h5py.File(fpath, mode='w', **h5kw) as file_:
             #file_.create_dataset(

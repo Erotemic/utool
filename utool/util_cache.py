@@ -1244,13 +1244,20 @@ class LazyList(object):
         return len(self._hackstore)
 
     def __getitem__(self, index):
-        return self._hackstore[index]
+        try:
+            return self._hackstore[index]
+        except KeyError:
+            raise ValueError('index=%r out of bounds' % (index,))
 
     def append(self, item):
         self._hackstore[len(self._hackstore)] = item
 
     def tolist(self):
         return self._hackstore.values()
+
+    def __iter__(self):
+        for index in range(len(self)):
+            yield self[index]
 
 
 if __name__ == '__main__':

@@ -310,6 +310,11 @@ def dynamic_import(modname, IMPORT_TUPLES, developing=True, ignore_froms=[],
             print(util_str.indent(initstr))
     # Overwrite the __init__.py file with new explicit imports
     if overwrite_requested:
+        """
+        SeeAlso:
+            util_inject.inject_python_code
+            util_str.replace_between_tags
+        """
         is_main_proc = multiprocessing.current_process().name == 'MainProcess'
         if is_main_proc:
             from utool import util_str
