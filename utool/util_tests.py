@@ -1546,17 +1546,29 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
         # Search for the module containing the function
         test_func = None
         test_module = None
+        test_classname = None
+        if test_funcname.find('.') != -1:
+            test_classname, test_funcname = test_funcname.split('.')
         if test_funcname.find(':') != -1:
             test_funcname, testno = test_funcname.split(':')
             testno = int(testno)
         else:
             testno = 0
-        for module_ in module_list:
-            #test_funcname = 'find_installed_tomcat'
-            if test_funcname in module_.__dict__:
-                test_module = module_
-                test_func = test_module.__dict__[test_funcname]
-                break
+        if test_classname is None:
+            for module_ in module_list:
+                #test_funcname = 'find_installed_tomcat'
+                if test_funcname in module_.__dict__:
+                    test_module = module_
+                    test_func = test_module.__dict__[test_funcname]
+                    break
+        else:
+            for module_ in module_list:
+                #test_funcname = 'find_installed_tomcat'
+                if test_classname in module_.__dict__:
+                    test_module = module_
+                    test_class = test_module.__dict__[test_classname]
+                    test_func = test_class.__dict__[test_funcname]
+
         if test_func is not None:
             testsrc = ut.get_doctest_examples(test_func)[0][testno]
             try:
@@ -1569,7 +1581,8 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
             sys.exit(retcode)
         else:
             print('Did not find any function named %r ' % (test_funcname,))
-            print('Searched ' + ut.list_str([mod.__name__ for mod in module_list]))
+            print('Searched ' + ut.list_str([mod.__name__
+                                             for mod in module_list]))
             sys.exit(0)
 
 
