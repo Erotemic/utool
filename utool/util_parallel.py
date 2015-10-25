@@ -736,16 +736,12 @@ def buffered_generator(source_gen, buffer_size=2, use_multiprocessing=False):
         >>> from utool.util_parallel import _test_buffered_generator
         >>> _test_buffered_generator2()
     """
-    debug = False
-    if debug:
-        print('Starting buffered generation')
     if buffer_size < 2:
         raise RuntimeError("Minimal buffer_ size is 2!")
 
     if use_multiprocessing:
+        assert False, 'dont use this buffered multiprocessing'
         if False:
-            if debug:
-                print('Using pooled multiprocessing')
             if USE_GLOBAL_POOL:
                 pool = __POOL__
             else:
@@ -754,14 +750,10 @@ def buffered_generator(source_gen, buffer_size=2, use_multiprocessing=False):
                                 maxtasksperchild=None)
             Process = pool.Process
         else:
-            if debug:
-                print('Using unpooled multiprocessing')
             Process = multiprocessing.Process
         _Queue = multiprocessing.Queue
         target = _buffered_generation_process
     else:
-        if debug:
-            print('Using GIL threading')
         _Queue = Queue.Queue
         Process = threading.Thread
         target = _buffered_generation_thread
@@ -776,12 +768,6 @@ def buffered_generator(source_gen, buffer_size=2, use_multiprocessing=False):
     # process
     sentinal = StopIteration  # mildly hacky use of StopIteration exception
 
-    #print('\ncreate sentinal: ' + repr(sentinal))
-
-    if debug:
-        print('source_gen = %r' % (source_gen,))
-        print('Creating Process')
-
     process = Process(
         target=target,
         args=(iter(source_gen), buffer_, sentinal)
@@ -789,35 +775,19 @@ def buffered_generator(source_gen, buffer_size=2, use_multiprocessing=False):
     if not use_multiprocessing:
         process.daemon = True
 
-    if debug:
-        print('About to start process')
     process.start()
-    if debug:
-        print('Process started')
 
-    if debug:
-        print('About to iterate')
-
-    #out = []
-    #import utool as ut
-    #ut.embed()
     while True:
         output = buffer_.get(timeout=1.0)
         if output is sentinal:
             raise StopIteration
         yield output
-        #out.append(output)
-        #    print('foo')
-        #    break
 
     #_iter = iter(buffer_.get, sentinal)
     #for data in _iter:
     #    if debug:
     #        print('Yeidling')
     #    yield data
-
-    if debug:
-        print('Done yeilding')
 
 
 def _buffered_generation_thread(source_gen, buffer_, sentinal):
