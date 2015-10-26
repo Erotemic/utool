@@ -528,27 +528,9 @@ def __testwarp(tup):
     return new
 
 
-#class Sentinal(object):
-#    """
-#    Lightweight object that can be used as a sentinal in iter instead of None
-#    Never generate this in a buffered generator
-#    """
-#
-#    def __eq__(self, other):
-#        return isinstance(other, self.__class__)
-#
-#    def __getstate__(self):
-#        return {}
-#
-#    def __setstate__(self, state):
-#        pass
-
-
 def _test_buffered_generator():
     """
-    This test confirms that generate seems to just be better
-    Test the case when there is a expensive process between
-    the generator calls.
+    Test for standard python calls
 
     CommandLine:
         python -m utool.util_parallel --test-_test_buffered_generator
@@ -565,7 +547,7 @@ def _test_buffered_generator():
         #time.sleep(.1)
         import utool as ut
         [ut.is_prime(prime) for _ in range(2)]
-    _test_buffered_generator_general(func, args, sleepfunc)
+    _test_buffered_generator_general(func, args, sleepfunc, 10.0)
 
 
 def _test_buffered_generator2():
@@ -573,10 +555,10 @@ def _test_buffered_generator2():
     CommandLine:
         python -m utool.util_parallel --test-_test_buffered_generator2
 
-    This test confirms that generate seems to just be better
-    Test the case when there is a expensive process between
-    the generator calls.
+    Looking at about time_thresh=15s or 350 iterations to get buffered over
+    serial.
 
+    Test for numpy calls
 
     Example:
         >>> from utool.util_parallel import *  # NOQA
@@ -586,13 +568,14 @@ def _test_buffered_generator2():
     #import utool as ut
     # ---- Func and Sleep Definitions
     from functools import partial
-    args = [np.random.RandomState(0).rand(256, 256)]  # 38873
+    rng = np.random.RandomState(0)
+    args = [rng.rand(256, 256) for _ in range(32)]  # 38873
     func = partial(np.divide, 4.3)
     def sleepfunc(prime=346373):
         #time.sleep(.1)
         import utool as ut
         [ut.is_prime(prime) for _ in range(2)]
-    _test_buffered_generator_general(func, args, sleepfunc)
+    _test_buffered_generator_general(func, args, sleepfunc, 15.0)
 
 
 def _test_buffered_generator3():
@@ -616,14 +599,17 @@ def _test_buffered_generator3():
         #time.sleep(.1)
         import utool as ut
         [ut.is_prime(prime) for _ in range(2)]
-    _test_buffered_generator_general(func, args, sleepfunc)
+    _test_buffered_generator_general(func, args, sleepfunc, 4.0)
 
 
-def _test_buffered_generator_general(func, args, sleepfunc):
+def _test_buffered_generator_general(func, args, sleepfunc,
+                                     target_looptime=1.0):
+    """
     # We are going to generate output of func in the background while sleep
     # func is running in the foreground
     # --- Hyperparams
     target_looptime = 1.5  # maximum time to run all loops
+    """
     serial_cheat = 1  # approx division factor to run serial less times
     show_serial = True  # target_looptime < 10.  # 3.0
 
@@ -682,7 +668,8 @@ def _test_buffered_generator_general(func, args, sleepfunc):
             parallel_efficiency(t3.ellapsed, est_tsleep, prac_tfunc),))
 
 
-def buffered_generator(source_gen, buffer_size=2, use_multiprocessing=False):
+def buffered_generator(source_gen, buffer_size=2):
+    #, use_multiprocessing=False):
     r"""
     Generator that runs a slow source generator in a separate process.
 
@@ -739,24 +726,24 @@ def buffered_generator(source_gen, buffer_size=2, use_multiprocessing=False):
     if buffer_size < 2:
         raise RuntimeError("Minimal buffer_ size is 2!")
 
-    if use_multiprocessing:
-        assert False, 'dont use this buffered multiprocessing'
-        if False:
-            if USE_GLOBAL_POOL:
-                pool = __POOL__
-            else:
-                pool = new_pool(num_procs=get_default_numprocs(),
-                                init_worker=init_worker,
-                                maxtasksperchild=None)
-            Process = pool.Process
-        else:
-            Process = multiprocessing.Process
-        _Queue = multiprocessing.Queue
-        target = _buffered_generation_process
-    else:
-        _Queue = Queue.Queue
-        Process = threading.Thread
-        target = _buffered_generation_thread
+    #if use_multiprocessing:
+    #    assert False, 'dont use this buffered multiprocessing'
+    #    if False:
+    #        if USE_GLOBAL_POOL:
+    #            pool = __POOL__
+    #        else:
+    #            pool = new_pool(num_procs=get_default_numprocs(),
+    #                            init_worker=init_worker,
+    #                            maxtasksperchild=None)
+    #        Process = pool.Process
+    #    else:
+    #        Process = multiprocessing.Process
+    #    _Queue = multiprocessing.Queue
+    #    target = _buffered_generation_process
+    #else:
+    _Queue = Queue.Queue
+    Process = threading.Thread
+    target = _buffered_generation_thread
 
     # the effective buffer_ size is one less, because the generation process
     # will generate one extra element and block until there is room in the
@@ -772,8 +759,8 @@ def buffered_generator(source_gen, buffer_size=2, use_multiprocessing=False):
         target=target,
         args=(iter(source_gen), buffer_, sentinal)
     )
-    if not use_multiprocessing:
-        process.daemon = True
+    #if not use_multiprocessing:
+    process.daemon = True
 
     process.start()
 
@@ -798,15 +785,15 @@ def _buffered_generation_thread(source_gen, buffer_, sentinal):
     buffer_.put(sentinal)
 
 
-def _buffered_generation_process(source_gen, buffer_, sentinal):
-    """ helper for buffered_generator """
-    for data in source_gen:
-        buffer_.put(data, block=True)
-    # sentinel: signal the end of the iterator
-    buffer_.put(sentinal)
-    # unfortunately this does not suffice as a signal: if buffer_.get() was
-    # called and subsequently the buffer_ is closed, it will block forever.
-    buffer_.close()
+#def _buffered_generation_process(source_gen, buffer_, sentinal):
+#    """ helper for buffered_generator """
+#    for data in source_gen:
+#        buffer_.put(data, block=True)
+#    # sentinel: signal the end of the iterator
+#    buffer_.put(sentinal)
+#    # unfortunately this does not suffice as a signal: if buffer_.get() was
+#    # called and subsequently the buffer_ is closed, it will block forever.
+#    buffer_.close()
 
 
 def process(func, args_list, args_dict={}, force_serial=None,

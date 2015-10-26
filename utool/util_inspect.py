@@ -623,6 +623,89 @@ def get_docstr(func_or_class):
     return docstr
 
 
+def prettyprint_parsetree(pt):
+    """
+    pip install astdump
+    pip install codegen
+    """
+    #import astdump
+    import astor
+    #import codegen
+    #import ast
+    #astdump.indented(pt)
+    #print(ast.dump(pt, include_attributes=True))
+    print(astor.dump(pt))
+
+
+def find_child_kwarg_funcs(sourcecode, target_kwargs_name='kwargs'):
+    r"""
+    CommandLine:
+        python -m utool.util_inspect --exec-find_child_kwarg_funcs
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import utool as ut
+        >>> sourcecode = ut.codeblock(
+            '''
+            warped_patch1_list, warped_patch2_list = list(zip(*ut.ichunks(data, 2)))
+            interact_patches(labels, warped_patch1_list, warped_patch2_list, flat_metadata, **kwargs)
+            import sys
+            sys.badcall(**kwargs)
+            def foo():
+                bar(**kwargs)
+                ut.holymoly(**kwargs)
+                baz()
+                def biz(**kwargs):
+                    foo2(**kwargs)
+            ''')
+        >>> child_funcnamess = ut.find_child_kwarg_funcs(sourcecode)
+        >>> assert 'foo2' not in child_funcnamess
+        >>> assert 'bar' in child_funcnamess
+        >>> print('child_funcnamess = %r' % (child_funcnamess,))
+
+    Notes:
+        import astor
+        print(astor.dump(pt))
+        print(sourcecode)
+    """
+    import ast
+    sourcecode = 'from __future__ import print_function\n' + sourcecode
+    pt = ast.parse(sourcecode)
+    child_funcnamess = []
+    debug = False
+
+    class CallVisitor(ast.NodeVisitor):
+        def visit_FunctionDef(self, node):
+            if debug:
+                print('\nFUNCDEF node = %r' % (node,))
+            if node.args.kwarg != target_kwargs_name:
+                # target kwargs is still in scope
+                ast.NodeVisitor.generic_visit(self, node)
+
+        def visit_Call(self, node):
+            if debug:
+                print('\nVisiting Call node = %r' % (node,))
+                #print(ut.dict_str(node.__dict__,))
+            if isinstance(node.func, ast.Attribute):
+                funcname = node.func.value.id + '.' + node.func.attr
+            elif isinstance(node.func, ast.Name):
+                funcname = node.func.id
+            else:
+                raise NotImplementedError(
+                    'do not know how to parse: node.func = %r' % (node.func,))
+            kwargs = node.kwargs
+            kwargs_name = None if kwargs is None else kwargs.id
+            if kwargs_name == target_kwargs_name:
+                child_funcnamess.append(funcname)
+            if debug:
+                print('funcname = %r' % (funcname,))
+                print('kwargs_name = %r' % (kwargs_name,))
+            ast.NodeVisitor.generic_visit(self, node)
+    CallVisitor().visit(pt)
+    return child_funcnamess
+    #print('child_funcnamess = %r' % (child_funcnamess,))
+
+
 def parse_return_type(sourcecode):
     r"""
 
@@ -931,6 +1014,27 @@ def get_func_argspec(func):
         return argspec
     argspec = inspect.getargspec(func)
     return argspec
+
+
+def recursive_parse_kwargs(root_func, path_=None):
+    """ recursive kwargs parser """
+    import utool as ut
+    if path_ is None:
+        path_ = []
+    if root_func in path_:
+        return []
+    path_.append(root_func)
+    spec = ut.get_func_argspec(root_func)
+    # ADD MORE
+    kwargs_list = ut.get_kwargs(root_func)[0]
+    if spec.keywords is not None:
+        sourcecode = ut.get_func_sourcecode(root_func, strip_docstr=True,
+                                            stripdef=True)
+        subfunc_name_list = ut.find_child_kwarg_funcs(sourcecode, spec.keywords)
+        for subfunc_name in subfunc_name_list:
+            subfunc = root_func.func_globals[subfunc_name]
+            kwargs_list.extend(recursive_parse_kwargs(subfunc))
+    return kwargs_list
 
 
 def parse_func_kwarg_keys(func, with_vals=False):
