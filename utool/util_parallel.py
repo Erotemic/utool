@@ -8,13 +8,8 @@ import atexit
 import sys
 import signal
 import six
-from six.moves import map, range, zip  # NOQA
-if six.PY2:
-    import thread as _thread
-elif six.PY3:
-    import _thread
 import threading
-import Queue
+from six.moves import map, range, zip  # NOQA
 from utool._internal.meta_util_six import get_funcname
 from utool import util_progress
 from utool import util_time
@@ -22,6 +17,12 @@ from utool import util_arg
 from utool import util_dbg
 from utool import util_inject
 from utool import util_cplat
+if six.PY2:
+    import thread as _thread
+    import Queue as queue
+elif six.PY3:
+    import _thread
+    import queue
 util_inject.noinject('[parallel]')
 
 QUIET   = util_arg.QUIET
@@ -741,7 +742,7 @@ def buffered_generator(source_gen, buffer_size=2):
     #    _Queue = multiprocessing.Queue
     #    target = _buffered_generation_process
     #else:
-    _Queue = Queue.Queue
+    _Queue = queue.Queue
     Process = threading.Thread
     target = _buffered_generation_thread
 

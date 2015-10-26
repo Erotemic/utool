@@ -640,7 +640,7 @@ def prettyprint_parsetree(pt):
 def find_child_kwarg_funcs(sourcecode, target_kwargs_name='kwargs'):
     r"""
     CommandLine:
-        python -m utool.util_inspect --exec-find_child_kwarg_funcs
+        python3 -m utool.util_inspect --exec-find_child_kwarg_funcs
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -659,32 +659,48 @@ def find_child_kwarg_funcs(sourcecode, target_kwargs_name='kwargs'):
                     foo2(**kwargs)
             ''')
         >>> child_funcnamess = ut.find_child_kwarg_funcs(sourcecode)
-        >>> assert 'foo2' not in child_funcnamess
-        >>> assert 'bar' in child_funcnamess
         >>> print('child_funcnamess = %r' % (child_funcnamess,))
+        >>> assert 'foo2' not in child_funcnamess, 'foo2 should not be found'
+        >>> assert 'bar' in child_funcnamess, 'bar should be found'
 
     Notes:
-        import astor
-        print(astor.dump(pt))
-        print(sourcecode)
     """
     import ast
     sourcecode = 'from __future__ import print_function\n' + sourcecode
     pt = ast.parse(sourcecode)
     child_funcnamess = []
-    debug = False
+    debug = True
+
+    if debug:
+        print('\nInput:')
+        print('target_kwargs_name = %r' % (target_kwargs_name,))
+        print('\nSource:')
+        print(sourcecode)
+        import astor
+        print('\nParse:')
+        print(astor.dump(pt))
 
     class CallVisitor(ast.NodeVisitor):
         def visit_FunctionDef(self, node):
             if debug:
-                print('\nFUNCDEF node = %r' % (node,))
-            if node.args.kwarg != target_kwargs_name:
+                print('\nVISIT FunctionDef node = %r' % (node,))
+                print('node.args.kwarg = %r' % (node.args.kwarg,))
+            if six.PY2:
+                kwarg_name = node.args.kwarg
+            else:
+                if node.args.kwarg is None:
+                    kwarg_name = None
+                else:
+                    kwarg_name = node.args.kwarg.arg
+                #import utool as ut
+                #ut.embed()
+            if kwarg_name != target_kwargs_name:
                 # target kwargs is still in scope
                 ast.NodeVisitor.generic_visit(self, node)
 
         def visit_Call(self, node):
             if debug:
-                print('\nVisiting Call node = %r' % (node,))
+                print('\nVISIT Call node = %r' % (node,))
                 #print(ut.dict_str(node.__dict__,))
             if isinstance(node.func, ast.Attribute):
                 funcname = node.func.value.id + '.' + node.func.attr
