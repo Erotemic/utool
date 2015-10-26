@@ -181,20 +181,37 @@ def get_injected_modules(classname):
     return injected_modules
 
 
-def autogen_import_list(classname):
-    line_list = []
+def autogen_import_list(classname, conditional_imports=None):
+    import utool as ut
+    #ut.embed()
+    #line_list = []
+    line_list = ['import sys  # NOQA']
     for modname in __CLASSNAME_CLASSKEY_REGISTER__[classname]:
+        # <super hacky>
+        condition = None
+        for x in conditional_imports:
+            if modname == x[1]:
+                condition = x[0]
+        # </super hacky>
         parts = modname.split('.')
         frompart = '.'.join(parts[:-1])
         imppart = parts[-1]
         #line = 'from %s import %s  # NOQA' % (frompart, imppart)
-        line = 'from %s import %s' % (frompart, imppart)
+        if condition is None:
+            line = 'from %s import %s' % (frompart, imppart)
+        else:
+            line = ut.codeblock(
+                '''
+                if not ut.get_argflag({condition}) or '{frompart}' in sys.modules:
+                    from {frompart} import {imppart}
+                ''').format(condition=condition, frompart=frompart,
+                            imppart=imppart)
         line_list.append(line)
     src = '\n'.join(line_list)
     return src
 
 
-def autogen_explicit_injectable_metaclass(classname, regen_command=None):
+def autogen_explicit_injectable_metaclass(classname, regen_command=None, conditional_imports=None):
     r"""
     Args:
         classname (?):
@@ -277,7 +294,7 @@ def autogen_explicit_injectable_metaclass(classname, regen_command=None):
             regen_command=regen_command,
             classname=classname)
 
-    depends_module_block = autogen_import_list(classname)
+    depends_module_block = autogen_import_list(classname, conditional_imports)
     inject_statement_fmt = ("print, rrr, profile = "
                             "ut.inject2(__name__, '[autogen_explicit_inject_{classname}]')")
     inject_statement = inject_statement_fmt.format(classname=classname)
