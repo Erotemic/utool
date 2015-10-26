@@ -669,7 +669,7 @@ def find_child_kwarg_funcs(sourcecode, target_kwargs_name='kwargs'):
     sourcecode = 'from __future__ import print_function\n' + sourcecode
     pt = ast.parse(sourcecode)
     child_funcnamess = []
-    debug = True
+    debug = False
 
     if debug:
         print('\nInput:')

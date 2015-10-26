@@ -5,11 +5,23 @@ import six
 if six.PY2:
     import types
     def get_funcname(func):
+        """
+        Weird behavior for classes
+        I dont know why this returns type / None
+        import lasagne
+        lasagne.layers.InputLayer
+        lasagne.layers.InputLayer.__module__
+        lasagne.layers.InputLayer.__class__.__name__ == 'type'
+        lasagne.layers.InputLayer.__class__ is type
+        wtf
+        """
         try:
             return getattr(func, 'func_name')
         except AttributeError:
             if isinstance(func, functools.partial):
                 return get_funcname(func.func)
+            elif isinstance(func, six.class_types):
+                return str(func).replace('<class \'', '').replace('\'>', '')
         #except Exception as ex:
         #    import utool as ut
         #    with ut.embed_on_exception_context:

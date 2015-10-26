@@ -1532,6 +1532,7 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
         help_='specify a function to doctest')
 
     if test_funcname is not None:
+        ut.inject_colored_exceptions()
         print('[utool] __main__ Begin Function Test')
         if isinstance(module, six.string_types):
             module = ut.import_modname(module)
