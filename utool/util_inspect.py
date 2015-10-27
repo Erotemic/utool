@@ -143,6 +143,7 @@ def get_dev_hints():
         # Standard Python Hints for my coding style
         ('.*_fn' , ('func', None)),
         ('str_' , ('str', None)),
+        ('num_.*' , ('int', None)),
         ('.*_str' , ('str', None)),
         ('.*_?list_?' , ('list', None)),
         ('.*_?dict_?' , ('dict', None)),
