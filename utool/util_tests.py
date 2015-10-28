@@ -513,8 +513,8 @@ def doctest_module_list(module_list):
 
 
 def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
-                             allexamples=None, needs_enable=None, N=0,
-                             verbose=True, testslow=False):
+                           allexamples=None, needs_enable=None, N=0,
+                           verbose=True, testslow=False, include_inherited=False):
     """
     Parses module for testable doctesttups
     Depth 2)
@@ -535,6 +535,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                 the actual module that will be tested
             all_testflags (list):
                 the command line arguments that will enable different tests
+            exclude_inherited (bool): does not included tests defined in other modules
 
     Args:
         testable_list (list): a list of functions (default = None)
@@ -626,7 +627,8 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                 print('[util_test.get_module_doctest_tup] Iterating over module funcs')
                 print('[util_test.get_module_doctest_tup] module =%r' % (module,))
 
-            for key, val in ut.iter_module_doctestable(module):
+            for key, val in ut.iter_module_doctestable(module,
+                                                       include_inherited=include_inherited):
                 docstr = inspect.getdoc(val)
                 # FIXME:
                 # BUG: We need to verify that this function actually belongs to this
@@ -689,7 +691,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         print('Vars:')
         print(' * needs_enable = %r' % (needs_enable,))
         print(' * force_enable_testnames = %r' % (force_enable_testnames,))
-        indenter = ut.Indenter('[CHECK_TESTABLE]')
+        indenter = ut.Indenter('[CHECK_EX]')
         print('len(sorted_testable) = %r' % (len(sorted_testable),))
 
         indenter.start()
@@ -728,12 +730,14 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                 if testname2 is not None:
                     if VERBOSE_TEST:
                         print(' * HACK adding testname=%r to local_testtup_list' % (testname,))
-                    local_testtup = (testname2, testno, src_, want)
+                    #local_testtup = (testname2, testno, src_, want)
+                    local_testtup = ((testname2, testname), testno, src_, want)
                     local_testtup_list.append(local_testtup)
-                if VERBOSE_TEST:
-                    print(' * adding testname=%r to local_testtup_list' % (testname,))
-                local_testtup = (testname, testno, src_, want)
-                local_testtup_list.append(local_testtup)
+                else:
+                    if VERBOSE_TEST:
+                        print(' * adding testname=%r to local_testtup_list' % (testname,))
+                    local_testtup = (testname, testno, src_, want)
+                    local_testtup_list.append(local_testtup)
         else:
             print('WARNING: no examples in %r for testname=%r' % (frame_fpath, testname))
             if verbose:
@@ -750,10 +754,12 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     # Get enabled (requested) examples
     if VERBOSE_TEST:
         print('\n-----\n')
-        indenter = ut.Indenter('[CHECK_REQUESTED]')
+        indenter = ut.Indenter('[CHECK_ENABLED]')
         indenter.start()
-        print('Get enabled (requested) examples')
+        print('Need to find which examples are enabled')
         print('len(local_testtup_list) = %r' % (len(local_testtup_list),))
+        #print('local_testtup_list = %r' % (local_testtup_list,))
+        print('local_testtup_list.T[0:2].T = %s' % ut.list_str(ut.get_list_column(local_testtup_list, [0, 1])))
         #print('(local_testtup_list) = %r' % (local_testtup_list,))
     all_testflags = []
     enabled_testtup_list = []
@@ -761,10 +767,12 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     subx = ut.get_argval('--subx', type_=int, default=None,
                          help_='Only tests the subxth example')
     for local_testtup in local_testtup_list:
-        (name, num, src, want) = local_testtup
+        (nametup, num, src, want) = local_testtup
+        if not isinstance(nametup, tuple):
+            nametup = (nametup,)
         valid_flags = []
         exec_mode = None
-        for prefix in valid_prefix_list:
+        for prefix, name in ut.iprod(valid_prefix_list, nametup):
             #prefix = '--test-'
             flag1 = prefix + name + ':' + str(num)
             flag2 = prefix + name
@@ -772,20 +780,15 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
             flag4 = prefix + name.replace('_', '-')
             valid_flags += [flag1, flag2, flag3, flag4]
             if VERBOSE_TEST:
-                print(' checking sys.argv for:\n %s' % (ut.list_str(valid_flags),))
+                print('Checking for flags*: ' + flag1)
+                #print(' checking sys.argv for:\n %s' % (ut.list_str(valid_flags),))
             testflag = ut.get_argflag(valid_flags)
             # TODO: run in exec mode
             exec_mode = prefix == '--exec-'  # NOQA
             if testflag:
                 break
 
-        #if VERBOSE_TEST:
-        #    print('... testflag=%r' % (testflag,))
-
         testenabled = TEST_ALL_EXAMPLES  or not check_flags or testflag
-        #if VERBOSE_TEST:
-        #    print('... testenabled=%r' % (testenabled,))
-        #    #print('... subx=%r' % (subx,))
         if subx is not None and subx != num:
             continue
         all_testflags.append(flag3)
@@ -883,6 +886,10 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     if ut.get_argflag(('--edit-test-file', '--etf')):
         ut.editfile(frame_fpath)
     exec_mode = all([testtup.exec_mode for testtup in enabled_testtup_list])
+
+    #if True:
+    #    return
+
     for testtup in enabled_testtup_list:
         name = testtup.name
         num  = testtup.num

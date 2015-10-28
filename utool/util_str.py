@@ -37,6 +37,17 @@ else:
     TAUSTR = 'tau'
 
 
+def is_byte_encoded_unicode(str_):
+    return r'\x' in repr(str_)
+
+
+def ensure_unicode_strlist(str_list):
+    __STR__ = unicode if six.PY2 else str
+    flag_list = [not isinstance(str_, __STR__) and is_byte_encoded_unicode(str_) for str_ in str_list]
+    new_str_list = [str_.decode('utf-8') if flag else __STR__(str_) for str_, flag in zip(str_list, flag_list)]
+    return new_str_list
+
+
 def replace_between_tags(text, repl_, start_tag, end_tag):
     r"""
     Args:
@@ -1173,6 +1184,16 @@ def get_itemstr_list(list_, strvals=False, newlines=True, recursive=True,
         valfunc = str
     else:
         valfunc = repr
+        def valfunc(val):
+            if isinstance(val, six.string_types):
+                repr_ = repr(val)
+                if repr_.startswith('u\'') or repr_.startswith('u"'):
+                    # Remove unicode repr from python2 to agree with python3
+                    # output
+                    repr_ = repr_[1:]
+            else:
+                repr_ = repr(val)
+            return repr_
 
     def recursive_valfunc(val, sublabels=None):
         new_indent = indent_ + '    ' if newlines else indent_

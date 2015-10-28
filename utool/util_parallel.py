@@ -231,7 +231,7 @@ def _process_parallel(func, args_list, args_dict={}, nTasks=None, quiet=QUIET):
 
 def _generate_parallel(func, args_list, ordered=True, chunksize=None,
                        prog=True, verbose=True, quiet=QUIET, nTasks=None,
-                       freq=None):
+                       **kwargs):
     """
     Parallel process generator
     """
@@ -273,7 +273,9 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=None,
     if prog:
         result_generator = util_progress.ProgressIter(
             raw_generator, nTotal=nTasks, lbl=get_funcname(func) + ': ',
-            freq=freq, adjust=False)
+            freq=kwargs.get('freq', None),
+            adjust=kwargs.get('adjust', False))
+
     else:
         result_generator = raw_generator
 
@@ -302,7 +304,7 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=None,
             print('Trying to handle error by falling back to serial')
             serial_generator = _generate_serial(
                 func, args_list, prog=prog, verbose=verbose, nTasks=nTasks,
-                freq=freq)
+                **kwargs)
             for result in serial_generator:
                 yield result
         else:
@@ -311,8 +313,7 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=None,
         util_time.toc(tt)
 
 
-def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None,
-                     freq=None):
+def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None, **kwargs):
     """ internal serial generator  """
     if nTasks is None:
         nTasks = len(args_list)
@@ -323,8 +324,9 @@ def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None,
     # Get iterator with or without progress
     args_iter = (
         util_progress.ProgressIter(args_list, nTotal=nTasks,
-                                   lbl=get_funcname(func) + ': ', freq=freq,
-                                   adjust=False)
+                                   lbl=get_funcname(func) + ': ',
+                                   freq=kwargs.get('freq', None),
+                                   adjust=kwargs.get('adjust', False))
         if prog else args_list
     )
     if __TIME_GENERATE__:
@@ -348,7 +350,7 @@ def ensure_pool(warn=False, quiet=QUIET):
 
 def generate(func, args_list, ordered=True, force_serial=None,
              chunksize=None, prog=True, verbose=True, quiet=QUIET, nTasks=None,
-             freq=None):
+             freq=None, **kwargs):
     """
     Provides an interfaces to python's multiprocessing module.
     Esentially maps ``args_list`` onto ``func`` using pool.imap.
@@ -499,14 +501,14 @@ def generate(func, args_list, ordered=True, force_serial=None,
     if force_serial_ or isinstance(__POOL__, int):
         if VERBOSE_PARALLEL or verbose:
             print('[util_parallel.generate] generate_serial')
-        return _generate_serial(func, args_list, prog=prog, nTasks=nTasks, freq=freq)
+        return _generate_serial(func, args_list, prog=prog, nTasks=nTasks, freq=freq, **kwargs)
     else:
         if VERBOSE_PARALLEL or verbose:
             print('[util_parallel.generate] generate_parallel')
         return _generate_parallel(func, args_list, ordered=ordered,
                                   chunksize=chunksize, prog=prog,
                                   verbose=verbose, quiet=quiet, nTasks=nTasks,
-                                  freq=freq)
+                                  freq=freq, **kwargs)
 
 
 def __testwarp(tup):

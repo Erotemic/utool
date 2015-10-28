@@ -265,7 +265,7 @@ def get_module_owned_functions(module):
 
 
 def iter_module_doctestable(module, include_funcs=True, include_classes=True,
-                            include_methods=True):
+                            include_methods=True, include_inherited=False):
     r"""
     Yeilds doctestable live object form a modules
 
@@ -280,6 +280,8 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
 
     CommandLine:
         python -m utool.util_inspect --test-iter_module_doctestable --modname=ibeis.model.hots.chip_match
+        python -m utool.util_inspect --test-iter_module_doctestable --modname=ibeis.control.IBEISControl
+        python -m utool.util_inspect --test-iter_module_doctestable --modname=ibeis.control.SQLDatabaseControl
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -332,11 +334,18 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
                 yield key, val
             if include_methods:
                 for subkey, subval in six.iteritems(class_.__dict__):
+                    #if subkey.startswith('get_a'):
+                    #    import utool as ut
+                    #    ut.embed()
                     # Unbound methods are still typed as functions
                     if isinstance(subval, valid_func_types):
+                        if hasattr(subval, 'func_globals') and subval.func_globals['__name__'] != module.__name__:
+                            if not include_inherited:
+                                continue
                         if not isinstance(subval, types.BuiltinFunctionType) and not isinstance(subval, classmethod):
-                            # HACK: __ut_parent_class__ lets util_test have more info ont he func
-                            # should return extra info instead
+                            # HACK: __ut_parent_class__ lets util_test have
+                            # more info on the func should return extra info
+                            # instead
                             subval.__ut_parent_class__ = class_
                         yield subkey, subval
                     elif isinstance(val, invalid_types):

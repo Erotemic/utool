@@ -15,6 +15,7 @@ import calendar
 import datetime
 from utool import util_inject
 from utool import util_cplat
+from utool import util_arg
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[time]')
 
 
@@ -161,7 +162,69 @@ class Timer(object):
         #return self.ellapsed
 
 
-def exiftime_to_unixtime(datetime_str, timestamp_format=1, strict=False):
+def determine_timestamp_format(datetime_str):
+    r"""
+    Args:
+        datetime_str (str):
+
+    Returns:
+        str:
+
+    CommandLine:
+        python -m utool.util_time --exec-determine_timestamp_format
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_time import *  # NOQA
+        >>> import utool as ut
+        >>> datetime_str_list = [
+        >>>     '0000:00:00 00:00:00',
+        >>>     '    :  :     :  :  ',
+        >>>     '2015:04:01 00:00:00',
+        >>>     '2080/04/01 00:00:00',
+        >>> ]
+        >>> result = ut.list_str([determine_timestamp_format(datetime_str)
+        >>>            for datetime_str in datetime_str_list])
+        >>> print(result)
+    """
+    import re
+    # try to determine the format
+    clean_datetime_str = datetime_str.strip(';').strip()
+    year_regex  = '(\d\d)?\d\d'
+    month_regex = '[0-1]?[0-9]'
+    day_regex   = '[0-3]?[0-9]'
+
+    time_regex = r'[0-6]?[0-9]:[0-6]?[0-9]:[0-6]?[0-9]'
+
+    date_regex1 = '/'.join([year_regex, month_regex, day_regex])
+    date_regex2 = ':'.join([year_regex, month_regex, day_regex])
+    datetime_regex1 = date_regex1 + ' ' + time_regex
+    datetime_regex2 = date_regex2 + ' ' + time_regex
+
+    timefmt = None
+
+    if re.match(datetime_regex1, clean_datetime_str):
+        timefmt = '%Y/%m/%d %H:%M:%S'
+    elif re.match(datetime_regex2, clean_datetime_str):
+        timefmt = '%Y:%m:%d %H:%M:%S'
+    else:
+        if isinstance(clean_datetime_str, six.string_types):
+            if len(clean_datetime_str.strip()) == 0:
+                return None
+            elif len(clean_datetime_str.strip(':/ ')) == 0:
+                return None
+            elif clean_datetime_str.find('No EXIF Data') == 0:
+                return None
+            elif clean_datetime_str.find('Invalid') == 0:
+                return None
+            elif clean_datetime_str == '0000:00:00 00:00:00':
+                return None
+        #return -1
+        raise NotImplementedError('Unknown format: datetime_str=%r' % (datetime_str,))
+    return timefmt
+
+
+def exiftime_to_unixtime(datetime_str, timestamp_format=None, strict=None):
     """
     converts a datetime string to posixtime (unixtime)
 
@@ -195,16 +258,25 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=1, strict=False):
 
     1427860800.0
     """
+    if isinstance(datetime_str, int):
+        if datetime_str == -1:
+            return -1
+    if not isinstance(datetime_str, six.string_types):
+        raise NotImplementedError('Unknown format: datetime_str=%r' % (datetime_str,))
+    # Normal format, or non-standard year first data
+    if timestamp_format is None:
+        timefmt = determine_timestamp_format(datetime_str)
+        if timestamp_format is None:
+            return -1
+    elif timestamp_format == 2:
+        timefmt = '%m/%d/%Y %H:%M:%S'
+    elif timestamp_format == 1:
+        timefmt = '%Y:%m:%d %H:%M:%S'
+    else:
+        assert isinstance(timestamp_format, six.string_types)
+        timefmt = timestamp_format
+        #raise AssertionError('unknown timestamp_format=%r' % (timestamp_format,))
     try:
-        # Normal format, or non-standard year first data
-        if timestamp_format == 2:
-            timefmt = '%m/%d/%Y %H:%M:%S'
-        elif timestamp_format == 1:
-            timefmt = '%Y:%m:%d %H:%M:%S'
-        else:
-            assert isinstance(timestamp_format, six.string_types)
-            timefmt = timestamp_format
-            #raise AssertionError('unknown timestamp_format=%r' % (timestamp_format,))
         if len(datetime_str) > 19:
             datetime_str_ = datetime_str[:19].strip(';').strip()
         else:
@@ -217,8 +289,13 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=1, strict=False):
             #return -1
         return -1
     except ValueError as ex:
+        if strict is None:
+            strict = util_arg.STRICT
+        strict = True
         #from utool.util_arg import STRICT
         if isinstance(datetime_str, six.string_types):
+            if len(datetime_str_.strip()) == 0:
+                return -1
             if datetime_str_.find('No EXIF Data') == 0:
                 return -1
             if datetime_str_.find('Invalid') == 0:
@@ -234,6 +311,32 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=1, strict=False):
         print('[util_time] repr(datetime_str_) = %r' % datetime_str_)
         print('[util_time]  len(datetime_str_) = %d' % len(datetime_str_))
         print('</!!! ValueError !!!>')
+
+        debug = True
+        if debug:
+            def find_offending_part(datetime_str_, timefmt, splitchar=' '):
+                import datetime
+                import utool as ut
+                parts_list = datetime_str_.split(splitchar)
+                fmt_list = timefmt.split(splitchar)
+                if len(parts_list) == 1:
+                    return
+                for part, fmt in zip(parts_list, fmt_list):
+                    print('Trying:')
+                    with ut.Indenter('  '):
+                        try:
+                            print('fmt = %r' % (fmt,))
+                            print('part = %r' % (part,))
+                            datetime.datetime.strptime(part, fmt)
+                        except ValueError:
+                            find_offending_part(part, fmt, '/')
+                            print('Failed')
+                        else:
+                            print('Passed')
+            find_offending_part(datetime_str_, timefmt)
+
+        #import utool as ut
+        #ut.embed()
         if strict:
             raise
         else:
