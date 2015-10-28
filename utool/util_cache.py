@@ -1122,13 +1122,18 @@ class LazyDict(object):
         else:
             return self.lazy_eval(key)
 
+    def nocache_eval(self, key):
+        """ forces function evaluation """
+        value = self._eval_funcs[key]()
+        return value
+
     def eager_eval(self, key):
         if key in self._stored_results:
             value  = self._stored_results[key]
         else:
             if self._verbose:
                 print('[util_cache] Evaluating key=%r' % (key,))
-            value = self._eval_funcs[key]()
+            value = self.nocache_eval(key)
             self._stored_results[key] = value
         return value
 
