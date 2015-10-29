@@ -3,6 +3,7 @@ r"""
 Change to util_parse?
 
 in vim nongreedy .* is .\{-}
+in python nongreedy .* is .*?
 """
 from __future__ import absolute_import, division, print_function
 import re
@@ -515,6 +516,8 @@ REGEX_VARNAME = '[A-Za-z_][A-Za-z0-9_]*'
 REGEX_WHITESPACE =  r'\s*'
 REGEX_INT = regex_word(r'\d\d*')
 REGEX_FLOAT = regex_word(r'\d\d*\.\d\d*')
+
+REGEX_NONGREEDY = '*?'
 
 # FIXME; Include escaped strings
 REGEX_STR = r"'[^']*'"

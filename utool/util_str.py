@@ -1984,7 +1984,7 @@ def singular_string(str_, plural_suffix='s', singular_suffix=''):
 
 
 def pluralize(wordtext, num, plural_suffix='s'):
-    return (wordtext + plural_suffix) if num > 1 else wordtext
+    return (wordtext + plural_suffix) if num != 1 else wordtext
 
 
 def quantity_str(typestr, num, plural_suffix='s'):

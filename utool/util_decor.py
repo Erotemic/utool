@@ -27,6 +27,8 @@ ONEX_REPORT_INPUT = '--onex-report-input' in sys.argv
 #IGNORE_TRACEBACK = '--smalltb' in sys.argv or '--ignoretb' in sys.argv
 # FIXME: dupliated in _internal/py2_syntax_funcs
 IGNORE_TRACEBACK = not ('--nosmalltb' in sys.argv or '--noignoretb' in sys.argv)
+#if util_arg.STRICT:
+#    IGNORE_TRACEBACK = False
 
 # do not ignore traceback when profiling
 PROFILING = hasattr(builtins, 'profile')

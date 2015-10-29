@@ -101,35 +101,38 @@ def load_func_from_module(modname, funcname, verbose=True, moddir=None):
         >>> keyname = ut.named_field('keyname', ut.REGEX_VARNAME)
         >>> default = ut.named_field('default', '[\'\"A-Za-z_][A-Za-z0-9_\'\"]*')
         >>> pattern = re.escape('kwargs.get(\'') + keyname + re.escape('\',')
-        >>> re.compile(pattern)
         >>> kwarg_keys = [match.groupdict()['keyname'] for match in re.finditer(pattern, source)]
-        >>> #ut.regex_or([
-        >>> #    re.escape('kwargs.get(\'') + keyname + re.escape('\','),
-        >>> #    #re.escape('kwargs.get("') + keyname + re.escape('",'),
-        >>> #    #re.escape('kwargs.get(\'') + keyname + re.escape('\')'),
-        >>> #    #re.escape('kwargs.get("') + keyname + re.escape('")'),
-        >>> #    #re.escape('kwargs.get(\'') + keyname + '\', *' + default + re.escape(')'),
-        >>> #    #re.escape('kwargs.get("') + keyname + '", *' + default + re.escape(')'),
-        >>> #    #re.escape('''kwargs.get('%s', %s)''') % (keyname, default),
-        >>> #    #re.escape('''kwargs.get("%s", %s)''') % (keyname, default),
-        >>> #])
     """
     import utool as ut
+    from os.path import join
+    import imp
     func = None
     module = None
     error_str = None
     if not isinstance(modname, six.string_types):
         error_str = 'modname=%r is not a string. bad input' % (modname,)
     else:
-        module = __import__(modname)
-        import imp
+        try:
+            module = __import__(modname)
+        except ImportError:
+            if moddir is not None:
+                module = ut.import_module_from_fpath(join(moddir, modname + '.py'))
+            else:
+                raise
         #import inspect
         #imp.reload(inspect)
         # Try removing pyc if it exists
         #print(module.__file__)
         if module.__file__.endswith('.pyc'):
             ut.delete(module.__file__, verbose=False)
-            module = __import__(modname)
+            try:
+                module = __import__(modname)
+            except ImportError:
+                if moddir is not None:
+                    module = ut.import_module_from_fpath(join(moddir, modname + '.py'))
+                else:
+                    raise
+            #module = __import__(modname)
         #print(module.__file__)
         imp.reload(module)
         try:
@@ -187,29 +190,34 @@ def load_func_from_module(modname, funcname, verbose=True, moddir=None):
 
 
 def auto_docstr(modname, funcname, verbose=True, moddir=None, **kwargs):
-    """
+    r"""
     called from vim. Uses strings of filename and modnames to build docstr
 
     Args:
-        modname (str):
-        funcname (str):
+        modname (str): name of a python module
+        funcname (str): name of a function in the module
 
     Returns:
-        docstr
+        str: docstr
+
+    CommandLine:
+        python -m utool.util_autogen --exec-auto_docstr
 
     Example:
         >>> import utool as ut
+        >>> from utool.util_autogen import *  # NOQA
         >>> ut.util_autogen.rrr(verbose=False)
         >>> #docstr = ut.auto_docstr('ibeis.model.hots.smk.smk_index', 'compute_negentropy_names')
-        >>> modname = 'ut.util_autogen'
+        >>> modname = 'utool.util_autogen'
         >>> funcname = 'auto_docstr'
         >>> docstr = ut.util_autogen.auto_docstr(modname, funcname)
         >>> print(docstr)
     """
-    import utool as ut
-    func, module, error_str = load_func_from_module(modname, funcname, verbose=verbose, moddir=moddir)
+    #import utool as ut
+    func, module, error_str = load_func_from_module(
+        modname, funcname, verbose=verbose, moddir=moddir)
     if error_str is None:
-        docstr = ut.util_autogen.make_default_docstr(func, **kwargs)
+        docstr = make_default_docstr(func, **kwargs)
     else:
         docstr = error_str
     return docstr
@@ -510,7 +518,8 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
             if argname in import_depends_map:
                 import_lines.append(import_depends_map[argname])
             # Check if argname was already added as dependency
-            if argname not in dependant_argnames and argname not in argname_list and argname not in import_depends_map:
+            if (argname not in dependant_argnames and argname not in
+                 argname_list and argname not in import_depends_map):
                 dependant_argnames.append(argname)
             # Check if argname has dependants
             if argname in var_depends_map:
@@ -617,16 +626,25 @@ def make_default_docstr(func,
 
     Args:
         func (function): live python function
+        with_args (bool):
+        with_ret (bool): (default = True)
+        with_commandline (bool): (default = True)
+        with_example (bool): (default = True)
+        with_header (bool): (default = False)
+        with_debug (bool): (default = False)
 
     Returns:
         tuple: (argname, val)
+
+    Ignore:
+        pass
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_autogen import *  # NOQA
         >>> import utool as ut
         >>> func = ut.make_default_docstr
-        >>> func = ut.make_args_docstr
+        >>> #func = ut.make_args_docstr
         >>> default_docstr = make_default_docstr(func)
         >>> result = str(default_docstr)
         >>> print(result)
@@ -667,7 +685,10 @@ def make_default_docstr(func,
 
     with_kw = with_args
     if with_kw and len(kwarg_keys) > 0:
+        #ut.embed()
+        import textwrap
         kwargs_docstr = ', '.join(kwarg_keys)
+        kwargs_docstr = '\n'.join(textwrap.wrap(kwargs_docstr))
         kwargsblock = make_docstr_block('Kwargs', kwargs_docstr)
         docstr_parts.append(kwargsblock)
 

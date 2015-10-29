@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 TODO: This file seems to care about timezone
 
@@ -256,17 +257,26 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=None, strict=None):
         >>> print(result)
         1427846400
 
-    1427860800.0
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_time import *  # NOQA
+        >>> datetime_str = six.text_type('2010:10:07 19:37:03')
+        >>> timestamp_format = None
+        >>> result = exiftime_to_unixtime(datetime_str, timestamp_format)
+        >>> print(result)
+        1286480223
     """
     if isinstance(datetime_str, int):
         if datetime_str == -1:
             return -1
+    elif datetime_str is None:
+        return None
     if not isinstance(datetime_str, six.string_types):
         raise NotImplementedError('Unknown format: datetime_str=%r' % (datetime_str,))
     # Normal format, or non-standard year first data
     if timestamp_format is None:
         timefmt = determine_timestamp_format(datetime_str)
-        if timestamp_format is None:
+        if timefmt is None:
             return -1
     elif timestamp_format == 2:
         timefmt = '%m/%d/%Y %H:%M:%S'

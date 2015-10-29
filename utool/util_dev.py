@@ -785,7 +785,8 @@ class InteractiveIter(object):
             print('[IITER] Begin interactive iteration: %r items\n' % (iiter.num_items))
         if iiter.num_items == 0:
             raise StopIteration
-        mark_, end_ = util_progress.log_progress(total=iiter.num_items, lbl='interaction: ', freq=1)
+        mark_, end_ = util_progress.log_progress(total=iiter.num_items,
+                                                 lbl='interaction: ', freq=1)
         prompt_on_start = False
         if prompt_on_start:
             ans = iiter.prompt()

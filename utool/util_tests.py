@@ -192,12 +192,15 @@ def parse_docblocks_from_docstr(docstr):
     parse_docblocks_from_docstr
     Depth 5)
     called by parse_doctest_from_docstr
+    TODO: move to util_inspect
 
     Args:
         docstr (str):
 
     Returns:
-        list: docstr_blocks
+        list: docstr_blocks tuples
+            [(blockname, blockstr, offset)]
+
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -213,6 +216,8 @@ def parse_docblocks_from_docstr(docstr):
         >>> print(result)
     """
     # FIXME Requires tags to be separated by two spaces
+    if docstr is None:
+        return []
     import parse
     import utool as ut
     import itertools
@@ -334,7 +339,8 @@ def get_doctest_examples(func_or_class):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_tests import *  # NOQA
         >>> func_or_class = get_doctest_examples
-        >>> testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr = get_doctest_examples(func_or_class)
+        >>> tup  = get_doctest_examples(func_or_class)
+        >>> testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr = tup
         >>> result = str(len(testsrc_list) + len(testwant_list))
         >>> print(testsrc_list)
         >>> print(testlinenum_list)
@@ -348,7 +354,8 @@ def get_doctest_examples(func_or_class):
         >>> from utool.util_tests import *  # NOQA
         >>> import utool as ut
         >>> func_or_class = ut.tryimport
-        >>> testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr = get_doctest_examples(func_or_class)
+        >>> tup = get_doctest_examples(func_or_class)
+        >>> testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr = tup
         >>> result = str(len(testsrc_list) + len(testwant_list))
         >>> print(testsrc_list)
         >>> print(testlinenum_list)
@@ -362,7 +369,8 @@ def get_doctest_examples(func_or_class):
         >>> from utool.util_tests import *  # NOQA
         >>> import ibeis
         >>> func_or_class = ibeis.control.manual_annot_funcs.add_annots
-        >>> testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr = get_doctest_examples(func_or_class)
+        >>> tup = get_doctest_examples(func_or_class)
+        >>> testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr = tup
         >>> result = str(len(testsrc_list) + len(testwant_list))
         >>> print(testsrc_list)
         >>> print(testlinenum_list)
@@ -377,7 +385,8 @@ def get_doctest_examples(func_or_class):
         print('[util_test] + parsing %r for doctest' % (func_or_class))
         print('[util_test] - name = %r' % (func_or_class.__name__,))
         if hasattr(func_or_class, '__ut_parent_class__'):
-            print('[util_test] - __ut_parent_class__ = %r' % (func_or_class.__ut_parent_class__,))
+            print('[util_test] - __ut_parent_class__ = %r' % (
+                func_or_class.__ut_parent_class__,))
         #ut.embed()
     try:
         raise NotImplementedError('FIXME')
@@ -408,7 +417,10 @@ def get_doctest_examples(func_or_class):
     #    else:
     (testheader_list, testsrc_list, testwant_list,
      testlineoffset_list) = parse_doctest_from_docstr(docstr)
-    testlinenum_list = [func_lineno + num_funcdef_lines + offset for offset in testlineoffset_list]
+    testlinenum_list = [
+        func_lineno + num_funcdef_lines + offset
+        for offset in testlineoffset_list
+    ]
     #       shelf[docstr] = testsrc_list, testwant_list
     if VERBOSE_TEST:
         print('[util_test] L found %d doctests' % (len(testsrc_list),))

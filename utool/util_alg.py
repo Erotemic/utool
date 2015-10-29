@@ -960,6 +960,10 @@ def safe_max(arr):
     return np.nan if arr is None or len(arr) == 0 else arr.max()
 
 
+def safe_min(arr):
+    return np.nan if arr is None or len(arr) == 0 else arr.min()
+
+
 def choose(n, k):
     """
     N choose k

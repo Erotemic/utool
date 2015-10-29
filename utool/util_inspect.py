@@ -782,7 +782,7 @@ def parse_return_type(sourcecode):
         pt = ast.parse(sourcecode)
     except Exception:
         return_type, return_name, return_header = (None, None, None)
-        raise
+        #raise
         return return_type, return_name, return_header, None
         #print(sourcecode)
         #ut.printex(ex, 'Error Parsing')
@@ -867,7 +867,8 @@ def parse_return_type(sourcecode):
     return_type, return_name = get_node_name_and_type(returnnode)
 
     if return_type == '?':
-        argtype_list, argdesc_list, argdefault_list, hasdefault_list = infer_arg_types_and_descriptions([return_name], [])
+        tup = infer_arg_types_and_descriptions([return_name], [])
+        argtype_list, argdesc_list, argdefault_list, hasdefault_list = tup
         return_type = argtype_list[0]
         return_desc = argdesc_list[0]
     else:
@@ -912,7 +913,7 @@ def get_func_sourcecode(func, stripdef=False, stripret=False, strip_docstr=False
     strip flags are very hacky as of now
 
     Args:
-        func (?):
+        func (function):
         stripdef (bool):
 
 
@@ -923,7 +924,7 @@ def get_func_sourcecode(func, stripdef=False, stripret=False, strip_docstr=False
         >>> # DISABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
         >>> # build test data
-        >>> func = get_func_sourcecode
+        >>> func = get_func_kwargs
         >>> stripdef = True
         >>> stripret = True
         >>> sourcecode = get_func_sourcecode(func, stripdef)
@@ -957,7 +958,11 @@ def get_func_sourcecode(func, stripdef=False, stripret=False, strip_docstr=False
         # hacky
         sourcecode = ut.unindent(sourcecode)
         #sourcecode = ut.unindent(ut.regex_replace('def [^)]*\\):\n', '', sourcecode))
-        sourcecode = ut.unindent(ut.regex_replace('def [^:]*\\):\n', '', sourcecode))
+        #nodef_source = ut.regex_replace('def [^:]*\\):\n', '', sourcecode)
+        regex_decor = '^@.' + ut.REGEX_NONGREEDY
+        regex_defline = '^def [^:]*\\):\n'
+        nodef_source = ut.regex_replace('(' + regex_decor + ')?' + regex_defline, '', sourcecode)
+        sourcecode = ut.unindent(nodef_source)
         #print(sourcecode)
         pass
     if stripret:
@@ -1043,7 +1048,28 @@ def get_func_argspec(func):
 
 
 def recursive_parse_kwargs(root_func, path_=None):
-    """ recursive kwargs parser """
+    """
+    recursive kwargs parser
+
+    Args:
+        root_func (function):  live python function
+        path_ (None): (default = None)
+
+    Returns:
+        list:
+
+    CommandLine:
+        python -m utool.util_inspect --exec-recursive_parse_kwargs
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_inspect import *  # NOQA
+        >>> import ibeis.model.preproc.preproc_image
+        >>> root_func = ibeis.model.preproc.preproc_image.add_images_params_gen
+        >>> path_ = None
+        >>> result = ut.list_str(recursive_parse_kwargs(root_func))
+        >>> print(result)
+    """
     import utool as ut
     if path_ is None:
         path_ = []
@@ -1052,14 +1078,29 @@ def recursive_parse_kwargs(root_func, path_=None):
     path_.append(root_func)
     spec = ut.get_func_argspec(root_func)
     # ADD MORE
-    kwargs_list = ut.get_kwargs(root_func)[0]
+    kwargs_list = list(ut.get_kwdefaults(root_func, parse_source=False).items())
+    #kwargs_list = [(kw,) for kw in  ut.get_kwargs(root_func)[0]]
+    sourcecode = ut.get_func_sourcecode(root_func, strip_docstr=True,
+                                        stripdef=True)
+    kwargs_list += ut.parse_kwarg_keys(sourcecode, with_vals=True)
+
     if spec.keywords is not None:
-        sourcecode = ut.get_func_sourcecode(root_func, strip_docstr=True,
-                                            stripdef=True)
         subfunc_name_list = ut.find_child_kwarg_funcs(sourcecode, spec.keywords)
         for subfunc_name in subfunc_name_list:
-            subfunc = root_func.func_globals[subfunc_name]
-            kwargs_list.extend(recursive_parse_kwargs(subfunc))
+            if isinstance(subfunc_name, tuple) or '.' in subfunc_name:
+                # look up attriute chain
+                subtup = subfunc_name.split('.')
+                subdict = root_func.func_globals
+                for attr in subtup[:-1]:
+                    subdict = subdict[attr].__dict__
+                subfunc = subdict[subtup[-1]]
+            else:
+                # can directly take func from globals
+                subfunc = root_func.func_globals[subfunc_name]
+            subkw_list = recursive_parse_kwargs(subfunc)
+            have_keys = set(ut.get_list_column(kwargs_list, 0))
+            new_subkw = [item for item in subkw_list if item[0] not in have_keys]
+            kwargs_list.extend(new_subkw)
     return kwargs_list
 
 
@@ -1152,33 +1193,39 @@ class KWReg(object):
 def infer_function_info(func):
     r"""
     Infers information for make_default_docstr
+    # TODO: Interleave old documentation with new documentation
 
     Args:
         func (function): live python function
 
     CommandLine:
-        python -m utool.util_inspect --test-infer_function_info:0
-        python -m utool.util_inspect --exec-infer_function_info:1 --funcname=ibeis_cnn.models.siam.ignore_hardest_cases --exec-mode
+        python -m utool --tf infer_function_info:0
+        python -m utool --tf infer_function_info:1 --funcname=ibeis_cnn.models.siam.ignore_hardest_cases
 
-    Example:
+    Ignore:
+        import ibeis
+        func = ibeis.control.IBEISControl.IBEISController.query_chips
+
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
         >>> import utool as ut
-        >>> #func = ut.infer_function_info
+        >>> func = ut.infer_function_info
         >>> #func = ut.Timer.tic
-        >>> func = get_func_sourcecode
+        >>> func = ut.make_default_docstr
         >>> funcinfo = infer_function_info(func)
         >>> result = ut.dict_str(funcinfo.__dict__)
         >>> print(result)
 
-    Example:
+    Example1:
         >>> # SCRIPT
         >>> from utool.util_inspect import *  # NOQA
         >>> import utool as ut
         >>> funcname = ut.get_argval('--funcname')
         >>> # Parse out custom function
         >>> modname = '.'.join(funcname.split('.')[0:-1])
-        >>> script = 'import {modname}\nfunc = {funcname}'.format(modname=modname, funcname=funcname)
+        >>> script = 'import {modname}\nfunc = {funcname}'.format(
+        >>>     modname=modname, funcname=funcname)
         >>> globals_, locals_ = {}, {}
         >>> exec(script, globals_, locals_)
         >>> func = locals_['func']
@@ -1187,18 +1234,90 @@ def infer_function_info(func):
         >>> print(result)
     """
     import utool as ut
+    import re
     try:
-        current_doc = inspect.getdoc(func)
+        doc_shortdesc = ''
+        doc_longdesc = ''
+
+        known_arginfo = ut.ddict(dict)
+
+        if True:
+            current_doc = inspect.getdoc(func)
+            docstr_blocks = ut.parse_docblocks_from_docstr(current_doc)
+            docblock_types = ut.get_list_column(docstr_blocks, 0)
+            docblock_types = [re.sub('Example[0-9]', 'Example', type_)
+                              for type_ in docblock_types]
+            docblock_dict = ut.group_items(docstr_blocks, docblock_types)
+
+            if '' in docblock_dict:
+                docheaders = docblock_dict['']
+                docheaders_lines = ut.get_list_column(docheaders, 1)
+                docheaders_order = ut.get_list_column(docheaders, 2)
+                docheaders_lines = ut.sortedby(docheaders_lines, docheaders_order)
+                doc_shortdesc = '\n'.join(docheaders_lines)
+
+            if 'Args' in docblock_dict:
+                argblocks = docblock_dict['Args']
+                if len(argblocks) != 1:
+                    print('Warning: should only be one args block')
+                else:
+                    argblock = argblocks[0][1]
+
+                    assert argblock.startswith('Args:\n')
+                    argsblock_ = argblock[len('Args:\n'):]
+                    arglines = re.split(r'^    \b', argsblock_, flags=re.MULTILINE)
+                    arglines = [line for line in arglines if len(line) > 0]
+
+                    esc = re.escape
+
+                    def escparen(pat):
+                        return esc('(')  + pat + esc(')')
+                    argname = ut.named_field('argname', ut.REGEX_VARNAME)
+                    argtype_ = ut.named_field('argtype', '.' + ut.REGEX_NONGREEDY)
+                    argtype = escparen(argtype_)
+                    argdesc = ut.named_field('argdesc', '.*')
+                    WS = ut.REGEX_WHITESPACE
+                    argpattern = (
+                        WS + argname + WS + argtype + WS + ':' + WS + argdesc)
+
+                    for argline in arglines:
+                        m = re.match(argpattern, argline, flags=re.MULTILINE | re.DOTALL)
+                        try:
+                            groupdict_ = m.groupdict()
+                        except Exception as ex:
+                            print('---')
+                            print('argline = \n%s' % (argline,))
+                            print('---')
+                            raise
+                        #print('groupdict_ = %s' % (ut.dict_str(groupdict_),))
+                        argname = groupdict_['argname']
+                        known_arginfo[argname]['argdesc'] = groupdict_['argdesc'].rstrip('\n')
+                        # TODO: record these in a file for future reference
+                        # and potential guessing
+                        if groupdict_['argtype'] != '?':
+                            known_arginfo[argname]['argtype'] = groupdict_['argtype']
+
         needs_surround = current_doc is None or len(current_doc) == 0
         argspec = ut.get_func_argspec(func)
         (argname_list, varargs, varkw, defaults) = argspec
 
         # See util_inspect
-        argtype_list, argdesc_list, argdefault_list, hasdefault_list = ut.infer_arg_types_and_descriptions(argname_list, defaults)
+        tup = ut.infer_arg_types_and_descriptions(argname_list, defaults)
+        argtype_list, argdesc_list, argdefault_list, hasdefault_list = tup
+        # Put in user parsed info
+        for index, argname in enumerate(argname_list):
+            if argname in known_arginfo:
+                arginfo = known_arginfo[argname]
+                if 'argdesc' in arginfo:
+                    argdesc_list[index] = arginfo['argdesc']
+                if 'argtype' in arginfo:
+                    argtype_list[index] = arginfo['argtype']
 
         # Move source down to base indentation, but remember original indentation
         sourcecode = get_func_sourcecode(func)
-        kwarg_keys = ut.parse_kwarg_keys(sourcecode)
+        #kwarg_keys = ut.parse_kwarg_keys(sourcecode)
+        kwarg_items = ut.recursive_parse_kwargs(func)
+        kwarg_keys = ut.get_list_column(kwarg_items, 0)
         num_indent = ut.get_indentation(sourcecode)
         sourcecode = ut.unindent(sourcecode)
 
@@ -1243,6 +1362,8 @@ def infer_function_info(func):
     funcinfo.return_desc = return_desc
     funcinfo.modname = modname
     funcinfo.funcname = funcname
+    funcinfo.doc_shortdesc = doc_shortdesc
+    funcinfo.doc_longdesc = doc_longdesc
     funcinfo.ismethod = hasattr(func, 'im_class')
     return funcinfo
 
@@ -1298,10 +1419,12 @@ def find_pyfunc_above_row(line_list, row):
         >>> import utool as ut
         >>> #fpath = ut.truepath('~/code/ibeis/ibeis/control/IBEISControl.py')
         >>> #fpath = ut.truepath('~/code/utool/utool/util_inspect.py')
-        >>> fpath = ut.truepath('~/code/ibeis_cnn/ibeis_cnn/models.py')
+        >>> #fpath = ut.truepath('~/code/ibeis_cnn/ibeis_cnn/models.py')
+        >>> fpath = ut.truepath('~/local/vim/rc/pyvim_funcs.py')
         >>> line_list = ut.read_from(fpath, aslines=True)
         >>> #row = 200
-        >>> row = 93
+        >>> #row = 93
+        >>> row = 435
         >>> pyfunc, searchline = find_pyfunc_above_row(line_list, row)
         >>> print(pyfunc)
     """
