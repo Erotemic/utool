@@ -1602,7 +1602,7 @@ def get_object_size(obj, fallback_type=None, follow_pointers=False, exclude_modu
 
     Example:
         >>> # UNSTABLE_DOCTEST
-        >>> from ibeis.experiments.experiment_harness import *  # NOQA
+        >>> from ibeis.expt.experiment_harness import *  # NOQA
         >>> import ibeis
         >>> species = ibeis.const.Species.ZEB_PLAIN
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
