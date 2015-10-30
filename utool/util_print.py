@@ -337,36 +337,52 @@ def print_difftext(text):
 
 
 def colorprint(msg, color):
-    """ provides some color to terminal output
-
-    assert color in ['', 'yellow', 'blink', 'lightgray', 'underline',
-    'darkyellow', 'blue', 'darkblue', 'faint', 'fuchsia', 'black', 'white',
-    'red', 'brown', 'turquoise', 'bold', 'darkred', 'darkgreen', 'reset',
-    'standout', 'darkteal', 'darkgray', 'overline', 'purple', 'green', 'teal',
-    'fuscia']
-
-
-    python -c "import pygments.console; print(list(pygments.console.codes.keys()))"
+    r""" provides some color to terminal output
 
     Args:
-        msg (?):
-        color (?):
+        msg (str):
+        color (str):
+
+    Ignore:
+        assert color in ['', 'yellow', 'blink', 'lightgray', 'underline',
+        'darkyellow', 'blue', 'darkblue', 'faint', 'fuchsia', 'black', 'white',
+        'red', 'brown', 'turquoise', 'bold', 'darkred', 'darkgreen', 'reset',
+        'standout', 'darkteal', 'darkgray', 'overline', 'purple', 'green', 'teal',
+        'fuscia']
 
     CommandLine:
+        python -c "import pygments.console; print(list(pygments.console.codes.keys()))"
         python -m utool.util_print --exec-colorprint
+        python -m utool.util_print --exec-colorprint:1
 
-    Example:
+    Example0:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_print import *  # NOQA
         >>> import pygments.console
         >>> msg_list = list(pygments.console.codes.keys())
         >>> color_list = list(pygments.console.codes.keys())
         >>> [colorprint(msg, color) for msg, color in zip(msg_list, color_list)]
+
+    Example1:
+        >>> # DISABLE_DOCTEST (Windows test)
+        >>> from utool.util_print import *  # NOQA
+        >>> import pygments.console
+        >>> print('line1')
+        >>> colorprint('line2', 'red')
+        >>> colorprint('line3', 'blue')
+        >>> colorprint('line4', 'fuchsia')
+        >>> colorprint('line5', 'reset')
+        >>> colorprint('line5', 'fuchsia')
+        >>> print('line6')
     """
+    reset_color = 'reset'
+    import utool as ut
+    if ut.WIN32 and ut.is_developer():
+        reset_color = 'fuchsia'
     try:
         import pygments
         import pygments.console
-        print(pygments.console.colorize(color, msg) + pygments.console.colorize('reset', ''))
+        print(pygments.console.colorize(color, msg) + pygments.console.colorize(reset_color, ''))
     except ImportError:
         print(msg)
 
@@ -383,8 +399,7 @@ if __name__ == '__main__':
     CommandLine:
         python -m utool.util_print
         python -m utool.util_print --allexamples
-        python -m utool.util_print --allexamples --noface --nosrc
-    """
+        python -m utool.util_print --allexamples --noface --nosrc """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
