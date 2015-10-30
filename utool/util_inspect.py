@@ -20,7 +20,7 @@ def get_dev_hints():
     registered_hints = OrderedDict([
         # General IBEIS hints
         ('ibs.*'   , ('IBEISController', 'ibeis controller object')),
-        ('test_result', ('TestResult', 'test result object')),
+        ('testres', ('TestResult', 'test result object')),
         ('qaid2_qres.*'   , ('dict', 'dict of query result objects')),
         ('qreq_'   , ('QueryRequest', 'query request object with hyper-parameters')),
         ('qres.*'  , ('QueryResult', 'object of feature correspondences and scores')),

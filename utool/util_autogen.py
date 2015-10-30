@@ -460,7 +460,7 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
     # TODO: Externally register these
     default_argval_map = {
         'ibs'         : 'ibeis.opendb(defaultdb=\'testdb1\')',
-        'test_result' : 'ibeis.testdata_expts(\'PZ_MTEST\')',
+        'testres' : 'ibeis.testdata_expts(\'PZ_MTEST\')',
         'qreq_'       : 'ibs.new_query_request(qaids, daids)',
         'qaid2_qres'  : 'ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())',
         'qres'        : 'ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())[1]',
@@ -488,7 +488,7 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
     var_depends_map = {
         'species':   ['ibeis'],
         'ibs':       ['ibeis'],
-        'test_result': ['ibeis'],
+        'testres': ['ibeis'],
         'kpts':      ['vt'],
         'qreq_':     ['ibs', 'species', 'daids', 'qaids'],
         'qaids':     ['ibs'],
