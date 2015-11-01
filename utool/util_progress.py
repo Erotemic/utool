@@ -335,9 +335,9 @@ class ProgressIter(object):
         with_wall = True
         msg_fmtstr_time = ''.join((
             'rate=%3.3f seconds/iter, ' if invert_rate else 'rate=%4.2f Hz,',
-            ' etr: %s,',
-            ' ellapsed: %s,',
-            ' wall: %s ' + time.tzname[0] if with_wall else '',
+            ' etr=%s,',
+            ' ellapsed=%s,',
+            ' wall=%s ' + time.tzname[0] if with_wall else '',
             '\n' if backspace else '',
         ))
         return msg_fmtstr_time

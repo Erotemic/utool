@@ -375,14 +375,18 @@ def colorprint(msg, color):
         >>> colorprint('line5', 'fuchsia')
         >>> print('line6')
     """
-    reset_color = 'reset'
     import utool as ut
-    if ut.WIN32 and ut.is_developer():
-        reset_color = 'fuchsia'
     try:
         import pygments
         import pygments.console
-        print(pygments.console.colorize(color, msg) + pygments.console.colorize(reset_color, ''))
+        ansi_msg = pygments.console.colorize(color, msg)
+        if ut.WIN32:
+            import colorama
+            ansi_reset = (colorama.Style.RESET_ALL)
+        else:
+            ansi_reset = pygments.console.colorize('reset', '')
+        ansi_text = ansi_msg + ansi_reset
+        print(ansi_text)
     except ImportError:
         print(msg)
 
