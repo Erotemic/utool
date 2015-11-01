@@ -1450,10 +1450,9 @@ def matching_fnames(dpath_list, include_patterns, exclude_dirs=[],
 def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
          exclude_dirs=[], greater_exclude_dirs=None,
          inverse=False, verbose=VERBOSE, fpath_list=None, reflags=0):
-    """
-    Python implementation of grep. NOT FINISHED
-
+    r"""
     greps for patterns
+    Python implementation of grep. NOT FINISHED
 
     Args:
         regex_list (str or list): one or more patterns to find
@@ -1464,7 +1463,11 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
     Returns:
         tuple (list, list, list): (found_fpath_list, found_lines_list, found_lxs_list)
 
+    CommandLine:
+        python -m utool.util_path --exec-grep
+
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_path import *  # NOQA
         >>> import utool as ut
         >>> dpath_list = [ut.truepath('~/code/ibeis/ibeis')]
@@ -1476,7 +1479,6 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
         >>> result = ut.grep(regex_list, recursive, dpath_list, include_patterns, exclude_dirs)
         >>> (found_fpath_list, found_lines_list, found_lxs_list) = result
         >>> print(result)
-
     """
     if include_patterns is None:
         include_patterns =  get_standard_include_patterns()
