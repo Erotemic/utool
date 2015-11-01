@@ -1355,6 +1355,7 @@ def move_odict_item(odict, key, newpos):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> odict = OrderedDict()
         >>> odict['a'] = 1
         >>> odict['b'] = 2
