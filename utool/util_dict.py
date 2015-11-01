@@ -435,7 +435,8 @@ def augdict(dict1, dict2=None, **kwargs):
     dict1_ = copy.deepcopy(dict1)
     if dict2 is not None:
         dict1_ = update_existing(dict1_, dict2, assert_exists=True)
-    dict1_ = update_existing(dict1_, kwargs, assert_exists=True)
+    if len(kwargs) > 0:
+        dict1_ = update_existing(dict1_, kwargs, assert_exists=True)
     return dict1_
 
 
@@ -1341,6 +1342,41 @@ def hierarchical_map_vals(func, node, max_depth=None, depth=0):
             return OrderedDict(keyval_list)
         else:
             return dict(keyval_list)
+
+
+def move_odict_item(odict, key, newpos):
+    """
+    References:
+        http://stackoverflow.com/questions/22663966/changing-order-of-ordered-dictionary-in-python
+
+    CommandLine:
+        python -m utool.util_dict --exec-move_odict_item
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> odict = OrderedDict()
+        >>> odict['a'] = 1
+        >>> odict['b'] = 2
+        >>> odict['c'] = 3
+        >>> odict['e'] = 5
+        >>> print(ut.dict_str(odict, nl=False))
+        >>> move_odict_item(odict, 'c', 1)
+        >>> print(ut.dict_str(odict, nl=False))
+        >>> move_odict_item(odict, 'a', 3)
+        >>> print(ut.dict_str(odict, nl=False))
+        >>> move_odict_item(odict, 'a', 0)
+        >>> print(ut.dict_str(odict, nl=False))
+        >>> move_odict_item(odict, 'b', 2)
+        >>> result = ut.dict_str(odict, nl=False)
+        >>> print(result)
+        {'a': 1, 'c': 3, 'b': 2, 'e': 5}
+    """
+    odict[key] = odict.pop(key)
+    for i, otherkey in enumerate(list(odict.keys())):
+        if otherkey != key and i >= newpos:
+            odict[otherkey] = odict.pop(otherkey)
+    return odict
 
 
 hmap_vals = hierarchical_map_vals
