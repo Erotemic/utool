@@ -2,7 +2,7 @@
 """
 Module that handles string formating and manipulation of varoius data
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 import six
 import re
@@ -111,8 +111,8 @@ def theta_str(theta, taustr=TAUSTR, fmtstr='{coeff:,.1f}{taustr}'):
     theta_str
 
     CommandLine:
-        python utool\util_str.py --noface --nosrc --test-theta_str:0
-        python utool\util_str.py --noface --nosrc --test-theta_str:1
+        python utool/util_str.py --noface --nosrc --test-theta_str:0
+        python utool/util_str.py --noface --nosrc --test-theta_str:1
 
     Args:
         theta (float) angle in radians
@@ -144,7 +144,7 @@ def theta_str(theta, taustr=TAUSTR, fmtstr='{coeff:,.1f}{taustr}'):
 
 
 def bbox_str(bbox, pad=4, sep=', '):
-    """ makes a string from an integer bounding box """
+    r""" makes a string from an integer bounding box """
     if bbox is None:
         return 'None'
     fmtstr = sep.join(['%' + str(pad) + 'd'] * 4)
@@ -152,7 +152,7 @@ def bbox_str(bbox, pad=4, sep=', '):
 
 
 def verts_str(verts, pad=1):
-    """ makes a string from a list of integer verticies """
+    r""" makes a string from a list of integer verticies """
     if verts is None:
         return 'None'
     fmtstr = ', '.join(['%' + str(pad) + 'd' + ', %' + str(pad) + 'd'] * 1)
@@ -555,11 +555,15 @@ def byte_str2(nBytes, precision=2):
     Returns:
         str:
 
+    CommandLine:
+        python -m utool.util_str --exec-byte_str2
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_str import *  # NOQA
+        >>> import utool as ut
         >>> nBytes_list = [1, 100, 1024,  1048576, 1073741824, 1099511627776]
-        >>> result = list(map(byte_str2, nBytes_list))
+        >>> result = ut.list_str(list(map(byte_str2, nBytes_list)), nl=False)
         >>> print(result)
         ['0.00 KB', '0.10 KB', '1.00 KB', '1.00 MB', '1.00 GB', '1024.00 GB']
     """
@@ -1021,12 +1025,24 @@ def numeric_str(num, precision=None, **kwargs):
         return numpy_str(num, precision=precision, **kwargs)
 
 
+def reprfunc(val):
+    if isinstance(val, six.string_types):
+        repr_ = repr(val)
+        if repr_.startswith('u\'') or repr_.startswith('u"'):
+            # Remove unicode repr from python2 to agree with python3
+            # output
+            repr_ = repr_[1:]
+    else:
+        repr_ = repr(val)
+    return repr_
+
+
 def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
                       recursive=True, indent_='', precision=None,
                       hack_liststr=False, explicit=False, truncate=False,
                       key_order=None, truncatekw=dict(), key_order_metric=None,
                       use_numpy=True, with_comma=True, **dictkw):
-    """
+    r"""
     Returns:
         list: a list of human-readable dictionary items
 
@@ -1062,7 +1078,8 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
         #        return str(in_)
         valfunc = six.text_type
     else:
-        valfunc = repr
+        #valfunc = repr
+        valfunc = reprfunc
 
     def recursive_valfunc(val):
         if isinstance(val, dict):
@@ -1115,39 +1132,31 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
         iteritems = six.iteritems
 
     _valstr = recursive_valfunc if recursive else valfunc
-    OLD = False
-    if OLD:
+    def make_item_str(key, val, indent_):
         if explicit:
-            fmtstr = indent_ + '%r: %s'
-            if with_comma:
-                fmtstr += ','
-        itemstr_list = [fmtstr % (key, _valstr(val)) for (key, val) in iteritems(dict_)]
-    else:
-        def make_item_str(key, val, indent_):
-            if explicit:
-                repr_str = key + '='
-            else:
-                repr_str = repr(key) + ': '
-            val_str = _valstr(val)
-            #print('2)-----------')
-            #print(val_str)
-            # valstr is fine at this point
-            padded_indent = ' ' * min(len(indent_), len(repr_str))
-            val_str = val_str.replace('\n', '\n' + padded_indent)  # ' ' * val_indent)
-            #val_str = ut.indent(val_str, ' ' * val_indent)
-            item_str = repr_str + val_str
-            if with_comma:
-                item_str += ','
-            #print('3)-----------')
-            #print(val_str)
-            #print('4)===========')
-            #print(item_str)
-            #print('===========')
-            return item_str
+            repr_str = key + '='
+        else:
+            repr_str = reprfunc(key) + ': '
+        val_str = _valstr(val)
+        #print('2)-----------')
+        #print(val_str)
+        # valstr is fine at this point
+        padded_indent = ' ' * min(len(indent_), len(repr_str))
+        val_str = val_str.replace('\n', '\n' + padded_indent)  # ' ' * val_indent)
+        #val_str = ut.indent(val_str, ' ' * val_indent)
+        item_str = repr_str + val_str
+        if with_comma:
+            item_str += ','
+        #print('3)-----------')
+        #print(val_str)
+        #print('4)===========')
+        #print(item_str)
+        #print('===========')
+        return item_str
 
-        #if isinstance(dict_, dict)
-        itemstr_list = [make_item_str(key, val, indent_) for (key, val) in iteritems(dict_)]
-        # itemstr_list is fine too. weird
+    #if isinstance(dict_, dict)
+    itemstr_list = [make_item_str(key, val, indent_) for (key, val) in iteritems(dict_)]
+    # itemstr_list is fine too. weird
 
     if key_order_metric == 'strlen':
         #if key_order is None:
@@ -1183,17 +1192,7 @@ def get_itemstr_list(list_, strvals=False, newlines=True, recursive=True,
     if strvals:
         valfunc = str
     else:
-        valfunc = repr
-        def valfunc(val):
-            if isinstance(val, six.string_types):
-                repr_ = repr(val)
-                if repr_.startswith('u\'') or repr_.startswith('u"'):
-                    # Remove unicode repr from python2 to agree with python3
-                    # output
-                    repr_ = repr_[1:]
-            else:
-                repr_ = repr(val)
-            return repr_
+        valfunc = reprfunc
 
     def recursive_valfunc(val, sublabels=None):
         new_indent = indent_ + '    ' if newlines else indent_
@@ -1324,8 +1323,8 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
 
     CommandLine:
         python -m utool.util_str --test-list_str
-        python -m utool.util_str --test-list_str --no-checkwant --truncate=True
-        python -m utool.util_str --test-list_str --no-checkwant --truncate=0 --no-checkwant
+        python -m utool.util_str --exec-list_str --truncate=True
+        python -m utool.util_str --exec-list_str --truncate=0
 
 
     Example:

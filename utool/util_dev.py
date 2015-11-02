@@ -328,6 +328,28 @@ def timeit_grid(stmt_list, setup='', iterations=10000, input_sizes=None,
     return time_grid
 
 
+def extract_timeit_setup(func, doctest_number, sentinal):
+    import utool as ut
+    # Extract Pre Setup
+    testsrc = ut.get_doctest_examples(func)[0][doctest_number]
+    srclines1 = testsrc.split('\n')
+    srclines2 = []
+    for line in srclines1:
+        if line.find(ut.get_funcname(func)) > -1:
+            break
+        srclines2.append(line)
+    # Extract Func
+    for line in ut.get_func_sourcecode(func, stripdef=True, strip_docstr=True, strip_comments=True).split('\n'):
+        if line.strip() == '':
+            continue
+        if line.find(sentinal) > -1:
+            break
+        srclines2.append(line)
+    setup = '\n'.join(srclines2)
+    return setup
+    #print(setup)
+
+
 def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
                    strict=False):
     """
@@ -398,7 +420,7 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
     time_list   = [timeit.timeit(stmt, setup=setup, number=iterations)
                    for stmt in stmt_list]
 
-    passed = ut.util_list.list_allsame(result_list)
+    passed = ut.util_list.list_allsame(result_list, strict=False)
     if verbose:
         print('| Output:')
         if not passed:

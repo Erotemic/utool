@@ -4,7 +4,7 @@ python -c "import utool, doctest; print(doctest.testmod(utool.util_path))"
 This module becomes nav
 """
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, filter, filterfalse, map, range
 import six
 from os.path import (join, basename, relpath, normpath, split, isdir, isfile,
@@ -83,6 +83,7 @@ def path_ndir_split(path_, n, force_unix=True, winroot='C:', trailing=True):
         ...          #r'lonerel',
         ...          #r'reldir/other',
         ...          r'/ham',
+        ...          r'./eggs',
         ...          r'/spam/eggs',
         ...          r'C:\Program Files (x86)/foobar/bin',]
         >>> N = 2
@@ -90,15 +91,17 @@ def path_ndir_split(path_, n, force_unix=True, winroot='C:', trailing=True):
         >>> force_unix = True
         >>> tuplist = [(n, path_ndir_split(path_, n)) for path_, n in iter_]
         >>> chunklist = list(ut.ichunks(tuplist, N))
-        >>> list_ = [['n=%r: %r' % tup for tup in chunk] for chunk in chunklist]
+        >>> list_ = [['n=%r: %s' % (x, ut.reprfunc(y)) for x, y in chunk] for chunk in chunklist]
         >>> line_list = [', '.join(strs) for strs in list_]
         >>> result = '\n'.join(line_list)
         >>> print(result)
         n=1: '.../bar', n=2: '.../foo/bar'
         n=1: 'C:/', n=2: 'C:/'
         n=1: '.../ham', n=2: '/ham'
+        n=1: '.../eggs', n=2: './eggs'
         n=1: '.../eggs', n=2: '.../spam/eggs'
         n=1: '.../bin', n=2: '.../foobar/bin'
+
     """
     if n is None:
         return ensure_crossplat_path(path_)
@@ -126,6 +129,14 @@ def path_ndir_split(path_, n, force_unix=True, winroot='C:', trailing=True):
         else:
             ndirs_list.append(tail)
         #print('ndirs_list = %r' % (ndirs_list,))
+    if trailing and not reached_end:
+        head, tail = split(head)
+        #print('--')
+        #print('head = %r' % (head,))
+        #print('tail = %r' % (tail,))
+        if len(tail) == 0:
+            if len(head) == 0:  # or head == '/':
+                reached_end = True
     #if head == '/':
     #    reached_end = True
     ndirs = sep.join(ndirs_list[::-1])
@@ -133,6 +144,8 @@ def path_ndir_split(path_, n, force_unix=True, winroot='C:', trailing=True):
     #if trailing and not reached_end:
     if trailing and not reached_end:
         cplat_path = '.../' + cplat_path
+    #print('cplat_path = %r' % (cplat_path,))
+    #print('--')
     return cplat_path
 
 

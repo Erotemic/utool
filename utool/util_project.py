@@ -5,7 +5,7 @@ import six  # NOQA
 from os.path import split, dirname
 from utool import util_class  # NOQA
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__, '[util_path]')
+print, rrr, profile = util_inject.inject2(__name__, '[util_project]')
 
 
 __GLOBAL_PROFILE__ = None
@@ -51,8 +51,10 @@ def ensure_user_profile(user_profile=None):
     return user_profile
 
 
-def grep_projects(tofind_list, user_profile=None, **kwargs):
+def grep_projects(tofind_list, user_profile=None, verbose=True, **kwargs):
     r"""
+    Greps the projects defined in the current UserProfile
+
     Args:
         tofind_list (list):
         user_profile (None): (default = None)
@@ -71,33 +73,44 @@ def grep_projects(tofind_list, user_profile=None, **kwargs):
         >>> tofind_list = ut.get_argval('--find', type_=list, default=[sys.argv[-1]])
         >>> grep_projects(tofind_list)
     """
-    user_profile = ensure_user_profile(user_profile)
     import utool as ut
+    user_profile = ensure_user_profile(user_profile)
     grepkw = {}
     grepkw['exclude_dirs'] = user_profile.project_exclude_dirs
     grepkw['dpath_list'] = user_profile.project_dpaths
     grepkw.update(kwargs)
-    print('Greping Projects')
-    print('tofind_list = %s' % (ut.list_str(tofind_list, nl=True),))
-    print('grepkw = %s' % ut.dict_str(grepkw, nl=True))
+
+    msg_list1 = []
+    msg_list2 = []
+
+    print_ = msg_list1.append
+    print_('Greping Projects')
+    print_('tofind_list = %s' % (ut.list_str(tofind_list, nl=True),))
+    print_('grepkw = %s' % ut.dict_str(grepkw, nl=True))
+    if verbose:
+        print('\n'.join(msg_list1))
     with ut.Timer('greping', verbose=True):
         found_fpath_list, found_lines_list, found_lxs_list = ut.grep(tofind_list, **grepkw)
 
+    print_ = msg_list2.append
     for fpath, lines, lxs in zip(found_fpath_list, found_lines_list, found_lxs_list):
-        print('----------------------')
-        print('found %d line(s) in %r: ' % (len(lines), fpath))
+        print_('----------------------')
+        print_('found %d line(s) in %r: ' % (len(lines), fpath))
         name = split(fpath)[1]
         max_line = len(lines)
         ndigits = str(len(str(max_line)))
         for (lx, line) in zip(lxs, lines):
             line = line.replace('\n', '')
-            print(('%s : %' + ndigits + 'd |%s') % (name, lx, line))
+            print_(('%s : %' + ndigits + 'd |%s') % (name, lx, line))
 
-    print('====================')
-    print('found_fpath_list = ' + ut.list_str(found_fpath_list))
-    print('')
-    print('gvim -o ' + ' '.join(found_fpath_list))
-    return
+    print_('====================')
+    print_('found_fpath_list = ' + ut.list_str(found_fpath_list))
+    print_('')
+    #print_('gvim -o ' + ' '.join(found_fpath_list))
+    if verbose:
+        print('\n'.join(msg_list2))
+    msg_list = msg_list1 + msg_list2
+    return msg_list
 
 
 ## Grep my projects
@@ -109,6 +122,7 @@ def grep_projects(tofind_list, user_profile=None, **kwargs):
 #    rob_nav._sed(r, regexpr, repl, force=force, recursive=True, dpath_list=project_dpaths())
 
 def sed_projects(r, regexpr, repl, force=False, recursive=True, user_profile=None, **kwargs):
+    # FIXME: finishme
     import utool as ut
     user_profile = ensure_user_profile(user_profile)
 

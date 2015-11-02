@@ -686,7 +686,7 @@ def safe_slice(list_, *args):
 # --- List Queries --- #
 
 
-def list_allsame(list_):
+def list_allsame(list_, strict=True):
     """
     checks to see if list is equal everywhere
 
@@ -699,10 +699,10 @@ def list_allsame(list_):
     if len(list_) == 0:
         return True
     first_item = list_[0]
-    return list_all_eq_to(list_, first_item)
+    return list_all_eq_to(list_, first_item, strict)
 
 
-def list_all_eq_to(list_, val):
+def list_all_eq_to(list_, val, strict=True):
     """
     checks to see if list is equal everywhere to a value
 
@@ -715,7 +715,13 @@ def list_all_eq_to(list_, val):
     """
     if HAVE_NUMPY and isinstance(val, np.ndarray):
         return all([np.all(item == val) for item in list_])
-    return all([item == val for item in list_])
+    try:
+        return all([item == val for item in list_])
+    except ValueError:
+        if not strict:
+            return all([repr(item) == repr(val) for item in list_])
+        else:
+            raise
 
 
 def flag_None_items(list_):

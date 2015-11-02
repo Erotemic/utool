@@ -1,9 +1,9 @@
-from __future__ import absolute_import, division, print_function
-# Python
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
 import os
-from utool.util_inject import inject
-from utool.util_str import byte_str2
-print, print_, printDBG, rrr, profile = inject(__name__, '[print]')
+from utool import util_inject
+from utool import util_str
+print, rrr, profile = util_inject.inject2(__name__, '[resource]')
 
 try:
     # Resource does not exist in win32
@@ -47,8 +47,8 @@ try:
         rlim_valtups = [(lbl, resource.getrlimit(rlim_key)) for (lbl, rlim_key) in rlim_keytups]
         def rlimval_str(rlim_val):
             soft, hard = rlim_val
-            softstr = byte_str2(soft) if soft != -1 else 'None'
-            hardstr = byte_str2(hard) if hard != -1 else 'None'
+            softstr = util_str.byte_str2(soft) if soft != -1 else 'None'
+            hardstr = util_str.byte_str2(hard) if hard != -1 else 'None'
             return '%12s, %12s' % (softstr, hardstr)
         rlim_strs = ['%8s: %s' % (lbl, rlimval_str(rlim_val)) for (lbl, rlim_val) in rlim_valtups]
         print('Resource Limits: ')
@@ -102,11 +102,11 @@ def get_resource_usage_str():
     usage_str_list = [
         ('+______________________'),
         ('|    RESOURCE_USAGE    process.get_memory_info()[0] / float(2 ** 20) '),
-        ('|  * current_memory = %s' % byte_str2(current_memory_usage())),
+        ('|  * current_memory = %s' % util_str.byte_str2(current_memory_usage())),
     ]
     try:
         usage_str_list.extend([
-            ('|  * peak_memory    = %s' % byte_str2(peak_memory())),
+            ('|  * peak_memory    = %s' % util_str.byte_str2(peak_memory())),
             ('|  * user_time      = %s' % time_str2(time_in_usermode())),
             ('|  * system_time    = %s' % time_str2(time_in_systemmode())),
         ])
@@ -209,10 +209,10 @@ def memstats():
 
 def get_memstats_str():
     return '\n'.join([
-        ('[psutil] total     = %s' % byte_str2(total_memory())),
-        ('[psutil] available = %s' % byte_str2(available_memory())),
-        ('[psutil] used      = %s' % byte_str2(used_memory())),
-        ('[psutil] current   = %s' % byte_str2(current_memory_usage())),
+        ('[psutil] total     = %s' % util_str.byte_str2(total_memory())),
+        ('[psutil] available = %s' % util_str.byte_str2(available_memory())),
+        ('[psutil] used      = %s' % util_str.byte_str2(used_memory())),
+        ('[psutil] current   = %s' % util_str.byte_str2(current_memory_usage())),
     ])
 
 

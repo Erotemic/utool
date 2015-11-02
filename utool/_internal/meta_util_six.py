@@ -1,4 +1,4 @@
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import functools
 import six
 
@@ -28,7 +28,7 @@ if six.PY2:
         #        raise
 
     def set_funcname(func, newname):
-        return setattr(func, 'func_name', newname)
+        return setattr(func, 'func_name', str(newname))
     #
     def get_funcglobals(func):
         return getattr(func, 'func_globals')

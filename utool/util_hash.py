@@ -9,7 +9,7 @@ TODO: the same hashing algorithm should be used everywhere
 Currently there is a mix of sha1, sha256, and sha512 in different places.
 
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import hashlib
 import copy
 import six
