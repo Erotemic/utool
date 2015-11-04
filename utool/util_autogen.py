@@ -109,9 +109,28 @@ def load_func_from_module(modname, funcname, verbose=True, moddir=None):
     func = None
     module = None
     error_str = None
+    print('modname = %r' % (modname,))
+    print('funcname = %r' % (funcname,))
+    print('moddir = %r' % (moddir,))
+
     if not isinstance(modname, six.string_types):
         error_str = 'modname=%r is not a string. bad input' % (modname,)
     else:
+        if False:
+            basemodname_ = modname
+            basemodname = ''
+            parts = modname.split('.')
+            for index in range(len(parts)):
+                #print('index = %r' % (index,))
+                basemodname = '.'.join(parts[0:index + 1])
+                #print('basemodname = %r' % (basemodname,))
+                basemodule = __import__(basemodname)
+                #print('basemodule = %r' % (basemodule,))
+                #if hasattr(basemodule, 'rrrr'):
+                #    basemodule.rrrr()
+                #imp.reload(basemodule)
+        #print('--;;;;')
+
         try:
             module = __import__(modname)
         except ImportError:
@@ -120,7 +139,10 @@ def load_func_from_module(modname, funcname, verbose=True, moddir=None):
             else:
                 raise
         #import inspect
-        #imp.reload(inspect)
+        try:
+            imp.reload(module)
+        except Exception as ex:
+            pass
         # Try removing pyc if it exists
         #print(module.__file__)
         if module.__file__.endswith('.pyc'):

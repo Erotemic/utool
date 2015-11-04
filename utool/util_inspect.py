@@ -727,7 +727,13 @@ def find_child_kwarg_funcs(sourcecode, target_kwargs_name='kwargs'):
                 print('funcname = %r' % (funcname,))
                 print('kwargs_name = %r' % (kwargs_name,))
             ast.NodeVisitor.generic_visit(self, node)
-    CallVisitor().visit(pt)
+    try:
+        CallVisitor().visit(pt)
+    except Exception:
+        pass
+        #import utool as ut
+        #if ut.SUPER_STRICT:
+        #    raise
     return child_funcnamess
     #print('child_funcnamess = %r' % (child_funcnamess,))
 
