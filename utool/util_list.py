@@ -1791,6 +1791,13 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_cons
         >>> result = depth_profile(list_, compress_homogenous=True)
         >>> print(result)
 
+    Example9:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = []
+        >>> result = depth_profile(list_)
+        >>> print(result)
+
         # THIS IS AN ERROR???
         SHOULD BE
         #[1, 1], [1, 2, 2], (1, ([1, 2]), (
@@ -1853,13 +1860,39 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_cons
 
 
 def list_type_profile(sequence, compress_homogenous=True):
-    """ similar to depth_profile but reports types """
+    """
+    similar to depth_profile but reports types
+
+    Args:
+        sequence (?):
+        compress_homogenous (bool): (default = True)
+
+    Kwargs:
+        compress_homogenous
+
+    Returns:
+        str: level_type_str
+
+    CommandLine:
+        python -m utool.util_list --exec-list_type_profile
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> sequence = []
+        >>> compress_homogenous = True
+        >>> level_type_str = list_type_profile(sequence, compress_homogenous)
+        >>> result = ('level_type_str = %s' % (str(level_type_str),))
+        >>> print(result)
+    """
     # For a pure bottom level list return the length
     #if not any(map(util_type.is_listlike, sequence)) or (isinstance(sequence, np.ndarray) and sequence.dtype != object):
     if not util_type.is_listlike(sequence) or (isinstance(sequence, np.ndarray) and sequence.dtype != object):
         typename = str(type(sequence)).replace('<type \'', '').replace('\'>', '')
         level_type_str = typename
         return level_type_str
+    if len(sequence) == 0:
+        return ''
 
     level_type_list = []
     for item in sequence:
