@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import operator
 try:
     import numpy as np
@@ -11,7 +11,7 @@ import itertools
 from six.moves import zip, map, zip_longest, range, filter, reduce
 from utool import util_iter
 from utool import util_inject
-from utool.util_str import get_callable_name
+from utool import util_str
 from utool import util_type
 from utool._internal.meta_util_six import get_funcname, set_funcname
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[list]')
@@ -1330,7 +1330,7 @@ def partial_imap_1to1(func, si_func):
             return func(si_func(input_))
         else:
             return list(map(func, si_func(input_)))
-    set_funcname(wrapper, get_callable_name(func) + '_mapper_' + get_funcname(si_func))
+    set_funcname(wrapper, util_str.get_callable_name(func) + '_mapper_' + get_funcname(si_func))
     return wrapper
 
 
@@ -1990,6 +1990,27 @@ def list_argmax(list_):
 
 
 def make_index_lookup(list_):
+    r"""
+    Args:
+        list_ (list): assumed to have unique items
+
+    Returns:
+        dict: mapping from item to index
+
+    CommandLine:
+        python -m utool.util_list --exec-make_index_lookup
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> import utool as ut
+        >>> list_ = [5, 3, 8, 2]
+        >>> idx2_item = ut.make_index_lookup(list_)
+        >>> result = ut.dict_str(idx2_item, nl=False)
+        >>> assert ut.dict_take(idx2_item, list_) == list(range(len(list_)))
+        >>> print(result)
+        {2: 3, 3: 1, 5: 0, 8: 2}
+    """
     return dict(zip(list_, range(len(list_))))
 
 

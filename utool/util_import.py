@@ -125,7 +125,7 @@ def tryimport(modname, pipiname=None, ensure=False):
         else:
             pipcmd = base_pipcmd
             sudo = False
-        msg = 'unable to find module %r. Please install: %s' % (str(modname), str(pipcmd))
+        msg = 'unable to find module %s. Please install: %s' % ((modname), (pipcmd))
         print(msg)
         utool.printex(ex, msg, iswarning=True)
         if ensure:

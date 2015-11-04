@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
-""" NEEDS CLEANUP SO IT EITHER DOES THE IMPORTS OR GENERATES THE FILE """
-from __future__ import absolute_import, division, print_function
+"""
+NEEDS CLEANUP SO IT EITHER DOES THE IMPORTS OR GENERATES THE FILE
+
+python -c "import utool"
+
+"""
+from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 import multiprocessing
 import textwrap
@@ -22,7 +27,8 @@ def __excecute_imports(module, modname, IMPORTS, verbose=False):
         if level == -1:
             tmp = __import__(name, globals(), locals(), fromlist=[], level=level)
         elif level == 0:
-            tmp = __import__(modname, globals(), locals(), fromlist=[name], level=level)
+            # FIXME: should support unicode. Maybe just a python2 thing
+            tmp = __import__(modname, globals(), locals(), fromlist=[str(name)], level=level)
 
 
 def __execute_fromimport(module, modname, IMPORT_TUPLES, verbose=False):

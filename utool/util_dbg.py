@@ -1,6 +1,7 @@
-from __future__ import absolute_import, division, print_function
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
 #import six
-from six.moves import range
+from six.moves import range, zip, map, filter  # NOQA
 import fnmatch
 import operator
 import inspect
@@ -26,7 +27,7 @@ from utool import util_print
 from utool import util_str
 from utool import util_type
 from utool._internal import meta_util_six
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[dbg]')
+print, rrr, profile = util_inject.inject2(__name__, '[dbg]')
 
 RAISE_ALL = util_arg.get_argflag('--raise-all', help='Causes ut.printex to always reraise errors')
 FORCE_TB = util_arg.get_argflag('--force-tb', help='Causes ut.printex to always print traceback')
@@ -1039,7 +1040,7 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
     # get requested print function
     if use_stdout:
         def print_func(*args):
-            msg = ', '.join(map(str, args))
+            msg = ', '.join(list(map(str, args)))
             sys.stdout.write(msg + '\n')
             sys.stdout.flush()
     else:

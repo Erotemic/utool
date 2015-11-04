@@ -492,6 +492,9 @@ def _exec_doctest(src, kwargs, nocheckwant=None):
     #test_globals['print'] = doctest_print
     # EXEC FUNC
     #six.exec_(src, test_globals, test_locals)  # adds stack to debug trace
+    import utool as ut
+    if ut.get_argflag(('--cmd', '--embed')):
+        src += '\nimport utool as ut; ut.embed()'  # TODO RECTIFY WITH TF
     code = compile(src, '<string>', 'exec')
     try:
         exec(code, test_globals, test_locals)
@@ -1597,6 +1600,8 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
         if test_func is not None:
             testsrc = ut.get_doctest_examples(test_func)[0][testno]
             try:
+                if ut.get_argflag(('--cmd', '--embed')):
+                    testsrc += '\nimport utool as ut; ut.embed()'  # TODO RECTIFY WITH EXEC DOCTEST
                 exec(testsrc, globals(), locals())
             except ExitTestException:
                 print('Test exited before show')
