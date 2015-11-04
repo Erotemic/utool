@@ -40,6 +40,10 @@ def compare_groupings(groups1, groups2):
     CommandLine:
         python -m utool.util_alg --exec-compare_groupings
 
+    SeeAlso:
+        vtool.group_indicies
+        vtool.apply_grouping
+
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
