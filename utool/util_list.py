@@ -945,7 +945,7 @@ def priority_sort(list_, priority):
     """
     # remove requested priority items not in the list
     priority_ = setintersect_ordered(priority, list_)
-    reordered_list = unique_keep_order2(priority_ + list_)
+    reordered_list = unique_keep_order(priority_ + list_)
     return reordered_list
 
 
@@ -1017,7 +1017,7 @@ def iflag_unique_items(list_):
     return flag_iter
 
 
-def unique_keep_order2(list_):
+def unique_keep_order(list_):
     """
     pure python version of unique_keep_ordered
     TODO: change name
@@ -1029,13 +1029,13 @@ def unique_keep_order2(list_):
         list: unique_list - unique list which maintains order
 
     CommandLine:
-        python -m utool.util_list --exec-unique_keep_order2
+        python -m utool.util_list --exec-unique_keep_order
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> list_ = [4, 6, 6, 0, 6, 1, 0, 2, 2, 1]
-        >>> unique_list = unique_keep_order2(list_)
+        >>> unique_list = unique_keep_order(list_)
         >>> result = ('unique_list = %s' % (str(unique_list),))
         >>> print(result)
         unique_list = [4, 6, 0, 1, 2]
@@ -1044,7 +1044,7 @@ def unique_keep_order2(list_):
     unique_list = list_compress(list_, flag_list)
     return unique_list
 
-unique_ordered = unique_keep_order2
+unique_ordered = unique_keep_order
 
 
 def unique_unordered(list_):

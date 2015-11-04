@@ -541,7 +541,7 @@ if DOELSE:
                                  setdiff_ordered, setintersect_ordered, 
                                  sortedby, sortedby2, strided_sample, tuplize, 
                                  unflat_unique_rowid_map, unflatten, 
-                                 unflatten2, unique_keep_order2, 
+                                 unflatten2, unique_keep_order, 
                                  unique_ordered, unique_unordered, xor_lists,) 
     from utool.util_num import (commas, fewest_digits_float_str, 
                                 float_to_decimal, format_, get_sys_maxfloat, 

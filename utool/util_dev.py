@@ -1002,7 +1002,7 @@ def find_interesting_stats(stat_dict, col_lbls=None, lbl=None):
         else:
             sel_sortx = sortx
         sel_indices.extend(sel_sortx)
-    sel_indices = ut.unique_keep_order2(sel_indices)
+    sel_indices = ut.unique_keep_order(sel_indices)
     sel_stat_dict = ut.get_dict_column(stat_dict, sel_indices)
     sel_stat_dict = ut.order_dict_by(sel_stat_dict, STAT_KEY_ORDER)
     return sel_stat_dict, sel_indices

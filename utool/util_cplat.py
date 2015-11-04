@@ -243,7 +243,7 @@ def get_dynlib_exports(lib_path):
                 others.append(line)
 
         # remove duplicate address spaces
-        info = ut.unique_keep_order2(info)
+        info = ut.unique_keep_order(info)
         # remove stdlib
         info = [line for line in info if 'std::' not in line[0]]
         info = [line for line in info if not line[0].startswith('typeinfo')]
