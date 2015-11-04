@@ -29,6 +29,75 @@ PHI_A = (1 / PHI)
 PHI_B = 1 - PHI_A
 
 
+def compare_groupings(groups1, groups2):
+    r"""
+    Returns a measure of how disimilar two groupings are
+
+    Args:
+        groups1 (list): grouping of items
+        groups2 (list): grouping of items
+
+    CommandLine:
+        python -m utool.util_alg --exec-compare_groupings
+
+    Example0:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> groups1 = [[1, 2, 3], [4], [5, 6], [7, 8], [9, 10, 11]]
+        >>> groups2 = [[1, 2, 11], [3, 4], [5, 6], [7], [8, 9], [10]]
+        >>> total_error = compare_groupings(groups1, groups2)
+        >>> result = ('total_error = %r' % (total_error,))
+        >>> print(result)
+        20
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> groups1 = [[1, 2, 3], [4], [5, 6]]]
+        >>> groups2 = [[1, 2, 3], [4], [5, 6]]]
+        >>> total_error = compare_groupings(groups1, groups2)
+        >>> result = ('total_error = %r' % (total_error,))
+        >>> print(result)
+        0
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> groups1 = [[1, 2, 3], [4], [5, 6]]
+        >>> groups2 = [[1, 2], [4], [5, 6]]
+        >>> total_error = compare_groupings(groups1, groups2)
+        >>> result = ('total_error = %r' % (total_error,))
+        >>> print(result)
+        4
+    """
+    import utool as ut
+    # For each group, build mapping from each item to the members the group
+    item_to_others1 = {item: set(_group) - set([item])
+                       for _group in groups1 for item in _group}
+    item_to_others2 = {item: set(_group) - set([item])
+                       for _group in groups2 for item in _group}
+
+    flat_items1 = ut.flatten(groups1)
+    flat_items2 = ut.flatten(groups2)
+
+    flat_items = list(set(flat_items1 + flat_items2))
+
+    errors = []
+    item_to_error = {}
+    for item in flat_items:
+        # Determine the number of unshared members in each group
+        others1 = item_to_others1.get(item, set([]))
+        others2 = item_to_others2.get(item, set([]))
+        missing1 = others1 - others2
+        missing2 = others2 - others1
+        error = len(missing1) + len(missing2)
+        if error > 0:
+            item_to_error[item] = error
+        errors.append(error)
+    total_error = sum(errors)
+    return total_error
+
+
 def greedy_max_inden_setcover(candidate_sets_dict, items, max_covers=None):
     """
     greedy algorithm for maximum independent set cover
