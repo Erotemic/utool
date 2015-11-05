@@ -36,7 +36,8 @@ VERBOSE_TEST = util_arg.get_argflag(('--verbtest', '--verb-test', '--verbose-tes
 DEBUG_SRC = not util_arg.get_argflag('--nodbgsrc')
 PRINT_SRC = util_arg.get_argflag(('--printsrc', '--src', '--show-src', '--showsrc'),
                                  help_='show docstring source when running tests')
-PRINT_FACE = not util_arg.get_argflag(('--noprintface', '--noface'))
+#PRINT_FACE = not util_arg.get_argflag(('--noprintface', '--noface'))
+PRINT_FACE = util_arg.get_argflag(('--printface', '--face'))
 #BIGFACE = False
 BIGFACE = util_arg.get_argflag('--bigface')
 SYSEXIT_ON_FAIL = util_arg.get_argflag(('--sysexitonfail', '--fastfail'),
@@ -232,7 +233,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     multiprocessing.freeze_support()  # just in case
     ut.inject_colored_exceptions()
 
-    if verbose or VERBOSE_TEST:
+    if (verbose or VERBOSE_TEST) and ut.NOT_QUIET:
         if VERBOSE_TEST:
             print('[util_test.doctest_funcs][DEPTH 1] doctest_funcs()')
         print('[util_test.doctest_funcs] Running doctest_funcs')
@@ -280,7 +281,6 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
                 globals=test_globals,  # HACK
                 want=want, return_error_report=True)
             assert testtup.frame_fpath == frame_fpath
-            #test_locals = ut.run_test((name,  src, frame_fpath), **testkw)
             test_locals, error_report = ut.run_test(testtup, **testkw)
             is_pass = (test_locals is not False)
             if is_pass:
@@ -358,6 +358,7 @@ def run_test(func_or_testtup, return_error_report=False, *args, **kwargs):
     # NOTE: isinstance is not gaurenteed not work here if ut.rrrr has been called
     func_is_testtup = isinstance(func_or_testtup, TestTuple)
     exec_mode = False
+    write_times = True
     if func_is_testtup:
         testtup = func_or_testtup
         src         = testtup.src
@@ -384,102 +385,100 @@ def run_test(func_or_testtup, return_error_report=False, *args, **kwargs):
     #indent_test = not exec_mode and INDENT_TEST
     error_report = None
 
-    #with util_print.Indenter('  <' + funcname + '>  ', enabled=indent_test):
-    if True:
-        try:
-            #+----------------
-            # RUN THE TEST WITH A TIMER
-            with util_time.Timer(upper_funcname, verbose=verbose_timer) as timer:
-                if func_is_testtup:
-                    test_locals = _exec_doctest(src, kwargs, nocheckwant)
-                else:
-                    # TEST INPUT IS A LIVE PYTHON FUNCTION
-                    test_locals = func_(*args, **kwargs)
-                print('')
-            #L________________
-            #+----------------
-            # LOG PASSING TEST
-            if not exec_mode:
-                print('\n=============================')
-                print('**[TEST.FINISH] %s -- SUCCESS' % (funcname,))
-                if print_face:
-                    print(HAPPY_FACE)
-                if not exec_mode:
-                    timemsg = '%.4fs in %s %s\n' % (
-                        timer.ellapsed, funcname, frame_fpath)
-                    try:
-                        ut.write_to('test_times.txt', timemsg, mode='a')
-                    except IOError as ex:
-                        ut.printex(ex, '[util_test] IOWarning', iswarning=True)
-            #L________________
-            # RETURN VALID TEST LOCALS
-            if return_error_report:
-                return test_locals, error_report
-            return test_locals
-
-        except Exception as ex:
-            import utool as ut
-            # Get locals in the wrapped function
-            ut.printex(ex, tb=True)
-            error_report_lines = ['**[TEST.ERROR] %s -- FAILED:\n    type(ex)=%s' % (
-                funcname, type(ex))]
-            error_report_lines.append(ut.formatex(ex, tb=True))
-            def print_report(msg):
-                error_report_lines.append(msg)
-                print(msg)
-            print_report('\n=============================')
-            print_report('**[TEST.FINISH] %s -- FAILED:\n    type(ex)=%s' % (funcname, type(ex)))
-            exc_type, exc_value, tb = sys.exc_info()
-            if PRINT_FACE:
-                print_report(SAD_FACE)
+    try:
+        #+----------------
+        # RUN THE TEST WITH A TIMER
+        with util_time.Timer(upper_funcname, verbose=verbose_timer) as timer:
             if func_is_testtup:
-                print_report('Failed in module: %r' % frame_fpath)
-                if True or DEBUG_SRC:
-                    src_with_lineno = ut.number_text_lines(src)
-                    print_report(ut.msgblock('FAILED DOCTEST IN %s' % (funcname,), src_with_lineno))
-                #ut.embed()
+                test_locals = _exec_doctest(src, kwargs, nocheckwant)
+            else:
+                # TEST INPUT IS A LIVE PYTHON FUNCTION
+                test_locals = func_(*args, **kwargs)
+            print('')
+        #L________________
+        #+----------------
+        # LOG PASSING TEST
+        if not exec_mode:
+            print('\n=============================')
+            print('**[TEST.FINISH] %s -- SUCCESS' % (funcname,))
+            if print_face:
+                print(HAPPY_FACE)
+            if write_times:
+                timemsg = '%.4fs in %s %s\n' % (
+                    timer.ellapsed, funcname, frame_fpath)
+                try:
+                    ut.write_to('test_times.txt', timemsg, mode='a')
+                except IOError as ex:
+                    ut.printex(ex, '[util_test] IOWarning', iswarning=True)
+        #L________________
+        # RETURN VALID TEST LOCALS
+        if return_error_report:
+            return test_locals, error_report
+        return test_locals
 
-                #print('\n... test encountered error. sys.exit(1)\n')
-                #sys.exit(1)
-                #failed_execline = traceback.format_tb(tb)[-1]
-                #parse_str = 'File {fname}, line {lineno}, in {modname}'
-                #parse_dict = parse.parse('{prefix_}' + parse_str + '{suffix_}', failed_execline)
-                #if parse_dict['fname'] == '<string>':
-                #    lineno = int(parse_dict['lineno'])
-                #    failed_line = src.splitlines()[lineno - 1]
-                #    print('Failed on line: %s' % failed_line)
-            if util_arg.SUPER_STRICT:
-                exc_type, exc_value, exc_traceback = sys.exc_info()
-                if not func_is_testtup:
-                    # Remove this function from stack strace
-                    # dont do this for execed code
-                    exc_traceback = exc_traceback.tb_next
-                # Python 2*3=6
-                if True:
-                    # FIXME: use common code
-                    six.reraise(exc_type, exc_value, exc_traceback)
-                else:
-                    ## PYTHON 2.7 DEPRICATED:
-                    #if six.PY2:
-                    #    raise exc_type, exc_value, exc_traceback.tb_next
-                    #    #exec ('raise exc_type, exc_value,
-                    #    exc_traceback.tb_next', globals(), locals())
-                    ## PYTHON 3.3 NEW METHODS
-                    #elif six.PY3:
-                    #    ex = exc_type(exc_value)
-                    #    ex.__traceback__ = exc_traceback.tb_next
-                    #    raise ex
-                    #else:
-                    #    raise AssertionError('Weird python version')
-                    pass
-            if SYSEXIT_ON_FAIL:
-                print('[util_test] SYSEXIT_ON_FAIL = True')
-                print('[util_test] exiting with sys.exit(1)')
-                sys.exit(1)
-            #raise
-            if return_error_report:
-                error_report = '\n'.join(error_report_lines)
-                return False, error_report
+    except Exception as ex:
+        import utool as ut
+        # Get locals in the wrapped function
+        ut.printex(ex, tb=True)
+        error_report_lines = ['**[TEST.ERROR] %s -- FAILED:\n    type(ex)=%s' % (
+            funcname, type(ex))]
+        error_report_lines.append(ut.formatex(ex, tb=True))
+        def print_report(msg):
+            error_report_lines.append(msg)
+            print(msg)
+        print_report('\n=============================')
+        print_report('**[TEST.FINISH] %s -- FAILED:\n    type(ex)=%s' % (funcname, type(ex)))
+        exc_type, exc_value, tb = sys.exc_info()
+        if PRINT_FACE:
+            print_report(SAD_FACE)
+        if func_is_testtup:
+            print_report('Failed in module: %r' % frame_fpath)
+            if True or DEBUG_SRC:
+                src_with_lineno = ut.number_text_lines(src)
+                print_report(ut.msgblock('FAILED DOCTEST IN %s' % (funcname,), src_with_lineno))
+            #ut.embed()
+
+            #print('\n... test encountered error. sys.exit(1)\n')
+            #sys.exit(1)
+            #failed_execline = traceback.format_tb(tb)[-1]
+            #parse_str = 'File {fname}, line {lineno}, in {modname}'
+            #parse_dict = parse.parse('{prefix_}' + parse_str + '{suffix_}', failed_execline)
+            #if parse_dict['fname'] == '<string>':
+            #    lineno = int(parse_dict['lineno'])
+            #    failed_line = src.splitlines()[lineno - 1]
+            #    print('Failed on line: %s' % failed_line)
+        if util_arg.SUPER_STRICT:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            if not func_is_testtup:
+                # Remove this function from stack strace
+                # dont do this for execed code
+                exc_traceback = exc_traceback.tb_next
+            # Python 2*3=6
+            if True:
+                # FIXME: use common code
+                six.reraise(exc_type, exc_value, exc_traceback)
+            else:
+                ## PYTHON 2.7 DEPRICATED:
+                #if six.PY2:
+                #    raise exc_type, exc_value, exc_traceback.tb_next
+                #    #exec ('raise exc_type, exc_value,
+                #    exc_traceback.tb_next', globals(), locals())
+                ## PYTHON 3.3 NEW METHODS
+                #elif six.PY3:
+                #    ex = exc_type(exc_value)
+                #    ex.__traceback__ = exc_traceback.tb_next
+                #    raise ex
+                #else:
+                #    raise AssertionError('Weird python version')
+                pass
+        if SYSEXIT_ON_FAIL:
+            print('[util_test] SYSEXIT_ON_FAIL = True')
+            print('[util_test] exiting with sys.exit(1)')
+            sys.exit(1)
+        #raise
+        if return_error_report:
+            error_report = '\n'.join(error_report_lines)
+            return False, error_report
 
 
 def _exec_doctest(src, kwargs, nocheckwant=None):
@@ -500,8 +499,8 @@ def _exec_doctest(src, kwargs, nocheckwant=None):
         src += '\nimport utool as ut; ut.embed()'  # TODO RECTIFY WITH TF
     code = compile(src, '<string>', 'exec')
     try:
-        # IN EXEC CONTEXT THERE IS NO DIFF BETWEEN LOCAL / GLOBALS.  ONLY PASS IN
-        # ONE DICT. OTHERWISE TREATED ODDLY
+        # IN EXEC CONTEXT THERE IS NO DIFF BETWEEN LOCAL / GLOBALS.  ONLY PASS
+        # IN ONE DICT. OTHERWISE TREATED ODDLY
         # References: https://bugs.python.org/issue13557
         #exec(code, test_globals, test_locals)
         test_locals = test_globals
@@ -518,8 +517,6 @@ def _exec_doctest(src, kwargs, nocheckwant=None):
         if want.endswith('\n'):
             want = want[:-1]
         result = str(test_locals.get('result', 'NO VARIABLE NAMED result'))
-        #print('!! RESULT LINES: ')
-        #print(result)
         if result != want:
             errmsg1 = ''
             try:
@@ -539,9 +536,7 @@ def _exec_doctest(src, kwargs, nocheckwant=None):
             errmsg1 += ('STR_GOT: result=\n%s\n' % (result))
             errmsg1 += ('STR_EXPECTED: want=\n%s\n' % (want))
             raise AssertionError('result != want\n' + errmsg1)
-        #assert result == want, 'result is not the same as want'
     return test_locals
-    #print('\n'.join(output_lines))
 
 
 def dev_ipython_copypaster(func):
@@ -1007,7 +1002,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     # Get testable functions
     if parse_testables:
         try:
-            if verbose or VERBOSE_TEST:
+            if verbose or VERBOSE_TEST and ut.NOT_QUIET:
                 print('[util_test.get_module_doctest_tup] Iterating over module funcs')
                 print('[util_test.get_module_doctest_tup] module =%r' % (module,))
 

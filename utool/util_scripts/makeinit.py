@@ -56,7 +56,7 @@ def makeinit(module_path, exclude_modnames=[], use_star=False):
         '''.format(module_name=module_name)
     )
 
-    init_codeblock_list = ['### __init__.py ###']
+    init_codeblock_list = ['# -*- coding: utf-8 -*-', '### __init__.py ###']
     init_codeblock_list.append(initstr)
     init_codeblock_list.append('\nIMPORT_TUPLES = ' + ut.list_str(IMPORT_TUPLES))
     if use_star:

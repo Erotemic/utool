@@ -1364,43 +1364,6 @@ assert_exists = assertpath
 #    #assert exists(path), 'path=%r does not exist! %s' % (path, msg)
 
 
-def grepfile(fpath, regexpr_list, reflags=0):
-    """
-    grepfile - greps a specific file
-
-    Args:
-        fpath (str):
-        regexpr_list (list or str): pattern or list of patterns
-
-    Returns:
-        tuple (list, list): list of lines and list of line numbers
-
-    Example:
-        >>> import utool as ut
-        >>> fpath = ut.truepath('~/code/ibeis/ibeis/model/hots/smk/smk_match.py')
-        >>> regexpr_list = ['get_argflag', 'get_argval']
-        >>> result = ut.grepfile(fpath, regexpr_list)
-        >>> print(result)
-    """
-    found_lines = []
-    found_lxs = []
-    # Ensure a list
-    islist = isinstance(regexpr_list, (list, tuple))
-    regexpr_list_ = regexpr_list if islist else [regexpr_list]
-    # Open file and search lines
-    with open(fpath, 'r') as file_:
-        line_list = file_.readlines()
-        # Search each line for each pattern
-        for lx, line in enumerate(line_list):
-            for regexpr_ in regexpr_list_:
-                # FIXME: multiline mode doesnt work
-                match_object = re.search(regexpr_, line, flags=reflags)
-                if match_object is not None:
-                    found_lines.append(line)
-                    found_lxs.append(lx)
-    return found_lines, found_lxs
-
-
 def pathsplit_full(path):
     """ splits all directories in path into a list """
     return path.replace('\\', '/').split('/')
@@ -1464,6 +1427,48 @@ def matching_fnames(dpath_list, include_patterns, exclude_dirs=[],
     #return fname_list
 
 
+def grepfile(fpath, regexpr_list, reflags=0):
+    """
+    grepfile - greps a specific file
+
+    Args:
+        fpath (str):
+        regexpr_list (list or str): pattern or list of patterns
+
+    Returns:
+        tuple (list, list): list of lines and list of line numbers
+
+    CommandLine:
+        python -m utool.util_path --exec-grepfile
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> import utool as ut
+        >>> fpath = ut.truepath('~/code/ibeis/ibeis/model/hots/smk/smk_match.py')
+        >>> regexpr_list = ['get_argflag', 'get_argval']
+        >>> result = ut.grepfile(fpath, regexpr_list)
+        >>> print(result)
+    """
+    found_lines = []
+    found_lxs = []
+    # Ensure a list
+    islist = isinstance(regexpr_list, (list, tuple))
+    regexpr_list_ = regexpr_list if islist else [regexpr_list]
+    # Open file and search lines
+    with open(fpath, 'r') as file_:
+        #line_list = file_.readlines()
+        # Search each line for each pattern
+        for lx, line in enumerate(file_):
+            for regexpr_ in regexpr_list_:
+                # FIXME: multiline mode doesnt work
+                match_object = re.search(regexpr_, line, flags=reflags)
+                if match_object is not None:
+                    found_lines.append(line)
+                    found_lxs.append(lx)
+    return found_lines, found_lxs
+
+
+@profile
 def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
          exclude_dirs=[], greater_exclude_dirs=None,
          inverse=False, verbose=VERBOSE, fpath_list=None, reflags=0):
@@ -1481,21 +1486,22 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
         tuple (list, list, list): (found_fpath_list, found_lines_list, found_lxs_list)
 
     CommandLine:
-        python -m utool.util_path --exec-grep
+        python -m utool.util_path --test-grep
+        utprof.py -m utool.util_path --exec-grep
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_path import *  # NOQA
         >>> import utool as ut
-        >>> dpath_list = [ut.truepath('~/code/ibeis/ibeis')]
+        >>> dpath_list = [ut.truepath('~/code/utool/utool')]
         >>> include_patterns = ['*.py']
         >>> exclude_dirs = []
-        >>> regex_list = ['get_argflag', 'get_argval']
+        >>> regex_list = ['grepfile']
         >>> verbose = False
         >>> recursive = True
         >>> result = ut.grep(regex_list, recursive, dpath_list, include_patterns, exclude_dirs)
         >>> (found_fpath_list, found_lines_list, found_lxs_list) = result
-        >>> print(result)
+        >>> assert 'util_path.py' in list(map(basename, found_fpath_list))
     """
     if include_patterns is None:
         include_patterns =  get_standard_include_patterns()

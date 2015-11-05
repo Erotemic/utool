@@ -387,7 +387,7 @@ def generate(func, args_list, ordered=True, force_serial=None,
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
         >>> #num = 8700  # parallel is slower for smaller numbers
-        >>> num = 10000  # parallel has an initial (~.1 second startup overhead)
+        >>> num = 500  # parallel has an initial (~.1 second startup overhead)
         >>> print('TESTING SERIAL')
         >>> flag_generator0 = ut.generate(ut.is_prime, range(0, num), force_serial=True, freq=num / 4)
         >>> flag_list0 = list(flag_generator0)

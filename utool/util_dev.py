@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 import six
 import re
@@ -9,7 +9,7 @@ import warnings
 import weakref
 import itertools
 from collections import OrderedDict
-from six.moves import input
+from six.moves import input, zip, range, map  # NOQA
 from utool import util_progress
 from os.path import splitext, exists, join, split, relpath
 from utool import util_inject
