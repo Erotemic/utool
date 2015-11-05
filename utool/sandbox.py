@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 lazy_module_attrs =  ['_modname', '_module', '_load_module']
 
 

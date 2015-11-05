@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Check that SendInput can work the way we want it to
 

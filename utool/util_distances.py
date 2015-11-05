@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 # TODO DEPRICATE AND MOVE TO VTOOL
 """

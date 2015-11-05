@@ -23,11 +23,15 @@ if __name__ == '__main__':
         #'from __future__ import absolute_import, division, print_function, unicode_literals',
     ]
 
+    show_diff = ut.get_argflag('--diff')
+    do_write = ut.get_argflag('--write')
+
     for pat in pattern_items:
         print('Checking for pattern: %r' % (pat,))
         for fpath in fpath_list:
             pattern = re.escape(pat)
             found_lines, found_lxs = ut.grepfile(fpath, pattern)
+            # DID NOT FIND ENCODING LINE
             if len(found_lines) == 0:
                 print('\n-----------------\nFound file without encodeing line: ' + fpath)
                 line_list = ut.read_lines_from(fpath)
@@ -42,11 +46,11 @@ if __name__ == '__main__':
                     #print(' * linenum = %r' % (linenum,))
                     new_lines = line_list[:linenum] + [encoding_line + '\n'] + line_list[linenum:]
                     new_text = ''.join(new_lines)
-                    if True:
+                    if show_diff:
                         old_text = ''.join(line_list)
                         textdiff = ut.get_textdiff(old_text, new_text, num_context_lines=1)
                         print('Diff:')
                         ut.print_difftext(textdiff)
-                    dry = True
-                    if not dry:
+                    if do_write:
+                        ut.writeto(fpath, new_text)
                         pass

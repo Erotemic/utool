@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 FIXME:
     This class is very old, convoluted, and coupled.

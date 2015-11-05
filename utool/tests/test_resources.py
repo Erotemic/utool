@@ -1,4 +1,5 @@
 #!/usr/bin/env python2.7
+# -*- coding: utf-8 -*-
 # TODO: ADD COPYRIGHT TAG
 #from utool import util_resources
 import psutil

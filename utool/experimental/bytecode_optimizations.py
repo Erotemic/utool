@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 References:
     http://code.activestate.com/recipes/576904/

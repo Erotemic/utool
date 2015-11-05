@@ -1,4 +1,5 @@
 #!/usr/bin/env python2.7
+# -*- coding: utf-8 -*-
 """
 REMEMBER In Python 3 think: text or data.
 str.encode:   text -> data

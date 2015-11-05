@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Injects code into live modules or into text source files.
 

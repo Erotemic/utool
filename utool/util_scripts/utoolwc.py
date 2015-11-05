@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import utool
 
 #def ibeis_wc():

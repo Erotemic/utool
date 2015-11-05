@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Aliases harder to remember or very common standard module functions
 """

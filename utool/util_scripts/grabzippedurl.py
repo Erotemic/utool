@@ -1,4 +1,5 @@
 #!/usr/bin/env python2.7
+# -*- coding: utf-8 -*-
 """
 downloads an archive file and then unzips it into a directory with the same name
 as the archive (sans the .zip or .tar.gz)

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 python -c "import utool, doctest; print(doctest.testmod(utool.util_path))"
 

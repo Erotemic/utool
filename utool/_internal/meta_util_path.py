@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from six.moves import map
 from os.path import expanduser, normpath, realpath, exists, isabs

@@ -1,4 +1,5 @@
 #!/usr/bin/env python2.7
+# -*- coding: utf-8 -*-
 """set PATH=%HOME%\code\utool\utool\util_scripts;%PATH%
 cyth.py %HOME%/code/vtool/vtool/linalg_cython.pyx
 python %HOME%/code/vtool/vtool/tests/test_linalg.py"""
