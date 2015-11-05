@@ -246,6 +246,7 @@ def load_cache(dpath, fname, cfgstr, verbose=None):
     try:
         data = util_io.load_cPkl(fpath, verbose)
     except IOError:
+        print('CORRUPTED? fpath = %s' % (fpath,))
         if verbose:
             print('[util_io] ... cache miss dpath=%s cfgstr=%r' % (basename(dpath), cfgstr,))
         raise
