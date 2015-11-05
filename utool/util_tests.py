@@ -26,6 +26,7 @@ from utool import util_path
 from utool import util_time
 from utool import util_inject
 from utool import util_dbg
+from utool._internal import meta_util_six
 from utool._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[tests]')
 
@@ -1600,7 +1601,8 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
                     test_func = test_class.__dict__[test_funcname]
 
         if test_func is not None:
-            globals_.update(test_func.func_globals)
+            func_globals = meta_util_six.get_funcglobals(test_func)
+            globals_.update(func_globals)
             testsrc = ut.get_doctest_examples(test_func)[0][testno]
             try:
                 if ut.get_argflag(('--cmd', '--embed')):
