@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 Module that handles string formating and manipulation of varoius data
+
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
@@ -41,8 +42,11 @@ def is_byte_encoded_unicode(str_):
     return r'\x' in repr(str_)
 
 
+ensure_unicode = meta_util_six.ensure_unicode
+
+
 def ensure_unicode_strlist(str_list):
-    __STR__ = unicode if six.PY2 else str
+    __STR__ = util_type.__STR__
     flag_list = [not isinstance(str_, __STR__) and is_byte_encoded_unicode(str_) for str_ in str_list]
     new_str_list = [str_.decode('utf-8') if flag else __STR__(str_) for str_, flag in zip(str_list, flag_list)]
     return new_str_list

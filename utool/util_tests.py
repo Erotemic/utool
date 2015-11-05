@@ -647,6 +647,7 @@ def parse_docblocks_from_docstr(docstr):
     import parse
     import utool as ut
     import itertools
+    docstr = ut.ensure_unicode(docstr)
     initial_docblocks = docstr.split('\n\n')
     docblock_len_list = [str_.count('\n') + 2 for str_ in initial_docblocks]
     offset_iter = itertools.chain([0], ut.cumsum(docblock_len_list)[:-1])
@@ -1013,9 +1014,11 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
             for key, val in ut.iter_module_doctestable(module,
                                                        include_inherited=include_inherited):
                 docstr = inspect.getdoc(val)
+                #docstr = ut.ensure_unicode(docstr)
                 # FIXME:
                 # BUG: We need to verify that this function actually belongs to this
                 # module. In util_type ndarray is imported and we try to parse it
+                docstr = ut.ensure_unicode(docstr)
                 if docstr is not None and docstr.find('Example') >= 0:
                     testable_name_list.append(key)
                     testable_list.append(val)
@@ -1024,6 +1027,8 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                     #        pass
                     #        #print('[util_dev] DOCTEST DISABLED: %s' % key)
         except Exception as ex:
+            print('FAILED')
+            print(docstr)
             ut.printex(ex, keys=['frame'])
             raise
     #if verbose:

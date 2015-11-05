@@ -4,11 +4,15 @@ import sys
 import six
 import functools
 import re
-#import warnings
 import types
 from utool import util_inject
 from utool._internal.meta_util_six import IntType, LongType, FloatType, BooleanType
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[type]')
+from utool._internal import meta_util_six
+#import warnings
+print, rrr, profile = util_inject.inject2(__name__, '[type]')
+
+
+__STR__ = meta_util_six.__STR__
 
 
 if six.PY2:

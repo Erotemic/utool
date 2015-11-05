@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 If logging is on, utool will overwrite the print function with a logging function
 
@@ -8,16 +9,16 @@ References:
     # when using injected print statments with Qt signals and slots
     http://stackoverflow.com/questions/21071448/redirecting-stdout-and-stderr-to-a-pyqt4-qtextedit-from-a-secondary-thread
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import six
-from six.moves import builtins
+from six.moves import builtins, map, zip, range  # NOQA
 from os.path import exists, join, realpath
 import logging
 import logging.config
 import multiprocessing
 import os
 import sys
-from utool._internal import meta_util_arg
+from utool._internal import meta_util_arg, meta_util_six
 
 VERBOSE            = meta_util_arg.VERBOSE
 VERYVERBOSE        = meta_util_arg.VERYVERBOSE
@@ -52,10 +53,7 @@ __UTOOL_FLUSH__     = __PYTHON_FLUSH__
 __UTOOL_WRITE_BUFFER__ = []
 
 
-if six.PY2:
-    __STR__ = unicode
-else:
-    __STR__ = str
+__STR__ = meta_util_six.__STR__
 
 logdir_cacheid = 'log_dpath'
 
@@ -112,7 +110,7 @@ def get_log_fpath(num='next', appname=None, log_dir=None):
         log_fname = appname + '_logs_%04d.out'
     else:
         log_fname = 'utool_logs_%04d.out'
-    if isinstance(num, str):
+    if isinstance(num, six.string_types):
         if num == 'next':
             count = 0
             log_fpath = join(log_dir, log_fname % count)
@@ -256,7 +254,12 @@ def start_logging(log_fpath=None, mode='a', appname='default', log_dir=None):
         else:
             def utool_print(*args):
                 """ standard utool print function """
-                return  __UTOOL_ROOT_LOGGER__.info(', '.join(map(__STR__, args)))
+                try:
+                    return  __UTOOL_ROOT_LOGGER__.info(', '.join(map(__STR__, args)))
+                except UnicodeDecodeError:
+                    new_msg = ', '.join(map(meta_util_six.ensure_unicode, args))
+                    #print(new_msg)
+                    return  __UTOOL_ROOT_LOGGER__.info(new_msg)
         def utool_printdbg(*args):
             """ standard utool print debug function """
             return  __UTOOL_ROOT_LOGGER__.debug(', '.join(map(__STR__, args)))

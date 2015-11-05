@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import functools
 import six
 
 if six.PY2:
     import types
+    __STR__ = unicode
     def get_funcname(func):
         """
         Weird behavior for classes
@@ -48,6 +50,8 @@ if six.PY2:
     BooleanType = types.BooleanType
     FloatType = types.FloatType
 elif six.PY3:
+
+    __STR__ = str
     IntType  = int
     LongType = int
     BooleanType = bool
@@ -74,3 +78,21 @@ elif six.PY3:
         return getattr(func, '__code__')
 else:
     raise AssertionError('python4 ?!!')
+
+
+def ensure_unicode(str_):
+    """
+    TODO:
+        rob gp "isinstance\\(.*\\\\bstr\\\\b\\)"
+    """
+    if isinstance(str_, __STR__):
+        return str_
+    else:
+        try:
+            return __STR__(str_)
+        except UnicodeDecodeError:
+            return str_.decode('utf-8')
+    #if not isinstance(str_, __STR__) and is_byte_encoded_unicode(str_):
+    #    return str_.decode('utf-8')
+    #else:
+    #    return __STR__(str_)
