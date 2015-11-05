@@ -1529,6 +1529,12 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
     else:
         fpath_generator = fpath_list
     extended_regex_list = list(map(extend_regex, regex_list))
+    if len(extended_regex_list) == 1:
+        if extended_regex_list[0].startswith('\\c'):
+            # hack for vim-like ignore case
+            extended_regex_list[0] = extended_regex_list[0][2:]
+            reflags = re.IGNORECASE | reflags
+
     # For each matching filepath
     for fpath in fpath_generator:
         # For each search pattern
@@ -1548,6 +1554,25 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
         print('==========')
         print('[util_path] found matches in %d files' % len(found_fpath_list))
 
+        def highlight_regex(str_, pat):
+            #import colorama
+            from colorama import Fore, Style
+            #color = Fore.MAGENTA
+            color = Fore.RED
+            match = re.search(pat, str_, flags=reflags)
+            if match is None:
+                return str_
+            else:
+                start = match.start()
+                end = match.end()
+                #colorama.init()
+                colored = str_[:start] + color + str_[start:end] + Style.RESET_ALL + str_[end:]
+                #colorama.deinit()
+                return colored
+
+        from utool import util_regex
+        pat = util_regex.regex_or(extended_regex_list)
+
         for fpath, found, lxs in zip(found_fpath_list, found_lines_list, found_lxs_list):
             if len(found) > 0:
                 print('----------------------')
@@ -1557,7 +1582,9 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
                 ndigits = str(len(str(max_line)))
                 fmt_str = '%s : %' + ndigits + 'd |%s'
                 for (lx, line) in zip(lxs, found):
-                    print(fmt_str % (name, lx, line))
+                    # hack
+                    colored_line = highlight_regex(line.rstrip('\n'), pat)
+                    print(fmt_str % (name, lx, colored_line))
 
         #print('[util_path] found matches in %d files' % len(found_fpath_list))
     return found_fpath_list, found_lines_list, found_lxs_list
