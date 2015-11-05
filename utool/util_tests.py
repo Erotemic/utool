@@ -489,7 +489,7 @@ def _exec_doctest(src, kwargs, nocheckwant=None):
     block of code that runs doctest and was too big to be in run_test
     """
     # TEST INPUT IS PYTHON CODE TEXT
-    test_locals = {}
+    #test_locals = {}
     test_globals = kwargs.get('globals', {}).copy()
     want = kwargs.get('want', None)
     #test_globals['print'] = doctest_print
@@ -500,7 +500,12 @@ def _exec_doctest(src, kwargs, nocheckwant=None):
         src += '\nimport utool as ut; ut.embed()'  # TODO RECTIFY WITH TF
     code = compile(src, '<string>', 'exec')
     try:
-        exec(code, test_globals, test_locals)
+        # IN EXEC CONTEXT THERE IS NO DIFF BETWEEN LOCAL / GLOBALS.  ONLY PASS IN
+        # ONE DICT. OTHERWISE TREATED ODDLY
+        # References: https://bugs.python.org/issue13557
+        #exec(code, test_globals, test_locals)
+        test_locals = test_globals
+        exec(code, test_globals)
     except ExitTestException:
         print('Test exited before show')
         pass
@@ -1563,7 +1568,7 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
 
     if test_funcname is not None:
         globals_ = {}
-        locals_ = {}
+        #locals_ = {}
         ut.inject_colored_exceptions()
         print('[utool] __main__ Begin Function Test')
         if isinstance(module, six.string_types):
@@ -1611,7 +1616,7 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
                     testsrc += '\nimport utool as ut; ut.embed()'  # TODO RECTIFY WITH EXEC DOCTEST
                 code = compile(testsrc, '<string>', 'exec')
                 print('testsrc = \n%s' % (testsrc,))
-                exec(code, globals_, locals_)
+                exec(code, globals_)  # , locals_)
             except ExitTestException:
                 print('Test exited before show')
                 pass
