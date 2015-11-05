@@ -52,9 +52,9 @@ if __name__ == '__main__':
 
     print('The following fpaths need encoding lines: ' + ut.list_str(need_encoding_fpaths, strvals=True))
 
-    if False:
+    if do_write or show_diff:
         for fpath in need_encoding_fpaths:
-            #print('\n-----------------\nFound file without encodeing line: ' + fpath)
+            print('\n-----------------\nFound file without encodeing line: ' + fpath)
             line_list = ut.read_lines_from(fpath)
             linenum = find_encoding_insert_position(line_list)
             if linenum is not None:
