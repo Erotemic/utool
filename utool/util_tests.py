@@ -277,8 +277,8 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
         test_globals = module.__dict__.copy()
         try:
             testkw = dict(
-                    #globals=test_globals,
-                    want=want, return_error_report=True)
+                globals=test_globals,  # HACK
+                want=want, return_error_report=True)
             assert testtup.frame_fpath == frame_fpath
             #test_locals = ut.run_test((name,  src, frame_fpath), **testkw)
             test_locals, error_report = ut.run_test(testtup, **testkw)
