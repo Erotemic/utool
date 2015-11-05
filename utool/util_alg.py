@@ -52,7 +52,7 @@ def compare_groupings(groups1, groups2):
         >>> total_error = compare_groupings(groups1, groups2)
         >>> result = ('total_error = %r' % (total_error,))
         >>> print(result)
-        20
+        total_error = 20
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -62,7 +62,7 @@ def compare_groupings(groups1, groups2):
         >>> total_error = compare_groupings(groups1, groups2)
         >>> result = ('total_error = %r' % (total_error,))
         >>> print(result)
-        0
+        total_error = 0
 
     Example2:
         >>> # ENABLE_DOCTEST
@@ -72,7 +72,7 @@ def compare_groupings(groups1, groups2):
         >>> total_error = compare_groupings(groups1, groups2)
         >>> result = ('total_error = %r' % (total_error,))
         >>> print(result)
-        4
+        total_error = 4
     """
     import utool as ut
     # For each group, build mapping from each item to the members the group
