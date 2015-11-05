@@ -11,7 +11,7 @@ TODO:
     report the line of the doctest in the file when reporting errors as well as
     the relative line
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 #from six.moves import builtins
 from collections import namedtuple
@@ -1559,6 +1559,8 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
         help_='specify a function to doctest')
 
     if test_funcname is not None:
+        globals_ = {}
+        locals_ = {}
         ut.inject_colored_exceptions()
         print('[utool] __main__ Begin Function Test')
         if isinstance(module, six.string_types):
@@ -1568,8 +1570,8 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
         # Get only the modules already imported
         have_modnames = [modname for modname in modname_list
                          if modname in sys.modules]
-        missing_modnames = [modname for modname in modname_list
-                            if modname not in sys.modules]
+        #missing_modnames = [modname for modname in modname_list
+        #                    if modname not in sys.modules]
         module_list = ut.dict_take(sys.modules, have_modnames)
         # Search for the module containing the function
         test_func = None
@@ -1598,11 +1600,12 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
                     test_func = test_class.__dict__[test_funcname]
 
         if test_func is not None:
+            globals_.update(test_func.func_globals)
             testsrc = ut.get_doctest_examples(test_func)[0][testno]
             try:
                 if ut.get_argflag(('--cmd', '--embed')):
                     testsrc += '\nimport utool as ut; ut.embed()'  # TODO RECTIFY WITH EXEC DOCTEST
-                exec(testsrc, globals(), locals())
+                exec(testsrc, globals_, locals_)
             except ExitTestException:
                 print('Test exited before show')
                 pass

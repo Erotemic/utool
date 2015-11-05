@@ -72,7 +72,9 @@ def path_ndir_split(path_, n, force_unix=True, winroot='C:', trailing=True):
         (str) the trailing n paths of path.
 
     CommandLine:
-        python -m utool.util_path --exec-path_ndir_split
+        python3 -m utool.util_path --test-path_ndir_split
+        python3 -m utool --tf path_ndir_split
+
 
     Example:
         >>> # ENABLE_DOCTEST
