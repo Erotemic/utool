@@ -113,6 +113,16 @@ def read_from(fpath, verbose=None, aslines=False, strict=True, n=3):
             raise
 
 
+def read_lines_from(fpath, num_lines=None, verbose=None, n=3):
+    with open(fpath, 'r') as file_:
+        line_list = []
+        #for lineno, line in enumerate(file_.readline()):
+        for lineno, line in enumerate(file_):
+            line_list.append(line)
+            if num_lines is not None and lineno > num_lines:
+                break
+    return line_list
+
 # aliases
 readfrom = read_from
 writeto = write_to

@@ -1,4 +1,4 @@
-#/usr/bin/env python
+#!/usr/bin/env python2.7
 """
 REMEMBER In Python 3 think: text or data.
 str.encode:   text -> data

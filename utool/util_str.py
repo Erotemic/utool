@@ -2127,6 +2127,9 @@ def get_textdiff(text1, text2, num_context_lines=0):
     return '\n'.join(diff_lines)
 
 
+difftext = get_textdiff
+
+
 def conj_phrase(list_, cond='or'):
     """
     Joins a list of words using English conjunction rules
