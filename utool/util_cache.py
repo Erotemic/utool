@@ -815,19 +815,16 @@ class Cachable(object):
             self._unsafe_load(fpath, ignore_keys)
             if verbose:
                 print('... self cache hit: %r' % (basename(fpath),))
-        except IOError as ex:
+        except ValueError as ex:
             import utool as ut
-            if not exists(fpath):
-                msg = '... self cache miss: %r' % (basename(fpath),)
-                if verbose:
-                    print(msg)
-                raise
-            msg = '[!Cachable] Cachable(%s) is corrupt' % (self.get_cfgstr())
+            msg = '[!Cachable] Cachable(%s) is likely corrupt' % (self.get_cfgstr())
+            print('CORRUPT fpath = %s' % (fpath,))
             ut.printex(ex, msg, iswarning=True)
             raise
         except BadZipFile as ex:
             import utool as ut
             msg = '[!Cachable] Cachable(%s) has bad zipfile' % (self.get_cfgstr())
+            print('CORRUPT fpath = %s' % (fpath,))
             ut.printex(ex, msg, iswarning=True)
             raise
             #if exists(fpath):
@@ -836,6 +833,17 @@ class Cachable(object):
             #    raise hsexcept.HotsNeedsRecomputeError(msg)
             #else:
             #    raise Exception(msg)
+        except IOError as ex:
+            import utool as ut
+            if not exists(fpath):
+                msg = '... self cache miss: %r' % (basename(fpath),)
+                if verbose:
+                    print(msg)
+                raise
+            print('CORRUPT fpath = %s' % (fpath,))
+            msg = '[!Cachable] Cachable(%s) is corrupt' % (self.get_cfgstr())
+            ut.printex(ex, msg, iswarning=True)
+            raise
         except Exception as ex:
             import utool as ut
             ut.printex(ex, 'unknown exception while loading query result')
