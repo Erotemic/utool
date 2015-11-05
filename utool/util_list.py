@@ -142,6 +142,8 @@ def get_list_column(list_, colx):
         >>> list_ = [['a', 'b'], ['c', 'd']]
         >>> colx = 0
         >>> result = get_list_column(list_, colx)
+        >>> import utool as ut
+        >>> result = ut.list_str(result, nl=False)
         >>> print(result)
         ['a', 'c']
 
@@ -151,6 +153,8 @@ def get_list_column(list_, colx):
         >>> list_ = [['a', 'b'], ['c', 'd']]
         >>> colx = [1, 0]
         >>> result = get_list_column(list_, colx)
+        >>> import utool as ut
+        >>> result = ut.list_str(result, nl=False)
         >>> print(result)
         [['b', 'a'], ['d', 'c']]
 
@@ -161,6 +165,8 @@ def get_list_column(list_, colx):
         >>> # colx can be a key or list of keys as well
         >>> colx = ['spam']
         >>> result = get_list_column(list_, colx)
+        >>> import utool as ut
+        >>> result = ut.list_str(result, nl=False)
         >>> print(result)
         [['EGGS'], ['JAM']]
     """
@@ -330,12 +336,16 @@ def flatten(list_):
     Returns:
         list: flat list
 
+    CommandLine:
+        python -m utool.util_list --test-flatten
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
+        >>> import utool as ut
         >>> list_ = [['a', 'b'], ['c', 'd']]
         >>> unflat_list2 = flatten(list_)
-        >>> result = str(unflat_list2)
+        >>> result = ut.list_str(unflat_list2, nl=False)
         >>> print(result)
         ['a', 'b', 'c', 'd']
     """
@@ -1067,10 +1077,11 @@ def setdiff_ordered(list1, list2):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
+        >>> import utool as ut
         >>> list1 = ['featweight_rowid', 'feature_rowid', 'config_rowid', 'featweight_forground_weight']
         >>> list2 = [u'featweight_rowid']
         >>> new_list = setdiff_ordered(list1, list2)
-        >>> result = new_list
+        >>> result = ut.list_str(new_list, nl=False)
         >>> print(result)
         ['feature_rowid', 'config_rowid', 'featweight_forground_weight']
     """

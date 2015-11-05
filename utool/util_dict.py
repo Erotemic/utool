@@ -90,10 +90,10 @@ def dict_keysubset(dict_, keys):
 def get_dict_hashid(dict_):
     r"""
     Args:
-        dict_ (?):
+        dict_ (dict):
 
     Returns:
-        ?: inverted_dict
+        dict: inverted_dict
 
     CommandLine:
         python -m utool.util_dict --test-get_dict_hashid
@@ -188,9 +188,9 @@ def invert_dict(dict_):
         >>> import utool as ut
         >>> dict_ = OrderedDict([(2, 'good',), (1, 'ok',), (0, 'junk',), (None, 'UNKNOWN',),])
         >>> inverted_dict = invert_dict(dict_)
-        >>> result = inverted_dict
+        >>> result = ut.dict_str(inverted_dict, nl=False)
         >>> print(result)
-        OrderedDict([('good', 2), ('ok', 1), ('junk', 0), ('UNKNOWN', None)])
+        {'good': 2, 'ok': 1, 'junk': 0, 'UNKNOWN': None}
 
     """
     inverted_items = [(val, key) for key, val in six.iteritems(dict_)]
@@ -1180,7 +1180,7 @@ def group_items(item_list, groupid_list, sorted_=True):
         >>> item_list    = [ 'ham',      'jam',    'spam',     'eggs', 'cheese', 'bannana']
         >>> groupid_list = ['protein', 'fruit', 'protein',  'protein',  'dairy',   'fruit']
         >>> groupid2_items = ut.group_items(item_list, groupid_list)
-        >>> result = ut.dict_str(groupid2_items, newlines=False, strvals=False)
+        >>> result = ut.dict_str(groupid2_items, nl=False, strvals=False)
         >>> print(result)
         {'dairy': ['cheese'], 'fruit': ['jam', 'bannana'], 'protein': ['ham', 'spam', 'eggs']}
     """
@@ -1400,8 +1400,6 @@ hmap_vals = hierarchical_map_vals
 if __name__ == '__main__':
     """
     CommandLine:
-        python -c "import utool, utool.util_dict; utool.doctest_funcs(utool.util_dict, allexamples=True)"
-        python -c "import utool, utool.util_dict; utool.doctest_funcs(utool.util_dict)"
         python -m utool.util_dict
         python -m utool.util_dict --allexamples
     """

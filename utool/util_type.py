@@ -1,4 +1,5 @@
-from __future__ import absolute_import, division, print_function
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 import six
 import functools
@@ -150,12 +151,13 @@ def smart_cast2(var):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_type import *  # NOQA
+        >>> import utool as ut
         >>> # build test data
         >>> var_list = ['?', 1, '1', '1.0', '1.2', 'True', None, 'None']
         >>> # execute function
         >>> castvar_list = [smart_cast2(var) for var in var_list]
         >>> # verify results
-        >>> result = str(castvar_list)
+        >>> result = ut.list_str(castvar_list, nl=False)
         >>> print(result)
         ['?', 1, 1, 1.0, 1.2, True, None, None]
     """

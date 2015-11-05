@@ -149,7 +149,7 @@ varname_regex = re.compile('[_A-Za-z][_a-zA-Z0-9]*$')
 
 def is_valid_varname(varname):
     """ Checks syntax and validity of a variable name """
-    if not isinstance(varname, str):
+    if not isinstance(varname, six.string_types):
         return False
     match_obj = re.match(varname_regex, varname)
     valid_syntax = match_obj is not None
@@ -221,7 +221,7 @@ def execstr_dict(dict_, local_name=None, exclude_list=None):
         expr_list = []
         assert isinstance(dict_, dict), 'incorrect type type(dict_)=%r, dict_=%r' % (type(dict), dict_)
         for (key, val) in sorted(dict_.items()):
-            assert isinstance(key, str), 'keys must be strings'
+            assert isinstance(key, six.string_types), 'keys must be strings'
             if not is_valid_varname(key):
                 continue
             if not any((fnmatch.fnmatch(key, pat) for pat in exclude_list)):
@@ -1144,7 +1144,7 @@ def get_varval_from_locals(key, locals_, strict=False):
     get_varval_from_locals('varname.attribute', locals())
     is allowed
     """
-    assert isinstance(key, str), 'must have parsed key into a string already'
+    assert isinstance(key, six.string_types), 'must have parsed key into a string already'
     if key not in locals_:
         dotpos = key.find('.')
         if dotpos > -1:
