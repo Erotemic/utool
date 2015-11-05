@@ -488,7 +488,7 @@ def _exec_doctest(src, kwargs, nocheckwant=None):
     """
     # TEST INPUT IS PYTHON CODE TEXT
     test_locals = {}
-    test_globals = kwargs.get('globals', {})
+    test_globals = kwargs.get('globals', {}).copy()
     want = kwargs.get('want', None)
     #test_globals['print'] = doctest_print
     # EXEC FUNC
@@ -1608,7 +1608,7 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
                 if ut.get_argflag(('--cmd', '--embed')):
                     testsrc += '\nimport utool as ut; ut.embed()'  # TODO RECTIFY WITH EXEC DOCTEST
                 code = compile(testsrc, '<string>', 'exec')
-                exec(code, globals_)
+                exec(code, globals_, locals_)
             except ExitTestException:
                 print('Test exited before show')
                 pass
