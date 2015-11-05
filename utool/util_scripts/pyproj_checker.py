@@ -39,12 +39,14 @@ if __name__ == '__main__':
                 if linenum >= len(line_list) - 1:
                     print(' ! could not find approprate position')
                 else:
-                    print(' * linenum = %r' % (linenum,))
-                    print('Diff:')
-                    line_list[:linenum + 1]
+                    #print(' * linenum = %r' % (linenum,))
                     new_lines = line_list[:linenum] + [encoding_line + '\n'] + line_list[linenum:]
-                    old_text = ''.join(line_list)
                     new_text = ''.join(new_lines)
-                    textdiff = ut.get_textdiff(old_text, new_text, num_context_lines=2)
-                    #textdiff = ut.util_str.get_textdiff(prev_text, autogen_text, num_context_lines=None)
-                    ut.print_difftext(textdiff)
+                    if True:
+                        old_text = ''.join(line_list)
+                        textdiff = ut.get_textdiff(old_text, new_text, num_context_lines=1)
+                        print('Diff:')
+                        ut.print_difftext(textdiff)
+                    dry = True
+                    if not dry:
+                        pass
