@@ -57,8 +57,8 @@ def compare_groupings(groups1, groups2):
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
-        >>> groups1 = [[1, 2, 3], [4], [5, 6]]]
-        >>> groups2 = [[1, 2, 3], [4], [5, 6]]]
+        >>> groups1 = [[1, 2, 3], [4], [5, 6]]
+        >>> groups2 = [[1, 2, 3], [4], [5, 6]]
         >>> total_error = compare_groupings(groups1, groups2)
         >>> result = ('total_error = %r' % (total_error,))
         >>> print(result)
