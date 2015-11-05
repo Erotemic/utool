@@ -250,6 +250,9 @@ def load_cache(dpath, fname, cfgstr, verbose=None):
         if verbose:
             print('[util_io] ... cache miss dpath=%s cfgstr=%r' % (basename(dpath), cfgstr,))
         raise
+    except Exception:
+        print('CORRUPTED? fpath = %s' % (fpath,))
+        raise
     else:
         if verbose:
             print('[util_io] ... cache hit')
