@@ -1,11 +1,12 @@
+# -*- coding: utf-8 -*-
 """
 SeeAlso:
     utool._internal.util_importer
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 from utool import util_inject
 from utool import util_arg
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[import]')
+print, rrr, profile = util_inject.inject2(__name__, '[import]')
 
 
 def package_contents(package, with_pkg=False, with_mod=True, ignore_prefix=[],
@@ -81,7 +82,8 @@ def import_modname(modname):
     # The __import__ statment is weird
     if '.' in modname:
         fromlist = modname.split('.')[-1]
-        module = __import__(modname, {}, {}, fromlist, 0)
+        fromlist_ = list(map(str, fromlist))  # needs to be ascii for python2.7
+        module = __import__(modname, {}, {}, fromlist_, 0)
     else:
         module = __import__(modname, {}, {}, [], 0)
     return module

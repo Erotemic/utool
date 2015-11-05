@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import shelve
 import six
 import json
@@ -496,10 +496,13 @@ def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults,
 
 def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
                 key_kwds=None, use_cache=None):
-    """
+    r"""
     Wraps a function with a Cacher object
 
     uses a hash of arguments as input
+
+    CommandLine:
+        python -m utool.util_cache --exec-cached_func
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -531,12 +534,16 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
         #                key_argx=key_argx, use_cache_=use_cache_)
         @functools.wraps(func)
         def cached_wraper(*args, **kwargs):
+            import utool as ut
             try:
                 if True:
                     print('[utool] computing cached function fname_=%s' % (fname_,))
                 # Implicitly adds use_cache to kwargs
                 cfgstr = get_cfgstr_from_args(func, args, kwargs, key_argx,
                                               key_kwds, kwdefaults, argnames)
+                if ut.WIN32:
+                    # remove potentially invalid chars
+                    cfgstr = '_' + ut.hashstr27(cfgstr)
                 assert cfgstr is not None, 'cfgstr=%r cannot be None' % (cfgstr,)
                 if kwargs.get('use_cache', use_cache_):
                     # Make cfgstr from specified input
@@ -548,15 +555,16 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
                 # Cache save
                 cacher.save(data, cfgstr)
                 return data
+            #except ValueError as ex:
+            # handle protocal error
             except Exception as ex:
-                import utool
                 _dbgdict2 = dict(key_argx=key_argx, lenargs=len(args), lenkw=len(kwargs),)
                 msg = '\n'.join([
                     '+--- UTOOL --- ERROR IN CACHED FUNCTION',
                     #'dbgdict = ' + utool.dict_str(_dbgdict),
-                    'dbgdict2 = ' + utool.dict_str(_dbgdict2),
+                    'dbgdict2 = ' + ut.dict_str(_dbgdict2),
                 ])
-                utool.printex(ex, msg)
+                ut.printex(ex, msg)
                 raise
         # Give function a handle to the cacher object
         cached_wraper.cacher = cacher

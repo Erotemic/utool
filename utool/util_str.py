@@ -486,6 +486,7 @@ def seconds_str(num, prefix=None):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
         >>> import utool as ut
         >>> num_list = sorted([4.2 / (10.0 ** exp_) for exp_ in range(-13, 13, 4)])
         >>> secstr_list = [seconds_str(num, prefix=None) for num in num_list]

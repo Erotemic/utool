@@ -185,6 +185,7 @@ def execstr_dict(dict_, local_name=None, exclude_list=None):
         >>> assert b is False and a is True, 'execstr failed'
         >>> result = execstr
         >>> print(result)
+
         a = my_dictionary['a']
         b = my_dictionary['b']
 
@@ -202,6 +203,7 @@ def execstr_dict(dict_, local_name=None, exclude_list=None):
         >>> assert b is False and a is True, 'execstr failed'
         >>> result = execstr
         >>> print(result)
+
         a = my_dictionary['a']
         b = my_dictionary['b']
 

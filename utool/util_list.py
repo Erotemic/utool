@@ -564,8 +564,8 @@ def unflat_unique_rowid_map(func, unflat_rowids, **kwargs):
 
     Example0:
         >>> # ENABLE_DOCTEST
-        >>> import utool as ut
         >>> from utool.util_list import *  # NOQA
+        >>> import utool as ut
         >>> kwargs = {}
         >>> unflat_rowids = [[1, 2, 3], [2, 5], [1], []]
         >>> num_calls0 = [0]
@@ -584,13 +584,14 @@ def unflat_unique_rowid_map(func, unflat_rowids, **kwargs):
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> import utool as ut
         >>> from utool.util_list import *  # NOQA
+        >>> import utool as ut
+        >>> import numpy as np
         >>> kwargs = {}
         >>> unflat_rowids = [[1, 2, 3], [2, 5], [1], []]
         >>> num_calls1 = [0]
         >>> num_input1 = [0]
-        >>> def func1(rowids, num_calls1=num_calls1, num_input1=num_input1):
+        >>> def func1(rowids, num_calls1=num_calls1, num_input1=num_input1, np=np):
         ...    num_calls1[0] += 1
         ...    num_input1[0] += len(rowids)
         ...    return [np.array([rowid + 10, rowid, 3]) for rowid in rowids]
@@ -1688,6 +1689,7 @@ def list_depth(list_, func=max, _depth=0):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
         >>> list_ = [[[[[1]]], [3]], [[1], [3]], [[1], [3]]]
         >>> result = (list_depth(list_, _depth=0))
         >>> print(result)

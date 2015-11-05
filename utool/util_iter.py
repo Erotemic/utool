@@ -1,4 +1,5 @@
-from __future__ import absolute_import, division, print_function
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
 #try:
 #    import numpy as np
 #except ImportError as ex:
@@ -410,9 +411,10 @@ def interleave(args):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_iter import *  # NOQA
+        >>> import utool as ut
         >>> args = ([1, 2, 3, 4, 5], ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
         >>> genresult = interleave(args)
-        >>> result = list(genresult)
+        >>> result = ut.list_str(list(genresult), nl=False)
         >>> print(result)
         [1, 'A', 2, 'B', 3, 'C', 4, 'D', 5, 'E']
     """

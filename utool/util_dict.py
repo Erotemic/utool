@@ -17,7 +17,7 @@ try:
 except ImportError:
     HAVE_NUMPY = False
     pass
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[dict]')
+print, rrr, profile = util_inject.inject2(__name__, '[dict]')
 
 
 def dict_map_apply_vals(dict_, func):
@@ -583,6 +583,7 @@ def delete_dict_keys(dict_, key_list):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
         >>> import utool as ut
         >>> # build test data
         >>> dict_ = {'bread': 1, 'churches': 1, 'cider': 2, 'very small rocks':2}
@@ -590,7 +591,7 @@ def delete_dict_keys(dict_, key_list):
         >>> # execute function
         >>> delete_dict_keys(dict_, key_list)
         >>> # verify results
-        >>> result = ut.dict_str(dict_, newlines=False)
+        >>> result = ut.dict_str(dict_, nl=False)
         >>> print(result)
         {'churches': 1, 'very small rocks': 2}
 
@@ -620,9 +621,11 @@ def dict_take_gen(dict_, keys, *d):
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> dict_ = {1: 'a', 2: 'b', 3: 'c'}
         >>> keys = [1, 2, 3, 4, 5]
         >>> result = list(dict_take_gen(dict_, keys, None))
+        >>> result = ut.list_str(result, nl=False)
         >>> print(result)
         ['a', 'b', 'c', None, None]
 
@@ -685,6 +688,7 @@ def dict_take_pop(dict_, keys, *d):
         >>> keys = [1, 2, 3, 4, 5]
         >>> print('before: ' + ut.dict_str(dict_))
         >>> result = list(dict_take_pop(dict_, keys, None))
+        >>> result = ut.list_str(result, nl=False)
         >>> print('after: ' + ut.dict_str(dict_))
         >>> assert len(dict_) == 2
         >>> print(result)
@@ -1172,6 +1176,9 @@ def group_items(item_list, groupid_list, sorted_=True):
     SeeAlso:
         vtool.group_indices - much faster numpy grouping algorithm
         vtool.apply_gropuing - second part to faster numpy grouping algorithm
+
+    CommandLine:
+        python -m utool.util_dict --exec-group_items
 
     Example:
         >>> # ENABLE_DOCTEST

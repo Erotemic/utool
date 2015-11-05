@@ -114,26 +114,28 @@ def greedy_max_inden_setcover(candidate_sets_dict, items, max_covers=None):
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
         >>> candidate_sets_dict = {'a': [5, 3], 'b': [2, 3, 5],
         ...                        'c': [4, 8], 'd': [7, 6, 2, 1]}
         >>> items = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         >>> max_covers = None
         >>> tup = greedy_max_inden_setcover(candidate_sets_dict, items, max_covers)
         >>> (uncovered_items, covered_items_list, accepted_keys) = tup
-        >>> result = str((uncovered_items, sorted(list(accepted_keys))))
+        >>> result = ut.list_str((uncovered_items, sorted(list(accepted_keys))), nl=False)
         >>> print(result)
         ([0, 9], ['a', 'c', 'd'])
 
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
         >>> candidate_sets_dict = {'a': [5, 3], 'b': [2, 3, 5],
         ...                        'c': [4, 8], 'd': [7, 6, 2, 1]}
         >>> items = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         >>> max_covers = 1
         >>> tup = greedy_max_inden_setcover(candidate_sets_dict, items, max_covers)
         >>> (uncovered_items, covered_items_list, accepted_keys) = tup
-        >>> result = str((uncovered_items, sorted(list(accepted_keys))))
+        >>> result = ut.list_str((uncovered_items, sorted(list(accepted_keys))), nl=False)
         >>> print(result)
         ([0, 3, 4, 5, 8, 9], ['d'])
     """
@@ -260,6 +262,7 @@ def cartesian(arrays, out=None):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
         >>> arrays = ([1, 2, 3], [4, 5], [6, 7])
         >>> out = cartesian(arrays)
         >>> result = repr(out.T)

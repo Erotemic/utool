@@ -1093,6 +1093,7 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, datacast=None, use
 
     Examples0:
         >>> # ENABLE_DOCTEST
+        >>> from utool.util_dev import *  # NOQA
         >>> import numpy as np
         >>> import utool
         >>> axis = 0
@@ -1113,6 +1114,7 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, datacast=None, use
 
     Examples1:
         >>> # ENABLE_DOCTEST
+        >>> from utool.util_dev import *  # NOQA
         >>> import numpy as np
         >>> import utool
         >>> axis = 0
@@ -1135,6 +1137,7 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, datacast=None, use
 
     Examples1:
         >>> # ENABLE_DOCTEST
+        >>> from utool.util_dev import *  # NOQA
         >>> import numpy as np
         >>> import utool
         >>> axis = 0

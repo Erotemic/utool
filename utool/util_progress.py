@@ -4,7 +4,7 @@ progress handler.
 Old progress funcs needto be depricated ProgressIter and progress_chunks are
 pretty much the only useful things here.
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import time
 import math
 import sys
@@ -15,7 +15,7 @@ from utool import util_arg
 from utool import util_time
 from utool import util_iter
 import six  # NOQA
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[progress]')
+print, rrr, profile = util_inject.inject2(__name__, '[progress]')
 
 default_timer = util_time.default_timer
 
@@ -46,6 +46,7 @@ def test_progress():
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> from utool.util_progress import *  # NOQA
         >>> test_progress()
     """
     import utool as ut
@@ -55,7 +56,7 @@ def test_progress():
     numiter = 50
     sleeptime = 1E-4
     with ut.Timer():
-        for x in ut.ProgressIter(range(0, numiter), freq=4, adjust=True):
+        for x in ut.ProgressIter(range(0, numiter), freq=8, adjust=True):
             time.sleep(sleeptime)
     print('_________________')
     print('No frequncy run:')
@@ -66,11 +67,11 @@ def test_progress():
     numiter = 500
     sleeptime = 8E-7
     with ut.Timer():
-        for x in ut.ProgressIter(range(0, numiter), freq=4, adjust=True):
+        for x in ut.ProgressIter(range(0, numiter), freq=8, adjust=True):
             time.sleep(sleeptime)
     print('_________________')
     with ut.Timer():
-        for x in ut.ProgressIter(range(0, numiter), freq=100):
+        for x in ut.ProgressIter(range(0, numiter), freq=200):
             time.sleep(sleeptime)
     print('_________________')
     print('No frequncy run:')

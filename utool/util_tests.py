@@ -43,7 +43,7 @@ SYSEXIT_ON_FAIL = util_arg.get_argflag(('--sysexitonfail', '--fastfail'),
                                        help_='Force testing harness to exit on first test failure')
 VERBOSE_TIMER = not util_arg.get_argflag('--no-time-tests')
 INDENT_TEST   = False
-EXEC_MODE = util_arg.get_argflag('--exec-mode', help_='dummy flag that will be removed')
+#EXEC_MODE = util_arg.get_argflag('--exec-mode', help_='dummy flag that will be removed')
 
 ModuleDoctestTup = namedtuple('ModuleDoctestTup', ('enabled_testtup_list',
                                                    'frame_fpath',
@@ -267,16 +267,18 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
         print('\n\n')
         print('--------------------------------------------------------------')
         print('--------------------------------------------------------------')
-        if EXEC_MODE:
-            print(' ---- EXEC ' + name.upper() + ':' + str(num) + '---')
-        else:
-            print(' ---- DOCTEST ' + modname + ' ' + name.upper() + ':' + str(num) + '---')
+        #if EXEC_MODE:
+        #    print(' ---- EXEC ' + name.upper() + ':' + str(num) + '---')
+        #else:
+        print(' ---- DOCTEST ' + modname + ' ' + name.upper() + ':' + str(num) + '---')
 
         if PRINT_SRC or VERBOSE_TEST:
             print(ut.msgblock('EXEC SRC', src))
         test_globals = module.__dict__.copy()
         try:
-            testkw = dict(globals=test_globals, want=want, return_error_report=True)
+            testkw = dict(
+                    #globals=test_globals,
+                    want=want, return_error_report=True)
             assert testtup.frame_fpath == frame_fpath
             #test_locals = ut.run_test((name,  src, frame_fpath), **testkw)
             test_locals, error_report = ut.run_test(testtup, **testkw)
@@ -316,7 +318,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
         warning_msg = ut.indent(warning_msg, '[util_test.doctest_funcs]')
         ut.colorprint(warning_msg, 'red')
 
-    if not EXEC_MODE and not exec_mode:
+    if not exec_mode:
         print('+-------')
         print('| finished testing fpath=%r' % (frame_fpath,))
         print('| passed %d / %d' % (nPass, nTotal))
@@ -355,7 +357,7 @@ def run_test(func_or_testtup, return_error_report=False, *args, **kwargs):
     #func_is_testtup = isinstance(func_or_testtup, tuple)
     # NOTE: isinstance is not gaurenteed not work here if ut.rrrr has been called
     func_is_testtup = isinstance(func_or_testtup, TestTuple)
-    exec_mode = EXEC_MODE
+    exec_mode = False
     if func_is_testtup:
         testtup = func_or_testtup
         src         = testtup.src
@@ -460,7 +462,7 @@ def run_test(func_or_testtup, return_error_report=False, *args, **kwargs):
                     ## PYTHON 2.7 DEPRICATED:
                     #if six.PY2:
                     #    raise exc_type, exc_value, exc_traceback.tb_next
-                    #    #exec('raise exc_type, exc_value,
+                    #    #exec ('raise exc_type, exc_value,
                     #    exc_traceback.tb_next', globals(), locals())
                     ## PYTHON 3.3 NEW METHODS
                     #elif six.PY3:

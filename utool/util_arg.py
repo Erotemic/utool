@@ -2,7 +2,7 @@
 """
 Handles command line parsing
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 import six
 import os
@@ -213,7 +213,7 @@ def get_argflag(argstr_, default=False, help_='', return_specified=None,
 # TODO: rectify with meta_util_arg
 # This has diverged and is now better
 #from utool._internal.meta_util_arg import get_argval
-@profile
+#@profile
 def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
                return_specified=None, argv=None, verbose=None,
                debug=None, return_was_specified=False):
@@ -233,8 +233,9 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
 
     CommandLine:
         python -m utool.util_arg --test-get_argval
+        python -m utool.util_arg --exec-get_argval
 
-    Examples:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_arg import *  # NOQA
         >>> import utool as ut
@@ -256,6 +257,7 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
         >>>     res = get_argval(argstr_, **kwargs)
         >>>     res_list.append(res)
         >>> result = ut.dict_str(ut.odict(zip(argstr_list, res_list)))
+        >>> result = result.replace('u\'', '\'')  # hack
         >>> print(result)
         {
             '--spam': 'eggs',
@@ -277,6 +279,7 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--nAssign'), int)]])" --nAssign 42
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--test'), str)]])" --test
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--test'), str)]])" --test "foobar is good" --youbar ok
+
     """
     if verbose is None:
         verbose = VERBOSE or VERYVERBOSE
@@ -968,10 +971,21 @@ VERBOSE_ARGPARSE = get_argflag(
     help_='debug util_arg')
 
 
+#if __name__ == '__main__':
+#    """
+#    CommandLine:
+#        python utool/util_arg.py --test-autogen_argparse2
+#    """
+#    from utool import util_tests
+#    util_tests.doctest_funcs([autogen_argparse2])
 if __name__ == '__main__':
     """
     CommandLine:
-        python utool/util_arg.py --test-autogen_argparse2
+        python -m utool.util_arg
+        python -m utool.util_arg --allexamples
+        python -m utool.util_arg --allexamples --noface --nosrc
     """
-    from utool import util_tests
-    util_tests.doctest_funcs([autogen_argparse2])
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
