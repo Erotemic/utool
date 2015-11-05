@@ -1398,16 +1398,20 @@ def repr2(obj_, **kwargs):
     Attempt to replace repr more configurable
     pretty version that works the same in both 2 and 3
     """
-    kwitems = dict(nl=False)
-    kwitems.update(kwargs)
-    if isinstance(obj_, dict):
-        return dict_str(obj_, **kwitems)
-    if isinstance(obj_, (list, tuple)):
-        return list_str(obj_, **kwitems)
-    if isinstance(obj_, np.ndarray):
-        return numpy_str
+    if isinstance(obj_, (dict, list, tuple)):
+        kwitems = dict(nl=False)
+        kwitems.update(kwargs)
+        if isinstance(obj_, dict):
+            return dict_str(obj_, **kwitems)
+        if isinstance(obj_, (list, tuple)):
+            return list_str(obj_, **kwitems)
     else:
-        return reprfunc(obj_)
+        kwitems = dict(with_dtype=False)
+        kwitems.update(kwargs)
+        if isinstance(obj_, np.ndarray):
+            return numpy_str(obj_, **kwitems)
+        else:
+            return reprfunc(obj_)
 
 
 def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
