@@ -1493,7 +1493,8 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
         >>> # ENABLE_DOCTEST
         >>> from utool.util_path import *  # NOQA
         >>> import utool as ut
-        >>> dpath_list = [ut.truepath('~/code/utool/utool')]
+        >>> #dpath_list = [ut.truepath('~/code/utool/utool')]
+        >>> dpath_list = [ut.truepath(dirname(ut.__file__))]
         >>> include_patterns = ['*.py']
         >>> exclude_dirs = []
         >>> regex_list = ['grepfile']
