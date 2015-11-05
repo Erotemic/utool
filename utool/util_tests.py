@@ -1607,7 +1607,8 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
             try:
                 if ut.get_argflag(('--cmd', '--embed')):
                     testsrc += '\nimport utool as ut; ut.embed()'  # TODO RECTIFY WITH EXEC DOCTEST
-                exec(testsrc, globals_, locals_)
+                code = compile(testsrc, '<string>', 'exec')
+                exec(code, globals_, locals_)
             except ExitTestException:
                 print('Test exited before show')
                 pass
