@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
 
     utool._internal
+    utool.experimental
     utool.tests
 
 Submodules
@@ -32,6 +33,22 @@ utool.Printable module
 ----------------------
 
 .. automodule:: utool.Printable
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.__main__ module
+---------------------
+
+.. automodule:: utool.__main__
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.sandbox module
+--------------------
+
+.. automodule:: utool.sandbox
     :members:
     :undoc-members:
     :show-inheritance:
@@ -196,6 +213,14 @@ utool.util_hash module
     :undoc-members:
     :show-inheritance:
 
+utool.util_import module
+------------------------
+
+.. automodule:: utool.util_import
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 utool.util_inject module
 ------------------------
 
@@ -300,6 +325,14 @@ utool.util_progress module
     :undoc-members:
     :show-inheritance:
 
+utool.util_project module
+-------------------------
+
+.. automodule:: utool.util_project
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 utool.util_regex module
 -----------------------
 
@@ -340,6 +373,14 @@ utool.util_six module
     :undoc-members:
     :show-inheritance:
 
+utool.util_sqlite module
+------------------------
+
+.. automodule:: utool.util_sqlite
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 utool.util_str module
 ---------------------
 
@@ -376,6 +417,22 @@ utool.util_type module
 ----------------------
 
 .. automodule:: utool.util_type
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_ubuntu module
+------------------------
+
+.. automodule:: utool.util_ubuntu
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_win32 module
+-----------------------
+
+.. automodule:: utool.util_win32
     :members:
     :undoc-members:
     :show-inheritance:

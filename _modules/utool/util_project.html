@@ -1,0 +1,383 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>utool.util_project &mdash; utool 1.1.2.dev1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="utool 1.1.2.dev1 documentation" href="../../index.html"/>
+        <link rel="up" title="utool" href="../utool.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> utool
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.2.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../utool.html">utool package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">utool</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../utool.html">utool</a> &raquo;</li>
+      
+    <li>utool.util_project</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for utool.util_project</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>  <span class="c"># , unicode_literals</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">filter</span><span class="p">,</span> <span class="n">filterfalse</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">six</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">split</span><span class="p">,</span> <span class="n">dirname</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_class</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[util_project]&#39;</span><span class="p">)</span>
+
+
+<span class="n">__GLOBAL_PROFILE__</span> <span class="o">=</span> <span class="bp">None</span>
+
+
+<span class="c">#@util_class.ReloadingMetaclass</span>
+<div class="viewcode-block" id="UserProfile"><a class="viewcode-back" href="../../utool.html#utool.util_project.UserProfile">[docs]</a><span class="k">class</span> <span class="nc">UserProfile</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">project_dpaths</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">project_include_patterns</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">project_exclude_dirs</span> <span class="o">=</span> <span class="bp">None</span>
+
+</div>
+<div class="viewcode-block" id="ibeis_user_profile"><a class="viewcode-back" href="../../utool.html#utool.util_project.ibeis_user_profile">[docs]</a><span class="k">def</span> <span class="nf">ibeis_user_profile</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="kn">import</span> <span class="nn">sys</span>
+    <span class="n">addpath</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">module_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="s">&#39;~/local/init/__REPOS1__.py&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">addpath</span><span class="p">:</span>
+        <span class="n">module_dpath</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">module_fpath</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">module_dpath</span><span class="p">)</span>
+    <span class="n">__REPOS1__</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">import_module_from_fpath</span><span class="p">(</span><span class="n">module_fpath</span><span class="p">)</span>
+    <span class="bp">self</span> <span class="o">=</span> <span class="n">UserProfile</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">project_dpaths</span> <span class="o">=</span> <span class="n">__REPOS1__</span><span class="o">.</span><span class="n">PROJECT_REPOS</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">project_include_patterns</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&#39;*.py&#39;</span><span class="p">,</span> <span class="s">&#39;*.cxx&#39;</span><span class="p">,</span> <span class="s">&#39;*.cpp&#39;</span><span class="p">,</span> <span class="s">&#39;*.hxx&#39;</span><span class="p">,</span> <span class="s">&#39;*.hpp&#39;</span><span class="p">,</span> <span class="s">&#39;*.c&#39;</span><span class="p">,</span> <span class="s">&#39;*.h&#39;</span><span class="p">,</span> <span class="s">&#39;*.vim&#39;</span>
+    <span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">project_exclude_dirs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&#39;_graveyard&#39;</span><span class="p">,</span> <span class="s">&#39;_broken&#39;</span><span class="p">,</span> <span class="s">&#39;CompilerIdCXX&#39;</span><span class="p">,</span> <span class="s">&#39;CompilerIdC&#39;</span><span class="p">,</span> <span class="s">&#39;build&#39;</span><span class="p">,</span>
+        <span class="s">&#39;old&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="bp">self</span>
+
+</div>
+<div class="viewcode-block" id="ensure_user_profile"><a class="viewcode-back" href="../../utool.html#utool.util_project.ensure_user_profile">[docs]</a><span class="k">def</span> <span class="nf">ensure_user_profile</span><span class="p">(</span><span class="n">user_profile</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">__GLOBAL_PROFILE__</span>
+    <span class="k">if</span> <span class="n">__GLOBAL_PROFILE__</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">():</span>
+            <span class="n">__GLOBAL_PROFILE__</span> <span class="o">=</span> <span class="n">ibeis_user_profile</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">user_profile</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">user_profile</span> <span class="o">=</span> <span class="n">__GLOBAL_PROFILE__</span>
+    <span class="k">return</span> <span class="n">user_profile</span>
+
+</div>
+<div class="viewcode-block" id="grep_projects"><a class="viewcode-back" href="../../utool.html#utool.util_project.grep_projects">[docs]</a><span class="k">def</span> <span class="nf">grep_projects</span><span class="p">(</span><span class="n">tofind_list</span><span class="p">,</span> <span class="n">user_profile</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Greps the projects defined in the current UserProfile</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        tofind_list (list):</span>
+<span class="sd">        user_profile (None): (default = None)</span>
+
+<span class="sd">    Kwargs:</span>
+<span class="sd">        user_profile</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool --tf grep_projects grep_projects</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_project import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; import sys</span>
+<span class="sd">        &gt;&gt;&gt; tofind_list = ut.get_argval(&#39;--find&#39;, type_=list, default=[sys.argv[-1]])</span>
+<span class="sd">        &gt;&gt;&gt; grep_projects(tofind_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">user_profile</span> <span class="o">=</span> <span class="n">ensure_user_profile</span><span class="p">(</span><span class="n">user_profile</span><span class="p">)</span>
+    <span class="n">grepkw</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">grepkw</span><span class="p">[</span><span class="s">&#39;exclude_dirs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user_profile</span><span class="o">.</span><span class="n">project_exclude_dirs</span>
+    <span class="n">grepkw</span><span class="p">[</span><span class="s">&#39;dpath_list&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user_profile</span><span class="o">.</span><span class="n">project_dpaths</span>
+    <span class="n">grepkw</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="n">msg_list1</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">msg_list2</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">print_</span> <span class="o">=</span> <span class="n">msg_list1</span><span class="o">.</span><span class="n">append</span>
+    <span class="n">print_</span><span class="p">(</span><span class="s">&#39;Greping Projects&#39;</span><span class="p">)</span>
+    <span class="n">print_</span><span class="p">(</span><span class="s">&#39;tofind_list = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">tofind_list</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="bp">True</span><span class="p">),))</span>
+    <span class="n">print_</span><span class="p">(</span><span class="s">&#39;grepkw = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">grepkw</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">msg_list1</span><span class="p">))</span>
+    <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s">&#39;greping&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="n">found_fpath_list</span><span class="p">,</span> <span class="n">found_lines_list</span><span class="p">,</span> <span class="n">found_lxs_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grep</span><span class="p">(</span><span class="n">tofind_list</span><span class="p">,</span> <span class="o">**</span><span class="n">grepkw</span><span class="p">)</span>
+
+    <span class="n">print_</span> <span class="o">=</span> <span class="n">msg_list2</span><span class="o">.</span><span class="n">append</span>
+    <span class="k">for</span> <span class="n">fpath</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">lxs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">found_fpath_list</span><span class="p">,</span> <span class="n">found_lines_list</span><span class="p">,</span> <span class="n">found_lxs_list</span><span class="p">):</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s">&#39;----------------------&#39;</span><span class="p">)</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s">&#39;found </span><span class="si">%d</span><span class="s"> line(s) in </span><span class="si">%r</span><span class="s">: &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">),</span> <span class="n">fpath</span><span class="p">))</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">fpath</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">max_line</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+        <span class="n">ndigits</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">max_line</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">lx</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lxs</span><span class="p">,</span> <span class="n">lines</span><span class="p">):</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">((</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> : %&#39;</span> <span class="o">+</span> <span class="n">ndigits</span> <span class="o">+</span> <span class="s">&#39;d |</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="n">line</span><span class="p">))</span>
+
+    <span class="n">print_</span><span class="p">(</span><span class="s">&#39;====================&#39;</span><span class="p">)</span>
+    <span class="n">print_</span><span class="p">(</span><span class="s">&#39;found_fpath_list = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">found_fpath_list</span><span class="p">))</span>
+    <span class="n">print_</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="c">#print_(&#39;gvim -o &#39; + &#39; &#39;.join(found_fpath_list))</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">msg_list2</span><span class="p">))</span>
+    <span class="n">msg_list</span> <span class="o">=</span> <span class="n">msg_list1</span> <span class="o">+</span> <span class="n">msg_list2</span>
+    <span class="k">return</span> <span class="n">msg_list</span>
+
+
+<span class="c">## Grep my projects</span>
+<span class="c">#def gp(r, regexp):</span>
+<span class="c">#    rob_nav._grep(r, [regexp], recursive=True, dpath_list=project_dpaths(), regex=True)</span>
+
+<span class="c">## Sed my projects</span>
+<span class="c">#def sp(r, regexpr, repl, force=False):</span>
+<span class="c">#    rob_nav._sed(r, regexpr, repl, force=force, recursive=True, dpath_list=project_dpaths())</span>
+</div>
+<div class="viewcode-block" id="sed_projects"><a class="viewcode-back" href="../../utool.html#utool.util_project.sed_projects">[docs]</a><span class="k">def</span> <span class="nf">sed_projects</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">regexpr</span><span class="p">,</span> <span class="n">repl</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">user_profile</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="c"># FIXME: finishme</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">user_profile</span> <span class="o">=</span> <span class="n">ensure_user_profile</span><span class="p">(</span><span class="n">user_profile</span><span class="p">)</span>
+
+    <span class="c">#_grep(r, [repl], dpath_list=dpath_list, recursive=recursive)</span>
+    <span class="n">include_patterns</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;*.py&#39;</span><span class="p">,</span> <span class="s">&#39;*.cxx&#39;</span><span class="p">,</span> <span class="s">&#39;*.cpp&#39;</span><span class="p">,</span> <span class="s">&#39;*.hxx&#39;</span><span class="p">,</span> <span class="s">&#39;*.hpp&#39;</span><span class="p">,</span> <span class="s">&#39;*.c&#39;</span><span class="p">,</span> <span class="s">&#39;*.h&#39;</span><span class="p">]</span>
+    <span class="n">dpath_list</span> <span class="o">=</span> <span class="n">user_profile</span><span class="o">.</span><span class="n">dpath_list</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;sed-ing </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dpath_list</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * regular include_patterns : </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">include_patterns</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * regular expression : </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">regexpr</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * replacement        : </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">repl</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * recursive: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">recursive</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * force: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">force</span><span class="p">,))</span>
+
+    <span class="k">def</span> <span class="nf">extend_regex</span><span class="p">(</span><span class="n">regexpr</span><span class="p">):</span>
+        <span class="n">regex_map</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">r&#39;\&lt;&#39;</span><span class="p">:</span> <span class="s">r&#39;\b(?=\w)&#39;</span><span class="p">,</span>
+            <span class="s">r&#39;\&gt;&#39;</span><span class="p">:</span> <span class="s">r&#39;\b(?!\w)&#39;</span><span class="p">,</span>
+            <span class="p">(</span><span class="s">&#39;UNSAFE&#39;</span><span class="p">,</span> <span class="s">r&#39;\x08&#39;</span><span class="p">):</span> <span class="s">r&#39;\b&#39;</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">repl</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">regex_map</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="n">search</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">search</span> <span class="o">=</span> <span class="n">key</span>
+            <span class="k">if</span> <span class="n">regexpr</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">search</span><span class="p">)</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING! Unsafe regex with: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+                <span class="n">regexpr</span> <span class="o">=</span> <span class="n">regexpr</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">search</span><span class="p">,</span> <span class="n">repl</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">regexpr</span>
+    <span class="n">regexpr</span> <span class="o">=</span> <span class="n">extend_regex</span><span class="p">(</span><span class="n">regexpr</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s">&#39;</span><span class="se">\x08</span><span class="s">&#39;</span> <span class="ow">in</span> <span class="n">regexpr</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Remember </span><span class="se">\\</span><span class="s">x08 != </span><span class="se">\\</span><span class="s">b&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;subsituting for you for you&#39;</span><span class="p">)</span>
+        <span class="n">regexpr</span> <span class="o">=</span> <span class="n">regexpr</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\x08</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\\</span><span class="s">b&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39; * regular expression : </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">regexpr</span><span class="p">,))</span>
+
+    <span class="c"># Walk through each directory recursively</span>
+    <span class="c"># FIXME</span>
+    <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">matc_matching_fnames</span><span class="p">(</span><span class="n">dpath_list</span><span class="p">,</span> <span class="n">include_patterns</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">):</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">sedfile</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">regexpr</span><span class="p">,</span> <span class="n">repl</span><span class="p">,</span> <span class="n">force</span><span class="p">)</span>
+
+</div>
+<span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">ensure_vim_plugins</span><span class="p">():</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        python ~/local/init/ensure_vim_plugins.py</span>
+<span class="sd">        &#39;~/local/init/ensure_vim_plugins.py&#39;</span>
+<span class="sd">        &#39;~/local/init/__REPOS1__.py&#39;</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># TODO</span>
+        <span class="k">pass</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_project</span>
+<span class="sd">        python -m utool.util_project --allexamples</span>
+<span class="sd">        python -m utool.util_project --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.1.2.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

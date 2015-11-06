@@ -1,0 +1,511 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>utool.util_logging &mdash; utool 1.1.2.dev1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="utool 1.1.2.dev1 documentation" href="../../index.html"/>
+        <link rel="up" title="utool" href="../utool.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> utool
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.2.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../utool.html">utool package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">utool</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../utool.html">utool</a> &raquo;</li>
+      
+    <li>utool.util_logging</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for utool.util_logging</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">If logging is on, utool will overwrite the print function with a logging function</span>
+
+<span class="sd">This is a special module which will not get injected into (should it be internal?)</span>
+
+<span class="sd">References:</span>
+<span class="sd">    # maybe we can do something like this Queue to try fixing error when</span>
+<span class="sd">    # when using injected print statments with Qt signals and slots</span>
+<span class="sd">    http://stackoverflow.com/questions/21071448/redirecting-stdout-and-stderr-to-a-pyqt4-qtextedit-from-a-secondary-thread</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">builtins</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">realpath</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">logging.config</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">utool._internal</span> <span class="kn">import</span> <span class="n">meta_util_arg</span><span class="p">,</span> <span class="n">meta_util_six</span>
+
+<span class="n">VERBOSE</span>            <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">VERBOSE</span>
+<span class="n">VERYVERBOSE</span>        <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">VERYVERBOSE</span>
+<span class="n">PRINT_ALL_CALLERS</span>  <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">PRINT_ALL_CALLERS</span>
+<span class="n">LOGGING_VERBOSE</span>    <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">LOGGING_VERBOSE</span>  <span class="c"># --verb-logging</span>
+<span class="n">PRINT_INJECT_ORDER</span> <span class="o">=</span> <span class="n">meta_util_arg</span><span class="o">.</span><span class="n">PRINT_INJECT_ORDER</span>
+
+
+<span class="k">def</span> <span class="nf">__inside_doctest</span><span class="p">(</span><span class="n">original_stdout</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">original_stdout</span> <span class="o">!=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+
+
+<span class="n">__IN_MAIN_PROCESS__</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">current_process</span><span class="p">()</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;MainProcess&#39;</span>
+
+<span class="n">__UTOOL_ROOT_LOGGER__</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="n">__CURRENT_LOG_FPATH__</span> <span class="o">=</span> <span class="bp">None</span>
+
+<span class="c"># Remeber original python values</span>
+<span class="n">__PYTHON_STDOUT__</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+<span class="n">__PYTHON_PRINT__</span>  <span class="o">=</span> <span class="n">builtins</span><span class="o">.</span><span class="k">print</span>
+<span class="n">__PYTHON_WRITE__</span>  <span class="o">=</span> <span class="n">__PYTHON_STDOUT__</span><span class="o">.</span><span class="n">write</span>
+<span class="n">__PYTHON_FLUSH__</span>  <span class="o">=</span> <span class="n">__PYTHON_STDOUT__</span><span class="o">.</span><span class="n">flush</span>
+
+<span class="c"># Initialize utool values</span>
+<span class="n">__UTOOL_STDOUT__</span>    <span class="o">=</span> <span class="n">__PYTHON_STDOUT__</span>
+<span class="n">__UTOOL_PRINT__</span>     <span class="o">=</span> <span class="n">__PYTHON_PRINT__</span>
+<span class="n">__UTOOL_PRINTDBG__</span>  <span class="o">=</span> <span class="n">__PYTHON_PRINT__</span>
+
+<span class="c"># TODO: Allow write and flush to have a logging equivalent</span>
+<span class="n">__UTOOL_WRITE__</span>     <span class="o">=</span> <span class="n">__PYTHON_WRITE__</span>
+<span class="n">__UTOOL_FLUSH__</span>     <span class="o">=</span> <span class="n">__PYTHON_FLUSH__</span>
+<span class="n">__UTOOL_WRITE_BUFFER__</span> <span class="o">=</span> <span class="p">[]</span>
+
+
+<span class="n">__STR__</span> <span class="o">=</span> <span class="n">meta_util_six</span><span class="o">.</span><span class="n">__STR__</span>
+
+<span class="n">logdir_cacheid</span> <span class="o">=</span> <span class="s">&#39;log_dpath&#39;</span>
+
+
+<div class="viewcode-block" id="get_logging_dir"><a class="viewcode-back" href="../../utool.html#utool.util_logging.get_logging_dir">[docs]</a><span class="k">def</span> <span class="nf">get_logging_dir</span><span class="p">(</span><span class="n">appname</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The default log dir is in the system resource directory</span>
+<span class="sd">    But the utool global cache allows for the user to override</span>
+<span class="sd">    where the logs for a specific app should be stored.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        log_dir_realpath (str): real path to logging directory</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">utool._internal.meta_util_cache</span> <span class="kn">import</span> <span class="n">global_cache_read</span>
+    <span class="kn">from</span> <span class="nn">utool._internal.meta_util_cplat</span> <span class="kn">import</span> <span class="n">get_resource_dir</span>
+    <span class="kn">from</span> <span class="nn">utool.util_cache</span> <span class="kn">import</span> <span class="n">get_default_appname</span>  <span class="c"># Hacky</span>
+    <span class="k">if</span> <span class="n">appname</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span>  <span class="n">appname</span> <span class="o">==</span> <span class="s">&#39;default&#39;</span><span class="p">:</span>
+        <span class="n">appname</span> <span class="o">=</span> <span class="n">get_default_appname</span><span class="p">()</span>
+    <span class="n">resource_dpath</span> <span class="o">=</span> <span class="n">get_resource_dir</span><span class="p">()</span>
+    <span class="n">default</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">resource_dpath</span><span class="p">,</span> <span class="n">appname</span><span class="p">,</span> <span class="s">&#39;logs&#39;</span><span class="p">)</span>
+    <span class="c"># Check global cache for a custom logging dir otherwise</span>
+    <span class="c"># use the default.</span>
+    <span class="n">log_dir</span> <span class="o">=</span> <span class="n">global_cache_read</span><span class="p">(</span><span class="n">logdir_cacheid</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="n">appname</span><span class="p">,</span>
+                                <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">)</span>
+    <span class="n">log_dir_realpath</span> <span class="o">=</span> <span class="n">realpath</span><span class="p">(</span><span class="n">log_dir</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">log_dir_realpath</span>
+
+</div>
+<div class="viewcode-block" id="get_current_log_fpath"><a class="viewcode-back" href="../../utool.html#utool.util_logging.get_current_log_fpath">[docs]</a><span class="k">def</span> <span class="nf">get_current_log_fpath</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">__CURRENT_LOG_FPATH__</span>
+    <span class="k">return</span> <span class="n">__CURRENT_LOG_FPATH__</span>
+
+</div>
+<div class="viewcode-block" id="get_current_log_text"><a class="viewcode-back" href="../../utool.html#utool.util_logging.get_current_log_text">[docs]</a><span class="k">def</span> <span class="nf">get_current_log_text</span><span class="p">():</span>
+    <span class="n">fpath</span> <span class="o">=</span> <span class="n">get_current_log_fpath</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">fpath</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">text</span>
+
+</div>
+<div class="viewcode-block" id="get_log_fpath"><a class="viewcode-back" href="../../utool.html#utool.util_logging.get_log_fpath">[docs]</a><span class="k">def</span> <span class="nf">get_log_fpath</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="s">&#39;next&#39;</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">log_dir</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        log_fpath (str): path to log file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">log_dir</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">log_dir</span> <span class="o">=</span> <span class="n">get_logging_dir</span><span class="p">(</span><span class="n">appname</span><span class="o">=</span><span class="n">appname</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">log_dir</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">log_dir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">appname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">log_fname</span> <span class="o">=</span> <span class="n">appname</span> <span class="o">+</span> <span class="s">&#39;_logs_</span><span class="si">%04d</span><span class="s">.out&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">log_fname</span> <span class="o">=</span> <span class="s">&#39;utool_logs_</span><span class="si">%04d</span><span class="s">.out&#39;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">num</span> <span class="o">==</span> <span class="s">&#39;next&#39;</span><span class="p">:</span>
+            <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">log_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="n">log_fname</span> <span class="o">%</span> <span class="n">count</span><span class="p">)</span>
+            <span class="k">while</span> <span class="n">exists</span><span class="p">(</span><span class="n">log_fpath</span><span class="p">):</span>
+                <span class="n">log_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="n">log_fname</span> <span class="o">%</span> <span class="n">count</span><span class="p">)</span>
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">log_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="n">log_fname</span> <span class="o">%</span> <span class="n">num</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">log_fpath</span>
+
+</div>
+<div class="viewcode-block" id="get_utool_logger"><a class="viewcode-back" href="../../utool.html#utool.util_logging.get_utool_logger">[docs]</a><span class="k">def</span> <span class="nf">get_utool_logger</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">__UTOOL_ROOT_LOGGER__</span>
+
+</div>
+<div class="viewcode-block" id="add_logging_handler"><a class="viewcode-back" href="../../utool.html#utool.util_logging.add_logging_handler">[docs]</a><span class="k">def</span> <span class="nf">add_logging_handler</span><span class="p">(</span><span class="n">handler</span><span class="p">,</span> <span class="n">format_</span><span class="o">=</span><span class="s">&#39;file&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    mostly for util_logging internals</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">__UTOOL_ROOT_LOGGER__</span>
+    <span class="k">if</span> <span class="n">__UTOOL_ROOT_LOGGER__</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="s">&#39;[WARNING] logger not started, cannot add handler&#39;</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="c"># create formatter and add it to the handlers</span>
+    <span class="c">#logformat = &#39;%Y-%m-%d %H:%M:%S&#39;</span>
+    <span class="c">#logformat = &#39;%(asctime)s - %(name)s - %(levelname)s - %(message)s&#39;</span>
+    <span class="n">timeformat</span> <span class="o">=</span> <span class="s">&#39;%H:%M:%S&#39;</span>
+    <span class="k">if</span> <span class="n">format_</span> <span class="o">==</span> <span class="s">&#39;file&#39;</span><span class="p">:</span>
+        <span class="n">logformat</span> <span class="o">=</span> <span class="s">&#39;[</span><span class="si">%(asctime)s</span><span class="s">]</span><span class="si">%(message)s</span><span class="s">&#39;</span>
+    <span class="k">elif</span> <span class="n">format_</span> <span class="o">==</span> <span class="s">&#39;stdout&#39;</span><span class="p">:</span>
+        <span class="n">logformat</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%(message)s</span><span class="s">&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;unknown logging format_: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">format_</span><span class="p">)</span>
+    <span class="c"># Create formatter for handlers</span>
+    <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="n">logformat</span><span class="p">,</span> <span class="n">timeformat</span><span class="p">)</span>
+    <span class="n">handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+    <span class="n">handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+    <span class="n">__UTOOL_ROOT_LOGGER__</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="start_logging"><a class="viewcode-back" href="../../utool.html#utool.util_logging.start_logging">[docs]</a><span class="k">def</span> <span class="nf">start_logging</span><span class="p">(</span><span class="n">log_fpath</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">,</span> <span class="n">log_dir</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Overwrites utool print functions to use a logger</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_logging --test-start_logging:0</span>
+<span class="sd">        python -m utool.util_logging --test-start_logging:1</span>
+
+<span class="sd">    Example0:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; import sys</span>
+<span class="sd">        &gt;&gt;&gt; sys.argv.append(&#39;--verb-logging&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; ut.start_logging()</span>
+<span class="sd">        &gt;&gt;&gt; ut.util_logging.__UTOOL_PRINT__(&#39;hello world&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ut.util_logging.__UTOOL_WRITE__(&#39;writing1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ut.util_logging.__UTOOL_WRITE__(&#39;writing2\n&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ut.util_logging.__UTOOL_WRITE__(&#39;writing3&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ut.util_logging.__UTOOL_FLUSH__()</span>
+<span class="sd">        &gt;&gt;&gt; handler = ut.util_logging.__UTOOL_ROOT_LOGGER__.handlers[0]</span>
+<span class="sd">        &gt;&gt;&gt; current_log_fpath = handler.stream.name</span>
+<span class="sd">        &gt;&gt;&gt; current_log_text = ut.read_from(current_log_fpath)</span>
+<span class="sd">        &gt;&gt;&gt; assert current_log_text.find(&#39;hello world&#39;) &gt; 0</span>
+<span class="sd">        &gt;&gt;&gt; assert current_log_text.find(&#39;writing1writing2&#39;) &gt; 0</span>
+<span class="sd">        &gt;&gt;&gt; assert current_log_text.find(&#39;writing3&#39;) &gt; 0</span>
+
+<span class="sd">    Example1:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # Ensure that progress is logged</span>
+<span class="sd">        &gt;&gt;&gt; import sys</span>
+<span class="sd">        &gt;&gt;&gt; sys.argv.append(&#39;--verb-logging&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; ut.start_logging()</span>
+<span class="sd">        &gt;&gt;&gt; [x for x in  ut.ProgressIter(range(0, 1000), freq=4)]</span>
+<span class="sd">        &gt;&gt;&gt; handler = ut.util_logging.__UTOOL_ROOT_LOGGER__.handlers[0]</span>
+<span class="sd">        &gt;&gt;&gt; current_log_fpath = handler.stream.name</span>
+<span class="sd">        &gt;&gt;&gt; current_log_text = ut.read_from(current_log_fpath)</span>
+<span class="sd">        &gt;&gt;&gt; assert current_log_text.find(&#39;rate&#39;) &gt; 0, &#39;progress was not logged&#39;</span>
+<span class="sd">        &gt;&gt;&gt; print(current_log_text)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">__UTOOL_ROOT_LOGGER__</span>
+    <span class="k">global</span> <span class="n">__UTOOL_PRINT__</span>
+    <span class="k">global</span> <span class="n">__UTOOL_PRINTDBG__</span>
+    <span class="k">global</span> <span class="n">__UTOOL_WRITE__</span>
+    <span class="k">global</span> <span class="n">__UTOOL_FLUSH__</span>
+    <span class="k">global</span> <span class="n">__CURRENT_LOG_FPATH__</span>
+    <span class="k">if</span> <span class="n">LOGGING_VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] start_logging()&#39;</span><span class="p">)</span>
+    <span class="c"># FIXME: The test for doctest may not work</span>
+    <span class="k">if</span> <span class="n">__UTOOL_ROOT_LOGGER__</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">__IN_MAIN_PROCESS__</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">__inside_doctest</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">LOGGING_VERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] start_logging()... rootcheck OK&#39;</span><span class="p">)</span>
+        <span class="c">#logging.config.dictConfig(LOGGING)</span>
+        <span class="k">if</span> <span class="n">log_fpath</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">log_fpath</span> <span class="o">=</span> <span class="n">get_log_fpath</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="s">&#39;next&#39;</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="n">appname</span><span class="p">,</span> <span class="n">log_dir</span><span class="o">=</span><span class="n">log_dir</span><span class="p">)</span>
+        <span class="n">__CURRENT_LOG_FPATH__</span> <span class="o">=</span> <span class="n">log_fpath</span>
+        <span class="c"># Print what is about to happen</span>
+        <span class="k">if</span> <span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">LOGGING_VERBOSE</span><span class="p">:</span>
+            <span class="n">startmsg</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;logging to log_fpath=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">log_fpath</span><span class="p">)</span>
+            <span class="n">__UTOOL_PRINT__</span><span class="p">(</span><span class="n">startmsg</span><span class="p">)</span>
+        <span class="c"># Create root logger</span>
+        <span class="n">__UTOOL_ROOT_LOGGER__</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&#39;root&#39;</span><span class="p">)</span>
+        <span class="n">__UTOOL_ROOT_LOGGER__</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="s">&#39;DEBUG&#39;</span><span class="p">)</span>
+        <span class="c"># create file handler which logs even debug messages</span>
+        <span class="c">#fh = logging.handlers.WatchedFileHandler(log_fpath)</span>
+        <span class="n">logfile_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">log_fpath</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+        <span class="n">stdout_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">__UTOOL_STDOUT__</span><span class="p">)</span>
+        <span class="n">add_logging_handler</span><span class="p">(</span><span class="n">logfile_handler</span><span class="p">,</span> <span class="n">format_</span><span class="o">=</span><span class="s">&#39;file&#39;</span><span class="p">)</span>
+        <span class="n">add_logging_handler</span><span class="p">(</span><span class="n">stdout_handler</span><span class="p">,</span> <span class="n">format_</span><span class="o">=</span><span class="s">&#39;stdout&#39;</span><span class="p">)</span>
+        <span class="n">__UTOOL_ROOT_LOGGER__</span><span class="o">.</span><span class="n">propagate</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">__UTOOL_ROOT_LOGGER__</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+        <span class="c"># Overwrite utool functions with the logging functions</span>
+
+        <span class="k">def</span> <span class="nf">utool_flush</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot; flushes whatever is in the current utool write buffer &quot;&quot;&quot;</span>
+            <span class="k">global</span> <span class="n">__UTOOL_WRITE_BUFFER__</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">__UTOOL_WRITE_BUFFER__</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">__UTOOL_WRITE_BUFFER__</span><span class="p">)</span>
+                <span class="n">__UTOOL_WRITE_BUFFER__</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">return</span> <span class="n">__UTOOL_ROOT_LOGGER__</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="c">#__PYTHON_FLUSH__()</span>
+
+        <span class="k">def</span> <span class="nf">utool_write</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot; writes to current utool logs and to sys.stdout.write &quot;&quot;&quot;</span>
+            <span class="k">global</span> <span class="n">__UTOOL_WRITE_BUFFER__</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">__STR__</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
+            <span class="n">__UTOOL_WRITE_BUFFER__</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">msg</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">):</span>
+                <span class="c"># Flush on newline</span>
+                <span class="n">__UTOOL_WRITE_BUFFER__</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">__UTOOL_WRITE_BUFFER__</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">utool_flush</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">PRINT_ALL_CALLERS</span><span class="p">:</span>
+            <span class="k">def</span> <span class="nf">utool_print</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; debugging utool print function &quot;&quot;&quot;</span>
+                <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+                <span class="n">utool_flush</span><span class="p">()</span>
+                <span class="n">__UTOOL_ROOT_LOGGER__</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s">----------&#39;</span><span class="p">)</span>
+                <span class="n">__UTOOL_ROOT_LOGGER__</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_caller_name</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">)))</span>
+                <span class="k">return</span>  <span class="n">__UTOOL_ROOT_LOGGER__</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">__STR__</span><span class="p">,</span> <span class="n">args</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">def</span> <span class="nf">utool_print</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; standard utool print function &quot;&quot;&quot;</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">return</span>  <span class="n">__UTOOL_ROOT_LOGGER__</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">__STR__</span><span class="p">,</span> <span class="n">args</span><span class="p">)))</span>
+                <span class="k">except</span> <span class="ne">UnicodeDecodeError</span><span class="p">:</span>
+                    <span class="n">new_msg</span> <span class="o">=</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">meta_util_six</span><span class="o">.</span><span class="n">ensure_unicode</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
+                    <span class="c">#print(new_msg)</span>
+                    <span class="k">return</span>  <span class="n">__UTOOL_ROOT_LOGGER__</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">new_msg</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">utool_printdbg</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot; standard utool print debug function &quot;&quot;&quot;</span>
+            <span class="k">return</span>  <span class="n">__UTOOL_ROOT_LOGGER__</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">__STR__</span><span class="p">,</span> <span class="n">args</span><span class="p">)))</span>
+        <span class="c"># overwrite the utool printers</span>
+        <span class="n">__UTOOL_WRITE__</span>    <span class="o">=</span> <span class="n">utool_write</span>
+        <span class="n">__UTOOL_FLUSH__</span>    <span class="o">=</span> <span class="n">utool_flush</span>
+        <span class="n">__UTOOL_PRINT__</span>    <span class="o">=</span> <span class="n">utool_print</span>
+        <span class="n">__UTOOL_PRINTDBG__</span> <span class="o">=</span> <span class="n">utool_printdbg</span>
+        <span class="c"># Test out our shiney new logger</span>
+        <span class="k">if</span> <span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">LOGGING_VERBOSE</span><span class="p">:</span>
+            <span class="n">__UTOOL_PRINT__</span><span class="p">(</span><span class="s">&#39;&lt;__LOG_START__&gt;&#39;</span><span class="p">)</span>
+            <span class="n">__UTOOL_PRINT__</span><span class="p">(</span><span class="n">startmsg</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="stop_logging"><a class="viewcode-back" href="../../utool.html#utool.util_logging.stop_logging">[docs]</a><span class="k">def</span> <span class="nf">stop_logging</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Restores utool print functions to python defaults</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">__UTOOL_ROOT_LOGGER__</span>
+    <span class="k">global</span> <span class="n">__UTOOL_PRINT__</span>
+    <span class="k">global</span> <span class="n">__UTOOL_PRINTDBG__</span>
+    <span class="k">global</span> <span class="n">__UTOOL_WRITE__</span>
+    <span class="k">global</span> <span class="n">__UTOOL_FLUSH__</span>
+    <span class="k">if</span> <span class="n">__UTOOL_ROOT_LOGGER__</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">LOGGING_VERBOSE</span><span class="p">:</span>
+            <span class="n">__UTOOL_PRINT__</span><span class="p">(</span><span class="s">&#39;&lt;__LOG_STOP__&gt;&#39;</span><span class="p">)</span>
+        <span class="c"># Remove handlers</span>
+        <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">__UTOOL_ROOT_LOGGER__</span><span class="o">.</span><span class="n">handlers</span><span class="p">:</span>
+            <span class="n">__UTOOL_ROOT_LOGGER__</span><span class="o">.</span><span class="n">removeHandler</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+        <span class="c"># Reset objects</span>
+        <span class="n">__UTOOL_ROOT_LOGGER__</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">__UTOOL_PRINT__</span>    <span class="o">=</span> <span class="n">__PYTHON_PRINT__</span>
+        <span class="n">__UTOOL_PRINTDBG__</span> <span class="o">=</span> <span class="n">__PYTHON_PRINT__</span>
+        <span class="n">__UTOOL_WRITE__</span>    <span class="o">=</span> <span class="n">__PYTHON_WRITE__</span>
+        <span class="n">__UTOOL_FLUSH__</span>    <span class="o">=</span> <span class="n">__PYTHON_FLUSH__</span>
+
+<span class="c"># HAVE TO HACK THIS IN FOR UTOOL SPECIAL CASE ONLY</span>
+<span class="c"># OTHER MODULE CAN USE NOINJECT</span></div>
+<span class="k">if</span> <span class="n">PRINT_INJECT_ORDER</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">utool._internal</span> <span class="kn">import</span> <span class="n">meta_util_dbg</span>
+    <span class="n">callername</span> <span class="o">=</span> <span class="n">meta_util_dbg</span><span class="o">.</span><span class="n">get_caller_name</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">fmtdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">callername</span><span class="o">=</span><span class="n">callername</span><span class="p">,</span> <span class="n">modname</span><span class="o">=</span><span class="s">&#39;utool.util_logging&#39;</span><span class="p">)</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;[util_inject] {modname} is imported by {callername}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">fmtdict</span><span class="p">)</span>
+    <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_logging</span>
+<span class="sd">        python -m utool.util_logging --allexamples</span>
+<span class="sd">        python -m utool.util_logging --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.1.2.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
