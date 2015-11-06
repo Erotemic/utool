@@ -221,9 +221,21 @@ def autogen_sphinx_apidoc():
         pip uninstall sphinx
         pip install sphinx
         pip install sphinxcontrib-napoleon
+        pip install sphinx --upgrade
+        pip install sphinxcontrib-napoleon --upgrade
 
         cd C:\Python27\Scripts
         ls C:\Python27\Scripts
+
+        python -c "import sphinx; print(sphinx.__version__)"
+
+    CommandLine:
+        python -m utool.util_setup --exec-autogen_sphinx_apidoc
+
+    Example:
+        >>> # SCRIPT
+        >>> from utool.util_setup import *  # NOQA
+        >>> autogen_sphinx_apidoc()
     """
     import utool as ut
     # TODO: assert sphinx-apidoc exe is found
@@ -586,3 +598,16 @@ def setuptools_setup(setup_fpath=None, module=None, **kwargs):
     if VERBOSE:
         print(util_str.dict_str(kwargs))
     return kwargs
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m utool.util_setup
+        python -m utool.util_setup --allexamples
+        python -m utool.util_setup --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

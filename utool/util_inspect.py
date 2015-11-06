@@ -1066,7 +1066,7 @@ def recursive_parse_kwargs(root_func, path_=None):
         list:
 
     CommandLine:
-        python -m utool.util_inspect --exec-recursive_parse_kwargs
+        python -m utool.util_inspect --exec-recursive_parse_kwargs:1
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1074,7 +1074,16 @@ def recursive_parse_kwargs(root_func, path_=None):
         >>> import ibeis.model.preproc.preproc_image
         >>> root_func = ibeis.model.preproc.preproc_image.add_images_params_gen
         >>> path_ = None
-        >>> result = ut.list_str(recursive_parse_kwargs(root_func))
+        >>> result = ut.repr2(recursive_parse_kwargs(root_func))
+        >>> print(result)
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_inspect import *  # NOQA
+        >>> from ibeis.model.hots import chip_match
+        >>> root_func = chip_match.ChipMatch2.show_ranked_matches
+        >>> path_ = None
+        >>> result = ut.repr2(recursive_parse_kwargs(root_func))
         >>> print(result)
     """
     import utool as ut
@@ -1099,7 +1108,21 @@ def recursive_parse_kwargs(root_func, path_=None):
                 subtup = subfunc_name.split('.')
                 subdict = root_func.func_globals
                 for attr in subtup[:-1]:
-                    subdict = subdict[attr].__dict__
+                    try:
+                        subdict = subdict[attr].__dict__
+                    except KeyError:
+                        # limited support for class lookup
+                        if ut.is_method(root_func) and spec.args[0] == attr:
+                            subdict = root_func.im_class.__dict__
+                        else:
+                            raise
+                    #except Exception:
+                    #    ut.embed()
+                    #    print('root_func = %r' % (root_func,))
+                    #    print('subtup = %r' % (subtup,))
+                    #    print('attr = %r' % (attr,))
+                    #    raise
+
                 subfunc = subdict[subtup[-1]]
             else:
                 # can directly take func from globals
@@ -1324,7 +1347,11 @@ def infer_function_info(func):
         sourcecode = get_func_sourcecode(func)
         #kwarg_keys = ut.parse_kwarg_keys(sourcecode)
         kwarg_items = ut.recursive_parse_kwargs(func)
+
         kwarg_keys = ut.get_list_column(kwarg_items, 0)
+        #kwarg_keys = ut.unique_ordered(kwarg_keys)
+        kwarg_keys = ut.setdiff_ordered(kwarg_keys, argname_list)
+
         num_indent = ut.get_indentation(sourcecode)
         sourcecode = ut.unindent(sourcecode)
 

@@ -165,6 +165,19 @@ def sed_projects(r, regexpr, repl, force=False, recursive=True, user_profile=Non
         ut.sedfile(fpath, regexpr, repl, force)
 
 
+if False:
+    def ensure_vim_plugins():
+        """
+
+        python ~/local/init/ensure_vim_plugins.py
+        '~/local/init/ensure_vim_plugins.py'
+        '~/local/init/__REPOS1__.py'
+
+        """
+        # TODO
+        pass
+
+
 if __name__ == '__main__':
     """
     CommandLine:
