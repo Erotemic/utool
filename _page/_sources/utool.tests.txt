@@ -4,6 +4,14 @@ utool.tests package
 Submodules
 ----------
 
+utool.tests.run_tests module
+----------------------------
+
+.. automodule:: utool.tests.run_tests
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 utool.tests.test_decor module
 -----------------------------
 

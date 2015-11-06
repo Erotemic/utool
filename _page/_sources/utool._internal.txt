@@ -84,6 +84,14 @@ utool._internal.meta_util_six module
     :undoc-members:
     :show-inheritance:
 
+utool._internal.py2_syntax_funcs module
+---------------------------------------
+
+.. automodule:: utool._internal.py2_syntax_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 utool._internal.util_importer module
 ------------------------------------
 

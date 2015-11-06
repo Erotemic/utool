@@ -1,0 +1,569 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>utool.experimental.bytecode_optimizations &mdash; utool 1.1.2.dev1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="utool 1.1.2.dev1 documentation" href="../../../index.html"/>
+        <link rel="up" title="utool" href="../../utool.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> utool
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.2.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../utool.html">utool package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">utool</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../utool.html">utool</a> &raquo;</li>
+      
+    <li>utool.experimental.bytecode_optimizations</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for utool.experimental.bytecode_optimizations</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">References:</span>
+<span class="sd">    http://code.activestate.com/recipes/576904/</span>
+<span class="sd">    http://code.activestate.com/recipes/277940-decorator-for-bindingconstants-at-compile-time/</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">opcode</span> <span class="kn">import</span> <span class="n">opmap</span><span class="p">,</span> <span class="n">HAVE_ARGUMENT</span><span class="p">,</span> <span class="n">EXTENDED_ARG</span>
+<span class="n">STORE_GLOBAL</span> <span class="o">=</span> <span class="n">opmap</span><span class="p">[</span><span class="s">&#39;STORE_GLOBAL&#39;</span><span class="p">]</span>
+<span class="n">LOAD_GLOBAL</span>  <span class="o">=</span> <span class="n">opmap</span><span class="p">[</span><span class="s">&#39;LOAD_GLOBAL&#39;</span><span class="p">]</span>
+<span class="n">LOAD_CONST</span>   <span class="o">=</span> <span class="n">opmap</span><span class="p">[</span><span class="s">&#39;LOAD_CONST&#39;</span><span class="p">]</span>
+<span class="n">LOAD_ATTR</span>    <span class="o">=</span> <span class="n">opmap</span><span class="p">[</span><span class="s">&#39;LOAD_ATTR&#39;</span><span class="p">]</span>
+<span class="n">BUILD_TUPLE</span>  <span class="o">=</span> <span class="n">opmap</span><span class="p">[</span><span class="s">&#39;BUILD_TUPLE&#39;</span><span class="p">]</span>
+<span class="n">JUMP_FORWARD</span>  <span class="o">=</span> <span class="n">opmap</span><span class="p">[</span><span class="s">&#39;JUMP_FORWARD&#39;</span><span class="p">]</span>
+<span class="c">#globals().update(opmap)</span>
+
+
+<span class="k">def</span> <span class="nf">_make_constants</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">builtin_only</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">stoplist</span><span class="o">=</span><span class="p">[],</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;optimizing&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">co</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">__code__</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">f</span>        <span class="c"># Jython doesn&#39;t have a func_code attribute.</span>
+    <span class="n">newcode</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">co</span><span class="o">.</span><span class="n">co_code</span><span class="p">)</span>
+    <span class="n">newconsts</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">co</span><span class="o">.</span><span class="n">co_consts</span><span class="p">)</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="n">co</span><span class="o">.</span><span class="n">co_names</span>
+    <span class="n">codelen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">newcode</span><span class="p">)</span>
+
+    <span class="c">#from six.moves import builtins</span>
+    <span class="kn">import</span> <span class="nn">six</span>
+    <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">__builtin__</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="n">__builtin__</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">builtins</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="n">builtins</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">builtin_only</span><span class="p">:</span>
+        <span class="n">stoplist</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">stoplist</span><span class="p">)</span>
+        <span class="n">stoplist</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">__globals__</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">env</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">__globals__</span><span class="p">)</span>
+
+    <span class="c"># First pass converts global lookups into constants</span>
+    <span class="n">changed</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">codelen</span><span class="p">:</span>
+        <span class="n">opcode</span> <span class="o">=</span> <span class="n">newcode</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">opcode</span> <span class="ow">in</span> <span class="p">(</span><span class="n">EXTENDED_ARG</span><span class="p">,</span> <span class="n">STORE_GLOBAL</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">f</span>    <span class="c"># for simplicity, only optimize common cases</span>
+        <span class="k">if</span> <span class="n">opcode</span> <span class="o">==</span> <span class="n">LOAD_GLOBAL</span><span class="p">:</span>
+            <span class="n">oparg</span> <span class="o">=</span> <span class="n">newcode</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">newcode</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">co</span><span class="o">.</span><span class="n">co_names</span><span class="p">[</span><span class="n">oparg</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">env</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">stoplist</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">env</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">pos</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">newconsts</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="n">value</span><span class="p">:</span>
+                        <span class="k">break</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">pos</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">newconsts</span><span class="p">)</span>
+                    <span class="n">newconsts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                <span class="n">newcode</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">LOAD_CONST</span>
+                <span class="n">newcode</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">pos</span> <span class="o">&amp;</span> <span class="mh">0xFF</span>
+                <span class="n">newcode</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">pos</span> <span class="o">&gt;&gt;</span> <span class="mi">8</span>
+                <span class="n">changed</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s">&#39;--&gt;&#39;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">opcode</span> <span class="o">&gt;=</span> <span class="n">HAVE_ARGUMENT</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">2</span>
+
+    <span class="c"># Second pass folds tuples of constants and constant attribute lookups</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">codelen</span><span class="p">:</span>
+
+        <span class="n">newtuple</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="n">newcode</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">LOAD_CONST</span><span class="p">:</span>
+            <span class="n">oparg</span> <span class="o">=</span> <span class="n">newcode</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">newcode</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span>
+            <span class="n">newtuple</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newconsts</span><span class="p">[</span><span class="n">oparg</span><span class="p">])</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">3</span>
+
+        <span class="n">opcode</span> <span class="o">=</span> <span class="n">newcode</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">newtuple</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">opcode</span> <span class="o">&gt;=</span> <span class="n">HAVE_ARGUMENT</span><span class="p">:</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">2</span>
+            <span class="k">continue</span>
+
+        <span class="k">if</span> <span class="n">opcode</span> <span class="o">==</span> <span class="n">LOAD_ATTR</span><span class="p">:</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="n">newtuple</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">oparg</span> <span class="o">=</span> <span class="n">newcode</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">newcode</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">names</span><span class="p">[</span><span class="n">oparg</span><span class="p">]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">deletions</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="k">elif</span> <span class="n">opcode</span> <span class="o">==</span> <span class="n">BUILD_TUPLE</span><span class="p">:</span>
+            <span class="n">oparg</span> <span class="o">=</span> <span class="n">newcode</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">newcode</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">oparg</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">newtuple</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">deletions</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">newtuple</span><span class="p">)</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">newtuple</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="n">reljump</span> <span class="o">=</span> <span class="n">deletions</span> <span class="o">*</span> <span class="mi">3</span>
+        <span class="n">newcode</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="n">reljump</span><span class="p">]</span> <span class="o">=</span> <span class="n">JUMP_FORWARD</span>
+        <span class="n">newcode</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="n">reljump</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">reljump</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0xFF</span>
+        <span class="n">newcode</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="n">reljump</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">reljump</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">8</span>
+
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">newconsts</span><span class="p">)</span>
+        <span class="n">newconsts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">newcode</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">LOAD_CONST</span>
+        <span class="n">newcode</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">n</span> <span class="o">&amp;</span> <span class="mh">0xFF</span>
+        <span class="n">newcode</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">n</span> <span class="o">&gt;&gt;</span> <span class="mi">8</span>
+        <span class="n">i</span> <span class="o">+=</span> <span class="mi">3</span>
+        <span class="n">changed</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;new folded constant:&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">changed</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">f</span>
+
+    <span class="n">codestr</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">newcode</span><span class="p">)</span>
+    <span class="n">codeobj</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">co</span><span class="p">)(</span>
+        <span class="n">co</span><span class="o">.</span><span class="n">co_argcount</span><span class="p">,</span> <span class="n">co</span><span class="o">.</span><span class="n">co_kwonlyargcount</span><span class="p">,</span> <span class="n">co</span><span class="o">.</span><span class="n">co_nlocals</span><span class="p">,</span> <span class="n">co</span><span class="o">.</span><span class="n">co_stacksize</span><span class="p">,</span>
+        <span class="n">co</span><span class="o">.</span><span class="n">co_flags</span><span class="p">,</span> <span class="n">codestr</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">newconsts</span><span class="p">),</span> <span class="n">co</span><span class="o">.</span><span class="n">co_names</span><span class="p">,</span>
+        <span class="n">co</span><span class="o">.</span><span class="n">co_varnames</span><span class="p">,</span> <span class="n">co</span><span class="o">.</span><span class="n">co_filename</span><span class="p">,</span> <span class="n">co</span><span class="o">.</span><span class="n">co_name</span><span class="p">,</span>
+        <span class="n">co</span><span class="o">.</span><span class="n">co_firstlineno</span><span class="p">,</span> <span class="n">co</span><span class="o">.</span><span class="n">co_lnotab</span><span class="p">,</span> <span class="n">co</span><span class="o">.</span><span class="n">co_freevars</span><span class="p">,</span>
+        <span class="n">co</span><span class="o">.</span><span class="n">co_cellvars</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="n">f</span><span class="p">)(</span><span class="n">codeobj</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">__globals__</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">__defaults__</span><span class="p">,</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">__closure__</span><span class="p">)</span>
+
+<span class="n">_make_constants</span> <span class="o">=</span> <span class="n">_make_constants</span><span class="p">(</span><span class="n">_make_constants</span><span class="p">)</span>  <span class="c"># optimize thyself!</span>
+
+
+<div class="viewcode-block" id="bind_all"><a class="viewcode-back" href="../../../utool.experimental.html#utool.experimental.bytecode_optimizations.bind_all">[docs]</a><span class="k">def</span> <span class="nf">bind_all</span><span class="p">(</span><span class="n">mc</span><span class="p">,</span> <span class="n">builtin_only</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">stoplist</span><span class="o">=</span><span class="p">[],</span>  <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Recursively apply constant binding to functions in a module or class.</span>
+
+<span class="sd">    Use as the last line of the module (after everything is defined, but</span>
+<span class="sd">    before test code).  In modules that need modifiable globals, set</span>
+<span class="sd">    builtin_only to True.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">FunctionType</span><span class="p">,</span> <span class="n">ModuleType</span>
+
+    <span class="k">def</span> <span class="nf">_bind_all</span><span class="p">(</span><span class="n">mc</span><span class="p">,</span> <span class="n">builtin_only</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">stoplist</span><span class="o">=</span><span class="p">[],</span>  <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mc</span><span class="p">,</span> <span class="p">(</span><span class="n">ModuleType</span><span class="p">,</span> <span class="nb">type</span><span class="p">)):</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="n">mc</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="ow">is</span> <span class="n">FunctionType</span><span class="p">:</span>
+                    <span class="n">newv</span> <span class="o">=</span> <span class="n">_make_constants</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">builtin_only</span><span class="p">,</span> <span class="n">stoplist</span><span class="p">,</span>  <span class="n">verbose</span><span class="p">)</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">mc</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">newv</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
+                    <span class="n">_bind_all</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">builtin_only</span><span class="p">,</span> <span class="n">stoplist</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mc</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>  <span class="c"># allow: bind_all(globals())</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">mc</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="ow">is</span> <span class="n">FunctionType</span><span class="p">:</span>
+                <span class="n">newv</span> <span class="o">=</span> <span class="n">_make_constants</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">builtin_only</span><span class="p">,</span> <span class="n">stoplist</span><span class="p">,</span>  <span class="n">verbose</span><span class="p">)</span>
+                <span class="n">mc</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">newv</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
+                <span class="n">_bind_all</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">builtin_only</span><span class="p">,</span> <span class="n">stoplist</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_bind_all</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">builtin_only</span><span class="p">,</span> <span class="n">stoplist</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+
+</div>
+<span class="nd">@_make_constants</span>
+<div class="viewcode-block" id="make_constants"><a class="viewcode-back" href="../../../utool.experimental.html#utool.experimental.bytecode_optimizations.make_constants">[docs]</a><span class="k">def</span> <span class="nf">make_constants</span><span class="p">(</span><span class="n">builtin_only</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">stoplist</span><span class="o">=</span><span class="p">[],</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Return a decorator for optimizing global references.</span>
+
+<span class="sd">    Replaces global references with their currently defined values.</span>
+<span class="sd">    If not defined, the dynamic (runtime) global lookup is left undisturbed.</span>
+<span class="sd">    If builtin_only is True, then only builtins are optimized.</span>
+<span class="sd">    Variable names in the stoplist are also left undisturbed.</span>
+<span class="sd">    Also, folds constant attr lookups and tuples of constants.</span>
+<span class="sd">    If verbose is True, prints each substitution as is occurs</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">builtin_only</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">make_constants</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;The bind_constants decorator must have arguments.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="n">_make_constants</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">builtin_only</span><span class="p">,</span> <span class="n">stoplist</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+
+<span class="c">## --------- Example call -----------------------------------------</span></div>
+<span class="kn">import</span> <span class="nn">random</span>
+
+
+<span class="nd">@make_constants</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">stoplist</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;random&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="sample"><a class="viewcode-back" href="../../../utool.experimental.html#utool.experimental.bytecode_optimizations.sample">[docs]</a><span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+    <span class="s">&quot;Choose k unique random elements from a population sequence.&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">str</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;Cannot handle type&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">population</span><span class="p">))</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">population</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">k</span> <span class="o">&lt;=</span> <span class="n">n</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;sample larger than population&quot;</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">k</span>
+    <span class="n">pool</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">population</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>         <span class="c"># invariant:  non-selected at [0,n-i)</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">i</span><span class="p">))</span>
+        <span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">pool</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+        <span class="n">pool</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">pool</span><span class="p">[</span><span class="n">n</span> <span class="o">-</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>   <span class="c"># move non-selected item into vacancy</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+</div>
+<div class="viewcode-block" id="sample_normal"><a class="viewcode-back" href="../../../utool.experimental.html#utool.experimental.bytecode_optimizations.sample_normal">[docs]</a><span class="k">def</span> <span class="nf">sample_normal</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+    <span class="s">&quot;Choose k unique random elements from a population sequence.&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">population</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">str</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;Cannot handle type&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">population</span><span class="p">))</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">population</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">k</span> <span class="o">&lt;=</span> <span class="n">n</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;sample larger than population&quot;</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">k</span>
+    <span class="n">pool</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">population</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>         <span class="c"># invariant:  non-selected at [0,n-i)</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">i</span><span class="p">))</span>
+        <span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">pool</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+        <span class="n">pool</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">pool</span><span class="p">[</span><span class="n">n</span> <span class="o">-</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>   <span class="c"># move non-selected item into vacancy</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+</div>
+<div class="viewcode-block" id="test_example"><a class="viewcode-back" href="../../../utool.experimental.html#utool.experimental.bytecode_optimizations.test_example">[docs]</a><span class="k">def</span> <span class="nf">test_example</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.experimental.bytecode_optimizations import *</span>
+<span class="sd">        &gt;&gt;&gt; from utool.experimental import bytecode_optimizations as bo</span>
+<span class="sd">        &gt;&gt;&gt; dis1 = bo.get_disassembly_string(bo.sample)</span>
+<span class="sd">        &gt;&gt;&gt; dis2 = bo.get_disassembly_string(bo.sample_normal)</span>
+<span class="sd">        &gt;&gt;&gt; diff = ut.get_textdiff(dis1, dis2)</span>
+<span class="sd">        &gt;&gt;&gt; print(diff)</span>
+<span class="sd">        &gt;&gt;&gt; if len(diff) == 0:</span>
+<span class="sd">        ...    print(&#39;no difference&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+
+    <span class="n">sample_optimized</span> <span class="o">=</span> <span class="n">make_constants</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">stoplist</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;random&#39;</span><span class="p">])(</span><span class="n">sample_normal</span><span class="p">)</span>
+
+    <span class="n">opt_dis</span> <span class="o">=</span> <span class="n">get_disassembly_string</span><span class="p">(</span><span class="n">sample_optimized</span><span class="p">)</span>
+    <span class="n">norm_dis</span> <span class="o">=</span> <span class="n">get_disassembly_string</span><span class="p">(</span><span class="n">sample_normal</span><span class="p">)</span>
+    <span class="c">#norm2_dis = get_disassembly_string(sample)</span>
+
+    <span class="c"># hmm  no difference</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_textdiff</span><span class="p">(</span><span class="n">opt_dis</span><span class="p">,</span> <span class="n">norm_dis</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="get_disassembly_string"><a class="viewcode-back" href="../../../utool.experimental.html#utool.experimental.bytecode_optimizations.get_disassembly_string">[docs]</a><span class="k">def</span> <span class="nf">get_disassembly_string</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">lasti</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reimplementation of disassemble that returns a string.</span>
+<span class="sd">    Disassemble a code object.</span>
+
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        std library dis.py module</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">opcode</span>
+    <span class="kn">import</span> <span class="nn">types</span>
+    <span class="kn">import</span> <span class="nn">dis</span>
+    <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;no default traceback dis&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">InstanceType</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">__class__</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s">&#39;im_func&#39;</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">im_func</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s">&#39;func_code&#39;</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">func_code</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s">&#39;__dict__&#39;</span><span class="p">):</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="n">items</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">x1</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">dis</span><span class="o">.</span><span class="n">_have_code</span><span class="p">):</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&quot;Disassembly of </span><span class="si">%s</span><span class="s">:&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">dis</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">msg</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Sorry: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">msg</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s">&#39;co_code&#39;</span><span class="p">):</span>
+        <span class="c"># ok case</span>
+        <span class="k">pass</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;no disassemble_string reimplement&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;don</span><span class="se">\&#39;</span><span class="s">t know how to disassemble </span><span class="si">%s</span><span class="s"> objects&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+    <span class="n">co</span> <span class="o">=</span> <span class="n">x</span>
+    <span class="n">code</span> <span class="o">=</span> <span class="n">co</span><span class="o">.</span><span class="n">co_code</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">dis</span><span class="o">.</span><span class="n">findlabels</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+    <span class="n">linestarts</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">dis</span><span class="o">.</span><span class="n">findlinestarts</span><span class="p">(</span><span class="n">co</span><span class="p">))</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">extended_arg</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">free</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">str_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">def</span> <span class="nf">appendstr</span><span class="p">(</span><span class="n">msg</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">msg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39; &#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="n">str_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+    <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">:</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">code</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="nb">ord</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">linestarts</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">appendstr</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+            <span class="n">appendstr</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%3d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">linestarts</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">appendstr</span><span class="p">(</span><span class="s">&#39;   &#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">lasti</span><span class="p">:</span>
+            <span class="n">appendstr</span><span class="p">(</span><span class="s">&#39;--&gt;&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">appendstr</span><span class="p">(</span><span class="s">&#39;   &#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">:</span>
+            <span class="n">appendstr</span><span class="p">(</span><span class="s">&#39;&gt;&gt;&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">appendstr</span><span class="p">(</span><span class="s">&#39;  &#39;</span><span class="p">)</span>
+        <span class="n">appendstr</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+        <span class="n">appendstr</span><span class="p">(</span><span class="n">opcode</span><span class="o">.</span><span class="n">opname</span><span class="p">[</span><span class="n">op</span><span class="p">]</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">20</span><span class="p">))</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">op</span> <span class="o">&gt;=</span> <span class="n">opcode</span><span class="o">.</span><span class="n">HAVE_ARGUMENT</span><span class="p">:</span>
+            <span class="n">oparg</span> <span class="o">=</span> <span class="nb">ord</span><span class="p">(</span><span class="n">code</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="nb">ord</span><span class="p">(</span><span class="n">code</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="mi">256</span> <span class="o">+</span> <span class="n">extended_arg</span>
+            <span class="n">extended_arg</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span>
+            <span class="k">if</span> <span class="n">op</span> <span class="o">==</span> <span class="n">opcode</span><span class="o">.</span><span class="n">EXTENDED_ARG</span><span class="p">:</span>
+                <span class="n">extended_arg</span> <span class="o">=</span> <span class="n">oparg</span> <span class="o">*</span> <span class="mi">65536</span>
+            <span class="n">appendstr</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">oparg</span><span class="p">)</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">opcode</span><span class="o">.</span><span class="n">hasconst</span><span class="p">:</span>
+                <span class="n">appendstr</span><span class="p">(</span><span class="s">&#39;(&#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">co</span><span class="o">.</span><span class="n">co_consts</span><span class="p">[</span><span class="n">oparg</span><span class="p">])</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">opcode</span><span class="o">.</span><span class="n">hasname</span><span class="p">:</span>
+                <span class="n">appendstr</span><span class="p">(</span><span class="s">&#39;(&#39;</span> <span class="o">+</span> <span class="n">co</span><span class="o">.</span><span class="n">co_names</span><span class="p">[</span><span class="n">oparg</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">opcode</span><span class="o">.</span><span class="n">hasjrel</span><span class="p">:</span>
+                <span class="n">appendstr</span><span class="p">(</span><span class="s">&#39;(to &#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="n">oparg</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">opcode</span><span class="o">.</span><span class="n">haslocal</span><span class="p">:</span>
+                <span class="n">appendstr</span><span class="p">(</span><span class="s">&#39;(&#39;</span> <span class="o">+</span> <span class="n">co</span><span class="o">.</span><span class="n">co_varnames</span><span class="p">[</span><span class="n">oparg</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">opcode</span><span class="o">.</span><span class="n">hascompare</span><span class="p">:</span>
+                <span class="n">appendstr</span><span class="p">(</span><span class="s">&#39;(&#39;</span> <span class="o">+</span> <span class="n">opcode</span><span class="o">.</span><span class="n">cmp_op</span><span class="p">[</span><span class="n">oparg</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">opcode</span><span class="o">.</span><span class="n">hasfree</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">free</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">free</span> <span class="o">=</span> <span class="n">co</span><span class="o">.</span><span class="n">co_cellvars</span> <span class="o">+</span> <span class="n">co</span><span class="o">.</span><span class="n">co_freevars</span>
+                <span class="n">appendstr</span><span class="p">(</span><span class="s">&#39;(&#39;</span> <span class="o">+</span> <span class="n">free</span><span class="p">[</span><span class="n">oparg</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span><span class="p">)</span>
+        <span class="n">appendstr</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+    <span class="n">disassembly_string</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">str_list</span><span class="p">)</span>
+    <span class="c">#print(disassembly_string)</span>
+    <span class="k">return</span> <span class="n">disassembly_string</span>
+
+</div>
+<span class="sd">&quot;&quot;&quot; Output from the example call:</span>
+
+<span class="sd">isinstance --&gt; &lt;built-in function isinstance&gt;</span>
+<span class="sd">list --&gt; &lt;class &#39;list&#39;&gt;</span>
+<span class="sd">tuple --&gt; &lt;class &#39;tuple&#39;&gt;</span>
+<span class="sd">str --&gt; &lt;class &#39;str&#39;&gt;</span>
+<span class="sd">TypeError --&gt; &lt;class &#39;TypeError&#39;&gt;</span>
+<span class="sd">type --&gt; &lt;class &#39;type&#39;&gt;</span>
+<span class="sd">len --&gt; &lt;built-in function len&gt;</span>
+<span class="sd">ValueError --&gt; &lt;class &#39;ValueError&#39;&gt;</span>
+<span class="sd">list --&gt; &lt;class &#39;list&#39;&gt;</span>
+<span class="sd">range --&gt; &lt;class &#39;range&#39;&gt;</span>
+<span class="sd">int --&gt; &lt;class &#39;int&#39;&gt;</span>
+<span class="sd">new folded constant: (&lt;class &#39;list&#39;&gt;, &lt;class &#39;tuple&#39;&gt;, &lt;class &#39;str&#39;&gt;)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m bytecode_optimizations</span>
+<span class="sd">        python -m bytecode_optimizations --allexamples</span>
+<span class="sd">        python -m bytecode_optimizations --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.1.2.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

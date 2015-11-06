@@ -1,0 +1,400 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>utool.util_sqlite &mdash; utool 1.1.2.dev1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="utool 1.1.2.dev1 documentation" href="../../index.html"/>
+        <link rel="up" title="utool" href="../utool.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> utool
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.2.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../utool.html">utool package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">utool</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../utool.html">utool</a> &raquo;</li>
+      
+    <li>utool.util_sqlite</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for utool.util_sqlite</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[sqlite]&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_tablenames"><a class="viewcode-back" href="../../utool.html#utool.util_sqlite.get_tablenames">[docs]</a><span class="k">def</span> <span class="nf">get_tablenames</span><span class="p">(</span><span class="n">cur</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Conveinience: &quot;&quot;&quot;</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT name FROM sqlite_master WHERE type=&#39;table&#39;&quot;</span><span class="p">)</span>
+    <span class="n">tablename_list_</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="n">tablename_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">tablename</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">tablename</span> <span class="ow">in</span> <span class="n">tablename_list_</span> <span class="p">]</span>
+    <span class="k">return</span> <span class="n">tablename_list</span>
+</div>
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="n">SQLColumnRichInfo</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;SQLColumnRichInfo&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;column_id&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;type_&#39;</span><span class="p">,</span> <span class="s">&#39;notnull&#39;</span><span class="p">,</span> <span class="s">&#39;dflt_value&#39;</span><span class="p">,</span> <span class="s">&#39;pk&#39;</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="get_table_columns"><a class="viewcode-back" href="../../utool.html#utool.util_sqlite.get_table_columns">[docs]</a><span class="k">def</span> <span class="nf">get_table_columns</span><span class="p">(</span><span class="n">cur</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">exclude_columns</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">colnames_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_table_columnname_list</span><span class="p">(</span><span class="n">cur</span><span class="p">,</span> <span class="n">tablename</span><span class="p">)</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">colname</span> <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="n">colnames_</span> <span class="k">if</span> <span class="n">colname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude_columns</span><span class="p">])</span>
+    <span class="n">row_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_table_rows</span><span class="p">(</span><span class="n">cur</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">unpack</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">column_list</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">row_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">column_list</span>
+
+</div>
+<div class="viewcode-block" id="get_table_csv"><a class="viewcode-back" href="../../utool.html#utool.util_sqlite.get_table_csv">[docs]</a><span class="k">def</span> <span class="nf">get_table_csv</span><span class="p">(</span><span class="n">cur</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">exclude_columns</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="sd">&quot;&quot;&quot; Conveinience: Converts a tablename to csv format</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        tablename (str):</span>
+<span class="sd">        exclude_columns (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: csv_table</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.SQLDatabaseControl --test-get_table_csv</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.SQLDatabaseControl import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; db = ibs.db</span>
+<span class="sd">        &gt;&gt;&gt; tablename = ibeis.const.NAME_TABLE</span>
+<span class="sd">        &gt;&gt;&gt; exclude_columns = []</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; csv_table = db.get_table_csv(tablename, exclude_columns)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = str(csv_table)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">colnames_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_table_columnname_list</span><span class="p">(</span><span class="n">cur</span><span class="p">,</span> <span class="n">tablename</span><span class="p">)</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">colname</span> <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="n">colnames_</span> <span class="k">if</span> <span class="n">colname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude_columns</span><span class="p">])</span>
+    <span class="n">row_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_table_rows</span><span class="p">(</span><span class="n">cur</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">unpack</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">column_list</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">row_list</span><span class="p">)</span>
+    <span class="c">#=None, column_list=[], header=&#39;&#39;, column_type=None</span>
+    <span class="c">#import utool as ut</span>
+    <span class="c">#column_list, column_names = db.get_table_column_data(tablename, exclude_columns)</span>
+    <span class="c"># remove column prefix for more compact csvs</span>
+    <span class="n">column_lbls</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tablename</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">colnames</span><span class="p">]</span>
+    <span class="c">#header = db.get_table_csv_header(tablename)</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="n">csv_table</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_csv_table</span><span class="p">(</span><span class="n">column_list</span><span class="p">,</span> <span class="n">column_lbls</span><span class="p">,</span> <span class="n">header</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">csv_table</span>
+
+</div>
+<div class="viewcode-block" id="get_table_columnname_list"><a class="viewcode-back" href="../../utool.html#utool.util_sqlite.get_table_columnname_list">[docs]</a><span class="k">def</span> <span class="nf">get_table_columnname_list</span><span class="p">(</span><span class="n">cur</span><span class="p">,</span> <span class="n">tablename</span><span class="p">):</span>
+    <span class="n">colinfo_list_</span> <span class="o">=</span> <span class="n">get_table_columninfo_list</span><span class="p">(</span><span class="n">cur</span><span class="p">,</span> <span class="n">tablename</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">info</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">info</span> <span class="ow">in</span> <span class="n">colinfo_list_</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="get_table_columninfo_list"><a class="viewcode-back" href="../../utool.html#utool.util_sqlite.get_table_columninfo_list">[docs]</a><span class="k">def</span> <span class="nf">get_table_columninfo_list</span><span class="p">(</span><span class="n">cur</span><span class="p">,</span> <span class="n">tablename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        tablename (str): table name</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        column_list : list of tuples with format:</span>
+<span class="sd">            (</span>
+<span class="sd">                [0] column_id  : id of the column</span>
+<span class="sd">                [1] name       : the name of the column</span>
+<span class="sd">                [2] type_      : the type of the column (TEXT, INT, etc...)</span>
+<span class="sd">                [3] notnull    : 0 or 1 if the column can contains null values</span>
+<span class="sd">                [4] dflt_value : the default value</span>
+<span class="sd">                [5] pk         : 0 or 1 if the column partecipate to the primary key</span>
+<span class="sd">            )</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://stackoverflow.com/questions/17717829/how-to-get-column-names-from-a-table-in-sqlite-via-pragma-net-c</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_sqlite --test-get_table_columninfo_list</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_sqlite import *  # NOQA</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;PRAGMA TABLE_INFO(&quot;{tablename}&quot;)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tablename</span><span class="o">=</span><span class="n">tablename</span><span class="p">))</span>
+    <span class="n">colinfo_list</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="n">colrichinfo_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">SQLColumnRichInfo</span><span class="p">(</span><span class="o">*</span><span class="n">colinfo</span><span class="p">)</span> <span class="k">for</span> <span class="n">colinfo</span> <span class="ow">in</span> <span class="n">colinfo_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">colrichinfo_list</span>
+
+</div>
+<div class="viewcode-block" id="get_primary_columninfo"><a class="viewcode-back" href="../../utool.html#utool.util_sqlite.get_primary_columninfo">[docs]</a><span class="k">def</span> <span class="nf">get_primary_columninfo</span><span class="p">(</span><span class="n">cur</span><span class="p">,</span> <span class="n">tablename</span><span class="p">):</span>
+    <span class="n">colinfo_list_</span> <span class="o">=</span> <span class="n">get_table_columninfo_list</span><span class="p">(</span><span class="n">cur</span><span class="p">,</span> <span class="n">tablename</span><span class="p">)</span>
+    <span class="n">colinfo_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">colinfo</span> <span class="k">for</span> <span class="n">colinfo</span> <span class="ow">in</span> <span class="n">colinfo_list_</span> <span class="k">if</span> <span class="n">colinfo</span><span class="o">.</span><span class="n">pk</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">colinfo_list</span>
+
+</div>
+<div class="viewcode-block" id="get_nonprimary_columninfo"><a class="viewcode-back" href="../../utool.html#utool.util_sqlite.get_nonprimary_columninfo">[docs]</a><span class="k">def</span> <span class="nf">get_nonprimary_columninfo</span><span class="p">(</span><span class="n">cur</span><span class="p">,</span> <span class="n">tablename</span><span class="p">):</span>
+    <span class="n">colinfo_list_</span> <span class="o">=</span> <span class="n">get_table_columninfo_list</span><span class="p">(</span><span class="n">cur</span><span class="p">,</span> <span class="n">tablename</span><span class="p">)</span>
+    <span class="n">colinfo_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">colinfo</span> <span class="k">for</span> <span class="n">colinfo</span> <span class="ow">in</span> <span class="n">colinfo_list_</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">colinfo</span><span class="o">.</span><span class="n">pk</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">colinfo_list</span>
+
+</div>
+<div class="viewcode-block" id="get_table_num_rows"><a class="viewcode-back" href="../../utool.html#utool.util_sqlite.get_table_num_rows">[docs]</a><span class="k">def</span> <span class="nf">get_table_num_rows</span><span class="p">(</span><span class="n">cur</span><span class="p">,</span> <span class="n">tablename</span><span class="p">):</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;SELECT COUNT(*) FROM {tablename}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tablename</span><span class="o">=</span><span class="n">tablename</span><span class="p">))</span>
+    <span class="n">num_rows</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">num_rows</span>
+
+</div>
+<div class="viewcode-block" id="get_table_column"><a class="viewcode-back" href="../../utool.html#utool.util_sqlite.get_table_column">[docs]</a><span class="k">def</span> <span class="nf">get_table_column</span><span class="p">(</span><span class="n">cur</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">colname</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Conveinience: &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">get_table_rows</span><span class="p">(</span><span class="n">cur</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">colname</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="get_table_rows"><a class="viewcode-back" href="../../utool.html#utool.util_sqlite.get_table_rows">[docs]</a><span class="k">def</span> <span class="nf">get_table_rows</span><span class="p">(</span><span class="n">cur</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">unpack</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">want_single_column</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">colnames</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span>
+    <span class="n">want_single_param</span> <span class="o">=</span> <span class="n">params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+    <span class="c">#isinstance(params, six.string_types)</span>
+    <span class="k">if</span> <span class="n">want_single_column</span><span class="p">:</span>
+        <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">colnames</span><span class="p">,)</span>
+    <span class="k">if</span> <span class="n">colnames</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">colnames</span> <span class="o">!=</span> <span class="s">&#39;*&#39;</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">colnames</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">),</span> <span class="s">&#39;colnames must be a tuple&#39;</span>
+        <span class="n">colnames_str</span> <span class="o">=</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">colnames</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">colnames_str</span> <span class="o">=</span> <span class="s">&#39;*&#39;</span>
+    <span class="c">#if isinstance(colnames, six.string_types):</span>
+    <span class="c">#    colnames = (colnames,)</span>
+    <span class="n">fmtdict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;tablename&#39;</span>     <span class="p">:</span> <span class="n">tablename</span><span class="p">,</span>
+        <span class="s">&#39;colnames&#39;</span>    <span class="p">:</span> <span class="n">colnames_str</span><span class="p">,</span>
+        <span class="s">&#39;orderby&#39;</span>     <span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="c">#ORDER BY rowid ASC</span>
+    <span class="k">if</span> <span class="n">where</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">operation_fmt</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span>
+<span class="s">        SELECT {colnames}</span>
+<span class="s">        FROM {tablename}</span>
+<span class="s">        {orderby}</span>
+<span class="s">        &#39;&#39;&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fmtdict</span><span class="p">[</span><span class="s">&#39;where_clause&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">where</span>
+        <span class="n">operation_fmt</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span>
+<span class="s">        SELECT {colnames}</span>
+<span class="s">        FROM {tablename}</span>
+<span class="s">        WHERE {where_clause}</span>
+<span class="s">        {orderby}</span>
+<span class="s">        &#39;&#39;&#39;</span>
+    <span class="n">operation_str</span> <span class="o">=</span> <span class="n">operation_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">fmtdict</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">params</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">operation_str</span><span class="p">)</span>
+        <span class="n">val_list</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">want_single_param</span><span class="p">:</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">operation_str</span><span class="p">,</span> <span class="p">(</span><span class="n">params</span><span class="p">,))</span>
+        <span class="n">val_list</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># Execute many</span>
+        <span class="k">def</span> <span class="nf">executemany_scalar_generator</span><span class="p">(</span><span class="n">operation_str</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+                <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">operation_str</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span>
+                <span class="n">vals</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+                <span class="c">#assert len(vals) == 1, &#39;vals=%r, len(vals)=%r&#39; % (vals, len(vals))</span>
+                <span class="k">yield</span> <span class="n">vals</span>
+        <span class="n">val_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">executemany_scalar_generator</span><span class="p">(</span><span class="n">operation_str</span><span class="p">,</span> <span class="n">params</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">unpack</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">want_single_column</span><span class="p">:</span>
+            <span class="c"># want a single value per parameter</span>
+            <span class="n">val_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">val_list</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">want_single_param</span><span class="p">:</span>
+            <span class="c"># wants a single parameter</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">val_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+            <span class="n">val_list</span> <span class="o">=</span> <span class="n">val_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">val_list</span>
+
+</div>
+<div class="viewcode-block" id="print_database_structure"><a class="viewcode-back" href="../../utool.html#utool.util_sqlite.print_database_structure">[docs]</a><span class="k">def</span> <span class="nf">print_database_structure</span><span class="p">(</span><span class="n">cur</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">tablename_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_tablenames</span><span class="p">(</span><span class="n">cur</span><span class="p">)</span>
+    <span class="n">colinfos_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">get_table_columninfo_list</span><span class="p">(</span><span class="n">cur</span><span class="p">,</span> <span class="n">tablename</span><span class="p">)</span> <span class="k">for</span> <span class="n">tablename</span> <span class="ow">in</span> <span class="n">tablename_list</span><span class="p">]</span>
+    <span class="n">numrows_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">get_table_num_rows</span><span class="p">(</span><span class="n">cur</span><span class="p">,</span> <span class="n">tablename</span><span class="p">)</span> <span class="k">for</span> <span class="n">tablename</span> <span class="ow">in</span> <span class="n">tablename_list</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">colinfo_list</span><span class="p">,</span> <span class="n">num_rows</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">sortedby</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">tablename_list</span><span class="p">,</span> <span class="n">colinfos_list</span><span class="p">,</span> <span class="n">numrows_list</span><span class="p">)),</span> <span class="n">numrows_list</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;+-------------&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;tablename = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tablename</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;num_rows = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_rows</span><span class="p">,))</span>
+        <span class="c">#print(ut.list_str(colinfo_list))</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_primary_columninfo</span><span class="p">(</span><span class="n">cur</span><span class="p">,</span> <span class="n">tablename</span><span class="p">)))</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_nonprimary_columninfo</span><span class="p">(</span><span class="n">cur</span><span class="p">,</span> <span class="n">tablename</span><span class="p">)))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;+-------------&#39;</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.1.2.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

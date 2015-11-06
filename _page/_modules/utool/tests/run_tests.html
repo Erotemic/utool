@@ -1,0 +1,306 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>utool.tests.run_tests &mdash; utool 1.1.2.dev1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="utool 1.1.2.dev1 documentation" href="../../../index.html"/>
+        <link rel="up" title="utool" href="../../utool.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> utool
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.2.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../utool.html">utool package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">utool</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../utool.html">utool</a> &raquo;</li>
+      
+    <li>utool.tests.run_tests</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for utool.tests.run_tests</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+
+<div class="viewcode-block" id="run_tests"><a class="viewcode-back" href="../../../utool.tests.html#utool.tests.run_tests.run_tests">[docs]</a><span class="k">def</span> <span class="nf">run_tests</span><span class="p">():</span>
+    <span class="c"># Build module list and run tests</span>
+    <span class="kn">import</span> <span class="nn">sys</span>
+    <span class="n">exclude_doctests_fnames</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="s">&#39;__init__.py&#39;</span><span class="p">])</span>
+
+    <span class="n">exclude_dirs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&#39;_broken&#39;</span><span class="p">,</span>
+        <span class="s">&#39;old&#39;</span><span class="p">,</span>
+        <span class="s">&#39;tests&#39;</span><span class="p">,</span>
+        <span class="s">&#39;timeits&#39;</span><span class="p">,</span>
+        <span class="s">&#39;_scripts&#39;</span><span class="p">,</span>
+        <span class="s">&#39;_timeits&#39;</span><span class="p">,</span>
+        <span class="s">&#39;_doc&#39;</span><span class="p">,</span>
+        <span class="s">&#39;notebook&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span>
+    <span class="c">#dpath_list = [&#39;vtool&#39;]</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">in_pyinstaller_package</span><span class="p">():</span>
+        <span class="c"># HACK, find_doctestable_modnames does not work in pyinstaller</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        import utool as ut</span>
+<span class="sd">        dpath_list = [dirname(ut.__file__)]</span>
+<span class="sd">        doctest_modname_list = ut.find_doctestable_modnames(</span>
+<span class="sd">            dpath_list, exclude_doctests_fnames, exclude_dirs)</span>
+<span class="sd">        print(ut.indent(&#39;doctest_modname_list = &#39; + ut.list_str(doctest_modname_list), &#39; &#39; * 8))</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">doctest_modname_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s">&#39;utool.util_class&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_distances&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_progress&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_cache&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.Preferences&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_list&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_inspect&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_dict&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_dev&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_time&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_type&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_csv&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_iter&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_print&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_arg&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_logging&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_import&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_parallel&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_cplat&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_str&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_gridsearch&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_numpy&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_dbg&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_io&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_decor&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_grabdata&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_path&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_git&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_inject&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_regex&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_assert&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_latex&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_tests&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_config&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_autogen&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_hash&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_alg&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool.util_resources&#39;</span><span class="p">,</span>
+            <span class="s">&#39;utool._internal.meta_util_iter&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c">#dpath_list = [&#39;utool&#39;]</span>
+        <span class="n">dpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">dirname</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">__file__</span><span class="p">)]</span>
+        <span class="n">doctest_modname_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">find_doctestable_modnames</span><span class="p">(</span>
+            <span class="n">dpath_list</span><span class="p">,</span> <span class="n">exclude_doctests_fnames</span><span class="p">,</span> <span class="n">exclude_dirs</span><span class="p">)</span>
+    <span class="c"># Finding weird error</span>
+    <span class="c"># util cache and util inspect</span>
+    <span class="c">#doctest_modname_list = (doctest_modname_list[4:5] + doctest_modname_list[17:18])</span>
+    <span class="c">#doctest_modname_list = doctest_modname_list[17:18]</span>
+
+    <span class="n">modname_list2</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">modname</span> <span class="ow">in</span> <span class="n">doctest_modname_list</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">exec</span><span class="p">(</span><span class="s">&#39;import &#39;</span> <span class="o">+</span> <span class="n">modname</span><span class="p">,</span> <span class="nb">globals</span><span class="p">(),</span> <span class="nb">locals</span><span class="p">())</span>
+        <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">in_pyinstaller_package</span><span class="p">():</span>
+                <span class="k">raise</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">modname_list2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span>
+
+    <span class="n">module_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">modname_list2</span><span class="p">]</span>
+    <span class="n">nPass</span><span class="p">,</span> <span class="n">nTotal</span><span class="p">,</span> <span class="n">failed_cmd_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">doctest_module_list</span><span class="p">(</span><span class="n">module_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">nPass</span> <span class="o">!=</span> <span class="n">nTotal</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="c">#print(ut.list_str(doctest_modname_list))</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    python -m utool.tests.run_tests</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>
+    <span class="n">retcode</span> <span class="o">=</span> <span class="n">run_tests</span><span class="p">()</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">retcode</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.1.2.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
