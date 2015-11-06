@@ -237,144 +237,166 @@ def autogen_sphinx_apidoc():
         >>> from utool.util_setup import *  # NOQA
         >>> autogen_sphinx_apidoc()
     """
-    import utool as ut
     # TODO: assert sphinx-apidoc exe is found
-    # TODO: make find_exe word?
-    print('')
-    print('if this fails try: sudo pip install sphinx')
-    print('')
-    winprefix = 'C:/Python27/Scripts/'
-    apidoc = 'sphinx-apidoc'
-    sphinx_apidoc_exe = apidoc if not ut.WIN32 else winprefix + apidoc + '.exe'
-    apidoc_argfmt_list = [
-        sphinx_apidoc_exe,
-        '--force',
-        '--full',
-        '--maxdepth="{maxdepth}"',
-        '--doc-author="{author}"',
-        '--doc-version="{doc_version}"',
-        '--doc-release="{doc_release}"',
-        '--output-dir="_doc"',
-        #'--separate',  # Put documentation for each module on its own page
-        '--private',  # Include "_private" modules
-        '{pkgdir}',
-    ]
-    outputdir = '_doc'
-    author = ut.parse_author()
-    packages = ut.find_packages(maxdepth=1)
-    assert len(packages) != 0, 'directory must contain at least one package'
-    if len(packages) > 1:
-        assert len(packages) == 1,\
-            ('FIXME I dont know what to do with more than one root package: %r'
-             % (packages,))
-    pkgdir = packages[0]
-    version = ut.parse_package_for_version(pkgdir)
-    modpath = dirname(ut.truepath(pkgdir))
+    # TODO: make find_exe work?
+    import utool as ut
 
-    apidoc_fmtdict = {
-        'author': author,
-        'maxdepth': '8',
-        'pkgdir': pkgdir,
-        'doc_version': version,
-        'doc_release': version,
-        'outputdir': outputdir,
-    }
-    ut.assert_exists('setup.py')
-    ut.ensuredir('_doc')
-    apidoc_fmtstr = ' '.join(apidoc_argfmt_list)
-    apidoc_cmdstr = apidoc_fmtstr.format(**apidoc_fmtdict)
-
-    # sphinx-apidoc outputs conf.py to <outputdir>, add custom commands
-    print('[util_setup] autogenerate sphinx docs for %r' % (pkgdir,))
-    if ut.VERBOSE:
-        print(ut.dict_str(apidoc_fmtdict))
-    ut.cmd(apidoc_cmdstr, shell=True)
-    #
-    # Change dir to <outputdir>
-    print('chdir' + outputdir)
-    os.chdir(outputdir)
-    #
-    # Make custom edits to conf.py
-    # FIXME:
-    #ext_search_text = ut.unindent(
-    #    r'''
-    #    extensions = [
-    #    [^\]]*
-    #    ]
-    #    ''')
-    ext_search_text = r'extensions = \[[^/]*\]'
-    # TODO: http://sphinx-doc.org/ext/math.html#module-sphinx.ext.pngmath
-    #'sphinx.ext.mathjax',
-    exclude_modules = []  # ['ibeis.all_imports']
-    ext_repl_text = ut.codeblock(
-        '''
-        MOCK_MODULES = {exclude_modules}
-        if len(MOCK_MODULES) > 0:
-            import mock
-            for mod_name in MOCK_MODULES:
-                sys.modules[mod_name] = mock.Mock()
-
-        extensions = [
-            'sphinx.ext.autodoc',
-            'sphinx.ext.viewcode',
-            # For LaTeX
-            'sphinx.ext.pngmath',
-            # For Google Sytle Docstrs
-            # https://pypi.python.org/pypi/sphinxcontrib-napoleon
-            'sphinxcontrib.napoleon',
-            #'sphinx.ext.napoleon',
+    def build_sphinx_apidoc_cmdstr():
+        print('')
+        print('if this fails try: sudo pip install sphinx')
+        print('')
+        apidoc = 'sphinx-apidoc'
+        if ut.WIN32:
+            winprefix = 'C:/Python27/Scripts/'
+            sphinx_apidoc_exe = winprefix + apidoc + '.exe'
+        else:
+            sphinx_apidoc_exe = apidoc
+        apidoc_argfmt_list = [
+            sphinx_apidoc_exe,
+            '--force',
+            '--full',
+            '--maxdepth="{maxdepth}"',
+            '--doc-author="{author}"',
+            '--doc-version="{doc_version}"',
+            '--doc-release="{doc_release}"',
+            '--output-dir="_doc"',
+            #'--separate',  # Put documentation for each module on its own page
+            '--private',  # Include "_private" modules
+            '{pkgdir}',
         ]
-        '''
-    ).format(exclude_modules=str(exclude_modules))
-    theme_search = 'html_theme = \'default\''
-    theme_repl = ut.codeblock(
-        '''
-        import sphinx_rtd_theme
-        html_theme = "sphinx_rtd_theme"
-        html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-        ''')
-    head_text = ut.codeblock(
-        '''
-        from sphinx.ext.autodoc import between
-        import sphinx_rtd_theme
-        import sys
-        import os
+        outputdir = '_doc'
+        author = ut.parse_author()
+        packages = ut.find_packages(maxdepth=1)
+        assert len(packages) != 0, 'directory must contain at least one package'
+        if len(packages) > 1:
+            assert len(packages) == 1,\
+                ('FIXME I dont know what to do with more than one root package: %r'
+                 % (packages,))
+        pkgdir = packages[0]
+        version = ut.parse_package_for_version(pkgdir)
+        modpath = dirname(ut.truepath(pkgdir))
 
-        # Dont parse IBEIS args
-        os.environ['IBIES_PARSE_ARGS'] = 'OFF'
-        os.environ['UTOOL_AUTOGEN_SPHINX_RUNNING'] = 'ON'
+        apidoc_fmtdict = {
+            'author': author,
+            'maxdepth': '8',
+            'pkgdir': pkgdir,
+            'doc_version': version,
+            'doc_release': version,
+            'outputdir': outputdir,
+        }
+        ut.assert_exists('setup.py')
+        ut.ensuredir('_doc')
+        apidoc_fmtstr = ' '.join(apidoc_argfmt_list)
+        apidoc_cmdstr = apidoc_fmtstr.format(**apidoc_fmtdict)
+        print('[util_setup] autogenerate sphinx docs for %r' % (pkgdir,))
+        if ut.VERBOSE:
+            print(ut.dict_str(apidoc_fmtdict))
+        return apidoc_cmdstr, modpath, outputdir
 
-        sys.path.append('{modpath}')
-        sys.path.append(sys.path.insert(0, os.path.abspath("../")))
+    def build_conf_replstr():
+        #
+        # Make custom edits to conf.py
+        # FIXME:
+        #ext_search_text = ut.unindent(
+        #    r'''
+        #    extensions = [
+        #    [^\]]*
+        #    ]
+        #    ''')
+        ext_search_text = r'extensions = \[[^/]*\]'
+        # TODO: http://sphinx-doc.org/ext/math.html#module-sphinx.ext.pngmath
+        #'sphinx.ext.mathjax',
+        exclude_modules = []  # ['ibeis.all_imports']
+        ext_repl_text = ut.codeblock(
+            '''
+            MOCK_MODULES = {exclude_modules}
+            if len(MOCK_MODULES) > 0:
+                import mock
+                for mod_name in MOCK_MODULES:
+                    sys.modules[mod_name] = mock.Mock()
 
-        autosummary_generate = True
+            extensions = [
+                'sphinx.ext.autodoc',
+                'sphinx.ext.viewcode',
+                # For LaTeX
+                'sphinx.ext.pngmath',
+                # For Google Sytle Docstrs
+                # https://pypi.python.org/pypi/sphinxcontrib-napoleon
+                'sphinxcontrib.napoleon',
+                #'sphinx.ext.napoleon',
+            ]
+            '''
+        ).format(exclude_modules=str(exclude_modules))
+        theme_search = 'html_theme = \'default\''
+        theme_repl = ut.codeblock(
+            '''
+            import sphinx_rtd_theme
+            html_theme = "sphinx_rtd_theme"
+            html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+            ''')
+        head_text = ut.codeblock(
+            '''
+            from sphinx.ext.autodoc import between
+            import sphinx_rtd_theme
+            import sys
+            import os
 
-        modindex_common_prefix = ['_']
-        '''
-    ).format(modpath=ut.truepath(modpath))
-    tail_text = ut.codeblock(
-        '''
-        def setup(app):
-            # Register a sphinx.ext.autodoc.between listener to ignore everything
-            # between lines that contain the word IGNORE
-            app.connect('autodoc-process-docstring', between('^.*IGNORE.*$', exclude=True))
-            return app
-        '''
-    )
-    conf_fname = 'conf.py'
-    conf_text = ut.read_from(conf_fname)
-    conf_text = conf_text.replace('import sys', 'import sys  # NOQA')
-    conf_text = conf_text.replace('import os', 'import os  # NOQA')
-    conf_text = ut.regex_replace(theme_search, theme_repl, conf_text)
-    conf_text = ut.regex_replace(ext_search_text, ext_repl_text, conf_text)
-    conf_text = head_text + '\n' + conf_text + tail_text
-    ut.write_to(conf_fname, conf_text)
-    # Make the documentation
-    #if ut.LINUX:
-    #    ut.cmd('make html', shell=True)
-    #if ut.WIN32:
-    #raw_input('waiting')
-    ut.cmd('make', 'html', shell=True)
+            # Dont parse IBEIS args
+            os.environ['IBIES_PARSE_ARGS'] = 'OFF'
+            os.environ['UTOOL_AUTOGEN_SPHINX_RUNNING'] = 'ON'
+
+            sys.path.append('{modpath}')
+            sys.path.append(sys.path.insert(0, os.path.abspath("../")))
+
+            autosummary_generate = True
+
+            modindex_common_prefix = ['_']
+            '''
+        ).format(modpath=ut.truepath(modpath))
+        tail_text = ut.codeblock(
+            '''
+            def setup(app):
+                # Register a sphinx.ext.autodoc.between listener to ignore everything
+                # between lines that contain the word IGNORE
+                app.connect('autodoc-process-docstring', between('^.*IGNORE.*$', exclude=True))
+                return app
+            '''
+        )
+        return (ext_search_text, ext_repl_text, theme_search, theme_repl, head_text, tail_text)
+
+    apidoc_cmdstr, modpath, outputdir = build_sphinx_apidoc_cmdstr()
+    ext_search_text, ext_repl_text, theme_search, theme_repl, head_text, tail_text = build_conf_replstr()
+
+    dry = ut.get_argflag('--dry')
+
+    if not dry:
+        # Execute sphinx-apidoc
+        ut.cmd(apidoc_cmdstr, shell=True)
+        # sphinx-apidoc outputs conf.py to <outputdir>, add custom commands
+        #
+        # Change dir to <outputdir>
+        print('chdir' + outputdir)
+        os.chdir(outputdir)
+        conf_fname = 'conf.py'
+        conf_text = ut.read_from(conf_fname)
+        conf_text = conf_text.replace('import sys', 'import sys  # NOQA')
+        conf_text = conf_text.replace('import os', 'import os  # NOQA')
+        conf_text = ut.regex_replace(theme_search, theme_repl, conf_text)
+        conf_text = ut.regex_replace(ext_search_text, ext_repl_text, conf_text)
+        conf_text = head_text + '\n' + conf_text + tail_text
+        ut.write_to(conf_fname, conf_text)
+        # Make the documentation
+        #if ut.LINUX:
+        #    ut.cmd('make html', shell=True)
+        #if ut.WIN32:
+        #raw_input('waiting')
+        if not ut.get_argflag('--nomake'):
+            ut.cmd('make', 'html', shell=True)
+    else:
+        print(apidoc_cmdstr)
+        print('cd ' + outputdir)
+        print('manual edits of conf.py')
+        print('make html')
 
 
 def NOOP():
