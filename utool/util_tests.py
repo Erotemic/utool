@@ -244,7 +244,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     mod_doctest_tup = get_module_doctest_tup(
         testable_list, check_flags, module, allexamples, needs_enable, N=1,
         verbose=verbose)
-    enabled_testtup_list, frame_fpath, all_testflags, module  = mod_doctest_tup
+    enabled_testtup_list, frame_fpath, all_testflags, module = mod_doctest_tup
     modname = ut.get_modname_from_modpath(frame_fpath)
 
     # Run enabled examles
@@ -569,10 +569,9 @@ def get_func_source(func):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.all_imports import *  # NOQA
         >>> from ibeis.model.hots.devcases import *  # NOQA
-        >>> func = myquery
-        >>> deventer(func)
+        >>> func = get_func_source
+        >>> get_func_source(func)
     """
     import utool as ut
     source_text = inspect.getsource(func)
@@ -950,7 +949,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     """
     #+------------------------
     if VERBOSE_TEST:
-        print('[util_test.get_module_doctest_tup][DEPTH 2] get_module_doctest_tup()')
+        print('[util_test.get_module_doctest tup][DEPTH 2] get_module_doctest tup()')
     import utool as ut  # NOQA
     if needs_enable is None:
         needs_enable = not ut.get_argflag('--enableall')
@@ -1003,8 +1002,8 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     if parse_testables:
         try:
             if verbose or VERBOSE_TEST and ut.NOT_QUIET:
-                print('[util_test.get_module_doctest_tup] Iterating over module funcs')
-                print('[util_test.get_module_doctest_tup] module =%r' % (module,))
+                print('[util_test.get module_doctest_tup] Iterating over module funcs')
+                print('[util_test.get module_doctest_tup] module =%r' % (module,))
 
             for key, val in ut.iter_module_doctestable(module,
                                                        include_inherited=include_inherited):
@@ -1188,6 +1187,10 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
             distabled_testflags.append(flag1)
     if VERBOSE_TEST:
         indenter.stop()
+
+    if ut.get_argflag('--list'):
+        # HACK: Should probably just return a richer structure
+        print('testable_name_list = %s' % (ut.list_str(testable_name_list),))
 
     mod_doctest_tup = ModuleDoctestTup(enabled_testtup_list, frame_fpath,
                                        all_testflags, module)

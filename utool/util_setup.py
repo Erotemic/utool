@@ -327,7 +327,8 @@ def autogen_sphinx_apidoc():
             ]
             '''
         ).format(exclude_modules=str(exclude_modules))
-        theme_search = 'html_theme = \'default\''
+        #theme_search = 'html_theme = \'default\''
+        theme_search = 'html_theme = \'[a-zA-Z_1-3]*\''
         theme_repl = ut.codeblock(
             '''
             import sphinx_rtd_theme

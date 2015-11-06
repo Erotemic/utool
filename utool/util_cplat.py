@@ -307,7 +307,7 @@ def get_install_dirs():
 
 def getroot():
     root = {
-        'win32': 'C:\\',
+        'win32': 'C:\\',  # HACK
         'linux': '/',
         'darwin': '/',
     }[OS_TYPE]
@@ -349,7 +349,7 @@ def startfile(fpath, detatch=True, quote=False):
 
 
 def geteditor():
-    return 'gvim'
+    return 'gvim'  # HACK (use util_profile)
 
 
 def editfile(fpath):
@@ -812,7 +812,24 @@ def get_python_dynlib():
 
 
 def get_path_dirs():
-    """ returns a list of directories in the PATH system variable """
+    """
+    returns a list of directories in the PATH system variable
+
+    Returns:
+        list: pathdirs
+
+    CommandLine:
+        python -m utool.util_cplat --exec-get_path_dirs
+
+    Example:
+        >>> # SCRIPT
+        >>> from utool.util_cplat import *  # NOQA
+        >>> import utool as ut
+        >>> pathdirs = get_path_dirs()
+        >>> result = ('pathdirs = %s' % (ut.list_str(pathdirs),))
+        >>> print(result)
+
+    """
     pathdirs = os.environ['PATH'].split(os.pathsep)
     return pathdirs
 
@@ -826,11 +843,13 @@ def print_path(sort=True):
 
 def search_env_paths(fname):
     r"""
+    Searches your PATH to see if fname exists
+
     Args:
-        fname (?):
+        fname (str): file name to search for
 
     CommandLine:
-        python -m utool.util_cplat --test-search_path
+        python -m utool.util_cplat --test-search_env_paths
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -842,7 +861,7 @@ def search_env_paths(fname):
         >>> # verify results
         >>> print(result)
 
-    Dev:
+    Ignore:
         OpenCV_DIR:PATH={share_opencv}
         OpenCV_CONFIG_PATH:FILEPATH={share_opencv}
 
@@ -1002,12 +1021,9 @@ def print_system_users():
         python -m utool.util_cplat --test-print_system_users
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # SCRIPT
         >>> from utool.util_cplat import *  # NOQA
-        >>> # build test data
-        >>> # execute function
         >>> result = print_system_users()
-        >>> # verify results
         >>> print(result)
     """
     import utool as ut
@@ -1081,7 +1097,6 @@ def unload_module(modname):
 #def get_ipython_config_file():
 #    """
 #    or to create an empty default profile, populated with default config files:
-
 #    ipython profile create
 #    """
 
