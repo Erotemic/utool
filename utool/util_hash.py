@@ -16,7 +16,7 @@ import six
 import uuid
 import random
 from utool import util_inject
-(print, print_, printDBG, rrr, profile) = util_inject.inject(__name__, '[hash]')
+(print, rrr, profile) = util_inject.inject2(__name__, '[hash]')
 
 # default length of hash codes
 HASH_LEN = 16
@@ -152,6 +152,12 @@ def hashstr_arr(arr, lbl='arr', pathsafe=False, **kwargs):
     return arr_hashstr
 
 
+if six.PY2:
+    stringlike = (basestring, bytes)
+if six.PY3:
+    stringlike = (str, bytes)
+
+
 @profile
 def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
     """
@@ -167,6 +173,8 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
 
     CommandLine:
         python -m utool.util_hash --test-hashstr
+        python3 -m utool.util_hash --test-hashstr
+
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -191,21 +199,21 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         hashstr = 0000000000000000
     """
     if isinstance(data, tuple):
-        data = repr(data)
-    if six.PY3:
-        if isinstance(data, str):
-            data = data.encode('utf-8')
-    if isinstance(data, six.string_types) and len(data) == 0:
+        data = repr(data)  # Hack?
+    if six.PY3 and isinstance(data, str):
+        # convert unicode into bytes
+        data = data.encode('utf-8')
+    if isinstance(data, stringlike) and len(data) == 0:
         # Make a special hash for empty data
         hashstr = (alphabet[0] * hashlen)
-        return hashstr
-    # Get a 128 character hex string
-    hashstr = hashlib.sha512(data).hexdigest()
-    #if six.PY3:
-    # Shorten length of string (by increasing base)
-    hashstr2 = convert_hexstr_to_bigbase(hashstr, alphabet, bigbase=len(alphabet))
-    # Truncate
-    hashstr = hashstr2[:hashlen]
+    else:
+        # Get a 128 character hex string
+        hashstr = hashlib.sha512(data).hexdigest()
+        #if six.PY3:
+        # Shorten length of string (by increasing base)
+        hashstr2 = convert_hexstr_to_bigbase(hashstr, alphabet, bigbase=len(alphabet))
+        # Truncate
+        hashstr = hashstr2[:hashlen]
     return hashstr
 
 """
