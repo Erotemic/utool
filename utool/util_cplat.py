@@ -1109,6 +1109,16 @@ def unload_module(modname):
 #        else:
 #                print name+" is not running"
 
+
+def pip_install(package):
+    """
+    References:
+        http://stackoverflow.com/questions/15974100/ipython-install-new-modules
+    """
+    import pip
+    pip.main(['install', package])
+
+
 if __name__ == '__main__':
     """
     CommandLine:
