@@ -1830,7 +1830,7 @@ def get_freespace_str(dir_='.'):
 # FIXME: HASHLEN is a global var in util_hash
 def long_fname_format(fmt_str, fmt_dict, hashable_keys=[], max_len=64,
                       hashlen=16, ABS_MAX_LEN=255, hack27=False):
-    """
+    r"""
     Formats a string and hashes certain parts if the resulting string becomes
     too long. Used for making filenames fit onto disk.
 
@@ -1841,8 +1841,12 @@ def long_fname_format(fmt_str, fmt_dict, hashable_keys=[], max_len=64,
         max_len (int): tries to fit fname into this length
         ABS_MAX_LEN (int): throws AssertionError if fname over this length
 
+    CommandLine:
+        python -m utool.util_str --exec-long_fname_format
+
     Example:
-        >>> import utool
+        >>> # ENABLE_DOCTET
+        >>> import utool as ut
         >>> fmt_str = 'qaid={qaid}_res_{cfgstr}_quuid={quuid}'
         >>> quuid_str = 'blahblahblahblahblahblah'
         >>> cfgstr = 'big_long_string__________________________________'
@@ -1851,16 +1855,15 @@ def long_fname_format(fmt_str, fmt_dict, hashable_keys=[], max_len=64,
         >>> hashable_keys = ['cfgstr', 'quuid']
         >>> max_len = 64
         >>> hashlen = 8
-        >>> fname0 = utool.long_fname_format(fmt_str, fmt_dict, max_len=None)
-        >>> fname1 = utool.long_fname_format(fmt_str, fmt_dict, hashable_keys,
-        >>>                                  max_len=64, hashlen=8) fname2 =
-        >>> utool.long_fname_format(fmt_str, fmt_dict, hashable_keys, max_len=42,
+        >>> fname0 = ut.long_fname_format(fmt_str, fmt_dict, max_len=None)
+        >>> fname1 = ut.long_fname_format(fmt_str, fmt_dict, hashable_keys,
+        >>>                                  max_len=64, hashlen=8)
+        >>> fname2 = ut.long_fname_format(fmt_str, fmt_dict, hashable_keys, max_len=42,
         >>>                         hashlen=8)
-        >>> print(fname0)
+        >>> result = fname0 + '\n' + fname1 + '\n' + fname2
+        >>> print(result)
         qaid=5_res_big_long_string___________________________________quuid=blahblahblahblahblahblah
-        >>> print(fname1)
         qaid=5_res_kjrok785_quuid=blahblahblahblahblahblah
-        >>> print(fname2)
         qaid=5_res_du1&i&5l_quuid=euuaxoyi
     """
     from utool import util_hash

@@ -169,7 +169,7 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         python -m utool.util_hash --test-hashstr
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> data = 'foobar'
         >>> hashlen = 16
@@ -180,7 +180,7 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         hashstr = mi5yum60mbxhyp+x
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> data = ''
         >>> hashlen = 16
