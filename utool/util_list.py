@@ -2123,6 +2123,10 @@ def delete_items_by_index(list_, index_list):
     return list_
 
 
+take = list_take
+compress = list_compress
+
+
 if __name__ == '__main__':
     """
     CommandLine:
