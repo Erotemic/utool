@@ -1,17 +1,22 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-import inspect
-import types
-import six
-import re
 import functools
+import inspect
+import os
+import os.path
+import re
+import six
+import sys
+import types
+from os.path import dirname
+from six.moves import builtins
 from collections import OrderedDict
 from six.moves import range, zip  # NOQA
 from utool import util_regex
 from utool import util_arg
 from utool import util_inject
 from utool._internal import meta_util_six
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[inspect]')
+print, rrr, profile = util_inject.inject2(__name__, '[inspect]')
 
 
 def get_dev_hints():
@@ -173,6 +178,7 @@ def get_dev_hints():
 
 def infer_arg_types_and_descriptions(argname_list, defaults):
     """
+
     Args:
         argname_list (list):
         defaults (list):
@@ -237,7 +243,6 @@ def infer_arg_types_and_descriptions(argname_list, defaults):
     # append defaults to descriptions
     for argx in range(len(argdesc_list)):
         if hasdefault_list[argx]:
-            import types
             if isinstance(argdefault_list[argx], types.ModuleType):
                 defaultrepr = argdefault_list[argx].__name__
             else:
@@ -250,6 +255,8 @@ def infer_arg_types_and_descriptions(argname_list, defaults):
 
 def get_module_owned_functions(module):
     """
+    Replace with iter_module_doctesable (but change that name to be something better)
+
     returns functions actually owned by the module
     module = vtool.distance
     """
@@ -266,15 +273,23 @@ def get_module_owned_functions(module):
 
 
 def iter_module_doctestable(module, include_funcs=True, include_classes=True,
-                            include_methods=True, include_inherited=False):
+                            include_methods=True,
+                            include_builtin=True,
+                            include_inherited=False):
     r"""
     Yeilds doctestable live object form a modules
 
+    TODO: change name to iter_module_members
+    Replace with iter_module_doctesable (but change that name to be something
+    better)
+
     Args:
-        module (live python module):
+        module (module): live python module
         include_funcs (bool):
         include_classes (bool):
         include_methods (bool):
+        include_builtin (bool): (default = True)
+        include_inherited (bool): (default = False)
 
     Yeilds:
         tuple (str, callable): (funcname, func) doctestable
@@ -292,12 +307,20 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
         >>> module = ut.util_tests if modname is None else ut.import_modname(modname)
         >>> doctestable_list = list(iter_module_doctestable(module))
         >>> func_names = sorted(ut.get_list_column(doctestable_list, 0))
-        >>> print('\n'.join(func_names))
+        >>> print(ut.list_str(func_names))
     """
     import ctypes
-    valid_func_types = (types.FunctionType, types.BuiltinFunctionType, classmethod,
-                        #types.MethodType, types.BuiltinMethodType,
-                        )
+
+    types.BuiltinFunctionType
+    valid_func_types = [
+        types.FunctionType, types.BuiltinFunctionType, classmethod,
+        #types.MethodType, types.BuiltinMethodType,
+    ]
+    if include_builtin:
+        valid_func_types += [
+            types.BuiltinFunctionType
+        ]
+
     if six.PY2:
         valid_class_types = (types.ClassType,  types.TypeType,)
     else:
@@ -312,6 +335,7 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
         other_types += [types.InstanceType]
 
     invalid_types = tuple(scalar_types + other_types)
+    valid_func_types = tuple(valid_func_types)
 
     #modpath = ut.get_modname_from_modpath(module.__file__)
 
@@ -320,29 +344,27 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
             # HACK: todo. figure out true parent module
             if val.__module__ == 'numpy':
                 continue
-            #if key == 'NP_NDARRAY':
-            #    import utool as ut
-            #    ut.embed()
-
         if val is None:
             pass
         elif isinstance(val, valid_func_types):
             if include_funcs:
+                if not include_inherited and not is_defined_by_module(val, module):
+                    continue
                 yield key, val
         elif isinstance(val, valid_class_types):
             class_ = val
+            if not include_inherited and not is_defined_by_module(class_, module):
+                continue
             if include_classes:
+                # Yield the class itself
                 yield key, val
             if include_methods:
+                # Yield methods of the class
                 for subkey, subval in six.iteritems(class_.__dict__):
-                    #if subkey.startswith('get_a'):
-                    #    import utool as ut
-                    #    ut.embed()
                     # Unbound methods are still typed as functions
                     if isinstance(subval, valid_func_types):
-                        if hasattr(subval, 'func_globals') and subval.func_globals['__name__'] != module.__name__:
-                            if not include_inherited:
-                                continue
+                        if not include_inherited and not is_defined_by_module(subval, module):
+                            continue
                         if not isinstance(subval, types.BuiltinFunctionType) and not isinstance(subval, classmethod):
                             # HACK: __ut_parent_class__ lets util_test have
                             # more info on the func should return extra info
@@ -352,7 +374,6 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
                     elif isinstance(val, invalid_types):
                         pass
                     else:
-                        #import utool as ut
                         if util_arg.VERBOSE:
                             print('[util_inspect] WARNING module %r class %r:' % (module, class_,))
                             print(' * Unknown if testable val=%r' % (val))
@@ -365,6 +386,57 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
                 print('[util_inspect] WARNING in module %r:' % (module,))
                 print(' * Unknown if testable val=%r' % (val))
                 print(' * Unknown if testable type(val)=%r' % type(val))
+
+LIB_PATH = dirname(os.__file__)
+
+
+def is_defined_by_module(item, module):
+    """
+    Check if item is directly defined by a module.
+    This check may be prone to errors.
+    """
+    try:
+        func_globals = meta_util_six.get_funcglobals(item)
+        if func_globals['__name__'] == module.__name__:
+            return True
+    except  AttributeError:
+        pass
+    return False
+
+
+def is_bateries_included(item):
+    """
+    Returns if a value is a python builtin function
+
+    Args:
+        item (object):
+
+    Returns:
+        bool: flag
+
+    References:
+        http://stackoverflow.com/questions/23149218/check-if-a-python-function-is-builtin
+
+    CommandLine:
+        python -m utool._internal.meta_util_six --exec-is_builtin
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool._internal.meta_util_six import *  # NOQA
+        >>> item = zip
+        >>> flag = is_bateries_included(item)
+        >>> result = ('flag = %s' % (str(flag),))
+        >>> print(result)
+    """
+    flag = False
+    if hasattr(item, '__call__') and hasattr(item, '__module__'):
+        if item.__module__ is not None:
+            module = sys.modules[item.__module__]
+            if module == builtins:
+                flag = True
+            elif hasattr(module, '__file__'):
+                flag = LIB_PATH == dirname(module.__file__)
+    return flag
 
 
 def list_class_funcnames(fname, blank_pats=['    #']):

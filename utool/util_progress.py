@@ -93,6 +93,33 @@ def test_progress():
 
 
 def get_nTotalChunks(nTotal, chunksize):
+    """
+    Returns the number of chunks that a list will be split into given a
+    chunksize.
+
+    Args:
+        nTotal (int):
+        chunksize (int):
+
+    Returns:
+        int: nTotalChunks
+
+    SeeAlso:
+        util_iter.ichunks
+
+    CommandLine:
+        python -m utool.util_progress --exec-get_nTotalChunks
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_progress import *  # NOQA
+        >>> nTotal = 2000
+        >>> chunksize = 256
+        >>> nTotalChunks = get_nTotalChunks(nTotal, chunksize)
+        >>> result = ('nTotalChunks = %s' % (str(nTotalChunks),))
+        >>> print(result)
+        nTotalChunks = 8
+    """
     nTotalChunks = int(math.ceil(nTotal / chunksize))
     return nTotalChunks
 
