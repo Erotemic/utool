@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import functools
 import inspect
 import os
@@ -536,64 +536,6 @@ def inherit_kwargs(inherit_func):
     return _wrp
 
 
-def get_kwargs(func):
-    """
-    Args:
-        func (function):
-
-    Returns:
-        tuple: keys, is_arbitrary
-            keys (list): kwargs keys
-            is_arbitrary (bool): has generic **kwargs
-
-    CommandLine:
-        python -m utool.util_inspect --test-get_kwargs
-
-    Ignore:
-        def func1(a, b, c):
-            pass
-        def func2(a, b, c, *args):
-            pass
-        def func3(a, b, c, *args, **kwargs):
-            pass
-        def func4(a, b=1, c=2):
-            pass
-        def func5(a, b=1, c=2, *args):
-            pass
-        def func6(a, b=1, c=2, **kwargs):
-            pass
-        def func7(a, b=1, c=2, *args, **kwargs):
-            pass
-        for func in [locals()['func' + str(x)] for x in range(1, 8)]:
-            print(inspect.getargspec(func))
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from utool.util_inspect import *  # NOQA
-        >>> # build test data
-        >>> func = '?'
-        >>> result = get_kwargs(func)
-        >>> # verify results
-        >>> print(result)
-    """
-    #if argspec.keywords is None:
-    import utool as ut
-    argspec = inspect.getargspec(func)
-    if argspec.defaults is not None:
-        num_args = len(argspec.args)
-        num_keys = len(argspec.defaults)
-        keys = ut.list_take(argspec.args, range(num_args - num_keys, num_args))
-    else:
-        keys = []
-    is_arbitrary = argspec.keywords is not None
-    RECURSIVE = False
-    if RECURSIVE and argspec.keywords is not None:
-        pass
-        # TODO: look inside function at the functions that the kwargs object is being
-        # passed to
-    return keys, is_arbitrary
-
-
 def filter_valid_kwargs(func, dict_):
     import utool as ut
     keys, is_arbitrary = ut.get_kwargs(func)
@@ -971,21 +913,6 @@ def exec_func_sourcecode(func, globals_, locals_, key_list):
 exec_func_src = exec_func_sourcecode
 
 
-def get_func_kwargs(func, stripdef=False, stripret=False, strip_docstr=False, remove_linenums=None):
-    """
-    func = ibeis.run_experiment
-    """
-    import utool as ut
-    argspec = ut.get_func_argspec(func)
-    header_kw = dict(zip(argspec.args[::-1], argspec.defaults[::-1]))
-    # TODO
-    if argspec.keywords is not None:
-        # parse our keywords from func body if possible
-        # possibly recursively
-        pass
-    return header_kw
-
-
 def get_func_sourcecode(func, stripdef=False, stripret=False, strip_docstr=False, strip_comments=False, remove_linenums=None):
     """
     wrapper around inspect.getsource but takes into account utool decorators
@@ -1003,7 +930,7 @@ def get_func_sourcecode(func, stripdef=False, stripret=False, strip_docstr=False
         >>> # DISABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
         >>> # build test data
-        >>> func = get_func_kwargs
+        >>> func = get_func_sourcecode
         >>> stripdef = True
         >>> stripret = True
         >>> sourcecode = get_func_sourcecode(func, stripdef)
@@ -1126,6 +1053,64 @@ def get_func_argspec(func):
     return argspec
 
 
+def get_kwargs(func):
+    """
+    Args:
+        func (function):
+
+    Returns:
+        tuple: keys, is_arbitrary
+            keys (list): kwargs keys
+            is_arbitrary (bool): has generic **kwargs
+
+    CommandLine:
+        python -m utool.util_inspect --test-get_kwargs
+
+    Ignore:
+        def func1(a, b, c):
+            pass
+        def func2(a, b, c, *args):
+            pass
+        def func3(a, b, c, *args, **kwargs):
+            pass
+        def func4(a, b=1, c=2):
+            pass
+        def func5(a, b=1, c=2, *args):
+            pass
+        def func6(a, b=1, c=2, **kwargs):
+            pass
+        def func7(a, b=1, c=2, *args, **kwargs):
+            pass
+        for func in [locals()['func' + str(x)] for x in range(1, 8)]:
+            print(inspect.getargspec(func))
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_inspect import *  # NOQA
+        >>> # build test data
+        >>> func = '?'
+        >>> result = get_kwargs(func)
+        >>> # verify results
+        >>> print(result)
+    """
+    #if argspec.keywords is None:
+    import utool as ut
+    argspec = inspect.getargspec(func)
+    if argspec.defaults is not None:
+        num_args = len(argspec.args)
+        num_keys = len(argspec.defaults)
+        keys = ut.list_take(argspec.args, range(num_args - num_keys, num_args))
+    else:
+        keys = []
+    is_arbitrary = argspec.keywords is not None
+    RECURSIVE = False
+    if RECURSIVE and argspec.keywords is not None:
+        pass
+        # TODO: look inside function at the functions that the kwargs object is being
+        # passed to
+    return keys, is_arbitrary
+
+
 def recursive_parse_kwargs(root_func, path_=None):
     """
     recursive kwargs parser
@@ -1212,6 +1197,21 @@ def parse_func_kwarg_keys(func, with_vals=False):
                                         strip_comments=True)
     kwkeys = parse_kwarg_keys(sourcecode, with_vals=with_vals)
     return kwkeys
+
+
+def get_func_kwargs(func, stripdef=False, stripret=False, strip_docstr=False, remove_linenums=None):
+    """
+    func = ibeis.run_experiment
+    """
+    import utool as ut
+    argspec = ut.get_func_argspec(func)
+    header_kw = dict(zip(argspec.args[::-1], argspec.defaults[::-1]))
+    # TODO
+    if argspec.keywords is not None:
+        # parse our keywords from func body if possible
+        # possibly recursively
+        pass
+    return header_kw
 
 
 def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
