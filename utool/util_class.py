@@ -461,7 +461,8 @@ def inject_func_as_method(self, func, method_name=None, class_=None,
                 print('[util_class] skipping re-inject of %r from __main__' % method_name)
             return
         if old_method is new_method or old_method.im_func is new_method.im_func:
-            print('WARNING: Injecting the same function twice: %r' % new_method)
+            if ut.NOT_QUIET:
+                print('WARNING: Injecting the same function twice: %r' % new_method)
         elif allow_override is False:
             raise AssertionError(
                 'Overrides are not allowed. Already have method_name=%r' %
