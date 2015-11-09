@@ -8,8 +8,11 @@ up) The code isn't super clean though due to time constriaints. Many functions
 probably belong elsewhere and the parsers need a big cleanup.
 
 TODO:
-    report the line of the doctest in the file when reporting errors as well as
-    the relative line
+    * report the line of the doctest in the file when reporting errors as well as
+     the relative line
+
+    * restructure so there is a test collection step, a filtering step, and an
+      execution step
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
@@ -28,7 +31,7 @@ from utool import util_inject
 from utool import util_dbg
 from utool._internal import meta_util_six
 from utool._internal.meta_util_six import get_funcname
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[tests]')
+print, rrr, profile = util_inject.inject2(__name__, '[tests]')
 
 
 VERBOSE_TEST = util_arg.get_argflag(('--verbtest', '--verb-test', '--verbose-test'))
@@ -581,7 +584,7 @@ def get_func_source(func):
 
 
 def get_module_testlines(module_list, remove_pyc=True, verbose=True,
-                         pythoncmd=None, **kwargs):
+                         pythoncmd=None):
     """
     Builds test commands for autogen tests
     called by autogen test scripts
@@ -592,8 +595,8 @@ def get_module_testlines(module_list, remove_pyc=True, verbose=True,
         #'python'
     testcmd_list = []
     for module in module_list:
-        mod_doctest_tup = get_module_doctest_tup(module=module, allexamples=True,
-                                                 verbose=verbose, **kwargs)
+        mod_doctest_tup = get_module_doctest_tup(
+            module=module, allexamples=True, verbose=verbose)
         enabled_testtup_list, frame_fpath, all_testflags, module_ = mod_doctest_tup
         for testtup in enabled_testtup_list:
             #testflag = testtup[-1]
@@ -892,11 +895,10 @@ def get_doctest_examples(func_or_class):
 
 def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                            allexamples=None, needs_enable=None, N=0,
-                           verbose=True, testslow=False, include_inherited=False):
+                           verbose=True, testslow=False):
     """
     Parses module for testable doctesttups
     Depth 2)
-    called by doctest_funcs and get_module_testlines
 
     Returns:
         ModuleDoctestTup : (enabled_testtup_list, frame_fpath, all_testflags, module)
@@ -1006,7 +1008,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                 print('[util_test.get module_doctest_tup] module =%r' % (module,))
 
             for key, val in ut.iter_module_doctestable(module,
-                                                       include_inherited=include_inherited):
+                                                       include_inherited=False):
                 docstr = inspect.getdoc(val)
                 #docstr = ut.ensure_unicode(docstr)
                 # FIXME:
@@ -1055,15 +1057,15 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                 break
     #print(force_enable_testnames)
     def _get_testable_name(testable):
-        import utool
+        import utool as ut
         try:
             testable_name = testable.func_name
         except AttributeError as ex1:
             try:
                 testable_name = testable.__name__
             except AttributeError as ex2:
-                utool.printex(ex1, utool.list_str(dir(testable)))
-                utool.printex(ex2, utool.list_str(dir(testable)))
+                ut.printex(ex1, ut.list_str(dir(testable)))
+                ut.printex(ex2, ut.list_str(dir(testable)))
                 raise
         return testable_name
 
@@ -1075,7 +1077,6 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         print(' * force_enable_testnames = %r' % (force_enable_testnames,))
         indenter = ut.Indenter('[CHECK_EX]')
         print('len(sorted_testable) = %r' % (len(sorted_testable),))
-
         indenter.start()
     # PARSE OUT THE AVAILABLE TESTS FOR EACH REQUEST
     local_testtup_list = []

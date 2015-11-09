@@ -460,7 +460,16 @@ def presetup_commands(setup_fpath, kwargs):
             except Exception as ex:
                 printex(ex, 'Error calling buildcommand from cwd=%r\n' % os.getcwd())
                 raise
+        if arg in ['versions']:
+            print('+ ---')
+            print('Testing preqres package versions')
+            install_requires = kwargs.get('install_requires', [])
+            import pip
+            print('Checking install_requires = [\n%s\n]' % '\n'.join(install_requires))
+            pip.main(['show'] + [depline.split(' ')[0] for depline in install_requires])
+            print('L ___ Done Version Testing')
         if arg in ['docs']:
+            # FIXME
             autogen_sphinx_apidoc()
         # Build optimized files
         if arg in ['o', 'pyo']:

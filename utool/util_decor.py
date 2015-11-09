@@ -258,7 +258,7 @@ else:
 #        return ignores_exc_tb_closure
 
 
-def on_exception_report_input(func_=None, force=False):
+def on_exception_report_input(func_=None, force=False, keys=None):
     """
     If an error is thrown in the scope of this function's stack frame then the
     decorated function name and the arguments passed to it will be printed to
@@ -278,6 +278,25 @@ def on_exception_report_input(func_=None, force=False):
                 return func(*args, **kwargs)
             except Exception as ex:
                 from utool import util_str
+                print('ERROR occured! Reporting input to function')
+                if keys is not None:
+                    from utool import util_inspect
+                    import utool as ut
+                    argspec = util_inspect.get_func_argspec(func)
+                    in_kwargs_flags = [key in kwargs for key in keys]
+                    kwarg_keys = ut.compress(keys, in_kwargs_flags)
+                    kwarg_vals = [kwargs.get(key) for key in kwarg_keys]
+                    arg_keys = ut.compress(keys, ut.not_list(in_kwargs_flags))
+                    arg_idxs = [argspec.args.index(key) for key in arg_keys]
+                    num_without_default = len(argspec.args) - len(argspec.defaults)
+                    default_vals = ([None] * (num_without_default)) + list(argspec.defaults)
+                    args_ = list(args) + default_vals[len(args) + 1:]
+                    arg_vals = ut.take(args_, arg_idxs)
+                    requested_dict = dict(ut.flatten([zip(kwarg_keys, kwarg_vals), zip(arg_keys, arg_vals)]))
+                    print('input dict = ' + util_str.dict_str(ut.dict_subset(requested_dict, keys)))
+                    #ut.embed()
+                    # (print out specific keys only)
+                    pass
                 arg_strs = ', '.join([repr(util_str.truncate_str(str(arg))) for arg in args])
                 kwarg_strs = ', '.join([
                     util_str.truncate_str('%s=%r' % (key, val))
