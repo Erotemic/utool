@@ -540,7 +540,7 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
         def cached_wraper(*args, **kwargs):
             import utool as ut
             try:
-                if True:
+                if VERBOSE_CACHE:
                     print('[utool] computing cached function fname_=%s' % (fname_,))
                 # Implicitly adds use_cache to kwargs
                 cfgstr = get_cfgstr_from_args(func, args, kwargs, key_argx,
