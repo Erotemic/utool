@@ -3,6 +3,8 @@ python:
   - "2.7"
   - "3.4"
 install:
-  - travis_retry python setup.py develop
-script: travis_wait ./run_tests.py
-cache: apt
+  - travis_retry python setup.py build develop
+script: 
+  - travis_wait ./run_tests.py
+after_failure: 
+  - cat failed_doctests.txt
