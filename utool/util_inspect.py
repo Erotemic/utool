@@ -768,6 +768,8 @@ def parse_return_type(sourcecode):
         testcase
         automated_helpers query_vsone_verified
 
+    CommandLine:
+        python -m utool.util_inspect --exec-parse_return_type
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -780,16 +782,26 @@ def parse_return_type(sourcecode):
         ... )
         >>> returninfo = parse_return_type(sourcecode)
         >>> (return_type, return_name, return_header, return_desc) = returninfo
-        >>> result = str((return_type, return_name, return_header))
+        >>> result = ut.repr2((return_type, return_name, return_header))
         >>> print(result)
         ('?', 'bar', 'Returns')
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_inspect import *  # NOQA
+        >>> import utool as ut
+        >>> sourcecode = ut.codeblock(
+        ... 'def foo(tmp=False):\n'
+        ... '    return True\n'
+        ... )
+        >>> returninfo = parse_return_type(sourcecode)
+        >>> (return_type, return_name, return_header, return_desc) = returninfo
+        >>> result = ut.repr2((return_type, return_name, return_header))
+        >>> print(result)
+        ('bool', 'True', 'Returns')
     """
     import utool as ut
     import ast
-    if six.PY3:
-        Try = ast.Try
-    else:
-        Try = ast.TryExcept
     if ut.VERBOSE:
         print('[utool] parsing return types')
 
@@ -809,6 +821,8 @@ def parse_return_type(sourcecode):
         #ut.printex(ex, 'Error Parsing')
 
     assert isinstance(pt, ast.Module), str(type(pt))
+
+    Try = ast.Try if six.PY3 else ast.TryExcept
 
     def find_function_nodes(pt):
         function_nodes = []
@@ -860,14 +874,8 @@ def parse_return_type(sourcecode):
             def get_tuple_membername(tupnode):
                 if hasattr(tupnode, 'id'):
                     return tupnode.id
-                #elif hasattr(tupnode, 'key'):
-                #    return 'tupnode.key=%r' % (tupnode.key,)
                 elif hasattr(tupnode, 'value'):
                     return 'None'
-                    #return 'tupnode.value=%r' % (tupnode.value,)
-                    #return (ast.dump(tupnode))
-                    #return get_node_name_and_type(tupnode)[1]
-                #type(name.value)
                 else:
                     return 'None'
                 pass
@@ -880,6 +888,9 @@ def parse_return_type(sourcecode):
             node_name = None
         elif isinstance(node.value, ast.Name):
             node_name = node.value.id
+            if node_name == 'True':
+                node_name = 'True'
+                node_type = 'bool'
         else:
             #node_type = 'ADD_TO_GET_NODE_NAME_AND_TYPE: ' + str(type(node.value))
             node_type = '?'
