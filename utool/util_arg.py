@@ -233,7 +233,16 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
 
     CommandLine:
         python -m utool.util_arg --test-get_argval
-        python -m utool.util_arg --exec-get_argval
+        python -m utool.util_arg --exec-get_argval:0
+        python -m utool.util_arg --exec-get_argval:1
+        python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest="holy grail"
+        python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest="42"
+        python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest=42
+        python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest 42
+        python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest', float)]])" --quest 42
+        python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--nAssign'), int)]])" --nAssign 42
+        python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--test'), str)]])" --test
+        python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--test'), str)]])" --test "foobar is good" --youbar ok
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -268,17 +277,36 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
             '--the-val': [1, 2, 3],
         }
 
-        eggs, holy grail, 42
-
-    CommandLine:
-        python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest="holy grail"
-        python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest="42"
-        python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest=42
-        python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest')]])" --quest 42
-        python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest', float)]])" --quest 42
-        python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--nAssign'), int)]])" --nAssign 42
-        python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--test'), str)]])" --test
-        python -c "import utool; print([(type(x), x) for x in [utool.get_argval(('--test'), str)]])" --test "foobar is good" --youbar ok
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_arg import *  # NOQA
+        >>> import utool as ut
+        >>> import sys
+        >>> argv = ['--slice1', '::', '--slice2=4:', '--slice3=::4', '--slice4', '[1,2,3,4]', '--slice5=3']
+        >>> # specify a list of args and kwargs to get_argval
+        >>> argstr_kwargs_list = [
+        >>>     ('--slice1',            dict(type_='fuzzy_subset', default=None, argv=argv)),
+        >>>     ('--slice2',            dict(type_='fuzzy_subset', default=None, argv=argv)),
+        >>>     ('--slice3',            dict(type_='fuzzy_subset', default=None, argv=argv)),
+        >>>     ('--slice4',            dict(type_='fuzzy_subset', default=None, argv=argv)),
+        >>>     ('--slice5',            dict(type_='fuzzy_subset', default=None, argv=argv)),
+        >>> ]
+        >>> # Execute the command with for each of the test cases
+        >>> res_list = []
+        >>> argstr_list = ut.get_list_column(argstr_kwargs_list, 0)
+        >>> list1 = [1,3,5,7,9]
+        >>> import numpy as np
+        >>> list2 = np.array([[1, 2],[3,4],[5,6],[7,8],[9,1]])
+        >>> for argstr_, kwargs in argstr_kwargs_list:
+        >>>     res = get_argval(argstr_, **kwargs)
+        >>>     print('---')
+        >>>     print('res = %r' % (res,))
+        >>>     print('list1[%r=%r] = %r' % (argstr_, res, ut.list_take(list1, res),))
+        >>>     print('list2[%r=%r] = %r' % (argstr_, res, list2[res].tolist(),))
+        >>>     res_list.append(res)
+        >>> result = ut.dict_str(ut.odict(zip(argstr_list, res_list)))
+        >>> result = result.replace('u\'', '\'')  # hack
+        >>> print(result)
 
     """
     if verbose is None:
@@ -388,7 +416,7 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
                             arg_after = util_type.smart_cast2(val_after)
                         else:
                             arg_after = util_type.try_cast(val_after, type_)
-                            if issubclass(type_, six.string_types):
+                            if not isinstance(type_, six.string_types) and issubclass(type_, six.string_types):
                                 if arg_after == 'None':
                                     # hack
                                     arg_after = None
@@ -398,7 +426,9 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
                     break
     except Exception as ex:
         import utool as ut
-        ut.printex(ex, 'problem in arg_val')
+        ut.printex(ex, 'problem in arg_val', keys=['type_'])
+        if ut.SUPER_STRICT:
+            raise
         pass
     if verbose:
         print('[get_argval] ... Parsed arg_after=%r, was_specified=%r' % (arg_after, was_specified))

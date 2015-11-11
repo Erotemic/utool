@@ -279,6 +279,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
         if PRINT_SRC or VERBOSE_TEST:
             print(ut.msgblock('EXEC SRC', src))
         test_globals = module.__dict__.copy()
+        error_report = None
         try:
             testkw = dict(
                 globals=test_globals,  # HACK
