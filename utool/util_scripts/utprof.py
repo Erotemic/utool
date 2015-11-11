@@ -8,8 +8,7 @@ import os
 
 if __name__ == '__main__':
     import utool as ut
-    # Allow for -m to be specified on the command line
-    argv_tail = ut.get_argv_tail('utprof.py')
+    argv_tail = ut.get_argv_tail('utprof.py', prefer_main=True)
     cmd = 'utprof.sh ' + ' '.join(argv_tail)
     print(cmd)
     os.system(cmd)

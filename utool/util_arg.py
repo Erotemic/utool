@@ -922,42 +922,64 @@ def argparse_dict(default_dict_, lbl=None, verbose=None,
     return dict_
 
 
-def get_argv_tail(scriptname):
-    """ gets the rest of the arguments after a script has been invoked
+def get_argv_tail(scriptname, prefer_main=None, argv=sys.argv):
+    r"""
+    gets the rest of the arguments after a script has been invoked hack.
+    accounts for python -m scripts.
 
     Args:
-        scriptname (?):
+        scriptname (str):
 
     CommandLine:
         python -m utool.util_arg --test-get_argv_tail
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_arg import *  # NOQA
-        >>> # build test data
-        >>> scriptname = 'util_arg.py'
-        >>> # execute function
-        >>> result = get_argv_tail(scriptname)
-        >>> # verify results
+        >>> import utool as ut
+        >>> from os.path import relpath, dirname
+        >>> scriptname = 'utool.util_arg'
+        >>> prefer_main = False
+        >>> argv=['python', '-m', 'utool.util_arg', '--test-get_argv_tail']
+        >>> tail = get_argv_tail(scriptname, prefer_main, argv)
+        >>> # hack
+        >>> tail[0] = relpath(tail[0], dirname(dirname(ut.__file__)))
+        >>> result = ut.repr2(tail)
         >>> print(result)
+        ['utool/util_arg.py', '--test-get_argv_tail']
+
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_arg import *  # NOQA
+        >>> import utool as ut
+        >>> from os.path import relpath, dirname
+        >>> scriptname = 'utprof.py'
+        >>> prefer_main = True
+        >>> argv=['utprof.py', '-m', 'utool', '--tf', 'get_argv_tail']
+        >>> tail = get_argv_tail(scriptname, prefer_main, argv)
+        >>> # hack
+        >>> tail[0] = relpath(tail[0], dirname(dirname(ut.__file__)))
+        >>> result = ut.repr2(tail)
+        >>> print(result)
+        ['utool/__main__.py', '--tf', 'get_argv_tail']
     """
     import utool as ut
-    modname = ut.get_argval('-m', help_='specify module name to profile')
-    #print(sys.argv)
+    modname = ut.get_argval('-m', help_='specify module name to profile', argv=argv)
     if modname is not None:
-        modpath = ut.get_modpath_from_modname(modname)
-        #print(modpath)
-        argvx = sys.argv.index(modname) + 1
-        argv_tail = [modpath] + sys.argv[argvx:]
+        # hack to account for -m scripts
+        modpath = ut.get_modpath_from_modname(modname, prefer_main=prefer_main)
+        argvx = argv.index(modname) + 1
+        argv_tail = [modpath] + argv[argvx:]
     else:
         try:
-            argvx = sys.argv.index(scriptname)
+            argvx = argv.index(scriptname)
         except ValueError:
-            for argvx, arg in enumerate(sys.argv):
+            for argvx, arg in enumerate(argv):
+                # HACK
                 if scriptname in arg:
                     break
-            #print('sys.argv = %r' % (sys.argv,))
-        argv_tail = sys.argv[(argvx + 1):]
+        argv_tail = argv[(argvx + 1):]
     return argv_tail
 
 

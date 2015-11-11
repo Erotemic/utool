@@ -1028,7 +1028,7 @@ def fnames_to_fpaths(fname_list, path):
     return fpath_list
 
 
-def get_modpath_from_modname(modname):
+def get_modpath_from_modname(modname, prefer_main=False):
     r"""
     Args:
         modname (str):
@@ -1050,6 +1050,11 @@ def get_modpath_from_modname(modname):
     import importlib
     module = importlib.import_module(modname)
     modpath = module.__file__.replace('.pyc', '.py')
+    if prefer_main:
+        if modpath.endswith('__init__.py'):
+            main_modpath = modpath[:-11] + '__main__.py'
+            if exists(main_modpath):
+                modpath = main_modpath
     #modname = modname.replace('.__init__', '').strip()
     #module_dir = get_module_dir(module)
     return modpath

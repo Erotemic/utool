@@ -503,8 +503,8 @@ def sedfile(fpath, regexpr, repl, force=False, verbose=True, veryverbose=False):
             with open(fpath, 'w') as file:
                 file.write(new_file)
         return changed_lines
-    elif verbose:
-        print('Nothing changed')
+    #elif verbose:
+    #    print('Nothing changed')
     return None
 
 

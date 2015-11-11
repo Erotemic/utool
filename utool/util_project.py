@@ -78,6 +78,7 @@ def grep_projects(tofind_list, user_profile=None, verbose=True, **kwargs):
     grepkw = {}
     grepkw['exclude_dirs'] = user_profile.project_exclude_dirs
     grepkw['dpath_list'] = user_profile.project_dpaths
+    grepkw['include_patterns'] = user_profile.project_include_patterns
     grepkw.update(kwargs)
 
     msg_list1 = []
@@ -121,48 +122,87 @@ def grep_projects(tofind_list, user_profile=None, verbose=True, **kwargs):
 #def sp(r, regexpr, repl, force=False):
 #    rob_nav._sed(r, regexpr, repl, force=force, recursive=True, dpath_list=project_dpaths())
 
-def sed_projects(r, regexpr, repl, force=False, recursive=True, user_profile=None, **kwargs):
+def sed_projects(regexpr, repl, force=False, recursive=True, user_profile=None, **kwargs):
+    """
+
+    Args:
+        regexpr (?):
+        repl (?):
+        force (bool): (default = False)
+        recursive (bool): (default = True)
+        user_profile (None): (default = None)
+
+    CommandLine:
+        python -m utool.util_project --exec-sed_projects
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_project import *  # NOQA
+        >>> regexpr = ut.get_argval('--find', type_=str, default=sys.argv[-1])
+        >>> repl = ut.get_argval('--repl', type_=str, default=sys.argv[-2])
+        >>> force = False
+        >>> recursive = True
+        >>> user_profile = None
+        >>> result = sed_projects(regexpr, repl, force, recursive, user_profile)
+        >>> print(result)
+
+    Ignore:
+        regexpr = 'annotation match_scores'
+        repl = 'draw_score_sep'
+
+    """
     # FIXME: finishme
     import utool as ut
     user_profile = ensure_user_profile(user_profile)
 
-    #_grep(r, [repl], dpath_list=dpath_list, recursive=recursive)
-    include_patterns = ['*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h']
-    dpath_list = user_profile.dpath_list
-    print('sed-ing %r' % (dpath_list,))
-    print(' * regular include_patterns : %r' % (include_patterns,))
+    sedkw = {}
+    sedkw['exclude_dirs'] = user_profile.project_exclude_dirs
+    sedkw['dpath_list'] = user_profile.project_dpaths
+    sedkw['include_patterns'] = user_profile.project_include_patterns
+    sedkw.update(kwargs)
+
+    msg_list1 = []
+    #msg_list2 = []
+
+    print_ = msg_list1.append
+    print_('Seding Projects')
     print(' * regular expression : %r' % (regexpr,))
     print(' * replacement        : %r' % (repl,))
+    print_('sedkw = %s' % ut.dict_str(sedkw, nl=True))
+
     print(' * recursive: %r' % (recursive,))
     print(' * force: %r' % (force,))
 
-    def extend_regex(regexpr):
-        regex_map = {
-            r'\<': r'\b(?=\w)',
-            r'\>': r'\b(?!\w)',
-            ('UNSAFE', r'\x08'): r'\b',
-        }
-        for key, repl in six.iteritems(regex_map):
-            if isinstance(key, tuple):
-                search = key[1]
-            else:
-                search = key
-            if regexpr.find(search) != -1:
-                if isinstance(key, tuple):
-                    print('WARNING! Unsafe regex with: %r' % (key,))
-                regexpr = regexpr.replace(search, repl)
-        return regexpr
-    regexpr = extend_regex(regexpr)
-    if '\x08' in regexpr:
-        print('Remember \\x08 != \\b')
-        print('subsituting for you for you')
-        regexpr = regexpr.replace('\x08', '\\b')
-        print(' * regular expression : %r' % (regexpr,))
-
     # Walk through each directory recursively
-    # FIXME
-    for fpath in ut.matc_matching_fnames(dpath_list, include_patterns, recursive=recursive):
+    for fpath in ut.matching_fnames(sedkw['dpath_list'],
+                                    sedkw['include_patterns'],
+                                    sedkw['exclude_dirs'],
+                                    recursive=recursive):
         ut.sedfile(fpath, regexpr, repl, force)
+
+
+#def extend_regex(regexpr):
+#    regex_map = {
+#        r'\<': r'\b(?=\w)',
+#        r'\>': r'\b(?!\w)',
+#        ('UNSAFE', r'\x08'): r'\b',
+#    }
+#    for key, repl in six.iteritems(regex_map):
+#        if isinstance(key, tuple):
+#            search = key[1]
+#        else:
+#            search = key
+#        if regexpr.find(search) != -1:
+#            if isinstance(key, tuple):
+#                print('WARNING! Unsafe regex with: %r' % (key,))
+#            regexpr = regexpr.replace(search, repl)
+#    return regexpr
+#regexpr = extend_regex(regexpr)
+#if '\x08' in regexpr:
+#    print('Remember \\x08 != \\b')
+#    print('subsituting for you for you')
+#    regexpr = regexpr.replace('\x08', '\\b')
+#    print(' * regular expression : %r' % (regexpr,))
 
 
 if False:
