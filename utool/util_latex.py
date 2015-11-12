@@ -317,8 +317,11 @@ def latex_get_stats(lbl, data, mode=0):
         raise
 
     #int_fmt = lambda num: util.num_fmt(int(num))
-    float_fmt = lambda num: util_num.num_fmt(float(num))
-    tup_fmt = lambda tup: str(tup)
+    def float_fmt(num):
+        return util_num.num_fmt(float(num))
+
+    def tup_fmt(tup):
+        return str(tup)
     fmttup = (float_fmt(min_), float_fmt(max_), float_fmt(mean), float_fmt(std), tup_fmt(shape))
     lll = ' ' * len(lbl)
     if mode == 0:
@@ -936,10 +939,11 @@ def latex_sanatize_command_name(_cmdname):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_latex import *  # NOQA
-        >>> _cmdname = '#foo'
+        >>> _cmdname = '#foo bar.'
         >>> command_name = latex_sanatize_command_name(_cmdname)
         >>> result = ('command_name = %s' % (str(command_name),))
         >>> print(result)
+        FooBar
     """
     import re
     import utool as ut
@@ -962,7 +966,7 @@ def latex_sanatize_command_name(_cmdname):
             ut.printex(ex)
             raise
     # remove numbers
-    command_name = re.sub(r'[\d' + re.escape('#()[]{}') + ']', '', command_name)
+    command_name = re.sub(r'[\d' + re.escape('#()[]{}.') + ']', '', command_name)
     # Remove _ for cammel case
     def to_cammel_case(str_list):
             # hacky

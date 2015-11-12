@@ -534,6 +534,8 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
         cacher = Cacher(fname_, cache_dir=cache_dir, appname=appname)
         if use_cache is None:
             use_cache_ = not util_arg.get_argflag('--nocache-' + fname)
+        else:
+            use_cache_ = use_cache
         #_dbgdict = dict(fname_=fname_, key_kwds=key_kwds, appname=appname,
         #                key_argx=key_argx, use_cache_=use_cache_)
         @functools.wraps(func)

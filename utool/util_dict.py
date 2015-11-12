@@ -526,7 +526,7 @@ def is_dicteq(dict1_, dict2_, almosteq_ok=True, verbose_err=True):
     return True
 
 
-def dict_subset(dict_, keys):
+def dict_subset(dict_, keys, *d):
     r"""
     Args:
         dict_ (dict):
@@ -541,14 +541,17 @@ def dict_subset(dict_, keys):
         >>> import utool as ut
         >>> dict_ = {'K': 3, 'dcvs_clip_max': 0.2, 'p': 0.1}
         >>> keys = ['K', 'dcvs_clip_max']
+        >>> d = tuple([])
         >>> subdict_ = dict_subset(dict_, keys)
         >>> result = ut.dict_str(subdict_, sorted_=True, newlines=False)
         >>> print(result)
         {'K': 3, 'dcvs_clip_max': 0.2}
     """
-    item_sublist = [(key, dict_[key]) for key in keys]
-    #subdict_ = type(dict_)(item_sublist)  # maintain old dict format
-    subdict_ = OrderedDict(item_sublist)  # maintain old dict format
+    items = dict_take(dict_, keys, *d)
+    subdict_ = OrderedDict(list(zip(keys, items)))
+    #item_sublist = [(key, dict_[key]) for key in keys]
+    ##subdict_ = type(dict_)(item_sublist)  # maintain old dict format
+    #subdict_ = OrderedDict(item_sublist)
     return subdict_
 
 

@@ -180,6 +180,10 @@ def smart_cast2(var):
             #import re
             #subvar_list = re.split(r',\s*' + ut.negative_lookahead(r'[^\[\]]*\]'), var[1:-1])
             return smart_cast(var[1:-1], list)
+        elif var.startswith('(') and var.endswith(')'):
+            #import re
+            #subvar_list = re.split(r',\s*' + ut.negative_lookahead(r'[^\[\]]*\]'), var[1:-1])
+            return tuple(smart_cast(var[1:-1], list))
         type_list = [int, float]
         for type_ in type_list:
             castvar = try_cast(var, type_)

@@ -455,11 +455,13 @@ def parse_cfgstr_list(cfgstr_list, smartcast=True, oldmode=True):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_arg import *  # NOQA
         >>> import utool as ut
-        >>> cfgstr_list = ['var1:val1', 'var2:1', 'var3:1.0', 'var4:None']
+        >>> cfgstr_list = ['var1=val1', 'var2=1', 'var3=1.0', 'var4=None', 'var5=[1,2,3]', 'var6=(a,b,c)']
         >>> smartcast = True
-        >>> cfgdict = parse_cfgstr_list(cfgstr_list, smartcast)
+        >>> cfgdict = parse_cfgstr_list(cfgstr_list, smartcast, oldmode=False)
         >>> result = ut.dict_str(cfgdict, sorted_=True, newlines=False)
         >>> print(result)
+        {'var1': 'val1', 'var2': 1, 'var3': 1.0, 'var4': None, 'var5': [1, 2, 3], 'var6': (u'a', u'b', u'c')}
+
         {'var1': 'val1', 'var2': 1, 'var3': 1.0, 'var4': None}
 
         {'var4': None, 'var1': 'val1', 'var3': 1.0, 'var2': 1}

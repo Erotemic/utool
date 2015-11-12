@@ -25,6 +25,8 @@ if six.PY2:
                 return get_funcname(func.func)
             elif isinstance(func, six.class_types):
                 return str(func).replace('<class \'', '').replace('\'>', '')
+            else:
+                raise
         #except Exception as ex:
         #    import utool as ut
         #    with ut.embed_on_exception_context:
@@ -58,9 +60,13 @@ elif six.PY3:
     BooleanType = bool
     FloatType = float
     def get_funcname(func):
-        if isinstance(func, functools.partial):
-            return get_funcname(func.func)
-        return getattr(func, '__name__')
+        try:
+            return getattr(func, '__name__')
+        except AttributeError:
+            if isinstance(func, functools.partial):
+                return get_funcname(func.func)
+            else:
+                raise
     def set_funcname(func, newname):
         return setattr(func, '__name__', newname)
     #

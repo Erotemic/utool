@@ -1196,7 +1196,33 @@ def print_keys(key_list, locals_=None):
 
 
 def parse_locals_keylist(locals_, key_list, strlist_=None, prefix=''):
-    """ For each key in keylist, puts its value in locals into a stringlist """
+    """ For each key in keylist, puts its value in locals into a stringlist
+
+    Args:
+        locals_ (?):
+        key_list (list):
+        strlist_ (list): (default = None)
+        prefix (unicode): (default = u'')
+
+    Returns:
+        list: strlist_
+
+    CommandLine:
+        python -m utool.util_dbg --exec-parse_locals_keylist
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dbg import *  # NOQA
+        >>> import utool as ut
+        >>> locals_ = {'foo': [1,2,3], 'bar': 'spam', 'eggs': 4, 'num': 5}
+        >>> key_list = [(len, 'foo'), 'bar.lower', 'eggs', 'num']
+        >>> strlist_ = None
+        >>> prefix = u''
+        >>> strlist_ = parse_locals_keylist(locals_, key_list, strlist_, prefix)
+        >>> result = ('strlist_ = %s' % (ut.repr2(strlist_, nl=True),))
+        >>> print(result)
+
+    """
     #from utool.util_str import get_callable_name
     from utool.util_str import get_callable_name
     if strlist_ is None:

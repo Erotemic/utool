@@ -1634,7 +1634,25 @@ def padded_str_range(start, end):
 
 
 def get_callable_name(func):
-    """ Works on must functionlike objects including str, which has no func_name """
+    """ Works on must functionlike objects including str, which has no func_name
+
+    Args:
+        func (?):
+
+    Returns:
+        ?:
+
+    CommandLine:
+        python -m utool.util_str --exec-get_callable_name
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> func = len
+        >>> result = get_callable_name(func)
+        >>> print(result)
+        len
+    """
     try:
         return meta_util_six.get_funcname(func)
     except AttributeError:
