@@ -440,7 +440,7 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
 
 @profile
 def parse_cfgstr_list(cfgstr_list, smartcast=True, oldmode=True):
-    """
+    r"""
     Parses a list of items in the format
     ['var1:val1', 'var2:val2', 'var3:val3']
     the '=' character can be used instead of the ':' character if desired
@@ -458,9 +458,9 @@ def parse_cfgstr_list(cfgstr_list, smartcast=True, oldmode=True):
         >>> cfgstr_list = ['var1=val1', 'var2=1', 'var3=1.0', 'var4=None', 'var5=[1,2,3]', 'var6=(a,b,c)']
         >>> smartcast = True
         >>> cfgdict = parse_cfgstr_list(cfgstr_list, smartcast, oldmode=False)
-        >>> result = ut.dict_str(cfgdict, sorted_=True, newlines=False)
+        >>> result = ut.repr2(cfgdict, sorted_=True, newlines=False)
         >>> print(result)
-        {'var1': 'val1', 'var2': 1, 'var3': 1.0, 'var4': None, 'var5': [1, 2, 3], 'var6': (u'a', u'b', u'c')}
+        {'var1': 'val1', 'var2': 1, 'var3': 1.0, 'var4': None, 'var5': [1, 2, 3], 'var6': ('a', 'b', 'c')}
 
         {'var1': 'val1', 'var2': 1, 'var3': 1.0, 'var4': None}
 
@@ -975,7 +975,7 @@ def get_argv_tail(scriptname, prefer_main=None, argv=sys.argv):
         >>> argv=['python', '-m', 'utool.util_arg', '--test-get_argv_tail']
         >>> tail = get_argv_tail(scriptname, prefer_main, argv)
         >>> # hack
-        >>> tail[0] = relpath(tail[0], dirname(dirname(ut.__file__)))
+        >>> tail[0] = ut.ensure_unixslash(relpath(tail[0], dirname(dirname(ut.__file__))))
         >>> result = ut.repr2(tail)
         >>> print(result)
         ['utool/util_arg.py', '--test-get_argv_tail']
@@ -991,7 +991,7 @@ def get_argv_tail(scriptname, prefer_main=None, argv=sys.argv):
         >>> argv=['utprof.py', '-m', 'utool', '--tf', 'get_argv_tail']
         >>> tail = get_argv_tail(scriptname, prefer_main, argv)
         >>> # hack
-        >>> tail[0] = relpath(tail[0], dirname(dirname(ut.__file__)))
+        >>> tail[0] = ut.ensure_unixslash(relpath(tail[0], dirname(dirname(ut.__file__))))
         >>> result = ut.repr2(tail)
         >>> print(result)
         ['utool/__main__.py', '--tf', 'get_argv_tail']

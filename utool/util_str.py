@@ -1106,7 +1106,7 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
                                  force_dtype=force_dtype, with_dtype=with_dtype)
             else:
                 return list_str(val, newlines=newlines, precision=precision)
-        if hack_liststr and isinstance(val, list):
+        if hack_liststr and isinstance(val, (list, tuple)):
             return list_str(val, newlines=newlines, precision=precision)
         elif precision is not None and (isinstance(val, (float)) or util_type.is_float(val)):
             return scalar_str(val, precision)
@@ -1399,11 +1399,13 @@ def repr2(obj_, **kwargs):
     pretty version that works the same in both 2 and 3
     """
     if isinstance(obj_, (dict, list, tuple)):
-        kwitems = dict(nl=False)
-        kwitems.update(kwargs)
         if isinstance(obj_, dict):
+            kwitems = dict(nl=False, hack_liststr=True)
+            kwitems.update(kwargs)
             return dict_str(obj_, **kwitems)
         if isinstance(obj_, (list, tuple)):
+            kwitems = dict(nl=False)
+            kwitems.update(kwargs)
             return list_str(obj_, **kwitems)
     else:
         kwitems = dict(with_dtype=False)

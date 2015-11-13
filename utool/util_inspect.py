@@ -19,6 +19,9 @@ from utool._internal import meta_util_six
 print, rrr, profile = util_inject.inject2(__name__, '[inspect]')
 
 
+LIB_PATH = dirname(os.__file__)
+
+
 def get_dev_hints():
     VAL_FIELD = util_regex.named_field('val', '.*')
     VAL_BREF = util_regex.bref_field('val')
@@ -387,8 +390,6 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
                 print(' * Unknown if testable val=%r' % (val))
                 print(' * Unknown if testable type(val)=%r' % type(val))
 
-LIB_PATH = dirname(os.__file__)
-
 
 def is_defined_by_module(item, module):
     """
@@ -510,8 +511,6 @@ def list_global_funcnames(fname, blank_pats=['    #']):
             funcname_list.append(funcname)
     return funcname_list
 
-
-# grep is in util_path. Thats pretty inspecty
 
 def inherit_kwargs(inherit_func):
     """
@@ -770,6 +769,8 @@ def parse_return_type(sourcecode):
 
     CommandLine:
         python -m utool.util_inspect --exec-parse_return_type
+        python -m utool.util_inspect --test-parse_return_type
+
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -781,10 +782,9 @@ def parse_return_type(sourcecode):
         ... '    return bar\n'
         ... )
         >>> returninfo = parse_return_type(sourcecode)
-        >>> (return_type, return_name, return_header, return_desc) = returninfo
-        >>> result = ut.repr2((return_type, return_name, return_header))
+        >>> result = ut.repr2(returninfo)
         >>> print(result)
-        ('?', 'bar', 'Returns')
+        ('?', 'bar', 'Returns', '')
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -795,11 +795,153 @@ def parse_return_type(sourcecode):
         ... '    return True\n'
         ... )
         >>> returninfo = parse_return_type(sourcecode)
-        >>> (return_type, return_name, return_header, return_desc) = returninfo
-        >>> result = ut.repr2((return_type, return_name, return_header))
+        >>> result = ut.repr2(returninfo)
         >>> print(result)
-        ('bool', 'True', 'Returns')
+        ('bool', 'True', 'Returns', '')
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_inspect import *  # NOQA
+        >>> import utool as ut
+        >>> sourcecode = ut.codeblock(
+        ... 'def foo(tmp=False):\n'
+        ... '    for i in range(2): \n'
+        ... '        yield i\n'
+        ... )
+        >>> returninfo = parse_return_type(sourcecode)
+        >>> result = ut.repr2(returninfo)
+        >>> print(result)
+        ('?', 'i', 'Yields', '')
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_inspect import *  # NOQA
+        >>> import utool as ut
+        >>> sourcecode = ut.codeblock(
+        ... 'def foo(tmp=False):\n'
+        ... '    if tmp is True:\n'
+        ... '        return (True, False)\n'
+        ... '    elif tmp is False:\n'
+        ... '        return 1\n'
+        ... '    else:\n'
+        ... '        bar = baz()\n'
+        ... '        return bar\n'
+        ... )
+        >>> returninfo = parse_return_type(sourcecode)
+        >>> result = ut.repr2(returninfo)
+        >>> print(result)
+        ('tuple', '(True, False)', 'Returns', '')
     """
+    import ast
+    return_type, return_name, return_header = (None, None, None)
+
+    if sourcecode is None:
+        return return_type, return_name, return_header, None
+
+    sourcecode = 'from __future__ import print_function\n' + sourcecode
+
+    pt = ast.parse(sourcecode)
+    debug = False
+    #debug = True
+
+    if debug:
+        import astor
+        print('\nSource:')
+        print(sourcecode)
+        print('\nParse:')
+        print(astor.dump(pt))
+        print('... starting')
+
+    def print_visit(type_, node):
+        if debug:
+            import utool as ut
+            print('+---')
+            print('\nVISIT %s node = %r' % (type_, node,))
+            print('node.__dict__ = ' + ut.repr2(node.__dict__, nl=True))
+            print('L___')
+
+    def get_node_name_and_type(node):
+        if isinstance(node, ast.Tuple):
+            tupnode_list = node.elts
+            def get_tuple_membername(tupnode):
+                if hasattr(tupnode, 'id'):
+                    return tupnode.id
+                elif hasattr(tupnode, 'value'):
+                    return 'None'
+                else:
+                    return 'None'
+                pass
+            tupleid = '(%s)' % (', '.join([str(get_tuple_membername(tupnode)) for tupnode in tupnode_list]))
+            node_type = 'tuple'
+            node_name = tupleid
+            #node_name = ast.dump(node)
+        elif isinstance(node, ast.Dict):
+            node_type = 'dict'
+            node_name = None
+        elif isinstance(node, ast.Name):
+            node_name = node.id
+            node_type = '?'
+            if node_name == 'True':
+                node_name = 'True'
+                node_type = 'bool'
+        else:
+            node_name = None
+            node_type = '?'
+            #node_type = 'ADD_TO_GET_NODE_NAME_AND_TYPE: ' + str(type(node.value))
+        return node_type, node_name
+
+    class ReturnVisitor(ast.NodeVisitor):
+        def init(self):
+            self.found_nodes = []
+            self.return_header = None
+
+        def visit_FunctionDef(self, node):
+            print_visit('FunctionDef', node)
+            # TODO: ignore subfunction return types
+            ast.NodeVisitor.generic_visit(self, node)
+
+        def visit_Return(self, node):
+            print_visit('Return', node)
+            ast.NodeVisitor.generic_visit(self, node)
+            return_value = node.value
+            self.found_nodes.append(return_value)
+            self.return_header = 'Returns'
+
+        def visit_Yield(self, node):
+            print_visit('Yield', node)
+            ast.NodeVisitor.generic_visit(self, node)
+            return_value = node.value
+            self.found_nodes.append(return_value)
+            self.return_header = 'Yields'
+    try:
+        self = ReturnVisitor()
+        self.init()
+        self.visit(pt)
+        return_header = self.return_header
+        if len(self.found_nodes) > 0:
+            # hack rectify multiple return values
+            node = self.found_nodes[0]
+            return_type, return_name = get_node_name_and_type(node)
+        else:
+            return_name = None
+            return_type = 'None'
+
+    except Exception:
+        if debug:
+            raise
+
+    return_desc = ''
+
+    if return_type == '?':
+        tup = infer_arg_types_and_descriptions([return_name], [])
+        argtype_list, argdesc_list, argdefault_list, hasdefault_list = tup
+        return_type = argtype_list[0]
+        return_desc = argdesc_list[0]
+
+    return return_type, return_name, return_header, return_desc
+
+
+def parse_return_type_OLD(sourcecode):
     import utool as ut
     import ast
     if ut.VERBOSE:
@@ -924,7 +1066,9 @@ def exec_func_sourcecode(func, globals_, locals_, key_list):
 exec_func_src = exec_func_sourcecode
 
 
-def get_func_sourcecode(func, stripdef=False, stripret=False, strip_docstr=False, strip_comments=False, remove_linenums=None):
+def get_func_sourcecode(func, stripdef=False, stripret=False,
+                        strip_docstr=False, strip_comments=False,
+                        remove_linenums=None):
     """
     wrapper around inspect.getsource but takes into account utool decorators
     strip flags are very hacky as of now
@@ -932,7 +1076,10 @@ def get_func_sourcecode(func, stripdef=False, stripret=False, strip_docstr=False
     Args:
         func (function):
         stripdef (bool):
-
+        stripret (bool): (default = False)
+        strip_docstr (bool): (default = False)
+        strip_comments (bool): (default = False)
+        remove_linenums (None): (default = None)
 
     CommandLine:
         python -m utool.util_inspect --test-get_func_sourcecode
