@@ -911,6 +911,7 @@ def parse_return_type(sourcecode):
             print_visit('Return', node)
             ast.NodeVisitor.generic_visit(self, node)
             return_value = node.value
+            print_visit('ReturnValue', return_value)
             self.found_nodes.append(return_value)
             self.return_header = 'Returns'
 
@@ -918,6 +919,7 @@ def parse_return_type(sourcecode):
             print_visit('Yield', node)
             ast.NodeVisitor.generic_visit(self, node)
             return_value = node.value
+            print_visit('YieldValue', return_value)
             self.found_nodes.append(return_value)
             self.return_header = 'Yields'
     try:
