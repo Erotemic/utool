@@ -411,6 +411,20 @@ def is_defined_by_module(item, module):
     return False
 
 
+def get_func_modname(func):
+    if hasattr(func, '_utinfo'):
+        # Capture case where there is a utool wrapper
+        orig_func = func._utinfo['orig_func']
+        return get_func_modname(orig_func)
+    #try:
+    func_globals = meta_util_six.get_funcglobals(func)
+    modname = func_globals['__name__']
+    return modname
+    #except  AttributeError:
+    #    pass
+    #pass
+
+
 def is_bateries_included(item):
     """
     Returns if a value is a python builtin function
@@ -1059,19 +1073,30 @@ def parse_return_type(sourcecode):
 #    return return_type, return_name, return_header, return_desc
 
 
-def exec_func_sourcecode(func, globals_, locals_, key_list):
+def exec_func_src(func, globals_=None, locals_=None, key_list=None, sentinal=None):
     """ execs a func and returns requested local vars """
     import utool as ut
     sourcecode = ut.get_func_sourcecode(func, stripdef=True, stripret=True)
-    six.exec_(sourcecode, globals_, locals_)
+    if globals_ is None:
+        globals_ = ut.get_parent_globals()
+    if locals_ is None:
+        locals_ = ut.get_parent_locals()
+    if sentinal is not None:
+        sourcecode = ut.replace_between_tags(sourcecode, '', sentinal)
+    globals_ = globals_.copy()
+    if locals_ is not None:
+        globals_.update(locals_)
+    #six.exec_(sourcecode, globals_, locals_)
+    six.exec_(sourcecode, globals_)
     # Draw intermediate steps
     if key_list is None:
-        return locals_
+        #return locals_
+        # TODO autodetermine the key_list from the function vars
+        return globals_
     else:
-        var_list = ut.dict_take( locals_, key_list)
+        #var_list = ut.dict_take(locals_, key_list)
+        var_list = ut.dict_take(globals_, key_list)
         return var_list
-
-exec_func_src = exec_func_sourcecode
 
 
 def get_func_sourcecode(func, stripdef=False, stripret=False,
@@ -1115,13 +1140,34 @@ def get_func_sourcecode(func, stripdef=False, stripret=False,
         func2 = func._utinfo['orig_func']
         sourcecode = get_func_sourcecode(func2)
     elif sourcefile is not None and sourcefile != '<string>':
-        try:
-            #print(func)
-            sourcecode = inspect.getsource(func)
-            #print(sourcecode)
-        except OSError as ex:
-            ut.printex(ex, 'Error getting source', keys=['sourcefile'])
-            raise
+        try_limit = 2
+        for num_tries in range(try_limit):
+            try:
+                #print(func)
+                sourcecode = inspect.getsource(func)
+                break
+                #print(sourcecode)
+            except (IndexError, OSError) as ex:
+                ut.printex(ex, 'Error getting source',
+                           keys=['sourcefile', 'func'])
+                if False:
+                    # VERY HACK: try to reload the module and get a redefined
+                    # version of the function
+                    import imp
+                    modname = get_func_modname(func)
+                    funcname = ut.get_funcname(func)
+                    module = sys.modules[modname]
+                    # TODO: ut.reload_module()
+                    module = imp.reload(module)
+                    func = module.__dict__[funcname]
+                else:
+                    # Fix inspect bug in python2.7
+                    inspect.linecache.clearcache()
+                if num_tries + 1 != try_limit:
+                    tries_left = try_limit - num_tries - 1
+                    print('Attempting %d more time(s)' % (tries_left))
+                else:
+                    raise
     else:
         sourcecode = None
     #orig_source = sourcecode

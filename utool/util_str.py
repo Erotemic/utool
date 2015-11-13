@@ -52,16 +52,18 @@ def ensure_unicode_strlist(str_list):
     return new_str_list
 
 
-def replace_between_tags(text, repl_, start_tag, end_tag):
+def replace_between_tags(text, repl_, start_tag, end_tag=None):
     r"""
+    Replaces text between sentinal lines in a block of text.
+
     Args:
         text (str):
-        repl_ (?):
-        start_tag (?):
-        end_tag (?):
+        repl_ (str):
+        start_tag (str):
+        end_tag (str): (default=None)
 
     Returns:
-        ?: new_text
+        str: new_text
 
     CommandLine:
         python -m utool.util_str --exec-replace_between_tags
@@ -97,11 +99,9 @@ def replace_between_tags(text, repl_, start_tag, end_tag):
         if not editing:
             new_lines.append(line)
         if line.strip().startswith(start_tag):
-            #new_lines.append(repl_ + '\n' + end_tag + '\n')
-            #new_lines.append(repl_ + '\n' + end_tag)
             new_lines.append(repl_)
             editing = True
-        if line.strip().startswith(end_tag):
+        if end_tag is not None and line.strip().startswith(end_tag):
             editing = False
             new_lines.append(line)
     new_text = '\n'.join(new_lines)
