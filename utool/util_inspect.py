@@ -888,6 +888,7 @@ def parse_return_type(sourcecode):
                 node_type = 'None'
         elif six.PY3 and isinstance(node, ast.NameConstant):
             node_name = node.value
+            node_type = '?'
             if node_name in ['True', 'False']:
                 node_type = 'bool'
             elif node_name == 'None':
