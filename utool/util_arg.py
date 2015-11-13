@@ -942,7 +942,7 @@ def argparse_dict(default_dict_, lbl=None, verbose=None,
     do_helpx = get_argflag('--helpx',
                            help_='Specifies that argparse_dict should print help and quit')
 
-    if get_argflag('--help') or do_helpx:
+    if get_argflag(('--help', '--help2')) or do_helpx:
         import utool as ut
         print('COMMAND LINE IS ACCEPTING THESE PARAMS WITH DEFAULTS:')
         if lbl is not None:

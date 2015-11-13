@@ -3,8 +3,8 @@
 Helpers for tests
 
 This module contains a more sane reimplementation of doctest functionality.
-(I.E. asserts work and you don't have to worry about standard out mucking things
-up) The code isn't super clean though due to time constriaints. Many functions
+(I.E.  asserts work and you don't have to worry about stdout mucking things up)
+The code isn't super clean though due to time constriaints.  Many functions
 probably belong elsewhere and the parsers need a big cleanup.
 
 TODO:
@@ -541,47 +541,6 @@ def _exec_doctest(src, kwargs, nocheckwant=None):
             errmsg1 += ('STR_EXPECTED: want=\n%s\n' % (want))
             raise AssertionError('result != want\n' + errmsg1)
     return test_locals
-
-
-def dev_ipython_copypaster(func):
-    import utool as ut
-    code_text = get_dev_paste_code(func)
-    ut.copy_text_to_clipboard(code_text)
-
-
-def get_dev_paste_code(func):
-    import utool as ut
-    example_texts = ut.get_doctest_examples(func)
-    example_text = example_texts[0][0]
-    assert isinstance(example_text, str), ut.list_str(example_text)
-    assert isinstance(example_text, str), ut.list_str(example_text)
-    source_text = ut.get_func_source(func)
-    get_dev_code = '\n'.join((example_text, source_text))
-    return get_dev_code
-
-
-def get_func_source(func):
-    r"""
-    Args:
-        func (function): live function
-
-    Returns:
-        src: source_text
-
-    CommandLine:
-        python -m utool.util_tests --test-get_func_source
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.devcases import *  # NOQA
-        >>> func = get_func_source
-        >>> get_func_source(func)
-    """
-    import utool as ut
-    source_text = inspect.getsource(func)
-    source_lines = source_text.splitlines()
-    source_text = ut.unindent('\n'.join(source_lines[1:]))
-    return source_text
 
 
 def get_module_testlines(module_list, remove_pyc=True, verbose=True,
@@ -1525,11 +1484,6 @@ def find_untested_modpaths(dpath_list=None, exclude_doctests_fnames=[], exclude_
     doctest_modpath_list = list(filter(is_not_excluded, fpath_list))
     #doctest_modname_list = list(map(ut.get_modname_from_modpath, doctest_modpath_list))
     return doctest_modpath_list
-
-
-def def_test(header, pat=None, dpath=None, modname=None, default=False, testcmds=None):
-    """ interface to make test tuple """
-    return (header, default, modname, dpath, pat, testcmds)
 
 
 def show_was_requested():

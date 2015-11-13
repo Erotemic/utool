@@ -112,11 +112,15 @@ def autogen_ibeis_runtest():
     pyscript_text = pyscript_fmtstr.format(build_modlist_str=ut.indent(build_modlist_str).strip())
     pyscript_text = ut.autofix_codeblock(pyscript_text)
 
+    def def_test(header, pat=None, dpath=None, modname=None, default=False, testcmds=None):
+        """ interface to make test tuple """
+        return (header, default, modname, dpath, pat, testcmds)
+
     # BUILD OLD SHELL RUN TESTS HARNESS
     testcmds = ut.get_module_testlines(module_list, remove_pyc=True, verbose=False, pythoncmd='RUN_TEST')
     test_headers = [
         # title, default, module, testpattern
-        ut.def_test('DOC', testcmds=testcmds, default=True)
+        def_test('DOC', testcmds=testcmds, default=True)
     ]
 
     shscript_text = ut.make_run_tests_script_text(test_headers, test_argvs, quick_tests, repodir, exclude_list)

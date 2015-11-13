@@ -2146,6 +2146,30 @@ def get_partial_func_name(func, precision=3):
     return name
 
 
+def dev_ipython_copypaster(func):
+    import utool as ut
+    code_text = get_dev_paste_code(func)
+    ut.copy_text_to_clipboard(code_text)
+
+
+def get_dev_paste_code(func):
+    import utool as ut
+    example_texts = ut.get_doctest_examples(func)
+    example_text = example_texts[0][0]
+    assert isinstance(example_text, str), ut.list_str(example_text)
+    assert isinstance(example_text, str), ut.list_str(example_text)
+    source_text = ut.get_func_sourcecode(func)
+    get_dev_code = '\n'.join((example_text, source_text))
+    return get_dev_code
+
+
+def argparse_funckw(func, **kwargs):
+    """ allows kwargs to be specified on the commandline from testfuncs """
+    import utool as ut
+    funckw_ = ut.get_func_kwargs(func)
+    funckw = ut.argparse_dict(funckw_, **kwargs)
+    return funckw
+
 if __name__ == '__main__':
     """
     CommandLine:

@@ -298,17 +298,19 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
         tuple (str, callable): (funcname, func) doctestable
 
     CommandLine:
-        python -m utool.util_inspect --test-iter_module_doctestable --modname=ibeis.model.hots.chip_match
-        python -m utool.util_inspect --test-iter_module_doctestable --modname=ibeis.control.IBEISControl
-        python -m utool.util_inspect --test-iter_module_doctestable --modname=ibeis.control.SQLDatabaseControl
+        python -m utool --tf iter_module_doctestable --modname=ibeis.model.hots.chip_match
+        python -m utool --tf iter_module_doctestable --modname=ibeis.control.IBEISControl
+        python -m utool --tf iter_module_doctestable --modname=ibeis.control.SQLDatabaseControl
+        python -m utool --tf iter_module_doctestable --modname=ibeis.control.manual_annot_funcs
 
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_inspect import *   # NOQA
         >>> import utool as ut
         >>> modname = ut.get_argval('--modname', type_=str, default=None)
+        >>> kwargs = ut.argparse_funckw(iter_module_doctestable)
         >>> module = ut.util_tests if modname is None else ut.import_modname(modname)
-        >>> doctestable_list = list(iter_module_doctestable(module))
+        >>> doctestable_list = list(iter_module_doctestable(module, **kwargs))
         >>> func_names = sorted(ut.get_list_column(doctestable_list, 0))
         >>> print(ut.list_str(func_names))
     """
@@ -402,6 +404,10 @@ def is_defined_by_module(item, module):
             return True
     except  AttributeError:
         pass
+    if hasattr(item, '_utinfo'):
+        # Capture case where there is a utool wrapper
+        orig_func = item._utinfo['orig_func']
+        return is_defined_by_module(orig_func, module)
     return False
 
 
