@@ -864,19 +864,9 @@ def parse_return_type(sourcecode):
     def get_node_name_and_type(node):
         if isinstance(node, ast.Tuple):
             tupnode_list = node.elts
-            #def get_tuple_membername(tupnode):
-            #    if hasattr(tupnode, 'id'):
-            #        return tupnode.id
-            #    elif hasattr(tupnode, 'value'):
-            #        return 'None'
-            #    else:
-            #        return 'None'
-            #    pass
-            #tupleid = '(%s)' % (', '.join([str(get_tuple_membername(tupnode)) for tupnode in tupnode_list]))
             tupleid = '(%s)' % (', '.join([str(get_node_name_and_type(tupnode)[1]) for tupnode in tupnode_list]))
             node_type = 'tuple'
             node_name = tupleid
-            #node_name = ast.dump(node)
         elif isinstance(node, ast.Dict):
             node_type = 'dict'
             node_name = None
