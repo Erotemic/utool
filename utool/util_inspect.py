@@ -841,7 +841,7 @@ def parse_return_type(sourcecode):
     sourcecode = 'from __future__ import print_function\n' + sourcecode
 
     pt = ast.parse(sourcecode)
-    debug = False
+    debug = ut.get_argflag('--debug-parse-return')
     #debug = True
 
     if debug:
