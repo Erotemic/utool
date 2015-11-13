@@ -943,114 +943,114 @@ def parse_return_type(sourcecode):
     return return_type, return_name, return_header, return_desc
 
 
-def parse_return_type_OLD(sourcecode):
-    import utool as ut
-    import ast
-    if ut.VERBOSE:
-        print('[utool] parsing return types')
+#def parse_return_type_OLD(sourcecode):
+#    import utool as ut
+#    import ast
+#    if ut.VERBOSE:
+#        print('[utool] parsing return types')
 
-    if sourcecode is None:
-        return_type, return_name, return_header = (None, None, None)
-        return return_type, return_name, return_header, None
+#    if sourcecode is None:
+#        return_type, return_name, return_header = (None, None, None)
+#        return return_type, return_name, return_header, None
 
-    #source_lines = sourcecode.splitlines()
-    sourcecode = 'from __future__ import print_function\n' + sourcecode
-    try:
-        pt = ast.parse(sourcecode)
-    except Exception:
-        return_type, return_name, return_header = (None, None, None)
-        #raise
-        return return_type, return_name, return_header, None
-        #print(sourcecode)
-        #ut.printex(ex, 'Error Parsing')
+#    #source_lines = sourcecode.splitlines()
+#    sourcecode = 'from __future__ import print_function\n' + sourcecode
+#    try:
+#        pt = ast.parse(sourcecode)
+#    except Exception:
+#        return_type, return_name, return_header = (None, None, None)
+#        #raise
+#        return return_type, return_name, return_header, None
+#        #print(sourcecode)
+#        #ut.printex(ex, 'Error Parsing')
 
-    assert isinstance(pt, ast.Module), str(type(pt))
+#    assert isinstance(pt, ast.Module), str(type(pt))
 
-    Try = ast.Try if six.PY3 else ast.TryExcept
+#    Try = ast.Try if six.PY3 else ast.TryExcept
 
-    def find_function_nodes(pt):
-        function_nodes = []
-        for node in pt.body:
-            if isinstance(node, ast.FunctionDef):
-                function_nodes.append(node)
-        return function_nodes
+#    def find_function_nodes(pt):
+#        function_nodes = []
+#        for node in pt.body:
+#            if isinstance(node, ast.FunctionDef):
+#                function_nodes.append(node)
+#        return function_nodes
 
-    function_nodes = find_function_nodes(pt)
-    assert len(function_nodes) == 1
-    func_node = function_nodes[0]
+#    function_nodes = find_function_nodes(pt)
+#    assert len(function_nodes) == 1
+#    func_node = function_nodes[0]
 
-    def find_return_node(node):
-        if isinstance(node, list):
-            candidates = []
-            node_list = node
-            for node in node_list:
-                candidate = find_return_node(node)
-                if candidate is not None:
-                    candidates.append(candidate)
-            if len(candidates) > 0:
-                return candidates[0]
-        elif isinstance(node, (ast.Return, ast.Yield)):
-            return node
-        elif isinstance(node, (ast.If, Try)):
-            return find_return_node(node.body)
-        else:
-            pass
-            #print(type(node))
-    if ut.VERBOSE:
-        print('[utool] parsing return types')
-    returnnode = find_return_node(func_node.body)
-    # Check return or yeild
-    if isinstance(returnnode, ast.Yield):
-        return_header = 'Yeilds'
-    elif isinstance(returnnode, ast.Return):
-        return_header = 'Returns'
-    else:
-        return_header = None
-    # Get more return info
+#    def find_return_node(node):
+#        if isinstance(node, list):
+#            candidates = []
+#            node_list = node
+#            for node in node_list:
+#                candidate = find_return_node(node)
+#                if candidate is not None:
+#                    candidates.append(candidate)
+#            if len(candidates) > 0:
+#                return candidates[0]
+#        elif isinstance(node, (ast.Return, ast.Yield)):
+#            return node
+#        elif isinstance(node, (ast.If, Try)):
+#            return find_return_node(node.body)
+#        else:
+#            pass
+#            #print(type(node))
+#    if ut.VERBOSE:
+#        print('[utool] parsing return types')
+#    returnnode = find_return_node(func_node.body)
+#    # Check return or yeild
+#    if isinstance(returnnode, ast.Yield):
+#        return_header = 'Yeilds'
+#    elif isinstance(returnnode, ast.Return):
+#        return_header = 'Returns'
+#    else:
+#        return_header = None
+#    # Get more return info
 
-    def get_node_name_and_type(node):
-        node_name = None
-        node_type = '?'
-        if node is None:
-            node_type = 'None'
-        elif isinstance(node.value, ast.Tuple):
-            tupnode_list = node.value.elts
-            def get_tuple_membername(tupnode):
-                if hasattr(tupnode, 'id'):
-                    return tupnode.id
-                elif hasattr(tupnode, 'value'):
-                    return 'None'
-                else:
-                    return 'None'
-                pass
-            tupleid = '(%s)' % (', '.join([str(get_tuple_membername(tupnode)) for tupnode in tupnode_list]))
-            node_type = 'tuple'
-            node_name = tupleid
-            #node_name = ast.dump(node)
-        elif isinstance(node.value, ast.Dict):
-            node_type = 'dict'
-            node_name = None
-        elif isinstance(node.value, ast.Name):
-            node_name = node.value.id
-            if node_name == 'True':
-                node_name = 'True'
-                node_type = 'bool'
-        else:
-            #node_type = 'ADD_TO_GET_NODE_NAME_AND_TYPE: ' + str(type(node.value))
-            node_type = '?'
-        return node_type, node_name
+#    def get_node_name_and_type(node):
+#        node_name = None
+#        node_type = '?'
+#        if node is None:
+#            node_type = 'None'
+#        elif isinstance(node.value, ast.Tuple):
+#            tupnode_list = node.value.elts
+#            def get_tuple_membername(tupnode):
+#                if hasattr(tupnode, 'id'):
+#                    return tupnode.id
+#                elif hasattr(tupnode, 'value'):
+#                    return 'None'
+#                else:
+#                    return 'None'
+#                pass
+#            tupleid = '(%s)' % (', '.join([str(get_tuple_membername(tupnode)) for tupnode in tupnode_list]))
+#            node_type = 'tuple'
+#            node_name = tupleid
+#            #node_name = ast.dump(node)
+#        elif isinstance(node.value, ast.Dict):
+#            node_type = 'dict'
+#            node_name = None
+#        elif isinstance(node.value, ast.Name):
+#            node_name = node.value.id
+#            if node_name == 'True':
+#                node_name = 'True'
+#                node_type = 'bool'
+#        else:
+#            #node_type = 'ADD_TO_GET_NODE_NAME_AND_TYPE: ' + str(type(node.value))
+#            node_type = '?'
+#        return node_type, node_name
 
-    return_type, return_name = get_node_name_and_type(returnnode)
+#    return_type, return_name = get_node_name_and_type(returnnode)
 
-    if return_type == '?':
-        tup = infer_arg_types_and_descriptions([return_name], [])
-        argtype_list, argdesc_list, argdefault_list, hasdefault_list = tup
-        return_type = argtype_list[0]
-        return_desc = argdesc_list[0]
-    else:
-        return_desc = ''
+#    if return_type == '?':
+#        tup = infer_arg_types_and_descriptions([return_name], [])
+#        argtype_list, argdesc_list, argdefault_list, hasdefault_list = tup
+#        return_type = argtype_list[0]
+#        return_desc = argdesc_list[0]
+#    else:
+#        return_desc = ''
 
-    return return_type, return_name, return_header, return_desc
+#    return return_type, return_name, return_header, return_desc
 
 
 def exec_func_sourcecode(func, globals_, locals_, key_list):
