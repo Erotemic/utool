@@ -302,6 +302,7 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
         python -m utool --tf iter_module_doctestable --modname=ibeis.control.IBEISControl
         python -m utool --tf iter_module_doctestable --modname=ibeis.control.SQLDatabaseControl
         python -m utool --tf iter_module_doctestable --modname=ibeis.control.manual_annot_funcs
+        python -m utool --tf iter_module_doctestable --modname=ibeis.control.manual_annot_funcs
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -358,6 +359,9 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
                 yield key, val
         elif isinstance(val, valid_class_types):
             class_ = val
+            #if key == 'SQLDatabaseController':
+            #    import utool as ut
+            #    ut.embed()
             if not include_inherited and not is_defined_by_module(class_, module):
                 continue
             if include_classes:
@@ -398,16 +402,17 @@ def is_defined_by_module(item, module):
     Check if item is directly defined by a module.
     This check may be prone to errors.
     """
+    if hasattr(item, '_utinfo'):
+        # Capture case where there is a utool wrapper
+        orig_func = item._utinfo['orig_func']
+        return is_defined_by_module(orig_func, module)
     try:
         func_globals = meta_util_six.get_funcglobals(item)
         if func_globals['__name__'] == module.__name__:
             return True
     except  AttributeError:
-        pass
-    if hasattr(item, '_utinfo'):
-        # Capture case where there is a utool wrapper
-        orig_func = item._utinfo['orig_func']
-        return is_defined_by_module(orig_func, module)
+        if hasattr(item, '__module__'):
+            return item.__module__ == module.__name__
     return False
 
 

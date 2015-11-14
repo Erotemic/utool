@@ -919,6 +919,14 @@ def spawn_background_thread(func, *args, **kwargs):
     return thread_obj
 
 
+def spawn_background_daemon_thread(func, *args, **kwargs):
+    #threadobj = IMPLEMENTATION_NUM
+    thread_obj = threading.Thread(target=func, args=args, kwargs=kwargs)
+    thread_obj.daemon = True
+    thread_obj.start()
+    return thread_obj
+
+
 def _spawn_background_thread0(func, *args, **kwargs):
     thread_id = _thread.start_new_thread(func, args, kwargs)
     return thread_id
