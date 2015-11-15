@@ -364,6 +364,23 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
                     seen_.add(argstr2_1)
             argstr_list = argstr_list2
 
+        # Check environment variables for default as well as argv
+        import os
+        """
+        set UTOOL_NOCNN=True
+        export UTOOL_NOCNN True
+        """
+        #argv_orig = argv[:]
+        for key, val in os.environ.items():
+            key = key.upper()
+            sentinal = 'UTOOL_'
+            if key.startswith(sentinal):
+                key = '--' + key[len(sentinal):]
+                new_argv = [key, val]
+                argv.extend(new_argv)
+                if debug:
+                    print('argv.extend(new_argv=%r)' % (new_argv,))
+
         for argx, item in enumerate(argv):
             for argstr in argstr_list:
                 if item == argstr:
