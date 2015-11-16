@@ -781,12 +781,28 @@ def list_compress(item_list, flag_list):
     return filtered_items
 
 
-def list_ziptake(items_list, indexes_list):
-    return [list_take(list_, index_list) for list_, index_list in zip(items_list, indexes_list)]
+def ziptake(items_list, indexes_list):
+    """
+    SeeAlso:
+        vt.ziptake
+    """
+    return [list_take(list_, index_list)
+            for list_, index_list in zip(items_list, indexes_list)]
 
 
-def list_zipcompress(items_list, flags_list):
-    return [list_compress(list_, flags) for list_, flags in zip(items_list, flags_list)]
+list_ziptake = ziptake
+
+
+def zipcompress(items_list, flags_list):
+    """
+    SeeAlso:
+        vt.zipcompress
+    """
+    return [list_compress(list_, flags)
+            for list_, flags in zip(items_list, flags_list)]
+
+
+list_zipcompress = zipcompress
 
 
 def list_zipflatten(*items_lists):
@@ -2121,6 +2137,78 @@ def delete_items_by_index(list_, index_list):
     for index in index_list_:
         del list_[index]
     return list_
+
+
+def unflat_map(func, unflat_items, vectorized=False, **kwargs):
+    """
+    Uses an ibeis lookup function with a non-flat rowid list.
+    In essence this is equivilent to [list(map(func, _items)) for _items in unflat_items].
+    The utility of this function is that it only calls method once.
+    This is more efficient for calls that can take a list of inputs
+
+    Args:
+        func          (func):  function
+        unflat_items (list): list of rowid lists
+
+    Returns:
+        list of values: unflat_vals
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-unflat_map
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis  # NOQA
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> vectorized = False
+        >>> func = lambda x: x + 1
+        >>> unflat_items = [[], [1, 2, 3], [4, 5], [6, 7, 8, 9], [], []]
+        >>> unflat_vals = unflat_map(func, unflat_items)
+        >>> result = str(unflat_vals)
+        >>> print(result)
+        [[], [2, 3, 4], [5, 6], [7, 8, 9, 10], [], []]
+    """
+    import utool as ut
+    # First flatten the list, and remember the original dimensions
+    flat_items, reverse_list = ut.invertible_flatten2(unflat_items)
+    # Then preform the lookup / implicit mapping
+    if vectorized:
+        # func is vectorized
+        flat_vals = func(flat_items, **kwargs)
+    else:
+        flat_vals = [func(item, **kwargs) for item in flat_items]
+    if True:
+        assert len(flat_vals) == len(flat_items), (
+            'flat lens not the same, len(flat_vals)=%d len(flat_items)=%d' %
+            (len(flat_vals), len(flat_items),))
+    # Then ut.unflatten2 the results to the original input dimensions
+    unflat_vals = ut.unflatten2(flat_vals, reverse_list)
+    if True:
+        assert len(unflat_vals) == len(unflat_items), (
+            'unflat lens not the same, len(unflat_vals)=%d len(unflat_rowids)=%d' %
+            (len(unflat_vals), len(unflat_items),))
+    return unflat_vals
+
+
+def unflat_vecmap(func, unflat_items, vectorized=False, **kwargs):
+    """ unflat map for vectorized functions """
+    import utool as ut
+    # First flatten the list, and remember the original dimensions
+    flat_items, reverse_list = ut.invertible_flatten2(unflat_items)
+    # Then preform the lookup / implicit mapping
+    flat_vals = func(flat_items, **kwargs)
+    if True:
+        assert len(flat_vals) == len(flat_items), (
+            'flat lens not the same, len(flat_vals)=%d len(flat_items)=%d' %
+            (len(flat_vals), len(flat_items),))
+    # Then ut.unflatten2 the results to the original input dimensions
+    unflat_vals = ut.unflatten2(flat_vals, reverse_list)
+    if True:
+        assert len(unflat_vals) == len(unflat_items), (
+            'unflat lens not the same, len(unflat_vals)=%d len(unflat_rowids)=%d' %
+            (len(unflat_vals), len(unflat_items),))
+    return unflat_vals
 
 
 take = list_take
