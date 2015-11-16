@@ -10,11 +10,13 @@ import time
 import math
 import sys
 import datetime
+from functools import partial
 from utool import util_logging
 from utool import util_inject
 from utool import util_arg
 from utool import util_time
 from utool import util_iter
+from utool import util_cplat
 import six  # NOQA
 print, rrr, profile = util_inject.inject2(__name__, '[progress]')
 
@@ -116,7 +118,7 @@ def get_nTotalChunks(nTotal, chunksize):
         >>> nTotal = 2000
         >>> chunksize = 256
         >>> nTotalChunks = get_nTotalChunks(nTotal, chunksize)
-        >>> result = ('nTotalChunks = %s' % (str(nTotalChunks),))
+        >>> result = ('nTotalChunks = %s' % (six.text_type(nTotalChunks),))
         >>> print(result)
         nTotalChunks = 8
     """
@@ -136,6 +138,10 @@ def progress_chunks(list_, chunksize, **kwargs):
     kwargs['nTotal'] = nTotalChunks
     progiter_ = ProgressIter(chunk_iter, **kwargs)
     return progiter_
+
+
+def ProgPartial(*args, **kwargs):
+    return partial(ProgressIter, *args, **kwargs)
 
 
 class ProgressIter(object):
@@ -242,7 +248,7 @@ class ProgressIter(object):
         >>>                            report_unit='seconds', freq=1,
         >>>                            time_thresh=, adjust=True)
         >>> results1 = [ut.get_nth_prime_bruteforce(29) for x in progiter]
-        >>> print(ut.truncate_str(str(results1)))
+        >>> print(ut.truncate_str(ut.repr2(results1)))
 
     """
     #def new_init(self, iterable=None, lbl='ProgIter', nTotal=None, freq=4,
@@ -335,7 +341,6 @@ class ProgressIter(object):
         substep_size = step_size / num_substeps
         substep_min_list = [(step * substep_size) + step_min for step in range(num_substeps)]
         #level = prog_iter.level + 1
-        from functools import partial
         DEBUG = False
         if DEBUG:
             with ut.Indenter(' ' * 4 * prog_iter.level):
@@ -357,16 +362,20 @@ class ProgressIter(object):
         return subprog_partial_list
 
     def build_msg_fmtstr_index(self, nTotal, lbl):
-        msg_fmtstr_index = ''.join(('\r', lbl, ' %4d/', str(nTotal), '...  ',))
+        nTotal_ = '?' if nTotal == 0 else six.text_type(nTotal)
+        msg_fmtstr_index = ''.join(('\r', lbl, ' %4d/', nTotal_ , '...  ',))
         return msg_fmtstr_index
 
     def build_msg_fmtstr_time(self, lbl, invert_rate, backspace):
         with_wall = True
+        tzname = time.tzname[0]
+        if util_cplat.WIN32:
+            tzname = tzname.replace('Eastern Standard Time', 'EST')
         msg_fmtstr_time = ''.join((
             'rate=%3.3f seconds/iter, ' if invert_rate else 'rate=%4.2f Hz,',
             ' etr=%s,',
             ' ellapsed=%s,',
-            ' wall=%s ' + time.tzname[0] if with_wall else '',
+            ' wall=%s ' + tzname if with_wall else '',
             '\n' if backspace else '',
         ))
         return msg_fmtstr_time
@@ -501,8 +510,8 @@ class ProgressIter(object):
                 msg = msg_fmtstr % (
                     self.count,
                     1.0 / iters_per_second if self.invert_rate else iters_per_second,
-                    str(datetime.timedelta(seconds=int(est_seconds_left))),
-                    str(datetime.timedelta(seconds=int(total_seconds))),
+                    six.text_type(datetime.timedelta(seconds=int(est_seconds_left))),
+                    six.text_type(datetime.timedelta(seconds=int(total_seconds))),
                     time.strftime('%H:%M'),
                 )
                 #est_timeunit_left,
@@ -522,8 +531,8 @@ class ProgressIter(object):
             total_seconds = (now_time - start_time)
             msg = msg_fmtstr % (
                 self.count, 1.0 / iters_per_second if self.invert_rate else iters_per_second,
-                str(datetime.timedelta(seconds=int(est_seconds_left))),
-                str(datetime.timedelta(seconds=int(total_seconds))),
+                six.text_type(datetime.timedelta(seconds=int(est_seconds_left))),
+                six.text_type(datetime.timedelta(seconds=int(total_seconds))),
                 time.strftime('%H:%M'),
             )
             PROGRESS_WRITE(msg)
@@ -603,11 +612,11 @@ def progress_str(max_val, lbl='Progress: ', repl=False, approx=False, backspace=
 
     """
     # string that displays max value
-    max_str = str(max_val)
+    max_str = six.text_type(max_val)
     if approx:
         # denote approximate maximum
         max_str = '~' + max_str
-    dnumstr = str(len(max_str))
+    dnumstr = six.text_type(len(max_str))
     # string that displays current progress
     cur_str = '%' + dnumstr + 'd'
     # If user passed in the label

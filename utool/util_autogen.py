@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
+import re
 import os
-from utool import util_inject
 import six
 from collections import deque  # NOQA
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
+from os.path import exists, dirname, join, expanduser, normpath
+from utool import util_inject
+print, rrr, profile = util_inject.inject2(__name__, '[autogen]')
 
 
 class PythonStatement(object):
@@ -680,6 +682,25 @@ def make_default_docstr(func,
     return default_docstr
 
 
+def remove_codeblock_syntax_sentinals(code_text):
+    r"""
+    Removes template comments and vim sentinals
+
+    Args:
+        code_text (str):
+
+    Returns:
+        str: code_text_
+    """
+    flags = re.MULTILINE | re.DOTALL
+    code_text_ = code_text
+    code_text_ = re.sub(r'^ *# *REM [^\n]*$\n?', '', code_text_, flags=flags)
+    code_text_ = re.sub(r'^ *# STARTBLOCK *$\n', '', code_text_, flags=flags)
+    code_text_ = re.sub(r'^ *# ENDBLOCK *$\n?', '', code_text_, flags=flags)
+    code_text_ = code_text_.rstrip()
+    return code_text_
+
+
 def make_default_module_maintest(modname, modpath=None):
     """
     make_default_module_maintest
@@ -713,31 +734,52 @@ def make_default_module_maintest(modname, modpath=None):
     # ut.doctest_funcs({modname}, allexamples=True)"
     #in_pythonpath, module_type, path = find_modname_in_pythonpath(modname)
     # only use the -m if it is part of a package directory
-    from os.path import exists, dirname, join, expanduser, normpath
-
-    use_modrun = modpath is None or exists(join(dirname(modpath), '__init__.py'))
+    moddir = dirname(modpath)
+    pkginit_fpath = join(moddir, '__init__.py')
+    use_modrun = modpath is None or exists(pkginit_fpath)
 
     if use_modrun:
         pyargs = '-m ' + modname
     else:
-        if not ut.WIN32:
-            pyargs = normpath(modpath).replace(expanduser('~'), '~')
+        if ut.WIN32:
+            modpath = normpath(modpath).replace(expanduser('~'), '%HOME%')
+            pyargs = '-B ' + ut.ensure_unixslash(modpath)
+        else:
+            modpath = normpath(modpath).replace(expanduser('~'), '~')
+            pyargs = modpath
+
+    cmdline = ut.codeblock(
+        '''
+        python {pyargs}
+        python {pyargs} --allexamples
+        # REM python {pyargs} --allexamples --noface --nosrc
+        ''')
+
+    if not use_modrun:
+        if ut.WIN32:
+            augpath = 'set PYTHONPATH=%PYTHONPATH%' + os.pathsep + moddir
+        else:
+            augpath = 'export PYTHONPATH=$PYTHONPATH' + os.pathsep + moddir
+        cmdline = augpath + '\n' + cmdline
+
+    cmdline = ut.indent(cmdline, ' ' * 8).lstrip(' ').format(pyargs=pyargs)
 
     text = ut.codeblock(
-        '''
+        r'''
+        # STARTBLOCK
         if __name__ == '__main__':
-            """
+            r"""
             CommandLine:
-                python {pyargs}
-                python {pyargs} --allexamples
-                python {pyargs} --allexamples --noface --nosrc
+                {cmdline}
             """
             import multiprocessing
             multiprocessing.freeze_support()  # for win32
             import utool as ut  # NOQA
             ut.doctest_funcs()
+        # ENDBLOCK
         '''
-    ).format(pyargs=pyargs)
+    ).format(cmdline=cmdline)
+    text = remove_codeblock_syntax_sentinals(text)
     return text
 
 

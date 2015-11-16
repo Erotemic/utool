@@ -48,13 +48,33 @@ class CacheMissException(Exception):
 
 
 #class YACacher(object):
+@six.add_metaclass(util_class.ReloadingMetaclass)
 class ShelfCacher(object):
     """ yet another cacher """
     def __init__(self, fpath, enabled=True):
+        self.verbose = True
+        if self.verbose:
+            print('[shelfcache] initializing()')
         self.fpath = fpath
         self.shelf = None if not enabled else shelve.open(fpath)
 
+    def __del__(self):
+        self.close()
+
+    def __getitem__(self, cachekey):
+        return self.load(cachekey)
+
+    def __setitem__(self, cachekey, data):
+        return self.save(cachekey, data)
+
+    def keys(self):
+        return self.shelf.keys()
+
     def load(self, cachekey):
+        if self.verbose:
+            print('[shelfcache] loading %s' % (cachekey,))
+
+        cachekey = cachekey.encode('ascii')
         if self.shelf is None or cachekey not in self.shelf:
             raise CacheMissException(
                 'Cache miss cachekey=%r self.fpath=%r' % (cachekey, self.fpath))
@@ -62,10 +82,17 @@ class ShelfCacher(object):
             return self.shelf[cachekey]
 
     def save(self, cachekey, data):
+        if self.verbose:
+            print('[shelfcache] saving %s' % (cachekey,))
+
+        cachekey = cachekey.encode('ascii')
         if self.shelf is not None:
             self.shelf[cachekey] = data
+        self.shelf.sync()
 
     def close(self):
+        if self.verbose:
+            print('[shelfcache] closing()')
         if self.shelf is not None:
             self.shelf.close()
 

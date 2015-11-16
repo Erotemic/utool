@@ -174,9 +174,37 @@ def remove_file(fpath, verbose=True, dryrun=False, ignore_errors=True, **kwargs)
 
 
 def remove_dirs(dpath, dryrun=False, ignore_errors=True, quiet=QUIET, **kwargs):
-    """ Removes a directory """
+    """ Removes a single directory (need to change function name)
+
+    Args:
+        dpath (str):  directory path
+        dryrun (bool): (default = False)
+        ignore_errors (bool): (default = True)
+        quiet (bool): (default = False)
+
+    Returns:
+        bool: False
+
+    CommandLine:
+        python -m utool.util_path --exec-remove_dirs
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> dpath = ut.ensure_app_resource_dir('utool', 'testremovedir')
+        >>> assert exists(dpath), 'nothing to remove'
+        >>> dryrun = False
+        >>> ignore_errors = True
+        >>> quiet = False
+        >>> flag = remove_dirs(dpath, dryrun, ignore_errors, quiet)
+        >>> result = ('flag = %s' % (flag,))
+        >>> print(result)
+        >>> assert not exists(dpath), 'did not remove dpath'
+    """
     if not quiet:
         print('[util_path] Removing directory: %r' % dpath)
+    if dryrun:
+        return False
     try:
         shutil.rmtree(dpath)
     except OSError as e:
@@ -323,6 +351,8 @@ def delete(path, dryrun=False, recursive=True, verbose=VERBOSE,
         flag = flag and remove_dirs(path, **rmargs)
     elif isfile(path):
         flag = remove_file(path, **rmargs)
+    else:
+        raise ValueError('Unknown type of path=%r' (path,))
     if not QUIET:
         print('[util_path] Finished deleting path=%r' % path)
     return flag
@@ -355,6 +385,9 @@ def remove_existing_fpaths(fpath_list, verbose=VERBOSE, quiet=QUIET,
 
 def remove_fpaths(fpath_list, verbose=VERBOSE, quiet=QUIET, strict=False,
                   print_caller=PRINT_CALLER, lbl='files'):
+    """
+    Removes multiple file paths
+    """
     if print_caller:
         print(util_dbg.get_caller_name(range(1, 4)) + ' called remove_fpaths')
     nTotal = len(fpath_list)
@@ -790,14 +823,22 @@ def symlink(path, link, noraise=False):
 
 def file_bytes(fpath):
     r"""
-    returns size of file in bytes (int)
+    Args:
+        fpath (str):  file path string
+
+    Returns:
+        int: size of file in bytes
     """
     return os.stat(fpath).st_size
 
 
 def file_megabytes(fpath):
     r"""
-    returns size of file in megabytes (float)
+    Args:
+        fpath (str):  file path string
+
+    Returns:
+        float: size of file in megabytes
     """
     return os.stat(fpath).st_size / (2.0 ** 20)
 
@@ -873,6 +914,9 @@ def iglob(dpath, pattern=None, recursive=False, with_files=True, with_dirs=True,
           maxdepth=None, exclude_dirs=[], fullpath=True, **kwargs):
     r"""
     Iteratively globs directory for pattern
+
+    FIXME:
+        This function has a speed issue
 
     Args:
         dpath (str):  directory path
@@ -1384,9 +1428,7 @@ def get_standard_include_patterns():
 
 def matching_fnames(dpath_list, include_patterns, exclude_dirs=[],
                     greater_exclude_dirs=[], recursive=True):
-    """
-
-    # TODO: fix names and behavior of exclude_dirs and greater_exclude_dirs
+    r"""
 
     matching_fnames. walks dpath lists returning all directories that match the
     requested pattern.
@@ -1396,6 +1438,10 @@ def matching_fnames(dpath_list, include_patterns, exclude_dirs=[],
         include_patterns (?):
         exclude_dirs     (None):
         recursive        (bool):
+
+    References:
+        # TODO: fix names and behavior of exclude_dirs and greater_exclude_dirs
+        http://stackoverflow.com/questions/19859840/excluding-directories-in-os-walk
 
     Example:
         >>> # DISABLE_DOCTEST
