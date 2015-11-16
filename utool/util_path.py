@@ -10,7 +10,7 @@ from six.moves import zip, filter, filterfalse, map, range
 import six
 from os.path import (join, basename, relpath, normpath, split, isdir, isfile,
                      exists, islink, ismount, dirname, splitext, realpath,
-                     splitdrive)
+                     splitdrive, commonprefix)
 import os
 import re
 import sys
@@ -1766,6 +1766,10 @@ def existing_subpath(root_path, valid_subpaths, tiebreaker='first', verbose=VERY
                 return path
     raise AssertionError('none of the following subpaths exist: %r' %
                          (valid_subpaths,))
+
+
+def existing_commonprefix(paths):
+    return longest_existing_path(commonprefix(paths))
 
 
 #def find_executable(exename):

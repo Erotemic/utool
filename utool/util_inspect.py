@@ -303,6 +303,7 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
         python -m utool --tf iter_module_doctestable --modname=ibeis.control.SQLDatabaseControl
         python -m utool --tf iter_module_doctestable --modname=ibeis.control.manual_annot_funcs
         python -m utool --tf iter_module_doctestable --modname=ibeis.control.manual_annot_funcs
+        python -m utool --tf iter_module_doctestable --modname=ibeis.expt.test_result
 
     Example1:
         >>> # ENABLE_DOCTEST
