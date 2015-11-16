@@ -124,7 +124,8 @@ def autogen_argparse_block(extra_args=[]):
 
 #@profile
 def get_argflag(argstr_, default=False, help_='', return_specified=None,
-                need_prefix=True, return_was_specified=False, **kwargs):
+                need_prefix=True, return_was_specified=False, argv=sys.argv,
+                **kwargs):
     """
     Checks if the commandline has a flag or a corresponding noflag
 
@@ -166,6 +167,29 @@ def get_argflag(argstr_, default=False, help_='', return_specified=None,
     _register_arg(argstr_list, bool, default, help_)
     parsed_val = default
     was_specified = False
+    debug = False
+
+    # Check environment variables for default as well as argv
+    import os
+    """
+    set UTOOL_NOCNN=True
+    export UTOOL_NOCNN True
+    """
+    #argv_orig = argv[:]
+    for key, val in os.environ.items():
+        key = key.upper()
+        sentinal = 'UTOOL_'
+        if key.startswith(sentinal):
+            flag = '--' + key[len(sentinal):]
+            if val.upper() in ['TRUE', 'ON']:
+                flag += '=True'
+            elif val.upper() in ['FALSE', 'OFF']:
+                flag += '=False'
+            new_argv = [flag]
+            argv.extend(new_argv)
+            if debug:
+                print('argv.extend(new_argv=%r)' % (new_argv,))
+
     for argstr in argstr_list:
         #if VERYVERBOSE:
         #    print('[util_arg]   * checking argstr=%r' % (argstr,))
@@ -173,30 +197,30 @@ def get_argflag(argstr_, default=False, help_='', return_specified=None,
             raise AssertionError('Invalid argstr: %r' % (argstr,))
         if not need_prefix:
             noprefix = argstr.replace('--', '')
-            if noprefix in sys.argv:
+            if noprefix in argv:
                 parsed_val = True
                 was_specified = True
                 break
         #if argstr.find('--no') == 0:
             #argstr = argstr.replace('--no', '--')
         noarg = argstr.replace('--', '--no')
-        if argstr in sys.argv:
+        if argstr in argv:
             parsed_val = True
             was_specified = True
             #if VERYVERBOSE:
             #    print('[util_arg]   * ...WAS_SPECIFIED. AND PARSED')
             break
-        elif noarg in sys.argv:
+        elif noarg in argv:
             parsed_val = False
             was_specified = True
             #if VERYVERBOSE:
             #    print('[util_arg]   * ...WAS_SPECIFIED. AND NOT PARSED')
             break
-        elif argstr + '=True' in sys.argv:
+        elif argstr + '=True' in argv:
             parsed_val = True
             was_specified = True
             break
-        elif argstr + '=False' in sys.argv:
+        elif argstr + '=False' in argv:
             parsed_val = False
             was_specified = True
             break

@@ -906,7 +906,10 @@ def spawn_background_process(func, *args, **kwargs):
         >>> assert ut.checkpath(fpath, verbose=True)
         >>> assert threadid.is_alive() is False, 'process should have died'
     """
-    proc_obj = multiprocessing.Process(target=func, args=args, kwargs=kwargs)
+    import utool as ut
+    func_name = ut.get_funcname(func)
+    name = 'mp.Progress-' + func_name
+    proc_obj = multiprocessing.Process(target=func, name=name, args=args, kwargs=kwargs)
     #proc_obj.isAlive = proc_obj.is_alive
     proc_obj.start()
     return proc_obj

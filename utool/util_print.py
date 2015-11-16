@@ -65,9 +65,9 @@ class Indenter(object):
             self.modules = util_inject.get_injected_modules()
             self.old_print_dict = {}
             #self.old_prints_ = {}
-            self.old_printDBG_dict = {}
+            #self.old_printDBG_dict = {}
             self.lbl = lbl
-            self.INDENT_PRINT_ = False
+            #self.INDENT_PRINT_ = False
 
     @profile
     def start(self):
@@ -91,6 +91,7 @@ class Indenter(object):
 
         push_module_functions(self.old_print_dict, 'print')
         for mod in self.old_print_dict.keys():
+            # Define the new print function
             @functools.wraps(self.old_print_dict[mod])
             def indent_print(*args):
                 self.old_print_dict[mod](indent_msg(', '.join(map(str, args))))
@@ -336,7 +337,7 @@ def print_difftext(text):
     #    print(text)
 
 
-def colorprint(msg, color):
+def colorprint(msg, color=None):
     r""" provides some color to terminal output
 
     Args:
@@ -375,6 +376,9 @@ def colorprint(msg, color):
         >>> colorprint('line5', 'fuchsia')
         >>> print('line6')
     """
+    if color is None:
+        print(msg)
+        return
     import utool as ut
     try:
         import pygments

@@ -388,6 +388,8 @@ if HAVE_NUMPY:
         def default(self, obj):
             if isinstance(obj, self.numpy_type_tuple):
                 return obj.tolist()
+            elif hasattr(obj, '__getstate__'):
+                    return obj.__getstate__()
             return json.JSONEncoder.default(self, obj)
 else:
     UtoolJSONEncoder = json.JSONEncoder
