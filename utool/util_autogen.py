@@ -734,9 +734,13 @@ def make_default_module_maintest(modname, modpath=None):
     # ut.doctest_funcs({modname}, allexamples=True)"
     #in_pythonpath, module_type, path = find_modname_in_pythonpath(modname)
     # only use the -m if it is part of a package directory
-    moddir = dirname(modpath)
-    pkginit_fpath = join(moddir, '__init__.py')
-    use_modrun = modpath is None or exists(pkginit_fpath)
+
+    if modpath is not None:
+        moddir = dirname(modpath)
+        pkginit_fpath = join(moddir, '__init__.py')
+        use_modrun = exists(pkginit_fpath)
+    else:
+        use_modrun = True
 
     if use_modrun:
         pyargs = '-m ' + modname

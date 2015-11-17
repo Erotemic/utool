@@ -186,7 +186,7 @@ def get_argflag(argstr_, default=False, help_='', return_specified=None,
             elif val.upper() in ['FALSE', 'OFF']:
                 flag += '=False'
             new_argv = [flag]
-            argv.extend(new_argv)
+            argv = argv[:] + new_argv
             if debug:
                 print('argv.extend(new_argv=%r)' % (new_argv,))
 
@@ -401,7 +401,7 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
             if key.startswith(sentinal):
                 key = '--' + key[len(sentinal):]
                 new_argv = [key, val]
-                argv.extend(new_argv)
+                argv = argv[:] + new_argv
                 if debug:
                     print('argv.extend(new_argv=%r)' % (new_argv,))
 
