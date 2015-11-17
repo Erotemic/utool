@@ -395,6 +395,10 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
         >>> # verify results
         >>> print(result)
     """
+    import utool as ut
+    from functools import partial
+    import IPython
+
     if parent_globals is None:
         parent_globals = get_parent_globals(N=N)
         #parent_globals1 = get_parent_globals(N=0)
@@ -403,8 +407,6 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
         parent_locals = get_parent_locals(N=N)
 
     stackdepth = N  # NOQA
-    import utool as ut
-    from functools import partial
     getframe = partial(ut.get_caller_stack_frame, N=N)  # NOQA
 
     exec(execstr_dict(parent_globals, 'parent_globals'))
@@ -414,7 +416,6 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
     print(ut.bubbletext('EMBEDDING'))
     print('================')
     print('[util] embedding')
-    import IPython
     try:
         if remove_pyqt_hook:
             try:

@@ -171,10 +171,10 @@ def get_argflag(argstr_, default=False, help_='', return_specified=None,
 
     # Check environment variables for default as well as argv
     import os
-    """
-    set UTOOL_NOCNN=True
-    export UTOOL_NOCNN True
-    """
+    #"""
+    #set UTOOL_NOCNN=True
+    #export UTOOL_NOCNN True
+    #"""
     #argv_orig = argv[:]
     for key, val in os.environ.items():
         key = key.upper()

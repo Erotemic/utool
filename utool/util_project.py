@@ -30,6 +30,7 @@ def ibeis_user_profile():
     __REPOS1__ = ut.import_module_from_fpath(module_fpath)
     self = UserProfile()
     self.project_dpaths = __REPOS1__.PROJECT_REPOS
+    self.project_dpaths += [ut.truepath('~/latex/crall-candidacy-2015/')]
     self.project_include_patterns = [
         '*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h', '*.vim'
     ]

@@ -174,7 +174,10 @@ def remove_file(fpath, verbose=True, dryrun=False, ignore_errors=True, **kwargs)
 
 
 def remove_dirs(dpath, dryrun=False, ignore_errors=True, quiet=QUIET, **kwargs):
-    """ Removes a single directory (need to change function name)
+    r"""
+    Recursively removes a single directory (need to change function name)
+
+    DEPRICATE
 
     Args:
         dpath (str):  directory path
@@ -186,11 +189,12 @@ def remove_dirs(dpath, dryrun=False, ignore_errors=True, quiet=QUIET, **kwargs):
         bool: False
 
     CommandLine:
-        python -m utool.util_path --exec-remove_dirs
+        python -m utool.util_path --test-remove_dirs
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
         >>> dpath = ut.ensure_app_resource_dir('utool', 'testremovedir')
         >>> assert exists(dpath), 'nothing to remove'
         >>> dryrun = False
@@ -200,6 +204,7 @@ def remove_dirs(dpath, dryrun=False, ignore_errors=True, quiet=QUIET, **kwargs):
         >>> result = ('flag = %s' % (flag,))
         >>> print(result)
         >>> assert not exists(dpath), 'did not remove dpath'
+        flag = True
     """
     if not quiet:
         print('[util_path] Removing directory: %r' % dpath)

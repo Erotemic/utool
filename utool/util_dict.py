@@ -5,9 +5,10 @@ import operator
 from collections import defaultdict, OrderedDict
 from itertools import product as iprod
 from functools import partial
-from six.moves import zip
+from six.moves import zip, range, reduce, filter, map  # NOQA
 from utool import util_inject
 from utool import util_list
+from utool import util_const
 from utool import util_iter
 import copy
 import six
@@ -138,18 +139,12 @@ def dict_stack(dict_list, key_prefix=''):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
         >>> import utool as ut
-        >>> # build test data
         >>> dict1_ = {'a': 1, 'b': 2}
         >>> dict2_ = {'a': 2, 'b': 3, 'c': 4}
-        >>> # execute function
         >>> dict_stacked = dict_stack([dict1_, dict2_])
-        >>> # verify results
-        >>> result = ut.dict_str(dict_stacked, sorted_=True, newlines=False)
+        >>> result = ut.repr2(dict_stacked, sorted_=True)
         >>> print(result)
         {'a': [1, 2], 'b': [2, 3], 'c': [4]}
-
-        {'a': [1, 2], 'c': [4], 'b': [2, 3]}
-
     """
     dict_stacked_ = defaultdict(list)
     for dict_ in dict_list:
@@ -157,6 +152,36 @@ def dict_stack(dict_list, key_prefix=''):
             dict_stacked_[key_prefix + key].append(val)
     dict_stacked = dict(dict_stacked_)
     return dict_stacked
+
+
+def dict_stack2(dict_list, key_suffix=''):
+    """
+    Stacks vals from a list of dicts into a dict of lists Inserts Nones in
+    place of empty items to preserve order.
+
+    Args:
+        dict_list (list): list of dicts
+        key_suffix (str): (default = u'')
+
+    Returns:
+        dict: stacked_dict
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
+        >>> dict1_ = {'a': 1, 'b': 2}
+        >>> dict2_ = {'a': 2, 'b': 3, 'c': 4}
+        >>> dict_list = [dict1_, dict2_]
+        >>> dict_stacked = dict_stack2(dict_list)
+        >>> result = ut.repr2(dict_stacked, sorted_=True)
+        >>> print(result)
+        {'a': [1, 2], 'b': [2, 3], 'c': [None, 4]}
+    """
+    dict_list_ = [map_dict_vals(lambda x: [x], kw) for kw in dict_list]
+    dict_ = reduce(partial(dict_union_combine, default=[None]), dict_list_)
+    stacked_dict = map_dict_keys(lambda x: x + key_suffix, dict_)
+    return stacked_dict
 
 
 def invert_dict(dict_):
@@ -763,6 +788,8 @@ def order_dict_by(dict_, key_order):
         >>> print(result)
         sorted_dict = {4: 4, 2: 2, 3: 3, 1: 1}
     """
+    other_keys = list(set(dict_.keys()) - set(key_order))
+    key_order = key_order + other_keys
     sorted_item_list = [(key, dict_[key]) for key in key_order if key in dict_]
     sorted_dict = OrderedDict(sorted_item_list)
     return sorted_dict
@@ -1077,9 +1104,27 @@ def dict_intersection(dict1, dict2, combine=False, combine_op=operator.add):
     """
     keys3 = set(dict1.keys()).intersection(set(dict2.keys()))
     if combine:
+        # TODO: depcirate this
         dict3 = {key: combine_op(dict1[key], dict2[key]) for key in keys3}
     else:
         dict3 = {key: dict1[key] for key in keys3 if dict1[key] == dict2[key]}
+    return dict3
+
+
+def dict_isect_combine(dict1, dict2, combine_op=operator.add):
+    """ Intersection of dict keys and combination of dict values """
+    keys3 = set(dict1.keys()).intersection(set(dict2.keys()))
+    dict3 = {key: combine_op(dict1[key], dict2[key]) for key in keys3}
+    return dict3
+
+
+def dict_union_combine(dict1, dict2, combine_op=operator.add, default=util_const.NoParam):
+    """ Combine of dict keys and uses dfault value when key does not exist """
+    keys3 = set(dict1.keys()).union(set(dict2.keys()))
+    if default is util_const.NoParam:
+        dict3 = {key: combine_op(dict1[key], dict2[key]) for key in keys3}
+    else:
+        dict3 = {key: combine_op(dict1.get(key, default), dict2.get(key, default)) for key in keys3}
     return dict3
 
 

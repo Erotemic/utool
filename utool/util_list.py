@@ -2140,28 +2140,27 @@ def delete_items_by_index(list_, index_list):
 
 
 def unflat_map(func, unflat_items, vectorized=False, **kwargs):
-    """
+    r"""
     Uses an ibeis lookup function with a non-flat rowid list.
     In essence this is equivilent to [list(map(func, _items)) for _items in unflat_items].
     The utility of this function is that it only calls method once.
     This is more efficient for calls that can take a list of inputs
 
     Args:
-        func          (func):  function
+        func (func): function
         unflat_items (list): list of rowid lists
 
     Returns:
         list of values: unflat_vals
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-unflat_map
+        python -m utool.util_list --test-unflat_map
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> from utool.util_list import *  # NOQA
         >>> vectorized = False
+        >>> kwargs = {}
         >>> func = lambda x: x + 1
         >>> unflat_items = [[], [1, 2, 3], [4, 5], [6, 7, 8, 9], [], []]
         >>> unflat_vals = unflat_map(func, unflat_items)

@@ -791,7 +791,7 @@ def get_latex_figure_str(fpath_list, caption_str=None, label_str=None,
                 subchar = str(count)
             subfigure_str = ''
             if len(fpath_list) > 1:
-                subfigure_str += '\\begin{subfigure}[b]{' + graphics_sizestr + '}\n'
+                subfigure_str += '\\begin{subfigure}[h]{' + graphics_sizestr + '}\n'
                 subfigure_str += '\\centering\n'
             if use_frame:
                 subfigure_str += '\\fbox{'
@@ -800,7 +800,7 @@ def get_latex_figure_str(fpath_list, caption_str=None, label_str=None,
                 subfigure_str += '}'
             if use_sublbls is True or use_sublbls is None and len(fpath_list) > 1:
                 subfigure_str += '\\caption{}'
-                subfigure_str += '\\label{sfig:' + sublbl_prefix + subchar + '}\n'
+                subfigure_str += '\\label{sub:' + sublbl_prefix + subchar + '}\n'
             if len(fpath_list) > 1:
                 subfigure_str += '\\end{subfigure}'
             graphics_list.append(subfigure_str)
@@ -860,10 +860,10 @@ def get_latex_figure_str(fpath_list, caption_str=None, label_str=None,
     #)
     figure_fmtstr = ut.codeblock(
         r'''
-        \begin{figure*}
+        \begin{figure}[ht!]
         \centering
         %s
-        \end{figure*}
+        \end{figure}
         '''
     )
     figure_str = figure_fmtstr % (figure_body)

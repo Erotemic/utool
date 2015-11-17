@@ -1354,7 +1354,8 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
     if nobraces:
         leftbrace, rightbrace = '', ''
     else:
-        if isinstance(list_, tuple):
+        is_tuple = isinstance(list_, tuple)
+        if is_tuple:
             leftbrace, rightbrace  = '(', ')'
         else:
             leftbrace, rightbrace  = '[', ']'
@@ -1368,9 +1369,10 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
             braced_body_str = (leftbrace + '\n' + body_str + '\n' + rightbrace)
             retstr = braced_body_str
     else:
-        # hack away last comma
         sequence_str = ' '.join(itemstr_list)
-        sequence_str = sequence_str.rstrip(',')
+        # hack away last comma except in 1-tuple case
+        if not (is_tuple and len(list_) <= 1):
+            sequence_str = sequence_str.rstrip(',')
         retstr  = (leftbrace + sequence_str +  rightbrace)
 
     # TODO: rectify with dict_truncate

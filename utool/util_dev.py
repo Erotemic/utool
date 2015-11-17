@@ -15,6 +15,7 @@ from os.path import splitext, exists, join, split, relpath
 from utool import util_inject
 from utool import util_dict
 from utool import util_arg
+from utool import util_const
 try:
     import numpy as np
     HAVE_NUMPY = True
@@ -29,18 +30,7 @@ else:
     INDEXABLE_TYPES = (list, tuple)
 
 
-class ClassNoParam(object):
-    """
-    # class used in place of None when None might be a valid value
-    # probably should just make None not a valid value
-    """
-    def __init__(self):
-        pass
-    def __call__(self, default):
-        pass
-
-# Used instance of NoParam
-NoParam = ClassNoParam()
+NoParam = util_const.NoParam
 
 
 def DEPRICATED(func):
@@ -1068,9 +1058,9 @@ def get_jagged_stats(arr_list, **kwargs):
     """
     import functools
     stats_dict_list = list(map(functools.partial(get_stats, **kwargs), arr_list))
-    stats_dict_ = util_dict.dict_stack(stats_dict_list)
+    stats_dict = util_dict.dict_stack(stats_dict_list)
     # Fix order
-    stats_dict = util_dict.order_dict_by(stats_dict_, STAT_KEY_ORDER)
+    stats_dict = util_dict.order_dict_by(stats_dict, STAT_KEY_ORDER)
     return stats_dict
 
 
@@ -1205,7 +1195,8 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, datacast=None, use
             ('shape', nparr.shape),  # repr(nparr.shape)),
         ]
         if use_median:
-            stats_list.append(('med', np.nanmedian(nparr).astype(np.int)))
+            #stats_list.append(('med', np.nanmedian(nparr).astype(np.int)))
+            stats_list.append(('med', np.nanmedian(nparr)))
         if use_nan:
             stats_list.append(('num_nan', np.isnan(nparr).sum()))
         if use_sum:
