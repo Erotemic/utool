@@ -102,6 +102,39 @@ def compare_groupings(groups1, groups2):
     return total_error
 
 
+def upper_diag_self_prodx(list_):
+    """
+    upper diagnoal of cartesian product of self and self.
+    Weird name. fixme
+
+    Args:
+        list_ (list):
+
+    Returns:
+        list:
+
+    CommandLine:
+        python -m utool.util_alg --exec-upper_diag_prodx
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> list_ = [1, 2, 3]
+        >>> result = upper_diag_self_prodx(list_)
+        >>> print(result)
+        [(1, 2), (1, 3), (2, 3)]
+    """
+    return [(item1, item2)
+            for n1, item1 in enumerate(list_)
+            for n2, item2 in enumerate(list_) if n1 < n2]
+
+
+def self_prodx(list_):
+    return [(item1, item2)
+            for n1, item1 in enumerate(list_)
+            for n2, item2 in enumerate(list_) if n1 != n2]
+
+
 def greedy_max_inden_setcover(candidate_sets_dict, items, max_covers=None):
     """
     greedy algorithm for maximum independent set cover

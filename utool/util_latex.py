@@ -405,11 +405,20 @@ def replace_all(str_, repltups):
     return ret
 
 
+def make_table2(row_lbls, col_lbls, values, **kwargs):
+    tablekw = dict(title=None, table_position='[ht!]', astable=True,
+                   centerline=False, col_sep='', multicol_sep='|',
+                   AUTOFIX_LATEX=False)
+    tablekw.update(kwargs)
+    return make_score_tabular(row_lbls, col_lbls, values, **tablekw)
+
+
 def make_score_tabular(
         row_lbls, col_lbls, values, title=None, out_of=None, bold_best=False,
         flip=False, bigger_is_better=True, multicol_lbls=None, FORCE_INT=False,
         precision=None, SHORTEN_ROW_LBLS=False, col_align='l', col_sep='|',
-        multicol_sep='|', centerline=True, astable=False, table_position=''):
+        multicol_sep='|', centerline=True, astable=False, table_position='',
+        AUTOFIX_LATEX=True, **kwargs):
     r"""
     makes a LaTeX tabular for displaying scores or errors
 
@@ -483,6 +492,7 @@ def make_score_tabular(
         >>> ut.quit_if_noshow()
         >>> render_latex_text(tabular_str)
     """
+    import utool as ut
     if flip:
         bigger_is_better = not bigger_is_better
         flip_repltups = [
@@ -544,7 +554,6 @@ def make_score_tabular(
         body += [[row_lbl] + ensurelist(row_values) for row_lbl, row_values in zip(row_lbls, values)]
     #import utool as ut
     # Fix things in each body cell
-    AUTOFIX_LATEX = True
     DO_PERCENT = True
     try:
         for r in range(len(body)):
@@ -553,7 +562,6 @@ def make_score_tabular(
                 if r > 0 and c > 0:
                     if precision is not None:
                         # Hack
-                        import utool as ut
                         if ut.is_float(body[r][c]):
                             fmtstr = '%.' + str(precision) + 'f'
                             body[r][c] = fmtstr % (float(body[r][c]),)
@@ -565,6 +573,7 @@ def make_score_tabular(
                 if AUTOFIX_LATEX:
                     body[r][c] = escape_latex(body[r][c])
     except Exception as ex:
+        import utool as ut
         print('len(row_lbls) = %r' % (len(row_lbls),))
         print('len(col_lbls) = %r' % (len(col_lbls),))
         print('len(values) = %r' % (values,))
@@ -637,7 +646,7 @@ def make_score_tabular(
         #extra_rowsep_pos_list += [1]
 
     # Insert title
-    if title is not None:
+    if title is not None and not astable:
         tex_title = latex_multicolumn(title, len(body[0])) + endl
         rowstr_list = [tex_title] + rowstr_list
         rowsep_list = [rowvalsep] + rowsep_list
@@ -675,7 +684,8 @@ def make_score_tabular(
                 col_align_sep_list[offset] = multicol_sep
 
     from six.moves import zip_longest
-    col_layout = ''.join(ut.flatten([ut.filter_Nones(tup) for tup in zip_longest(col_align_list, col_align_sep_list)]))
+    _tmp = [ut.filter_Nones(tup) for tup in zip_longest(col_align_list, col_align_sep_list)]
+    col_layout = ''.join(ut.flatten(_tmp))
 
     #if len(col_align_list) > 1:
     #    col_layout = col_align_list[0] + rowlblcol_sep + col_sep.join(col_align_list[1:])
@@ -693,8 +703,12 @@ def make_score_tabular(
         #tabular_head = r'\begin{centering}' + '\n' + tabular_head
         tabular_head = r'\centering' + '\n' + tabular_head
         tabular_head = r'\begin{table}' + table_position + '\n' + tabular_head
-        lblstr = latex_sanatize_command_name(title)
-        caption = escape_latex(title)
+
+        lblstr = latex_sanatize_command_name(kwargs.get('label', title))
+        caption = title
+        if AUTOFIX_LATEX:
+            caption = escape_latex(caption)
+        caption = '\n% ---\n' + caption + '\n% ---\n'
         #tabular_head = r'\end{centering}' + '\n' + tabular_head
         tabular_tail = tabular_tail + '\n\caption{%s}\n\label{tbl:%s}\n\end{table}' % (caption, lblstr)
 
