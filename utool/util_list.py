@@ -28,6 +28,10 @@ def lmap(func, iter_):
     return list(map(func, iter_))
 
 
+def maplen(iter_):
+    return list(map(len, iter_))
+
+
 def replace_nones(list_, repl=-1):
     r"""
     Recursively removes Nones in all lists and sublists and replaces them with
