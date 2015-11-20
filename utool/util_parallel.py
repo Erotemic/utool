@@ -7,6 +7,7 @@ import multiprocessing
 import atexit
 import sys
 import signal
+import ctypes
 import six
 import threading
 from six.moves import map, range, zip  # NOQA
@@ -745,7 +746,7 @@ def buffered_generator(source_gen, buffer_size=2):
     #    target = _buffered_generation_process
     #else:
     _Queue = queue.Queue
-    Process = threading.Thread
+    Process = KillableThread
     target = _buffered_generation_thread
 
     # the effective buffer_ size is one less, because the generation process
@@ -915,16 +916,66 @@ def spawn_background_process(func, *args, **kwargs):
     return proc_obj
 
 
+#def _process_error_wraper(queue, func, args, kwargs):
+#    pass
+
+
+#def spawn_background_process2(func, *args, **kwargs):
+#    multiprocessing_queue
+#    import utool as ut
+#    func_name = ut.get_funcname(func)
+#    name = 'mp.Progress-' + func_name
+#    proc_obj = multiprocessing.Process(target=func, name=name, args=args, kwargs=kwargs)
+#    #proc_obj.isAlive = proc_obj.is_alive
+#    proc_obj.start()
+
+
+def _async_raise(tid, excobj):
+    res = ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, ctypes.py_object(excobj))
+    if res == 0:
+        raise ValueError('nonexistent thread id')
+    elif res > 1:
+        # """if it returns a number greater than one, you're in trouble,
+        # and you should call it again with exc=NULL to revert the effect"""
+        ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, 0)
+        raise SystemError('PyThreadState_SetAsyncExc failed')
+
+
+class KillableThread(threading.Thread):
+    """
+    References:
+        http://code.activestate.com/recipes/496960-thread2-killable-threads/
+        http://tomerfiliba.com/recipes/Thread2/
+    """
+    def raise_exc(self, excobj):
+        assert self.isAlive(), 'thread must be started'
+        for tid, tobj in threading._active.items():
+            if tobj is self:
+                _async_raise(tid, excobj)
+                return
+        # the thread was alive when we entered the loop, but was not found
+        # in the dict, hence it must have been already terminated. should we raise
+        # an exception here? silently ignore?
+
+    def terminate(self):
+        # must raise the SystemExit type, instead of a SystemExit() instance
+        # due to a bug in PyThreadState_SetAsyncExc
+        try:
+            self.raise_exc(SystemExit)
+        except ValueError:
+            pass
+
+
 def spawn_background_thread(func, *args, **kwargs):
     #threadobj = IMPLEMENTATION_NUM
-    thread_obj = threading.Thread(target=func, args=args, kwargs=kwargs)
+    thread_obj = KillableThread(target=func, args=args, kwargs=kwargs)
     thread_obj.start()
     return thread_obj
 
 
 def spawn_background_daemon_thread(func, *args, **kwargs):
     #threadobj = IMPLEMENTATION_NUM
-    thread_obj = threading.Thread(target=func, args=args, kwargs=kwargs)
+    thread_obj = KillableThread(target=func, args=args, kwargs=kwargs)
     thread_obj.daemon = True
     thread_obj.start()
     return thread_obj

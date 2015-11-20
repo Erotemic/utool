@@ -2,13 +2,16 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import shelve
 import six
+import uuid
 import json
+import codecs
 #import lru
 #git+https://github.com/amitdev/lru-dict
 #import atexit
 #import inspect
 import contextlib
 import collections
+from six.moves import cPickle as pickle
 from six.moves import range, zip  # NOQA
 from os.path import join, normpath, basename, exists
 import functools
@@ -24,12 +27,8 @@ from utool import util_cplat
 from utool import util_inspect
 from utool import util_list
 from utool import util_class  # NOQA
+from utool import util_type
 from utool._internal import meta_util_constants
-try:
-    import numpy as np
-    HAVE_NUMPY = True
-except ImportError:
-    HAVE_NUMPY = False
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[cache]')
 
 
@@ -382,30 +381,107 @@ class Cacher(object):
         save_cache(self.dpath, self.fname, cfgstr, data)
 
 
-if HAVE_NUMPY:
-    class UtoolJSONEncoder(json.JSONEncoder):
-        numpy_type_tuple = tuple([np.ndarray] + list(set(np.typeDict.values())))
-        def default(self, obj):
-            if isinstance(obj, self.numpy_type_tuple):
-                return obj.tolist()
-            elif hasattr(obj, '__getstate__'):
-                    return obj.__getstate__()
+class UtoolJSONEncoder(json.JSONEncoder):
+    """
+    References:
+        http://stackoverflow.com/questions/8230315/python-sets-are-not-json-serializable
+        http://stackoverflow.com/questions/11561932/why-does-json-dumpslistnp-arange5-fail-while-json-dumpsnp-arange5-tolis
+        https://github.com/jsonpickle/jsonpickle
+        http://stackoverflow.com/questions/24369666/typeerror-b1-is-not-json-serializable
+        http://stackoverflow.com/questions/30469575/how-to-pickle-and-unpickle-to-portable-string-in-python-3
+    """
+    JSON_PYOBJ_TAG = '__PYTHON_OBJECT__'
+    UUID_TAG = '__UUID__'
+
+    def default(self, obj):
+        if isinstance(obj, util_type.NUMPY_TYPE_TUPLE):
+            #print('Decode Numpy')
+            return obj.tolist()
+        elif six.PY3 and isinstance(obj, bytes):
+            #print('Decode bytes')
+            return obj.decode('utf-8')
+        elif isinstance(obj, uuid.UUID):
+            #print('Decode UUID')
+            #return str(obj)
+            return {self.UUID_TAG: str(obj)}
+        elif isinstance(obj, util_type.PRIMATIVE_TYPES):
+            #print('Decode Primative')
             return json.JSONEncoder.default(self, obj)
-else:
-    UtoolJSONEncoder = json.JSONEncoder
+        elif hasattr(obj, '__getstate__'):
+            #print('Decode Object State')
+            return obj.__getstate__()
+        #obj.decode('utf-8')
+        else:
+            print('Decode Object Pickle')
+            #print('dump pickle %r, %r' % (hash(obj), type(obj)))
+            #raise TypeError('Cannot serialize type(obj)=%r ' % (type(obj)))
+            #if six.PY3:
+            pickle_bytes = pickle.dumps(obj, pickle.HIGHEST_PROTOCOL)
+            pickled_data = codecs.encode(pickle_bytes, 'base64').decode()
+            #else:
+            #    import utool as ut
+            #    ut.embed()
+            #    pickled_data = pickle.dumps(obj, pickle.HIGHEST_PROTOCOL)
+            return {self.JSON_PYOBJ_TAG: pickled_data}
+
+    @classmethod
+    def _json_object_hook(cls, value, verbose=False, **kwargs):
+        if cls.JSON_PYOBJ_TAG in value:
+            #if six.PY3:
+            pickled_data = value[cls.JSON_PYOBJ_TAG]
+            return pickle.loads(codecs.decode(pickled_data.encode(), 'base64'))
+            #else:
+            #    pickled_data = value[cls.JSON_PYOBJ_TAG]
+            #    return pickle.loads(pickled_data)
+        elif cls.UUID_TAG in value:
+            return uuid.UUID(value[cls.UUID_TAG])
+        return value
 
 
 def to_json(val):
-    """
+    r"""
+    Args:
+        val (object):
+
+    Returns:
+        str: json_str
+
     References:
         http://stackoverflow.com/questions/11561932/why-does-json-dumpslistnp-arange5-fail-while-json-dumpsnp-arange5-tolis
+
+    CommandLine:
+        python -m utool.util_cache --exec-to_json
+        python3 -m utool.util_cache --exec-to_json
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_cache import *  # NOQA
+        >>> import utool as ut
+        >>> import numpy as np
+        >>> import uuid
+        >>> val = [
+        >>>    '{"foo": "not a dict"}',
+        >>>    1.3,
+        >>>    [1],
+        >>>    b'an ascii string',
+        >>>    np.array([1, 2, 3]),
+        >>>    ut.get_zero_uuid(),
+        >>>    ut.LazyDict(x='fo'),
+        >>>    ut.LazyDict,
+        >>> ]
+        >>> #val = ut.LazyDict(x='fo')
+        >>> json_str = ut.to_json(val)
+        >>> result = ut.repr3(json_str)
+        >>> print(result)
+        >>> reload_val = ut.from_json(json_str)
+        >>> print(ut.repr3(reload_val, nl=1))
     """
     json_str = (json.dumps(val, cls=UtoolJSONEncoder))
     return json_str
 
 
 def from_json(json_str):
-    val = json.loads(json_str)
+    val = json.loads(json_str, object_hook=UtoolJSONEncoder._json_object_hook)
     return val
 
 
@@ -1140,7 +1216,6 @@ class LazyDict(object):
     # --- direct interface
 
     def set_lazy_func(self, key, func):
-        from utool import util_type
         assert util_type.is_funclike(func), 'func must be a callable'
         #if key in self._stored_results:
         #    raise ValueError(
@@ -1153,7 +1228,6 @@ class LazyDict(object):
         self._eval_funcs[key] = func
 
     def setitem(self, key, value):
-        from utool import util_type
         # HACK, lazy funcs should all be registered
         # this should should always just set a value
         if key in self.reconstructable_keys():

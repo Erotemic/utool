@@ -138,10 +138,14 @@ def inject_all_external_modules(self, classname=None,
 
     NEW = True
     if NEW:
-        classkey_list = [key for key in __CLASSTYPE_ATTRIBUTES__ if key[0] == classname]
+        classkey_list = [key for key in __CLASSTYPE_ATTRIBUTES__
+                         if key[0] == classname]
     else:
         injected_modules = get_injected_modules(classname)
-        classkey_list = [module.CLASS_INJECT_KEY for module in injected_modules]
+        # the variable must be named CLASS_INJECT_KEY
+        # and only one class can be specified per module.
+        classkey_list = [module.CLASS_INJECT_KEY
+                         for module in injected_modules]
 
     for classkey in classkey_list:
         inject_instance(

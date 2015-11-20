@@ -1394,6 +1394,12 @@ def obj_str(obj_, **kwargs):
         return repr(obj_)
 
 
+def repr3(obj_, **kwargs):
+    _kw = dict(nl=True)
+    _kw.update(**kwargs)
+    return repr2(obj_, **_kw)
+
+
 def repr2(obj_, **kwargs):
     """
     Use in favor of obj_str.

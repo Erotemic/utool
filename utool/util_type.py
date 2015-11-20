@@ -52,6 +52,8 @@ try:
     VALID_BOOL_TYPES = (BooleanType, np.bool_)
     NP_NDARRAY = np.ndarray
     LISTLIKE_TYPES = (tuple, list, NP_NDARRAY)
+    NUMPY_TYPE_TUPLE = (
+        tuple([NP_NDARRAY] + list(set(np.typeDict.values()))))
 except (ImportError, AttributeError):
     # TODO remove numpy
     HAVE_NUMPY = False
@@ -60,6 +62,12 @@ except (ImportError, AttributeError):
     VALID_BOOL_TYPES = (BooleanType,)
     LISTLIKE_TYPES = (tuple, list)
     NP_NDARRAY = None
+    NUMPY_TYPE_TUPLE = tuple()
+
+
+PRIMATIVE_TYPES = (
+    tuple(six.string_types) + (bytes, list, dict, int, float, bool, type(None))
+)
 
 
 def is_valid_floattype(type_):
