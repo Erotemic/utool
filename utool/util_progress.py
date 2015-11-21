@@ -604,6 +604,13 @@ class ProgressIter(object):
 progiter = ProgressIter
 
 
+class ProgIter(ProgressIter):
+    # Thin wrapper with better arg positions
+    def __init__(self, iterable, lbl='Prog', adjust=False, freq=1, **kwargs):
+        super(ProgIter, self).__init__(iterable, lbl=lbl, adjust=adjust,
+                freq=freq, **kwargs)
+
+
 def progress_str(max_val, lbl='Progress: ', repl=False, approx=False, backspace=PROGGRESS_BACKSPACE):
     r""" makes format string that prints progress: %Xd/MAX_VAL with backspaces
 

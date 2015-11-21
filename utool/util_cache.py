@@ -610,6 +610,14 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
 
     uses a hash of arguments as input
 
+    Args:
+        fname (str):  file name (defaults to function name)
+        cache_dir (unicode): (default = u'default')
+        appname (unicode): (default = u'utool')
+        key_argx (None): (default = None)
+        key_kwds (None): (default = None)
+        use_cache (bool):  turns on disk based caching(default = None)
+
     CommandLine:
         python -m utool.util_cache --exec-cached_func
 
