@@ -256,7 +256,8 @@ def load_cache(dpath, fname, cfgstr, verbose=None):
     """
     if not USE_CACHE:
         if verbose:
-            print('[util_io] ... cache disabled: dpath=%s cfgstr=%r' % (basename(dpath), cfgstr,))
+            print('[util_io] ... cache disabled: dpath=%s cfgstr=%r' %
+                    (basename(dpath), cfgstr,))
         raise IOError(3, 'Cache Loading Is Disabled')
     if verbose is None:
         verbose = VERBOSE_CACHE
@@ -268,13 +269,15 @@ def load_cache(dpath, fname, cfgstr, verbose=None):
         raise IOError(2, 'No such file or directory: %r' % (fpath,))
     else:
         if verbose:
-            print('[util_io] ... cache exists: dpath=%s cfgstr=%r' % (basename(dpath), cfgstr,))
+            print('[util_io] ... cache exists: dpath=%s cfgstr=%r' % (
+                basename(dpath), cfgstr,))
     try:
         data = util_io.load_cPkl(fpath, verbose)
-    except IOError:
+    except (EOFError, IOError):
         print('CORRUPTED? fpath = %s' % (fpath,))
         if verbose:
-            print('[util_io] ... cache miss dpath=%s cfgstr=%r' % (basename(dpath), cfgstr,))
+            print('[util_io] ... cache miss dpath=%s cfgstr=%r' % (
+                basename(dpath), cfgstr,))
         raise
     except Exception:
         print('CORRUPTED? fpath = %s' % (fpath,))
@@ -628,7 +631,8 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
         ...    return ([a] * b, c, args, kwargs)
         >>> ans0 = costly_func(41, 3)
         >>> ans1 = costly_func(42, 3)
-        >>> closure_ = ut.cached_func('costly_func', appname='utool_test', key_argx=[0, 1])
+        >>> closure_ = ut.cached_func('costly_func', appname='utool_test',
+        >>>         key_argx=[0, 1])
         >>> efficient_func = closure_(costly_func)
         >>> ans2 = efficient_func(42, 3)
         >>> ans3 = efficient_func(42, 3)
@@ -653,10 +657,17 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
         #                key_argx=key_argx, use_cache_=use_cache_)
         @functools.wraps(func)
         def cached_wraper(*args, **kwargs):
+            """
+            Cached Wrapper Function
+
+            Additional Kwargs:
+                use_cache (bool) : enables cache
+            """
             import utool as ut
             try:
                 if VERBOSE_CACHE:
-                    print('[utool] computing cached function fname_=%s' % (fname_,))
+                    print('[utool] computing cached function fname_=%s' % (
+                        fname_,))
                 # Implicitly adds use_cache to kwargs
                 cfgstr = get_cfgstr_from_args(func, args, kwargs, key_argx,
                                               key_kwds, kwdefaults, argnames)
@@ -664,7 +675,7 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
                     # remove potentially invalid chars
                     cfgstr = '_' + ut.hashstr27(cfgstr)
                 assert cfgstr is not None, 'cfgstr=%r cannot be None' % (cfgstr,)
-                if kwargs.get('use_cache', use_cache_):
+                if kwargs.pop('use_cache', use_cache_):
                     # Make cfgstr from specified input
                     data = cacher.tryload(cfgstr)
                     if data is not None:
@@ -677,7 +688,8 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
             #except ValueError as ex:
             # handle protocal error
             except Exception as ex:
-                _dbgdict2 = dict(key_argx=key_argx, lenargs=len(args), lenkw=len(kwargs),)
+                _dbgdict2 = dict(key_argx=key_argx, lenargs=len(args),
+                                 lenkw=len(kwargs),)
                 msg = '\n'.join([
                     '+--- UTOOL --- ERROR IN CACHED FUNCTION',
                     #'dbgdict = ' + utool.dict_str(_dbgdict),

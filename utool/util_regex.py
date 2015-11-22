@@ -99,8 +99,16 @@ def regex_split(regex, text):
 
 
 def named_field(key, regex, vim=False):
+    """
+    Creates a named regex group that can be referend via a backref.
+    If key is None the backref is referenced by number.
+
+    References:
+        https://docs.python.org/2/library/re.html#regular-expression-syntax
+    """
     if key is None:
-        return regex
+        #return regex
+        return r'(%s)' % (regex,)
     if vim:
         return r'\(%s\)' % (regex)
     else:

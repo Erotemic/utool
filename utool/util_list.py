@@ -905,6 +905,12 @@ def list_issuperset(list1, list2):
     return set(list1).issuperset(set(list2))
 
 
+issubset = list_issubset
+is_subset = list_issubset
+is_superset = list_issuperset
+issuperset = list_issuperset
+
+
 def list_set_equal(list1, list2):
     return set(list1) == set(list2)
 

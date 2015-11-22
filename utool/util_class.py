@@ -105,7 +105,7 @@ def inject_instance(self, classkey=None, allow_override=False,
             if isinstance(func, tuple):
                 func, method_name = func
             inject_func_as_method(self, func, method_name=method_name,
-                                  allow_override=allow_override)
+                                  allow_override=allow_override, verbose=verbose)
     except Exception as ex:
         ut.printex(ex, 'ISSUE WHEN INJECTING %r' % (classkey,),
                       iswarning=not strict)
@@ -429,7 +429,7 @@ def decorate_postinject(func, classkey=None, skipmain=False):
 
 
 def inject_func_as_method(self, func, method_name=None, class_=None,
-                          allow_override=False, allow_main=False):
+                          allow_override=False, allow_main=False, verbose=True):
     """ Injects a function into an object as a method
 
     Wraps func as a bound method of self. Then injects func into self
@@ -465,7 +465,7 @@ def inject_func_as_method(self, func, method_name=None, class_=None,
                 print('[util_class] skipping re-inject of %r from __main__' % method_name)
             return
         if old_method is new_method or old_method.im_func is new_method.im_func:
-            if util_arg.NOT_QUIET:
+            if verbose and util_arg.NOT_QUIET:
                 print('WARNING: Injecting the same function twice: %r' % new_method)
         elif allow_override is False:
             raise AssertionError(
@@ -744,10 +744,11 @@ def private_rrr_factory():
                     if _class.__module__ != '__main__':
                         module_ = sys.modules[_class.__module__]
                         if hasattr(module_, 'rrr'):
-                            module_.rrr()
+                            module_.rrr(verbose=verbose)
                         else:
                             import imp
-                            print('reloading ' + _class.__module__ + ' with imp')
+                            if verbose:
+                                print('reloading ' + _class.__module__ + ' with imp')
                             try:
                                 imp.reload(module_)
                             except (ImportError, AttributeError):
@@ -756,7 +757,7 @@ def private_rrr_factory():
                                 # when importing this module
                                 imp.load_source(module_.__name__, module_.__file__)
                     _newclass = getattr(module_, _class.__name__)
-                    reload_class_methods(self, _newclass)
+                    reload_class_methods(self, _newclass, verbose=verbose)
             else:
                 # --------
                 # Reload the parent module if it is not main
@@ -778,7 +779,7 @@ def private_rrr_factory():
                 #        base_rrr(verbose=verbose)
                 # Get new class definition
                 class_ = getattr(module, classname)
-                reload_class_methods(self, class_)
+                reload_class_methods(self, class_, verbose=verbose)
             # --HACK--
             # TODO: handle injected definitions
             if hasattr(self, '_initialize_self'):
@@ -806,7 +807,7 @@ def reloading_meta_metaclass_factory(BASE_TYPE=type):
     return ReloadingMetaclass2
 
 
-def reload_class_methods(self, class_):
+def reload_class_methods(self, class_, verbose=True):
     """
     rebinds all class methods
 
@@ -821,14 +822,18 @@ def reload_class_methods(self, class_):
         >>> result = reload_class_methods(self, class_)
         >>> print(result)
     """
-    print('[util_class] Reloading self=%r as class_=%r' % (self, class_))
+    if verbose:
+        print('verbose = %r' % (verbose,))
+        print('[util_class] Reloading self=%r as class_=%r' % (self, class_))
     self.__class__ = class_
     for key in dir(class_):
         # Get unbound reloaded method
         func = getattr(class_, key)
         if isinstance(func, types.MethodType):
             # inject it into the old instance
-            inject_func_as_method(self, func, class_=class_, allow_override=True)
+            inject_func_as_method(self, func, class_=class_,
+                                  allow_override=True,
+                                  verbose=verbose)
 
 
 def get_comparison_methods():
