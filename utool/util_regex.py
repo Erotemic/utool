@@ -229,7 +229,7 @@ def named_field_regex(keypat_tups):
         >>> regex = named_field_regex(keypat_tups)
         >>> result = (regex)
         >>> print(result)
-        (?P<name>G\d+)(?P<under>_)(?P<id>\d+)\.(?P<ext>\w+)
+        (?P<name>G\d+)(?P<under>_)(?P<id>\d+)(\.)(?P<ext>\w+)
     """
     # Allow for unnamed patterns
     keypat_tups_ = [(None, tup) if isinstance(tup, six.string_types) else tup
