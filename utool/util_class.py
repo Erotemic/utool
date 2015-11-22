@@ -716,11 +716,16 @@ class ReloadingMetaclass(type):
 
 def private_rrr_factory():
     def rrr(self, verbose=True):
+        """
+        special class reloading function
+        """
+        import utool as ut
+        verbose = verbose or VERBOSE_CLASS
         classname = self.__class__.__name__
         try:
             modname = self.__class__.__module__
             if verbose:
-                print('reloading ' + classname + ' from ' + modname)
+                print('[class] reloading ' + classname + ' from ' + modname)
             # --HACK--
             if hasattr(self, '_on_reload'):
                 self._on_reload()
@@ -736,26 +741,34 @@ def private_rrr_factory():
                         class_list.append(_class)
                     return class_list
 
-                _class = self.__class__
-                class_list = find_base_clases(_class, find_base_clases)
+                head_class = self.__class__
+                class_list = find_base_clases(head_class, find_base_clases)
                 for _class in class_list:
                     if verbose:
-                        print('reloading parent ' + _class.__name__ + ' from ' + _class.__module__)
+                        print('[class] reloading parent ' + _class.__name__ + ' from ' + _class.__module__)
                     if _class.__module__ != '__main__':
                         module_ = sys.modules[_class.__module__]
-                        if hasattr(module_, 'rrr'):
-                            module_.rrr(verbose=verbose)
-                        else:
-                            import imp
-                            if verbose:
-                                print('reloading ' + _class.__module__ + ' with imp')
-                            try:
-                                imp.reload(module_)
-                            except (ImportError, AttributeError):
-                                print('fallback reloading ' + _class.__module__ + ' with imp')
-                                # one last thing to try. probably used ut.import_module_from_fpath
-                                # when importing this module
-                                imp.load_source(module_.__name__, module_.__file__)
+                    else:
+                        # Attempt to find the module that is the main module
+                        # This may be very hacky and potentially break
+                        main_module_ = sys.modules[_class.__module__]
+                        main_modname = ut.get_modname_from_modpath(main_module_.__file__)
+                        module_ = sys.modules[main_modname]
+                        #ut.embed()
+                        #print('[class!] CANT RELOAD CLASS FROM MAIN MODULE')
+                    if hasattr(module_, 'rrr'):
+                        module_.rrr(verbose=verbose)
+                    else:
+                        import imp
+                        if verbose:
+                            print('[class] reloading ' + _class.__module__ + ' with imp')
+                        try:
+                            imp.reload(module_)
+                        except (ImportError, AttributeError):
+                            print('[class] fallback reloading ' + _class.__module__ + ' with imp')
+                            # one last thing to try. probably used ut.import_module_from_fpath
+                            # when importing this module
+                            imp.load_source(module_.__name__, module_.__file__)
                     _newclass = getattr(module_, _class.__name__)
                     reload_class_methods(self, _newclass, verbose=verbose)
             else:
@@ -790,6 +803,7 @@ def private_rrr_factory():
                 'modname',
                 'module',
                 'class_',
+                'class_list',
                 'self', ])
             #print(ut.dict_str(module.__dict__))
             raise
@@ -823,7 +837,6 @@ def reload_class_methods(self, class_, verbose=True):
         >>> print(result)
     """
     if verbose:
-        print('verbose = %r' % (verbose,))
         print('[util_class] Reloading self=%r as class_=%r' % (self, class_))
     self.__class__ = class_
     for key in dir(class_):
