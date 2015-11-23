@@ -57,9 +57,11 @@ def get_free_diskbytes(dir_):
 
     References::
         http://stackoverflow.com/questions/51658/cross-platform-space-remaining-on-volume-using-python
+        http://linux.die.net/man/2/statvfs
 
     CommandLine:
         python -m utool.util_cplat --exec-get_free_diskbytes
+        python -m utool.util_cplat --exec-get_free_diskbytes --dir /media/raid
         python -m utool.util_cplat --exec-get_free_diskbytes --dir E:
 
     Example:
@@ -83,7 +85,9 @@ def get_free_diskbytes(dir_):
         return bytes_
     else:
         st = os.statvfs(dir_)
+        # blocks avaiable * block size
         bytes_ = st.f_bavail * st.f_frsize
+        #bytes_ = st.f_bfree * st.f_frsize  # includes root only space
         return bytes_
 
 
@@ -97,9 +101,10 @@ def get_total_diskbytes(dir_):
         bytes_ = total_bytes.value
         return bytes_
     else:
-        raise NotImplementedError('')
-        #st = os.statvfs(dir_)
-        #bytes_ = st.f_bavail * st.f_frsize
+        #raise NotImplementedError('')
+        st = os.statvfs(dir_)
+        # blocks total * block size
+        bytes_ = st.f_blocks * st.f_frsize
         return bytes_
 
 
