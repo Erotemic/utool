@@ -2372,6 +2372,15 @@ def autoformat_pep8(sourcecode, **kwargs):
     return new_source
 
 
+def filtered_infostr(flags, lbl, reason=None):
+    total = len(flags)
+    removed = total - sum(flags)
+    reasonstr = '' if reason is None else ' based on %s' % (reason,)
+    percent = 100 * removed / total
+    str_ = ('Removing %d / %d (%.2f%%) %s%s' % (removed, total, percent, lbl, reasonstr))
+    return str_
+
+
 if __name__ == '__main__':
     """
     CommandLine:
