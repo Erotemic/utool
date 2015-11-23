@@ -89,6 +89,12 @@ class ShelfCacher(object):
             self.shelf[cachekey] = data
         self.shelf.sync()
 
+    def clear(self):
+        if self.verbose:
+            print('[shelfcache] clearing cache')
+        self.shelf.clear()
+        self.shelf.sync()
+
     def close(self):
         if self.verbose:
             print('[shelfcache] closing()')

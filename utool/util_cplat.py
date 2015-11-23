@@ -10,10 +10,10 @@ import platform
 import subprocess
 import shlex
 from os.path import exists, normpath, basename
-from .util_inject import inject
+from utool import util_inject
 from utool._internal import meta_util_cplat
 from utool._internal.meta_util_path import unixpath, truepath
-print, print_, printDBG, rrr, profile = inject(__name__, '[cplat]')
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[cplat]')
 
 COMPUTER_NAME = platform.node()
 
@@ -48,12 +48,30 @@ def in_pyinstaller_package():
 
 
 def get_free_diskbytes(dir_):
-    """
+    r"""
+    Args:
+        dir_ (str):
+
     Returns:
-        folder/drive free space (in bytes)
+        int: bytes_ folder/drive free space (in bytes)
 
     References::
         http://stackoverflow.com/questions/51658/cross-platform-space-remaining-on-volume-using-python
+
+    CommandLine:
+        python -m utool.util_cplat --exec-get_free_diskbytes
+        python -m utool.util_cplat --exec-get_free_diskbytes --dir E:
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_cplat import *  # NOQA
+        >>> import utool as ut
+        >>> dir_ = ut.get_argval('--dir', type_=str, default=ut.truepath('~'))
+        >>> bytes_ = get_free_diskbytes(dir_)
+        >>> result = ('bytes_ = %s' % (str(bytes_),))
+        >>> print(result)
+        >>> print('Unused space in %r = %r' % (dir_, ut.byte_str2(bytes_)))
+        >>> print('Total space in %r = %r' % (dir_, ut.byte_str2(get_total_diskbytes(dir_))))
     """
     if WIN32:
         import ctypes
@@ -66,6 +84,22 @@ def get_free_diskbytes(dir_):
     else:
         st = os.statvfs(dir_)
         bytes_ = st.f_bavail * st.f_frsize
+        return bytes_
+
+
+def get_total_diskbytes(dir_):
+    if WIN32:
+        import ctypes
+        total_bytes = ctypes.c_ulonglong(0)
+        outvar = ctypes.pointer(total_bytes)
+        dir_ptr = ctypes.c_wchar_p(dir_)
+        ctypes.windll.kernel32.GetDiskFreeSpaceExW(dir_ptr, None, outvar, None)
+        bytes_ = total_bytes.value
+        return bytes_
+    else:
+        raise NotImplementedError('')
+        #st = os.statvfs(dir_)
+        #bytes_ = st.f_bavail * st.f_frsize
         return bytes_
 
 

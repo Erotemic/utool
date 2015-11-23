@@ -570,7 +570,7 @@ def byte_str2(nBytes, precision=2):
         >>> nBytes_list = [1, 100, 1024,  1048576, 1073741824, 1099511627776]
         >>> result = ut.list_str(list(map(byte_str2, nBytes_list)), nl=False)
         >>> print(result)
-        ['0.00 KB', '0.10 KB', '1.00 KB', '1.00 MB', '1.00 GB', '1024.00 GB']
+        ['0.00 KB', '0.10 KB', '1.00 KB', '1.00 MB', '1.00 GB', '1.00 TB']
     """
     nAbsBytes = abs(nBytes)
     if nAbsBytes < 2.0 ** 10:
@@ -579,8 +579,10 @@ def byte_str2(nBytes, precision=2):
         return byte_str(nBytes, 'KB', precision=precision)
     if nAbsBytes < 2.0 ** 30:
         return byte_str(nBytes, 'MB', precision=precision)
-    else:
+    if nAbsBytes < 2.0 ** 40:
         return byte_str(nBytes, 'GB', precision=precision)
+    else:
+        return byte_str(nBytes, 'TB', precision=precision)
 
 
 def byte_str(nBytes, unit='bytes', precision=2):
@@ -598,6 +600,8 @@ def byte_str(nBytes, unit='bytes', precision=2):
         nUnit =  nBytes / (2.0 ** 20)
     elif unit.lower().startswith('g'):
         nUnit = nBytes / (2.0 ** 30)
+    elif unit.lower().startswith('t'):
+        nUnit = nBytes / (2.0 ** 40)
     else:
         raise NotImplementedError('unknown nBytes=%r unit=%r' % (nBytes, unit))
     return scalar_str(nUnit, precision) + ' ' + unit
