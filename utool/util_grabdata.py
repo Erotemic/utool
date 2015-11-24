@@ -9,11 +9,12 @@ import gzip
 import urllib  # NOQA
 import functools
 import time
+from six.moves import urllib as _urllib
 from utool import util_path
 from utool import util_cplat
 from utool import util_arg
 from utool import util_inject
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[grabdata]')
+print, rrr, profile = util_inject.inject2(__name__, '[grabdata]')
 
 
 QUIET = util_arg.QUIET
@@ -330,20 +331,23 @@ def download_url(url, filename=None, spoof=False):
     return filename
 
 
-def url_read(url, verbose=False):
+#if six.PY2:
+#    import urllib as _urllib
+#elif six.PY3:
+#    import urllib.request as _urllib
+
+
+def url_read(url, verbose=True):
     """
     Directly reads data from url
     """
-    if six.PY2:
-        import urllib as _urllib
-    elif six.PY3:
-        import urllib.request as _urllib
     if url.find('://') == -1:
         url = 'http://' + url
     if verbose:
         print('Reading data from url=%r' % (url,))
     try:
-        file_ = _urllib.urlopen(url)
+        file_ = _urllib.request.urlopen(url)
+        #file_ = _urllib.urlopen(url)
     except IOError:
         raise
     data = file_.read()

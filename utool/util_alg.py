@@ -3,13 +3,6 @@
 #
 # TODO:  move library intensive functions to vtool
 from __future__ import absolute_import, division, print_function
-try:
-    import numpy as np
-    HAVE_NUMPY = True
-except ImportError:
-    HAVE_NUMPY = False
-    # TODO remove numpy
-    pass
 import operator
 import six
 from six.moves import zip, range, reduce
@@ -17,16 +10,31 @@ from utool import util_type
 from utool import util_inject
 from utool import util_decor
 try:
+    import numpy as np
+    HAVE_NUMPY = True
+except ImportError:
+    HAVE_NUMPY = False
+    # TODO remove numpy
+    pass
+try:
     import scipy.spatial.distance as spdist
     HAVE_SCIPY = True
 except ImportError:
     HAVE_SCIPY = False
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
+print, rrr, profile = util_inject.inject2(__name__, '[alg]')
 
 
 PHI = 1.61803398875
 PHI_A = (1 / PHI)
 PHI_B = 1 - PHI_A
+
+
+#def bayesnet():
+#    """
+#    References:
+#        http://www.cs.ubc.ca/~murphyk/Bayes/bnintro.html
+#        http://www.cse.unsw.edu.au/~cs9417ml/Bayes/Pages/PearlPropagation.html
+#    """
 
 
 def compare_groupings(groups1, groups2):
