@@ -17,7 +17,7 @@ from utool import util_type
 from utool import util_time  # import get_unix_timedelta
 from utool._internal import meta_util_six  # import get_funcname
 from utool import util_inject
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[str]')
+print, rrr, profile = util_inject.inject2(__name__, '[str]')
 
 if util_type.HAVE_NUMPY:
     import numpy as np
