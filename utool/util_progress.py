@@ -606,7 +606,7 @@ progiter = ProgressIter
 
 class ProgIter(ProgressIter):
     # Thin wrapper with better arg positions
-    def __init__(self, iterable, lbl='Prog', adjust=False, freq=1, **kwargs):
+    def __init__(self, iterable, lbl='Prog', adjust=True, freq=1, **kwargs):
         super(ProgIter, self).__init__(iterable, lbl=lbl, adjust=adjust, freq=freq, **kwargs)
 
 

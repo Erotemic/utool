@@ -290,6 +290,7 @@ def download_url(url, filename=None, spoof=False):
     import urllib  # NOQA
     if filename is None:
         filename = basename(url)
+    print('[utool] Downloading url=%r to filename=%r' % (url, filename))
     def reporthook_(num_blocks, block_nBytes, total_nBytes, start_time=0):
         total_seconds = time.time() - start_time + 1E-9
         num_kb_down   = int(num_blocks * block_nBytes) / 1024
@@ -301,7 +302,6 @@ def download_url(url, filename=None, spoof=False):
         sys.stdout.write(msg)
         sys.stdout.flush()
     reporthook = functools.partial(reporthook_, start_time=time.time())
-    print('[utool] Downloading url=%r to filename=%r' % (url, filename))
     if spoof:
         # Different agents that can be used for spoofing
         user_agents = [
@@ -330,14 +330,18 @@ def download_url(url, filename=None, spoof=False):
     return filename
 
 
-def url_read(url):
+def url_read(url, verbose=False):
+    """
+    Directly reads data from url
+    """
     if six.PY2:
         import urllib as _urllib
     elif six.PY3:
         import urllib.request as _urllib
     if url.find('://') == -1:
         url = 'http://' + url
-    print('Reading data from url=%r' % (url,))
+    if verbose:
+        print('Reading data from url=%r' % (url,))
     try:
         file_ = _urllib.urlopen(url)
     except IOError:
