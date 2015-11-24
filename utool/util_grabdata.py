@@ -745,6 +745,66 @@ def scp_pull(remote_path, local_path='.', remote='localhost', user=None):
     ut.cmd(scp_args)
 
 
+def s3_dict_encode_to_str(s3_dict):
+    default_s3_dict = {
+        'bucket'          : None,
+        'key'             : None,
+        'auth_domain'     : None,
+        'auth_access_id'  : None,
+        'auth_secret_key' : None,
+    }
+    default_s3_dict.update(s3_dict)
+    assert len(default_s3_dict.keys()) == 5
+
+    for key in default_s3_dict.keys():
+        if key.startswith('auth'):
+            value = default_s3_dict[key]
+            if value is None:
+                default_s3_dict[key] = 'EMPTY'
+
+    assert None not in default_s3_dict.values()
+    values = (
+        default_s3_dict['auth_access_id'],
+        default_s3_dict['auth_secret_key'],
+        default_s3_dict['auth_domain'],
+        default_s3_dict['bucket'],
+        default_s3_dict['key'],
+    )
+    return 's3://%s:%s@%s:%s:%s' % values
+
+
+def s3_str_decode_to_dict(s3_str):
+    default_s3_dict = {
+        'bucket'          : None,
+        'key'             : None,
+        'auth_domain'     : None,
+        'auth_access_id'  : None,
+        'auth_secret_key' : None,
+    }
+    assert s3_str.startswith('s3://')
+
+    s3_str = s3_str.strip('s3://')
+    left, right = s3_str.split('@')
+    left = left.split(':')
+    right = right.split(':')
+    default_s3_dict['bucket']          = right[1]
+    default_s3_dict['key']             = right[2]
+    default_s3_dict['auth_domain']     = right[0]
+    default_s3_dict['auth_access_id']  = left[0]
+    default_s3_dict['auth_secret_key'] = left[1]
+
+    assert len(default_s3_dict.keys()) == 5
+    assert None not in default_s3_dict.values()
+
+    for key in default_s3_dict.keys():
+        if key.startswith('auth'):
+            value = default_s3_dict[key]
+            if value == 'EMPTY':
+                default_s3_dict[key] = None
+
+    return default_s3_dict
+
+
 if __name__ == '__main__':
     """
     CommandLine:
