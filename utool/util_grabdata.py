@@ -805,6 +805,39 @@ def s3_str_decode_to_dict(s3_str):
     return default_s3_dict
 
 
+def read_s3_contents(bucket, key, auth_access_id=None, auth_secret_key=None,
+                     auth_domain=None):
+    import boto
+    from boto.s3.connection import S3Connection
+    if auth_access_id is not None and auth_secret_key is not None:
+        conn = S3Connection(auth_access_id, auth_secret_key)
+        bucket = conn.get_bucket(bucket)
+    else:
+        # Use system defaults, located in /etc/boto.cfg
+        # Alternatively, use user defaults, located in ~/.boto
+        s3 = boto.connect_s3()
+        bucket = s3.get_bucket(bucket)
+    key = bucket.get_key(key)
+    contents = key.get_contents_as_string()
+    return contents
+
+
+def grab_s3_contents(fpath, bucket, key, auth_access_id=None, auth_secret_key=None,
+                     auth_domain=None):
+    import boto
+    from boto.s3.connection import S3Connection
+    if auth_access_id is not None and auth_secret_key is not None:
+        conn = S3Connection(auth_access_id, auth_secret_key)
+        bucket = conn.get_bucket(bucket)
+    else:
+        # Use system defaults, located in /etc/boto.cfg
+        # Alternatively, use user defaults, located in ~/.boto
+        s3 = boto.connect_s3()
+        bucket = s3.get_bucket(bucket)
+    key = bucket.get_key(key)
+    key.get_contents_to_filename(fpath)
+
+
 if __name__ == '__main__':
     """
     CommandLine:
