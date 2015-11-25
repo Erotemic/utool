@@ -218,6 +218,7 @@ def bayesnet():
     test_data = test_data.reset_index(drop=True)
 
     from pgmpy.inference import BeliefPropagation
+
     name_belief = BeliefPropagation(name_model)
 
     for i in range(test_data.shape[0]):
@@ -248,6 +249,37 @@ def bayesnet():
     # Should be uniform at first. No evidence
     phi.values
 
+    #from pgmpy.readwrite import XBNWriteir
+    #XBNWriter(name_model)
+
+    import networkx as netx
+    def make_netx_graph(nodes, edges, node_lbls=[], edge_lbls=[]):
+        import networkx as netx
+        print('make_netx_graph')
+        # Make a graph between the chips
+        netx_nodes = [(ntup[0], {key[0]: val for (key, val) in zip(node_lbls, ntup[1:])})
+                      for ntup in iter(nodes)]
+        netx_edges = [(etup[0], etup[1], {key[0]: val for (key, val) in zip(edge_lbls, etup[2:])})
+                      for etup in iter(edges)]
+        netx_graph = netx.DiGraph()
+        netx_graph.add_nodes_from(netx_nodes)
+        netx_graph.add_edges_from(netx_edges)
+        return netx_graph
+    import plottool as pt
+    pt.figure()
+
+    ax = pt.gca()
+    nodes = name_model.nodes()
+    edges = name_model.edges()
+
+    #node_lbls=[]
+    #edge_lbls=[]
+
+    netx_graph = make_netx_graph(nodes, edges)
+    pos = netx.graphviz_layout(netx_graph)
+    netx.draw(netx_graph, pos=pos, ax=ax)
+
+    pt.update()
 
     name_model.predict(test_data)
 
