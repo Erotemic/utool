@@ -32,7 +32,9 @@ PHI_B = 1 - PHI_A
 #def bayesnet():
 #    """
 #    References:
+#        https://class.coursera.org/pgm-003/lecture/17
 #        http://www.cs.ubc.ca/~murphyk/Bayes/bnintro.html
+#        http://www3.cs.stonybrook.edu/~sael/teaching/cse537/Slides/chapter14d_BP.pdf
 #        http://www.cse.unsw.edu.au/~cs9417ml/Bayes/Pages/PearlPropagation.html
 #    """
 
