@@ -29,14 +29,227 @@ PHI_A = (1 / PHI)
 PHI_B = 1 - PHI_A
 
 
-#def bayesnet():
-#    """
-#    References:
-#        https://class.coursera.org/pgm-003/lecture/17
-#        http://www.cs.ubc.ca/~murphyk/Bayes/bnintro.html
-#        http://www3.cs.stonybrook.edu/~sael/teaching/cse537/Slides/chapter14d_BP.pdf
-#        http://www.cse.unsw.edu.au/~cs9417ml/Bayes/Pages/PearlPropagation.html
-#    """
+def bayesnet():
+    """
+    References:
+        https://class.coursera.org/pgm-003/lecture/17
+        http://www.cs.ubc.ca/~murphyk/Bayes/bnintro.html
+        http://www3.cs.stonybrook.edu/~sael/teaching/cse537/Slides/chapter14d_BP.pdf
+        http://www.cse.unsw.edu.au/~cs9417ml/Bayes/Pages/PearlPropagation.html
+        https://github.com/pgmpy/pgmpy.git
+        http://pgmpy.readthedocs.org/en/latest/
+        http://nipy.bic.berkeley.edu:5000/download/11
+    """
+    from pgmpy.factors import TabularCPD
+    from pgmpy.models import BayesianModel
+    import pandas as pd
+
+    student_model = BayesianModel([('D', 'G'),
+                                   ('I', 'G'),
+                                   ('G', 'L'),
+                                   ('I', 'S')])
+    # we can generate some random data.
+    raw_data = np.random.randint(low=0, high=2, size=(1000, 5))
+    data = pd.DataFrame(raw_data, columns=['D', 'I', 'G', 'L', 'S'])
+    data_train = data[: int(data.shape[0] * 0.75)]
+    student_model.fit(data_train)
+    student_model.get_cpds()
+
+    data_test = data[int(0.75 * data.shape[0]): data.shape[0]]
+    data_test.drop('D', axis=1, inplace=True)
+    student_model.predict(data_test)
+
+    grade_cpd = TabularCPD(
+        variable='G',
+        variable_card=3,
+        values=[[0.3, 0.05, 0.9, 0.5],
+                [0.4, 0.25, 0.08, 0.3],
+                [0.3, 0.7, 0.02, 0.2]],
+        evidence=['I', 'D'],
+        evidence_card=[2, 2])
+    difficulty_cpd = TabularCPD(
+        variable='D',
+        variable_card=2,
+        values=[[0.6, 0.4]])
+    intel_cpd = TabularCPD(
+        variable='I',
+        variable_card=2,
+        values=[[0.7, 0.3]])
+    letter_cpd = TabularCPD(
+        variable='L',
+        variable_card=2,
+        values=[[0.1, 0.4, 0.99],
+                [0.9, 0.6, 0.01]],
+        evidence=['G'],
+        evidence_card=[3])
+    sat_cpd = TabularCPD(
+        variable='S',
+        variable_card=2,
+        values=[[0.95, 0.2],
+                [0.05, 0.8]],
+        evidence=['I'],
+        evidence_card=[2])
+    student_model.add_cpds(grade_cpd, difficulty_cpd,
+                           intel_cpd, letter_cpd,
+                           sat_cpd)
+
+    #expect_score_high    = get_expected_scores_prob(.9)
+    #expect_score_medhigh = get_expected_scores_prob(.7)
+    #expect_score_med     = get_expected_scores_prob(.5)
+    #expect_score_medlow  = get_expected_scores_prob(.3)
+    #expect_score_low     = get_expected_scores_prob(.1)
+
+    #score_measure = np.array([
+    #    expect_score_high,
+    #    expect_score_medhigh,
+    #    expect_score_med,
+    #    expect_score_medlow,
+    #    expect_score_low,
+    #])
+
+    num_names = 3
+    num_scores = 2
+    names = list(range(num_names))
+    name_combo = np.array(list(ut.iprod(names, names)))
+
+    score_types = list(range(num_scores))
+    name_scores_combo = np.array(list(ut.iprod(names, names, names, score_types, score_types)))
+
+    combo_is_same = name_combo.T[0] == name_combo.T[1]
+
+    def get_expected_scores_prob(level):
+        expected_scores_level = (combo_is_same * level) + (1 - combo_is_same) * (1 - level)
+        return expected_scores_level
+
+    score_measure = np.array([get_expected_scores_prob(level) for level in np.linspace(.1, .9, num_scores)])
+
+    score_values = (score_measure / score_measure.sum(axis=0)).tolist()
+
+    NICE = True
+    if NICE:
+        # hacky testing
+        name_nice = ['Fred', 'Tom', 'Paul']
+        score_nice = ['low', 'high']
+
+        lbls = ut.list_unflat_take(name_nice, name_combo)
+        columns = [lbl[0] + lbl[1] for lbl in lbls]
+
+        scoreframe = pd.DataFrame(score_measure, columns=columns, index=score_nice)
+
+    def name_cpd(aid):
+        from pgmpy.factors import TabularCPD
+        return TabularCPD(
+            variable='N' + aid,
+            variable_card=num_names,
+            values=[[1.0 / num_names] * num_names])
+
+    def score_cpd(aid1, aid2):
+        return TabularCPD(
+            variable='S' + aid1 + aid2,
+            variable_card=num_scores,
+            values=score_values,
+            evidence=['N' + aid1, 'N' + aid2],
+            evidence_card=[num_names, num_names])
+
+    Na = name_cpd('a')
+    Nb = name_cpd('b')
+    Nc = name_cpd('c')
+    Sab = score_cpd('a', 'b')
+    Sbc = score_cpd('b', 'c')
+
+    name_model = BayesianModel([
+        ('Na', 'Sab'),
+        ('Nb', 'Sab'),
+        ('Nb', 'Sbc'),
+        ('Nc', 'Sbc'),
+    ])
+    name_model.add_cpds(Sab, Sbc, Na, Nb, Nc)
+
+    all_data = pd.DataFrame(name_scores_combo, columns=['Na', 'Nb', 'Nc', 'Sab', 'Sbc'])
+
+    #def compress_rows1(c1, c2, data_):
+    #    import vtool as vt
+    #    levelset_12 = (data_[c1] == data_[c2]).astype(np.int64)
+    #    other_cols = ut.setdiff_ordered(data_.columns.tolist(), [c1, c2])
+    #    z = pd.concat((levelset_12, data_[other_cols]), axis=1)
+    #    unique_rows = vt.unique_row_indexes(z.values)
+    #    new_data = data_.loc[unique_rows]
+    #    return new_data
+
+    def compress_rows2(c1, c2, c3, data_):
+        # Hacky, why cant I think of this right?
+        # need to generalize;
+        import vtool as vt
+        np.logical_and(data_[c1] == data_[c2], data_[c2] == data_[c3])
+        np.logical_and(data_[c1] == data_[c2], data_[c2] != data_[c3])
+
+        cases = [
+            np.logical_and.reduce((data_[c1] == data_[c2], data_[c2] == data_[c3], data_[c1] == data_[c3])),
+
+            np.logical_and.reduce((data_[c1] != data_[c2], data_[c2] != data_[c3], data_[c1] != data_[c3])),
+
+            np.logical_and.reduce((data_[c1] != data_[c2], data_[c2] != data_[c3], data_[c1] == data_[c3])),
+            np.logical_and.reduce((data_[c1] != data_[c2], data_[c2] == data_[c3], data_[c1] == data_[c3])),
+
+            np.logical_and.reduce((data_[c1] == data_[c2], data_[c2] == data_[c3], data_[c1] != data_[c3])),
+            np.logical_and.reduce((data_[c1] == data_[c2], data_[c2] != data_[c3], data_[c1] != data_[c3])),
+        ]
+        other_cols = ut.setdiff_ordered(data_.columns.tolist(), [c1, c2, c3])
+        sel_list = []
+        for case in cases:
+            z = pd.concat((pd.DataFrame(case.astype(np.int64), columns=['C']), data_[other_cols]), axis=1)
+            sel_ = vt.other.unique_row_indexes(z.values)
+            sel  = np.intersect1d(sel_, np.where(case)[0])
+            sel_list += [sel]
+            #cases
+        sel = sorted(ut.flatten(sel_list))
+        new_data = data_.loc[sel]
+        return new_data
+
+    #args = c1, c2, data_ = 'Na', 'Nb', all_data
+    #all_data1 = compress_rows1(*args)
+
+    c1, c2, c3, data_ = 'Na', 'Nb', 'Nc', all_data
+    all_data2 = compress_rows2(c1, c2, c3, data_)
+
+    test_data = all_data2.drop('Nc', axis=1)
+    test_data = test_data.reset_index(drop=True)
+    test_data = test_data.loc[[0, 1, 2, 3, 8, 9, 10, 11]]
+    test_data = test_data.reset_index(drop=True)
+
+    from pgmpy.inference import BeliefPropagation
+    name_belief = BeliefPropagation(name_model)
+
+    for i in range(test_data.shape[0]):
+        evidence = test_data.loc[i].to_dict()
+        probs = name_belief.query(['Nc'], evidence)
+        factor = probs['Nc']
+        probs = factor.values
+        evidence_ = evidence.copy()
+        evidence_['Na'] = name_nice[evidence['Na']]
+        evidence_['Nb'] = name_nice[evidence['Nb']]
+        evidence_['Sab'] = score_nice[evidence['Sab']]
+        evidence_['Sbc'] = score_nice[evidence['Sbc']]
+        #evidence_sub1 = ut.dict_subset(evidence_, ['Na', 'Nb', 'Sab'])
+        #evidence_sub2 = ut.dict_subset(evidence_, ['Sbc'])
+        print('----')
+        #print('evidence = %s + %s' % (ut.repr2(evidence_sub1, explicit=True, nobraces=True), ut.repr2(evidence_sub2),))
+        print('evidence = %s' % (ut.repr2(evidence_, explicit=True, nobraces=True)))
+        nice2_prob = ut.odict(zip(name_nice, probs.tolist()))
+        print('probs(Nc)  = %s' % (ut.repr3(nice2_prob, precision=3, align=True),))
+
+    prob_ = name_belief.query(['Nc'])
+    phi = prob_['Nc']
+    # Should be uniform at first. No evidence
+    phi.values
+
+    prob_ = name_belief.query(['Nc'])
+    phi = prob_['Nc']
+    # Should be uniform at first. No evidence
+    phi.values
+
+
+    name_model.predict(test_data)
 
 
 def compare_groupings(groups1, groups2):

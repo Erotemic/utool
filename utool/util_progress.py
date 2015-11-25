@@ -17,6 +17,7 @@ from utool import util_arg
 from utool import util_time
 from utool import util_iter
 from utool import util_cplat
+from six.moves import range, zip
 import six  # NOQA
 print, rrr, profile = util_inject.inject2(__name__, '[progress]')
 
@@ -62,6 +63,12 @@ def test_progress():
         for x in ut.ProgressIter(range(0, numiter), freq=8, adjust=True):
             time.sleep(sleeptime)
     print('_________________')
+    numiter = 50
+    sleeptime = 1E-4
+    with ut.Timer():
+        for x in ut.ProgressIter(range(0, numiter), freq=8, adjust=True):
+            time.sleep(sleeptime)
+    print('_________________')
     print('No frequncy run:')
     with ut.Timer():
         for x in range(0, numiter):
@@ -89,6 +96,8 @@ def test_progress():
         progiter2 = progiter_partials[0](range(0, 7), lbl='sub_prog1', freq=1, adjust=False)
         for count2 in progiter2:
             pass
+    for x in ut.ProgressIter(zip(range(10), range(10)), freq=8, adjust=True):
+        time.sleep(sleeptime)
         #progiter3 = progiter_partials[1](range(0, 3), lbl='sub_prog2', freq=1, adjust=False)
         #for count3 in progiter3:
         #    pass
@@ -236,7 +245,9 @@ class ProgressIter(object):
         >>> results1 = [x for x in ut.ProgressIter(range(num), wfreq=10, adjust=True)]
         >>> results4 = [x for x in ut.ProgressIter(range(num), wfreq=1, adjust=True)]
         >>> results2 = [x for x in range(num)]
-        >>> results3 = [x for x in ut.progiter((y + 1 for y in range(num2)), nTotal=num2, wfreq=1000, backspace=True, adjust=True)]
+        >>> results3 = [x for x in ut.progiter((y + 1 for y in range(num2)),
+        >>>                                    nTotal=num2, wfreq=1000,
+        >>>                                    backspace=True, adjust=True)]
         >>> assert results1 == results2
 
     Example1:
@@ -251,10 +262,6 @@ class ProgressIter(object):
         >>> print(ut.truncate_str(ut.repr2(results1)))
 
     """
-    #def new_init(self, iterable=None, lbl='ProgIter', nTotal=None, freq=4,
-    #             newlines=False):
-    #    pass
-
     def __init__(self, iterable=None, *args, **kwargs):
         self.iterable = iterable
         if len(args) < 2 and 'nTotal' not in kwargs:
@@ -272,8 +279,8 @@ class ProgressIter(object):
         #self.report_unit       = kwargs.get('report_unit', 'minutes')
         self.enabled            = kwargs.get('enabled', True)
         self.report_unit        = kwargs.get('report_unit', 'seconds')
-        #self.autoadjust         = kwargs.get('autoadjust', kwargs.get('adjust', True))  # autoadjust frequency of reporting
-        self.autoadjust         = kwargs.get('autoadjust', kwargs.get('adjust', False))  # autoadjust frequency of reporting
+        # autoadjust frequency of reporting
+        self.autoadjust         = kwargs.get('autoadjust', kwargs.get('adjust', False))
         self.time_thresh        = kwargs.pop('time_thresh', None)
         self.prog_hook          = kwargs.pop('prog_hook', None)
         self.separate           = kwargs.pop('separate', False)
@@ -335,25 +342,27 @@ class ProgressIter(object):
 
     def get_subindexers(prog_iter, num_substeps):
         # FIXME and  make this a method of progiter
-        step_min = ((prog_iter.count - 1) / prog_iter.nTotal) * prog_iter.substep_size + prog_iter.substep_min
+        step_min = (((prog_iter.count - 1) / prog_iter.nTotal) *
+                    prog_iter.substep_size + prog_iter.substep_min)
         step_size = (1.0 / prog_iter.nTotal) * prog_iter.substep_size
 
         substep_size = step_size / num_substeps
-        substep_min_list = [(step * substep_size) + step_min for step in range(num_substeps)]
+        substep_min_list = [(step * substep_size) + step_min
+                            for step in range(num_substeps)]
         #level = prog_iter.level + 1
         DEBUG = False
         if DEBUG:
             with ut.Indenter(' ' * 4 * prog_iter.level):
                 print('\n')
                 print('+____<NEW SUBSTEPS>____')
-                print('Making %d substeps for prog_iter.lbl = %s' % (num_substeps, prog_iter.lbl,))
+                print('Making %d substeps for prog_iter.lbl = %s' % (
+                    num_substeps, prog_iter.lbl,))
                 print(' * step_min         = %.2f' % (step_min,))
                 print(' * step_size        = %.2f' % (step_size,))
                 print(' * substep_size     = %.2f' % (substep_size,))
                 print(' * substep_min_list = %r' % (substep_min_list,))
                 print(r'L____</NEW SUBSTEPS>____')
                 print('\n')
-        #subprog_partial_list = [partial(ProgressIter, substep_min=substep_min, substep_size=substep_size, level=level) for substep_min in substep_min_list]
         subprog_partial_list = [
             partial(ProgressIter,
                     parent_nTotal=prog_iter.nTotal * num_substeps,
@@ -361,28 +370,75 @@ class ProgressIter(object):
             for step in range(num_substeps)]
         return subprog_partial_list
 
-    def build_msg_fmtstr_index(self, nTotal, lbl):
-        nTotal_ = '?' if nTotal == 0 else six.text_type(nTotal)
-        msg_fmtstr_index = ''.join(('\r', lbl, ' %4d/', nTotal_ , '...  ',))
-        return msg_fmtstr_index
+    #def build_msg_fmtstr_time(self, lbl, invert_rate, backspace):
+    #    with_wall = True
+    #    tzname = time.tzname[0]
+    #    if util_cplat.WIN32:
+    #        tzname = tzname.replace('Eastern Standard Time', 'EST')
+    #    msg_fmtstr_time = ''.join((
+    #        'rate=%3.3f seconds/iter, ' if invert_rate else 'rate=%4.2f Hz,',
+    #        ' etr=%s,',
+    #        ' ellapsed=%s,',
+    #        ' wall=%s ' + tzname if with_wall else '',
+    #        #'' if backspace else '\n',
+    #        '\n' if backspace else '',
+    #    ))
+    #    return msg_fmtstr_time
 
-    def build_msg_fmtstr_time(self, lbl, invert_rate, backspace):
+    #def build_msg_fmtstr(self, nTotal, lbl, invert_rate, backspace):
+    #    msg_fmtstr = (self.build_msg_fmtstr_index(nTotal, lbl) +
+    #                  self.build_msg_fmtstr_time(lbl, invert_rate, backspace))
+    #    return msg_fmtstr
+
+    @staticmethod
+    def build_msg_fmtstr_head_cols(nTotal, lbl):
+        nTotal_ = '?' if nTotal == 0 else six.text_type(nTotal)
+        msg_head_columns = ['\r', lbl, ' {count:4d}/', nTotal_ , '...  ']
+        return msg_head_columns
+
+    @staticmethod
+    def build_msg_fmtstr2(lbl, nTotal, invert_rate, backspace):
+        r"""
+        Args:
+            lbl (str):
+            invert_rate (bool):
+            backspace (bool):
+
+        Returns:
+            str: msg_fmtstr_time
+
+        CommandLine:
+            python -m utool.util_progress --exec-ProgressIter.build_msg_fmtstr2
+
+        Setup:
+            >>> from utool.util_progress import *  # NOQA
+            >>> lbl = 'foo'
+            >>> invert_rate = True
+            >>> backspace = False
+            >>> nTotal = None
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> msg_fmtstr_time = ProgressIter.build_msg_fmtstr2(lbl, nTotal, invert_rate, backspace)
+            >>> result = ('%s' % (ut.repr2(msg_fmtstr_time),))
+            >>> print(result)
+        """
         with_wall = True
         tzname = time.tzname[0]
         if util_cplat.WIN32:
             tzname = tzname.replace('Eastern Standard Time', 'EST')
-        msg_fmtstr_time = ''.join((
-            'rate=%3.3f seconds/iter, ' if invert_rate else 'rate=%4.2f Hz,',
-            ' etr=%s,',
-            ' ellapsed=%s,',
-            ' wall=%s ' + tzname if with_wall else '',
+        msg_head = ProgressIter.build_msg_fmtstr_head_cols(nTotal, lbl)
+        msg_tail = [
+            ('rate={rate:3.3f} seconds/iter, '
+             if invert_rate else 'rate={rate:4.2f} Hz,'),
+            ('' if nTotal == 0 else ' etr={etr},'),
+            ' ellapsed={ellapsed},',
+            (' wall={wall} ' + tzname if with_wall else ''),
+            #'' if backspace else '\n',
             '\n' if backspace else '',
-        ))
+        ]
+        msg_fmtstr_time = ''.join((msg_head + msg_tail))
         return msg_fmtstr_time
-
-    def build_msg_fmtstr(self, nTotal, lbl, invert_rate, backspace):
-        msg_fmtstr = self.build_msg_fmtstr_index(nTotal, lbl) + self.build_msg_fmtstr_time(lbl, invert_rate, backspace)
-        return msg_fmtstr
 
     @profile
     def iter_rate(self):
@@ -441,7 +497,10 @@ class ProgressIter(object):
         print_sep = self.separate
         if print_sep:
             print('---------')
-        PROGRESS_WRITE(self.build_msg_fmtstr_index(nTotal, self.lbl) % (self.parent_offset))
+        PROGRESS_WRITE(
+            ''.join(self.build_msg_fmtstr_head_cols(
+                nTotal, self.lbl)).format(count=self.parent_offset))
+        #PROGRESS_WRITE(self.build_msg_fmtstr_index(nTotal, self.lbl) % (self.parent_offset))
         if force_newlines:
             PROGRESS_WRITE('\n')
 
@@ -450,8 +509,10 @@ class ProgressIter(object):
             self.prog_hook(self.count, nTotal)
 
         # Prepare for iteration
-        msg_fmtstr = self.build_msg_fmtstr(nTotal, self.lbl,
-                                           self.invert_rate, self.backspace)
+        msg_fmtstr = self.build_msg_fmtstr2(self.lbl, nTotal,
+                                            self.invert_rate, self.backspace)
+        #msg_fmtstr = self.build_msg_fmtstr(nTotal, self.lbl,
+        #                                   self.invert_rate, self.backspace)
 
         # TODO: on windows is time.clock better?
         # http://exnumerus.blogspot.com/2011/02/how-to-quickly-plot-multiple-line.html
@@ -507,12 +568,19 @@ class ProgressIter(object):
                         freq -= max_freq_change
                     else:
                         freq = new_freq
-                msg = msg_fmtstr % (
-                    self.count,
-                    1.0 / iters_per_second if self.invert_rate else iters_per_second,
-                    six.text_type(datetime.timedelta(seconds=int(est_seconds_left))),
-                    six.text_type(datetime.timedelta(seconds=int(total_seconds))),
-                    time.strftime('%H:%M'),
+                #msg = msg_fmtstr % (
+                #    self.count,
+                #    1.0 / iters_per_second if self.invert_rate else iters_per_second,
+                #    six.text_type(datetime.timedelta(seconds=int(est_seconds_left))),
+                #    six.text_type(datetime.timedelta(seconds=int(total_seconds))),
+                #    time.strftime('%H:%M'),
+                #)
+                msg = msg_fmtstr.format(
+                    count=self.count,
+                    rate=1.0 / iters_per_second if self.invert_rate else iters_per_second,
+                    etr=six.text_type(datetime.timedelta(seconds=int(est_seconds_left))),
+                    ellapsed=six.text_type(datetime.timedelta(seconds=int(total_seconds))),
+                    wall=time.strftime('%H:%M'),
                 )
                 #est_timeunit_left,
                 #total_timeunit)
@@ -529,11 +597,18 @@ class ProgressIter(object):
             est_seconds_left = 0
             now_time = default_timer()
             total_seconds = (now_time - start_time)
-            msg = msg_fmtstr % (
-                self.count, 1.0 / iters_per_second if self.invert_rate else iters_per_second,
-                six.text_type(datetime.timedelta(seconds=int(est_seconds_left))),
-                six.text_type(datetime.timedelta(seconds=int(total_seconds))),
-                time.strftime('%H:%M'),
+            #msg = msg_fmtstr % (
+            #    self.count, 1.0 / iters_per_second if self.invert_rate else iters_per_second,
+            #    six.text_type(datetime.timedelta(seconds=int(est_seconds_left))),
+            #    six.text_type(datetime.timedelta(seconds=int(total_seconds))),
+            #    time.strftime('%H:%M'),
+            #)
+            msg = msg_fmtstr.format(
+                count=self.count,
+                rate=1.0 / iters_per_second if self.invert_rate else iters_per_second,
+                etr=six.text_type(datetime.timedelta(seconds=int(est_seconds_left))),
+                ellapsed=six.text_type(datetime.timedelta(seconds=int(total_seconds))),
+                wall=time.strftime('%H:%M'),
             )
             PROGRESS_WRITE(msg)
             PROGRESS_WRITE('\n')

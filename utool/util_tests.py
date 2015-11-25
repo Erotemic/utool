@@ -665,16 +665,9 @@ def parse_doctest_from_docstr(docstr):
     docstr_blocks = parse_docblocks_from_docstr(docstr)
 
     example_docblocks = []
+    example_setups = []
 
-    for header, docblock, line_offset in docstr_blocks:
-        if header.startswith('Example'):
-            example_docblocks.append((header, docblock, line_offset))
-
-    testheader_list     = []
-    testsrc_list        = []
-    testwant_list       = []
-    testlineoffset_list = []
-    for header, docblock, line_offset in example_docblocks:
+    def read_exampleblock(dockblock):
         nonheader_src = ut.unindent('\n'.join(docblock.splitlines()[1:]))
         nonheader_lines = nonheader_src.splitlines()
         reversed_src_lines = []
@@ -693,12 +686,34 @@ def parse_doctest_from_docstr(docstr):
             reversed_src_lines.append(line[4:])
         test_src = '\n'.join(reversed_src_lines[::-1])
         test_want = '\n'.join(reversed_want_lines[::-1])
+        return test_src, test_want
+
+    for header, docblock, line_offset in docstr_blocks:
+        if header.startswith('Example'):
+            example_docblocks.append((header, docblock, line_offset))
+
+        if header.startswith('Setup'):
+            setup_src = read_exampleblock(docblock)[0]
+            example_setups.append(setup_src)
+
+    testheader_list     = []
+    testsrc_list        = []
+    testwant_list       = []
+    testlineoffset_list = []
+    for header, docblock, line_offset in example_docblocks:
+        test_src, test_want = read_exampleblock(docblock)
         testheader_list.append(header)
         testsrc_list.append(test_src)
         testwant_list.append(test_want)
         testlineoffset_list.append(line_offset)
         #print('Parsed header=%r' % header)
         #print('Parsed src=%r' % test_src)
+
+    # Hack: append setups to all sources
+    assert len(example_setups) <= 1, 'cant have more than 1 setup'
+    if len(example_setups) == 1:
+        testsrc_list = [example_setups[0] + '\n' + src for src in  testsrc_list]
+
     return testheader_list, testsrc_list, testwant_list, testlineoffset_list
 
 
@@ -763,6 +778,8 @@ def get_doctest_examples(func_or_class):
         >>> print(result)
         2
     """
+    if isinstance(func_or_class, staticmethod):
+        func_or_class = func_or_class.__func__
     import utool as ut
     if VERBOSE_TEST:
         print('[util_test][DEPTH 3] get_doctest_examples()')
@@ -811,46 +828,6 @@ def get_doctest_examples(func_or_class):
     return testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr
     # doctest doesnt do what i want. so I wrote my own primative but effective
     # parser.
-    '''
-    import doctest
-    try:
-        doctest_parser = doctest.DocTestParser()
-        comment_iter = doctest_parser.parse(docstr)
-        #comment_iter = doctest_parser.get_examples(docstr)
-    except Exception as ex:
-        import utool as ut
-        ut.printex(ex, 'error parsing:\n%s\nin function %r' % (docstr, func_or_class))
-        raise
-    # Output lists
-    example_list = []
-    want_list = []
-    # Accumulator lists
-    current_example_lines = []
-    current_want_lines = []
-    def append_current_example():
-        # next example defined if any examples lines have been found
-        if len(current_example_lines) >= 1:
-            example_list.append(''.join(current_example_lines))
-            want_list.append(''.join(current_want_lines))
-    # Loop over doctest lines
-    for c in comment_iter:
-        if isinstance(c, doctest.Example):
-            # Append a docline or a wantline
-            current_example_lines.append(c.source)
-            current_want_lines.append(c.want)
-        elif c == '':
-            pass
-        else:
-            # Append current accumulators to output and reset
-            # accumulators.
-            append_current_example()
-            current_example_lines = []
-            current_want_lines = []
-    append_current_example()
-    import utool as ut
-    ut.embed()
-    return example_list, want_list
-    '''
 
 
 def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
@@ -969,7 +946,10 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
 
             for key, val in ut.iter_module_doctestable(module,
                                                        include_inherited=False):
-                docstr = inspect.getdoc(val)
+                if isinstance(val, staticmethod):
+                    docstr = inspect.getdoc(val.__func__)
+                else:
+                    docstr = inspect.getdoc(val)
                 #docstr = ut.ensure_unicode(docstr)
                 # FIXME:
                 # BUG: We need to verify that this function actually belongs to this
@@ -978,10 +958,13 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                 if docstr is not None and docstr.find('Example') >= 0:
                     testable_name_list.append(key)
                     testable_list.append(val)
-                    #else:
-                    #    if docstr.find('Example') >= 0:
-                    #        pass
-                    #        #print('[util_dev] DOCTEST DISABLED: %s' % key)
+                else:
+                    if VERBOSE_TEST and ut.NOT_QUIET:
+                        if docstr.find('Example') >= 0:
+                            print('[util_dev] Ignoring (disabled) : %s' % key)
+                        else:
+                            print('[util_dev] Ignoring (no Example) : %s' % key)
+                        #print('[util_dev] DOCTEST DISABLED: %s' % key)
         except Exception as ex:
             print('FAILED')
             print(docstr)
@@ -1018,6 +1001,8 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     #print(force_enable_testnames)
     def _get_testable_name(testable):
         import utool as ut
+        if isinstance(testable, staticmethod):
+            testable = testable.__func__
         try:
             testable_name = testable.func_name
         except AttributeError as ex1:
@@ -1043,6 +1028,8 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     for testable in sorted_testable:
         testname = _get_testable_name(testable)
         testname2 = None
+        if isinstance(testable, staticmethod):
+            testable = testable.__func__
         if hasattr(testable, '__ut_parent_class__'):
             # HACK for getting classname.funcname
             testname2 = testable.__ut_parent_class__.__name__ + '.' + testname
