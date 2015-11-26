@@ -582,7 +582,7 @@ def copy_files_to(src_fpath_list, dst_dpath=None, dst_fpath_list=None,
     parallel copier
 
     Example:
-        >>> # DISTABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_path import *
         >>> import utool as ut
         >>> overwrite = False

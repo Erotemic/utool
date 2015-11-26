@@ -25,6 +25,7 @@ if util_type.HAVE_NUMPY:
 else:
     TAU = (2 * math.pi)  # References: tauday.com
 
+NO_TRUNCATE = '--no-truncate' in sys.argv
 TRIPLE_DOUBLE_QUOTE = r'"' * 3
 TRIPLE_SINGLE_QUOTE = r"'" * 3
 SINGLE_QUOTE = r"'"
@@ -349,6 +350,8 @@ def truncate_str(str_, maxlen=110, truncmsg=' ~~~TRUNCATED~~~ '):
     """
     Removes the middle part of any string over maxlen characters.
     """
+    if NO_TRUNCATE:
+        return str_
     if maxlen is None or maxlen == -1 or len(str_) < maxlen:
         return str_
     else:
@@ -2370,6 +2373,15 @@ def autoformat_pep8(sourcecode, **kwargs):
     pep8_options = autopep8._get_options(kwargs, False)
     new_source = autopep8.fix_code(sourcecode, pep8_options)
     return new_source
+
+
+def filtered_infostr(flags, lbl, reason=None):
+    total = len(flags)
+    removed = total - sum(flags)
+    reasonstr = '' if reason is None else ' based on %s' % (reason,)
+    percent = 100 * removed / total
+    str_ = ('Removing %d / %d (%.2f%%) %s%s' % (removed, total, percent, lbl, reasonstr))
+    return str_
 
 
 if __name__ == '__main__':

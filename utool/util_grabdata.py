@@ -9,11 +9,12 @@ import gzip
 import urllib  # NOQA
 import functools
 import time
+from six.moves import urllib as _urllib
 from utool import util_path
 from utool import util_cplat
 from utool import util_arg
 from utool import util_inject
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[grabdata]')
+print, rrr, profile = util_inject.inject2(__name__, '[grabdata]')
 
 
 QUIET = util_arg.QUIET
@@ -290,6 +291,7 @@ def download_url(url, filename=None, spoof=False):
     import urllib  # NOQA
     if filename is None:
         filename = basename(url)
+    print('[utool] Downloading url=%r to filename=%r' % (url, filename))
     def reporthook_(num_blocks, block_nBytes, total_nBytes, start_time=0):
         total_seconds = time.time() - start_time + 1E-9
         num_kb_down   = int(num_blocks * block_nBytes) / 1024
@@ -301,7 +303,6 @@ def download_url(url, filename=None, spoof=False):
         sys.stdout.write(msg)
         sys.stdout.flush()
     reporthook = functools.partial(reporthook_, start_time=time.time())
-    print('[utool] Downloading url=%r to filename=%r' % (url, filename))
     if spoof:
         # Different agents that can be used for spoofing
         user_agents = [
@@ -330,16 +331,23 @@ def download_url(url, filename=None, spoof=False):
     return filename
 
 
-def url_read(url):
-    if six.PY2:
-        import urllib as _urllib
-    elif six.PY3:
-        import urllib.request as _urllib
+#if six.PY2:
+#    import urllib as _urllib
+#elif six.PY3:
+#    import urllib.request as _urllib
+
+
+def url_read(url, verbose=True):
+    """
+    Directly reads data from url
+    """
     if url.find('://') == -1:
         url = 'http://' + url
-    print('Reading data from url=%r' % (url,))
+    if verbose:
+        print('Reading data from url=%r' % (url,))
     try:
-        file_ = _urllib.urlopen(url)
+        file_ = _urllib.request.urlopen(url)
+        #file_ = _urllib.urlopen(url)
     except IOError:
         raise
     data = file_.read()
@@ -735,6 +743,99 @@ def scp_pull(remote_path, local_path='.', remote='localhost', user=None):
     scp_exe = 'scp'
     scp_args = (scp_exe, '-r', remote_uri, local_path)
     ut.cmd(scp_args)
+
+
+def s3_dict_encode_to_str(s3_dict):
+    default_s3_dict = {
+        'bucket'          : None,
+        'key'             : None,
+        'auth_domain'     : None,
+        'auth_access_id'  : None,
+        'auth_secret_key' : None,
+    }
+    default_s3_dict.update(s3_dict)
+    assert len(default_s3_dict.keys()) == 5
+
+    for key in default_s3_dict.keys():
+        if key.startswith('auth'):
+            value = default_s3_dict[key]
+            if value is None:
+                default_s3_dict[key] = 'EMPTY'
+
+    assert None not in default_s3_dict.values()
+    values = (
+        default_s3_dict['auth_access_id'],
+        default_s3_dict['auth_secret_key'],
+        default_s3_dict['auth_domain'],
+        default_s3_dict['bucket'],
+        default_s3_dict['key'],
+    )
+    return 's3://%s:%s@%s:%s:%s' % values
+
+
+def s3_str_decode_to_dict(s3_str):
+    default_s3_dict = {
+        'bucket'          : None,
+        'key'             : None,
+        'auth_domain'     : None,
+        'auth_access_id'  : None,
+        'auth_secret_key' : None,
+    }
+    assert s3_str.startswith('s3://')
+
+    s3_str = s3_str.strip('s3://')
+    left, right = s3_str.split('@')
+    left = left.split(':')
+    right = right.split(':')
+    default_s3_dict['bucket']          = right[1]
+    default_s3_dict['key']             = right[2]
+    default_s3_dict['auth_domain']     = right[0]
+    default_s3_dict['auth_access_id']  = left[0]
+    default_s3_dict['auth_secret_key'] = left[1]
+
+    assert len(default_s3_dict.keys()) == 5
+    assert None not in default_s3_dict.values()
+
+    for key in default_s3_dict.keys():
+        if key.startswith('auth'):
+            value = default_s3_dict[key]
+            if value == 'EMPTY':
+                default_s3_dict[key] = None
+
+    return default_s3_dict
+
+
+def read_s3_contents(bucket, key, auth_access_id=None, auth_secret_key=None,
+                     auth_domain=None):
+    import boto
+    from boto.s3.connection import S3Connection
+    if auth_access_id is not None and auth_secret_key is not None:
+        conn = S3Connection(auth_access_id, auth_secret_key)
+        bucket = conn.get_bucket(bucket)
+    else:
+        # Use system defaults, located in /etc/boto.cfg
+        # Alternatively, use user defaults, located in ~/.boto
+        s3 = boto.connect_s3()
+        bucket = s3.get_bucket(bucket)
+    key = bucket.get_key(key)
+    contents = key.get_contents_as_string()
+    return contents
+
+
+def grab_s3_contents(fpath, bucket, key, auth_access_id=None, auth_secret_key=None,
+                     auth_domain=None):
+    import boto
+    from boto.s3.connection import S3Connection
+    if auth_access_id is not None and auth_secret_key is not None:
+        conn = S3Connection(auth_access_id, auth_secret_key)
+        bucket = conn.get_bucket(bucket)
+    else:
+        # Use system defaults, located in /etc/boto.cfg
+        # Alternatively, use user defaults, located in ~/.boto
+        s3 = boto.connect_s3()
+        bucket = s3.get_bucket(bucket)
+    key = bucket.get_key(key)
+    key.get_contents_to_filename(fpath)
 
 
 if __name__ == '__main__':

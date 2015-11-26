@@ -911,6 +911,7 @@ def spawn_background_process(func, *args, **kwargs):
     func_name = ut.get_funcname(func)
     name = 'mp.Progress-' + func_name
     proc_obj = multiprocessing.Process(target=func, name=name, args=args, kwargs=kwargs)
+    #proc_obj.daemon = True
     #proc_obj.isAlive = proc_obj.is_alive
     proc_obj.start()
     return proc_obj

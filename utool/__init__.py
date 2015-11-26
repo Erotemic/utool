@@ -407,9 +407,10 @@ if DOELSE:
                                      grab_selenium_chromedriver,
                                      grab_selenium_driver, grab_test_imgpath,
                                      grab_zipped_url, open_url_in_browser,
-                                     scp_pull, split_archive_ext,
-                                     unarchive_file, untar_file, unzip_file,
-                                     url_read,)
+                                     s3_dict_encode_to_str,
+                                     s3_str_decode_to_dict, scp_pull,
+                                     split_archive_ext, unarchive_file,
+                                     untar_file, unzip_file, url_read,)
     from utool.util_gridsearch import (DimensionBasis, GridSearch, ParamInfo,
                                        ParamInfoBool, ParamInfoList,
                                        constrain_cfgdict_list,

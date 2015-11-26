@@ -278,7 +278,8 @@ def get_module_owned_functions(module):
 def iter_module_doctestable(module, include_funcs=True, include_classes=True,
                             include_methods=True,
                             include_builtin=True,
-                            include_inherited=False):
+                            include_inherited=False,
+                            debug_key=None):
     r"""
     Yeilds doctestable live object form a modules
 
@@ -304,6 +305,8 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
         python -m utool --tf iter_module_doctestable --modname=ibeis.control.manual_annot_funcs
         python -m utool --tf iter_module_doctestable --modname=ibeis.control.manual_annot_funcs
         python -m utool --tf iter_module_doctestable --modname=ibeis.expt.test_result
+        python -m utool --tf iter_module_doctestable --modname=utool.util_progress --debug-key=build_msg_fmtstr_time2
+        python -m utool --tf iter_module_doctestable --modname=utool.util_progress --debug-key=ProgressIter
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -312,6 +315,7 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
         >>> modname = ut.get_argval('--modname', type_=str, default=None)
         >>> kwargs = ut.argparse_funckw(iter_module_doctestable)
         >>> module = ut.util_tests if modname is None else ut.import_modname(modname)
+        >>> #debug_key = ut.get_argval('--debugkey', type_=str, default=None)
         >>> doctestable_list = list(iter_module_doctestable(module, **kwargs))
         >>> func_names = sorted(ut.get_list_column(doctestable_list, 0))
         >>> print(ut.list_str(func_names))
@@ -321,6 +325,7 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
     types.BuiltinFunctionType
     valid_func_types = [
         types.FunctionType, types.BuiltinFunctionType, classmethod,
+        staticmethod,
         #types.MethodType, types.BuiltinMethodType,
     ]
     if include_builtin:
@@ -347,6 +352,11 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
     #modpath = ut.get_modname_from_modpath(module.__file__)
 
     for key, val in six.iteritems(module.__dict__):
+        # <DEBUG>
+        if debug_key is not None and key == debug_key:
+            import utool as ut
+            ut.embed()
+        # </DEBUG>
         if hasattr(val, '__module__'):
             # HACK: todo. figure out true parent module
             if val.__module__ == 'numpy':
@@ -360,9 +370,6 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
                 yield key, val
         elif isinstance(val, valid_class_types):
             class_ = val
-            #if key == 'SQLDatabaseController':
-            #    import utool as ut
-            #    ut.embed()
             if not include_inherited and not is_defined_by_module(class_, module):
                 continue
             if include_classes:
@@ -371,11 +378,18 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
             if include_methods:
                 # Yield methods of the class
                 for subkey, subval in six.iteritems(class_.__dict__):
+                    # <DEBUG>
+                    if debug_key is not None and subkey == debug_key:
+                        import utool as ut
+                        ut.embed()
+                    # </DEBUG>
                     # Unbound methods are still typed as functions
                     if isinstance(subval, valid_func_types):
                         if not include_inherited and not is_defined_by_module(subval, module):
                             continue
-                        if not isinstance(subval, types.BuiltinFunctionType) and not isinstance(subval, classmethod):
+                        if isinstance(subval, (staticmethod)):
+                            subval.__func__.__ut_parent_class__ = class_
+                        if not isinstance(subval, types.BuiltinFunctionType) and not isinstance(subval, (classmethod, staticmethod)):
                             # HACK: __ut_parent_class__ lets util_test have
                             # more info on the func should return extra info
                             # instead
@@ -407,6 +421,10 @@ def is_defined_by_module(item, module):
         # Capture case where there is a utool wrapper
         orig_func = item._utinfo['orig_func']
         return is_defined_by_module(orig_func, module)
+
+    if isinstance(item, staticmethod):
+        # static methods are a wrapper around a function
+        item = item.__func__
     try:
         func_globals = meta_util_six.get_funcglobals(item)
         if func_globals['__name__'] == module.__name__:
