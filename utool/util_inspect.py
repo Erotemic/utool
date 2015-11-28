@@ -54,6 +54,7 @@ def get_dev_hints():
         ('qnid'    , ('int', 'query name id')),
         #
         ('gfpath[0-9]?' , ('str', 'image file path string')),
+        ('path[0-9]?' , ('str', 'path to file or directory')),
         ('_path' , ('str', 'path string')),
         ('.*_dpath' , ('str', 'directory path string')),
         ('.*_fpath' , ('str', 'file path string')),

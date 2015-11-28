@@ -955,6 +955,18 @@ def knapsack(items, maxweight):
     total_value = bestvalue(len(items), maxweight)
     return total_value, items_subset
 
+#def knapsack_all_solns(items, maxweight):
+#    """
+#    TODO: return all optimal solutions to the knapsack problem
+
+#    References:
+#        http://stackoverflow.com/questions/30554290/how-to-derive-all-solutions-from-knapsack-dp-matrix
+
+#    >>> items = [(1, 2, 0), (1, 3, 1), (1, 4, 2), (1, 3, 3), (1, 3, 4), (1, 5, 5), (1, 4, 6), (1, 1, 7), (1, 1, 8), (1, 3, 9)]
+#    >>> weights = ut.get_list_column(items, 1)
+#    >>> maxweight = 6
+#    """
+
 
 def knapsack_greedy(items, maxweight):
     r"""

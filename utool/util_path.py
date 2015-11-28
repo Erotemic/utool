@@ -1058,7 +1058,43 @@ def matches_image(fname):
 
 
 def dirsplit(path):
-    return path.split(os.sep)
+    r"""
+    Args:
+        path (str):
+
+    Returns:
+        list: compoments of the path
+
+    CommandLine:
+        python -m utool.util_path --exec-dirsplit
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> paths = []
+        >>> paths.append('E:/window file/foo')
+        >>> paths.append('/normal/foo')
+        >>> paths.append('~/relative/path')
+        >>> results = [dirsplit(path) for path in paths]
+        >>> import re
+        >>> results2 = [re.split('\\/', path) for path in paths]
+        >>> print(results2)
+        >>> result = ut.repr2(results)
+        >>> print(result)
+    """
+    #return path.split(os.sep)
+    parts = []
+    remain = path
+    part = True
+    #while True:
+    while part != '' and remain != '':
+        remain, part = split(remain)
+        parts.append(part)
+    parts = [p for p in parts if p != '']
+    if remain != '':
+        parts.append(remain)
+    parts = parts[::-1]
+    return parts
 
 
 def fpaths_to_fnames(fpath_list):

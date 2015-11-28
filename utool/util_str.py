@@ -152,7 +152,7 @@ def bbox_str(bbox, pad=4, sep=', '):
     r""" makes a string from an integer bounding box """
     if bbox is None:
         return 'None'
-    fmtstr = sep.join(['%' + str(pad) + 'd'] * 4)
+    fmtstr = sep.join(['%' + six.text_type(pad) + 'd'] * 4)
     return '(' + fmtstr % tuple(bbox) + ')'
 
 
@@ -160,7 +160,7 @@ def verts_str(verts, pad=1):
     r""" makes a string from a list of integer verticies """
     if verts is None:
         return 'None'
-    fmtstr = ', '.join(['%' + str(pad) + 'd' + ', %' + str(pad) + 'd'] * 1)
+    fmtstr = ', '.join(['%' + six.text_type(pad) + 'd' + ', %' + six.text_type(pad) + 'd'] * 1)
     return ', '.join(['(' + fmtstr % vert + ')' for vert in verts])
 
 
@@ -170,7 +170,7 @@ def percent_str(pcnt):
 
 def tupstr(tuple_):
     """ maps each item in tuple to a string and doesnt include parens """
-    return ', '.join(list(map(str, tuple_)))
+    return ', '.join(list(map(six.text_type, tuple_)))
 
 # --- Strings ----
 
@@ -178,13 +178,13 @@ def tupstr(tuple_):
 def scalar_str(val, precision=None, max_precision=None):
     isfloat = (isinstance(val, (float)) or util_type.is_float(val))
     if precision is not None and isfloat:
-        return ('%.' + str(precision) + 'f') % (val,)
+        return ('%.' + six.text_type(precision) + 'f') % (val,)
     elif max_precision is not None and isfloat:
-        str_ = ('%.' + str(max_precision) + 'f') % (val,)
+        str_ = ('%.' + six.text_type(max_precision) + 'f') % (val,)
         str_ = str_.rstrip('0.')
         return str_
     else:
-        return str(val)
+        return six.text_type(val)
 
 
 def remove_chars(str_, char_list):
@@ -343,7 +343,7 @@ def indentjoin(strlist, indent='\n    ', suffix=''):
     strlist = list(strlist)
     if len(strlist) == 0:
         return ''
-    return indent_ + indent_.join([str(str_) + suffix for str_ in strlist])
+    return indent_ + indent_.join([six.text_type(str_) + suffix for str_ in strlist])
 
 
 def truncate_str(str_, maxlen=110, truncmsg=' ~~~TRUNCATED~~~ '):
@@ -471,13 +471,13 @@ def packstr(instr, textwidth=160, breakchars=' ', break_words=True,
 def joins(string, list_, with_head=True, with_tail=False, tostrip='\n'):
     head = string if with_head else ''
     tail = string if with_tail else ''
-    to_return = head + string.join(map(str, list_)) + tail
+    to_return = head + string.join(map(six.text_type, list_)) + tail
     to_return = to_return.strip(tostrip)
     return to_return
 
 
 def indent_list(indent, list_):
-    return list(map(lambda item: indent + str(item), list_))
+    return list(map(lambda item: indent + six.text_type(item), list_))
 
 
 def filesize_str(fpath):
@@ -646,7 +646,7 @@ if USE_GLOBAL_INFO:
         # Replace aliased values
         for alias_type, alias_name in (type_aliases + GLOBAL_TYPE_ALIASES):
             if isinstance(var, alias_type):
-                return alias_name + '<' + str(id(var)) + '>'
+                return alias_name + '<' + six.text_type(id(var)) + '>'
         return repr(var)
 
     def list_aliased_repr(list_, type_aliases=[]):
@@ -811,9 +811,9 @@ def array_repr2(arr, max_line_width=None, precision=None, suppress_small=None,
         lf = ''
         if issubclass(arr.dtype.type, np.flexible):
             if arr.dtype.names:
-                typename = '%s' % str(arr.dtype)
+                typename = '%s' % six.text_type(arr.dtype)
             else:
-                typename = '\'%s\'' % str(arr.dtype)
+                typename = '\'%s\'' % six.text_type(arr.dtype)
             lf = '\n' + ' ' * len(prefix)
         return cName + '(%s, %sdtype=%s)' % (lst, lf, typename)
 
@@ -1185,7 +1185,7 @@ def get_itemstr_list(list_, strvals=False, newlines=True, recursive=True,
     them.
     """
     if strvals:
-        valfunc = str
+        valfunc = six.text_type
     else:
         valfunc = reprfunc
 
@@ -1566,7 +1566,7 @@ def horiz_string(*args, **kwargs):
     """
     precision = kwargs.get('precision', None)
 
-    if len(args) == 1 and not isinstance(args[0], str):
+    if len(args) == 1 and not isinstance(args[0], six.string_types):
         val_list = args[0]
     else:
         val_list = args
@@ -1587,7 +1587,7 @@ def horiz_string(*args, **kwargs):
                 except ImportError:
                     pass
         if str_ is None:
-            str_ = str(val_list[sx])
+            str_ = six.text_type(val_list[sx])
         # continue with formating
         lines = str_.split('\n')
         line_diff = len(lines) - len(all_lines)
@@ -1619,18 +1619,18 @@ def listinfo_str(list_):
 
 def str2(obj):
     if isinstance(obj, dict):
-        return str(obj).replace(', ', '\n')[1:-1]
+        return six.text_type(obj).replace(', ', '\n')[1:-1]
     if isinstance(obj, type):
-        return str(obj).replace('<type \'', '').replace('\'>', '')
+        return six.text_type(obj).replace('<type \'', '').replace('\'>', '')
     else:
-        return str(obj)
+        return six.text_type(obj)
 
 
 def get_unix_timedelta_str(unixtime_diff):
     """ string representation of time deltas """
     timedelta = util_time.get_unix_timedelta(unixtime_diff)
     sign = '+' if unixtime_diff >= 0 else '-'
-    timedelta_str = sign + str(timedelta)
+    timedelta_str = sign + six.text_type(timedelta)
     return timedelta_str
 
 
@@ -1645,7 +1645,7 @@ def padded_str_range(start, end):
     """ Builds a list of (end - start) strings padded with zeros """
     import numpy as np
     nDigits = np.ceil(np.log10(end))
-    fmt = '%0' + str(nDigits) + 'd'
+    fmt = '%0' + six.text_type(nDigits) + 'd'
     str_range = (fmt % num for num in range(start, end))
     return list(str_range)
 
@@ -2010,7 +2010,7 @@ def pluralize(wordtext, num, plural_suffix='s'):
 
 
 def quantity_str(typestr, num, plural_suffix='s'):
-    return str(num) + ' ' + pluralize(typestr, num, plural_suffix)
+    return six.text_type(num) + ' ' + pluralize(typestr, num, plural_suffix)
 
 
 def remove_vowels(str_):
