@@ -2,7 +2,7 @@
 # TODO Licence:
 #
 # TODO:  move library intensive functions to vtool
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import operator
 import six
 from six.moves import zip, range, reduce
@@ -40,6 +40,208 @@ def bayesnet():
         http://pgmpy.readthedocs.org/en/latest/
         http://nipy.bic.berkeley.edu:5000/download/11
     """
+    from pgmpy.factors import TabularCPD
+    from pgmpy.models import BayesianModel
+    import pandas as pd
+    from pgmpy.inference import BeliefPropagation
+    from pgmpy.inference import VariableElimination  # NOQA
+
+    name_nice = ['n1', 'n2', 'n3']
+    score_nice = ['low', 'high']
+    num_names = len(name_nice)
+    num_scores = len(score_nice)
+    nid_basis = list(range(num_names))
+    score_basis = list(range(num_scores))
+
+    name_combo = np.array(list(ut.iprod(nid_basis, nid_basis)))
+    combo_is_same = name_combo.T[0] == name_combo.T[1]
+    def get_expected_scores_prob(level1, level2):
+        part1 = combo_is_same * level1
+        part2 = (1 - combo_is_same) * (1 - (level2))
+        expected_scores_level = part1 + part2
+        return expected_scores_level
+
+    score_measure = np.array([get_expected_scores_prob(level1, level2)
+                              for level1, level2 in
+                              zip(np.linspace(.1, .9, num_scores),
+                                  np.linspace(.2, .8, num_scores))])
+
+    score_values = (score_measure / score_measure.sum(axis=0)).tolist()
+
+    NICE = True
+    if NICE:
+        # hacky testing
+        lbls = ut.list_unflat_take(name_nice, name_combo)
+        columns = [lbl[0] + lbl[1] for lbl in lbls]
+        scoreframe = pd.DataFrame(score_measure, columns=columns,
+                                  index=score_nice)
+        print(scoreframe)
+
+    def name_cpd(aid):
+        from pgmpy.factors import TabularCPD
+        cpd = TabularCPD(
+            variable='N' + aid,
+            variable_card=num_names,
+            values=[[1.0 / num_names] * num_names])
+        cpd.semtype = 'name'
+        return cpd
+
+    def score_cpd(aid1, aid2):
+        cpd = TabularCPD(
+            variable='S' + aid1 + aid2,
+            variable_card=num_scores,
+            values=score_values,
+            evidence=['N' + aid1, 'N' + aid2],
+            evidence_card=[num_names, num_names])
+        cpd.semtype = 'score'
+        return cpd
+
+    name_cpds = [name_cpd('i'), name_cpd('j'), name_cpd('k')]
+    score_cpds = [score_cpd('i', 'j'), score_cpd('j', 'k')]
+
+    import operator as op
+    cpd_list = name_cpds + score_cpds
+    input_graph = []
+    for cpd in cpd_list:
+        if cpd.evidence is not None:
+            for evar in cpd.evidence:
+                input_graph.append((evar, cpd.variable))
+    name_model = BayesianModel(input_graph)
+    name_model.add_cpds(*cpd_list)
+
+    event_space_combos = {}
+    for cpd in cpd_list:
+        if cpd.semtype == 'score':
+            event_space_combos[cpd.variable] = list(range(cpd.variable_card))
+    evidence_dict = ut.all_dict_combinations(event_space_combos)
+
+    # Enumerate all possible events
+    varcard_list = list(map(op.attrgetter('variable_card'), cpd_list))
+    _esdat = list(ut.iprod(*map(range, varcard_list)))
+    _escol = list(map(op.attrgetter('variable'), cpd_list))
+    event_space = pd.DataFrame(_esdat, columns=_escol)
+
+    # Custom compression of event space to inspect a specific graph
+    def compress_space_flags(event_space, var1, var2, var3, cmp12_):
+        """
+        var1, var2, cmp_ = 'Lj', 'Lk', op.eq
+        """
+        import vtool as vt
+        data = event_space
+        other_cols = ut.setdiff_ordered(data.columns.tolist(), [var1, var2, var3])
+        case_flags12 = cmp12_(data[var1], data[var2]).values
+        # case_flags23 = cmp23_(data[var2], data[var3]).values
+        # case_flags = np.logical_and(case_flags12, case_flags23)
+        case_flags = case_flags12
+        case_flags = case_flags.astype(np.int64)
+        subspace = np.hstack((case_flags[:, None], data[other_cols].values))
+        sel_ = vt.unique_row_indexes(subspace)
+        mask = vt.index_to_boolmask(sel_, len(data))
+        flags = np.logical_and(mask, case_flags)
+        return flags
+
+    # Build special cases
+    case_same   = event_space.loc[compress_space_flags(event_space, 'Li', 'Lj', 'Lk', op.eq)]
+    case_diff = event_space.loc[compress_space_flags(event_space, 'Li', 'Lj', 'Lk', op.ne)]
+    special_cases = [
+        case_same,
+        case_diff,
+    ]
+
+    # Query about name of annotation k given different event space params
+    print('Independencies')
+    print(name_model.get_independencies())
+
+    globals()['score_nice'] = score_nice
+    globals()['name_nice'] = name_nice
+    globals()['score_basis'] = score_basis
+    globals()['nid_basis'] = nid_basis
+
+    def get_var_basis(varname):
+        if varname.startswith('S'):
+            var_basis = ut.list_take(score_nice, score_basis)
+        if varname.startswith('L'):
+            var_basis = ut.list_take(name_nice, nid_basis)
+        return var_basis
+
+    for cpd in name_model.get_cpds():
+        print('----')
+        print('CPT: %r' % (cpd,))
+        index = get_var_basis(cpd.variable)
+        if cpd.evidence is None:
+            columns = ['None']
+        else:
+            columns = [','.join(x) for x in ut.iprod(*[get_var_basis(ename) for ename in cpd.evidence])]
+        data = cpd.get_cpd()
+        print(pd.DataFrame(data, index=index, columns=columns))
+
+    name_belief = BeliefPropagation(name_model)
+    # name_belief = VariableElimination(name_model)
+    for case in special_cases:
+        test_data = case.drop('Lk', axis=1)
+        test_data = test_data.reset_index(drop=True)
+        print('----')
+        for i in range(test_data.shape[0]):
+            evidence = test_data.loc[i].to_dict()
+            probs = name_belief.query(['Lk'], evidence)
+            factor = probs['Lk']
+            probs = factor.values
+            evidence_ = evidence.copy()
+            evidence_['Li'] = name_nice[evidence['Li']]
+            evidence_['Lj'] = name_nice[evidence['Lj']]
+            evidence_['Sij'] = score_nice[evidence['Sij']]
+            evidence_['Sjk'] = score_nice[evidence['Sjk']]
+            nice2_prob = ut.odict(zip(name_nice, probs.tolist()))
+            ut.print_python_code('P(Lk | {evidence}) = {cpt}'.format(
+                evidence=(ut.repr2(evidence_, explicit=True, nobraces=True, strvals=True)),
+                cpt=ut.repr3(nice2_prob, precision=3, align=True, key_order_metric='-val')
+            ))
+
+    for case in special_cases:
+        test_data = case.drop('Lk', axis=1)
+        test_data = test_data.drop('Lj', axis=1)
+        test_data = test_data.reset_index(drop=True)
+        print('----')
+        for i in range(test_data.shape[0]):
+            evidence = test_data.loc[i].to_dict()
+            query_vars = ['Lk', 'Lj']
+            probs = name_belief.query(query_vars, evidence)
+            for queryvar in query_vars:
+                factor = probs[queryvar]
+                print(factor._str('phi'))
+                probs = factor.values
+                evidence_ = evidence.copy()
+                evidence_['Li'] = name_nice[evidence['Li']]
+                evidence_['Sij'] = score_nice[evidence['Sij']]
+                evidence_['Sjk'] = score_nice[evidence['Sjk']]
+                nice2_prob = ut.odict(zip([queryvar + '=' + x for x in name_nice], probs.tolist()))
+                ut.print_python_code('P({queryvar} | {evidence}) = {cpt}'.format(
+                    query_var=query_var,
+                    evidence=(ut.repr2(evidence_, explicit=True, nobraces=True, strvals=True)),
+                    cpt=ut.repr3(nice2_prob, precision=3, align=True, key_order_metric='-val')
+                ))
+
+    import plottool as pt
+    import networkx as netx
+    fig = pt.figure()  # NOQA
+    fig.clf()
+    ax = pt.gca()
+
+    netx_nodes = [(node, {}) for node in name_model.nodes()]
+    netx_edges = [(etup[0], etup[1], {}) for etup in name_model.edges()]
+    netx_graph = netx.DiGraph()
+    netx_graph.add_nodes_from(netx_nodes)
+    netx_graph.add_edges_from(netx_edges)
+
+    # pos = netx.graphviz_layout(netx_graph)
+    pos = netx.pydot_layout(netx_graph, prog='dot')
+    netx.draw(netx_graph, pos=pos, ax=ax, with_labels=True)
+
+    pt.plt.savefig('foo.png')
+    ut.startfile('foo.png')
+
+
+def bayesnet_examples():
     from pgmpy.factors import TabularCPD
     from pgmpy.models import BayesianModel
     import pandas as pd
@@ -92,196 +294,6 @@ def bayesnet():
     student_model.add_cpds(grade_cpd, difficulty_cpd,
                            intel_cpd, letter_cpd,
                            sat_cpd)
-
-    #expect_score_high    = get_expected_scores_prob(.9)
-    #expect_score_medhigh = get_expected_scores_prob(.7)
-    #expect_score_med     = get_expected_scores_prob(.5)
-    #expect_score_medlow  = get_expected_scores_prob(.3)
-    #expect_score_low     = get_expected_scores_prob(.1)
-
-    #score_measure = np.array([
-    #    expect_score_high,
-    #    expect_score_medhigh,
-    #    expect_score_med,
-    #    expect_score_medlow,
-    #    expect_score_low,
-    #])
-
-    num_names = 3
-    num_scores = 2
-    names = list(range(num_names))
-    name_combo = np.array(list(ut.iprod(names, names)))
-
-    score_types = list(range(num_scores))
-    name_scores_combo = np.array(list(ut.iprod(names, names, names, score_types, score_types)))
-
-    combo_is_same = name_combo.T[0] == name_combo.T[1]
-
-    def get_expected_scores_prob(level):
-        expected_scores_level = (combo_is_same * level) + (1 - combo_is_same) * (1 - level)
-        return expected_scores_level
-
-    score_measure = np.array([get_expected_scores_prob(level) for level in np.linspace(.1, .9, num_scores)])
-
-    score_values = (score_measure / score_measure.sum(axis=0)).tolist()
-
-    NICE = True
-    if NICE:
-        # hacky testing
-        name_nice = ['Fred', 'Tom', 'Paul']
-        score_nice = ['low', 'high']
-
-        lbls = ut.list_unflat_take(name_nice, name_combo)
-        columns = [lbl[0] + lbl[1] for lbl in lbls]
-
-        scoreframe = pd.DataFrame(score_measure, columns=columns, index=score_nice)
-
-    def name_cpd(aid):
-        from pgmpy.factors import TabularCPD
-        return TabularCPD(
-            variable='N' + aid,
-            variable_card=num_names,
-            values=[[1.0 / num_names] * num_names])
-
-    def score_cpd(aid1, aid2):
-        return TabularCPD(
-            variable='S' + aid1 + aid2,
-            variable_card=num_scores,
-            values=score_values,
-            evidence=['N' + aid1, 'N' + aid2],
-            evidence_card=[num_names, num_names])
-
-    Na = name_cpd('a')
-    Nb = name_cpd('b')
-    Nc = name_cpd('c')
-    Sab = score_cpd('a', 'b')
-    Sbc = score_cpd('b', 'c')
-
-    name_model = BayesianModel([
-        ('Na', 'Sab'),
-        ('Nb', 'Sab'),
-        ('Nb', 'Sbc'),
-        ('Nc', 'Sbc'),
-    ])
-    name_model.add_cpds(Sab, Sbc, Na, Nb, Nc)
-
-    all_data = pd.DataFrame(name_scores_combo, columns=['Na', 'Nb', 'Nc', 'Sab', 'Sbc'])
-
-    #def compress_rows1(c1, c2, data_):
-    #    import vtool as vt
-    #    levelset_12 = (data_[c1] == data_[c2]).astype(np.int64)
-    #    other_cols = ut.setdiff_ordered(data_.columns.tolist(), [c1, c2])
-    #    z = pd.concat((levelset_12, data_[other_cols]), axis=1)
-    #    unique_rows = vt.unique_row_indexes(z.values)
-    #    new_data = data_.loc[unique_rows]
-    #    return new_data
-
-    def compress_rows2(c1, c2, c3, data_):
-        # Hacky, why cant I think of this right?
-        # need to generalize;
-        import vtool as vt
-        np.logical_and(data_[c1] == data_[c2], data_[c2] == data_[c3])
-        np.logical_and(data_[c1] == data_[c2], data_[c2] != data_[c3])
-
-        cases = [
-            np.logical_and.reduce((data_[c1] == data_[c2], data_[c2] == data_[c3], data_[c1] == data_[c3])),
-
-            np.logical_and.reduce((data_[c1] != data_[c2], data_[c2] != data_[c3], data_[c1] != data_[c3])),
-
-            np.logical_and.reduce((data_[c1] != data_[c2], data_[c2] != data_[c3], data_[c1] == data_[c3])),
-            np.logical_and.reduce((data_[c1] != data_[c2], data_[c2] == data_[c3], data_[c1] == data_[c3])),
-
-            np.logical_and.reduce((data_[c1] == data_[c2], data_[c2] == data_[c3], data_[c1] != data_[c3])),
-            np.logical_and.reduce((data_[c1] == data_[c2], data_[c2] != data_[c3], data_[c1] != data_[c3])),
-        ]
-        other_cols = ut.setdiff_ordered(data_.columns.tolist(), [c1, c2, c3])
-        sel_list = []
-        for case in cases:
-            z = pd.concat((pd.DataFrame(case.astype(np.int64), columns=['C']), data_[other_cols]), axis=1)
-            sel_ = vt.other.unique_row_indexes(z.values)
-            sel  = np.intersect1d(sel_, np.where(case)[0])
-            sel_list += [sel]
-            #cases
-        sel = sorted(ut.flatten(sel_list))
-        new_data = data_.loc[sel]
-        return new_data
-
-    #args = c1, c2, data_ = 'Na', 'Nb', all_data
-    #all_data1 = compress_rows1(*args)
-
-    c1, c2, c3, data_ = 'Na', 'Nb', 'Nc', all_data
-    all_data2 = compress_rows2(c1, c2, c3, data_)
-
-    test_data = all_data2.drop('Nc', axis=1)
-    test_data = test_data.reset_index(drop=True)
-    test_data = test_data.loc[[0, 1, 2, 3, 8, 9, 10, 11]]
-    test_data = test_data.reset_index(drop=True)
-
-    from pgmpy.inference import BeliefPropagation
-
-    name_belief = BeliefPropagation(name_model)
-
-    for i in range(test_data.shape[0]):
-        evidence = test_data.loc[i].to_dict()
-        probs = name_belief.query(['Nc'], evidence)
-        factor = probs['Nc']
-        probs = factor.values
-        evidence_ = evidence.copy()
-        evidence_['Na'] = name_nice[evidence['Na']]
-        evidence_['Nb'] = name_nice[evidence['Nb']]
-        evidence_['Sab'] = score_nice[evidence['Sab']]
-        evidence_['Sbc'] = score_nice[evidence['Sbc']]
-        #evidence_sub1 = ut.dict_subset(evidence_, ['Na', 'Nb', 'Sab'])
-        #evidence_sub2 = ut.dict_subset(evidence_, ['Sbc'])
-        print('----')
-        #print('evidence = %s + %s' % (ut.repr2(evidence_sub1, explicit=True, nobraces=True), ut.repr2(evidence_sub2),))
-        print('evidence = %s' % (ut.repr2(evidence_, explicit=True, nobraces=True)))
-        nice2_prob = ut.odict(zip(name_nice, probs.tolist()))
-        print('probs(Nc)  = %s' % (ut.repr3(nice2_prob, precision=3, align=True),))
-
-    prob_ = name_belief.query(['Nc'])
-    phi = prob_['Nc']
-    # Should be uniform at first. No evidence
-    phi.values
-
-    prob_ = name_belief.query(['Nc'])
-    phi = prob_['Nc']
-    # Should be uniform at first. No evidence
-    phi.values
-
-    #from pgmpy.readwrite import XBNWriteir
-    #XBNWriter(name_model)
-
-    import networkx as netx
-    def make_netx_graph(nodes, edges, node_lbls=[], edge_lbls=[]):
-        import networkx as netx
-        print('make_netx_graph')
-        # Make a graph between the chips
-        netx_nodes = [(ntup[0], {key[0]: val for (key, val) in zip(node_lbls, ntup[1:])})
-                      for ntup in iter(nodes)]
-        netx_edges = [(etup[0], etup[1], {key[0]: val for (key, val) in zip(edge_lbls, etup[2:])})
-                      for etup in iter(edges)]
-        netx_graph = netx.DiGraph()
-        netx_graph.add_nodes_from(netx_nodes)
-        netx_graph.add_edges_from(netx_edges)
-        return netx_graph
-    import plottool as pt
-    pt.figure()
-
-    ax = pt.gca()
-    nodes = name_model.nodes()
-    edges = name_model.edges()
-
-    #node_lbls=[]
-    #edge_lbls=[]
-
-    netx_graph = make_netx_graph(nodes, edges)
-    pos = netx.graphviz_layout(netx_graph)
-    netx.draw(netx_graph, pos=pos, ax=ax)
-
-    pt.update()
-
-    name_model.predict(test_data)
 
 
 def compare_groupings(groups1, groups2):

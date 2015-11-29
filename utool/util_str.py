@@ -1164,14 +1164,20 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
     itemstr_list = [make_item_str(key, val, indent_) for (key, val) in iteritems(dict_)]
     # itemstr_list is fine too. weird
 
+    reverse = False
+    if key_order_metric is not None:
+        if key_order_metric.startswith('-'):
+            key_order_metric = key_order_metric[1:]
+            reverse = True
+
     if key_order_metric == 'strlen':
         import utool as ut
         metric_list = [len(itemstr) for itemstr in itemstr_list]
-        itemstr_list = ut.sortedby(itemstr_list, metric_list)
+        itemstr_list = ut.sortedby(itemstr_list, metric_list, reverse=reverse)
     elif key_order_metric == 'val':
         import utool as ut
         metric_list = [val for (key, val) in iteritems(dict_)]
-        itemstr_list = ut.sortedby(itemstr_list, metric_list)
+        itemstr_list = ut.sortedby(itemstr_list, metric_list, reverse=reverse)
     #itemstr_list = [fmtstr % (key, _valstr(val)) for (key, val) in iteritems(dict_)]
     return itemstr_list
 
