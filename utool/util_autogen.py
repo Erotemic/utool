@@ -132,13 +132,15 @@ def load_func_from_module(modname, funcname, verbose=True, moddir=None):
                 #if hasattr(basemodule, 'rrrr'):
                 #    basemodule.rrrr()
                 #imp.reload(basemodule)
-        #print('--;;;;')
 
         try:
             module = __import__(modname)
         except ImportError:
             if moddir is not None:
-                module = ut.import_module_from_fpath(join(moddir, modname + '.py'))
+                #parts =
+                # There can be a weird double import error thing happening here
+                # Rectify the dots in the filename
+                module = ut.import_module_from_fpath(join(moddir, modname.split('.')[-1] + '.py'))
             else:
                 raise
         #import inspect
@@ -147,19 +149,19 @@ def load_func_from_module(modname, funcname, verbose=True, moddir=None):
         except Exception as ex:
             pass
         # Try removing pyc if it exists
-        #print(module.__file__)
         if module.__file__.endswith('.pyc'):
             ut.delete(module.__file__, verbose=False)
             try:
                 module = __import__(modname)
             except ImportError:
                 if moddir is not None:
-                    module = ut.import_module_from_fpath(join(moddir, modname + '.py'))
+                    module = ut.import_module_from_fpath(join(moddir, modname.split('.')[-1] + '.py'))
                 else:
                     raise
-            #module = __import__(modname)
-        #print(module.__file__)
-        imp.reload(module)
+        try:
+            imp.reload(module)
+        except Exception as ex:
+            pass
         try:
             # FIXME: PYTHON 3
             execstr = ut.codeblock(

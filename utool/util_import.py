@@ -281,7 +281,8 @@ def import_module_from_fpath(module_fpath):
     import platform
     if isdir(module_fpath):
         module_fpath = join(module_fpath, '__init__.py')
-    assert exists(module_fpath)
+    print('module_fpath = %r' % (module_fpath,))
+    assert exists(module_fpath), 'module_fpath=%r does not exist' % (module_fpath,)
     python_version = platform.python_version()
     modname = splitext(basename(module_fpath))[0]
     if modname == '__init__':

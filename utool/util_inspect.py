@@ -22,6 +22,46 @@ print, rrr, profile = util_inject.inject2(__name__, '[inspect]')
 LIB_PATH = dirname(os.__file__)
 
 
+def help_members(obj):
+    import utool as ut
+    attr_list = [getattr(obj, attrname) for attrname in dir(obj)]
+    type2_items = ut.group_items(attr_list, list(map(ut.type_str, map(type, attr_list))))
+    memtypes = ['instancemethod']  # , 'method-wrapper']
+    func_mems = ut.dict_subset(type2_items, memtypes, [])
+    #other_mems = ut.delete_keys(type2_items.copy(), memtypes)
+
+    func_list = ut.flatten(func_mems.values())
+    callstr_list = []
+    num_unbound_args_list = []
+    num_args_list = []
+    for func in func_list:
+        #args = ut.get_func_argspec(func).args
+        argspec = ut.get_func_argspec(func)
+
+        args = argspec.args
+        defaults = argspec.defaults
+        if defaults is not None:
+            kwpos = len(args) - len(defaults)
+            unbound_args = args[:kwpos]
+            kwdefaults = ut.odict(zip(args[kwpos:], defaults))
+        else:
+            unbound_args = args
+            kwdefaults = {}
+        argrepr_list = ut.get_itemstr_list(unbound_args, with_comma=False, nl=False, strvals=True)
+        kwrepr_list = ut.dict_itemstr_list(kwdefaults, explicit=True, with_comma=False, nl=False)
+        repr_list = argrepr_list + kwrepr_list
+        #argskwargs_str = newlined_list(repr_list, ', ', textwidth=80)
+        argskwargs_str = ', '.join(repr_list)
+        callstr = (ut.get_callable_name(func) + '(' + argskwargs_str + ')')
+        callstr_list.append(callstr)
+        num_unbound_args_list.append(len(unbound_args))
+        num_args_list.append(len(args))
+
+    group = ut.hierarchical_group_items(callstr_list, [num_unbound_args_list, num_args_list])
+    print(repr(obj))
+    print(ut.repr3(group, strvals=True))
+
+
 def get_dev_hints():
     VAL_FIELD = util_regex.named_field('val', '.*')
     VAL_BREF = util_regex.bref_field('val')

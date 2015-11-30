@@ -3,9 +3,9 @@
 #
 # TODO:  move library intensive functions to vtool
 from __future__ import absolute_import, division, print_function, unicode_literals
-import operator
+import operator as op
 import six
-from six.moves import zip, range, reduce
+from six.moves import zip, range, reduce, map
 from utool import util_type
 from utool import util_inject
 from utool import util_decor
@@ -27,491 +27,6 @@ print, rrr, profile = util_inject.inject2(__name__, '[alg]')
 PHI = 1.61803398875
 PHI_A = (1 / PHI)
 PHI_B = 1 - PHI_A
-
-
-def bayesnet():
-    """
-    References:
-        https://class.coursera.org/pgm-003/lecture/17
-        http://www.cs.ubc.ca/~murphyk/Bayes/bnintro.html
-        http://www3.cs.stonybrook.edu/~sael/teaching/cse537/Slides/chapter14d_BP.pdf
-        http://www.cse.unsw.edu.au/~cs9417ml/Bayes/Pages/PearlPropagation.html
-        https://github.com/pgmpy/pgmpy.git
-        http://pgmpy.readthedocs.org/en/latest/
-        http://nipy.bic.berkeley.edu:5000/download/11
-    """
-    from pgmpy.factors import TabularCPD
-    from pgmpy.models import BayesianModel
-    import pandas as pd
-    from pgmpy.inference import BeliefPropagation  # NOQA
-    from pgmpy.inference import VariableElimination  # NOQA
-    import pgmpy
-    import six  # NOQA
-
-    annots = ['i', 'j', 'k']
-
-    semtype2_nice = {
-        # 'name': ['n1', 'n2'],
-        'name': ['n' + str(x) for x in range(len(annots))],
-        'match':  ['diff', 'same'],
-        'probmatch':  ['pdiff', 'psame'],
-        'score':  ['low', 'high'],
-    }
-
-    var2_cpd = {
-    }
-    globals()['semtype2_nice'] = semtype2_nice
-    globals()['var2_cpd'] = var2_cpd
-
-    # --- PRINT Funcs ---
-    def print_cpd(cpd):
-        print('CPT: %r' % (cpd,))
-        index = semtype2_nice[cpd.semtype]
-        if cpd.evidence is None:
-            columns = ['None']
-        else:
-            basis_lists = [semtype2_nice[var2_cpd[ename].semtype] for ename in cpd.evidence]
-            columns = [','.join(x) for x in ut.iprod(*basis_lists)]
-        data = cpd.get_cpd()
-        print(pd.DataFrame(data, index=index, columns=columns))
-
-    # Query about name of annotation k given different event space params
-    def pretty_evidence(evidence):
-        return [key + '=' + str(semtype2_nice[var2_cpd[key].semtype][val])
-                for key, val in evidence.items()]
-
-    def print_factor(factor):
-        row_cards = factor.cardinality
-        row_vars = factor.variables
-        values = factor.values.reshape(np.prod(row_cards), 1).flatten()
-        # col_cards = 1
-        # col_vars = ['']
-        basis_lists = list(zip(*list(ut.iprod(*[range(c) for c in row_cards]))))
-        nice_basis_lists = []
-        for varname, basis in zip(row_vars, basis_lists):
-            cpd = var2_cpd[varname]
-            _nice_basis = ut.take(semtype2_nice[cpd.semtype], basis)
-            nice_basis = ['%s=%s' % (varname, val) for val in _nice_basis]
-            nice_basis_lists.append(nice_basis)
-        row_lbls = [', '.join(sorted(x)) for x in zip(*nice_basis_lists)]
-        print(ut.repr3(dict(zip(row_lbls, values)), precision=3, align=True, key_order_metric='-val'))
-
-    # Name CPDS ---
-    def name_cpd(aid):
-        semtype = 'name'
-        var_card = len(semtype2_nice[semtype])
-        variable = 'N' + aid
-        from pgmpy.factors import TabularCPD
-        cpd = TabularCPD(
-            variable=variable,
-            variable_card=len(semtype2_nice[semtype]),
-            values=[[1.0 / var_card] * var_card])
-        cpd.semtype = semtype
-        return cpd
-    name_cpds = [name_cpd(aid) for aid in annots]
-    var2_cpd.update(dict(zip([cpd.variable for cpd in name_cpds], name_cpds)))
-
-    # Match CPDS ---
-    # def samediff_cpd(aid1, aid2):
-    #     semtype = 'name'
-    #     semtype = 'match'
-    #     var_card = len(semtype2_nice[semtype])
-    #     variable = 'A' + aid1 + aid2
-    #     from pgmpy.factors import TabularCPD
-    #     cpd = TabularCPD(
-    #         variable=variable,
-    #         variable_card=var_card,
-    #         values=[[1.0 / var_card] * var_card])
-    #     cpd.semtype = semtype
-    #     return cpd
-    # samediff_cpds = [samediff_cpd(*aids)
-    #                  for aids in list(ut.iter_window(annots, 2, wrap=len(annots) > 2))]
-    # var2_cpd.update(dict(zip([cpd.variable for cpd in samediff_cpds], samediff_cpds)))
-
-    # Match CPDS ---
-    def samediff_cpd(aid1, aid2):
-        """
-        aid1, aid2 = 'i', 'j'
-        """
-        semtype = 'match'
-        variable = 'A' + aid1 + aid2
-        evidence = ['N' + aid1, 'N' + aid2]
-        evidence_cpds = [var2_cpd[key] for key in evidence]
-        evidence_nice = [semtype2_nice[cpd.semtype] for cpd in evidence_cpds]
-        evidence_card = list(map(len, evidence_nice))
-        evidence_states = list(ut.iprod(*evidence_nice))
-        variable_basis = semtype2_nice[semtype]
-        def samediff_pmf(match_type, n1, n2, score_type):
-            val = None
-            if n1 == n2:
-                if match_type == 'same':
-                    if score_type is None:
-                        # if score_type == 'high':
-                        val = 1.0
-                    else:
-                        if score_type == 'high':
-                            val = .9
-                        else:
-                            val = .1
-                elif match_type == 'diff':
-                    if score_type is None:
-                        # if score_type == 'high':
-                        val = 0.0
-                    else:
-                        if score_type == 'high':
-                            val = .5
-                        else:
-                            val = .5
-                else:
-                    assert False
-            elif n1 != n2:
-                if match_type == 'same':
-                    if score_type is None:
-                        # if score_type == 'high':
-                        val = 0.0
-                    else:
-                        if score_type == 'high':
-                            val = .5
-                        else:
-                            val = .5
-                elif match_type == 'diff':
-                    if score_type is None:
-                        # if score_type == 'high':
-                        val = 1.0
-                    else:
-                        if score_type == 'high':
-                            val = .5
-                        else:
-                            val = .5
-                else:
-                    assert False
-            else:
-                assert False
-            return val
-        variable_values = []
-        for score_type in variable_basis:
-            row = []
-            for state in evidence_states:
-                row.append(samediff_pmf(score_type, state[0], state[1], None))
-                # row.append(samediff_pmf(score_type, state[0], state[1], state[2]))
-            variable_values.append(row)
-        cpd = TabularCPD(
-            variable=variable,
-            variable_card=len(variable_basis),
-            values=variable_values,
-            evidence=evidence,
-            evidence_card=evidence_card)
-        cpd.semtype = semtype
-        return cpd
-    samediff_cpds = [samediff_cpd(*aids)
-                     for aids in list(ut.iter_window(annots, 2, wrap=len(annots) > 2))]
-    var2_cpd.update(dict(zip([cpd.variable for cpd in samediff_cpds], samediff_cpds)))
-
-    # Score CPDS ---
-    # def score_cpd(aid1, aid2):
-    #     """
-    #     aid1, aid2 = 'i', 'j'
-    #     """
-    #     variable = 'S' + aid1 + aid2
-    #     semtype = 'score'
-    #     variable_basis = semtype2_nice[semtype]
-    #     variable_values = [[.6, .4]]
-    #     cpd = TabularCPD(
-    #         variable=variable,
-    #         variable_card=len(variable_basis),
-    #         values=variable_values,
-    #     )
-    #     cpd.semtype = semtype
-    #     return cpd
-
-    # Score CPDS ---
-    def score_cpd(aid1, aid2):
-        """
-        aid1, aid2 = 'i', 'j'
-        """
-        variable = 'S' + aid1 + aid2
-        semtype = 'score'
-        # evidence = ['N' + aid1, 'N' + aid2, 'A' + aid1 + aid2]
-        evidence = ['A' + aid1 + aid2]
-        # evidence = ['N' + aid1, 'N' + aid2]
-        evidence_cpds = [var2_cpd[key] for key in evidence]
-        evidence_nice = [semtype2_nice[cpd.semtype] for cpd in evidence_cpds]
-        evidence_card = list(map(len, evidence_nice))
-        evidence_states = list(ut.iprod(*evidence_nice))
-        variable_basis = semtype2_nice[semtype]
-        def score_pmf(score_type, n1, n2, match_type):
-            val = None
-            if n1 is None:
-                if match_type is None or match_type == 'same':
-                    # val = .2 if score_type == 'low' else .8
-                    val = .1 if score_type == 'low' else .9
-                else:
-                    val = .9 if score_type == 'low' else .1
-            else:
-                if n1 == n2:
-                    if match_type is None or match_type == 'same':
-                        # val = .2 if score_type == 'low' else .8
-                        val = .1 if score_type == 'low' else .9
-                    elif match_type == 'diff':
-                        # val = 1
-                        val = .5 if score_type == 'low' else .5
-                    else:
-                        assert False
-                elif n1 != n2:
-                    if match_type is None or match_type == 'diff':
-                        # val = 1
-                        val = .9 if score_type == 'low' else .1
-                    elif match_type == 'same':
-                        val = .5 if score_type == 'low' else .5
-                    else:
-                        assert False
-                else:
-                    assert False
-            return val
-        variable_values = []
-        for score_type in variable_basis:
-            row = []
-            for state in evidence_states:
-                # row.append(score_pmf(score_type, state[0], state[1], state[2]))
-                row.append(score_pmf(score_type, None, None, state[0]))
-                # row.append(score_pmf(score_type, state[0], state[1], None))
-            variable_values.append(row)
-        cpd = TabularCPD(
-            variable=variable,
-            variable_card=len(variable_basis),
-            values=variable_values,
-            evidence=evidence,  # [::-1],
-            evidence_card=evidence_card)  # [::-1])
-        cpd.semtype = semtype
-        return cpd
-    score_cpds = [score_cpd(*aids) for aids in list(ut.iter_window(annots, 2, wrap=True and len(annots) > 2))]
-    var2_cpd.update(dict(zip([cpd.variable for cpd in score_cpds], score_cpds)))
-
-    # ProbMatch CPDS ---
-    def probmatch_cpd(aid1, aid2):
-        """
-        aid1, aid2 = 'i', 'j'
-        """
-        variable = 'B' + aid1 + aid2
-        semtype = 'probmatch'
-        evidence = ['A' + aid1 + aid2, 'S' + aid1 + aid2]
-        evidence_cpds = [var2_cpd[key] for key in evidence]
-        evidence_nice = [semtype2_nice[cpd.semtype] for cpd in evidence_cpds]
-        evidence_card = list(map(len, evidence_nice))
-        evidence_states = list(ut.iprod(*evidence_nice))
-        variable_basis = semtype2_nice[semtype]
-        def samediff_pmf(probmatch_type, match_type, score_type):
-            val = None
-            if match_type == 'same':
-                if probmatch_type == 'psame':
-                    if score_type == 'high':
-                        val = .9
-                    else:
-                        val = .5
-                elif probmatch_type == 'pdiff':
-                    if score_type == 'high':
-                        val = .1
-                    else:
-                        val = .5
-                else:
-                    assert False
-            elif match_type == 'diff':
-                if probmatch_type == 'psame':
-                    if score_type == 'high':
-                        val = .5
-                    else:
-                        val = .1
-                elif probmatch_type == 'pdiff':
-                    if score_type == 'high':
-                        val = .5
-                    else:
-                        val = .9
-                else:
-                    assert False
-            else:
-                assert False
-            return val
-        variable_values = []
-        for score_type in variable_basis:
-            row = []
-            for state in evidence_states:
-                # row.append(samediff_pmf(score_type, state[0], state[1]))
-                row.append(samediff_pmf(score_type, state[0], state[1]))
-            variable_values.append(row)
-        cpd = TabularCPD(
-            variable=variable,
-            variable_card=len(variable_basis),
-            values=variable_values,
-            evidence=evidence,
-            evidence_card=evidence_card)
-        cpd.semtype = semtype
-        return cpd
-    probmatch_cdfs = [probmatch_cpd(*aids)
-                      for aids in list(ut.iter_window(annots, 2, wrap=len(annots) > 2))]
-    var2_cpd.update(dict(zip([cpd.variable for cpd in probmatch_cdfs], probmatch_cdfs)))
-
-    # ----
-    # Make Model
-    cpd_list = name_cpds + samediff_cpds + score_cpds + probmatch_cdfs
-    input_graph = []
-    for cpd in cpd_list:
-        if cpd.evidence is not None:
-            for evar in cpd.evidence:
-                input_graph.append((evar, cpd.variable))
-    name_model = BayesianModel(input_graph)
-    name_model.add_cpds(*cpd_list)
-
-    var2_cpd.update(dict(zip([cpd.variable for cpd in cpd_list], cpd_list)))
-    globals()['var2_cpd'] = var2_cpd
-
-    varnames = [cpd.variable for cpd in cpd_list]
-
-    # --- PRINT CPDS ---
-    print('\n CPDs')
-    cpd = score_cpds[0]
-    for cpd in name_model.get_cpds():
-        print('----')
-        # print(cpd._str('p'))
-        print_cpd(cpd)
-
-    # --- INFERENCE ---
-    print('\n INFERENCE')
-    Ni = name_cpds[0]
-
-    event_space_combos = {}
-    event_space_combos[Ni.variable] = 0  # Set ni to always be Fred
-    for cpd in cpd_list:
-        if cpd.semtype == 'score':
-            event_space_combos[cpd.variable] = list(range(cpd.variable_card))
-    evidence_dict = ut.all_dict_combinations(event_space_combos)
-
-    # name_belief = BeliefPropagation(name_model)
-    name_belief = VariableElimination(name_model)
-
-    def try_query(evidence):
-        print('+--------')
-        query_vars = ut.setdiff_ordered(varnames, list(evidence.keys()))
-        evidence_str = ', '.join(pretty_evidence(evidence))
-        probs = name_belief.query(query_vars, evidence)
-        factor_list = probs.values()
-        joint_factor = pgmpy.factors.factor_product(*factor_list)
-        print('P(' + ', '.join(query_vars) + ' | ' + evidence_str + ')')
-        # print(six.text_type(joint_factor))
-        factor = joint_factor  # NOQA
-        # print_factor(factor)
-        print(ut.hz_str([(f._str(phi_or_p='phi')) for f in factor_list]))
-        print('L_____')
-
-    for evidence in evidence_dict:
-        try_query(evidence)
-
-    if len(annots) == 3:
-        evidence = {'Aij': 1, 'Ajk': 1, 'Aki': 1, 'Ni': 0}
-        try_query(evidence)
-
-        evidence = {'Aij': 1, 'Ajk': 1, 'Aki': 1, 'Ni': 0}
-        try_query(evidence)
-
-        evidence = {'Aij': 0, 'Ajk': 0, 'Aki': 0, 'Ni': 0}
-        try_query(evidence)
-
-        evidence = {'Ni': 0, 'Nj': 1, 'Sij': 0, 'Sjk': 0}
-        try_query(evidence)
-
-        evidence = {'Ni': 0, 'Sij': 1, 'Sjk': 1}
-        try_query(evidence)
-
-        evidence = {'Ni': 0, 'Sij': 0, 'Sjk': 1}
-        try_query(evidence)
-
-        evidence = {'Ni': 0, 'Sij': 0, 'Sjk': 0}
-        try_query(evidence)
-
-        evidence = {'Ni': 0, 'Sij': 0, 'Sjk': 0, 'Aki': 0}
-        try_query(evidence)
-
-        evidence = {'Ni': 0, 'Sij': 1, 'Ski': 1}
-        try_query(evidence)
-
-    # print('Independencies')
-    # print(name_model.get_independencies())
-    # print(name_model.local_independencies([Ni.variable]))
-
-    # _ draw model
-
-    import plottool as pt
-    import networkx as netx
-    fig = pt.figure()  # NOQA
-    fig.clf()
-    ax = pt.gca()
-
-    netx_nodes = [(node, {}) for node in name_model.nodes()]
-    netx_edges = [(etup[0], etup[1], {}) for etup in name_model.edges()]
-    netx_graph = netx.DiGraph()
-    netx_graph.add_nodes_from(netx_nodes)
-    netx_graph.add_edges_from(netx_edges)
-
-    # pos = netx.graphviz_layout(netx_graph)
-    pos = netx.pydot_layout(netx_graph, prog='dot')
-    netx.draw(netx_graph, pos=pos, ax=ax, with_labels=True)
-
-    pt.plt.savefig('foo.png')
-    ut.startfile('foo.png')
-
-
-def bayesnet_examples():
-    from pgmpy.factors import TabularCPD
-    from pgmpy.models import BayesianModel
-    import pandas as pd
-
-    student_model = BayesianModel([('D', 'G'),
-                                   ('I', 'G'),
-                                   ('G', 'L'),
-                                   ('I', 'S')])
-    # we can generate some random data.
-    raw_data = np.random.randint(low=0, high=2, size=(1000, 5))
-    data = pd.DataFrame(raw_data, columns=['D', 'I', 'G', 'L', 'S'])
-    data_train = data[: int(data.shape[0] * 0.75)]
-    student_model.fit(data_train)
-    student_model.get_cpds()
-
-    data_test = data[int(0.75 * data.shape[0]): data.shape[0]]
-    data_test.drop('D', axis=1, inplace=True)
-    student_model.predict(data_test)
-
-    grade_cpd = TabularCPD(
-        variable='G',
-        variable_card=3,
-        values=[[0.3, 0.05, 0.9, 0.5],
-                [0.4, 0.25, 0.08, 0.3],
-                [0.3, 0.7, 0.02, 0.2]],
-        evidence=['I', 'D'],
-        evidence_card=[2, 2])
-    difficulty_cpd = TabularCPD(
-        variable='D',
-        variable_card=2,
-        values=[[0.6, 0.4]])
-    intel_cpd = TabularCPD(
-        variable='I',
-        variable_card=2,
-        values=[[0.7, 0.3]])
-    letter_cpd = TabularCPD(
-        variable='L',
-        variable_card=2,
-        values=[[0.1, 0.4, 0.99],
-                [0.9, 0.6, 0.01]],
-        evidence=['G'],
-        evidence_card=[3])
-    sat_cpd = TabularCPD(
-        variable='S',
-        variable_card=2,
-        values=[[0.95, 0.2],
-                [0.05, 0.8]],
-        evidence=['I'],
-        evidence_card=[2])
-    student_model.add_cpds(grade_cpd, difficulty_cpd,
-                           intel_cpd, letter_cpd,
-                           sat_cpd)
 
 
 def compare_groupings(groups1, groups2):
@@ -722,94 +237,6 @@ def bayes_rule(b_given_a, prob_a, prob_b):
     return a_given_b
 
 
-def normalize(array, dim=0):
-    return norm_zero_one(array, dim)
-
-
-def norm_zero_one(array, dim=None):
-    """
-    normalizes a numpy array from 0 to 1 based in its extent
-
-    Args:
-        array (ndarray):
-        dim   (int):
-
-    Returns:
-        ndarray:
-
-    CommandLine:
-        python -m utool.util_alg --test-norm_zero_one
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from utool.util_alg import *  # NOQA
-        >>> array = np.array([ 22, 1, 3, 2, 10, 42, ])
-        >>> dim = None
-        >>> array_norm = norm_zero_one(array, dim)
-        >>> result = np.array_str(array_norm, precision=3)
-        >>> print(result)
-        [ 0.512  0.     0.049  0.024  0.22   1.   ]
-    """
-    if not util_type.is_float(array):
-        array = array.astype(np.float32)
-    array_max  = array.max(dim)
-    array_min  = array.min(dim)
-    array_exnt = np.subtract(array_max, array_min)
-    array_norm = np.divide(np.subtract(array, array_min), array_exnt)
-    return array_norm
-
-
-def find_std_inliers(data, m=2):
-    return abs(data - np.mean(data)) < m * np.std(data)
-
-
-def cartesian(arrays, out=None):
-    """
-    Generate a cartesian product of input arrays.
-
-    Args:
-        arrays (list of array-like): 1-D arrays to form the cartesian product of
-        out (ndarray): Outvar which is modified in place if specified
-
-    Returns:
-        out (ndarray): cartesian products formed of input arrays
-            2-D array of shape (M, len(arrays))
-
-    References:
-        https://gist.github.com/hernamesbarbara/68d073f551565de02ac5
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from utool.util_alg import *  # NOQA
-        >>> arrays = ([1, 2, 3], [4, 5], [6, 7])
-        >>> out = cartesian(arrays)
-        >>> result = repr(out.T)
-        array([[1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3],
-               [4, 4, 5, 5, 4, 4, 5, 5, 4, 4, 5, 5],
-               [6, 7, 6, 7, 6, 7, 6, 7, 6, 7, 6, 7]])
-
-    """
-    arrays = [np.asarray(x) for x in arrays]
-    dtype = arrays[0].dtype
-
-    n = np.prod([x.size for x in arrays])
-    if out is None:
-        out = np.zeros([n, len(arrays)], dtype=dtype)
-    m = n // arrays[0].size
-    out[:, 0] = np.repeat(arrays[0], m)
-    if arrays[1:]:
-        cartesian(arrays[1:], out=out[0:m, 1:])
-        for j in range(1, arrays[0].size):
-            out[j * m:(j + 1) * m, 1:] = out[0:m, 1:]
-    return out
-
-
-def euclidean_dist(vecs1, vec2, dtype=None):
-    if dtype is None:
-        dtype = np.float32
-    return np.sqrt(((vecs1.astype(dtype) - vec2.astype(dtype)) ** 2).sum(1))
-
-
 def negative_minclamp_inplace(arr):
     arr[arr > 0] -= arr[arr > 0].min()
     arr[arr <= 0] = arr[arr > 0].min()
@@ -893,7 +320,7 @@ def flatten_membership_mapping(uid_list, members_list):
 
 def get_phi():
     """ Golden Ratio: phi = 1 / sqrt(5) / 2.0 = 1.61803398875 """
-    #phi = (1.0 + np.sqrt(5)) / 2.0 = 1.61803398875
+    #phi = (1.0 + sqrt(5)) / 2.0 = 1.61803398875
     # return phi
     return PHI
 
@@ -979,20 +406,7 @@ def fibonacci_iterative(n):
         a, b = b, a + b
     return a
 
-
 fibonacci = fibonacci_iterative
-
-
-def deg_to_rad(degree):
-    degree %= 360.0
-    tau = 2 * np.pi
-    return (degree / 360.0) * tau
-
-
-def rad_to_deg(radians):
-    tau = 2 * np.pi
-    radians %= tau
-    return (radians / tau) * 360.0
 
 
 def enumerate_primes(max_prime=4100):
@@ -1056,73 +470,6 @@ def generate_primes(start_guess=2):
         if is_prime(guess):
             yield guess
         guess += 1
-
-
-def inbounds(num, low, high, eq=False):
-    r"""
-    Args:
-        num (scalar or ndarray):
-        low (scalar or ndarray):
-        high (scalar or ndarray):
-        eq (bool):
-
-    Returns:
-        scalar or ndarray: is_inbounds
-
-    CommandLine:
-        python -m utool.util_alg --test-inbounds
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from utool.util_alg import *  # NOQA
-        >>> import utool as ut
-        >>> # build test data
-        >>> num = np.array([[ 0.   ,  0.431,  0.279],
-        ...                 [ 0.204,  0.352,  0.08 ],
-        ...                 [ 0.107,  0.325,  0.179]])
-        >>> low  = .1
-        >>> high = .4
-        >>> eq = False
-        >>> # execute function
-        >>> is_inbounds = inbounds(num, low, high, eq)
-        >>> # verify results
-        >>> result = ut.numpy_str(is_inbounds)
-        >>> print(result)
-        np.array([[False, False,  True],
-                  [ True,  True, False],
-                  [ True,  True,  True]], dtype=bool)
-
-    """
-    less    = operator.le if eq else operator.lt
-    greater = operator.ge if eq else operator.gt
-    and_ = np.logical_and if isinstance(num, np.ndarray) else operator.and_
-    is_inbounds = and_(greater(num, low), less(num, high))
-    return is_inbounds
-
-
-#def inbounds(arr, min_, max_):
-#    if min_ > 0 and max_ is not None:
-#        #if max_ is not None and min
-#        islt_max = np.less_equal(arr, max_)
-#        isgt_min = np.greater_equal(arr, min_)
-#        is_inbounds = np.logical_and(islt_max, isgt_min)
-#    elif min_ == 0:
-#        is_inbounds = np.less_equal(arr, max_)
-#    elif max_ is None:
-#        is_inbounds = np.greater_equal(arr, min_)
-#    else:
-#        assert False
-#    return is_inbounds
-
-
-def almost_eq(arr1, arr2, thresh=1E-11, ret_error=False):
-    """ checks if floating point number are equal to a threshold
-    """
-    error = np.abs(arr1 - arr2)
-    passed = error < thresh
-    if ret_error:
-        return passed, error
-    return passed
 
 
 def knapsack(items, maxweight):
@@ -1240,46 +587,41 @@ def knapsack_greedy(items, maxweight):
     return total_value, items_subset
 
 
-def max_size_max_distance_subset(items, min_thresh=0, Kstart=2, verbose=False):
-    r"""
-    Args:
-        items (?):
-        min_thresh (int): (default = 0)
-        Kstart (int): (default = 2)
+def cumsum(num_list):
+    """ python cumsum
 
-    Returns:
-        ?: prev_subset_idx
-
-    CommandLine:
-        python -m utool.util_alg --exec-max_size_max_distance_subset
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from utool.util_alg import *  # NOQA
-        >>> items = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-        >>> min_thresh = 3
-        >>> Kstart = 2
-        >>> verbose = True
-        >>> prev_subset_idx = max_size_max_distance_subset(items, min_thresh, Kstart, verbose=verbose)
-        >>> result = ('prev_subset_idx = %s' % (str(prev_subset_idx),))
-        >>> print(result)
+    References:
+        http://stackoverflow.com/questions/9258602/elegant-pythonic-cumsum
     """
-    import utool as ut
-    assert Kstart >= 2, 'must start with group of size 2'
-    best_idxs = []
-    for K in range(Kstart, len(items)):
-        if verbose:
-            print('Running subset chooser')
-        value, subset_idx, subset = ut.maximum_distance_subset(items, K=K, verbose=verbose)
-        if verbose:
-            print('subset = %r' % (subset,))
-            print('subset_idx = %r' % (subset_idx,))
-            print('value = %r' % (value,))
-        distances = ut.safe_pdist(subset[:, None])
-        if np.any(distances < min_thresh):
-            break
-        best_idxs = subset_idx
-    return best_idxs
+    return reduce(lambda acc, itm: op.iadd(acc, [acc[-1] + itm]), num_list, [0])[1:]
+
+
+def safe_div(a, b):
+    return None if a is None or b is None else a / b
+
+
+def choose(n, k):
+    """
+    N choose k
+
+    binomial combination (without replacement)
+    """
+    import scipy.misc
+    return scipy.misc.comb(n, k, exact=True, repetition=False)
+
+
+def triangular_number(n):
+    r"""
+    Latex:
+        T_n = \sum_{k=1}^{n} k = \frac{n (n + 1)}{2} = \binom{n + 1}{2}
+
+    References:
+        http://en.wikipedia.org/wiki/Triangular_number
+    """
+    return ((n * (n + 1)) / 2)
+
+
+# Functions using NUMPY / SCIPY (need to make python only or move to vtool)
 
 
 def maximin_distance_subset1d(items, K=None, min_thresh=None, verbose=False):
@@ -1393,6 +735,7 @@ def maximum_distance_subset(items, K, verbose=False):
         >>> print(result)
         (42.0, array([4, 3, 0]), array([22, 21,  1]))
     """
+    from utool import util_decor
     if verbose:
         print('maximum_distance_subset len(items)=%r, K=%r' % (len(items), K,))
 
@@ -1431,8 +774,6 @@ def maximum_distance_subset(items, K, verbose=False):
     def dist(i, j):
         idx = condensed_idx(i, j)
         return 0 if idx is None else pairwise_distance[idx]
-
-    from utool import util_decor
 
     @util_decor.memoize_nonzero
     def optimal_solution(n, k):
@@ -1481,13 +822,88 @@ def maximum_distance_subset(items, K, verbose=False):
     #raise NotImplementedError('unfinished')
 
 
-def cumsum(num_list):
-    """ python cumsum
+def safe_max(arr):
+    return np.nan if arr is None or len(arr) == 0 else arr.max()
 
-    References:
-        http://stackoverflow.com/questions/9258602/elegant-pythonic-cumsum
+
+def safe_min(arr):
+    return np.nan if arr is None or len(arr) == 0 else arr.min()
+
+
+def deg_to_rad(degree):
+    degree %= 360.0
+    tau = 2 * np.pi
+    return (degree / 360.0) * tau
+
+
+def rad_to_deg(radians):
+    tau = 2 * np.pi
+    radians %= tau
+    return (radians / tau) * 360.0
+
+
+def inbounds(num, low, high, eq=False):
+    r"""
+    Args:
+        num (scalar or ndarray):
+        low (scalar or ndarray):
+        high (scalar or ndarray):
+        eq (bool):
+
+    Returns:
+        scalar or ndarray: is_inbounds
+
+    CommandLine:
+        python -m utool.util_alg --test-inbounds
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
+        >>> num = np.array([[ 0.   ,  0.431,  0.279],
+        ...                 [ 0.204,  0.352,  0.08 ],
+        ...                 [ 0.107,  0.325,  0.179]])
+        >>> low  = .1
+        >>> high = .4
+        >>> eq = False
+        >>> is_inbounds = inbounds(num, low, high, eq)
+        >>> result = ut.numpy_str(is_inbounds)
+        >>> print(result)
+        np.array([[False, False,  True],
+                  [ True,  True, False],
+                  [ True,  True,  True]], dtype=bool)
+
     """
-    return reduce(lambda acc, itm: operator.iadd(acc, [acc[-1] + itm]), num_list, [0])[1:]
+    less    = op.le if eq else op.lt
+    greater = op.ge if eq else op.gt
+    and_ = np.logical_and if isinstance(num, np.ndarray) else op.and_
+    is_inbounds = and_(greater(num, low), less(num, high))
+    return is_inbounds
+
+
+#def inbounds(arr, min_, max_):
+#    if min_ > 0 and max_ is not None:
+#        #if max_ is not None and min
+#        islt_max = np.less_equal(arr, max_)
+#        isgt_min = np.greater_equal(arr, min_)
+#        is_inbounds = np.logical_and(islt_max, isgt_min)
+#    elif min_ == 0:
+#        is_inbounds = np.less_equal(arr, max_)
+#    elif max_ is None:
+#        is_inbounds = np.greater_equal(arr, min_)
+#    else:
+#        assert False
+#    return is_inbounds
+
+
+def almost_eq(arr1, arr2, thresh=1E-11, ret_error=False):
+    """ checks if floating point number are equal to a threshold
+    """
+    error = np.abs(arr1 - arr2)
+    passed = error < thresh
+    if ret_error:
+        return passed, error
+    return passed
 
 
 def haversine(latlon1, latlon2):
@@ -1558,37 +974,134 @@ def safe_pdist(arr, *args, **kwargs):
         return spdist.pdist(arr, *args, **kwargs)
 
 
-def safe_div(a, b):
-    return None if a is None or b is None else a / b
+def normalize(array, dim=0):
+    return norm_zero_one(array, dim)
 
 
-def safe_max(arr):
-    return np.nan if arr is None or len(arr) == 0 else arr.max()
-
-
-def safe_min(arr):
-    return np.nan if arr is None or len(arr) == 0 else arr.min()
-
-
-def choose(n, k):
+def norm_zero_one(array, dim=None):
     """
-    N choose k
+    normalizes a numpy array from 0 to 1 based in its extent
 
-    binomial combination (without replacement)
+    Args:
+        array (ndarray):
+        dim   (int):
+
+    Returns:
+        ndarray:
+
+    CommandLine:
+        python -m utool.util_alg --test-norm_zero_one
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> array = np.array([ 22, 1, 3, 2, 10, 42, ])
+        >>> dim = None
+        >>> array_norm = norm_zero_one(array, dim)
+        >>> result = np.array_str(array_norm, precision=3)
+        >>> print(result)
+        [ 0.512  0.     0.049  0.024  0.22   1.   ]
     """
-    import scipy.misc
-    return scipy.misc.comb(n, k, exact=True, repetition=False)
+    if not util_type.is_float(array):
+        array = array.astype(np.float32)
+    array_max  = array.max(dim)
+    array_min  = array.min(dim)
+    array_exnt = np.subtract(array_max, array_min)
+    array_norm = np.divide(np.subtract(array, array_min), array_exnt)
+    return array_norm
 
 
-def triangular_number(n):
-    r"""
-    Latex:
-        T_n = \sum_{k=1}^{n} k = \frac{n (n + 1)}{2} = \binom{n + 1}{2}
+#def find_std_inliers(data, m=2):
+#    return abs(data - np.mean(data)) < m * np.std(data)
+
+
+def cartesian(arrays, out=None):
+    """
+    Generate a cartesian product of input arrays.
+
+    Args:
+        arrays (list of array-like): 1-D arrays to form the cartesian product of
+        out (ndarray): Outvar which is modified in place if specified
+
+    Returns:
+        out (ndarray): cartesian products formed of input arrays
+            2-D array of shape (M, len(arrays))
 
     References:
-        http://en.wikipedia.org/wiki/Triangular_number
+        https://gist.github.com/hernamesbarbara/68d073f551565de02ac5
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> arrays = ([1, 2, 3], [4, 5], [6, 7])
+        >>> out = cartesian(arrays)
+        >>> result = repr(out.T)
+        array([[1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3],
+               [4, 4, 5, 5, 4, 4, 5, 5, 4, 4, 5, 5],
+               [6, 7, 6, 7, 6, 7, 6, 7, 6, 7, 6, 7]])
+
     """
-    return ((n * (n + 1)) / 2)
+    arrays = [np.asarray(x) for x in arrays]
+    dtype = arrays[0].dtype
+
+    n = np.prod([x.size for x in arrays])
+    if out is None:
+        out = np.zeros([n, len(arrays)], dtype=dtype)
+    m = n // arrays[0].size
+    out[:, 0] = np.repeat(arrays[0], m)
+    if arrays[1:]:
+        cartesian(arrays[1:], out=out[0:m, 1:])
+        for j in range(1, arrays[0].size):
+            out[j * m:(j + 1) * m, 1:] = out[0:m, 1:]
+    return out
+
+
+def euclidean_dist(vecs1, vec2, dtype=None):
+    if dtype is None:
+        dtype = np.float32
+    return np.sqrt(((vecs1.astype(dtype) - vec2.astype(dtype)) ** 2).sum(1))
+
+
+def max_size_max_distance_subset(items, min_thresh=0, Kstart=2, verbose=False):
+    r"""
+    Args:
+        items (?):
+        min_thresh (int): (default = 0)
+        Kstart (int): (default = 2)
+
+    Returns:
+        ?: prev_subset_idx
+
+    CommandLine:
+        python -m utool.util_alg --exec-max_size_max_distance_subset
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> items = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        >>> min_thresh = 3
+        >>> Kstart = 2
+        >>> verbose = True
+        >>> prev_subset_idx = max_size_max_distance_subset(items, min_thresh, Kstart, verbose=verbose)
+        >>> result = ('prev_subset_idx = %s' % (str(prev_subset_idx),))
+        >>> print(result)
+    """
+    import utool as ut
+    assert Kstart >= 2, 'must start with group of size 2'
+    best_idxs = []
+    for K in range(Kstart, len(items)):
+        if verbose:
+            print('Running subset chooser')
+        value, subset_idx, subset = ut.maximum_distance_subset(items, K=K, verbose=verbose)
+        if verbose:
+            print('subset = %r' % (subset,))
+            print('subset_idx = %r' % (subset_idx,))
+            print('value = %r' % (value,))
+        distances = ut.safe_pdist(subset[:, None])
+        if np.any(distances < min_thresh):
+            break
+        best_idxs = subset_idx
+    return best_idxs
 
 
 if __name__ == '__main__':
