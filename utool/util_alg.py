@@ -93,7 +93,10 @@ def bayesnet():
         'name': name_nice,
         'match': match_nice,
     }
+    var2_cpd = {
+    }
     globals()['semtype2_nice'] = semtype2_nice
+    globals()['var2_cpd'] = var2_cpd
 
     name_combo = np.array(list(ut.iprod(nid_basis, nid_basis)))
     combo_is_same = name_combo.T[0] == name_combo.T[1]
@@ -102,6 +105,8 @@ def bayesnet():
         part2 = (1 - combo_is_same) * (1 - (level2))
         expected_scores_level = part1 + part2
         return expected_scores_level
+
+    # def make_cpd():
 
     def name_cpd(aid):
         from pgmpy.factors import TabularCPD
@@ -113,8 +118,83 @@ def bayesnet():
         return cpd
 
     name_cpds = [name_cpd('i'), name_cpd('j'), name_cpd('k')]
+    var2_cpd.update(dict(zip([cpd.variable for cpd in name_cpds], name_cpds)))
+    if True:
+        num_same_diff = 2
+        samediff_measure = np.array([
+            # get_expected_scores_prob(.12, .2),
+            # get_expected_scores_prob(.88, .8),
+            get_expected_scores_prob(0, 0),
+            get_expected_scores_prob(1, 1),
+        ])
+        samediff_vals = (samediff_measure / samediff_measure.sum(axis=0)).tolist()
+        def samediff_cpd(aid1, aid2):
+            cpd = TabularCPD(
+                variable='A' + aid1 + aid2,
+                variable_card=num_same_diff,
+                values=samediff_vals,
+                evidence=['N' + aid1, 'N' + aid2],  # [::-1],
+                evidence_card=[num_names, num_names])  # [::-1])
+            cpd.semtype = 'match'
+            return cpd
+        samediff_cpds = [samediff_cpd('i', 'j'), samediff_cpd('j', 'k'), samediff_cpd('k', 'i')]
+        var2_cpd.update(dict(zip([cpd.variable for cpd in samediff_cpds], samediff_cpds)))
 
-    if False:
+        if True:
+            def score_cpd(aid1, aid2):
+                semtype = 'score'
+                evidence = ['A' + aid1 + aid2, 'N' + aid1, 'N' + aid2]
+                evidence_cpds = [var2_cpd[key] for key in evidence]
+                evidence_nice = [semtype2_nice[cpd.semtype] for cpd in evidence_cpds]
+                evidence_card = list(map(len, evidence_nice))
+                evidence_states = list(ut.iprod(*evidence_nice))
+                variable_basis = semtype2_nice[semtype]
+
+                variable_values = []
+                for mystate in variable_basis:
+                    row = []
+                    for state in evidence_states:
+                        if state[0] == state[1]:
+                            if state[2] == 'same':
+                                val = .2 if mystate == 'low' else .8
+                            else:
+                                val = 1
+                                # val = .5 if mystate == 'low' else .5
+                        elif state[0] != state[1]:
+                            if state[2] == 'same':
+                                val = .5 if mystate == 'low' else .5
+                            else:
+                                val = 1
+                                # val = .9 if mystate == 'low' else .1
+                        row.append(val)
+                    variable_values.append(row)
+
+                cpd = TabularCPD(
+                    variable='S' + aid1 + aid2,
+                    variable_card=len(variable_basis),
+                    values=variable_values,
+                    evidence=evidence,  # [::-1],
+                    evidence_card=evidence_card)  # [::-1])
+                cpd.semtype = semtype
+                return cpd
+        else:
+            score_values = [
+                [.8, .1],
+                [.2, .9],
+            ]
+            def score_cpd(aid1, aid2):
+                cpd = TabularCPD(
+                    variable='S' + aid1 + aid2,
+                    variable_card=num_scores,
+                    values=score_values,
+                    evidence=['A' + aid1 + aid2],  # [::-1],
+                    evidence_card=[num_same_diff])  # [::-1])
+                cpd.semtype = 'score'
+                return cpd
+
+        score_cpds = [score_cpd('i', 'j'), score_cpd('j', 'k')]
+        cpd_list = name_cpds + score_cpds + samediff_cpds
+    else:
         score_measure = np.array([get_expected_scores_prob(level1, level2)
                                   for level1, level2 in
                                   zip(np.linspace(.1, .9, num_scores),
@@ -133,42 +213,7 @@ def bayesnet():
             return cpd
         score_cpds = [score_cpd('i', 'j'), score_cpd('j', 'k')]
         cpd_list = name_cpds + score_cpds
-
-    else:
-        num_same_diff = 2
-        samediff_measure = np.array([
-            get_expected_scores_prob(.12, .2),
-            get_expected_scores_prob(.88, .8),
-        ])
-        samediff_vals = (samediff_measure / samediff_measure.sum(axis=0)).tolist()
-        def samediff_cpd(aid1, aid2):
-            cpd = TabularCPD(
-                variable='A' + aid1 + aid2,
-                variable_card=num_same_diff,
-                values=samediff_vals,
-                evidence=['N' + aid1, 'N' + aid2],
-                evidence_card=[num_names, num_names])
-            cpd.semtype = 'match'
-            return cpd
-
-        score_values = [
-            [.8, .1],
-            [.2, .9],
-        ]
-
-        def score_cpd(aid1, aid2):
-            cpd = TabularCPD(
-                variable='S' + aid1 + aid2,
-                variable_card=num_scores,
-                values=score_values,
-                evidence=['A' + aid1 + aid2],
-                evidence_card=[num_same_diff])
-            cpd.semtype = 'score'
-            return cpd
-
-        samediff_cpds = [samediff_cpd('i', 'j'), samediff_cpd('j', 'k'), samediff_cpd('k', 'i')]
-        score_cpds = [score_cpd('i', 'j'), score_cpd('j', 'k')]
-        cpd_list = name_cpds + score_cpds + samediff_cpds
+        pass
 
     input_graph = []
     for cpd in cpd_list:
@@ -178,26 +223,22 @@ def bayesnet():
     name_model = BayesianModel(input_graph)
     name_model.add_cpds(*cpd_list)
 
-    varnames = [cpd.variable for cpd in cpd_list]
-    var2_cpd = dict(zip(varnames, cpd_list))
+    var2_cpd.update(dict(zip([cpd.variable for cpd in cpd_list], cpd_list)))
     globals()['var2_cpd'] = var2_cpd
+
+    varnames = [cpd.variable for cpd in cpd_list]
 
     # --- PRINT CPDS ---
 
-    # def get_var_basis(varname):
-    #     if varname.startswith('S'):
-    #         var_basis = ut.list_take(score_nice, score_basis)
-    #     if varname.startswith('L'):
-    #         var_basis = ut.list_take(name_nice, nid_basis)
-    #     return var_basis
-
+    cpd = score_cpds[0]
     def print_cpd(cpd):
         print('CPT: %r' % (cpd,))
         index = semtype2_nice[cpd.semtype]
         if cpd.evidence is None:
             columns = ['None']
         else:
-            columns = [','.join(x) for x in ut.iprod(*[semtype2_nice[var2_cpd[ename].semtype] for ename in cpd.evidence])]
+            basis_lists = [semtype2_nice[var2_cpd[ename].semtype] for ename in cpd.evidence]
+            columns = [','.join(x) for x in ut.iprod(*basis_lists)]
         data = cpd.get_cpd()
         print(pd.DataFrame(data, index=index, columns=columns))
 
@@ -261,7 +302,11 @@ def bayesnet():
     for evidence in evidence_dict:
         try_query(evidence)
 
-    evidence = {'Aij': 1, 'Ajk': 1, 'Aki': 1}
+    evidence = {'Aij': 1, 'Ajk': 1, 'Aki': 1, 'Ni': 0}
+    try_query(evidence)
+
+    evidence = {'Aij': 0, 'Ajk': 0, 'Aki': 0, 'Ni': 0}
+    try_query(evidence)
 
     globals()['score_nice'] = score_nice
     globals()['name_nice'] = name_nice
