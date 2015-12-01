@@ -162,6 +162,27 @@ def inject_colored_exceptions():
             print('[inject] cannot inject colored exceptions')
 
 
+def inject_print_func2(module):
+    if SILENT:
+        def print(*args):
+            """ silent builtins.print """
+            pass
+    else:
+        if DEBUG_PRINT:
+            # Turns on printing where a message came from
+            def print(*args):
+                """ debugging logging builtins.print """
+                from utool._internal.meta_util_dbg import get_caller_name
+                calltag = ''.join(('[caller:', get_caller_name(N=DEBUG_PRINT_N), ']' ))
+                util_logging.__UTOOL_PRINT__(calltag, *args)
+        else:
+            def print(*args):
+                """ logging builtins.print """
+                util_logging.__UTOOL_PRINT__(*args)
+    _inject_funcs(module, print)
+    return print
+
+
 def inject_print_functions(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
     """
     makes print functions to be injected into the module
@@ -444,9 +465,13 @@ def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None, N=
     return (print, print_, printDBG, rrr, profile_)
 
 
-def inject2(*args, **kwargs):
+def inject2(module_name=None, module_prefix='[???]', DEBUG=False, module=None, N=1):
     """ wrapper that depricates print_ and printDBG """
-    print, print_, printDBG, rrr, profile_ = inject(*args, N=2, **kwargs)
+    noinject(module_name, module_prefix, DEBUG, module, N=N)
+    module = _get_module(module_name, module)
+    rrr      = inject_reload_function(None, module_prefix, module)
+    profile_ = inject_profile_function(None, module_prefix, module)
+    print    = inject_print_func2(module)
     return print, rrr, profile_
 
 

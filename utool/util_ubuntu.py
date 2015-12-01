@@ -5,7 +5,6 @@ from utool import util_inject
 print, rrr, profile = util_inject.inject2(__name__, '[ubuntu]')
 
 
-
 def add_new_mimetype_association(ext, mime_name, exe_fpath=None, dry=True):
     """
     TODO: move to external manager and generalize
@@ -121,7 +120,7 @@ def make_application_icon(exe_fpath, dry=True, props={}):
         python -m utool.util_ubuntu --exec-make_application_icon --exe cockatrice --icon=/home/joncrall/code/Cockatrice/cockatrice/resources/cockatrice.png
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_ubuntu import *  # NOQA
         >>> exe_fpath = ut.get_argval('--exe', default='cockatrice')
         >>> icon = ut.get_argval('--icon', default=None)
