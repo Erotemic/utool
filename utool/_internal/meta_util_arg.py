@@ -20,7 +20,9 @@ NO_INDENT    = '--noindent' in sys.argv or '--no-indent' in sys.argv or SILENT
 PRINT_ALL_CALLERS  = '--print-all-callers' in sys.argv
 USE_ASSERT         = not NO_ASSERTS
 NOT_QUIET          = not QUIET
-PRINT_INJECT_ORDER = VERYVERBOSE or '--print-inject-order' in sys.argv
+PRINT_INJECT_ORDER = (VERYVERBOSE or '--print-inject-order' in sys.argv or
+                      '--verbinject' in sys.argv or
+                      '--verb-inject' in sys.argv)
 LOGGING_VERBOSE    = VERYVERBOSE or '--verb-logging' in sys.argv
 
 if PRINT_INJECT_ORDER:

@@ -4,7 +4,7 @@ Injects code into live modules or into text source files.
 
 Basic use case is to extend the print function into a logging function
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import builtins, range, zip, map  # NOQA
 #import builtins
 import sys
@@ -41,6 +41,8 @@ QUIET = '--quiet' in sys.argv
 SILENT = '--silent' in sys.argv
 VERYVERBOSE = meta_util_arg.VERYVERBOSE
 PRINT_INJECT_ORDER = meta_util_arg.PRINT_INJECT_ORDER
+# only word
+EXIT_ON_INJECT_MODNAME = meta_util_arg.get_argval('--exit-on-inject', type_=str, default=None)
 
 
 if __LOGGING__:
@@ -384,7 +386,7 @@ def inject_profile_function(module_name=None, module_prefix='[???]', module=None
     return profile_withfuncname_filter
 
 
-def noinject(module_name=None, module_prefix='[???]', DEBUG=False, module=None, N=0):
+def noinject(module_name=None, module_prefix='[???]', DEBUG=False, module=None, N=0, via=None):
     """
     Use in modules that do not have inject in them
 
@@ -393,14 +395,19 @@ def noinject(module_name=None, module_prefix='[???]', DEBUG=False, module=None, 
     """
     if PRINT_INJECT_ORDER:
         from utool._internal import meta_util_dbg
-        callername = meta_util_dbg.get_caller_name(N=2 + N, strict=False)
-        lineno = meta_util_dbg.get_caller_lineno(N=2 + N, strict=False)
-        fmtdict = dict(N=N, lineno=lineno, callername=callername, modname=module_name)
-        msg = '[util_inject] N={N} {modname} is imported by {callername} at lineno={lineno}'.format(**fmtdict)
+        callername = meta_util_dbg.get_caller_name(N=N + 1, strict=False)
+        lineno = meta_util_dbg.get_caller_lineno(N=N + 1, strict=False)
+        suff = ' via %s' % (via,) if via else ''
+        fmtdict = dict(N=N, lineno=lineno, callername=callername,
+                       modname=module_name, suff=suff)
+        msg = '[util_inject] N={N} {modname} is imported by {callername} at lineno={lineno}{suff}'.format(**fmtdict)
         builtins.print(msg)
+        if EXIT_ON_INJECT_MODNAME == module_name:
+            builtins.print('...exiting')
+            assert False, 'exit in inject requested'
 
 
-def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
+def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None, N=1):
     """
     Injects your module with utool magic
 
@@ -423,11 +430,12 @@ def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
 
     Example:
         >>> from utool.util_inject import *  # NOQA
-        >>> from __future__ import absolute_import, division, print_function
+        >>> from __future__ import absolute_import, division, print_function, unicode_literals
         >>> from util.util_inject import inject
-        >>> print, print_, printDBG, rrr, profile = inject(__name__, '[mod]')
+        >>> print, rrr, profile = inject2(__name__, '[mod]')
     """
-    noinject(module_name, module_prefix, DEBUG, module, N=1)
+    #noinject(module_name, module_prefix, DEBUG, module, N=1)
+    noinject(module_name, module_prefix, DEBUG, module, N=N)
     module = _get_module(module_name, module)
     rrr         = inject_reload_function(None, module_prefix, module)
     profile_    = inject_profile_function(None, module_prefix, module)
@@ -438,7 +446,7 @@ def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
 
 def inject2(*args, **kwargs):
     """ wrapper that depricates print_ and printDBG """
-    print, print_, printDBG, rrr, profile_ = inject(*args, **kwargs)
+    print, print_, printDBG, rrr, profile_ = inject(*args, N=2, **kwargs)
     return print, rrr, profile_
 
 

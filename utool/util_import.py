@@ -6,6 +6,7 @@ SeeAlso:
 from __future__ import absolute_import, division, print_function, unicode_literals
 from utool import util_inject
 from utool import util_arg
+import sys
 print, rrr, profile = util_inject.inject2(__name__, '[import]')
 
 
@@ -80,6 +81,9 @@ def import_modname(modname):
         >>> assert result == modname_list
     """
     # The __import__ statment is weird
+    if util_inject.PRINT_INJECT_ORDER:
+        if modname not in sys.argv:
+            util_inject.noinject(modname, N=2, via='ut.import_modname')
     if '.' in modname:
         fromlist = modname.split('.')[-1]
         fromlist_ = list(map(str, fromlist))  # needs to be ascii for python2.7
@@ -116,6 +120,9 @@ def tryimport(modname, pipiname=None, ensure=False):
     if pipiname is None:
         pipiname = modname
     try:
+        if util_inject.PRINT_INJECT_ORDER:
+            if modname not in sys.argv:
+                util_inject.noinject(modname, N=2, via='ut.tryimport')
         module = __import__(modname)
         return module
     except ImportError as ex:
@@ -287,6 +294,9 @@ def import_module_from_fpath(module_fpath):
     modname = splitext(basename(module_fpath))[0]
     if modname == '__init__':
         modname = split(dirname(module_fpath))[1]
+    if util_inject.PRINT_INJECT_ORDER:
+        if modname not in sys.argv:
+            util_inject.noinject(modname, N=2, via='ut.import_module_from_fpath')
     if python_version.startswith('2.7'):
         import imp
         module = imp.load_source(modname, module_fpath)
