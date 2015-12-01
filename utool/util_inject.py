@@ -179,7 +179,8 @@ def inject_print_func2(module):
             def print(*args):
                 """ logging builtins.print """
                 util_logging.__UTOOL_PRINT__(*args)
-    _inject_funcs(module, print)
+    # TODO: can we get away with not actually injecting at all?
+    #_inject_funcs(module, print)
     return print
 
 
@@ -245,7 +246,7 @@ def inject_print_functions(module_name=None, module_prefix='[???]', DEBUG=False,
             def printDBG(*args):
                 """ silent debug logging print """
                 pass
-    _inject_funcs(module, print, print_, printDBG)
+    #_inject_funcs(module, print, print_, printDBG)
     print_funcs = (print, print_, printDBG)
     return print_funcs
 
@@ -269,13 +270,7 @@ def inject_reload_function(module_name=None, module_prefix='[???]', module=None)
             print('%s Failed to reload' % module_prefix)
             raise
     # this doesn't seem to set anything on import *
-    #rrr.__dict__['module_name'] = module_name
-    #rrr.__dict__['module_prefix'] = module_prefix
-    #print(id(rrr))
-    #print('module_name = %r' % module_name)
-    #print('module_prefix = %r' % module_prefix)
-    #print('rrr.__dict__ = %r' % (rrr.__dict__,))
-    _inject_funcs(module, rrr)
+    #_inject_funcs(module, rrr)
     return rrr
 
 
@@ -303,30 +298,6 @@ except AttributeError:
     PROFILING = False
     KERNPROF_FUNC = DUMMYPROF_FUNC
     #KERNPROF_FUNC = TIMERPROF_FUNC
-
-
-#def inject_profile_function(module_name=None, module_prefix='[???]', module=None):
-#    module = _get_module(module_name, module)
-#    try:
-#        kernprof_func = getattr(builtins, 'profile')
-#        #def profile(func):
-#        #    #print('decorate: %r' % meta_util_six.get_funcname(func))
-#        #    # hack to filter profiled functions
-#        #    if meta_util_six.get_funcname(func)).startswith('get_affine'):
-#        #        return kernprof_func(func)
-#        #    return func
-#        profile = kernprof_func
-#        if __DEBUG_PROF__:
-#            print('[util_inject] PROFILE ON: %r' % module)
-#    except AttributeError:
-#        # Create dummy kernprof_func
-#        def profile(func):
-#            #print('decorate: %r' % meta_util_six.get_funcname(func)))
-#            return func
-#        if __DEBUG_PROF__:
-#            print('[util_inject] PROFILE OFF: %r' % module)
-#    _inject_funcs(module, profile)
-#    return profile
 
 #PROF_MOD_PAT_LIST = None  # ['spatial']
 # TODO: Add this to command line
@@ -403,7 +374,6 @@ def inject_profile_function(module_name=None, module_prefix='[???]', module=None
     #        return func
     #    if __DEBUG_PROF__:
     #        print('[util_inject] PROFILE OFF: %r' % module)
-    #_inject_funcs(module, profile)
     return profile_withfuncname_filter
 
 

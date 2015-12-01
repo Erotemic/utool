@@ -48,13 +48,48 @@ def horiz_print(*args):
 #    return prev_flag
 
 
+def _test_indent_print():
+    # Indent test code doesnt work in doctest blocks.
+    import utool as ut
+    print('Checking indent. Should have none')
+    with ut.Indenter('[INDENT] '):
+        print('Checking indent. Should be indented')
+    print('Should no longer be indented')
+    text = ut.get_current_log_text()
+    # The last line might sometimes be empty or not.
+    # Not sure.
+    last_lines = text.split('\n')[-4:]
+    if last_lines[-1] != '':
+        assert False, 'DEV ERROR. REMOVE FIRST LINE INSTEAD OF LAST'
+        last_lines = last_lines[:-1]
+
+    #print('last_lines = %r' % (ut.repr3(last_lines)))
+    try:
+        assert last_lines[0].find('[INDENT] ') == -1, last_lines[0]
+        assert last_lines[1].find('[INDENT] ') >= 0, 'did not indent %r' % (last_lines[1],)
+        assert last_lines[2].find('[INDENT] ') == -1, last_lines[2]
+    except AssertionError:
+        print('Error. Last 3 lines')
+        print(ut.repr3(last_lines))
+        raise
+
+
 class Indenter(object):
-    """
+    r"""
     Monkey patches modules injected with print to change the way print behaves.
 
     Works with utool.inject to allow for prefixing of all within-context
     print statements in a semi-dynamic manner. There seem to be some bugs
     but it works pretty well.
+
+    CommandLine:
+        python -m utool.util_print --exec-Indenter
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_print import *  # NOQA
+        >>> import utool as ut
+        >>> ut.util_print._test_indent_print()
     """
     # THIS IS MUCH BETTER
     #@profile
