@@ -82,7 +82,7 @@ def import_modname(modname):
     """
     # The __import__ statment is weird
     if util_inject.PRINT_INJECT_ORDER:
-        if modname not in sys.argv:
+        if modname not in sys.modules:
             util_inject.noinject(modname, N=2, via='ut.import_modname')
     if '.' in modname:
         fromlist = modname.split('.')[-1]
@@ -121,7 +121,7 @@ def tryimport(modname, pipiname=None, ensure=False):
         pipiname = modname
     try:
         if util_inject.PRINT_INJECT_ORDER:
-            if modname not in sys.argv:
+            if modname not in sys.modules:
                 util_inject.noinject(modname, N=2, via='ut.tryimport')
         module = __import__(modname)
         return module
