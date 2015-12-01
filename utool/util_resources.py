@@ -122,7 +122,9 @@ def current_memory_usage():
     Returns this programs current memory usage in bytes
     """
     import psutil
-    meminfo = psutil.Process(os.getpid()).get_memory_info()
+    proc = psutil.Process(os.getpid())
+    #meminfo = proc.get_memory_info()
+    meminfo = proc.memory_info()
     rss = meminfo[0]  # Resident Set Size / Mem Usage
     vms = meminfo[1]  # Virtual Memory Size / VM Size  # NOQA
     return rss
