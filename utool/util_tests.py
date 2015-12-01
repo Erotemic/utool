@@ -1506,11 +1506,13 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
     unique function names
     """
     import utool as ut
+    print('[utool] main_function_tester')
 
     test_funcname = ut.get_argval(
         ('--test-func', '--tfunc', '--tf', '--testfunc'),
         type_=str, default=test_funcname,
         help_='specify a function to doctest')
+    print('test_funcname = %r' % (test_funcname,))
 
     if test_funcname is not None:
         globals_ = {}
