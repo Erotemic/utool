@@ -215,7 +215,8 @@ def autogen_import_list(classname, conditional_imports=None):
     return src
 
 
-def autogen_explicit_injectable_metaclass(classname, regen_command=None, conditional_imports=None):
+def autogen_explicit_injectable_metaclass(classname, regen_command=None,
+                                          conditional_imports=None):
     r"""
     Args:
         classname (?):
@@ -371,7 +372,8 @@ def make_class_method_decorator(classkey, modname=None):
     else:
         print('Warning not using classkey for %r %r' % (classkey, modname))
         raise AssertionError('classkey no longer supported. Use class_inject_key instead')
-    closure_decorate_class_method = functools.partial(decorate_class_method, classkey=classkey)
+    closure_decorate_class_method = functools.partial(decorate_class_method,
+                                                      classkey=classkey)
     return closure_decorate_class_method
 
 
@@ -394,7 +396,8 @@ def make_class_postinject_decorator(classkey, modname=None):
         print('WARNING: cannot register class functions as __main__')
         # skips reinjects into main
         return lambda func: func
-    closure_decorate_postinject = functools.partial(decorate_postinject, classkey=classkey)
+    closure_decorate_postinject = functools.partial(decorate_postinject,
+                                                    classkey=classkey)
     return closure_decorate_postinject
 
 
@@ -745,7 +748,8 @@ def private_rrr_factory():
                 class_list = find_base_clases(head_class, find_base_clases)
                 for _class in class_list:
                     if verbose:
-                        print('[class] reloading parent ' + _class.__name__ + ' from ' + _class.__module__)
+                        print('[class] reloading parent ' + _class.__name__ +
+                              ' from ' + _class.__module__)
                     if _class.__module__ != '__main__':
                         module_ = sys.modules[_class.__module__]
                     else:
@@ -765,7 +769,8 @@ def private_rrr_factory():
                         try:
                             imp.reload(module_)
                         except (ImportError, AttributeError):
-                            print('[class] fallback reloading ' + _class.__module__ + ' with imp')
+                            print('[class] fallback reloading ' + _class.__module__ +
+                                  ' with imp')
                             # one last thing to try. probably used ut.import_module_from_fpath
                             # when importing this module
                             imp.load_source(module_.__name__, module_.__file__)
