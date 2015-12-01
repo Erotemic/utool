@@ -12,14 +12,13 @@ from utool import util_time
 from utool import util_iter
 from utool import util_dbg
 from utool import util_arg
+from utool import util_type
 from utool import util_inject
 from utool._internal import meta_util_six
-try:
+(print, rrr, profile) = util_inject.inject2(__name__, '[decor]')
+
+if util_type.HAVE_NUMPY:
     import numpy as np
-    HAVE_NUMPY = True
-except ImportError:
-    HAVE_NUMPY = False
-(print, print_, printDBG, rrr, profile) = util_inject.inject(__name__, '[decor]')
 
 # Commandline to toggle certain convinience decorators
 SIG_PRESERVE = util_arg.get_argflag('--sigpreserve')
@@ -320,7 +319,6 @@ def _indent_decor(lbl):
     does the actual work of indent_func
     """
     def closure_indent(func):
-        #printDBG('Indenting lbl=%r, func=%r' % (lbl, func))
         if util_arg.TRACE:
             @ignores_exc_tb(outer_wrapper=False)
             #@wraps(func)
@@ -433,7 +431,7 @@ def accepts_scalar_input(func):
 
 
 def accepts_scalar_input2(argx_list=[0], outer_wrapper=True):
-    """
+    r"""
     FIXME: change to better name. Complete implementation.
 
     used in IBEIS setters
@@ -454,7 +452,6 @@ def accepts_scalar_input2(argx_list=[0], outer_wrapper=True):
     def closure_asi2(func):
         #@on_exception_report_input
         @ignores_exc_tb(outer_wrapper=False)
-        #@wraps(func)
         def wrp_asi2(self, *args, **kwargs):
             # Hack in case wrapping a function with varargs
             argx_list_ = [argx for argx in argx_list if argx < len(args)]
@@ -547,7 +544,7 @@ def accepts_numpy(func):
     #@ignores_exc_tb
     #@wraps(func)
     def wrp_accepts_numpy(self, input_, *args, **kwargs):
-        if not (HAVE_NUMPY and isinstance(input_, np.ndarray)):
+        if not (util_type.HAVE_NUMPY and isinstance(input_, np.ndarray)):
             # If the input is not numpy, just call the function
             return func(self, input_, *args, **kwargs)
         else:
@@ -655,7 +652,7 @@ def tracefunc(func):
 
 
 def show_return_value(func):
-    from .util_str import func_str
+    from utool.util_str import func_str
     #@wraps(func)
     def wrp_show_return_value(*args, **kwargs):
         ret = func(*args, **kwargs)
