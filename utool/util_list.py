@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import operator
-try:
-    import numpy as np
-    HAVE_NUMPY = True
-except ImportError:
-    HAVE_NUMPY = False
 import six
 import itertools
 from six.moves import zip, map, zip_longest, range, filter, reduce
@@ -14,7 +9,10 @@ from utool import util_inject
 from utool import util_str
 from utool import util_type
 from utool._internal.meta_util_six import get_funcname, set_funcname
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[list]')
+print, rrr, profile = util_inject.inject2(__name__, '[list]')
+
+if util_type.HAVE_NUMPY:
+    import numpy as np
 
 
 # --- List Allocations ---
@@ -479,7 +477,7 @@ def invertible_flatten2(unflat_list):
         %timeit utool.unflatten2(flat_aids2, cumlen_list)
     """
     sublen_list = list(map(len, unflat_list))
-    if not HAVE_NUMPY:
+    if not util_type.HAVE_NUMPY:
         cumlen_list = np.cumsum(sublen_list)
         # Build an unflat list of flat indexes
     else:
@@ -728,7 +726,7 @@ def list_all_eq_to(list_, val, strict=True):
     Returns:
         True if all items in the list are equal to val
     """
-    if HAVE_NUMPY and isinstance(val, np.ndarray):
+    if util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
         return all([np.all(item == val) for item in list_])
     try:
         return all([item == val for item in list_])
@@ -2218,6 +2216,10 @@ def unflat_vecmap(func, unflat_items, vectorized=False, **kwargs):
             'unflat lens not the same, len(unflat_vals)=%d len(unflat_rowids)=%d' %
             (len(unflat_vals), len(unflat_items),))
     return unflat_vals
+
+
+def list_getattr(list_, attrname):
+    return list(map(operator.attrgetter(attrname), list_))
 
 
 take = list_take

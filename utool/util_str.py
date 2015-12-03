@@ -2395,6 +2395,56 @@ def filtered_infostr(flags, lbl, reason=None):
     return str_
 
 
+def chr_range(*args, **kw):
+    r"""
+    Args:
+        start (None): (default = None)
+        stop (None): (default = None)
+        step (None): (default = None)
+
+    Returns:
+        ?:
+
+    CommandLine:
+        python -m ibeis.model.hots.bayes --exec-chr_range
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.bayes import *  # NOQA
+        >>> args = (5,)
+        >>> print(chr_range(2, base='a'))
+        >>> print(chr_range(0, 5))
+        >>> print(chr_range(0, 50))
+        >>> print(chr_range(0, 5, 2))
+    """
+    if len(args) == 1:
+        stop, = args
+        start, step = 0, 1
+    elif len(args) == 2:
+        start, stop = args
+        step = 1
+    elif len(args) == 3:
+        start, stop, step = args
+    else:
+        raise ValueError('incorrect args')
+
+    chr_ = unichr
+    base = ord(kw.get('base', 'i'))
+    if isinstance(start, int):
+        start = base + start
+    if isinstance(stop, int):
+        stop = base + stop
+
+    if isinstance(start, six.string_types):
+        start = ord(start)
+    if isinstance(stop, six.string_types):
+        stop = ord(stop)
+    if step is None:
+        step = 1
+    list_ = list(map(six.text_type, map(chr_, range(start, stop, step))))
+    return list_
+
+
 if __name__ == '__main__':
     """
     CommandLine:

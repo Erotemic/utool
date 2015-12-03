@@ -1209,6 +1209,11 @@ def groupby_tags(item_list, tags_list):
     return groupid2_items
 
 
+def groupby_attr(item_list, attrname):
+    return group_items(item_list,
+                       map(operator.attrgetter(attrname), item_list))
+
+
 def group_items(item_list, groupid_list, sorted_=True):
     """
     group_items
@@ -1234,7 +1239,7 @@ def group_items(item_list, groupid_list, sorted_=True):
         >>> import utool as ut
         >>> item_list    = [ 'ham',      'jam',    'spam',     'eggs', 'cheese', 'bannana']
         >>> groupid_list = ['protein', 'fruit', 'protein',  'protein',  'dairy',   'fruit']
-        >>> groupid2_items = ut.group_items(item_list, groupid_list)
+        >>> groupid2_items = ut.group_items(item_list, iter(groupid_list))
         >>> result = ut.dict_str(groupid2_items, nl=False, strvals=False)
         >>> print(result)
         {'dairy': ['cheese'], 'fruit': ['jam', 'bannana'], 'protein': ['ham', 'spam', 'eggs']}
