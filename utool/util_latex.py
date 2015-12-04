@@ -18,9 +18,9 @@ from utool import util_path
 from utool import util_num
 from utool import util_dev
 from utool import util_io
-from utool.util_dbg import printex
-from utool.util_inject import inject
-print, print_, printDBG, rrr, profile = inject(__name__, '[latex]')
+from utool import util_dbg
+from utool import util_inject
+print, rrr, profile = util_inject.inject2(__name__, '[latex]')
 
 #def ensure_latex_environ():
 #    paths = os.environ['PATH'].split(os.pathsep)
@@ -313,7 +313,7 @@ def latex_get_stats(lbl, data, mode=0):
         shape = stats_['shape']
     except KeyError as ex:
         stat_keys = stats_.keys()  # NOQA
-        printex(ex, key_list=['stat_keys', 'stats_', 'data'])
+        util_dbg.printex(ex, key_list=['stat_keys', 'stats_', 'data'])
         raise
 
     #int_fmt = lambda num: util.num_fmt(int(num))
@@ -578,7 +578,7 @@ def make_score_tabular(
         print('len(col_lbls) = %r' % (len(col_lbls),))
         print('len(values) = %r' % (values,))
         print('ut.depth_profile(values) = %r' % (ut.depth_profile(values),))
-        ut.printex(ex, keys=['r', 'c'])
+        util_dbg.printex(ex, keys=['r', 'c'])
         raise
 
     # Bold the best values
@@ -972,22 +972,23 @@ def latex_sanatize_command_name(_cmdname):
                     return ''
                 return roman.toRoman(num)
             except Exception as ex:
-                ut.printex(ex, keys=['groupdict'])
+                util_dbg.printex(ex, keys=['groupdict'])
                 raise
         command_name = re.sub(ut.named_field('num', r'\d+'), subroman, command_name)
     except ImportError as ex:
         if ut.SUPER_STRICT:
-            ut.printex(ex)
+            util_dbg.printex(ex)
             raise
     # remove numbers
     command_name = re.sub(r'[\d' + re.escape('#()[]{}.') + ']', '', command_name)
-    # Remove _ for cammel case
-    def to_cammel_case(str_list):
-            # hacky
-            return ''.join([str_ if len(str_) < 1 else str_[0].upper() + str_[1:] for str_ in str_list])
+    # Remove _ for camel case
+    #def to_camel_case(str_list):
+    #    # hacky
+    #    return ''.join([str_ if len(str_) < 1 else str_[0].upper() + str_[1:] for str_ in str_list])
     #command_name = to_cammel_case(re.split('[_ ]', command_name)[::2])
     str_list = re.split('[_ ]', command_name)
-    command_name = to_cammel_case(str_list)
+    #command_name = to_cammel_case(str_list)
+    command_name = ut.to_camel_case(str_list, mixed=True)
     return command_name
 
 

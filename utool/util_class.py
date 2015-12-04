@@ -348,8 +348,9 @@ def make_class_method_decorator(classkey, modname=None):
         >>> print('Cheese shop does not have cheese. All is well.')
     """
     global __APP_MODNAME_REGISTER__
-    if util_arg.VERBOSE or VERBOSE_CLASS:
-        print('[util_class] register make_class_method_decorator classkey=%r, modname=%r'
+    #if util_arg.VERBOSE or VERBOSE_CLASS:
+    if VERBOSE_CLASS:
+        print('[util_class] register via make_class_method_decorator classkey=%r, modname=%r'
               % (classkey, modname))
     if modname == '__main__':
         # skips reinjects into main

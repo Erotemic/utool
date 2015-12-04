@@ -2059,6 +2059,32 @@ def list_argmax(list_):
     return np.argmax(np.array(list_))
 
 
+def list_argmaxima(list_):
+    r"""
+    Args:
+        list_ (list):
+
+    Returns:
+        list: argmaxima
+
+    CommandLine:
+        python -m utool.util_list --exec-list_argmaxima
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = np.array([1, 2, 3, 3, 3, 2, 1])
+        >>> argmaxima = list_argmaxima(list_)
+        >>> result = ('argmaxima = %s' % (str(argmaxima),))
+        >>> print(result)
+        argmaxima = [2 3 4]
+    """
+    argmax = list_argmax(list_)
+    maxval = list_[argmax]
+    argmaxima = np.where((np.isclose(maxval, list_)))[0]
+    return argmaxima
+
+
 def make_index_lookup(list_):
     r"""
     Args:

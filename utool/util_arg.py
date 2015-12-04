@@ -176,15 +176,17 @@ def get_argflag(argstr_, default=False, help_='', return_specified=None,
     #export UTOOL_NOCNN True
     #"""
     #argv_orig = argv[:]
+    # HACK: make this not happen very time you loop
     for key, val in os.environ.items():
         key = key.upper()
         sentinal = 'UTOOL_'
         if key.startswith(sentinal):
-            flag = '--' + key[len(sentinal):]
+            flag = '--' + key[len(sentinal):].lower().replace('_', '-')
             if val.upper() in ['TRUE', 'ON']:
-                flag += '=True'
+                pass
             elif val.upper() in ['FALSE', 'OFF']:
-                flag += '=False'
+                continue
+                #flag += '=False'
             new_argv = [flag]
             argv = argv[:] + new_argv
             if debug:
@@ -334,7 +336,7 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
 
     """
     if verbose is None:
-        verbose = VERBOSE or VERYVERBOSE
+        verbose = VERYVERBOSE
 
     if debug is None:
         debug = VERYVERBOSE
@@ -909,7 +911,7 @@ def argparse_dict(default_dict_, lbl=None, verbose=None,
         >>> print(result)
     """
     if verbose is None:
-        verbose = VERBOSE_ARGPARSE or VERBOSE
+        verbose = VERBOSE_ARGPARSE
     def make_argstrs(key, prefix_list):
         for prefix in prefix_list:
             yield prefix + key

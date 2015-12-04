@@ -1273,7 +1273,8 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
 
 
 def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
-             truncate=False, truncatekw={}, label_list=None, **listkw):
+             truncate=False, truncatekw={}, label_list=None, packed=False,
+             **listkw):
     r"""
     Args:
         list_ (list):
@@ -1284,6 +1285,7 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
         truncate (bool): (default = False)
         truncatekw (dict): (default = {})
         label_list (list): (default = None)
+        packed (bool): if true packs braces close to body (default = False)
 
     Kwargs:
         strvals, recursive, precision, with_comma
@@ -1332,9 +1334,11 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
         newlines = nl
     newlines_ = _rectify_countdown_or_bool(newlines)
     truncate_ = _rectify_countdown_or_bool(truncate)
+    packed_ = _rectify_countdown_or_bool(packed)
 
     itemstr_list = get_itemstr_list(list_, indent_=indent_, newlines=newlines_,
                                     truncate=truncate_, truncatekw=truncatekw,
+                                    packed=packed_,
                                     label_list=label_list, **listkw)
     if nobraces:
         leftbrace, rightbrace = '', ''
@@ -1350,8 +1354,13 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
             body_str = '\n'.join(itemstr_list)
             retstr = body_str
         else:
-            body_str = '\n'.join([ut.indent(itemstr) for itemstr in itemstr_list])
-            braced_body_str = (leftbrace + '\n' + body_str + '\n' + rightbrace)
+            if packed:
+                joinstr = '\n' + ' ' * len(leftbrace)
+                body_str = joinstr.join([itemstr for itemstr in itemstr_list])
+                braced_body_str = (leftbrace + '' + body_str + '' + rightbrace)
+            else:
+                body_str = '\n'.join([ut.indent(itemstr) for itemstr in itemstr_list])
+                braced_body_str = (leftbrace + '\n' + body_str + '\n' + rightbrace)
             retstr = braced_body_str
     else:
         sequence_str = ' '.join(itemstr_list)
@@ -2329,11 +2338,63 @@ def closet_words(query, options, num=1):
     return ranked_list[0:num]
 
 
-def to_camel_case(underscore_case):
+def to_title_caps(underscore_case):
+    r"""
+    Args:
+        underscore_case (?):
+
+    Returns:
+        str: title_str
+
+    CommandLine:
+        python -m utool.util_str --exec-to_title_caps
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> underscore_case = 'the_foo_bar_func'
+        >>> title_str = to_title_caps(underscore_case)
+        >>> result = ('title_str = %s' % (str(title_str),))
+        >>> print(result)
+        title_str = The Foo Bar Func
+    """
     words = underscore_case.split('_')
     words2 = [
         word[0].upper() + word[1:]
-        if count > 0 else
+        for count, word in enumerate(words)
+    ]
+    title_str = ' '.join(words2)
+    return title_str
+
+
+def to_camel_case(underscore_case, mixed=False):
+    r"""
+    Args:
+        underscore_case (?):
+
+    Returns:
+        str: camel_case_str
+
+    CommandLine:
+        python -m utool.util_str --exec-to_camel_case
+
+    References:
+        https://en.wikipedia.org/wiki/CamelCase
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> underscore_case = 'underscore_funcname'
+        >>> camel_case_str = to_camel_case(underscore_case)
+        >>> result = ('camel_case_str = %s' % (str(camel_case_str),))
+        >>> print(result)
+        camel_case_str = UnderscoreFuncname
+    """
+    thresh = 0 if mixed else -1
+    words = underscore_case.split('_')
+    words2 = [
+        word[0].upper() + word[1:]
+        if count > thresh else
         word
         for count, word in enumerate(words)
     ]

@@ -114,7 +114,7 @@ def upper_diag_self_prodx(list_):
         list:
 
     CommandLine:
-        python -m utool.util_alg --exec-upper_diag_prodx
+        python -m utool.util_alg --exec-upper_diag_self_prodx
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -124,9 +124,47 @@ def upper_diag_self_prodx(list_):
         >>> print(result)
         [(1, 2), (1, 3), (2, 3)]
     """
+
     return [(item1, item2)
             for n1, item1 in enumerate(list_)
             for n2, item2 in enumerate(list_) if n1 < n2]
+
+
+def diagonalized_iter(size):
+    r"""
+    % TODO: generalize to more than 2 dimensions to be more like
+    itertools.product.
+
+    CommandLine:
+        python -m utool.util_alg --exec-enum_upper_left_diag
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> size = 4
+        >>> iter_ = diagonalized_iter(size)
+        >>> mat = [[None] * size for _ in range(size)]
+        >>> for count, (r, c) in enumerate(iter_):
+        >>>     mat[r][c] = count
+        >>> result = ut.repr2(mat, nl=1, packed=True)
+        >>> print(result)
+        [[0, 2, 5, 9],
+         [1, 4, 8, 12],
+         [3, 7, 11, 14],
+         [6, 10, 13, 15],]
+    """
+    for i in range(0, size + 1):
+        for r, c in zip(reversed(range(i)), (range(i))):
+            yield (r, c)
+    for i in range(1, size):
+        for r, c in zip(reversed(range(i, size)), (range(i, size))):
+            yield (r, c)
+
+
+def upper_diagonalized_idxs(size):
+    diag_idxs = list(diagonalized_iter(size))
+    upper_diag_idxs = [(r, c) for r, c in diag_idxs if r < c]
+    return upper_diag_idxs
 
 
 def self_prodx(list_):
@@ -904,6 +942,13 @@ def almost_eq(arr1, arr2, thresh=1E-11, ret_error=False):
     if ret_error:
         return passed, error
     return passed
+
+
+def almost_allsame(vals):
+    if len(vals) == 0:
+        return True
+    x = vals[0]
+    return np.all([np.isclose(item, x) for item in vals])
 
 
 def haversine(latlon1, latlon2):

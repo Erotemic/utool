@@ -1195,6 +1195,7 @@ def get_func_sourcecode(func, stripdef=False, stripret=False,
     """
     import utool as ut
     #try:
+    inspect.linecache.clearcache()  # HACK: fix inspect bug
     sourcefile = inspect.getsourcefile(func)
     #except IOError:
     #    sourcefile = None
@@ -1212,7 +1213,7 @@ def get_func_sourcecode(func, stripdef=False, stripret=False,
                 sourcecode = inspect.getsource(func)
                 break
                 #print(sourcecode)
-            except (IndexError, OSError) as ex:
+            except (IndexError, OSError, SyntaxError) as ex:
                 ut.printex(ex, 'Error getting source',
                            keys=['sourcefile', 'func'])
                 if False:
