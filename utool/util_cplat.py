@@ -473,9 +473,9 @@ get_resource_dir = meta_util_cplat.get_resource_dir
 get_app_resource_dir = meta_util_cplat.get_app_resource_dir
 
 
-def ensure_app_resource_dir(*args):
+def ensure_app_resource_dir(*args, **kwargs):
     import utool as ut
-    app_resource_dir = get_app_resource_dir(*args)
+    app_resource_dir = get_app_resource_dir(*args, **kwargs)
     ut.ensuredir(app_resource_dir)
     return app_resource_dir
 

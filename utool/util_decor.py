@@ -788,9 +788,9 @@ def preserve_sig(wrapper, orig_func, force=False):
         >>> result = str(_wrp_preserve1)
         >>> print(result)
     """
-    if True:
-        import functools
-        return functools.wraps(orig_func)(wrapper)
+    #if True:
+    #    import functools
+    #    return functools.wraps(orig_func)(wrapper)
     from utool._internal import meta_util_six
     from utool import util_str
     from utool import util_inspect

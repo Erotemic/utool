@@ -14,20 +14,28 @@ DARWIN = sys.platform.startswith('darwin')
 
 
 def get_resource_dir():
-    """ Returns a directory which should be writable for any application """
+    """
+    Returns a directory which should be writable for any application
+    """
+    #resource_prefix = '~'
     if WIN32:
-        return normpath(expanduser('~/AppData/Roaming'))
-    if LINUX:
-        return normpath(expanduser('~/.config'))
-    if DARWIN:
-        return normpath(expanduser('~/Library/Application Support'))
+        dpath_ = '~/AppData/Roaming'
+    elif LINUX:
+        dpath_ = '~/.config'
+    elif DARWIN:
+        dpath_  = '~/Library/Application Support'
+    else:
+        raise AssertionError('unknown os')
+    dpath = normpath(expanduser(dpath_))
+    return dpath
 
 
-def get_app_resource_dir(*args):
+def get_app_resource_dir(*args, **kwargs):
     """ Returns a writable directory for an application
     Input: appname - the name of the application
            *args, - any other subdirectories may be specified
     """
     if len(args) == 0:
-        raise AssertionError('Missing appname. The first argument the application name')
+        raise AssertionError('Missing appname. The first argument the '
+                             'application name')
     return join(get_resource_dir(), *args)
