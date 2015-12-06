@@ -24,7 +24,9 @@ def add_new_mimetype_association(ext, mime_name, exe_fpath=None, dry=True):
 
     CommandLine:
         python -m utool.util_ubuntu --exec-add_new_mimetype_association
+        # Add ability to open ipython notebooks via double click
         python -m utool.util_ubuntu --exec-add_new_mimetype_association --mime-name=ipynb+json --ext=.ipynb --exe-fpath=/usr/local/bin/ipynb
+        python -m utool.util_ubuntu --exec-add_new_mimetype_association --mime-name=ipynb+json --ext=.ipynb --exe-fpath=jupyter-notebook --force
 
     Example:
         >>> # SCRIPT
