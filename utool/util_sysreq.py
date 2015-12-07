@@ -13,6 +13,8 @@ def in_virtual_env():
     returns True if you are running inside a python virtual environment.
     (DOES NOT WORK IF IN IPYTHON AND USING A VIRTUALENV)
 
+    sys.prefix gives the location of the virtualenv
+
     Notes:
         It seems IPython does not respect virtual environments properly.
         TODO: find a solution
