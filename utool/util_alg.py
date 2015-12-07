@@ -102,6 +102,26 @@ def compare_groupings(groups1, groups2):
     return total_error
 
 
+def find_grouping_consistencies(groups1, groups2):
+    """
+    Returns a measure of group consistency
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> groups1 = [[1, 2, 3], [4], [5, 6]]
+        >>> groups2 = [[1, 2], [4], [5, 6]]
+        >>> common_groups = find_grouping_consistencies(groups1, groups2)
+        >>> result = ('common_groups = %r' % (common_groups,))
+        >>> print(result)
+        common_groups = [(5, 6), (4,)]
+    """
+    group1_list = set([tuple(sorted(_group)) for _group in groups1])
+    group2_list = set([tuple(sorted(_group)) for _group in groups2])
+    common_groups = list(group1_list.intersection(group2_list))
+    return common_groups
+
+
 def upper_diag_self_prodx(list_):
     """
     upper diagnoal of cartesian product of self and self.
@@ -124,7 +144,6 @@ def upper_diag_self_prodx(list_):
         >>> print(result)
         [(1, 2), (1, 3), (2, 3)]
     """
-
     return [(item1, item2)
             for n1, item1 in enumerate(list_)
             for n2, item2 in enumerate(list_) if n1 < n2]
