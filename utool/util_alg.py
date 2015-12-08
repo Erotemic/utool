@@ -151,16 +151,17 @@ def upper_diag_self_prodx(list_):
 
 def diagonalized_iter(size):
     r"""
-    % TODO: generalize to more than 2 dimensions to be more like
+    TODO: generalize to more than 2 dimensions to be more like
     itertools.product.
 
     CommandLine:
-        python -m utool.util_alg --exec-enum_upper_left_diag
+        python -m utool.util_alg --exec-diagonalized_iter
+        python -m utool.util_alg --exec-diagonalized_iter --size=5
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
-        >>> size = 4
+        >>> size = ut.get_argval('--size', default=4)
         >>> iter_ = diagonalized_iter(size)
         >>> mat = [[None] * size for _ in range(size)]
         >>> for count, (r, c) in enumerate(iter_):
@@ -181,8 +182,36 @@ def diagonalized_iter(size):
 
 
 def upper_diagonalized_idxs(size):
-    diag_idxs = list(diagonalized_iter(size))
-    upper_diag_idxs = [(r, c) for r, c in diag_idxs if r < c]
+    r"""
+    dont trust this implementation or this function name
+
+    Args:
+        size (?):
+
+    Returns:
+        ?: upper_diag_idxs
+
+    CommandLine:
+        python -m utool.util_alg --exec-upper_diagonalized_idxs
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> size = ut.get_argval('--size', default=5)
+        >>> mat = [[0] * size for _ in range(size)]
+        >>> upper_diag_idxs = upper_diagonalized_idxs(size)
+        >>> for count, (r, c) in enumerate(upper_diag_idxs, start=1):
+        >>>     mat[r][c] = count
+        >>> print(np.array(mat))
+    """
+    # diag_idxs = list(diagonalized_iter(size))
+    # upper_diag_idxs = [(r, c) for r, c in diag_idxs if r < c]
+    # # diag_idxs = list(diagonalized_iter(size))
+    import utool as ut
+    diag_idxs = list(ut.iprod(range(size), range(size)))
+    # this is pretty much a simple c ordering
+    upper_diag_idxs = [(c, r) for r, c in diag_idxs if r > c]
+    # # upper_diag_idxs = [(r, c) for r, c in diag_idxs if r > c]
     return upper_diag_idxs
 
 
