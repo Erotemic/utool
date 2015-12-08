@@ -19,7 +19,7 @@ import fnmatch
 import warnings
 from utool.util_regex import extend_regex
 from utool import util_dbg
-from utool.util_progress import progress_func
+from utool import util_progress
 from utool._internal import meta_util_path
 from utool import util_inject
 from utool import util_arg
@@ -751,17 +751,18 @@ def move(src, dst, lbl='Moving'):
 
 def move_list(src_list, dst_list, lbl='Moving'):
     # Feb - 6 - 2014 Move function
-    def domove(src, dst, count):
+    def trymove(src, dst):
         try:
             shutil.move(src, dst)
         except OSError:
             return False
-        mark_progress(count)
         return True
     task_iter = zip(src_list, dst_list)
-    mark_progress, end_progress = progress_func(len(src_list), lbl=lbl)
-    success_list = [domove(src, dst, count) for count, (src, dst) in enumerate(task_iter)]
-    end_progress()
+    success_list = [
+        trymove(src, dst)
+        for (src, dst) in util_progress.ProgressIter(task_iter, lbl=lbl,
+                                                     adjust=True)
+    ]
     return success_list
 
 

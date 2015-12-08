@@ -5,7 +5,7 @@ Module to executes the same function with different arguments in parallel.
 from __future__ import absolute_import, division, print_function
 import multiprocessing
 import atexit
-import sys
+#import sys
 import signal
 import ctypes
 import six
@@ -186,47 +186,47 @@ def _process_serial(func, args_list, args_dict={}, nTasks=None, quiet=QUIET):
     if nTasks is None:
         nTasks = len(args_list)
     result_list = []
-    mark_prog, end_prog = util_progress.progress_func(
-        max_val=nTasks, lbl=get_funcname(func) + ': ')
-    mark_prog(0)
+    prog_iter = util_progress.ProgressIter(
+        args_list, nTotal=nTasks, lbl=get_funcname(func) + ': ', adjust=True)
     # Execute each task sequentially
-    for count, args in enumerate(args_list):
+    for args in prog_iter:
         result = func(*args, **args_dict)
         result_list.append(result)
-        mark_prog(count)
-    end_prog()
     return result_list
 
 
-def _process_parallel(func, args_list, args_dict={}, nTasks=None, quiet=QUIET):
+def _process_parallel(func, args_list, args_dict={}, nTasks=None, quiet=QUIET, pool=None):
     """
     Parallel process map
 
     Use generate instead
     """
-    global __POOL__
     # Define progress observers
     if nTasks is None:
         nTasks = len(args_list)
+    _prog = util_progress.ProgressIter(
+        range(nTasks), nTotal=nTasks, lbl=get_funcname(func) + ': ',
+        adjust=True)
+    _prog_iter = iter(_prog)
     num_tasks_returned_ptr = [0]
-    mark_prog, end_prog = util_progress.progress_func(
-        max_val=nTasks, lbl=get_funcname(func) + ': ')
     def _callback(result):
-        mark_prog(num_tasks_returned_ptr[0])
-        sys.stdout.flush()
+        six.next(_prog_iter)
         num_tasks_returned_ptr[0] += 1
     # Send all tasks to be executed asynconously
-    apply_results = [__POOL__.apply_async(func, args, args_dict, _callback)
+    apply_results = [pool.apply_async(func, args, args_dict, _callback)
                      for args in args_list]
     # Wait until all tasks have been processed
     while num_tasks_returned_ptr[0] < nTasks:
         #print('Waiting: ' + str(num_tasks_returned_ptr[0]) + '/' + str(nTasks))
         pass
-    end_prog()
     # Get the results
     result_list = [ap.get() for ap in apply_results]
     if __EAGER_JOIN__:
-        close_pool(quiet=quiet)
+        if USE_GLOBAL_POOL:
+            close_pool(quiet=quiet)
+        else:
+            pool.close()
+            pool.join()
     return result_list
 
 
@@ -447,7 +447,7 @@ def generate(func, args_list, ordered=True, force_serial=None,
         >>> #feats4 = [w for w in ut.generate(gen_feat_worker, arg_list4)]
 
     Example3:
-        >>> # UNSTABLE_DOCTEST
+        >>> # FAILING_DOCTEST
         >>> # Trying to recreate the freeze seen in IBEIS
         >>> # Extremely weird case: freezes only if dsize > (313, 313) AND __testwarp was called beforehand.
         >>> # otherwise the parallel loop works fine. Could be an opencv 3.0.0-dev issue.
@@ -723,7 +723,7 @@ def buffered_generator(source_gen, buffer_size=2):
         >>> assert result1 == result2, 'inconsistent results'
 
     Example1:
-        >>> # UNSTABLE_DOCTEST
+        >>> # VERYSLLOOWWW_DOCTEST
         >>> from utool.util_parallel import _test_buffered_generator
         >>> _test_buffered_generator2()
     """
@@ -822,9 +822,9 @@ def process(func, args_list, args_dict={}, force_serial=None,
         >>> # SLOW_DOCTEST
         >>> import utool as ut
         >>> num = 8700  # parallel is slower for smaller numbers
-        >>> flag_generator0 = ut.process(ut.is_prime, zip(range(0, num)), force_serial=True)
+        >>> flag_generator0 = ut.process(ut.is_prime, list(zip(range(0, num))), force_serial=True)
         >>> flag_list0 = list(flag_generator0)
-        >>> flag_generator1 = ut.process(ut.is_prime, zip(range(0, num)), force_serial=False)
+        >>> flag_generator1 = ut.process(ut.is_prime, list(zip(range(0, num))), force_serial=False)
         >>> flag_list1 = list(flag_generator1)
         >>> assert flag_list0 == flag_list1
     """
@@ -842,11 +842,17 @@ def process(func, args_list, args_dict={}, force_serial=None,
         result_list = _process_serial(func, args_list, args_dict, nTasks=nTasks,
                                       quiet=quiet)
     else:
+        if __POOL__ is None:
+            pool = new_pool(num_procs=get_default_numprocs(),
+                            init_worker=init_worker,
+                            maxtasksperchild=None)
+        else:
+            pool = __POOL__
         if not QUIET:
             print('[util_parallel] executing %d %s tasks using %d processes' %
-                  (nTasks, get_funcname(func), __POOL__._processes))
+                  (nTasks, get_funcname(func), pool._processes))
         result_list = _process_parallel(func, args_list, args_dict, nTasks=nTasks,
-                                        quiet=quiet)
+                                        quiet=quiet, pool=pool)
     return result_list
 
 
@@ -998,7 +1004,12 @@ if __name__ == '__main__':
 
     CommandLine:
         python -m utool.util_parallel
-        python -m utool.util_parallel --allexamples
+        python -m utool.util_parallel --allexamples --testslow
+        coverage run -m utool.util_parallel --allexamples
+        coverage run -m utool.util_parallel --allexamples --testslow
+        coverage report html -m utool/util_parallel.py
+        coverage html
+
     """
     #import multiprocessing
     multiprocessing.freeze_support()  # for win32

@@ -8,7 +8,6 @@ pretty much the only useful things here.
 from __future__ import absolute_import, division, print_function, unicode_literals
 import time
 import math
-import sys
 import datetime
 from functools import partial
 from utool import util_logging
@@ -39,7 +38,8 @@ FORCE_ALL_PROGRESS = util_arg.get_argflag(('--force-all-progress',))
 
 # FIXME: if this is loaded before logging beings
 # progress will not be logged
-PROGRESS_WRITE = util_logging.__UTOOL_WRITE__
+#PROGRESS_WRITE = util_logging.__UTOOL_WRITE__
+PROGRESS_WRITE = print
 PROGRESS_FLUSH = util_logging.__UTOOL_FLUSH__
 
 
@@ -257,7 +257,7 @@ class ProgressIter(object):
         >>> num2 = 10001
         >>> progiter = ut.ProgressIter(range(num2), lbl='testing primes',
         >>>                            report_unit='seconds', freq=1,
-        >>>                            time_thresh=, adjust=True)
+        >>>                            time_thresh=.1, adjust=True)
         >>> results1 = [ut.get_nth_prime_bruteforce(29) for x in progiter]
         >>> print(ut.truncate_str(ut.repr2(results1)))
 
@@ -726,6 +726,9 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
                  pad_stdout=False, wfreq=None, ffreq=None, freq=None, total=None,
                  num=None, with_totaltime=None):
     """
+    FIXME: depricate for ProgressIter.
+    Still used in smk funcs
+
     Returns two functions (mark_progress, end_progress) which will handle
     logging progress in a for loop.
 
@@ -867,98 +870,98 @@ def simple_progres_func(verbosity, msg, progchar='.'):
     return mark_progress
 
 
-def prog_func(*args, **kwargs):
-    return progress_func(*args, **kwargs)
+#def prog_func(*args, **kwargs):
+#    return progress_func(*args, **kwargs)
 
 
-# TODO: Return start_prog, make_prog, end_prog
-def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
-                  flush_after=4, spacing=0, line_len=80,
-                  progress_type='fmtstr', mark_start=False, repl=False,
-                  approx=False, override_quiet=False):
-    """ DEPRICATE
+## TODO: Return start_prog, make_prog, end_prog
+#def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
+#                  flush_after=4, spacing=0, line_len=80,
+#                  progress_type='fmtstr', mark_start=False, repl=False,
+#                  approx=False, override_quiet=False):
+#    """ DEPRICATE
 
-    Returns:
-        a function that marks progress taking the iteration count as a
-        parameter. Prints if max_val > mark_at. Prints dots if max_val not
-        specified or simple=True
-    """
-    write_fn = PROGRESS_WRITE
-    #write_fn = print_
-    #print('STARTING PROGRESS: VERBOSE=%r QUIET=%r' % (VERBOSE, QUIET))
+#    Returns:
+#        a function that marks progress taking the iteration count as a
+#        parameter. Prints if max_val > mark_at. Prints dots if max_val not
+#        specified or simple=True
+#    """
+#    write_fn = PROGRESS_WRITE
+#    #write_fn = print_
+#    #print('STARTING PROGRESS: VERBOSE=%r QUIET=%r' % (VERBOSE, QUIET))
 
-    # Tell the user we are about to make progress
-    if SILENT or (QUIET and not override_quiet) or (progress_type in ['simple', 'fmtstr'] and max_val < mark_after):
-        return lambda count: None, lambda: None
-    # none: nothing
-    if progress_type == 'none':
-        def mark_progress_None(count):
-            return None
-        mark_progress = mark_progress_None
-    # simple: one dot per progress. no flush.
-    if progress_type == 'simple':
-        def mark_progress_simple(count):
-            write_fn('.')
-        mark_progress = mark_progress_simple
-    # dots: spaced dots
-    if progress_type == 'dots':
-        indent_ = '    '
-        write_fn(indent_)
+#    # Tell the user we are about to make progress
+#    if SILENT or (QUIET and not override_quiet) or (progress_type in ['simple', 'fmtstr'] and max_val < mark_after):
+#        return lambda count: None, lambda: None
+#    # none: nothing
+#    if progress_type == 'none':
+#        def mark_progress_None(count):
+#            return None
+#        mark_progress = mark_progress_None
+#    # simple: one dot per progress. no flush.
+#    if progress_type == 'simple':
+#        def mark_progress_simple(count):
+#            write_fn('.')
+#        mark_progress = mark_progress_simple
+#    # dots: spaced dots
+#    if progress_type == 'dots':
+#        indent_ = '    '
+#        write_fn(indent_)
 
-        if spacing > 0:
-            # With spacing
-            newline_len = spacing * line_len // spacing
+#        if spacing > 0:
+#            # With spacing
+#            newline_len = spacing * line_len // spacing
 
-            def mark_progress_sdot(count):
-                write_fn('.')
-                count_ = count + 1
-                if (count_) % newline_len == 0:
-                    write_fn('\n' + indent_)
-                    PROGRESS_FLUSH()
-                elif (count_) % spacing == 0:
-                    write_fn(' ')
-                    PROGRESS_FLUSH()
-                elif (count_) % flush_after == 0:
-                    PROGRESS_FLUSH()
-            mark_progress = mark_progress_sdot
-        else:
-            # No spacing
-            newline_len = line_len
+#            def mark_progress_sdot(count):
+#                write_fn('.')
+#                count_ = count + 1
+#                if (count_) % newline_len == 0:
+#                    write_fn('\n' + indent_)
+#                    PROGRESS_FLUSH()
+#                elif (count_) % spacing == 0:
+#                    write_fn(' ')
+#                    PROGRESS_FLUSH()
+#                elif (count_) % flush_after == 0:
+#                    PROGRESS_FLUSH()
+#            mark_progress = mark_progress_sdot
+#        else:
+#            # No spacing
+#            newline_len = line_len
 
-            def mark_progress_dot(count):
-                write_fn('.')
-                count_ = count + 1
-                if (count_) % newline_len == 0:
-                    write_fn('\n' + indent_)
-                    PROGRESS_FLUSH()
-                elif (count_) % flush_after == 0:
-                    PROGRESS_FLUSH()
-            mark_progress = mark_progress_dot
-    # fmtstr: formated string progress
-    if progress_type == 'fmtstr':
-        fmt_str = progress_str(max_val, lbl=lbl, repl=repl, approx=approx)
+#            def mark_progress_dot(count):
+#                write_fn('.')
+#                count_ = count + 1
+#                if (count_) % newline_len == 0:
+#                    write_fn('\n' + indent_)
+#                    PROGRESS_FLUSH()
+#                elif (count_) % flush_after == 0:
+#                    PROGRESS_FLUSH()
+#            mark_progress = mark_progress_dot
+#    # fmtstr: formated string progress
+#    if progress_type == 'fmtstr':
+#        fmt_str = progress_str(max_val, lbl=lbl, repl=repl, approx=approx)
 
-        def mark_progress_fmtstr(count):
-            count_ = count + 1
-            write_fn(fmt_str % (count_))
-            if (count_) % flush_after == 0:
-                PROGRESS_FLUSH()
-        mark_progress = mark_progress_fmtstr
-    # FIXME idk why argparse2.ARGS_ is none here.
-    if '--aggroflush' in sys.argv:
-        def mark_progress_agressive(count):
-            mark_progress(count)
-            PROGRESS_FLUSH()
-        return mark_progress_agressive
+#        def mark_progress_fmtstr(count):
+#            count_ = count + 1
+#            write_fn(fmt_str % (count_))
+#            if (count_) % flush_after == 0:
+#                PROGRESS_FLUSH()
+#        mark_progress = mark_progress_fmtstr
+#    # FIXME idk why argparse2.ARGS_ is none here.
+#    if '--aggroflush' in sys.argv:
+#        def mark_progress_agressive(count):
+#            mark_progress(count)
+#            PROGRESS_FLUSH()
+#        return mark_progress_agressive
 
-    def end_progress():
-        write_fn('\n')
-        PROGRESS_FLUSH()
-    #mark_progress(0)
-    if mark_start:
-        mark_progress(-1)
-    return mark_progress, end_progress
-    raise Exception('unkown progress type = %r' % progress_type)
+#    def end_progress():
+#        write_fn('\n')
+#        PROGRESS_FLUSH()
+#    #mark_progress(0)
+#    if mark_start:
+#        mark_progress(-1)
+#    return mark_progress, end_progress
+#    raise Exception('unkown progress type = %r' % progress_type)
 
 
 if __name__ == '__main__':

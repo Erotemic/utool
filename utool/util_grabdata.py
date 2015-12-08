@@ -38,17 +38,21 @@ def archive_files(archive_fpath, fpath_list, small=True, allowZip64=False,
         python -m utool.util_grabdata --test-archive_files
 
     Example:
-        >>> # UNSTABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from utool.util_grabdata import *  # NOQA
-        >>> # build test data
+        >>> import utool as ut
         >>> archive_fpath = ut.get_app_resource_dir('utool', 'testarchive.zip')
+        >>> # remove an existing test archive
+        >>> ut.delete(archive_fpath)
+        >>> assert not exists(archive_fpath), 'archive should not exist'
         >>> fpath_list = [ut.grab_test_imgpath(key) for key in ut.TESTIMG_URL_DICT]
         >>> small = True
         >>> allowZip64 = False
-        >>> # execute function
-        >>> result = archive_files(archive_fpath, fpath_list, small, allowZip64)
+        >>> overwrite = True
+        >>> result = archive_files(archive_fpath, fpath_list, small, allowZip64, overwrite)
         >>> # verify results
         >>> print(result)
+        >>> assert exists(archive_fpath), 'archive should exist'
 
     Ignore:
         # http://superuser.com/questions/281573/what-are-the-best-options-to-use-when-compressing-files-using-7-zip

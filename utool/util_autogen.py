@@ -95,8 +95,11 @@ def load_func_from_module(modname, funcname, verbose=True, moddir=None):
     Example:
         >>> # UNSTABLE_DOCTEST
         >>> from utool.util_autogen import *  # NOQA
-        >>> modname = 'plottool.plots'
-        >>> funcname = 'multi_plot'
+        >>> import utool as ut
+        >>> #modname = 'plottool.plots'
+        >>> #funcname = 'multi_plot'
+        >>> modname = 'utool.util_path'
+        >>> funcname = 'checkpath'
         >>> verbose = True
         >>> moddir = None
         >>> func, module, error_str = load_func_from_module(modname, funcname, verbose, moddir)
@@ -148,16 +151,17 @@ def load_func_from_module(modname, funcname, verbose=True, moddir=None):
             imp.reload(module)
         except Exception as ex:
             pass
-        # Try removing pyc if it exists
-        if module.__file__.endswith('.pyc'):
-            ut.delete(module.__file__, verbose=False)
-            try:
-                module = __import__(modname)
-            except ImportError:
-                if moddir is not None:
-                    module = ut.import_module_from_fpath(join(moddir, modname.split('.')[-1] + '.py'))
-                else:
-                    raise
+        if False:
+            # Try removing pyc if it exists
+            if module.__file__.endswith('.pyc'):
+                ut.delete(module.__file__, verbose=False)
+                try:
+                    module = __import__(modname)
+                except ImportError:
+                    if moddir is not None:
+                        module = ut.import_module_from_fpath(join(moddir, modname.split('.')[-1] + '.py'))
+                    else:
+                        raise
         try:
             imp.reload(module)
         except Exception as ex:

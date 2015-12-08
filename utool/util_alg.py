@@ -161,6 +161,7 @@ def diagonalized_iter(size):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
         >>> size = ut.get_argval('--size', default=4)
         >>> iter_ = diagonalized_iter(size)
         >>> mat = [[None] * size for _ in range(size)]

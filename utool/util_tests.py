@@ -984,7 +984,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         #'UTOOL_TEST',
         #'UTOOLTEST'
     ]
-    if testslow or ut.get_argflag(('--testall', '--testslow')):
+    if testslow or ut.get_argflag(('--testall', '--testslow', '--test-slow')):
         test_sentinals.append('SLOW_DOCTEST')
     if testslow or ut.get_argflag(('--testall', '--testunstable')):
         test_sentinals.append('UNSTABLE_DOCTEST')
