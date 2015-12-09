@@ -40,6 +40,7 @@ elif DEBUG_PRINT:
 QUIET = '--quiet' in sys.argv
 SILENT = '--silent' in sys.argv
 VERYVERBOSE = meta_util_arg.VERYVERBOSE
+VERBOSE = meta_util_arg.VERBOSE
 PRINT_INJECT_ORDER = meta_util_arg.PRINT_INJECT_ORDER
 # only word
 EXIT_ON_INJECT_MODNAME = meta_util_arg.get_argval('--exit-on-inject', type_=str, default=None)
@@ -153,6 +154,8 @@ def inject_colored_exceptions():
     #COLORED_INJECTS = '--nocolorex' not in sys.argv
     #COLORED_INJECTS = '--colorex' in sys.argv
     # Ignore colored exceptions on win32
+    if VERBOSE:
+        print('[inject] injectinmg colored exceptions')
     if HAVE_PYGMENTS and not sys.platform.startswith('win32'):
         if VERYVERBOSE:
             print('[inject] injecting colored exceptions')
