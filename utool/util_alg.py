@@ -182,7 +182,7 @@ def diagonalized_iter(size):
             yield (r, c)
 
 
-def upper_diagonalized_idxs(size):
+def colwise_diag_idxs(size, num=2):
     r"""
     dont trust this implementation or this function name
 
@@ -193,25 +193,35 @@ def upper_diagonalized_idxs(size):
         ?: upper_diag_idxs
 
     CommandLine:
-        python -m utool.util_alg --exec-upper_diagonalized_idxs
+        python -m utool.util_alg --exec-colwise_diag_idxs --size=5 --num=2
+        python -m utool.util_alg --exec-colwise_diag_idxs --size=3 --num=3
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> size = ut.get_argval('--size', default=5)
-        >>> mat = [[0] * size for _ in range(size)]
-        >>> upper_diag_idxs = upper_diagonalized_idxs(size)
-        >>> for count, (r, c) in enumerate(upper_diag_idxs, start=1):
-        >>>     mat[r][c] = count
-        >>> print(np.array(mat))
+        >>> num = ut.get_argval('--num', default=2)
+        >>> mat = np.zeros([size] * num, dtype=np.int)
+        >>> upper_diag_idxs = colwise_diag_idxs(size, num)
+        >>> poses = np.array(upper_diag_idxs)
+        >>> idxs = np.ravel_multi_index(poses.T, mat.shape)
+        >>> print('poses.T =\n%s' % (ut.repr2(poses.T),))
+        >>> mat[tuple(poses.T)] = np.arange(1, len(poses) + 1)
+        >>> print(mat)
     """
     # diag_idxs = list(diagonalized_iter(size))
     # upper_diag_idxs = [(r, c) for r, c in diag_idxs if r < c]
     # # diag_idxs = list(diagonalized_iter(size))
     import utool as ut
-    diag_idxs = list(ut.iprod(range(size), range(size)))
+    diag_idxs = ut.iprod(*[range(size) for _ in range(num)])
+    #diag_idxs = list(ut.iprod(range(size), range(size)))
     # this is pretty much a simple c ordering
-    upper_diag_idxs = [(c, r) for r, c in diag_idxs if r > c]
+    upper_diag_idxs = [
+        tup[::-1] for tup in diag_idxs
+        #if all([a > b for a, b in ut.itertwo(tup[:2])])
+        if all([a > b for a, b in ut.itertwo(tup)])
+    ]
+    #upper_diag_idxs = [(c, r) for r, c in diag_idxs if r > c]
     # # upper_diag_idxs = [(r, c) for r, c in diag_idxs if r > c]
     return upper_diag_idxs
 
