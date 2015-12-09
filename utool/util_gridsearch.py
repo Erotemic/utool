@@ -106,7 +106,8 @@ class ParamInfoBool(ParamInfo):
     def __init__(pi, varname, default=False, shortprefix=util_dev.NoParam, type_=bool, varyvals=[], varyslice=None, hideif=False):
         if not varname.endswith('_on'):
             # TODO: use this convention or come up with a better one
-            print('WARNING: varname=%r should end with _on' % (varname,))
+            #print('WARNING: varname=%r should end with _on' % (varname,))
+            pass
         super(ParamInfoBool, pi).__init__(
             varname, default=default, shortprefix=shortprefix, type_=bool,
             varyvals=varyvals, varyslice=varyslice, hideif=hideif)
