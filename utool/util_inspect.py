@@ -23,6 +23,21 @@ LIB_PATH = dirname(os.__file__)
 
 
 def help_members(obj):
+    r"""
+    Args:
+        obj (class or module):
+
+    CommandLine:
+        python -m utool.util_inspect --exec-help_members
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_inspect import *  # NOQA
+        >>> import utool as ut
+        >>> obj = ut.DynStruct
+        >>> result = help_members(obj)
+        >>> print(result)
+    """
     import utool as ut
     attr_list = [getattr(obj, attrname) for attrname in dir(obj)]
     type2_items = ut.group_items(attr_list, list(map(ut.type_str, map(type, attr_list))))
@@ -31,33 +46,35 @@ def help_members(obj):
     #other_mems = ut.delete_keys(type2_items.copy(), memtypes)
 
     func_list = ut.flatten(func_mems.values())
-    callstr_list = []
+    defsig_list = []
     num_unbound_args_list = []
     num_args_list = []
     for func in func_list:
         #args = ut.get_func_argspec(func).args
         argspec = ut.get_func_argspec(func)
-
         args = argspec.args
         defaults = argspec.defaults
         if defaults is not None:
             kwpos = len(args) - len(defaults)
             unbound_args = args[:kwpos]
-            kwdefaults = ut.odict(zip(args[kwpos:], defaults))
+            #kwdefaults = ut.odict(zip(args[kwpos:], defaults))
         else:
             unbound_args = args
-            kwdefaults = {}
-        argrepr_list = ut.get_itemstr_list(unbound_args, with_comma=False, nl=False, strvals=True)
-        kwrepr_list = ut.dict_itemstr_list(kwdefaults, explicit=True, with_comma=False, nl=False)
-        repr_list = argrepr_list + kwrepr_list
+            #kwdefaults = {}
+        #argrepr_list = ut.get_itemstr_list(
+        #    unbound_args, with_comma=False, nl=False, strvals=True)
+        #kwrepr_list = ut.dict_itemstr_list(
+        #    kwdefaults, explicit=True, with_comma=False, nl=False)
+        #repr_list = argrepr_list + kwrepr_list
         #argskwargs_str = newlined_list(repr_list, ', ', textwidth=80)
-        argskwargs_str = ', '.join(repr_list)
-        callstr = (ut.get_callable_name(func) + '(' + argskwargs_str + ')')
-        callstr_list.append(callstr)
+        #argskwargs_str = ', '.join(repr_list)
+        #defsig = (ut.get_callable_name(func) + '(' + argskwargs_str + ')')
+        defsig = ut.func_defsig(func)
+        defsig_list.append(defsig)
         num_unbound_args_list.append(len(unbound_args))
         num_args_list.append(len(args))
 
-    group = ut.hierarchical_group_items(callstr_list, [num_unbound_args_list, num_args_list])
+    group = ut.hierarchical_group_items(defsig_list, [num_unbound_args_list, num_args_list])
     print(repr(obj))
     print(ut.repr3(group, strvals=True))
 
@@ -174,6 +191,7 @@ def get_dev_hints():
         ('ratio_thresh'       , ('float', None)),
 
         # utool hints
+        ('func'           , ('function', 'live python function')),
         ('funcname'       , ('str', 'function name')),
         ('modname'        , ('str', 'module name')),
         ('argname_list'   , ('str', 'list of argument names')),
@@ -1462,7 +1480,8 @@ def recursive_parse_kwargs(root_func, path_=None):
                                 subdict = ut.__dict__
                             else:
                                 print('Unable to find attribute of attr=%r' % (attr,))
-                                raise
+                                if ut.SUPER_STRICT:
+                                    raise
                     #except Exception:
                     #    ut.embed()
                     #    print('root_func = %r' % (root_func,))
@@ -1473,8 +1492,15 @@ def recursive_parse_kwargs(root_func, path_=None):
                 subfunc = subdict[subtup[-1]]
             else:
                 # can directly take func from globals
-                subfunc = root_func.func_globals[subfunc_name]
-            subkw_list = recursive_parse_kwargs(subfunc)
+                try:
+                    subfunc = root_func.func_globals[subfunc_name]
+                except KeyError:
+                    print('Unable to find function definition subfunc_name=%r' % (subfunc_name,))
+                    if ut.SUPER_STRICT:
+                        raise
+                    subkw_list = []
+                else:
+                    subkw_list = recursive_parse_kwargs(subfunc)
             have_keys = set(ut.get_list_column(kwargs_list, 0))
             new_subkw = [item for item in subkw_list if item[0] not in have_keys]
             kwargs_list.extend(new_subkw)

@@ -2187,6 +2187,7 @@ def argparse_funckw(func, defaults={}, **kwargs):
     funckw = ut.argparse_dict(funckw_, **kwargs)
     return funckw
 
+
 if __name__ == '__main__':
     """
     CommandLine:

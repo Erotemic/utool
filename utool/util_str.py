@@ -745,6 +745,68 @@ def func_str(func, args=[], kwargs={}, type_aliases=[], packed=False,
     return _str
 
 
+def func_defsig(func, with_name=True):
+    """
+    String of function definition signature
+
+    Args:
+        func (function): live python function
+
+    Returns:
+        str: defsig
+
+    CommandLine:
+        python -m utool.util_str --exec-func_defsig
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> func = func_str
+        >>> defsig = func_defsig(func)
+        >>> result = str(defsig)
+        >>> print(result)
+        func_str(func, args=[], kwargs={}, type_aliases=[], packed=False, packkw=None)
+    """
+    import inspect
+    argspec = inspect.getargspec(func)
+    (args, varargs, varkw, defaults) = argspec
+    defsig = inspect.formatargspec(*argspec)
+    if with_name:
+        defsig = get_callable_name(func) + defsig
+    return defsig
+
+
+def func_callsig(func, with_name=True):
+    """
+    String of function call signature
+
+    Args:
+        func (function): live python function
+
+    Returns:
+        str: callsig
+
+    CommandLine:
+        python -m utool.util_str --exec-func_callsig
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> func = func_str
+        >>> callsig = func_callsig(func)
+        >>> result = str(callsig)
+        >>> print(result)
+        func_str(func, args, kwargs, type_aliases, packed, packkw)
+    """
+    import inspect
+    argspec = inspect.getargspec(func)
+    (args, varargs, varkw, defaults) = argspec
+    callsig = inspect.formatargspec(*argspec[0:3])
+    if with_name:
+        callsig = get_callable_name(func) + callsig
+    return callsig
+
+
 def array_repr2(arr, max_line_width=None, precision=None, suppress_small=None,
                 force_dtype=False, with_dtype=None, **kwargs):
     """ extended version of np.core.numeric.array_repr
@@ -2458,25 +2520,29 @@ def filtered_infostr(flags, lbl, reason=None):
 
 def chr_range(*args, **kw):
     r"""
+    Like range but returns characters
+
     Args:
         start (None): (default = None)
         stop (None): (default = None)
         step (None): (default = None)
 
     Returns:
-        ?:
+        list:
 
     CommandLine:
         python -m ibeis.model.hots.bayes --exec-chr_range
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.bayes import *  # NOQA
+        >>> #from ibeis.model.hots.bayes import *  # NOQA
         >>> args = (5,)
-        >>> print(chr_range(2, base='a'))
+        >>> result = ut.repr2(chr_range(2, base='a'))
+        >>> print(result)
         >>> print(chr_range(0, 5))
         >>> print(chr_range(0, 50))
         >>> print(chr_range(0, 5, 2))
+        ['a', 'b']
     """
     if len(args) == 1:
         stop, = args
@@ -2489,7 +2555,8 @@ def chr_range(*args, **kw):
     else:
         raise ValueError('incorrect args')
 
-    chr_ = unichr
+    chr_ = six.unichr
+
     base = ord(kw.get('base', 'i'))
     if isinstance(start, int):
         start = base + start

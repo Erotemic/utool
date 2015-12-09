@@ -847,6 +847,9 @@ def preserve_sig(wrapper, orig_func, force=False):
         (args, varargs, varkw, defaults) = argspec
         defsig = inspect.formatargspec(*argspec)
         callsig = inspect.formatargspec(*argspec[0:3])
+        # TODO:
+        # ut.func_defsig
+        # ut.func_callsig
         src_fmtdict = dict(defsig=defsig, callsig=callsig, orig_docstr=orig_docstr)
         src = textwrap.dedent(src_fmt).format(**src_fmtdict)
         # Define the new function on the fly

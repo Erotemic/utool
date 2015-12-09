@@ -25,11 +25,11 @@ def ignores_exc_tb(*args, **kwargs):
     """
     outer_wrapper = kwargs.get('outer_wrapper', True)
     def ignores_exc_tb_closure(func):
-        from utool import util_decor
         if not IGNORE_TRACEBACK:
             # if the global enforces that we should not ignore anytracebacks
             # then just return the original function without any modifcation
             return func
+        from utool import util_decor
         #@wraps(func)
         def wrp_noexectb(*args, **kwargs):
             try:

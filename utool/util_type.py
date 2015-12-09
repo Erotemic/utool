@@ -17,7 +17,10 @@ __STR__ = meta_util_six.__STR__
 
 if six.PY2:
     def type_str(type_):
-        return str(type_).replace('<type \'', '').replace('\'>', '')
+        str_ = str(type_)
+        str_ = str_.replace('<type \'', '').replace('\'>', '')
+        str_ = str_.replace('<class \'', '').replace('\'>', '')
+        return str_
 else:
     def type_str(type_):
         return str(type_).replace('<class \'', '').replace('\'>', '')

@@ -95,6 +95,7 @@ class ParamInfoBool(ParamInfo):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_gridsearch import *  # NOQA
+        >>> import utool as ut
         >>> pi = ParamInfoBool('cheese_on', hideif=util_dev.NoParam)
         >>> cfg = ut.DynStruct()
         >>> cfg.cheese_on = False

@@ -873,7 +873,7 @@ def spawn_background_process(func, *args, **kwargs):
         python -m utool.util_parallel --test-spawn_background_process
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from utool.util_parallel import *  # NOQA
         >>> import utool as ut
         >>> import time
@@ -916,12 +916,37 @@ def spawn_background_process(func, *args, **kwargs):
     import utool as ut
     func_name = ut.get_funcname(func)
     name = 'mp.Progress-' + func_name
-    proc_obj = multiprocessing.Process(target=func, name=name, args=args, kwargs=kwargs)
+    #proc_obj = multiprocessing.Process(target=func, name=name, args=args, kwargs=kwargs)
+    proc_obj = KillableProcess(target=func, name=name, args=args, kwargs=kwargs)
     #proc_obj.daemon = True
     #proc_obj.isAlive = proc_obj.is_alive
     proc_obj.start()
     return proc_obj
 
+
+class KillableProcess(multiprocessing.Process):
+    """
+    Simple subclass of multiprocessing.Process
+    Gives an additional method to kill all children
+    as well as itself. calls this function on delete.
+    """
+
+    #def __del__(self):
+    #    self.terminate2()
+    #    super(KillableProcess, self).__del__()
+
+    def terminate2(self):
+        if self.is_alive():
+            #print('[terminate2] Killing process')
+            # Kill all children
+            import psutil
+            webproc = psutil.Process(pid=self.pid)
+            child_proces = webproc.children()
+            [x.terminate() for x in child_proces]
+            self.terminate()
+        else:
+            #print('[terminate2] Already dead')
+            pass
 
 #def _process_error_wraper(queue, func, args, kwargs):
 #    pass
