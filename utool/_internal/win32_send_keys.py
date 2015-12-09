@@ -6,6 +6,7 @@ The tips and tricks at http://www.pinvoke.net/default.aspx/user32.sendinput
 is useful!
 
 """
+from __future__ import absolute_import, division, print_function, unicode_literals
 import time
 import ctypes
 

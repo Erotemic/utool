@@ -2535,7 +2535,8 @@ def chr_range(*args, **kw):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> #from ibeis.model.hots.bayes import *  # NOQA
+        >>> from utool.util_str import *  # NOQA
+        >>> import utool as ut
         >>> args = (5,)
         >>> result = ut.repr2(chr_range(2, base='a'))
         >>> print(result)
