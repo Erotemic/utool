@@ -2154,10 +2154,36 @@ def get_dev_paste_code(func):
     return get_dev_code
 
 
-def argparse_funckw(func, **kwargs):
-    """ allows kwargs to be specified on the commandline from testfuncs """
+def argparse_funckw(func, defaults={}, **kwargs):
+    """ allows kwargs to be specified on the commandline from testfuncs
+
+    Args:
+        func (function):
+
+    Kwargs:
+        lbl, verbose, only_specified, force_keys, type_hint, alias_dict
+
+    Returns:
+        dict: funckw
+
+    CommandLine:
+        python -m utool.util_dev --exec-argparse_funckw
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dev import *  # NOQA
+        >>> func = argparse_funckw
+        >>> funckw = argparse_funckw(func)
+        >>> result = ('funckw = %s' % (str(funckw),))
+        >>> print(result)
+    """
     import utool as ut
-    funckw_ = ut.get_func_kwargs(func)
+    recursive = True
+    if recursive:
+        funckw_ = dict(ut.recursive_parse_kwargs(func))
+    else:
+        funckw_ = ut.get_func_kwargs(func)
+    funckw_.update(defaults)
     funckw = ut.argparse_dict(funckw_, **kwargs)
     return funckw
 

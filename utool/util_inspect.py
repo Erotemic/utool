@@ -1450,7 +1450,19 @@ def recursive_parse_kwargs(root_func, path_=None):
                         if ut.is_method(root_func) and spec.args[0] == attr:
                             subdict = root_func.im_class.__dict__
                         else:
-                            raise
+                            # HACKS
+                            if attr == 'ut':
+                                # TODO: have find_child_kwarg_funcs infer an
+                                # attribute is a module / function / type. In
+                                # the module case, we can import it and look it
+                                # up.
+                                # Maybe args, or returns can help infer type.
+                                # Maybe just register some known varnames.
+                                # Maybe jedi has some better way to do this.
+                                subdict = ut.__dict__
+                            else:
+                                print('Unable to find attribute of attr=%r' % (attr,))
+                                raise
                     #except Exception:
                     #    ut.embed()
                     #    print('root_func = %r' % (root_func,))

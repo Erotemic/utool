@@ -15,7 +15,13 @@ DimensionBasis = namedtuple('DimensionBasis', ('dimension_name', 'dimension_poin
 
 @six.add_metaclass(util_class.ReloadingMetaclass)
 class ParamInfo(object):
-    """ small class for individual paramater information """
+    """
+    small class for individual paramater information
+
+    Configuration objects should use these for default / printing / type
+    information however, the actual value of the parameter for any specific
+    configuration is not stored here.
+    """
     def __init__(pi, varname, default, shortprefix=util_dev.NoParam,
                  type_=util_dev.NoParam, varyvals=[], varyslice=None,
                  hideif=util_dev.NoParam):
@@ -32,19 +38,15 @@ class ParamInfo(object):
             python -m utool.util_gridsearch --test-__init__
 
         Example:
-            >>> # DISABLE_DOCTEST
+            >>> # ENABLE_DOCTEST
             >>> from utool.util_gridsearch import *  # NOQA
-            >>> # build test data
-            >>> pi = '?'
-            >>> varname = '?'
-            >>> default = '?'
-            >>> shortprefix = <utool.util_dev.ClassNoParam object at 0x7f2826164490>
-            >>> type_ = <utool.util_dev.ClassNoParam object at 0x7f2826164490>
-            >>> varyvals = []
-            >>> # execute function
-            >>> result = pi.__init__(varname, default, shortprefix, type_, varyvals)
-            >>> # verify results
+            >>> import utool as ut
+            >>> pi = ParamInfo(varname='foo', default='bar')
+            >>> cfg = ut.DynStruct()
+            >>> cfg.foo = 5
+            >>> result = pi.get_itemstr(cfg)
             >>> print(result)
+            foo=5
         """
         pi.varname = varname
         pi.default = default
@@ -87,7 +89,23 @@ class ParamInfo(object):
 
 @six.add_metaclass(util_class.ReloadingMetaclass)
 class ParamInfoBool(ParamInfo):
+    r"""
+    param info for booleans
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_gridsearch import *  # NOQA
+        >>> pi = ParamInfoBool('cheese_on', hideif=util_dev.NoParam)
+        >>> cfg = ut.DynStruct()
+        >>> cfg.cheese_on = False
+        >>> result = pi.get_itemstr(cfg)
+        >>> print(result)
+        nocheese
+    """
     def __init__(pi, varname, default=False, shortprefix=util_dev.NoParam, type_=bool, varyvals=[], varyslice=None, hideif=False):
+        if not varname.endswith('_on'):
+            # TODO: use this convention or come up with a better one
+            print('WARNING: varname=%r should end with _on' % (varname,))
         super(ParamInfoBool, pi).__init__(
             varname, default=default, shortprefix=shortprefix, type_=bool,
             varyvals=varyvals, varyslice=varyslice, hideif=hideif)
