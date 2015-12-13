@@ -164,6 +164,9 @@ def verts_str(verts, pad=1):
 
 
 def percent_str(pcnt):
+    """
+    Depricate
+    """
     return 'undef' if pcnt is None else '%06.2f %%' % (pcnt * 100,)
 
 

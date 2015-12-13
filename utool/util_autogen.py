@@ -532,6 +532,16 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
             result_line = result_line_fmt.format(return_name=return_name)
             examplecode_lines.append(result_line)
         examplecode_lines.append(result_print)
+
+    # TODO: infer this
+    is_show_func = True
+    if is_show_func:
+        examplecode_lines += [
+            'ut.quit_if_noshow()',
+            'import plottool as pt',
+            'ut.show_if_requested()',
+        ]
+
     examplecode = '\n'.join(examplecode_lines)
     return examplecode
 
@@ -546,7 +556,12 @@ def make_cmdline_docstr(funcname, modname):
         cmdline_fmtstr = 'python -m {pkg} --tf {funcname}'  # --enableall'
         return cmdline_fmtstr.format(**locals())
     else:
-        cmdline_fmtstr = 'python -m {modname} --exec-{funcname}'  # --enableall'
+        # TODO: infer this
+        is_show_func = True
+        if is_show_func:
+            cmdline_fmtstr = 'python -m {modname} --exec-{funcname} --show'
+        else:
+            cmdline_fmtstr = 'python -m {modname} --exec-{funcname}'  # --enableall'
         return cmdline_fmtstr.format(**locals())
 
 # </INVIDIAL DOCSTR COMPONENTS>

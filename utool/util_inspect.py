@@ -1410,6 +1410,7 @@ def get_kwargs(func):
 def recursive_parse_kwargs(root_func, path_=None):
     """
     recursive kwargs parser
+    FIXME: if docstr indentation is off, this fails
 
     Args:
         root_func (function):  live python function
@@ -1419,7 +1420,9 @@ def recursive_parse_kwargs(root_func, path_=None):
         list:
 
     CommandLine:
+        python -m utool.util_inspect --exec-recursive_parse_kwargs:0
         python -m utool.util_inspect --exec-recursive_parse_kwargs:1
+        python -m utool.util_inspect --exec-recursive_parse_kwargs:2 --mod plottool --func draw_histogram
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1438,6 +1441,16 @@ def recursive_parse_kwargs(root_func, path_=None):
         >>> path_ = None
         >>> result = ut.repr2(recursive_parse_kwargs(root_func))
         >>> print(result)
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_inspect import *  # NOQA
+        >>> modname = ut.get_argval('--mod', type_=str, default='plottool')
+        >>> funcname = ut.get_argval('--func', type_=str, default='draw_histogram')
+        >>> mod = ut.import_modname(modname)
+        >>> root_func = mod.__dict__[funcname]
+        >>> result = ut.repr2(recursive_parse_kwargs(root_func))
+        >>> print(result)
     """
     import utool as ut
     if path_ is None:
@@ -1452,6 +1465,21 @@ def recursive_parse_kwargs(root_func, path_=None):
     sourcecode = ut.get_func_sourcecode(root_func, strip_docstr=True,
                                         stripdef=True)
     kwargs_list += ut.parse_kwarg_keys(sourcecode, with_vals=True)
+
+    def hack_lookup_mod_attrs(attr):
+        # HACKS TODO: have find_child_kwarg_funcs infer an attribute is a
+        # module / function / type. In the module case, we can import it and
+        # look it up.  Maybe args, or returns can help infer type.  Maybe just
+        # register some known varnames.  Maybe jedi has some better way to do
+        # this.
+        if attr == 'ut':
+            subdict = ut.__dict__
+        elif attr == 'pt':
+            import plottool as pt
+            subdict = pt.__dict__
+        else:
+            subdict = None
+        return subdict
 
     if spec.keywords is not None:
         subfunc_name_list = ut.find_child_kwarg_funcs(sourcecode, spec.keywords)
@@ -1468,27 +1496,12 @@ def recursive_parse_kwargs(root_func, path_=None):
                         if ut.is_method(root_func) and spec.args[0] == attr:
                             subdict = root_func.im_class.__dict__
                         else:
-                            # HACKS
-                            if attr == 'ut':
-                                # TODO: have find_child_kwarg_funcs infer an
-                                # attribute is a module / function / type. In
-                                # the module case, we can import it and look it
-                                # up.
-                                # Maybe args, or returns can help infer type.
-                                # Maybe just register some known varnames.
-                                # Maybe jedi has some better way to do this.
-                                subdict = ut.__dict__
-                            else:
+                            # FIXME
+                            subdict = hack_lookup_mod_attrs(attr)
+                            if subdict is None:
                                 print('Unable to find attribute of attr=%r' % (attr,))
                                 if ut.SUPER_STRICT:
                                     raise
-                    #except Exception:
-                    #    ut.embed()
-                    #    print('root_func = %r' % (root_func,))
-                    #    print('subtup = %r' % (subtup,))
-                    #    print('attr = %r' % (attr,))
-                    #    raise
-
                 subfunc = subdict[subtup[-1]]
             else:
                 # can directly take func from globals
@@ -1499,8 +1512,7 @@ def recursive_parse_kwargs(root_func, path_=None):
                     if ut.SUPER_STRICT:
                         raise
                     subkw_list = []
-                else:
-                    subkw_list = recursive_parse_kwargs(subfunc)
+            subkw_list = recursive_parse_kwargs(subfunc)
             have_keys = set(ut.get_list_column(kwargs_list, 0))
             new_subkw = [item for item in subkw_list if item[0] not in have_keys]
             kwargs_list.extend(new_subkw)
