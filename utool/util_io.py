@@ -234,21 +234,46 @@ def save_hdf5(fpath, data, verbose=False, compression='lzf'):
                 ''').split('\n')
         >>> ut.util_dev.timeit_compare(stmt_list2, setup, int(10))
         >>> print('finished timeing')
+        +----------------
+        | TIMEIT COMPARE
+        +----------------
+        | iterations = 10
+        | Input:
+        |     | num | stmt
+        |     |   0 | u"ut.save_hdf5(fpath + '.hdf5', data, verbose=False, compression='gzip')"
+        |     |   1 | u"ut.save_hdf5(fpath + '.hdf5', data, verbose=False, compression='lzf')"
+        |     |   2 | u"ut.save_cPkl(fpath + '.cPkl', data, verbose=False)"
+        |     |   3 | u"ut.save_numpy(fpath + '.npy', data, verbose=False)"
+        |     |   4 | u"ut.save_pytables(fpath + '.tables', data, verbose=False)"
+        ...
         | Output:
         |    * PASSED: each statement produced the same result
         |    | num | total time | per loop | stmt
-        |    |   0 |     3.02 s |   0.30 s | ut.save_hdf5(fpath + '.hdf5', data, verbose=False, compression='gzip')
-        |    |   1 |     1.09 s |   0.11 s | ut.save_hdf5(fpath + '.hdf5', data, verbose=False, compression='lzf')
-        |    |   2 |     0.51 s |   0.05 s | ut.save_cPkl(fpath + '.cPkl', data, verbose=False)
-        |    |   3 |     0.49 s |   0.05 s | ut.save_numpy(fpath + '.npy', data, verbose=False)
-        |    |   4 |     0.98 s |   0.10 s | ut.save_pytables(fpath + '.tables', data, verbose=False)
+        |    |   0 |    0.03 ks |   3.15 s | ut.save_hdf5(fpath + '.hdf5', data, verbose=False, compression='gzip')
+        |    |   1 |    0.01 ks |   1.25 s | ut.save_hdf5(fpath + '.hdf5', data, verbose=False, compression='lzf')
+        |    |   2 |     5.30 s |   0.53 s | ut.save_cPkl(fpath + '.cPkl', data, verbose=False)
+        |    |   3 |     4.97 s |   0.50 s | ut.save_numpy(fpath + '.npy', data, verbose=False)
+        |    |   4 |     9.23 s |   0.92 s | ut.save_pytables(fpath + '.tables', data, verbose=False)
+        L_________________
+        +----------------
+        | TIMEIT COMPARE
+        +----------------
+        | iterations = 10
+        | Input:
+        |     | num | stmt
+        |     |   0 | u"ut.load_hdf5(fpath + '.hdf5', verbose=False)"
+        |     |   1 | u"ut.load_cPkl(fpath + '.cPkl', verbose=False)"
+        |     |   2 | u"ut.load_numpy(fpath + '.npy', verbose=False)"
+        |     |   3 | u"ut.load_pytables(fpath + '.tables', verbose=False)"
+        ...
         | Output:
         |    * PASSED: each statement produced the same result
         |    | num | total time | per loop | stmt
-        |    |   0 |     0.15 s |   0.01 s | ut.load_hdf5(fpath + '.hdf5', verbose=False)
-        |    |   1 |     0.04 s |  4.00 ms | ut.load_cPkl(fpath + '.cPkl', verbose=False)
-        |    |   2 |     0.02 s |  2.03 ms | ut.load_numpy(fpath + '.npy', verbose=False)
-        |    |   3 |     0.06 s |  6.31 ms | ut.load_pytables(fpath + '.tables', verbose=False)
+        |    |   0 |     2.39 s |   0.24 s | ut.load_hdf5(fpath + '.hdf5', verbose=False)
+        |    |   1 |     0.39 s |   0.04 s | ut.load_cPkl(fpath + '.cPkl', verbose=False)
+        |    |   2 |     0.19 s |   0.02 s | ut.load_numpy(fpath + '.npy', verbose=False)
+        |    |   3 |     0.33 s |   0.03 s | ut.load_pytables(fpath + '.tables', verbose=False)
+        L_________________
 
     Ignore:
         %timeit save_hdf5(fpath, data, verbose=False, compression='gzip')
