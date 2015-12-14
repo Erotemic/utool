@@ -1295,8 +1295,13 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
             return 'dict()'
         else:
             return '{}'
+
     newlines_ = _rectify_countdown_or_bool(newlines)
     truncate_ = _rectify_countdown_or_bool(truncate)
+
+    #if 'braces' in dictkw:
+    #    dictkw['braces'] = _rectify_countdown_or_bool(dictkw['braces'])
+    #    nobraces = not dictkw['braces']
 
     if hack_liststr is None and nl is not None:
         hack_liststr = True
@@ -1397,6 +1402,10 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
     import utool as ut
     if nl is not None:
         newlines = nl
+
+    #if 'braces' in listkw:
+    #    listkw['braces'] = _rectify_countdown_or_bool(listkw['braces'])
+    #    nobraces = not listkw['braces']
     newlines_ = _rectify_countdown_or_bool(newlines)
     truncate_ = _rectify_countdown_or_bool(truncate)
     packed_ = _rectify_countdown_or_bool(packed)

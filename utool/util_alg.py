@@ -7,6 +7,8 @@ import operator as op
 import six
 from six.moves import zip, range, reduce, map
 from utool import util_type
+from utool import util_list
+from utool import util_dict
 from utool import util_inject
 from utool import util_decor
 try:
@@ -1206,6 +1208,68 @@ def max_size_max_distance_subset(items, min_thresh=0, Kstart=2, verbose=False):
             break
         best_idxs = subset_idx
     return best_idxs
+
+
+def group_indices(items):
+    """
+    groups indicies of each item in ``items``
+
+    Args:
+        items (list): group ids
+
+    SeeAlso:
+        vt.group_indices - optimized numpy version
+        ut.apply_grouping
+
+    CommandLine:
+        python -m utool.util_alg --exec-group_indices
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
+        >>> idx2_groupid = ['b', 1, 'b', 1, 'b', 1, 'b', 'c', 'c', 'c', 'c']
+        >>> (keys, groupxs) = ut.group_indices(idx2_groupid)
+        >>> result = ut.repr3((keys, groupxs), nobraces=1, nl=1)
+        >>> print(result)
+        [1, 'c', 'b'],
+        [[1, 3, 5], [7, 8, 9, 10], [0, 2, 4, 6]],
+    """
+    grouped_dict = util_dict.group_items(range(len(items)), items)
+    keys = list(grouped_dict.keys())
+    groupxs = util_dict.dict_take(grouped_dict, keys)
+    return keys, groupxs
+
+
+def apply_grouping(items, groupxs):
+    r"""
+    applies grouping from group_indicies
+    non-optimized version
+
+    Args:
+        items (list): items to group
+        groupxs (list of list of ints): grouped lists of indicies
+
+    SeeAlso:
+        vt.apply_grouping - optimized numpy version
+        ut.group_indices
+
+    CommandLine:
+        python -m utool.util_alg --exec-apply_grouping --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
+        >>> idx2_groupid = [2, 1, 2, 1, 2, 1, 2, 3, 3, 3, 3]
+        >>> items        = [1, 8, 5, 5, 8, 6, 7, 5, 3, 0, 9]
+        >>> (keys, groupxs) = ut.group_indices(idx2_groupid)
+        >>> grouped_items = ut.apply_grouping(items, groupxs)
+        >>> result = ut.repr2(grouped_items)
+        >>> print(result)
+        [[8, 5, 6], [1, 5, 8, 7], [5, 3, 0, 9]]
+    """
+    return [util_list.list_take(items, xs) for xs in groupxs]
 
 
 if __name__ == '__main__':

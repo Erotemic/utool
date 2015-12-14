@@ -1113,6 +1113,9 @@ def setdiff_ordered(list1, list2):
     return [item for item in list1 if item not in set(list2)]
 
 
+setdiff = setdiff_ordered
+
+
 def setintersect_ordered(list1, list2):
     """
     returns list1 elements that are in list2. preserves order of list1
