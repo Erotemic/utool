@@ -287,10 +287,30 @@ def print_python_code(text):
     #    print(text)
 
 
+def highlight_code(text, lexer_name='python'):
+    import utool as ut
+    #with ut.embed_on_exception_context:
+    try:
+        import pygments
+        if ut.WIN32:
+            assert False
+            #formater = pygments.formatters.terminal256.Terminal256Formatter()
+            import pygments.formatters.terminal256
+            formater = pygments.formatters.terminal256.Terminal256Formatter()
+        else:
+            import pygments.formatters.terminal
+            formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
+        lexer = pygments.lexers.get_lexer_by_name(lexer_name)
+        return pygments.highlight(text, lexer, formater)
+    except Exception:
+        #raise
+        return text
+
+
 def print_code(text, lexer_name='python'):
     r"""
     Args:
-        text (?):
+        text (str):
 
     CommandLine:
         python -m utool.util_print --test-print_python_code
@@ -310,24 +330,7 @@ def print_code(text, lexer_name='python'):
         print(list(pygments.styles.get_all_styles()))
 
     """
-    import utool as ut
-    #with ut.embed_on_exception_context:
-    try:
-        import pygments
-        if ut.WIN32:
-            assert False
-            #formater = pygments.formatters.terminal256.Terminal256Formatter()
-            import pygments.formatters.terminal256
-            formater = pygments.formatters.terminal256.Terminal256Formatter()
-        else:
-            import pygments.formatters.terminal
-            formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
-        #, colorscheme='darkbg')
-        lexer = pygments.lexers.get_lexer_by_name(lexer_name)
-        print(pygments.highlight(text, lexer, formater))
-    except Exception:
-        #raise
-        print(text)
+    print(highlight_code(text, lexer_name))
 
 
 def get_colored_diff(text):
