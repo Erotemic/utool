@@ -39,6 +39,7 @@ def parse_argv_cfg(argname, default=[''], named_defaults_dict=None,
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_gridsearch import *  # NOQA
+        >>> import utool as ut
         >>> argname = '--filt'
         >>> cfg_list = parse_argv_cfg(argname)
         >>> result = ('cfg_list = %s' % (six.text_type(cfg_list),))
@@ -75,6 +76,7 @@ def get_varied_cfg_lbls(cfg_list, default_cfg=None, mainkey='_cfgname'):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_gridsearch import *  # NOQA
+        >>> import utool as ut
         >>> cfg_list = [{'_cfgname': 'test', 'f': 1, 'b': 1},
         >>>             {'_cfgname': 'test', 'f': 2, 'b': 1},
         >>>             {'_cfgname': 'test', 'f': 3, 'b': 1, 'z': 4}]
@@ -101,6 +103,7 @@ def partition_varied_cfg_list(cfg_list, default_cfg=None, recursive=False):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_gridsearch import *  # NOQA
+        >>> import utool as ut
         >>> cfg_list = [{'f': 1, 'b': 1}, {'f': 2, 'b': 1}, {'f': 3, 'b': 1, 'z': 4}]
         >>> nonvaried_cfg, varied_cfg_list = partition_varied_cfg_list(cfg_list)
         >>> result = ut.list_str((nonvaried_cfg, varied_cfg_list), label_list=['nonvaried_cfg', 'varied_cfg_list'])
@@ -111,6 +114,7 @@ def partition_varied_cfg_list(cfg_list, default_cfg=None, recursive=False):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_gridsearch import *  # NOQA
+        >>> import utool as ut
         >>> cfg_list = [{'q1': 1, 'f1': {'a2': {'x3': 1, 'y3': 2}, 'b2': 1}}, {'q1': 1, 'f1': {'a2': {'x3': 1, 'y3':1}, 'b2': 1}, 'e1': 1}]
         >>> print(ut.list_str(cfg_list, nl=True))
         >>> nonvaried_cfg, varied_cfg_list = partition_varied_cfg_list(cfg_list, recursive=True)
@@ -160,6 +164,7 @@ def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS, key_order=None):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_gridsearch import *  # NOQA
+        >>> import utool as ut
         >>> cfg = {'_cfgname': 'test', 'var1': 'val1', 'var2': 'val2'}
         >>> name = None
         >>> nonlbl_keys = ['_cfgstr', '_cfgname', '_cfgtype', '_cfgindex']
@@ -171,6 +176,7 @@ def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS, key_order=None):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_gridsearch import *  # NOQA
+        >>> import utool as ut
         >>> cfg = {'_cfgname': 'test:K=[1,2,3]', 'K': '1'}
         >>> name = None
         >>> nonlbl_keys = ['_cfgstr', '_cfgname', '_cfgtype', '_cfgindex']
@@ -258,6 +264,7 @@ def customize_base_cfg(cfgname, cfgopt_strs, base_cfg, cfgtype,
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_gridsearch import *  # NOQA
+        >>> import utool as ut
         >>> cfgname = 'default'
         >>> cfgopt_strs = 'dsize=1000,per_name=[1,2]'
         >>> base_cfg = '?'
@@ -315,6 +322,7 @@ def parse_cfgstr_name_options(cfgstr):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_gridsearch import *  # NOQA
+        >>> import utool as ut
         >>> cfgstr = 'default' + NAMEVARSEP + 'myvar1=myval1,myvar2=myval2'
         >>> (cfgname, cfgopt_strs, subx) = parse_cfgstr_name_options(cfgstr)
         >>> result = ('(cfgname, cfg_optstrs, subx) = %s' % (ut.repr2((cfgname, cfgopt_strs, subx)),))
@@ -324,6 +332,7 @@ def parse_cfgstr_name_options(cfgstr):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_gridsearch import *  # NOQA
+        >>> import utool as ut
         >>> cfgstr = 'default[0:1]' + NAMEVARSEP + 'myvar1=myval1,myvar2=myval2'
         >>> (cfgname, cfgopt_strs, subx) = parse_cfgstr_name_options(cfgstr)
         >>> result = ('(cfgname, cfg_optstrs, subx) = %s' % (ut.repr2((cfgname, cfgopt_strs, subx)),))
@@ -333,6 +342,7 @@ def parse_cfgstr_name_options(cfgstr):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_gridsearch import *  # NOQA
+        >>> import utool as ut
         >>> cfgstr = 'default[0]' + NAMEVARSEP + 'myvar1=myval1,myvar2=myval2'
         >>> (cfgname, cfgopt_strs, subx) = parse_cfgstr_name_options(cfgstr)
         >>> result = ('(cfgname, cfg_optstrs, subx) = %s' % (ut.repr2((cfgname, cfgopt_strs, subx)),))
@@ -419,6 +429,7 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
 
     Setup:
         >>> from utool.util_gridsearch import *  # NOQA
+        >>> import utool as ut
         >>> named_defaults_dict = None
         >>> cfgtype = None
         >>> alias_keys = None
