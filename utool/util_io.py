@@ -181,7 +181,7 @@ def save_hdf5(fpath, data, verbose=False, compression='lzf'):
         http://docs.h5py.org/en/latest/mpi.html
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_io import *  # NOQA
         >>> import numpy as np
         >>> import utool as ut
@@ -189,7 +189,7 @@ def save_hdf5(fpath, data, verbose=False, compression='lzf'):
         >>> rng = np.random.RandomState(0)
         >>> data = (rng.rand(100000, 128) * 255).astype(np.uint8).copy()
         >>> verbose = True
-        >>> fpath = 'myfile.hdf5'
+        >>> fpath = ut.unixjoin(ut.ensure_app_resource_dir('utool'), 'myfile.hdf5')
         >>> compression = 'lzf'
         >>> # execute function
         >>> ut.delete(fpath)
@@ -200,8 +200,57 @@ def save_hdf5(fpath, data, verbose=False, compression='lzf'):
         >>> assert ut.delete(fpath)
 
     Timeit:
-        cPkl seems to be faster with this initial implementation
+        >>> # cPkl / numpy seems to be faster with this initial implementation
+        >>> import utool as ut
+        >>> data = (rng.rand(1000000, 128) * 255).astype(np.uint8).copy()
+        >>> print(ut.get_object_size_str(data))
+        >>> del data
+        >>> setup = ut.codeblock(
+        >>>     '''
+                import numpy as np
+                import utool as ut
+                rng = np.random.RandomState(0)
+                fpath = ut.unixjoin(ut.ensure_app_resource_dir('utool'), 'io_test_data')
+                data = (rng.rand(1000000, 128) * 255).astype(np.uint8).copy()
+                #print(ut.get_object_size_str(data))
+                ''')
+        >>> # Test load time
+        >>> stmt_list1 = ut.codeblock(
+        >>>     '''
+                ut.save_hdf5(fpath + '.hdf5', data, verbose=False, compression='gzip')
+                ut.save_hdf5(fpath + '.hdf5', data, verbose=False, compression='lzf')
+                ut.save_cPkl(fpath + '.cPkl', data, verbose=False)
+                ut.save_numpy(fpath + '.npy', data, verbose=False)
+                ut.save_pytables(fpath + '.tables', data, verbose=False)
+                ''').split('\n')
+        >>> ut.util_dev.timeit_compare(stmt_list1, setup, int(10))
+        >>> # Test save time
+        >>> stmt_list2 = ut.codeblock(
+        >>>     '''
+                ut.load_hdf5(fpath + '.hdf5', verbose=False)
+                ut.load_cPkl(fpath + '.cPkl', verbose=False)
+                ut.load_numpy(fpath + '.npy', verbose=False)
+                ut.load_pytables(fpath + '.tables', verbose=False)
+                ''').split('\n')
+        >>> ut.util_dev.timeit_compare(stmt_list2, setup, int(10))
+        >>> print('finished timeing')
+        | Output:
+        |    * PASSED: each statement produced the same result
+        |    | num | total time | per loop | stmt
+        |    |   0 |     3.02 s |   0.30 s | ut.save_hdf5(fpath + '.hdf5', data, verbose=False, compression='gzip')
+        |    |   1 |     1.09 s |   0.11 s | ut.save_hdf5(fpath + '.hdf5', data, verbose=False, compression='lzf')
+        |    |   2 |     0.51 s |   0.05 s | ut.save_cPkl(fpath + '.cPkl', data, verbose=False)
+        |    |   3 |     0.49 s |   0.05 s | ut.save_numpy(fpath + '.npy', data, verbose=False)
+        |    |   4 |     0.98 s |   0.10 s | ut.save_pytables(fpath + '.tables', data, verbose=False)
+        | Output:
+        |    * PASSED: each statement produced the same result
+        |    | num | total time | per loop | stmt
+        |    |   0 |     0.15 s |   0.01 s | ut.load_hdf5(fpath + '.hdf5', verbose=False)
+        |    |   1 |     0.04 s |  4.00 ms | ut.load_cPkl(fpath + '.cPkl', verbose=False)
+        |    |   2 |     0.02 s |  2.03 ms | ut.load_numpy(fpath + '.npy', verbose=False)
+        |    |   3 |     0.06 s |  6.31 ms | ut.load_pytables(fpath + '.tables', verbose=False)
 
+    Ignore:
         %timeit save_hdf5(fpath, data, verbose=False, compression='gzip')
         %timeit save_hdf5(fpath, data, verbose=False, compression='lzf')
         %timeit save_cPkl(fpath + '.cPkl', data, verbose=False)
@@ -210,7 +259,6 @@ def save_hdf5(fpath, data, verbose=False, compression='lzf'):
         10 loops, best of 3: 111 ms per loop
         10 loops, best of 3: 53.1 ms per loop
         10 loops, best of 3: 96.5 ms per loop
-
 
         save_hdf5(fpath, data, verbose=False, compression='gzip')
         %timeit load_hdf5(fpath, verbose=False)
@@ -225,7 +273,6 @@ def save_hdf5(fpath, data, verbose=False, compression='lzf'):
 
     Notes:
         pip install mpi4py
-
     """
     if verbose or (verbose is None and __PRINT_WRITES__) or __FORCE_PRINT_WRITES__:
         print('[util_io] * save_hdf5(%r, data)' % (util_path.tail(fpath),))

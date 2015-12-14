@@ -1500,7 +1500,7 @@ def show_if_requested():
 
 
 def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
-                         test_funcname=None):
+                         test_funcname=None, func_to_module_dict={}):
     """
     Allows a shorthand for __main__ packages of modules to run tests with
     unique function names
@@ -1514,6 +1514,10 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
         help_='specify a function to doctest')
     print('test_funcname = %r' % (test_funcname,))
 
+    if test_funcname in func_to_module_dict:
+        modname = func_to_module_dict[test_funcname]
+        ut.import_modname(modname)
+
     if test_funcname is not None:
         globals_ = {}
         #locals_ = {}
@@ -1524,8 +1528,8 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
         modname_list = ut.package_contents(module, ignore_prefix=ignore_prefix,
                                            ignore_suffix=ignore_suffix)
         # Get only the modules already imported
-        have_modnames = [modname for modname in modname_list
-                         if modname in sys.modules]
+        have_modnames = [modname_ for modname_ in modname_list
+                         if modname_ in sys.modules]
         #missing_modnames = [modname for modname in modname_list
         #                    if modname not in sys.modules]
         module_list = ut.dict_take(sys.modules, have_modnames)

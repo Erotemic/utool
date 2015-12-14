@@ -1392,12 +1392,12 @@ class EmbedOnException(object):
     def __enter__(self):
         return self
 
-    #def __call__(self):
-    #    pass
+    def __call__(self):
+        return self
 
     def __exit__(self, type_, value, trace):
         if trace is not None:
-            print('!!!!!!!!!!!!!!!!!!!')
+            print('!!! EMBED ON EXCEPTION !!!')
             print('[util_dbg] %r in context manager!: %s ' % (type_, str(value)))
             import utool
             import traceback

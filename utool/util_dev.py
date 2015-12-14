@@ -1260,7 +1260,6 @@ def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=No
             del stat_dict[key]
     # apply precision
     statstr_dict = stat_dict.copy()
-    #with ut.EmbedOnException():
     #precisionless_types =  (bool,) + six.string_types
     if precision is not None:
         assert ut.is_int(precision), 'precision must be an integer'
