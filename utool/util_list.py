@@ -1899,6 +1899,14 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_cons
     return level_shape_list
 
 
+def list_type(list_):
+    types =  unique_keep_order(list(map(type, list_)))
+    if len(types) == 1:
+        return types[0]
+    else:
+        return types
+
+
 def list_type_profile(sequence, compress_homogenous=True):
     """
     similar to depth_profile but reports types

@@ -19,7 +19,7 @@ NAMEVARSEP = ':'
 
 
 def parse_argv_cfg(argname, default=[''], named_defaults_dict=None,
-                   valid_keys=None):
+                   valid_keys=None, alias_keys=None):
     """
     simple configs
 
@@ -56,6 +56,7 @@ def parse_argv_cfg(argname, default=[''], named_defaults_dict=None,
     cfg_combos_list = parse_cfgstr_list2(cfgstr_list,
                                          named_defaults_dict=named_defaults_dict,
                                          valid_keys=valid_keys,
+                                         alias_keys=alias_keys,
                                          strict=False)
     cfg_list = ut.flatten(cfg_combos_list)
     return cfg_list
