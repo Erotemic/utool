@@ -651,6 +651,7 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
         >>> assert ans1 != ans0
     """
     def cached_closure(func):
+        from utool import util_decor
         fname_ = util_inspect.get_funcname(func) if fname is None else fname
         kwdefaults = util_inspect.get_kwdefaults(func)
         argnames   = util_inspect.get_argnames(func)
@@ -661,7 +662,7 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
             use_cache_ = use_cache
         #_dbgdict = dict(fname_=fname_, key_kwds=key_kwds, appname=appname,
         #                key_argx=key_argx, use_cache_=use_cache_)
-        @functools.wraps(func)
+        #@functools.wraps(func)
         def cached_wraper(*args, **kwargs):
             """
             Cached Wrapper Function
@@ -681,7 +682,8 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
                     # remove potentially invalid chars
                     cfgstr = '_' + ut.hashstr27(cfgstr)
                 assert cfgstr is not None, 'cfgstr=%r cannot be None' % (cfgstr,)
-                if kwargs.pop('use_cache', use_cache_):
+                use_cache__ = kwargs.pop('use_cache', use_cache_)
+                if use_cache__:
                     # Make cfgstr from specified input
                     data = cacher.tryload(cfgstr)
                     if data is not None:
@@ -689,7 +691,8 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
                 # Cached missed compute function
                 data = func(*args, **kwargs)
                 # Cache save
-                cacher.save(data, cfgstr)
+                if use_cache__:
+                    cacher.save(data, cfgstr)
                 return data
             #except ValueError as ex:
             # handle protocal error
@@ -704,6 +707,7 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
                 ut.printex(ex, msg)
                 raise
         # Give function a handle to the cacher object
+        cached_wraper = util_decor.preserve_sig(cached_wraper, func)
         cached_wraper.cacher = cacher
         return cached_wraper
     return cached_closure

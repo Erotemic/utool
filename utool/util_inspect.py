@@ -476,22 +476,23 @@ def is_defined_by_module(item, module):
     Check if item is directly defined by a module.
     This check may be prone to errors.
     """
+    flag = False
     if hasattr(item, '_utinfo'):
         # Capture case where there is a utool wrapper
         orig_func = item._utinfo['orig_func']
-        return is_defined_by_module(orig_func, module)
-
-    if isinstance(item, staticmethod):
-        # static methods are a wrapper around a function
-        item = item.__func__
-    try:
-        func_globals = meta_util_six.get_funcglobals(item)
-        if func_globals['__name__'] == module.__name__:
-            return True
-    except  AttributeError:
-        if hasattr(item, '__module__'):
-            return item.__module__ == module.__name__
-    return False
+        flag = is_defined_by_module(orig_func, module)
+    else:
+        if isinstance(item, staticmethod):
+            # static methods are a wrapper around a function
+            item = item.__func__
+        try:
+            func_globals = meta_util_six.get_funcglobals(item)
+            if func_globals['__name__'] == module.__name__:
+                flag = True
+        except  AttributeError:
+            if hasattr(item, '__module__'):
+                flag = item.__module__ == module.__name__
+    return flag
 
 
 def get_func_modname(func):
