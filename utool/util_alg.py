@@ -636,11 +636,30 @@ def knapsack(items, maxweight, recursive=True):
         >>> print('items_subset1 = %r' % (items_subset1,))
         >>> #assert items_subset1 == items_subset, 'NOT EQ\n%r !=\n%r' % (items_subset1, items_subset)
         total_value = 15.05
+
+    Timeit:
+        >>> import utool as ut
+        >>> setup = ut.codeblock(
+        >>>     '''
+                import utool as ut
+                weights = [215, 275, 335, 355, 42, 58] * 10
+                items = [(w, w, i) for i, w in enumerate(weights)]
+                maxweight = 2505
+                ''')
+        >>> # Test load time
+        >>> stmt_list1 = ut.codeblock(
+        >>>     '''
+                ut.knapsack_recursive(items, maxweight)
+                ut.knapsack_iterative(items, maxweight)
+                ut.knapsack_iterative_numpy(items, maxweight)
+                ''').split('\n')
+        >>> ut.util_dev.timeit_compare(stmt_list1, setup, int(5))
     """
     if recursive:
         return knapsack_recursive(items, maxweight)
     else:
         return knapsack_iterative(items, maxweight)
+        #return knapsack_iterative_numpy(items, maxweight)
 
 
 def knapsack_recursive(items, maxweight):
@@ -668,55 +687,117 @@ def knapsack_recursive(items, maxweight):
     return total_value, items_subset
 
 
+def _find_weight_coeff(weights):
+    # Find maximum decimal place (this problem is in NP)
+    max_exp = max([
+        len(d[-1]) if len(d) > 1 else 0
+        for d in (str(w_).split('.') for w_ in weights)
+    ])
+    coeff = 10 ** max_exp
+    return coeff
+
+
 def knapsack_iterative(items, maxweight):
     """
     Iterative knapsack method
 
     maximize \sum_{i \in T} v_i
     subject to \sum_{i \in T} w_i \leq W
+
+    Notes:
+        dpmat is the dynamic programming memoization matrix.
+        dpmat[i, w] is the total value of the items with weight at most W
+        T is the set of indicies in the optimal solution
     """
-    import numpy as np
+    import utool as ut
     weights = [t[1] for t in items]
-    values = [t[0] for t in items]
-    # Find maximum decimal place
-    wstr_iter = (str(w_).split('.') for w_ in weights)
-    max_exp = max([len(d[-1]) if len(d) > 1 else 0 for d in wstr_iter])
-    coeff = 10 ** max_exp
+    values  = [t[0] for t in items]
+    coeff = _find_weight_coeff(weights)
     # Adjust weights to be integral
     weights = [int(w_ * coeff) for w_ in weights]
     MAXWEIGHT = int(maxweight * coeff)
     W_SIZE = MAXWEIGHT + 1
-    # V[i, w] is the total value of the items with weight at most W
-    #V = ut.ddict(lambda: ut.ddict(lambda: np.inf))
-    V = np.full((len(items), W_SIZE), np.inf)
-    # V[i, w] is the total value of the items with weight at most W
-    #keep = ut.ddict(lambda: ut.ddict(lambda: False))
-    keep = np.full((len(items), W_SIZE), 0, dtype=np.bool)
+    # Sparse representation seems better
+    dpmat = ut.ddict(lambda: ut.ddict(lambda: np.inf))
+    kmat = ut.ddict(lambda: ut.ddict(lambda: False))
     T = idx_subset = []  # NOQA
 
     for w in range(W_SIZE):
-        V[0][w] = 0
+        dpmat[0][w] = 0
     for idx in range(1, len(items)):
         item_val = values[idx]
         item_weight = weights[idx]
-        for w in range(W_SIZE):
+        for w in range(item_weight, W_SIZE):
             valid_item = item_weight <= w
-            prev_val = V[idx - 1][w]
-            prev_noitem_val = V[idx - 1][w - item_weight]
+            prev_val = dpmat[idx - 1][w]
+            prev_noitem_val = dpmat[idx - 1][w - item_weight]
             withitem_val = item_val + prev_noitem_val
             more_valuable = withitem_val > prev_val
             if valid_item and more_valuable:
-                V[idx][w] = withitem_val
-                keep[idx][w] = True
+                dpmat[idx][w] = withitem_val
+                kmat[idx][w] = True
             else:
-                V[idx][w] = prev_val
-                keep[idx][w] = False
+                dpmat[idx][w] = prev_val
+                kmat[idx][w] = False
     K = MAXWEIGHT
     for idx in reversed(range(1, len(items))):
-        if keep[idx, K]:
+        if kmat[idx, K]:
             idx_subset.append(idx)
             K = K - weights[idx]
-    total_value = V[len(items) - 1][MAXWEIGHT]
+    total_value = dpmat[len(items) - 1][MAXWEIGHT]
+    idx_subset = sorted(idx_subset)
+    items_subset = [items[i] for i in idx_subset]
+    return total_value, items_subset
+
+
+def knapsack_iterative_numpy(items, maxweight):
+    """
+    Iterative knapsack method
+
+    maximize \sum_{i \in T} v_i
+    subject to \sum_{i \in T} w_i \leq W
+
+    Notes:
+        dpmat is the dynamic programming memoization matrix.
+        dpmat[i, w] is the total value of the items with weight at most W
+        T is the set of indicies in the optimal solution
+    """
+    #import numpy as np
+    weights = np.array([t[1] for t in items])
+    # Find maximum decimal place (this problem is in NP)
+    coeff = _find_weight_coeff(weights)
+    # Adjust weights to be integral
+    weights = (weights * coeff).astype(np.int)
+    values  = np.array([t[0] for t in items])
+    MAXWEIGHT = int(maxweight * coeff)
+    W_SIZE = MAXWEIGHT + 1
+
+    dpmat = np.full((len(items), W_SIZE), np.inf)
+    kmat = np.full((len(items), W_SIZE), 0, dtype=np.bool)
+    idx_subset = []
+
+    for w in range(W_SIZE):
+        dpmat[0][w] = 0
+    for idx in range(1, len(items)):
+        item_val = values[idx]
+        item_weight = weights[idx]
+        for w in range(item_weight, W_SIZE):
+            valid_item = item_weight <= w
+            if valid_item:
+                prev_val = dpmat[idx - 1][w]
+                prev_noitem_val = dpmat[idx - 1][w - item_weight]
+                withitem_val = item_val + prev_noitem_val
+                more_valuable = withitem_val > prev_val
+            else:
+                more_valuable = False
+            dpmat[idx][w] = withitem_val if more_valuable else prev_val
+            kmat[idx][w] = more_valuable
+    K = MAXWEIGHT
+    for idx in reversed(range(1, len(items))):
+        if kmat[idx, K]:
+            idx_subset.append(idx)
+            K = K - weights[idx]
+    total_value = dpmat[len(items) - 1][MAXWEIGHT]
     idx_subset = sorted(idx_subset)
     items_subset = [items[i] for i in idx_subset]
     return total_value, items_subset
