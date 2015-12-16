@@ -638,76 +638,89 @@ def knapsack(items, maxweight, recursive=True):
         total_value = 15.05
     """
     if recursive:
-        @util_decor.memoize_nonzero
-        def bestvalue(i, j):
-            """ Return the value of the most valuable subsequence of the first i
-            elements in items whose weights sum to no more than j. """
-            if i == 0:
-                return 0
-            value, weight = items[i - 1][0:2]
-            if weight > j:
-                return bestvalue(i - 1, j)
-            else:
-                return max(bestvalue(i - 1, j),
-                           bestvalue(i - 1, j - weight) + value)
-
-        j = maxweight
-        items_subset = []
-        for i in range(len(items), 0, -1):
-            if bestvalue(i, j) != bestvalue(i - 1, j):
-                items_subset.append(items[i - 1])
-                j -= items[i - 1][1]
-        items_subset.reverse()
-        total_value = bestvalue(len(items), maxweight)
+        return knapsack_recursive(items, maxweight)
     else:
-        # Iterative method
-        # maximize \sum_{i \in T} v_i
-        # subject to \sum_{i \in T} w_i \leq W
-        weights = [t[1] for t in items]
-        values = [t[0] for t in items]
-        # Find maximum decimal place
-        wstr_iter = (str(w_).split('.') for w_ in weights)
-        max_exp = max([len(d[-1]) if len(d) > 1 else 0 for d in wstr_iter])
-        coeff = 10 ** max_exp
-        # Adjust weights to be integral
-        weights = [int(w_ * coeff) for w_ in weights]
-        MAXWEIGHT = int(maxweight * coeff)
-        W_SIZE = MAXWEIGHT + 1
-        import numpy as np
-        # V[i, w] is the total value of the items with weight at most W
-        #V = ut.ddict(lambda: ut.ddict(lambda: np.inf))
-        V = np.full((len(items), W_SIZE), np.inf)
-        # V[i, w] is the total value of the items with weight at most W
-        #keep = ut.ddict(lambda: ut.ddict(lambda: False))
-        keep = np.full((len(items), W_SIZE), 0, dtype=np.bool)
-        T = idx_subset = []  # NOQA
+        return knapsack_iterative(items, maxweight)
 
-        for w in range(W_SIZE):
-            V[0][w] = 0
-        for idx in range(1, len(items)):
-            item_val = values[idx]
-            item_weight = weights[idx]
-            for w in range(W_SIZE):
-                valid_item = item_weight <= w
-                prev_val = V[idx - 1][w]
-                prev_noitem_val = V[idx - 1][w - item_weight]
-                withitem_val = item_val + prev_noitem_val
-                more_valuable = withitem_val > prev_val
-                if valid_item and more_valuable:
-                    V[idx][w] = withitem_val
-                    keep[idx][w] = True
-                else:
-                    V[idx][w] = prev_val
-                    keep[idx][w] = False
-        K = MAXWEIGHT
-        for idx in reversed(range(1, len(items))):
-            if keep[idx, K]:
-                idx_subset.append(idx)
-                K = K - weights[idx]
-        total_value = V[len(items) - 1][MAXWEIGHT]
-        idx_subset = sorted(idx_subset)
-        items_subset = [items[i] for i in idx_subset]
+
+def knapsack_recursive(items, maxweight):
+    @util_decor.memoize_nonzero
+    def bestvalue(i, j):
+        """ Return the value of the most valuable subsequence of the first i
+        elements in items whose weights sum to no more than j. """
+        if i == 0:
+            return 0
+        value, weight = items[i - 1][0:2]
+        if weight > j:
+            return bestvalue(i - 1, j)
+        else:
+            return max(bestvalue(i - 1, j),
+                       bestvalue(i - 1, j - weight) + value)
+
+    j = maxweight
+    items_subset = []
+    for i in range(len(items), 0, -1):
+        if bestvalue(i, j) != bestvalue(i - 1, j):
+            items_subset.append(items[i - 1])
+            j -= items[i - 1][1]
+    items_subset.reverse()
+    total_value = bestvalue(len(items), maxweight)
     return total_value, items_subset
+
+
+def knapsack_iterative(items, maxweight):
+    """
+    Iterative knapsack method
+
+    maximize \sum_{i \in T} v_i
+    subject to \sum_{i \in T} w_i \leq W
+    """
+    import numpy as np
+    weights = [t[1] for t in items]
+    values = [t[0] for t in items]
+    # Find maximum decimal place
+    wstr_iter = (str(w_).split('.') for w_ in weights)
+    max_exp = max([len(d[-1]) if len(d) > 1 else 0 for d in wstr_iter])
+    coeff = 10 ** max_exp
+    # Adjust weights to be integral
+    weights = [int(w_ * coeff) for w_ in weights]
+    MAXWEIGHT = int(maxweight * coeff)
+    W_SIZE = MAXWEIGHT + 1
+    # V[i, w] is the total value of the items with weight at most W
+    #V = ut.ddict(lambda: ut.ddict(lambda: np.inf))
+    V = np.full((len(items), W_SIZE), np.inf)
+    # V[i, w] is the total value of the items with weight at most W
+    #keep = ut.ddict(lambda: ut.ddict(lambda: False))
+    keep = np.full((len(items), W_SIZE), 0, dtype=np.bool)
+    T = idx_subset = []  # NOQA
+
+    for w in range(W_SIZE):
+        V[0][w] = 0
+    for idx in range(1, len(items)):
+        item_val = values[idx]
+        item_weight = weights[idx]
+        for w in range(W_SIZE):
+            valid_item = item_weight <= w
+            prev_val = V[idx - 1][w]
+            prev_noitem_val = V[idx - 1][w - item_weight]
+            withitem_val = item_val + prev_noitem_val
+            more_valuable = withitem_val > prev_val
+            if valid_item and more_valuable:
+                V[idx][w] = withitem_val
+                keep[idx][w] = True
+            else:
+                V[idx][w] = prev_val
+                keep[idx][w] = False
+    K = MAXWEIGHT
+    for idx in reversed(range(1, len(items))):
+        if keep[idx, K]:
+            idx_subset.append(idx)
+            K = K - weights[idx]
+    total_value = V[len(items) - 1][MAXWEIGHT]
+    idx_subset = sorted(idx_subset)
+    items_subset = [items[i] for i in idx_subset]
+    return total_value, items_subset
+
 
 #def knapsack_all_solns(items, maxweight):
 #    """
