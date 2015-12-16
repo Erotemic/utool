@@ -411,15 +411,37 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
     time_list   = [timeit.timeit(stmt, setup=setup, number=iterations)
                    for stmt in stmt_list]
 
-    passed = ut.util_list.list_allsame(result_list, strict=False)
+    def numpy_diff_tests(result_list):
+        print('Testing numpy arrays')
+        shape_list = [a.shape for a in result_list]
+        print('shape_list = %r' % (shape_list,))
+        sum_list = [a.sum() for a in result_list]
+        diff_list = [np.abs(a - b) for a, b in ut.itertwo(result_list)]
+        print('diff stats')
+        for diffs in diff_list:
+            ut.print_stats(diffs, axis=None, use_median=True)
+        print('diff_list = %r' % (diff_list,))
+        print('sum_list = %r' % (sum_list,))
+        print('passed_list = %r' % (passed_list,))
+
+    if ut.list_type(result_list) is np.ndarray:
+        passed_list = [np.allclose(*tup) for tup in ut.itertwo(result_list)]
+        passed = all(passed_list)
+        is_numpy = True
+    else:
+        passed = ut.util_list.list_allsame(result_list, strict=False)
+        is_numpy = False
     if verbose:
         print('| Output:')
         if not passed:
             print('|    * FAILED: results differ between some statements')
+            if is_numpy:
+                numpy_diff_tests(result_list)
             print('| Results:')
             for result in result_list:
                 for count, result in enumerate(result_list):
                     print('<Result %d>' % count)
+                    print(result)
                     #print(ut.truncate_str(repr(result)))
                     print('</Result %d>' % count)
             if strict:
@@ -1275,7 +1297,7 @@ def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=No
                         val = np.array(val)
             if isfloat:
                 if isinstance(val, np.ndarray):
-                    strval = str([float_fmtstr % v for v in val]).replace('\'', '')
+                    strval = str([float_fmtstr % v for v in val]).replace('\'', '').lstrip('u')
                     #np.array_str((val), precision=precision)
                 else:
                     strval = float_fmtstr % val
@@ -1302,7 +1324,7 @@ def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=No
     return stat_str
 
 
-def print_stats(list_, lbl=None, newlines=False, precision=2):
+def print_stats(list_, lbl=None, newlines=False, precision=2, axis=0, **kwargs):
     """
     Prints string representation of stat of list_
 
@@ -1326,7 +1348,7 @@ def print_stats(list_, lbl=None, newlines=False, precision=2):
     """
     if lbl is not None:
         print('Stats for %s' % lbl)
-    stat_str = get_stats_str(list_, newlines=newlines, precision=2)
+    stat_str = get_stats_str(list_, newlines=newlines, precision=2, axis=axis, **kwargs)
     print(stat_str)
     return stat_str
 
@@ -2123,14 +2145,14 @@ def autopep8_diff(fpath):
 
 def get_partial_func_name(func, precision=3):
     float_fmtstr = '%.' + str(precision) + 'f'
-    def repr2(v):
+    def repr_(v):
         if isinstance(v, float):
             return float_fmtstr % (v,)
         return repr(v)
     name_part = func.func.func_name
-    args_part = ','.join(map(repr2, func.args))
+    args_part = ','.join(map(repr_, func.args))
     kwargs_part = '' if func.keywords is None else (
-        ','.join(['%s=%s' % (key, repr2(val)) for key, val in func.keywords.items()])
+        ','.join(['%s=%s' % (key, repr_(val)) for key, val in func.keywords.items()])
     )
     name = name_part + '(' + args_part + kwargs_part + ')'
     return name

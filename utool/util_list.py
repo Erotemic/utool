@@ -1243,6 +1243,8 @@ def list_argsort(*args, **kwargs):
     index_list = list(range(len(args[0])))
     return sortedby2(index_list, *args, **kwargs)
 
+argsort = list_argsort
+
 
 def list_take(list_, index_list):
     """ like np.take but for lists

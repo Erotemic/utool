@@ -645,12 +645,16 @@ def knapsack(items, maxweight, recursive=True):
                 weights = [215, 275, 335, 355, 42, 58] * 10
                 items = [(w, w, i) for i, w in enumerate(weights)]
                 maxweight = 2505
+                import numba
+                knapsack_numba = numba.autojit(ut.knapsack_iterative)
+                knapsack_numba = numba.autojit(ut.knapsack_iterative_numpy)
                 ''')
         >>> # Test load time
         >>> stmt_list1 = ut.codeblock(
         >>>     '''
                 ut.knapsack_recursive(items, maxweight)
                 ut.knapsack_iterative(items, maxweight)
+                knapsack_numba(items, maxweight)
                 ut.knapsack_iterative_numpy(items, maxweight)
                 ''').split('\n')
         >>> ut.util_dev.timeit_compare(stmt_list1, setup, int(5))
@@ -709,7 +713,7 @@ def knapsack_iterative(items, maxweight):
         dpmat[i, w] is the total value of the items with weight at most W
         T is the set of indicies in the optimal solution
     """
-    import utool as ut
+    from collections import defaultdict
     weights = [t[1] for t in items]
     values  = [t[0] for t in items]
     coeff = _find_weight_coeff(weights)
@@ -718,8 +722,8 @@ def knapsack_iterative(items, maxweight):
     MAXWEIGHT = int(maxweight * coeff)
     W_SIZE = MAXWEIGHT + 1
     # Sparse representation seems better
-    dpmat = ut.ddict(lambda: ut.ddict(lambda: np.inf))
-    kmat = ut.ddict(lambda: ut.ddict(lambda: False))
+    dpmat = defaultdict(lambda: defaultdict(lambda: np.inf))
+    kmat = defaultdict(lambda: defaultdict(lambda: False))
     T = idx_subset = []  # NOQA
 
     for w in range(W_SIZE):
@@ -763,12 +767,13 @@ def knapsack_iterative_numpy(items, maxweight):
         T is the set of indicies in the optimal solution
     """
     #import numpy as np
-    weights = np.array([t[1] for t in items])
+    items = np.array(items)
+    weights = items.T[1]
     # Find maximum decimal place (this problem is in NP)
     coeff = _find_weight_coeff(weights)
     # Adjust weights to be integral
     weights = (weights * coeff).astype(np.int)
-    values  = np.array([t[0] for t in items])
+    values  = items.T[0]
     MAXWEIGHT = int(maxweight * coeff)
     W_SIZE = MAXWEIGHT + 1
 
