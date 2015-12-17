@@ -2261,6 +2261,47 @@ def list_getattr(list_, attrname):
     return list(map(operator.attrgetter(attrname), list_))
 
 
+def list_reshape(list_, new_shape, trail=False):
+    r"""
+    reshapes leaving trailing dimnsions in front if prod(new_shape) != len(list_)
+
+    Args:
+        list_ (list):
+        new_shape (tuple):
+
+    Returns:
+        list: list_
+
+    CommandLine:
+        python -m utool.util_list --exec-list_reshape --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> import utool as ut
+        >>> import numpy as np
+        >>> list_ = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        >>> new_shape = (2, 2, 3)
+        >>> newlist = list_reshape(list_, new_shape)
+        >>> depth = ut.depth_profile(newlist)
+        >>> result = ('list_ = %s' % (ut.repr2(newlist, nl=1),))
+        >>> print('depth = %r' % (depth,))
+        >>> print(result)
+        >>> newlist2 = np.reshape(list_, depth).tolist()
+        >>> ut.assert_eq(newlist, newlist2)
+    """
+    if not trail:
+        total = reduce(operator.mul, new_shape)
+        assert total == len(list_)
+    newlist = list_
+    for dim in reversed(new_shape):
+        slice_ = (newlist[i::dim] for i in range(dim))
+        newlist = list(map(list, zip(*slice_)))
+    if not trail:
+        newlist = newlist[0]
+    return newlist
+
+
 take = list_take
 compress = list_compress
 
