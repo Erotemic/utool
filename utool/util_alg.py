@@ -683,36 +683,65 @@ def number_of_decimals(num):
 
 
 def knapsack_iterative(items, maxweight):
+    # Knapsack requires integral weights
+    weights = [t[1] for t in items]
+    max_exp = max([number_of_decimals(w_) for w_ in weights])
+    coeff = 10 ** max_exp
+    # Adjust weights to be integral
+    int_maxweight = int(maxweight * coeff)
+    int_items = [(v, int(w * coeff), idx) for v, w, idx in items]
+    return knapsack_iterative_int(int_items, int_maxweight)
+
+
+def knapsack_iterative_int(items, maxweight):
     """
     Iterative knapsack method
 
-    maximize \sum_{i \in T} v_i
-    subject to \sum_{i \in T} w_i \leq W
+    Math:
+        maximize \sum_{i \in T} v_i
+        subject to \sum_{i \in T} w_i \leq W
 
     Notes:
         dpmat is the dynamic programming memoization matrix.
         dpmat[i, w] is the total value of the items with weight at most W
-        T is the set of indicies in the optimal solution
+        T is idx_subset, the set of indicies in the optimal solution
+
+    CommandLine:
+        python -m utool.util_alg --exec-knapsack_iterative_int --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> weights = [1, 3, 3, 5, 2, 1] * 2
+        >>> items = [(w, w, i) for i, w in enumerate(weights)]
+        >>> maxweight = 10
+        >>> total_value, items_subset = knapsack_iterative_int(items, maxweight)
+        >>> total_weight = sum([t[1] for t in items_subset])
+        >>> print('total_weight = %r' % (total_weight,))
+        >>> print('items_subset = %r' % (items_subset,))
+        >>> result =  'total_value = %.2f' % (total_value,)
+        >>> print(result)
+        total_value = 10.00
+
+    Ignore:
+        DPMAT = [[dpmat[r][c] for c in range(maxweight)] for r in range(len(items))]
+        KMAT  = [[kmat[r][c] for c in range(maxweight)] for r in range(len(items))]
     """
-    weights = [t[1] for t in items]
     values  = [t[0] for t in items]
-    max_exp = max([number_of_decimals(w_) for w_ in weights])
-    coeff = 10 ** max_exp
-    # Adjust weights to be integral
-    weights = [int(w_ * coeff) for w_ in weights]
-    MAXWEIGHT = int(maxweight * coeff)
-    W_SIZE = MAXWEIGHT + 1
+    weights = [t[1] for t in items]
+    maxsize = maxweight + 1
     # Sparse representation seems better
     dpmat = defaultdict(lambda: defaultdict(lambda: np.inf))
     kmat = defaultdict(lambda: defaultdict(lambda: False))
-    T = idx_subset = []  # NOQA
-
-    for w in range(W_SIZE):
+    idx_subset = []  # NOQA
+    for w in range(maxsize):
         dpmat[0][w] = 0
+    # For each item consider to include it or not
     for idx in range(1, len(items)):
         item_val = values[idx]
         item_weight = weights[idx]
-        for w in range(item_weight, W_SIZE):
+        # consider at each possible bag size
+        for w in range(maxsize):
             valid_item = item_weight <= w
             prev_val = dpmat[idx - 1][w]
             prev_noitem_val = dpmat[idx - 1][w - item_weight]
@@ -724,14 +753,15 @@ def knapsack_iterative(items, maxweight):
             else:
                 dpmat[idx][w] = prev_val
                 kmat[idx][w] = False
-    K = MAXWEIGHT
+    # Trace backwards to get the items used in the solution
+    K = maxweight
     for idx in reversed(range(1, len(items))):
-        if kmat[idx, K]:
+        if kmat[idx][K]:
             idx_subset.append(idx)
             K = K - weights[idx]
-    total_value = dpmat[len(items) - 1][MAXWEIGHT]
     idx_subset = sorted(idx_subset)
     items_subset = [items[i] for i in idx_subset]
+    total_value = dpmat[len(items) - 1][maxweight]
     return total_value, items_subset
 
 
@@ -768,10 +798,10 @@ def knapsack_iterative_numpy(items, maxweight):
     for idx in range(1, len(items)):
         item_val = values[idx]
         item_weight = weights[idx]
-        for w in range(item_weight, W_SIZE):
+        for w in range(W_SIZE):
             valid_item = item_weight <= w
+            prev_val = dpmat[idx - 1][w]
             if valid_item:
-                prev_val = dpmat[idx - 1][w]
                 prev_noitem_val = dpmat[idx - 1][w - item_weight]
                 withitem_val = item_val + prev_noitem_val
                 more_valuable = withitem_val > prev_val
@@ -784,9 +814,9 @@ def knapsack_iterative_numpy(items, maxweight):
         if kmat[idx, K]:
             idx_subset.append(idx)
             K = K - weights[idx]
-    total_value = dpmat[len(items) - 1][MAXWEIGHT]
     idx_subset = sorted(idx_subset)
     items_subset = [items[i] for i in idx_subset]
+    total_value = dpmat[len(items) - 1][MAXWEIGHT]
     return total_value, items_subset
 
 
