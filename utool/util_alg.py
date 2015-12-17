@@ -1,11 +1,13 @@
-# -*- coding: utf-8 -*-
+
 # TODO Licence:
 #
 # TODO:  move library intensive functions to vtool
 from __future__ import absolute_import, division, print_function, unicode_literals
 import operator as op
+import decimal
 import six
 from six.moves import zip, range, reduce, map
+from collections import defaultdict
 from utool import util_type
 from utool import util_list
 from utool import util_dict
@@ -189,7 +191,7 @@ def colwise_diag_idxs(size, num=2):
     dont trust this implementation or this function name
 
     Args:
-        size (?):
+        size (int):
 
     Returns:
         ?: upper_diag_idxs
@@ -365,12 +367,6 @@ def xywh_to_tlbr(bbox, img_wh):
     return (x1, y1, x2, y2)
 
 
-def search_utool(pat):
-    import utool as ut
-    found_list = [name for name in dir(ut) if name.find(pat) >= 0]
-    return found_list
-
-
 def item_hist(list_):
     """ counts the number of times each item appears in the dictionary """
     dict_hist = {}
@@ -380,31 +376,6 @@ def item_hist(list_):
             dict_hist[item] = 0
         dict_hist[item] += 1
     return dict_hist
-
-
-#def unpack_items_sorted(dict_, sortfn, reverse=True):
-#    """ Unpacks and sorts the dictionary by sortfn
-#    """
-#    items = dict_.items()
-#    sorted_items = sorted(items, key=sortfn, reverse=reverse)
-#    sorted_keys, sorted_vals = list(zip(*sorted_items))
-#    return sorted_keys, sorted_vals
-
-
-#def unpack_items_sorted_by_lenvalue(dict_, reverse=True):
-#    """ Unpacks and sorts the dictionary by key
-#    """
-#    def sort_lenvalue(item):
-#        return len(item[1])
-#    return unpack_items_sorted(dict_, sort_lenvalue)
-
-
-#def unpack_items_sorted_by_value(dict_, reverse=True):
-#    """ Unpacks and sorts the dictionary by key
-#    """
-#    def sort_value(item):
-#        return item[1]
-#    return unpack_items_sorted(dict_, sort_value)
 
 
 def flatten_membership_mapping(uid_list, members_list):
@@ -482,10 +453,10 @@ def fibonacci_recursive(n):
 def fibonacci_iterative(n):
     """
     Args:
-        n (ing):
+        n (int):
 
     Returns:
-        ing: a
+        int: a
 
     References:
         http://stackoverflow.com/questions/15047116/a-iterative-algorithm-for-fibonacci-numbers
@@ -614,8 +585,8 @@ def knapsack(items, maxweight, recursive=True):
         >>> result =  'total_value = %.2f\n' % (total_value,)
         >>> result += 'items_subset = %r' % (items_subset,)
         >>> print(result)
-        >>> assert total_value1 == total_value
-        >>> assert items_subset1 == items_subset
+        >>> ut.assert_eq(total_value1, total_value)
+        >>> ut.assert_eq(items_subset1, items_subset)
         total_value = 11.00
         items_subset = [(2, 1, 1), (6, 4, 2), (1, 1, 3), (2, 2, 4)]
 
@@ -691,14 +662,24 @@ def knapsack_recursive(items, maxweight):
     return total_value, items_subset
 
 
-def _find_weight_coeff(weights):
-    # Find maximum decimal place (this problem is in NP)
-    max_exp = max([
-        len(d[-1]) if len(d) > 1 else 0
-        for d in (str(w_).split('.') for w_ in weights)
-    ])
-    coeff = 10 ** max_exp
-    return coeff
+def number_of_decimals(num):
+    r"""
+    Args:
+        num (float):
+
+    References:
+        stackoverflow.com/questions/6189956/finding-decimal-places
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> num = 15.05
+        >>> result = number_of_decimals(num)
+        >>> print(result)
+        2
+    """
+    exp = decimal.Decimal(str(num)).as_tuple().exponent
+    return max(0, -exp)
 
 
 def knapsack_iterative(items, maxweight):
@@ -713,10 +694,10 @@ def knapsack_iterative(items, maxweight):
         dpmat[i, w] is the total value of the items with weight at most W
         T is the set of indicies in the optimal solution
     """
-    from collections import defaultdict
     weights = [t[1] for t in items]
     values  = [t[0] for t in items]
-    coeff = _find_weight_coeff(weights)
+    max_exp = max([number_of_decimals(w_) for w_ in weights])
+    coeff = 10 ** max_exp
     # Adjust weights to be integral
     weights = [int(w_ * coeff) for w_ in weights]
     MAXWEIGHT = int(maxweight * coeff)
@@ -770,7 +751,8 @@ def knapsack_iterative_numpy(items, maxweight):
     items = np.array(items)
     weights = items.T[1]
     # Find maximum decimal place (this problem is in NP)
-    coeff = _find_weight_coeff(weights)
+    max_exp = max([number_of_decimals(w_) for w_ in weights])
+    coeff = 10 ** max_exp
     # Adjust weights to be integral
     weights = (weights * coeff).astype(np.int)
     values  = items.T[0]
@@ -813,7 +795,7 @@ def knapsack_iterative_numpy(items, maxweight):
 #    TODO: return all optimal solutions to the knapsack problem
 
 #    References:
-#        http://stackoverflow.com/questions/30554290/how-to-derive-all-solutions-from-knapsack-dp-matrix
+#        stackoverflow.com/questions/30554290/all-solutions-from-knapsack-dp-matrix
 
 #    >>> items = [(1, 2, 0), (1, 3, 1), (1, 4, 2), (1, 3, 3), (1, 3, 4), (1, 5, 5), (1, 4, 6), (1, 1, 7), (1, 1, 8), (1, 3, 9)]
 #    >>> weights = ut.get_list_column(items, 1)
@@ -867,7 +849,7 @@ def cumsum(num_list):
     """ python cumsum
 
     References:
-        http://stackoverflow.com/questions/9258602/elegant-pythonic-cumsum
+        stackoverflow.com/questions/9258602/elegant-pythonic-cumsum
     """
     return reduce(lambda acc, itm: op.iadd(acc, [acc[-1] + itm]), num_list, [0])[1:]
 
@@ -892,7 +874,7 @@ def triangular_number(n):
         T_n = \sum_{k=1}^{n} k = \frac{n (n + 1)}{2} = \binom{n + 1}{2}
 
     References:
-        http://en.wikipedia.org/wiki/Triangular_number
+        en.wikipedia.org/wiki/Triangular_number
     """
     return ((n * (n + 1)) / 2)
 
@@ -987,8 +969,8 @@ def maximum_distance_subset(items, K, verbose=False):
     Returns a subset of size K from items with the maximum pairwise distance
 
     References:
-        http://stackoverflow.com/questions/12278528/find-subset-with-elements-that-are-furthest-apart-from-eachother
-        http://stackoverflow.com/questions/13079563/how-does-condensed-distance-matrix-work-pdist
+        stackoverflow.com/questions/12278528/subset-elements-furthest-apart-eachother
+        stackoverflow.com/questions/13079563/condensed-distance-matrix-pdist
 
     Recurance:
         Let X[n,k] be the solution for selecting k elements from first n elements items.
@@ -1157,21 +1139,6 @@ def inbounds(num, low, high, eq=False):
     return is_inbounds
 
 
-#def inbounds(arr, min_, max_):
-#    if min_ > 0 and max_ is not None:
-#        #if max_ is not None and min
-#        islt_max = np.less_equal(arr, max_)
-#        isgt_min = np.greater_equal(arr, min_)
-#        is_inbounds = np.logical_and(islt_max, isgt_min)
-#    elif min_ == 0:
-#        is_inbounds = np.less_equal(arr, max_)
-#    elif max_ is None:
-#        is_inbounds = np.greater_equal(arr, min_)
-#    else:
-#        assert False
-#    return is_inbounds
-
-
 def almost_eq(arr1, arr2, thresh=1E-11, ret_error=False):
     """ checks if floating point number are equal to a threshold
     """
@@ -1187,53 +1154,6 @@ def almost_allsame(vals):
         return True
     x = vals[0]
     return np.all([np.isclose(item, x) for item in vals])
-
-
-def haversine(latlon1, latlon2):
-    """
-    #http://gis.stackexchange.com/questions/81551/matching-gps-tracks
-    Calculate the great circle distance between two points
-    on the earth (specified in decimal degrees)
-
-    References:
-        http://en.wikipedia.org/wiki/Haversine_formula
-        http://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from utool.util_alg import *  # NOQA
-        >>> import scipy.spatial.distance as spdist
-        >>> import utool as ut
-        >>> import functools
-        >>> gpsarr_track_list_ = [
-        ...    np.array([[ -80.21895315, -158.81099213],
-        ...              [ -12.08338926,   67.50368014],
-        ...              [ -11.08338926,   67.50368014],
-        ...              [ -11.08338926,   67.50368014],]
-        ...    ),
-        ...    np.array([[   9.77816711,  -17.27471498],
-        ...              [ -51.67678814, -158.91065495],])
-        ...    ]
-        >>> latlon1 = gpsarr_track_list_[0][0]
-        >>> latlon2 = gpsarr_track_list_[0][1]
-        >>> kilometers = ut.haversine(latlon1, latlon2)
-        >>> haversin_pdist = functools.partial(spdist.pdist, metric=ut.haversine)
-        >>> dist_vector_list = list(map(haversin_pdist, gpsarr_track_list_))
-        >>> dist_matrix_list = list(map(spdist.squareform, dist_vector_list))
-    """
-    # convert decimal degrees to radians
-    lat1, lon1 = np.radians(latlon1)
-    lat2, lon2 = np.radians(latlon2)
-
-    # haversine formula
-    dlon = lon2 - lon1
-    dlat = lat2 - lat1
-    a = (np.sin(dlat / 2) ** 2) + np.cos(lat1) * np.cos(lat2) * (np.sin(dlon / 2) ** 2)
-    c = 2 * np.arcsin(np.sqrt(a))
-
-    EARTH_RADIUS_KM = 6367
-    kilometers = EARTH_RADIUS_KM * c
-    return kilometers
 
 
 def unixtime_hourdiff(x, y):
@@ -1294,51 +1214,6 @@ def norm_zero_one(array, dim=None):
     return array_norm
 
 
-#def find_std_inliers(data, m=2):
-#    return abs(data - np.mean(data)) < m * np.std(data)
-
-
-def cartesian(arrays, out=None):
-    """
-    Generate a cartesian product of input arrays.
-
-    Args:
-        arrays (list of array-like): 1-D arrays to form the cartesian product of
-        out (ndarray): Outvar which is modified in place if specified
-
-    Returns:
-        out (ndarray): cartesian products formed of input arrays
-            2-D array of shape (M, len(arrays))
-
-    References:
-        https://gist.github.com/hernamesbarbara/68d073f551565de02ac5
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from utool.util_alg import *  # NOQA
-        >>> arrays = ([1, 2, 3], [4, 5], [6, 7])
-        >>> out = cartesian(arrays)
-        >>> result = repr(out.T)
-        array([[1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3],
-               [4, 4, 5, 5, 4, 4, 5, 5, 4, 4, 5, 5],
-               [6, 7, 6, 7, 6, 7, 6, 7, 6, 7, 6, 7]])
-
-    """
-    arrays = [np.asarray(x) for x in arrays]
-    dtype = arrays[0].dtype
-
-    n = np.prod([x.size for x in arrays])
-    if out is None:
-        out = np.zeros([n, len(arrays)], dtype=dtype)
-    m = n // arrays[0].size
-    out[:, 0] = np.repeat(arrays[0], m)
-    if arrays[1:]:
-        cartesian(arrays[1:], out=out[0:m, 1:])
-        for j in range(1, arrays[0].size):
-            out[j * m:(j + 1) * m, 1:] = out[0:m, 1:]
-    return out
-
-
 def euclidean_dist(vecs1, vec2, dtype=None):
     if dtype is None:
         dtype = np.float32
@@ -1365,7 +1240,8 @@ def max_size_max_distance_subset(items, min_thresh=0, Kstart=2, verbose=False):
         >>> min_thresh = 3
         >>> Kstart = 2
         >>> verbose = True
-        >>> prev_subset_idx = max_size_max_distance_subset(items, min_thresh, Kstart, verbose=verbose)
+        >>> prev_subset_idx = max_size_max_distance_subset(items, min_thresh,
+        >>>                                                Kstart, verbose=verbose)
         >>> result = ('prev_subset_idx = %s' % (str(prev_subset_idx),))
         >>> print(result)
     """

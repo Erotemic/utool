@@ -2209,6 +2209,12 @@ def argparse_funckw(func, defaults={}, **kwargs):
     return funckw
 
 
+def search_utool(pat):
+    import utool as ut
+    found_list = [name for name in dir(ut) if name.find(pat) >= 0]
+    return found_list
+
+
 if __name__ == '__main__':
     """
     CommandLine:
