@@ -254,6 +254,8 @@ def start_logging(log_fpath=None, mode='a', appname='default', log_dir=None):
         else:
             def utool_print(*args):
                 """ standard utool print function """
+                #import utool as ut
+                #with ut.embed_on_exception_context:
                 try:
                     return  __UTOOL_ROOT_LOGGER__.info(', '.join(map(__STR__, args)))
                 except UnicodeDecodeError:

@@ -7,6 +7,8 @@ import six
 if six.PY2:
     import types
     __STR__ = unicode
+
+    # TODO: use six.text_type
     def get_funcname(func):
         """
         Weird behavior for classes

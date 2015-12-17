@@ -1114,14 +1114,19 @@ def numeric_str(num, precision=None, **kwargs):
         return numpy_str(num, precision=precision, **kwargs)
 
 
-def reprfunc(val):
+def reprfunc(val, precision=None):
     if isinstance(val, six.string_types):
         repr_ = repr(val)
         if repr_.startswith('u\'') or repr_.startswith('u"'):
             # Remove unicode repr from python2 to agree with python3
             # output
             repr_ = repr_[1:]
+    elif precision is not None and (isinstance(val, (float)) or util_type.is_float(val)):
+        return scalar_str(val, precision)
     else:
+        #import utool as ut
+        #print('val = %r' % (val,))
+        #ut.repr2(val)
         repr_ = repr(val)
     return repr_
 
@@ -1526,7 +1531,7 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
         if explicit:
             repr_str = key + '='
         else:
-            repr_str = reprfunc(key) + ': '
+            repr_str = reprfunc(key, precision=precision) + ': '
         val_str = _valstr(val)
         padded_indent = ' ' * min(len(indent_), len(repr_str))
         val_str = val_str.replace('\n', '\n' + padded_indent)
