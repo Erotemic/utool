@@ -354,7 +354,7 @@ def make_class_method_decorator(classkey, modname=None):
               % (classkey, modname))
     if modname == '__main__':
         # skips reinjects into main
-        print('WARNING: cannot register class functions as __main__')
+        print('WARNING: cannot register classkey=%r functions as __main__' % (classkey,))
         return lambda func: func
     # register that this module was injected into
     if isinstance(classkey, tuple):

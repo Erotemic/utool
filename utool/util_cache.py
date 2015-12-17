@@ -5,6 +5,7 @@ import six
 import uuid
 import json
 import codecs
+import os
 #import lru
 #git+https://github.com/amitdev/lru-dict
 #import atexit
@@ -14,7 +15,8 @@ import collections
 from six.moves import cPickle as pickle
 from six.moves import range, zip  # NOQA
 from os.path import join, normpath, basename, exists
-import functools
+#import functools
+from functools import partial
 from itertools import chain
 from zipfile import error as BadZipFile  # Screwy naming convention.
 from utool import util_arg
@@ -421,7 +423,7 @@ class UtoolJSONEncoder(json.JSONEncoder):
             return obj.__getstate__()
         #obj.decode('utf-8')
         else:
-            print('Decode Object Pickle')
+            #print('Decode Object Pickle')
             #print('dump pickle %r, %r' % (hash(obj), type(obj)))
             #raise TypeError('Cannot serialize type(obj)=%r ' % (type(obj)))
             #if six.PY3:
@@ -500,7 +502,6 @@ def get_func_result_cachekey(func_, args_=tuple(), kwargs_={}):
     kwargs = {}
     args = ([],)
     """
-    from functools import partial
     import utool as ut
     # Rectify partials and whatnot
     true_args = args_
@@ -905,7 +906,6 @@ class Cachable(object):
         """
         saves query result to directory
         """
-        import os
         fpath = self.get_fpath(cachedir, cfgstr=cfgstr)
         if verbose:
             print('[Cachable] cache delete: %r' % (basename(fpath),))
@@ -931,7 +931,7 @@ class Cachable(object):
         return fpath
         #save_cache(cachedir, '', cfgstr, self.__dict__)
         #with open(fpath, 'wb') as file_:
-        #    cPickle.dump(self.__dict__, file_)
+        #    pickle.dump(self.__dict__, file_)
 
     def _unsafe_load(self, fpath, ignore_keys=None):
         loaded_dict = util_io.load_cPkl(fpath)
@@ -941,7 +941,7 @@ class Cachable(object):
                     del loaded_dict[key]
         self.__dict__.update(loaded_dict)
         #with open(fpath, 'rb') as file_:
-        #    loaded_dict = cPickle.load(file_)
+        #    loaded_dict = pickle.load(file_)
         #    self.__dict__.update(loaded_dict)
 
     @profile
@@ -1149,11 +1149,8 @@ def time_different_diskstores():
     %timeit json_read_test()
     %timeit json_write_test()
     """
-    import six
-    import uuid
-    import simplejson as json
-    import cPickle
     import utool as ut
+    import simplejson as json
     shelf_path = 'test.shelf'
     json_path = 'test.json'
     cpkl_path = 'test.pkl'
@@ -1178,16 +1175,16 @@ def time_different_diskstores():
 
     def cPickle_write_test():
         with open(cpkl_path, 'wb') as outfile:
-            cPickle.dump(dict_, outfile)
+            pickle.dump(dict_, outfile)
 
     def cPickle_read_test():
         with open(cpkl_path, 'rb') as outfile:
-            test = {key: val for key, val in six.iteritems(cPickle.load(outfile))}
+            test = {key: val for key, val in six.iteritems(pickle.load(outfile))}
         assert len(test) > 0
 
     def cPickle_read_test2():
         with open(cpkl_path, 'rb') as outfile:
-            test = cPickle.load(outfile)
+            test = pickle.load(outfile)
         assert len(test) > 0
 
     shelf_write_test()

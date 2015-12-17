@@ -1492,7 +1492,7 @@ def recursive_parse_kwargs(root_func, path_=None):
                 for attr in subtup[:-1]:
                     try:
                         subdict = subdict[attr].__dict__
-                    except KeyError:
+                    except (KeyError, TypeError):
                         # limited support for class lookup
                         if ut.is_method(root_func) and spec.args[0] == attr:
                             subdict = root_func.im_class.__dict__
@@ -1503,7 +1503,8 @@ def recursive_parse_kwargs(root_func, path_=None):
                                 print('Unable to find attribute of attr=%r' % (attr,))
                                 if ut.SUPER_STRICT:
                                     raise
-                subfunc = subdict[subtup[-1]]
+                if subdict is not None:
+                    subfunc = subdict[subtup[-1]]
             else:
                 # can directly take func from globals
                 try:
@@ -1513,7 +1514,8 @@ def recursive_parse_kwargs(root_func, path_=None):
                     if ut.SUPER_STRICT:
                         raise
                     subkw_list = []
-            subkw_list = recursive_parse_kwargs(subfunc)
+                else:
+                    subkw_list = recursive_parse_kwargs(subfunc)
             have_keys = set(ut.get_list_column(kwargs_list, 0))
             new_subkw = [item for item in subkw_list if item[0] not in have_keys]
             kwargs_list.extend(new_subkw)

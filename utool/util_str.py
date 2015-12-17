@@ -1234,7 +1234,7 @@ def repr2(obj_, **kwargs):
 def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
              indent_='', precision=None, hack_liststr=None, truncate=False,
              nl=None, explicit=False, truncatekw=dict(), key_order=None,
-             key_order_metric=None, nobraces=False, align=False,
+             key_order_metric=None, nobraces=False, nobr=None, align=False,
              **dictkw):
     r"""
     Makes a pretty printable / human-readable string representation of a
@@ -1293,6 +1293,8 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
             },
         }
     """
+    if nobr is not None:
+        nobraces = nobr
     if nl is not None:
         newlines = nl
     if len(dict_) == 0:
@@ -1348,7 +1350,7 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
 
 
 def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
-             truncate=False, truncatekw={}, label_list=None, packed=False,
+             truncate=False, truncatekw={}, label_list=None, packed=False, nobr=None,
              **listkw):
     r"""
     Args:
@@ -1405,6 +1407,8 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
         ]
     """
     import utool as ut
+    if nobr is not None:
+        nobraces = nobr
     if nl is not None:
         newlines = nl
 
