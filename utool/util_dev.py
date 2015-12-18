@@ -1633,10 +1633,11 @@ def garbage_collect():
     gc.collect()
 
 
-def get_object_size(obj, fallback_type=None, follow_pointers=False, exclude_modules=True):
+def get_object_size(obj, fallback_type=None, follow_pointers=False, exclude_modules=True, listoverhead=False):
     """
     CommandLine:
         python -m utool.util_dev --test-get_object_size
+        python -m utool.util_dev --exec-get_object_size:1
 
     Example:
         >>> # UNSTABLE_DOCTEST
@@ -1650,10 +1651,32 @@ def get_object_size(obj, fallback_type=None, follow_pointers=False, exclude_modu
         >>> nBytes = ut.get_object_size(qreq_)
         >>> result = (ut.byte_str2(nBytes))
         >>> print('result = %r' % (result,))
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.expt.experiment_harness import *  # NOQA
+        >>> import numpy as np
+        >>> obj = [np.empty(1, dtype=np.uint8) for _ in range(8)]
+        >>> nBytes = ut.get_object_size(obj)
+        >>> print('nBytes = %s' % (nBytes,))
+        result = '2.50 MB'
+
+    Ignore:
+        import sys
+        sizedict = {key: sys.getsizeof(key()) for key in [dict, list, set, tuple, int, float]}
+        ut.print_dict(sizedict)
+        sizedict = {
+            <type 'tuple'>: 56,
+            <type 'set'>: 232,
+            <type 'list'>: 72,
+            <type 'float'>: 24,
+            <type 'int'>: 24,
+            <type 'dict'>: 280,
+        }
     """
     import utool as ut
-    seen = set([])
     import types
+    seen = set([])
     def _get_object_size(obj):
         object_id = id(obj)
         if object_id in seen:
@@ -1662,7 +1685,10 @@ def get_object_size(obj, fallback_type=None, follow_pointers=False, exclude_modu
             return sys.getsizeof(obj)
         seen.add(object_id)
 
-        totalsize = sys.getsizeof(obj)
+        if listoverhead:
+            totalsize = sys.getsizeof(obj)
+        else:
+            totalsize = 0
         try:
             if isinstance(obj, (ut.DynStruct, ut.Pref)):
                 # dont deal with dynstruct shenanigans
@@ -1678,9 +1704,8 @@ def get_object_size(obj, fallback_type=None, follow_pointers=False, exclude_modu
                         totalsize += obj.nbytes
                     pass
                 # TODO: check if a view or is memmapped
-                # Nothing to do sys.getsizeof does the right thing sorta
-                #totalsize += obj.nbytes
-                pass
+                # Does sys.getsizeof do the right thing ?
+                totalsize = obj.nbytes
             elif (isinstance(obj, (tuple, list, set, frozenset))):
                 for item in obj:
                     totalsize += _get_object_size(item)
@@ -1761,6 +1786,18 @@ def print_object_size_tree(obj, lbl='obj'):
 
 
 def get_object_size_str(obj, lbl='', unit=None):
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.expt.experiment_harness import *  # NOQA
+        >>> import numpy as np
+        >>> obj = [np.empty((512), dtype=np.uint8) for _ in range(10)]
+        >>> nBytes = ut.get_object_size(obj)
+        >>> result = (ut.byte_str2(nBytes))
+        >>> print('result = %s' % (ut.repr2(result),))
+        result = '2.50 MB'
+    """
+
     from utool import util_str
     nBytes = get_object_size(obj)
     if len(lbl) > 0 and not lbl.endswith(' '):

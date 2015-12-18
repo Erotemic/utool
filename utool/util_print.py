@@ -19,6 +19,9 @@ NO_INDENT    = meta_util_arg.NO_INDENT
 SILENT       = meta_util_arg.SILENT
 
 
+ENABLE_COLORS = True
+
+
 def print_dict(dict_, dict_name=None, **kwargs):
     import utool as ut
     if dict_name is None:
@@ -414,7 +417,7 @@ def colorprint(msg, color=None):
         >>> colorprint('line5', 'fuchsia')
         >>> print('line6')
     """
-    if color is None:
+    if color is None or not ENABLE_COLORS:
         print(msg)
         return
     import utool as ut
