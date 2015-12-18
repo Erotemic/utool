@@ -1187,6 +1187,28 @@ def almost_allsame(vals):
 
 
 def unixtime_hourdiff(x, y):
+    r"""
+    Args:
+        x (?):
+        y (ndarray):  labels
+
+    Returns:
+        ?:
+
+    CommandLine:
+        python -m utool.util_alg --exec-unixtime_hourdiff --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> x = np.nan
+        >>> y = 0
+        >>> result = unixtime_hourdiff(x, y)
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+    """
     return np.abs((x - y)) / (60. ** 2)
 
 

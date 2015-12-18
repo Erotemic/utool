@@ -120,12 +120,18 @@ def colored_pygments_excepthook(type_, value, tb):
         python -m utool.util_inject --test-colored_pygments_excepthook
 
     """
-    #sys.stderr.write('USING COLORED EXCEPTHOOK')
-    tbtext = ''.join(traceback.format_exception(type_, value, tb))
-    lexer = pygments.lexers.get_lexer_by_name('pytb', stripall=True)
-    formatter = pygments.formatters.TerminalFormatter(bg='dark')
-    formatted_text = pygments.highlight(tbtext, lexer, formatter)
-    sys.stderr.write(formatted_text)
+    try:
+        #sys.stderr.write('USING COLORED EXCEPTHOOK')
+        tbtext = ''.join(traceback.format_exception(type_, value, tb))
+        lexer = pygments.lexers.get_lexer_by_name('pytb', stripall=True)
+        formatter = pygments.formatters.TerminalFormatter(bg='dark')
+        formatted_text = pygments.highlight(tbtext, lexer, formatter)
+        sys.stderr.write(formatted_text)
+    except Exception:
+        # FIXME silent errro
+        if ut.SUPER_STRICT:
+            raise
+        pass
 
     #EMBED_ON_ERROR = True
     # Doesn't work
@@ -155,11 +161,14 @@ def inject_colored_exceptions():
     #COLORED_INJECTS = '--colorex' in sys.argv
     # Ignore colored exceptions on win32
     if VERBOSE:
-        print('[inject] injectinmg colored exceptions')
+        print('[inject] injecting colored exceptions')
     if HAVE_PYGMENTS and not sys.platform.startswith('win32'):
         if VERYVERBOSE:
             print('[inject] injecting colored exceptions')
-        sys.excepthook = colored_pygments_excepthook
+        if '--noinject-color' in sys.argv:
+            print('Not injecting color')
+        else:
+            sys.excepthook = colored_pygments_excepthook
     else:
         if VERYVERBOSE:
             print('[inject] cannot inject colored exceptions')

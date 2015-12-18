@@ -2306,6 +2306,43 @@ take = list_take
 compress = list_compress
 
 
+def index_to_boolmask(index_list, maxval=None):
+    r"""
+    Args:
+        index_list (list):
+        maxval (None): (default = None)
+
+    Kwargs:
+        maxval
+
+    Returns:
+        list: mask
+
+    SeeAlso:
+        vt.index_to_boolmask numpy version
+
+    CommandLine:
+        python -m vtool.other --exec-index_to_boolmask
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> import utool as ut
+        >>> index_list = [0, 1, 4]
+        >>> maxval = 5
+        >>> mask = ut.index_to_boolmask(index_list, maxval)
+        >>> result = ('mask = %s' % (ut.repr2(mask, nl=0)))
+        >>> print(result)
+        mask = [True, True, False, False, True]
+    """
+    if maxval is None:
+        maxval = max(index_list) + 1
+    mask = [False] * maxval
+    for index in index_list:
+        mask[index] = True
+    return mask
+
+
 if __name__ == '__main__':
     """
     CommandLine:
