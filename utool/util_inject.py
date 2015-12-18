@@ -14,13 +14,16 @@ from utool._internal import meta_util_arg
 from utool import util_logging
 try:
     import traceback
-    import pygments
-    import pygments.lexers
-    import pygments.formatters
-    #from pygments import highlight
-    #from pygments.lexers import get_lexer_by_name
-    #from pygments.formatters import TerminalFormatter
-    HAVE_PYGMENTS = True
+    if '--nopygments' not in sys.argv:
+        import pygments
+        import pygments.lexers
+        import pygments.formatters
+        #from pygments import highlight
+        #from pygments.lexers import get_lexer_by_name
+        #from pygments.formatters import TerminalFormatter
+        HAVE_PYGMENTS = True
+    else:
+        HAVE_PYGMENTS = False
 except ImportError:
     HAVE_PYGMENTS = False
 
