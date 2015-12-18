@@ -779,7 +779,7 @@ def list_compress(item_list, flag_list):
     assert len(item_list) == len(flag_list), (
         'lists should correspond. len(item_list)=%r len(flag_list)=%r' %
         (len(item_list), len(flag_list)))
-    filtered_items = list(util_iter.ifilter_items(item_list, flag_list))
+    filtered_items = list(util_iter.iter_compress(item_list, flag_list))
     return filtered_items
 
 
@@ -827,7 +827,7 @@ def filter_items(item_list, flag_list):
         filtered_items
 
     SeeAlso:
-        util_iter.ifilter_items
+        util_iter.iter_compress
     """
     return list_compress(item_list, flag_list)
 

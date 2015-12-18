@@ -806,7 +806,7 @@ class GridSearch(object):
         param_range_list = ut.get_list_column(gridsearch.grid_basis, 1)
         if exclude_unvaried_dimension:
             is_varied = [len(param_range) > 1 for param_range in param_range_list]
-            param_label_list = ut.filter_items(param_label_list_, is_varied)
+            param_label_list = ut.list_compress(param_label_list_, is_varied)
         else:
             param_label_list = param_label_list_
         return param_label_list

@@ -196,9 +196,9 @@ def itertwo(iterable, wrap=False):
     return zip(iter1, iter2)
 
 
-def ifilter_items(item_iter, flag_iter):
+def iter_compress(item_iter, flag_iter):
     """
-    ifilter_items
+    iter_compress - like numpy compress
 
     Args:
         item_iter (list):
@@ -212,13 +212,16 @@ def ifilter_items(item_iter, flag_iter):
         >>> from utool.util_iter import *  # NOQA
         >>> item_iter = [1, 2, 3, 4, 5]
         >>> flag_iter = [False, True, True, False, True]
-        >>> true_items = ifilter_items(item_iter, flag_iter)
+        >>> true_items = iter_compress(item_iter, flag_iter)
         >>> result = list(true_items)
         >>> print(result)
         [2, 3, 5]
     """
     true_items = (item for (item, flag) in zip(item_iter, flag_iter) if flag)
     return true_items
+
+
+ifilter_items = iter_compress
 
 
 def ifilterfalse_items(item_iter, flag_iter):
