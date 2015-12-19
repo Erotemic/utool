@@ -1423,10 +1423,10 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
                                     truncate=truncate_, truncatekw=truncatekw,
                                     packed=packed_,
                                     label_list=label_list, **listkw)
+    is_tuple = isinstance(list_, tuple)
     if nobraces:
         leftbrace, rightbrace = '', ''
     else:
-        is_tuple = isinstance(list_, tuple)
         if is_tuple:
             leftbrace, rightbrace  = '(', ')'
         else:

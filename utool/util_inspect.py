@@ -437,6 +437,8 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
             if include_methods:
                 # Yield methods of the class
                 for subkey, subval in six.iteritems(class_.__dict__):
+                    if isinstance(subval, property):
+                        subval = subval.fget
                     # <DEBUG>
                     if debug_key is not None and subkey == debug_key:
                         import utool as ut
@@ -1346,6 +1348,8 @@ def get_func_argspec(func):
     if hasattr(func, '_utinfo'):
         argspec = func._utinfo['orig_argspec']
         return argspec
+    if isinstance(func, property):
+        func = func.fget
     argspec = inspect.getargspec(func)
     return argspec
 
@@ -1668,6 +1672,8 @@ def infer_function_info(func):
     """
     import utool as ut
     import re
+    if isinstance(func, property):
+        func = func.fget
     try:
         doc_shortdesc = ''
         doc_longdesc = ''
