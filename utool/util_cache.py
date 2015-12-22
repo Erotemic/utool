@@ -671,7 +671,6 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
             Additional Kwargs:
                 use_cache (bool) : enables cache
             """
-            import utool as ut
             try:
                 if VERBOSE_CACHE:
                     print('[utool] computing cached function fname_=%s' % (
@@ -679,9 +678,9 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
                 # Implicitly adds use_cache to kwargs
                 cfgstr = get_cfgstr_from_args(func, args, kwargs, key_argx,
                                               key_kwds, kwdefaults, argnames)
-                if ut.WIN32:
+                if util_cplat.WIN32:
                     # remove potentially invalid chars
-                    cfgstr = '_' + ut.hashstr27(cfgstr)
+                    cfgstr = '_' + util_hash.hashstr27(cfgstr)
                 assert cfgstr is not None, 'cfgstr=%r cannot be None' % (cfgstr,)
                 use_cache__ = kwargs.pop('use_cache', use_cache_)
                 if use_cache__:
@@ -692,20 +691,22 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
                 # Cached missed compute function
                 data = func(*args, **kwargs)
                 # Cache save
-                if use_cache__:
-                    cacher.save(data, cfgstr)
+                #if use_cache__:
+                # TODO: save_cache
+                cacher.save(data, cfgstr)
                 return data
             #except ValueError as ex:
             # handle protocal error
             except Exception as ex:
+                from utool import util_dbg
                 _dbgdict2 = dict(key_argx=key_argx, lenargs=len(args),
                                  lenkw=len(kwargs),)
                 msg = '\n'.join([
                     '+--- UTOOL --- ERROR IN CACHED FUNCTION',
                     #'dbgdict = ' + utool.dict_str(_dbgdict),
-                    'dbgdict2 = ' + ut.dict_str(_dbgdict2),
+                    'dbgdict2 = ' + util_str.dict_str(_dbgdict2),
                 ])
-                ut.printex(ex, msg)
+                util_dbg.printex(ex, msg)
                 raise
         # Give function a handle to the cacher object
         cached_wraper = util_decor.preserve_sig(cached_wraper, func)

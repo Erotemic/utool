@@ -1110,12 +1110,12 @@ def maximum_distance_subset(items, K, verbose=False):
     #raise NotImplementedError('unfinished')
 
 
-def safe_max(arr):
-    return np.nan if arr is None or len(arr) == 0 else arr.max()
+#def safe_max(arr):
+#    return np.nan if arr is None or len(arr) == 0 else arr.max()
 
 
-def safe_min(arr):
-    return np.nan if arr is None or len(arr) == 0 else arr.min()
+#def safe_min(arr):
+#    return np.nan if arr is None or len(arr) == 0 else arr.min()
 
 
 def deg_to_rad(degree):

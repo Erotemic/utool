@@ -132,6 +132,7 @@ def colored_pygments_excepthook(type_, value, tb):
         sys.stderr.write(formatted_text)
     except Exception:
         # FIXME silent errro
+        import utool as ut
         if ut.SUPER_STRICT:
             raise
         pass

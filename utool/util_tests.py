@@ -1499,6 +1499,51 @@ def show_if_requested():
     pt.show_if_requested(N=2)
 
 
+def find_testfunc(module, test_funcname, ignore_prefix=[], ignore_suffix=[], func_to_module_dict={}):
+    import utool as ut
+    if isinstance(module, six.string_types):
+        module = ut.import_modname(module)
+    modname_list = ut.package_contents(module, ignore_prefix=ignore_prefix,
+                                       ignore_suffix=ignore_suffix)
+    # Get only the modules already imported
+    have_modnames = [modname_ for modname_ in modname_list
+                     if modname_ in sys.modules]
+    #missing_modnames = [modname for modname in modname_list
+    #                    if modname not in sys.modules]
+    module_list = ut.dict_take(sys.modules, have_modnames)
+    # Search for the module containing the function
+    test_func = None
+    test_module = None
+    test_classname = None
+    if test_funcname.find('.') != -1:
+        test_classname, test_funcname = test_funcname.split('.')
+    if test_funcname.find(':') != -1:
+        test_funcname, testno = test_funcname.split(':')
+        testno = int(testno)
+    else:
+        testno = 0
+    if test_classname is None:
+        for module_ in module_list:
+            #test_funcname = 'find_installed_tomcat'
+            if test_funcname in module_.__dict__:
+                test_module = module_
+                test_func = test_module.__dict__[test_funcname]
+                break
+    else:
+        for module_ in module_list:
+            #test_funcname = 'find_installed_tomcat'
+            if test_classname in module_.__dict__:
+                test_module = module_
+                test_class = test_module.__dict__[test_classname]
+                test_func = test_class.__dict__[test_funcname]
+
+    if test_func is None:
+        print('Did not find any function named %r ' % (test_funcname,))
+        print('Searched ' + ut.list_str([mod.__name__
+                                         for mod in module_list]))
+    return test_func, testno
+
+
 def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
                          test_funcname=None, func_to_module_dict={}):
     """
@@ -1519,47 +1564,13 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
         ut.import_modname(modname)
 
     if test_funcname is not None:
-        globals_ = {}
         #locals_ = {}
         ut.inject_colored_exceptions()
         print('[utool] __main__ Begin Function Test')
-        if isinstance(module, six.string_types):
-            module = ut.import_modname(module)
-        modname_list = ut.package_contents(module, ignore_prefix=ignore_prefix,
-                                           ignore_suffix=ignore_suffix)
-        # Get only the modules already imported
-        have_modnames = [modname_ for modname_ in modname_list
-                         if modname_ in sys.modules]
-        #missing_modnames = [modname for modname in modname_list
-        #                    if modname not in sys.modules]
-        module_list = ut.dict_take(sys.modules, have_modnames)
-        # Search for the module containing the function
-        test_func = None
-        test_module = None
-        test_classname = None
-        if test_funcname.find('.') != -1:
-            test_classname, test_funcname = test_funcname.split('.')
-        if test_funcname.find(':') != -1:
-            test_funcname, testno = test_funcname.split(':')
-            testno = int(testno)
-        else:
-            testno = 0
-        if test_classname is None:
-            for module_ in module_list:
-                #test_funcname = 'find_installed_tomcat'
-                if test_funcname in module_.__dict__:
-                    test_module = module_
-                    test_func = test_module.__dict__[test_funcname]
-                    break
-        else:
-            for module_ in module_list:
-                #test_funcname = 'find_installed_tomcat'
-                if test_classname in module_.__dict__:
-                    test_module = module_
-                    test_class = test_module.__dict__[test_classname]
-                    test_func = test_class.__dict__[test_funcname]
+        test_func, testno = find_testfunc(module, test_funcname, ignore_prefix, ignore_suffix, func_to_module_dict)
 
         if test_func is not None:
+            globals_ = {}
             func_globals = meta_util_six.get_funcglobals(test_func)
             globals_.update(func_globals)
             testsrc = ut.get_doctest_examples(test_func)[0][testno]
@@ -1577,8 +1588,7 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
             sys.exit(retcode)
         else:
             print('Did not find any function named %r ' % (test_funcname,))
-            print('Searched ' + ut.list_str([mod.__name__
-                                             for mod in module_list]))
+            print('...exiting')
             sys.exit(0)
 
 
