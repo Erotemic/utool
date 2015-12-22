@@ -327,7 +327,7 @@ def tryload_cache_list_with_compute(dpath, fname, cfgstr_list, compute_fn, *args
     if any(ismiss_list):
         # Compute missing values
         newdata_list = compute_fn(ismiss_list, *args)
-        newcfgstr_list = util_list.list_compress(cfgstr_list, ismiss_list)
+        newcfgstr_list = util_list.compress(cfgstr_list, ismiss_list)
         index_list = util_list.list_where(ismiss_list)
         print('[cache] %d/%d cache hits for %s in %s' % (num_total -
                                                          len(index_list),
@@ -350,8 +350,10 @@ class Cacher(object):
     """
     old non inhertable version of cachable
     """
-    def __init__(self, fname, cfgstr=None, cache_dir='default', appname='utool',
-                 verbose=VERBOSE):
+    def __init__(self, fname, cfgstr=None, cache_dir='default',
+                 appname='utool', verbose=None):
+        if verbose is None:
+            verbose = VERBOSE
         if cache_dir == 'default':
             cache_dir = util_cplat.get_app_resource_dir(appname)
         util_path.ensuredir(cache_dir)
@@ -365,7 +367,7 @@ class Cacher(object):
         assert cfgstr is not None, 'must specify cfgstr in constructor or call'
         assert self.fname is not None, 'no fname'
         assert self.dpath is not None, 'no dpath'
-        data = load_cache(self.dpath, self.fname, cfgstr)
+        data = load_cache(self.dpath, self.fname, cfgstr, verbose=self.verbose)
         if self.verbose:
             print('... ' + self.fname + ' Cacher hit')
         return data
@@ -614,7 +616,7 @@ def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults,
 
 
 def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
-                key_kwds=None, use_cache=None):
+                key_kwds=None, use_cache=None, verbose=None):
     r"""
     Wraps a function with a Cacher object
 
@@ -651,12 +653,15 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
         >>> assert ans5 == ans0
         >>> assert ans1 != ans0
     """
+    if verbose is None:
+        verbose = VERBOSE_CACHE
     def cached_closure(func):
         from utool import util_decor
         fname_ = util_inspect.get_funcname(func) if fname is None else fname
         kwdefaults = util_inspect.get_kwdefaults(func)
         argnames   = util_inspect.get_argnames(func)
-        cacher = Cacher(fname_, cache_dir=cache_dir, appname=appname)
+        cacher = Cacher(fname_, cache_dir=cache_dir, appname=appname,
+                        verbose=verbose)
         if use_cache is None:
             use_cache_ = not util_arg.get_argflag('--nocache-' + fname)
         else:
@@ -672,9 +677,9 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
                 use_cache (bool) : enables cache
             """
             try:
-                if VERBOSE_CACHE:
-                    print('[utool] computing cached function fname_=%s' % (
-                        fname_,))
+                if verbose:
+                    print('[util_cache] computing cached function fname_=%s' %
+                          ( fname_,))
                 # Implicitly adds use_cache to kwargs
                 cfgstr = get_cfgstr_from_args(func, args, kwargs, key_argx,
                                               key_kwds, kwdefaults, argnames)
