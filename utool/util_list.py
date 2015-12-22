@@ -1086,7 +1086,7 @@ def unique_unordered(list_):
     return list(set(list_))
 
 
-def setdiff_ordered(list1, list2):
+def setdiff(list1, list2):
     """
     returns list1 elements that are not in list2. preserves order of list1
 
@@ -1110,10 +1110,23 @@ def setdiff_ordered(list1, list2):
         >>> print(result)
         ['feature_rowid', 'config_rowid', 'featweight_forground_weight']
     """
-    return [item for item in list1 if item not in set(list2)]
+    set2 = set(list2)
+    return [item for item in list1 if item not in set2]
 
 
-setdiff = setdiff_ordered
+def setdiff_flags(list1, list2):
+    return list(isetdiff_flags(list1, list2))
+
+
+def isetdiff_flags(list1, list2):
+    """
+    move to util_iter
+    """
+    set2 = set(list2)
+    return (item not in set2 for item in list1)
+
+
+setdiff_ordered = setdiff
 
 
 def setintersect_ordered(list1, list2):

@@ -314,6 +314,18 @@ def breakpoint(*tags):
     return False
 
 
+def fix_embed_globals():
+    """
+    HACK adds current locals() to globals().
+    Can be dangerous.
+    """
+    import utool as ut
+    globals_ = ut.get_parent_globals()
+    locals_ = ut.get_parent_locals()
+    globals_.update(locals_)
+    globals_['wasfixed'] = True
+
+
 def embed(parent_locals=None, parent_globals=None, exec_lines=None,
           remove_pyqt_hook=True, N=0):
     """

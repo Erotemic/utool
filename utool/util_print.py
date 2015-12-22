@@ -10,6 +10,7 @@ import sys
 from six.moves import builtins
 from utool._internal import meta_util_arg
 from utool import util_str
+from utool import util_cplat
 from utool import util_inject
 print, rrr, profile = util_inject.inject2(__name__, '[print]')
 
@@ -17,9 +18,7 @@ QUIET        = meta_util_arg.QUIET
 VERBOSE      = meta_util_arg.VERBOSE
 NO_INDENT    = meta_util_arg.NO_INDENT
 SILENT       = meta_util_arg.SILENT
-
-
-ENABLE_COLORS = True
+ENABLE_COLORS = not util_cplat.WIN32 and '--nopygments' not in sys.argv
 
 
 def print_dict(dict_, dict_name=None, **kwargs):
@@ -248,66 +247,16 @@ def printif(func, condition=VERBOSE and not QUIET):
         print(func())
 
 
+def highlight_code(text, lexer_name='python'):
+    return highlight_text(text, lexer_name)
+
+
 def print_python_code(text):
     r"""
-    Args:
-        text (?):
-
-    CommandLine:
-        python -m utool.util_print --test-print_python_code
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from utool.util_print import *  # NOQA
-        >>> import utool as ut
-        >>> # build test data
-        >>> text = ut.read_from(ut.__file__.replace('.pyc', '.py'))
-        >>> # execute function
-        >>> print_python_code(text)
-
-    Ignore:
-        import pygments
-        print(ut.list_str(list(pygments.formatters.get_all_formatters())))
-        print(list(pygments.styles.get_all_styles()))
-
+    SeeAlso:
+        print_code
     """
     print_code(text, 'python')
-    #import pygments
-    #import utool as ut
-    ##with ut.embed_on_exception_context:
-    #try:
-    #    if ut.WIN32:
-    #        #formater = pygments.formatters.terminal256.Terminal256Formatter()
-    #        formater = pygments.formatters.terminal256.Terminal256Formatter()
-    #    else:
-    #        import pygments.formatters.terminal
-    #        formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
-    #    #, colorscheme='darkbg')
-    #    lexer = pygments.lexers.get_lexer_by_name('python')
-    #    print(pygments.highlight(text, lexer, formater))
-    #except Exception:
-    #    raise
-    #    print(text)
-
-
-def highlight_code(text, lexer_name='python'):
-    import utool as ut
-    #with ut.embed_on_exception_context:
-    try:
-        import pygments
-        if ut.WIN32:
-            assert False
-            #formater = pygments.formatters.terminal256.Terminal256Formatter()
-            import pygments.formatters.terminal256
-            formater = pygments.formatters.terminal256.Terminal256Formatter()
-        else:
-            import pygments.formatters.terminal
-            formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
-        lexer = pygments.lexers.get_lexer_by_name(lexer_name)
-        return pygments.highlight(text, lexer, formater)
-    except Exception:
-        #raise
-        return text
 
 
 def print_code(text, lexer_name='python'):
@@ -326,30 +275,12 @@ def print_code(text, lexer_name='python'):
         >>> text = ut.read_from(ut.__file__.replace('.pyc', '.py'))
         >>> # execute function
         >>> print_python_code(text)
-
-    Ignore:
-        import pygments
-        print(ut.list_str(list(pygments.formatters.get_all_formatters())))
-        print(list(pygments.styles.get_all_styles()))
-
     """
     print(highlight_code(text, lexer_name))
 
 
 def get_colored_diff(text):
-    import utool as ut
-    try:
-        import pygments
-        if ut.WIN32:
-            formater = pygments.formatters.terminal256.Terminal256Formatter()
-        else:
-            import pygments.formatters.terminal
-            formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
-        lexer = pygments.lexers.get_lexer_by_name('diff')
-        return (pygments.highlight(text, lexer, formater))
-    except Exception:
-        #raise
-        return text
+    highlight_text(text, lexer_name='diff')
 
 
 def print_difftext(text):
@@ -363,26 +294,67 @@ def print_difftext(text):
 
     """
     print(get_colored_diff(text))
-    #import pygments
-    #import utool as ut
-    #try:
-    #    if ut.WIN32:
-    #        formater = pygments.formatters.terminal256.Terminal256Formatter()
-    #    else:
-    #        import pygments.formatters.terminal
-    #        formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
-    #    lexer = pygments.lexers.get_lexer_by_name('diff')
-    #    print(pygments.highlight(text, lexer, formater))
-    #except Exception:
-    #    raise
-    #    print(text)
 
 
-def colorprint(msg, color=None):
+def highlight_text(text, lexer_name='python', **kwargs):
+    r"""
+    SeeAlso:
+        color_text
+    """
+    import utool as ut
+    if ENABLE_COLORS:
+        try:
+            import pygments
+            import pygments
+            import pygments.lexers
+            import pygments.formatters
+            #from pygments import highlight
+            #from pygments.lexers import get_lexer_by_name
+            #from pygments.formatters import TerminalFormatter
+            #if ut.WIN32:
+            #    assert False
+            #    #formater = pygments.formatters.terminal256.Terminal256Formatter()
+            #    import pygments.formatters.terminal256
+            #    formater = pygments.formatters.terminal256.Terminal256Formatter()
+            #else:
+            import pygments.formatters.terminal
+            formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
+            lexer = pygments.lexers.get_lexer_by_name(lexer_name, **kwargs)
+            return pygments.highlight(text, lexer, formater)
+        except Exception:
+            #raise
+            return text
+    return text
+
+
+def color_text(text, color):
+    r"""
+    SeeAlso:
+        highlight_text
+    """
+    import utool as ut
+    if color is None or not ENABLE_COLORS:
+        return text
+    try:
+        import pygments
+        import pygments.console
+        ansi_text = pygments.console.colorize(color, text)
+        if ut.WIN32:
+            import colorama
+            ansi_reset = (colorama.Style.RESET_ALL)
+        else:
+            ansi_reset = pygments.console.colorize('reset', '')
+        ansi_text = ansi_text + ansi_reset
+        return ansi_text
+    except ImportError:
+        return text
+
+
+def colorprint(text, color=None):
     r""" provides some color to terminal output
 
     Args:
-        msg (str):
+        text (str):
         color (str):
 
     Ignore:
@@ -397,13 +369,17 @@ def colorprint(msg, color=None):
         python -m utool.util_print --exec-colorprint
         python -m utool.util_print --exec-colorprint:1
 
+        import pygments
+        print(ut.list_str(list(pygments.formatters.get_all_formatters())))
+        print(list(pygments.styles.get_all_styles()))
+
     Example0:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_print import *  # NOQA
         >>> import pygments.console
         >>> msg_list = list(pygments.console.codes.keys())
         >>> color_list = list(pygments.console.codes.keys())
-        >>> [colorprint(msg, color) for msg, color in zip(msg_list, color_list)]
+        >>> [colorprint(text, color) for text, color in zip(msg_list, color_list)]
 
     Example1:
         >>> # DISABLE_DOCTEST (Windows test)
@@ -417,23 +393,7 @@ def colorprint(msg, color=None):
         >>> colorprint('line5', 'fuchsia')
         >>> print('line6')
     """
-    if color is None or not ENABLE_COLORS:
-        print(msg)
-        return
-    import utool as ut
-    try:
-        import pygments
-        import pygments.console
-        ansi_msg = pygments.console.colorize(color, msg)
-        if ut.WIN32:
-            import colorama
-            ansi_reset = (colorama.Style.RESET_ALL)
-        else:
-            ansi_reset = pygments.console.colorize('reset', '')
-        ansi_text = ansi_msg + ansi_reset
-        print(ansi_text)
-    except ImportError:
-        print(msg)
+    print(color_text(text, color))
 
 
 def print_locals():

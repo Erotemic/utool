@@ -234,6 +234,8 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     import utool as ut  # NOQA
     ut.start_logging()
     multiprocessing.freeze_support()  # just in case
+    if ut.VERBOSE:
+        print('[util_test] doctest_funcs')
     ut.inject_colored_exceptions()
 
     if (verbose or VERBOSE_TEST) and ut.NOT_QUIET:
@@ -530,6 +532,8 @@ def _exec_doctest(src, kwargs, nocheckwant=None):
                     difftext = ut.get_colored_diff(difftext)
                 errmsg1 += ('DIFF/GOT/EXPECTED\n' + difftext + '\n')
             except ImportError:
+                if ut.STRICT:
+                    raise
                 errmsg1 += ('REPR_GOT: result=\n%r\n' % (result))
                 errmsg1 += ('REPR_EXPECTED: want=\n%r\n' % (want))
             else:
@@ -1584,7 +1588,8 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
                 print('Test exited before show')
                 pass
             retcode = 0
-            print('Finished function test. exiting')
+            print('Finished function test.')
+            print('...exiting')
             sys.exit(retcode)
         else:
             print('Did not find any function named %r ' % (test_funcname,))

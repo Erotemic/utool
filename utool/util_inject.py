@@ -12,20 +12,7 @@ from functools import wraps
 from utool._internal import meta_util_six
 from utool._internal import meta_util_arg
 from utool import util_logging
-try:
-    import traceback
-    if '--nopygments' not in sys.argv:
-        import pygments
-        import pygments.lexers
-        import pygments.formatters
-        #from pygments import highlight
-        #from pygments.lexers import get_lexer_by_name
-        #from pygments.formatters import TerminalFormatter
-        HAVE_PYGMENTS = True
-    else:
-        HAVE_PYGMENTS = False
-except ImportError:
-    HAVE_PYGMENTS = False
+import traceback
 
 
 __AGGROFLUSH__ = '--aggroflush' in sys.argv
@@ -123,19 +110,22 @@ def colored_pygments_excepthook(type_, value, tb):
         python -m utool.util_inject --test-colored_pygments_excepthook
 
     """
+    tbtext = ''.join(traceback.format_exception(type_, value, tb))
     try:
         #sys.stderr.write('USING COLORED EXCEPTHOOK')
-        tbtext = ''.join(traceback.format_exception(type_, value, tb))
-        lexer = pygments.lexers.get_lexer_by_name('pytb', stripall=True)
-        formatter = pygments.formatters.TerminalFormatter(bg='dark')
-        formatted_text = pygments.highlight(tbtext, lexer, formatter)
-        sys.stderr.write(formatted_text)
+        from utool import util_print
+        formatted_text = util_print.highlight_text(tbtext, lexer_name='pytb', stripall=True)
+        #lexer = pygments.lexers.get_lexer_by_name('pytb', stripall=True)
+        #formatter = pygments.formatters.TerminalFormatter(bg='dark')
+        #formatted_text = pygments.highlight(tbtext, lexer, formatter)
     except Exception:
         # FIXME silent errro
-        import utool as ut
-        if ut.SUPER_STRICT:
-            raise
-        pass
+        formatted_text = tbtext
+        return sys.__excepthook__(type_, value, tb)
+        #import utool as ut
+        #if ut.SUPER_STRICT:
+        #    raise
+    sys.stderr.write(formatted_text)
 
     #EMBED_ON_ERROR = True
     # Doesn't work
@@ -166,7 +156,7 @@ def inject_colored_exceptions():
     # Ignore colored exceptions on win32
     if VERBOSE:
         print('[inject] injecting colored exceptions')
-    if HAVE_PYGMENTS and not sys.platform.startswith('win32'):
+    if not sys.platform.startswith('win32'):
         if VERYVERBOSE:
             print('[inject] injecting colored exceptions')
         if '--noinject-color' in sys.argv:
