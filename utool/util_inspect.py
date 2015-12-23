@@ -1672,6 +1672,7 @@ def infer_function_info(func):
     """
     import utool as ut
     import re
+
     if isinstance(func, property):
         func = func.fget
     try:
@@ -1736,8 +1737,15 @@ def infer_function_info(func):
                         if groupdict_['argtype'] != '?':
                             known_arginfo[argname]['argtype'] = groupdict_['argtype']
 
+        is_class = isinstance(func, six.class_types)
+
         needs_surround = current_doc is None or len(current_doc) == 0
-        argspec = ut.get_func_argspec(func)
+
+        if is_class:
+            argfunc = func.__init__
+        else:
+            argfunc = func
+        argspec = ut.get_func_argspec(argfunc)
         (argname_list, varargs, varkw, defaults) = argspec
 
         # See util_inspect
@@ -1752,21 +1760,25 @@ def infer_function_info(func):
                 if 'argtype' in arginfo:
                     argtype_list[index] = arginfo['argtype']
 
-        # Move source down to base indentation, but remember original indentation
-        sourcecode = get_func_sourcecode(func)
-        #kwarg_keys = ut.parse_kwarg_keys(sourcecode)
-        kwarg_items = ut.recursive_parse_kwargs(func)
+        if not is_class:
+            # Move source down to base indentation, but remember original indentation
+            sourcecode = get_func_sourcecode(func)
+            #kwarg_keys = ut.parse_kwarg_keys(sourcecode)
+            kwarg_items = ut.recursive_parse_kwargs(func)
 
-        kwarg_keys = ut.get_list_column(kwarg_items, 0)
-        #kwarg_keys = ut.unique_ordered(kwarg_keys)
-        kwarg_keys = ut.setdiff_ordered(kwarg_keys, argname_list)
-
-        num_indent = ut.get_indentation(sourcecode)
-        sourcecode = ut.unindent(sourcecode)
+            kwarg_keys = ut.get_list_column(kwarg_items, 0)
+            #kwarg_keys = ut.unique_ordered(kwarg_keys)
+            kwarg_keys = ut.setdiff_ordered(kwarg_keys, argname_list)
+        else:
+            sourcecode = None
+            kwarg_keys = []
 
         if sourcecode is not None:
+            num_indent = ut.get_indentation(sourcecode)
+            sourcecode = ut.unindent(sourcecode)
             returninfo = ut.parse_return_type(sourcecode)
         else:
+            num_indent = 0
             returninfo = None, None, None, ''
         return_type, return_name, return_header, return_desc = returninfo
 
@@ -1849,7 +1861,7 @@ def find_pyclass_above_row(line_list, row):
     return classline, classpos
 
 
-def find_pyfunc_above_row(line_list, row):
+def find_pyfunc_above_row(line_list, row, orclass=False):
     """
     originally part of the vim plugin
 
@@ -1857,25 +1869,36 @@ def find_pyfunc_above_row(line_list, row):
         python -m utool.util_inspect --test-find_pyfunc_above_row
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
         >>> import utool as ut
-        >>> #fpath = ut.truepath('~/code/ibeis/ibeis/control/IBEISControl.py')
-        >>> #fpath = ut.truepath('~/code/utool/utool/util_inspect.py')
-        >>> #fpath = ut.truepath('~/code/ibeis_cnn/ibeis_cnn/models.py')
-        >>> fpath = ut.truepath('~/local/vim/rc/pyvim_funcs.py')
+        >>> func = find_pyfunc_above_row
+        >>> fpath = func.func_globals['__file__'].replace('.pyc', '.py')
         >>> line_list = ut.read_from(fpath, aslines=True)
-        >>> #row = 200
-        >>> #row = 93
-        >>> row = 435
+        >>> row = func.func_code.co_firstlineno + 1
         >>> pyfunc, searchline = find_pyfunc_above_row(line_list, row)
-        >>> print(pyfunc)
+        >>> result = pyfunc
+        >>> print(result)
+        find_pyfunc_above_row
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_inspect import *  # NOQA
+        >>> import utool as ut
+        >>> fpath = ut.util_inspect.__file__.replace('.pyc', '.py')
+        >>> line_list = ut.read_from(fpath, aslines=True)
+        >>> row = 1608
+        >>> pyfunc, searchline = find_pyfunc_above_row(line_list, row, orclass=True)
+        >>> result = pyfunc
+        >>> print(result)
+        find_pyfunc_above_row
     """
     searchlines = []  # for debugging
     funcname = None
     # Janky way to find function name
     func_sentinal   = 'def '
     method_sentinal = '    def '
+    class_sentinal = 'class '
     for ix in range(200):
         func_pos = row - ix
         searchline = line_list[func_pos]
@@ -1886,12 +1909,17 @@ def find_pyfunc_above_row(line_list, row):
             funcname = parse_callname(searchline, func_sentinal)
             if funcname is not None:
                 break
+        if orclass and searchline.startswith(class_sentinal):
+            # Found a valid class name (as funcname)
+            funcname = parse_callname(searchline, class_sentinal)
+            if funcname is not None:
+                break
         if searchline.startswith(method_sentinal):  # and cleanline.endswith(':'):
             # Found a valid function name
             funcname = parse_callname(searchline, method_sentinal)
             if funcname is not None:
                 classline, classpos = find_pyclass_above_row(line_list, func_pos)
-                classname = parse_callname(classline, 'class ')
+                classname = parse_callname(classline, class_sentinal)
                 if classname is not None:
                     funcname = '.'.join([classname, funcname])
                     break

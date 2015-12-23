@@ -158,14 +158,16 @@ def is_valid_varname(varname):
     return isvalid
 
 
-def execstr_dict(dict_, local_name=None, exclude_list=None):
-    """ returns execable python code that declares variables using keys and values
+def execstr_dict(dict_, local_name=None, exclude_list=None, explicit=False):
+    """
+    returns execable python code that declares variables using keys and values
 
     execstr_dict
 
     Args:
         dict_ (dict):
-        local_name (str): optional: local name of dictionary. Specifying this is much safer
+        local_name (str): optional: local name of dictionary. Specifying this
+            is much safer
         exclude_list (list):
 
     Returns:
@@ -185,7 +187,6 @@ def execstr_dict(dict_, local_name=None, exclude_list=None):
         >>> assert b is False and a is True, 'execstr failed'
         >>> result = execstr
         >>> print(result)
-
         a = my_dictionary['a']
         b = my_dictionary['b']
 
@@ -195,48 +196,61 @@ def execstr_dict(dict_, local_name=None, exclude_list=None):
         >>> import utool as ut
         >>> my_dictionary = {'a': True, 'b':False}
         >>> execstr = execstr_dict(my_dictionary)
-        >>> globals_ = globals()
         >>> locals_ = locals()
-        >>> exec(execstr, globals_, locals_)
+        >>> exec(execstr, locals_)
         >>> a, b = ut.dict_take(locals_, ['a', 'b'])
         >>> assert 'a' in locals_ and 'b' in locals_, 'execstr failed'
         >>> assert b is False and a is True, 'execstr failed'
         >>> result = execstr
         >>> print(result)
-
         a = my_dictionary['a']
         b = my_dictionary['b']
 
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dbg import *  # NOQA
+        >>> import utool as ut
+        >>> my_dictionary = {'a': True, 'b':False}
+        >>> execstr = execstr_dict(my_dictionary, explicit=True)
+        >>> result = execstr
+        >>> print(result)
+        a = True
+        b = False
     """
-    if local_name is None:
-        # Magic way of getting the local name of dict_
-        local_name = get_varname_from_locals(dict_, get_parent_locals())
-    try:
-        #if exclude_list is None:
-        #    execstr = '\n'.join((key + ' = ' + local_name + '[' + repr(key) + ']'
-        #                        for (key, val) in dict_.items()))
-        #else:
-        if exclude_list is None:
-            exclude_list = []
-        assert isinstance(exclude_list, list)
-        exclude_list.append(local_name)
+    import utool as ut
+    if explicit:
         expr_list = []
-        assert isinstance(dict_, dict), 'incorrect type type(dict_)=%r, dict_=%r' % (type(dict), dict_)
         for (key, val) in sorted(dict_.items()):
             assert isinstance(key, six.string_types), 'keys must be strings'
-            if not is_valid_varname(key):
-                continue
-            if not any((fnmatch.fnmatch(key, pat) for pat in exclude_list)):
-                expr = '%s = %s[%r]' % (key, local_name, key)
-                expr_list.append(expr)
+            expr_list.append('%s = %s' % (key, ut.repr2(val),))
         execstr = '\n'.join(expr_list)
         #print(execstr)
         return execstr
-    except Exception as ex:
-        import utool as ut
-        locals_ = locals()
-        ut.printex(ex, key_list=['locals_'])
-        raise
+    else:
+        if local_name is None:
+            # Magic way of getting the local name of dict_
+            local_name = get_varname_from_locals(dict_, get_parent_locals())
+        try:
+            if exclude_list is None:
+                exclude_list = []
+            assert isinstance(exclude_list, list)
+            exclude_list.append(local_name)
+            expr_list = []
+            assert isinstance(dict_, dict), 'incorrect type type(dict_)=%r, dict_=%r' % (type(dict), dict_)
+            for (key, val) in sorted(dict_.items()):
+                assert isinstance(key, six.string_types), 'keys must be strings'
+                if not is_valid_varname(key):
+                    continue
+                if not any((fnmatch.fnmatch(key, pat) for pat in exclude_list)):
+                    expr = '%s = %s[%s]' % (key, local_name, ut.repr2(key))
+                    expr_list.append(expr)
+            execstr = '\n'.join(expr_list)
+            #print(execstr)
+            return execstr
+        except Exception as ex:
+            locals_ = locals()
+            ut.printex(ex, key_list=['locals_'])
+            raise
 
 
 def execstr_func(func):

@@ -32,6 +32,8 @@ NO_PROGRESS = util_arg.get_argflag(('--no-progress', '--noprogress'))
 FORCE_ALL_PROGRESS = util_arg.get_argflag(('--force-all-progress',))
 #('--screen' not in sys.argv and '--progress-backspace' not in sys.argv)
 
+DEBUG_FREQ_ADJUST = util_arg.get_argflag('--debug-adjust-freq')
+
 
 #PROGRESS_WRITE = sys.stdout.write
 #PROGRESS_FLUSH = sys.stdout.flush
@@ -234,6 +236,7 @@ class ProgressIter(object):
         python -m utool.util_progress --test-ProgressIter
         python -m utool.util_progress --test-ProgressIter:0
         python -m utool.util_progress --test-ProgressIter:1
+        python -m utool.util_progress --test-ProgressIter:2
 
 
     Example:
@@ -258,6 +261,17 @@ class ProgressIter(object):
         >>> progiter = ut.ProgressIter(range(num2), lbl='testing primes',
         >>>                            report_unit='seconds', freq=1,
         >>>                            time_thresh=.1, adjust=True)
+        >>> results1 = [ut.get_nth_prime_bruteforce(29) for x in progiter]
+        >>> print(ut.truncate_str(ut.repr2(results1)))
+
+    Example2:
+        >>> # SLOW_DOCTEST
+        >>> import utool as ut
+        >>> from six.moves import range
+        >>> num2 = 100001
+        >>> progiter = ut.ProgressIter(range(num2), lbl='testing primes',
+        >>>                            report_unit='seconds', freq=1,
+        >>>                            time_thresh=3, adjust=True)
         >>> results1 = [ut.get_nth_prime_bruteforce(29) for x in progiter]
         >>> print(ut.truncate_str(ut.repr2(results1)))
 
@@ -457,7 +471,6 @@ class ProgressIter(object):
         #        state.freq = 1
         #        state.freq = 1
         #        pass
-        DEBUG_FREQ_ADJUST = False
         adjust = self.autoadjust
         # SETUP VARIABLES
         # HACK: reaquire logging print funcs in case they have changed
@@ -550,22 +563,26 @@ class ProgressIter(object):
                 if adjust and (between_time < time_thresh or between_time > time_thresh * 2.0):
                     max_between_time = max(max(max_between_time, between_time), 1E-9)
                     max_between_count = max(max_between_count, between_count)
-                    new_freq = max(int(1.3 * time_thresh * max_between_count / max_between_time), 1)
+                    # If progress was uniform and all time estimates were
+                    # perfect this would be the new freq to achieve time_thresh
+                    new_freq = max(int(time_thresh * max_between_count / max_between_time), 1)
                     if DEBUG_FREQ_ADJUST:
                         print('\n+---')
                         print('[prog] between_count = %r' % between_count)
-                        print('[prog] between_time = %r' % between_time)
+                        print('[prog] between_time = %.8r' % between_time)
                         print('[prog] time_thresh = %r' % time_thresh)
                         print('[prog] max_between_count = %r' % max_between_count)
-                        print('[prog] max_between_time = %r' % max_between_time)
+                        print('[prog] max_between_time = %.8r' % max_between_time)
                         print('[prog] Adusting frequency from: %r' % freq)
                         print('[prog] Adusting frequency to: %r' % new_freq)
                         print('L___')
-                    max_freq_change = 1000
-                    if (new_freq - freq) > max_freq_change:
-                        freq += max_freq_change
-                    elif (freq - new_freq) > max_freq_change:
-                        freq -= max_freq_change
+                    # But things are not perfect. So, don't make drastic changes
+                    max_freq_change_up = max(256, freq * 2)
+                    max_freq_change_down = freq // 2
+                    if (new_freq - freq) > max_freq_change_up:
+                        freq += max_freq_change_up
+                    elif (freq - new_freq) > max_freq_change_down:
+                        freq -= max_freq_change_down
                     else:
                         freq = new_freq
                 #msg = msg_fmtstr % (

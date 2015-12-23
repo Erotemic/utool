@@ -645,6 +645,29 @@ def parse_docblocks_from_docstr(docstr):
     return docstr_blocks
 
 
+def read_exampleblock(docblock):
+    import utool as ut
+    nonheader_src = ut.unindent('\n'.join(docblock.splitlines()[1:]))
+    nonheader_lines = nonheader_src.splitlines()
+    reversed_src_lines = []
+    reversed_want_lines = []
+    finished_want = False
+
+    # Read the example block backwards to get the want string
+    # and then the rest should all be source
+    for line in reversed(nonheader_lines):
+        if not finished_want:
+            if line.startswith('>>> ') or line.startswith('... '):
+                finished_want = True
+            else:
+                reversed_want_lines.append(line)
+                continue
+        reversed_src_lines.append(line[4:])
+    test_src = '\n'.join(reversed_src_lines[::-1])
+    test_want = '\n'.join(reversed_want_lines[::-1])
+    return test_src, test_want
+
+
 def parse_doctest_from_docstr(docstr):
     r"""
     because doctest itself doesnt do what I want it to do
@@ -670,27 +693,7 @@ def parse_doctest_from_docstr(docstr):
 
     example_docblocks = []
     example_setups = []
-
-    def read_exampleblock(dockblock):
-        nonheader_src = ut.unindent('\n'.join(docblock.splitlines()[1:]))
-        nonheader_lines = nonheader_src.splitlines()
-        reversed_src_lines = []
-        reversed_want_lines = []
-        finished_want = False
-
-        # Read the example block backwards to get the want string
-        # and then the rest should all be source
-        for line in reversed(nonheader_lines):
-            if not finished_want:
-                if line.startswith('>>> ') or line.startswith('... '):
-                    finished_want = True
-                else:
-                    reversed_want_lines.append(line)
-                    continue
-            reversed_src_lines.append(line[4:])
-        test_src = '\n'.join(reversed_src_lines[::-1])
-        test_want = '\n'.join(reversed_want_lines[::-1])
-        return test_src, test_want
+    param_grids = None
 
     for header, docblock, line_offset in docstr_blocks:
         if header.startswith('Example'):
@@ -699,6 +702,14 @@ def parse_doctest_from_docstr(docstr):
         if header.startswith('Setup'):
             setup_src = read_exampleblock(docblock)[0]
             example_setups.append(setup_src)
+
+        if header.startswith('ParamGrid'):
+            paramgrid_src = read_exampleblock(docblock)[0]
+            globals_ = {}
+            six.exec_('import utool as ut\n' + paramgrid_src, globals_)
+            assert 'combos' in globals_, 'param grid must define combos'
+            combos = globals_['combos']
+            param_grids = [ut.execstr_dict(combo, explicit=True) for combo in combos]
 
     testheader_list     = []
     testsrc_list        = []
@@ -716,7 +727,30 @@ def parse_doctest_from_docstr(docstr):
     # Hack: append setups to all sources
     assert len(example_setups) <= 1, 'cant have more than 1 setup'
     if len(example_setups) == 1:
-        testsrc_list = [example_setups[0] + '\n' + src for src in  testsrc_list]
+        if param_grids is None:
+            testsrc_list = ['\n'.join([example_setups[0], src]) for src in  testsrc_list]
+        else:
+            # Implmentation to put all pgrids in the same test
+            testsrc_list = ['\n'.join(
+                [example_setups[0]] +
+                [
+                    '\n'.join(
+                        [
+                            pgrid,
+                            'print(\'Grid %d\')' % (count,),
+                            src.replace('ut.show_if_requested()', '')  # Megahack
+                            if count < (len(param_grids) - 1) else
+                            src
+                        ]
+                    )
+                    for count, pgrid in enumerate(param_grids)])
+                for src in testsrc_list]
+            #testsrc_list = ['\n'.join([example_setups[0], pgrid, src]) for pgrid in param_grids for src in  testsrc_list]
+            # implementation to make a different test for each pgrid
+            #testsrc_list = ['\n'.join([example_setups[0], pgrid, src]) for pgrid in param_grids for src in  testsrc_list]
+            #testheader_list = [head for pgrid in param_grids for head in testheader_list]
+            #testwant_list = [tw for pgrid in param_grids for tw in testwant_list]
+            #testwant_list = [lo for pgrid in param_grids for lo in testlineoffset_list]
 
     return testheader_list, testsrc_list, testwant_list, testlineoffset_list
 
