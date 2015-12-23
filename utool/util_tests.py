@@ -527,7 +527,7 @@ def _exec_doctest(src, kwargs, nocheckwant=None):
             errmsg1 = ''
             try:
                 import utool as ut
-                difftext = ut.get_textdiff(result, want)
+                difftext = ut.get_textdiff(want, result)
                 if util_dbg.COLORED_EXCEPTIONS:
                     difftext = ut.get_colored_diff(difftext)
                 errmsg1 += ('DIFF/GOT/EXPECTED\n' + difftext + '\n')

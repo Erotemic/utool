@@ -356,7 +356,7 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
         python -m utool.util_autogen --test-make_example_docstr
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_autogen import *  # NOQA
         >>> # build test data
         >>> funcname = 'make_example_docstr'
@@ -373,29 +373,14 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
         >>> print(result)
         # ENABLE_DOCTEST
         from utool.util_autogen import *  # NOQA
+        import utool as ut
         import ibeis
         species = ibeis.const.Species.ZEB_PLAIN
-        ibs = ibeis.opendb(defaultdb='testdb1')
-        daids = ibs.get_valid_aids(species=species)
         qaids = ibs.get_valid_aids(species=species)
-        qreq_ = ibs.new_query_request(qaids, daids)
+        qreq_ = ibeis.testdata_qreq()
         foo = make_example_docstr(qaids, qreq_)
-        result = ('foo = %s' % (str(foo),))
+        result = ('foo = %s' % (ut.repr2(foo),))
         print(result)
-
-
-        # ENABLE_DOCTEST
-        from utool.util_autogen import *  # NOQA
-        import ibeis
-        species = ibeis.const.Species.ZEB_PLAIN
-        ibs = ibeis.opendb(defaultdb='testdb1')
-        daids = ibs.get_valid_aids(species=species)
-        qaids = ibs.get_valid_aids(species=species)
-        qreq_ = ibs.new_query_request(qaids, daids)
-        foo = make_example_docstr(qaids, qreq_)
-        result = str(foo)
-        print(result)
-
     """
     import utool as ut
 
@@ -403,6 +388,9 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
     top_import_fmstr = 'from {modname} import *  # NOQA'
     top_import = top_import_fmstr.format(modname=modname)
     import_lines = [top_import]
+    if modname.startswith('utool'):
+        import_lines += ['import utool as ut']
+    is_show_func = not modname.startswith('utool') and not modname.startswith('mtgmonte')
 
     # TODO: Externally register these
     default_argval_map = {
@@ -528,13 +516,12 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
     if result_print is not None:
         if return_name != 'result':
             #examplecode_lines.append('result = str(' + return_name + ')')
-            result_line_fmt = 'result = (\'{return_name} = %s\' % (str({return_name}),))'
+            result_line_fmt = 'result = (\'{return_name} = %s\' % (ut.repr2({return_name}),))'
             result_line = result_line_fmt.format(return_name=return_name)
             examplecode_lines.append(result_line)
         examplecode_lines.append(result_print)
 
     # TODO: infer this
-    is_show_func = True
     if is_show_func:
         examplecode_lines += [
             'ut.quit_if_noshow()',
