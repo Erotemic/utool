@@ -479,7 +479,17 @@ def is_defined_by_module(item, module):
     This check may be prone to errors.
     """
     flag = False
-    if hasattr(item, '_utinfo'):
+    if isinstance(item, types.ModuleType):
+        if not hasattr(item, '__file__'):
+            return False
+        item_modpath = os.path.realpath(dirname(item.__file__))
+        mod_fpath = module.__file__.replace('.pyc', '.py')
+        if not mod_fpath.endswith('__init__.py'):
+            return False
+        modpath = os.path.realpath(dirname(mod_fpath))
+        modpath = modpath.replace('.pyc', '.py')
+        return item_modpath.startswith(modpath)
+    elif hasattr(item, '_utinfo'):
         # Capture case where there is a utool wrapper
         orig_func = item._utinfo['orig_func']
         flag = is_defined_by_module(orig_func, module)

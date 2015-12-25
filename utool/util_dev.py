@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+import types
 import sys
 import six
 import re
@@ -2248,8 +2249,69 @@ def argparse_funckw(func, defaults={}, **kwargs):
 
 def search_utool(pat):
     import utool as ut
-    found_list = [name for name in dir(ut) if name.find(pat) >= 0]
+    return search_module(ut, pat)
+
+
+def search_module(mod, pat, ignore_case=True, recursive=False, _seen=None):
+    r"""
+    Args:
+        mod (module):
+        pat (str):
+
+    Returns:
+        list: found_list
+
+    CommandLine:
+        python -m utool.util_dev --exec-search_module --show --mod=utool --pat=module
+        python -m utool.util_dev --exec-search_module --show --mod=opengm --pat=cut
+        python -m utool.util_dev --exec-search_module --show --mod=opengm.inference --pat=cut
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dev import *  # NOQA
+        >>> import utool as ut
+        >>> recursive = True
+        >>> ignore_case = True
+        >>> mod = ut.import_modname(ut.get_argval('--mod', type_=str, default='utool'))
+        >>> pat = ut.get_argval('--pat', type_=str, default='search')
+        >>> print('pat = %r' % (pat,))
+        >>> print('mod = %r' % (mod,))
+        >>> found_list = search_module(mod, pat, recursive=recursive)
+        >>> result = ('found_list = %s' % (ut.repr2(found_list),))
+        >>> print(result)
+    """
+    if _seen is not None and mod in _seen:
+        return []
+    import utool as ut
+    reflags = re.IGNORECASE * ignore_case
+    found_list = [name for name in dir(mod) if re.search(pat, name, flags=reflags)]
+    if recursive:
+        if _seen is None:
+            _seen = set()
+        _seen.add(mod)
+        module_attrs = [getattr(mod, name) for name in dir(mod)]
+        submodules = [
+            submod for submod in module_attrs
+            if isinstance(submod, types.ModuleType) and submod not in _seen and
+            ut.is_defined_by_module(submod, mod)
+        ]
+        for submod in submodules:
+            found_list += search_module(submod, pat, ignore_case=ignore_case, recursive=recursive, _seen=_seen)
+    # found_list = [name for name in dir(mod) if name.find(pat) >= 0]
+    found_list = ut.unique_keep_order(found_list)
     return found_list
+
+
+def get_submodules_from_dpath(dpath):
+    # dpath = ut.get_module_dir(mod)
+    import utool as ut
+    submod_fpaths = ut.ls_modulefiles(dpath)
+    submod_dpaths = [d for d in ut.ls_dirs(dpath) if ut.is_module_dir(d) ]
+    if len(submod_dpaths) > 0:
+        submod_fpaths.extend(ut.flatten([get_submodules_from_dpath(d) for d in submod_dpaths]))
+    return submod_fpaths
+    # is_module_dir
+    # ut.glob(dpath)
 
 
 if __name__ == '__main__':
