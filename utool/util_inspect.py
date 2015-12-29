@@ -85,11 +85,11 @@ def get_dev_hints():
 
     registered_hints = OrderedDict([
         # General IBEIS hints
-        ('ibs.*'   , ('IBEISController', 'ibeis controller object')),
+        ('ibs.*'   , ('ibeis.IBEISController', 'image analysis api')),
         ('testres', ('TestResult', 'test result object')),
-        ('qaid2_qres.*'   , ('dict', 'dict of query result objects')),
-        ('qreq_'   , ('QueryRequest', 'query request object with hyper-parameters')),
-        ('qres.*'  , ('QueryResult', 'object of feature correspondences and scores')),
+        ('qaid2_cm.*'   , ('dict', 'dict of ``ChipMatch2`` objects')),
+        ('qreq_'   , ('ibeis.QueryRequest', 'query request object with hyper-parameters')),
+        ('cm'  , ('ChipMatch2', 'object of feature correspondences and scores')),
         ('qparams*', ('QueryParams', 'query hyper-parameters')),
         ('vecs'    , ('ndarray[uint8_t, ndim=2]', 'descriptor vectors')),
         ('maws'    , ('ndarray[float32_t, ndim=1]', 'multiple assignment weights')),

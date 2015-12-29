@@ -45,6 +45,16 @@ def is_byte_encoded_unicode(str_):
 ensure_unicode = meta_util_six.ensure_unicode
 
 
+def ensure_ascii(str_):
+    try:
+        return str_.encode('ascii')
+    except UnicodeDecodeError:
+        print("it was not a ascii-encoded unicode string")
+    else:
+        print("It may have been an ascii-encoded unicode string")
+    return str_
+
+
 def ensure_unicode_strlist(str_list):
     __STR__ = util_type.__STR__
     flag_list = [not isinstance(str_, __STR__) and is_byte_encoded_unicode(str_) for str_ in str_list]

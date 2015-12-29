@@ -1344,18 +1344,30 @@ class LazyDict(object):
         dict_ = {key: self.getitem(key, is_eager) for key in self.keys()}
         return dict_
 
-    def tostring(self, is_eager=None, **kwargs):
+    def tostring(self, is_eager=None, keys=None, **kwargs):
         import utool as ut
         dict_ = self.asdict(is_eager=is_eager)
-        return ut.dict_str(dict_, **kwargs)
+        class AwakeFaceRepr(object):
+            def __repr__(self):
+                return '!'
+                # return '(o.o)'
+                # return "٩(ˊᗜˋ*)و"
+        class SleepFaceRepr(object):
+            def __repr__(self):
+                return 'z'
+                # return '(-_-)'
+                # return '(ᵕ≀ᵕ)'
+        for key in self.evaluated_keys():
+            # dict_[key] = '!'
+            dict_[key] = AwakeFaceRepr()
+        for key in self.unevaluated_keys():
+            # dict_[key] = 'z'
+            dict_[key] = SleepFaceRepr()
+        if keys is not None:
+            dict_ = ut.dict_subset(dict_, keys)
+        return ut.repr2(dict_, **kwargs)
 
     # --- dict interface
-
-    def __setitem__(self, key, value):
-        self.setitem(key, value)
-
-    def __getitem__(self, key):
-        return self.get(key)
 
     def get(self, key, *d):
         assert len(d) == 0, 'no support for default yet'
@@ -1375,6 +1387,12 @@ class LazyDict(object):
 
     def items(self):
         return [(key, self[key]) for key in self.keys()]
+
+    def __setitem__(self, key, value):
+        self.setitem(key, value)
+
+    def __getitem__(self, key):
+        return self.get(key)
 
     def __iter__(self):
         return iter(self.keys())

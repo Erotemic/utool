@@ -23,6 +23,7 @@ try:
 except ImportError as ex:
     HAVE_NUMPY = False
     pass
+# TODO: remove print_, or grab it dynamically from util_logger
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[dev]')
 
 if HAVE_NUMPY:
@@ -2264,7 +2265,7 @@ def search_module(mod, pat, ignore_case=True, recursive=False, _seen=None):
     CommandLine:
         python -m utool.util_dev --exec-search_module --show --mod=utool --pat=module
         python -m utool.util_dev --exec-search_module --show --mod=opengm --pat=cut
-        python -m utool.util_dev --exec-search_module --show --mod=opengm.inference --pat=cut
+        python -m utool.util_dev --exec-search_module --show --mod=opengm --pat=multi
 
     Example:
         >>> # ENABLE_DOCTEST

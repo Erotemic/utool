@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import operator
 import six
 import itertools
+import functools
 from six.moves import zip, map, zip_longest, range, filter, reduce
 from utool import util_iter
 from utool import util_inject
@@ -355,7 +356,7 @@ def flatten(list_):
 
 
 def invertible_flatten(unflat_list):
-    """
+    r"""
     Flattens ``list`` but remember how to reconstruct the unflat ``list``
     Returns flat ``list`` and the unflat ``list`` with indexes into the flat
     ``list``
@@ -365,12 +366,27 @@ def invertible_flatten(unflat_list):
 
     Returns:
         tuple : (flat_list, reverse_list)
-    """
 
-    def nextnum(trick_=[0]):
-        num = trick_[0]
-        trick_[0] += 1
-        return num
+    CommandLine:
+        python -m utool.util_list --exec-invertible_flatten --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> import utool as ut
+        >>> unflat_list = [[1, 2, 3], [4, 5], [6, 6]]
+        >>> flat_list, reverse_list = invertible_flatten(unflat_list)
+        >>> result = ('flat_list = %s\n' % (ut.repr2(flat_list),))
+        >>> result += ('reverse_list = %s' % (ut.repr2(reverse_list),))
+        >>> print(result)
+        flat_list = [1, 2, 3, 4, 5, 6, 6]
+        reverse_list = [[0, 1, 2], [3, 4], [5, 6]]
+    """
+    # def nextnum(trick_=[0]):
+    #     num = trick_[0]
+    #     trick_[0] += 1
+    #     return num
+    nextnum = functools.partial(six.next, itertools.count(0))
     # Build an unflat list of flat indexes
     reverse_list = [[nextnum() for _ in tup] for tup in unflat_list]
     flat_list = flatten(unflat_list)
@@ -490,6 +506,8 @@ def invertible_flatten2(unflat_list):
 def invertible_flatten2_numpy(unflat_arrs, axis=0):
     """ more numpy version
 
+    TODO: move to vtool
+
     Args:
         unflat_arrs (list):  list of ndarrays
 
@@ -500,22 +518,15 @@ def invertible_flatten2_numpy(unflat_arrs, axis=0):
         python -m utool.util_list --test-invertible_flatten2_numpy
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTET
         >>> from utool.util_list import *  # NOQA
-        >>> # build test data
         >>> unflat_arrs = [np.array([1, 2, 1]), np.array([5, 9]), np.array([4])]
-        >>> # execute function
         >>> (flat_list, cumlen_list) = invertible_flatten2_numpy(unflat_arrs)
-        >>> # verify results
         >>> result = str((flat_list, cumlen_list))
         >>> print(result)
         (array([1, 2, 1, 5, 9, 4]), array([3, 5, 6]))
     """
-    sublen_list = [arr.shape[0] for arr in unflat_arrs]
-    cumlen_list = np.cumsum(sublen_list)
-    #if axis is None:
-    #    flat_list = np.hstack(unflat_arrs)
-    #else:
+    cumlen_list = np.cumsum([arr.shape[axis] for arr in unflat_arrs])
     flat_list = np.concatenate(unflat_arrs, axis=axis)
     return flat_list, cumlen_list
 
@@ -548,7 +559,8 @@ def unflatten2(flat_list, cumlen_list):
         >>> print(result)
         [[5], [2, 3, 12, 3, 3], [9], [13, 3], [5]]
     """
-    unflat_list2 = [flat_list[low:high] for low, high in zip(itertools.chain([0], cumlen_list), cumlen_list)]
+    unflat_list2 = [flat_list[low:high] for low, high in
+                    zip(itertools.chain([0], cumlen_list), cumlen_list)]
     return unflat_list2
 
 
@@ -1377,8 +1389,7 @@ def scalar_input_map(func, input_):
 
 def partial_imap_1to1(func, si_func):
     """ a bit messy """
-    from functools import wraps
-    @wraps(si_func)
+    @functools.wraps(si_func)
     def wrapper(input_):
         if not util_iter.isiterable(input_):
             return func(si_func(input_))

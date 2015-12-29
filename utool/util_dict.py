@@ -59,7 +59,9 @@ def map_dict_vals(func, dict_):
 
 
 def map_dict_keys(func, dict_):
-    """ probably a better version of dict_map_apply_vals """
+    r"""
+    a better version of dict_map_apply_vals
+    """
     return {func(key): val for key, val in six.iteritems(dict_)}
 
 
@@ -67,9 +69,20 @@ class AutoVivification(dict):
     """
     Implementation of perl's autovivification feature.
 
-    References:
-        http://stackoverflow.com/questions/651794/whats-the-best-way-to-initialize-a-dict-of-dicts-in-python
+    An AutoVivification is an infinitely nested default dict of dicts.
 
+    References:
+        http://stackoverflow.com/questions/651794/best-way-to-init-dict-of-dicts
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> dict_ = AutoVivification()
+        >>> # Notice that there is no KeyError
+        >>> dict_[0][10][100] = None
+        >>> result = ('dict_ = %r' % (dict_,))
+        >>> print(result)
+        dict_ = {0: {10: {100: None}}}
     """
     def __getitem__(self, item):
         try:
@@ -94,16 +107,16 @@ def get_dict_hashid(dict_):
         dict_ (dict):
 
     Returns:
-        dict: inverted_dict
-
-    CommandLine:
-        python -m utool.util_dict --test-get_dict_hashid
+        int: id hash
 
     References:
         http://stackoverflow.com/questions/5884066/hashing-a-python-dictionary
 
+    CommandLine:
+        python -m utool.util_dict --test-get_dict_hashid
+
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
         >>> # build test data
         >>> dict_ = {}
@@ -114,6 +127,7 @@ def get_dict_hashid(dict_):
         >>> # verify results
         >>> result = str(hashid)
         >>> print(result)
+        5127623379007436803
     """
     from utool import util_hash
     #hashid = hash(frozenset(dict_.items()))
@@ -125,6 +139,8 @@ def dict_stack(dict_list, key_prefix=''):
     r"""
     stacks values from two dicts into a new dict where the values are list of
     the input values. the keys are the same.
+
+    DEPRICATE in favor of dict_stack2
 
     Args:
         dict_list (list): list of dicts with similar keys
@@ -154,22 +170,25 @@ def dict_stack(dict_list, key_prefix=''):
     return dict_stacked
 
 
-def dict_stack2(dict_list, key_suffix=''):
+def dict_stack2(dict_list, key_suffix=None, default=None):
     """
-    Stacks vals from a list of dicts into a dict of lists Inserts Nones in
+    Stacks vals from a list of dicts into a dict of lists. Inserts Nones in
     place of empty items to preserve order.
 
     Args:
         dict_list (list): list of dicts
-        key_suffix (str): (default = u'')
+        key_suffix (str): (default = None)
 
     Returns:
         dict: stacked_dict
 
-    Example:
-        >>> # ENABLE_DOCTEST
+    Setup:
         >>> from utool.util_dict import *  # NOQA
         >>> import utool as ut
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> # Usual case: multiple dicts as input
         >>> dict1_ = {'a': 1, 'b': 2}
         >>> dict2_ = {'a': 2, 'b': 3, 'c': 4}
         >>> dict_list = [dict1_, dict2_]
@@ -177,10 +196,43 @@ def dict_stack2(dict_list, key_suffix=''):
         >>> result = ut.repr2(dict_stacked, sorted_=True)
         >>> print(result)
         {'a': [1, 2], 'b': [2, 3], 'c': [None, 4]}
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> # Corner case: one dict as input
+        >>> dict1_ = {'a': 1, 'b': 2}
+        >>> dict_list = [dict1_]
+        >>> dict_stacked = dict_stack2(dict_list)
+        >>> result = ut.repr2(dict_stacked, sorted_=True)
+        >>> print(result)
+        {'a': [1], 'b': [2]}
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> # Corner case: zero dicts as input
+        >>> dict_list = []
+        >>> dict_stacked = dict_stack2(dict_list)
+        >>> result = ut.repr2(dict_stacked, sorted_=True)
+        >>> print(result)
+        {}
+
+    Example3:
+        >>> # ENABLE_DOCTEST
+        >>> # Corner case: empty dicts as input
+        >>> dict_list = [{}]
+        >>> dict_stacked = dict_stack2(dict_list)
+        >>> result = ut.repr2(dict_stacked, sorted_=True)
+        >>> print(result)
+        {}
     """
-    dict_list_ = [map_dict_vals(lambda x: [x], kw) for kw in dict_list]
-    dict_ = reduce(partial(dict_union_combine, default=[None]), dict_list_)
-    stacked_dict = map_dict_keys(lambda x: x + key_suffix, dict_)
+    if len(dict_list) > 0:
+        dict_list_ = [map_dict_vals(lambda x: [x], kw) for kw in dict_list]
+        stacked_dict = reduce(partial(dict_union_combine, default=[default]), dict_list_)
+    else:
+        stacked_dict = {}
+    # Augment keys if requested
+    if key_suffix is not None:
+        stacked_dict = map_dict_keys(lambda x: x + key_suffix, stacked_dict)
     return stacked_dict
 
 
@@ -270,21 +322,6 @@ def all_dict_combinations(varied_dict):
             {'logdist_weight': 1.0, 'pipeline_root': 'vsmany', 'sv_on': False},
             {'logdist_weight': 1.0, 'pipeline_root': 'vsmany', 'sv_on': None},
         ]
-
-        [
-            {'pipeline_root': 'vsmany', 'sv_on': True, 'logdist_weight': 0.0},
-            {'pipeline_root': 'vsmany', 'sv_on': True, 'logdist_weight': 1.0},
-            {'pipeline_root': 'vsmany', 'sv_on': False, 'logdist_weight': 0.0},
-            {'pipeline_root': 'vsmany', 'sv_on': False, 'logdist_weight': 1.0},
-            {'pipeline_root': 'vsmany', 'sv_on': None, 'logdist_weight': 0.0},
-            {'pipeline_root': 'vsmany', 'sv_on': None, 'logdist_weight': 1.0},
-        ]
-
-    Ignore:
-        print(x)
-        print(y)
-
-        print(ut.hz_str('\n'.join(list(x)), '\n'.join(list(y))))
     """
     #tups_list = [[(key, val) for val in val_list]
     #             if isinstance(val_list, (list, tuple))
@@ -330,15 +367,6 @@ def all_dict_combinations_lbls(varied_dict, remove_singles=True, allow_lone_sing
             'logdist_weight=1.0,sv_on=None',
         ]
 
-        [
-            "(('logdist_weight', 0.0), ('sv_on', True))",
-            "(('logdist_weight', 0.0), ('sv_on', False))",
-            "(('logdist_weight', 0.0), ('sv_on', None))",
-            "(('logdist_weight', 1.0), ('sv_on', True))",
-            "(('logdist_weight', 1.0), ('sv_on', False))",
-            "(('logdist_weight', 1.0), ('sv_on', None))",
-        ]
-
     Example:
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
@@ -351,11 +379,6 @@ def all_dict_combinations_lbls(varied_dict, remove_singles=True, allow_lone_sing
         [
             'logdist_weight=0.0,pipeline_root=vsmany,sv_on=True',
         ]
-
-        [
-            "(('logdist_weight', 0.0), ('pipeline_root', 'vsmany'), ('sv_on', True))",
-        ]
-
     """
     is_lone_single = all([
         isinstance(val_list, (list, tuple)) and len(val_list) == 1
@@ -373,7 +396,12 @@ def all_dict_combinations_lbls(varied_dict, remove_singles=True, allow_lone_sing
             for key, val_list in iteritems_sorted(varied_dict)
             if isinstance(val_list, (list, tuple)) and len(val_list) > 1]
     combtup_list = list(iprod(*multitups_list))
-    comb_lbls = [','.join(['%s=%s' % (key, val if isinstance(val, six.string_types) else repr(val)) for (key, val) in combtup]) for combtup in combtup_list]
+    combtup_list2 = [
+        [(key, val) if isinstance(val, six.string_types) else (key, repr(val))
+         for (key, val) in combtup]
+        for combtup in combtup_list]
+    comb_lbls = [','.join(['%s=%s' % (key, val) for (key, val) in combtup])
+                 for combtup in combtup_list2]
     #comb_lbls = list(map(str, comb_pairs))
     return comb_lbls
 

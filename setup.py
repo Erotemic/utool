@@ -76,6 +76,7 @@ def utool_setup():
         'setproctitle',
         'sphinxcontrib-napoleon',
         'objgraph',
+        'h5py',
     ]
 
     # format optional dependencies
