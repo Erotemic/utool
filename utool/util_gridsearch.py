@@ -560,7 +560,7 @@ class ParamInfo(object):
     """
     def __init__(pi, varname, default, shortprefix=util_dev.NoParam,
                  type_=util_dev.NoParam, varyvals=[], varyslice=None,
-                 hideif=util_dev.NoParam):
+                 hideif=util_dev.NoParam, help_=None):
         r"""
         Args:
             varname (?):
@@ -639,7 +639,8 @@ class ParamInfoBool(ParamInfo):
         >>> print(result)
         nocheese
     """
-    def __init__(pi, varname, default=False, shortprefix=util_dev.NoParam, type_=bool, varyvals=[], varyslice=None, hideif=False):
+    def __init__(pi, varname, default=False, shortprefix=util_dev.NoParam,
+                 type_=bool, varyvals=[], varyslice=None, hideif=False, help_=None):
         if not varname.endswith('_on'):
             # TODO: use this convention or come up with a better one
             #print('WARNING: varname=%r should end with _on' % (varname,))

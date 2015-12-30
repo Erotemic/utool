@@ -883,24 +883,36 @@ class Cachable(object):
     ext = '.cPkl'  # TODO: Capt'n Proto backend to replace pickle backend
 
     #@abc.abstractmethod
-    #def get_cfgstr(self):
-    #    raise NotImplementedError('abstract method')
+    def get_cfgstr(self):
+        return 'DEFAULT'
+        # raise NotImplementedError('abstract method')
 
     #@abc.abstractmethod
-    #def get_prefix(self):
-    #    raise NotImplementedError('abstract method')
+    def get_prefix(self):
+        # import utool as ut
+        return self.__class__.__name__ + '_'
+        # return ut.get_funcname(self.__class__) + '_'
+        # raise NotImplementedError('abstract method')
+
+    def get_cachedir(self, cachedir=None):
+        if cachedir is None:
+            if hasattr(self, 'cachedir'):
+                cachedir = self.cachedir
+            else:
+                cachedir = '.'
+        return cachedir
 
     def get_fname(self, cfgstr=None, ext=None):
         # convinience
         return basename(self.get_fpath('', cfgstr=cfgstr, ext=ext))
 
-    def get_fpath(self, cachedir, cfgstr=None, ext=None):
+    def get_fpath(self, cachedir=None, cfgstr=None, ext=None):
         """
         Ignore:
             fname = _fname
             cfgstr = _cfgstr
         """
-        _dpath = cachedir
+        _dpath = self.get_cachedir(cachedir)
         _fname = self.get_prefix()
         _cfgstr = self.get_cfgstr() if cfgstr is None else cfgstr
         _ext =   self.ext if ext is None else ext
@@ -908,7 +920,7 @@ class Cachable(object):
         fpath = _args2_fpath(_dpath, _fname, _cfgstr, _ext, write_hashtbl=write_hashtbl)
         return fpath
 
-    def delete(self, cachedir, cfgstr=None, verbose=True or VERBOSE or util_arg.VERBOSE):
+    def delete(self, cachedir=None, cfgstr=None, verbose=True or VERBOSE or util_arg.VERBOSE):
         """
         saves query result to directory
         """
@@ -918,7 +930,7 @@ class Cachable(object):
         os.remove(fpath)
 
     @profile
-    def save(self, cachedir, cfgstr=None, verbose=VERBOSE, quiet=QUIET,
+    def save(self, cachedir=None, cfgstr=None, verbose=VERBOSE, quiet=QUIET,
              ignore_keys=None):
         """
         saves query result to directory
@@ -926,11 +938,17 @@ class Cachable(object):
         fpath = self.get_fpath(cachedir, cfgstr=cfgstr)
         if verbose:
             print('[Cachable] cache save: %r' % (basename(fpath),))
+
+        if hasattr(self, '__getstate__'):
+            statedict = self.__getstate__()
+        else:
+            statedict = self.__dict__
+
         if ignore_keys is None:
-            save_dict = self.__dict__
+            save_dict = statedict
         else:
             save_dict = {key: val
-                         for (key, val) in six.iteritems(self.__dict__)
+                         for (key, val) in six.iteritems(statedict)
                          if key not in ignore_keys}
 
         util_io.save_cPkl(fpath, save_dict)
@@ -945,13 +963,16 @@ class Cachable(object):
             for key in ignore_keys:
                 if key in loaded_dict:
                     del loaded_dict[key]
-        self.__dict__.update(loaded_dict)
+        if hasattr(self, '__setstate__'):
+            self.__setstate__(loaded_dict)
+        else:
+            self.__dict__.update(loaded_dict)
         #with open(fpath, 'rb') as file_:
         #    loaded_dict = pickle.load(file_)
         #    self.__dict__.update(loaded_dict)
 
     @profile
-    def load(self, cachedir, cfgstr=None, verbose=VERBOSE, quiet=QUIET, ignore_keys=None):
+    def load(self, cachedir=None, cfgstr=None, verbose=VERBOSE, quiet=QUIET, ignore_keys=None):
         """
         Loads the result from the given database
         """

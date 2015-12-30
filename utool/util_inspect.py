@@ -86,11 +86,11 @@ def get_dev_hints():
     registered_hints = OrderedDict([
         # General IBEIS hints
         ('ibs.*'   , ('ibeis.IBEISController', 'image analysis api')),
-        ('testres', ('TestResult', 'test result object')),
-        ('qaid2_cm.*'   , ('dict', 'dict of ``ChipMatch2`` objects')),
+        ('testres', ('ibeis.TestResult', 'test result object')),
         ('qreq_'   , ('ibeis.QueryRequest', 'query request object with hyper-parameters')),
-        ('cm'  , ('ChipMatch2', 'object of feature correspondences and scores')),
-        ('qparams*', ('QueryParams', 'query hyper-parameters')),
+        ('cm'  , ('ibeis.ChipMatch2', 'object of feature correspondences and scores')),
+        ('qparams*', ('ibeis.QueryParams', 'query hyper-parameters')),
+        ('qaid2_cm.*'   , ('dict', 'dict of ``ChipMatch2`` objects')),
         ('vecs'    , ('ndarray[uint8_t, ndim=2]', 'descriptor vectors')),
         ('maws'    , ('ndarray[float32_t, ndim=1]', 'multiple assignment weights')),
         ('words'   , ('ndarray[uint8_t, ndim=2]', 'aggregate descriptor cluster centers')),
