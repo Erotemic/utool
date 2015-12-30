@@ -884,7 +884,8 @@ class Cachable(object):
 
     #@abc.abstractmethod
     def get_cfgstr(self):
-        return 'DEFAULT'
+        return getattr(self, 'cfgstr', 'DEFAULT')
+        # return 'DEFAULT'
         # raise NotImplementedError('abstract method')
 
     #@abc.abstractmethod
