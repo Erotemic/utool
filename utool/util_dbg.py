@@ -1090,7 +1090,59 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
 def formatex(ex, msg='[!?] Caught exception',
              prefix=None, key_list=[], locals_=None, iswarning=False, tb=False,
              N=0, keys=None, colored=None):
-    """ Formats an exception with relevant info """
+    r"""
+    Formats an exception with relevant info
+
+    Args:
+        ex (Exception): exception to print
+        msg (unicode):  a message to display to the user (default = u'[!?] Caught exception')
+        keys (None): a list of strings denoting variables or expressions of interest (default = [])
+        iswarning (bool): prints as a warning rather than an error if True (default = False)
+        tb (bool): if True prints the traceback in the error message (default = False)
+        prefix (None): (default = None)
+        locals_ (None): (default = None)
+        N (int): (default = 0)
+        colored (None): (default = None)
+        key_list (list): DEPRICATED use keys
+
+    Returns:
+        str: formated exception
+
+    CommandLine:
+        python -m utool.util_dbg --exec-formatex
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dbg import *  # NOQA
+        >>> import utool as ut
+        >>> msg = 'Testing Exception'
+        >>> prefix = '[test]'
+        >>> key_list = ['N', 'foo', 'tb']
+        >>> locals_ = None
+        >>> iswarning = False
+        >>> keys = None
+        >>> colored = None
+        >>> def failfunc():
+        >>>     tb = True
+        >>>     N = 0
+        >>>     try:
+        >>>         raise Exception('test exception')
+        >>>     except Exception as ex:
+        >>>         result = formatex(ex, msg, prefix, key_list, locals_,
+        >>>                           iswarning, tb, N, keys, colored)
+        >>>         return result
+        >>> result = failfunc().replace('\n\n', '')
+        >>> print(result)
+        <!!! EXCEPTION !!!>
+        Traceback (most recent call last):
+          File "<string>", line 15, in failfunc
+        Exception: test exception[test] Testing Exception
+        <type 'exceptions.Exception'>: test exception
+        [test] N = 0
+        !!! foo not populated!
+        [test] tb = True
+        </!!! EXCEPTION !!!>
+    """
     # Get error prefix and local info
     if prefix is None:
         prefix = get_caller_prefix(aserror=True, N=N)
@@ -1104,24 +1156,10 @@ def formatex(ex, msg='[!?] Caught exception',
     ex_tag = 'WARNING' if iswarning else 'EXCEPTION'
     errstr_list.append('<!!! %s !!!>' % ex_tag)
     if tb or FORCE_TB:
-        from utool import util_cplat
         tbtext = traceback.format_exc()
-        colored_exceptions = colored if colored is not None else (False and not util_cplat.WIN32)
-        #COLORED_EXCEPTIONS = not util_cplat.WIN32
-        #COLORED_EXCEPTIONS =  False  # disable
-        if colored_exceptions or COLORED_EXCEPTIONS:
-            # TODO: rectify with duplicate in util_inject
-            try:
-                import pygments
-                import pygments.lexers
-                import pygments.formatters
-            except ImportError:
-                print('WARNING: pygments not installed, cannot color error messages')
-            else:
-                lexer = pygments.lexers.get_lexer_by_name('pytb', stripall=True)
-                formatter = pygments.formatters.TerminalFormatter(bg='dark')
-                formatted_text = pygments.highlight(tbtext, lexer, formatter)
-                tbtext = formatted_text
+        if colored or COLORED_EXCEPTIONS:
+            from utool import util_print
+            tbtext = util_print.highlight_text(tbtext, lexer_name='pytb', stripall=True)
         errstr_list.append(tbtext)
     errstr_list.append(prefix + ' ' + str(msg) + '\n%r: %s' % (type(ex), str(ex)))
     #errstr_list.append(prefix + ' ' + str(msg) + '\ntype(ex)=%r' % (type(ex),))

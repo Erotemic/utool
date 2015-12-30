@@ -75,6 +75,10 @@ def _try_cast(val, type_):
     return newval
 
 
+def get_argflag(flag):
+    return flag in sys.argv
+
+
 # FIXME: on a rrrr this get_argval is taken
 # instead of the correct one from util_arg
 def get_argval(argstr, type_=None, default=None):

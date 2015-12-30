@@ -313,7 +313,11 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
 
         if PRINT_SRC or VERBOSE_TEST:
             print(ut.msgblock('EXEC SRC', src))
-        test_globals = module.__dict__.copy()
+        # Commented because it caused differences between
+        # individual test runs and large test runs with ut
+        # being imported
+        # test_globals = module.__dict__.copy()
+        test_globals = {}
         error_report = None
         try:
             testkw = dict(
@@ -524,7 +528,7 @@ def _exec_doctest(src, kwargs, nocheckwant=None):
     """
     Helper for run_test
 
-    block of code that runs doctest and was too big to be in run_test
+    block of code that r:uns doctest and was too big to be in run_test
     """
     # TEST INPUT IS PYTHON CODE TEXT
     #test_locals = {}
@@ -543,6 +547,7 @@ def _exec_doctest(src, kwargs, nocheckwant=None):
         # References: https://bugs.python.org/issue13557
         #exec(code, test_globals, test_locals)
         test_locals = test_globals
+        print('test_globals = %r' % (test_globals,))
         exec(code, test_globals)
     except ExitTestException:
         print('Test exited before show')
@@ -555,7 +560,7 @@ def _exec_doctest(src, kwargs, nocheckwant=None):
     else:
         if want.endswith('\n'):
             want = want[:-1]
-        result = str(test_locals.get('result', 'NO VARIABLE NAMED result'))
+        result = six.text_type(test_locals.get('result', 'NO VARIABLE NAMED result'))
         if result != want:
             errmsg1 = ''
             try:
@@ -715,6 +720,7 @@ def parse_doctest_from_docstr(docstr):
 
     Setup:
         >>> from utool.util_tests import *  # NOQA
+        >>> import utool as ut
 
     Example:
         >>> # ENABLE_DOCTEST

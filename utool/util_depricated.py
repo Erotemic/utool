@@ -24,7 +24,7 @@ def cartesian(arrays, out=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from utool.util_alg import *  # NOQA
+        >>> from utool.util_depricated import *  # NOQA
         >>> arrays = ([1, 2, 3], [4, 5], [6, 7])
         >>> out = cartesian(arrays)
         >>> result = repr(out.T)

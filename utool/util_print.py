@@ -18,7 +18,7 @@ QUIET        = meta_util_arg.QUIET
 VERBOSE      = meta_util_arg.VERBOSE
 NO_INDENT    = meta_util_arg.NO_INDENT
 SILENT       = meta_util_arg.SILENT
-ENABLE_COLORS = not util_cplat.WIN32 and '--nopygments' not in sys.argv
+ENABLE_COLORS = not util_cplat.WIN32 and not meta_util_arg.get_argflag('--nopygments')
 
 
 def print_dict(dict_, dict_name=None, **kwargs):
@@ -305,7 +305,6 @@ def highlight_text(text, lexer_name='python', **kwargs):
     if ENABLE_COLORS:
         try:
             import pygments
-            import pygments
             import pygments.lexers
             import pygments.formatters
             #from pygments import highlight
@@ -322,7 +321,8 @@ def highlight_text(text, lexer_name='python', **kwargs):
             lexer = pygments.lexers.get_lexer_by_name(lexer_name, **kwargs)
             return pygments.highlight(text, lexer, formater)
         except Exception:
-            #raise
+            if ut.SUPER_STRICT:
+                raise
             return text
     return text
 

@@ -1892,7 +1892,7 @@ def find_pyfunc_above_row(line_list, row, orclass=False):
         find_pyfunc_above_row
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
         >>> import utool as ut
         >>> fpath = ut.util_inspect.__file__.replace('.pyc', '.py')

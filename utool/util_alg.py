@@ -552,11 +552,11 @@ def knapsack(items, maxweight, recursive=True):
     `maxweight`.
 
     Args:
-        `items` (tuple): is a sequence of tuples `(value, weight, id_)`, where `value`
+        items (tuple): is a sequence of tuples `(value, weight, id_)`, where `value`
             is a number and `weight` is a non-negative integer, and `id_` is an
             item identifier.
 
-        `maxweight` (scalar):  is a non-negative integer.
+        maxweight (scalar):  is a non-negative integer.
 
     Returns:
         tuple: (total_value, items_subset) - a pair whose first element is the
@@ -578,6 +578,7 @@ def knapsack(items, maxweight, recursive=True):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
         >>> items = [(4, 12, 0), (2, 1, 1), (6, 4, 2), (1, 1, 3), (2, 2, 4)]
         >>> maxweight = 15
         >>> total_value, items_subset = knapsack(items, maxweight, recursive=True)
@@ -593,6 +594,7 @@ def knapsack(items, maxweight, recursive=True):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
         >>> # Solve https://xkcd.com/287/
         >>> weights = [2.15, 2.75, 3.35, 3.55, 4.2, 5.8] * 2
         >>> items = [(w, w, i) for i, w in enumerate(weights)]

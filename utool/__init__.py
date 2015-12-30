@@ -28,6 +28,7 @@ else:
 # THESE COMMANDS WILL WRITE THE IMPORT FILE
 """
 python -c "import utool" --dump-utool-init
+python -c "import utool" --print-utool-init --dyn
 python -c "import utool" --update-utool-init --dyn
 """
 
@@ -304,15 +305,15 @@ if DOELSE:
     from utool.util_config import (get_default_global_config, 
                                    get_default_repo_config, read_repo_config, 
                                    write_default_repo_config,) 
-    from utool.util_dbg import (COLORED_EXCEPTIONS, EmbedOnException, FORCE_TB, 
-                                IPYTHON_EMBED_STR, RAISE_ALL, TB, all_rrr, 
-                                breakpoint, debug_exception, debug_hstack, 
-                                debug_list, debug_npstack, debug_vstack, 
-                                dict_dbgstr, embed, embed2, 
-                                embed_on_exception_context, eoxc, 
-                                execstr_attr_list, execstr_dict, execstr_embed, 
-                                execstr_func, execstr_parent_locals, 
-                                execstr_src, explore_module, explore_stack, 
+    from utool.util_dbg import (EmbedOnException, FORCE_TB, IPYTHON_EMBED_STR, 
+                                RAISE_ALL, TB, all_rrr, breakpoint, 
+                                debug_exception, debug_hstack, debug_list, 
+                                debug_npstack, debug_vstack, dict_dbgstr, 
+                                embed, embed2, embed_on_exception_context, 
+                                eoxc, execstr_attr_list, execstr_dict, 
+                                execstr_embed, execstr_func, 
+                                execstr_parent_locals, execstr_src, 
+                                explore_module, explore_stack, 
                                 fix_embed_globals, fmtlocals, formatex, 
                                 get_caller_lineno, get_caller_locals, 
                                 get_caller_modname, get_caller_name, 
@@ -768,14 +769,14 @@ if DOELSE:
                                   parse_docblocks_from_docstr, 
                                   parse_doctest_from_docstr, quit_if_noshow, 
                                   read_exampleblock, run_test, 
-                                  show_if_requested, show_was_requested,) 
+                                  show_if_requested, show_was_requested, 
+                                  test_jedistuff,) 
     from utool.util_web import (get_localhost, is_local_port_open, 
                                 start_simple_webserver,) 
     from utool.DynamicStruct import (DynStruct,) 
     from utool.Preferences import (Pref, PrefChoice, PrefInternal, PrefNode, 
                                    PrefTree, VERBOSE_PREF, test_Preferences,) 
-    print, print_, printDBG, rrr, profile = util_inject.inject(
-        __name__, '[utool]')
+    print, rrr, profile = util_inject.inject2(__name__, '[utool]')
     
     
     def reassign_submodule_attributes(verbose=True):
@@ -808,60 +809,74 @@ if DOELSE:
     
     def reload_subs(verbose=True):
         """ Reloads utool and submodules """
+        if verbose:
+            print('Reloading submodules')
         rrr(verbose=verbose)
-        def fbrrr(*args, **kwargs):
-            """ fallback reload """
-            pass
-        getattr(_internal, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_alg, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_aliases, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_arg, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_assert, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_autogen, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_cache, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_cplat, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_class, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_const, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_csv, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_config, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_dbg, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_dev, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_decor, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_distances, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_dict, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_func, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_grabdata, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_gridsearch, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_git, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_latex, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_hash, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_import, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_inject, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_io, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_iter, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_inspect, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_logging, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_list, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_num, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_numpy, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_path, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_print, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_progress, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_project, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_parallel, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_resources, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_str, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_sysreq, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_sqlite, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_setup, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_set, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_regex, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_time, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_type, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_tests, 'rrr', fbrrr)(verbose=verbose)
-        getattr(util_web, 'rrr', fbrrr)(verbose=verbose)
-        getattr(DynamicStruct, 'rrr', fbrrr)(verbose=verbose)
-        getattr(Preferences, 'rrr', fbrrr)(verbose=verbose)
+        def wrap_fbrrr(mod):
+            def fbrrr(*args, **kwargs):
+                """ fallback reload """
+                if verbose:
+                    print('Trying fallback relaod for mod=%r' % (mod,))
+                import imp
+                imp.reload(mod)
+            return fbrrr
+        def get_rrr(mod):
+            if hasattr(mod, 'rrr'):
+                return mod.rrr
+            else:
+                return wrap_fbrrr(mod)
+        def get_reload_subs(mod):
+            return getattr(mod, 'reload_subs', wrap_fbrrr(mod))
+        get_rrr(_internal)(verbose=verbose)
+        get_rrr(util_alg)(verbose=verbose)
+        get_rrr(util_aliases)(verbose=verbose)
+        get_rrr(util_arg)(verbose=verbose)
+        get_rrr(util_assert)(verbose=verbose)
+        get_rrr(util_autogen)(verbose=verbose)
+        get_rrr(util_cache)(verbose=verbose)
+        get_rrr(util_cplat)(verbose=verbose)
+        get_rrr(util_class)(verbose=verbose)
+        get_rrr(util_const)(verbose=verbose)
+        get_rrr(util_csv)(verbose=verbose)
+        get_rrr(util_config)(verbose=verbose)
+        get_rrr(util_dbg)(verbose=verbose)
+        get_rrr(util_dev)(verbose=verbose)
+        get_rrr(util_decor)(verbose=verbose)
+        get_rrr(util_distances)(verbose=verbose)
+        get_rrr(util_dict)(verbose=verbose)
+        get_rrr(util_func)(verbose=verbose)
+        get_rrr(util_grabdata)(verbose=verbose)
+        get_rrr(util_gridsearch)(verbose=verbose)
+        get_rrr(util_git)(verbose=verbose)
+        get_rrr(util_latex)(verbose=verbose)
+        get_rrr(util_hash)(verbose=verbose)
+        get_rrr(util_import)(verbose=verbose)
+        get_rrr(util_inject)(verbose=verbose)
+        get_rrr(util_io)(verbose=verbose)
+        get_rrr(util_iter)(verbose=verbose)
+        get_rrr(util_inspect)(verbose=verbose)
+        get_rrr(util_logging)(verbose=verbose)
+        get_rrr(util_list)(verbose=verbose)
+        get_rrr(util_num)(verbose=verbose)
+        get_rrr(util_numpy)(verbose=verbose)
+        get_rrr(util_path)(verbose=verbose)
+        get_rrr(util_print)(verbose=verbose)
+        get_rrr(util_progress)(verbose=verbose)
+        get_rrr(util_project)(verbose=verbose)
+        get_rrr(util_parallel)(verbose=verbose)
+        get_rrr(util_resources)(verbose=verbose)
+        get_rrr(util_str)(verbose=verbose)
+        get_rrr(util_sysreq)(verbose=verbose)
+        get_rrr(util_sqlite)(verbose=verbose)
+        get_rrr(util_setup)(verbose=verbose)
+        get_rrr(util_set)(verbose=verbose)
+        get_rrr(util_regex)(verbose=verbose)
+        get_rrr(util_time)(verbose=verbose)
+        get_rrr(util_type)(verbose=verbose)
+        get_rrr(util_tests)(verbose=verbose)
+        get_rrr(util_web)(verbose=verbose)
+        get_rrr(DynamicStruct)(verbose=verbose)
+        get_rrr(Preferences)(verbose=verbose)
         rrr(verbose=verbose)
         try:
             # hackish way of propogating up the new reloaded submodule attributes

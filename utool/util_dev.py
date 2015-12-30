@@ -1639,12 +1639,13 @@ def get_object_size(obj, fallback_type=None, follow_pointers=False, exclude_modu
     """
     CommandLine:
         python -m utool.util_dev --test-get_object_size
-        python -m utool.util_dev --exec-get_object_size:1
+        python -m utool.util_dev --test-get_object_size:1
 
     Example:
         >>> # UNSTABLE_DOCTEST
         >>> from ibeis.expt.experiment_harness import *  # NOQA
         >>> import ibeis
+        >>> import utool as ut
         >>> species = ibeis.const.Species.ZEB_PLAIN
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> qaids = ibs.get_valid_aids(species=species)
@@ -1658,10 +1659,12 @@ def get_object_size(obj, fallback_type=None, follow_pointers=False, exclude_modu
         >>> # ENABLE_DOCTEST
         >>> from ibeis.expt.experiment_harness import *  # NOQA
         >>> import numpy as np
+        >>> import utool as ut
         >>> obj = [np.empty(1, dtype=np.uint8) for _ in range(8)]
         >>> nBytes = ut.get_object_size(obj)
-        >>> print('nBytes = %s' % (nBytes,))
-        result = '2.50 MB'
+        >>> result = ('nBytes = %s' % (nBytes,))
+        >>> print(result)
+        nBytes = 8
 
     Ignore:
         import sys
@@ -1789,15 +1792,20 @@ def print_object_size_tree(obj, lbl='obj'):
 
 def get_object_size_str(obj, lbl='', unit=None):
     """
+
+    CommandLine:
+        python -m utool.util_dev --test-get_object_size_str --show
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.expt.experiment_harness import *  # NOQA
         >>> import numpy as np
+        >>> import utool as ut
         >>> obj = [np.empty((512), dtype=np.uint8) for _ in range(10)]
-        >>> nBytes = ut.get_object_size(obj)
-        >>> result = (ut.byte_str2(nBytes))
-        >>> print('result = %s' % (ut.repr2(result),))
-        result = '2.50 MB'
+        >>> nBytes = ut.get_object_size_str(obj)
+        >>> result = ('result = %s' % (ut.repr2(nBytes),))
+        >>> print(result)
+        result = '5.00 KB'
     """
 
     from utool import util_str

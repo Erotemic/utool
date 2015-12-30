@@ -154,7 +154,7 @@ def _initstr(modname, IMPORTS, FROM_IMPORTS, inject_execstr, withheader=True):
 def _make_module_header():
     return '\n'.join([
         '# flake8: noqa',
-        'from __future__ import absolute_import, division, print_function'])
+        'from __future__ import absolute_import, division, print_function, unicode_literals'])
 
 def _make_imports_str(IMPORTS, rootmodname='.'):
     imports_fmtstr = 'from {rootmodname} import %s'.format(rootmodname=rootmodname)
@@ -192,67 +192,81 @@ def _inject_execstr(modname, IMPORT_TUPLES):
         # Normal case implicit import of util_inject
         injecter_import = 'import utool'
         injecter = 'utool'
-    injectstr_fmt = textwrap.dedent(r'''
-    # STARTBLOCK
-    {injecter_import}
-    print, print_, printDBG, rrr, profile = {injecter}.inject(
-        __name__, '[{modname}]')
+    injectstr_fmt = textwrap.dedent(
+        r'''
+        # STARTBLOCK
+        {injecter_import}
+        print, rrr, profile = {injecter}.inject2(__name__, '[{modname}]')
 
 
-    def reassign_submodule_attributes(verbose=True):
-        """
-        why reloading all the modules doesnt do this I don't know
-        """
-        import sys
-        if verbose and '--quiet' not in sys.argv:
-            print('dev reimport')
-        # Self import
-        import {modname}
-        # Implicit reassignment.
-        seen_ = set([])
-        for tup in IMPORT_TUPLES:
-            if len(tup) > 2 and tup[2]:
-                continue  # dont import package names
-            submodname, fromimports = tup[0:2]
-            submod = getattr({modname}, submodname)
-            for attr in dir(submod):
-                if attr.startswith('_'):
-                    continue
-                if attr in seen_:
-                    # This just holds off bad behavior
-                    # but it does mimic normal util_import behavior
-                    # which is good
-                    continue
-                seen_.add(attr)
-                setattr({modname}, attr, getattr(submod, attr))
+        def reassign_submodule_attributes(verbose=True):
+            """
+            why reloading all the modules doesnt do this I don't know
+            """
+            import sys
+            if verbose and '--quiet' not in sys.argv:
+                print('dev reimport')
+            # Self import
+            import {modname}
+            # Implicit reassignment.
+            seen_ = set([])
+            for tup in IMPORT_TUPLES:
+                if len(tup) > 2 and tup[2]:
+                    continue  # dont import package names
+                submodname, fromimports = tup[0:2]
+                submod = getattr({modname}, submodname)
+                for attr in dir(submod):
+                    if attr.startswith('_'):
+                        continue
+                    if attr in seen_:
+                        # This just holds off bad behavior
+                        # but it does mimic normal util_import behavior
+                        # which is good
+                        continue
+                    seen_.add(attr)
+                    setattr({modname}, attr, getattr(submod, attr))
 
 
-    def reload_subs(verbose=True):
-        """ Reloads {modname} and submodules """
-        rrr(verbose=verbose)
-        def fbrrr(*args, **kwargs):
-            """ fallback reload """
-            pass
-        {reload_body}
-        rrr(verbose=verbose)
-        try:
-            # hackish way of propogating up the new reloaded submodule attributes
-            reassign_submodule_attributes(verbose=verbose)
-        except Exception as ex:
-            print(ex)
-    rrrr = reload_subs
-    # ENDBLOCK
-    ''')
+        def reload_subs(verbose=True):
+            """ Reloads {modname} and submodules """
+            if verbose:
+                print('Reloading submodules')
+            rrr(verbose=verbose)
+            def wrap_fbrrr(mod):
+                def fbrrr(*args, **kwargs):
+                    """ fallback reload """
+                    if verbose:
+                        print('Trying fallback relaod for mod=%r' % (mod,))
+                    import imp
+                    imp.reload(mod)
+                return fbrrr
+            def get_rrr(mod):
+                if hasattr(mod, 'rrr'):
+                    return mod.rrr
+                else:
+                    return wrap_fbrrr(mod)
+            def get_reload_subs(mod):
+                return getattr(mod, 'reload_subs', wrap_fbrrr(mod))
+            {reload_body}
+            rrr(verbose=verbose)
+            try:
+                # hackish way of propogating up the new reloaded submodule attributes
+                reassign_submodule_attributes(verbose=verbose)
+            except Exception as ex:
+                print(ex)
+        rrrr = reload_subs
+        # ENDBLOCK
+        ''')
     injectstr_fmt = injectstr_fmt.replace('# STARTBLOCK', '')
     injectstr_fmt = injectstr_fmt.replace('# ENDBLOCK', '')
-    rrrdir_fmt  = '    getattr(%s, \'reload_subs\', fbrrr)(verbose=verbose)'
-    rrrfile_fmt = '    getattr(%s, \'rrr\', fbrrr)(verbose=verbose)'
+    rrrdir_fmt  = '    get_reload_subs({modname})(verbose=verbose)'
+    rrrfile_fmt = '    get_rrr({modname})(verbose=verbose)'
 
     def _reload_command(tup):
         if len(tup) > 2 and tup[2] is True:
-            return rrrdir_fmt % tup[0]
+            return rrrdir_fmt.format(modname=tup[0])
         else:
-            return rrrfile_fmt % tup[0]
+            return rrrfile_fmt.format(modname=tup[0])
     reload_body = '\n'.join(map(_reload_command, IMPORT_TUPLES)).strip()
     format_dict = {
         'modname': modname,
@@ -279,7 +293,7 @@ def dynamic_import(modname, IMPORT_TUPLES, developing=True, ignore_froms=[],
 
     Using __import__ like this is typically not considered good style However,
     it is better than import * and this will generate the good file text that
-    can be used when the module is "frozen"
+    can be used when the module is 'frozen"
     """
     if verbose:
         print('[UTIL_IMPORT] Running Dynamic Imports for modname=%r ' % modname)
@@ -330,7 +344,7 @@ def dynamic_import(modname, IMPORT_TUPLES, developing=True, ignore_froms=[],
             #print(new_else)
             # Get path to init file so we can overwrite it
             init_fpath = join(module.__path__[0], '__init__.py')
-            print("attempting to update: %r" % init_fpath)
+            print('attempting to update: %r' % init_fpath)
             assert exists(init_fpath)
             new_lines = []
             editing = False
@@ -352,12 +366,12 @@ def dynamic_import(modname, IMPORT_TUPLES, developing=True, ignore_froms=[],
             # TODO:
             #new_text = util_str.replace_between_tags(text, new_else, start_tag, end_tag)
             if updated:
-                print("writing updated file: %r" % init_fpath)
+                print('writing updated file: %r' % init_fpath)
                 new_text = ''.join(new_lines)
                 with open(init_fpath, 'w') as file_:
                     file_.write(new_text)
             else:
-                print("no write hook for file: %r" % init_fpath)
+                print('no write hook for file: %r' % init_fpath)
 
     return inject_execstr
 
