@@ -48,7 +48,7 @@ if 'CODE_DIR' in os.environ:
     'https://github.com/Erotemic/hesaff.git',
     'https://github.com/bluemellophone/pyrf.git',
     'https://github.com/Erotemic/ibeis.git',
-    'https://github.com/aweinstock314/cyth.git',
+    # 'https://github.com/aweinstock314/cyth.git',
     #'https://github.com/hjweide/pygist',
 ], CODE_DIR, forcessh=False)
 
@@ -182,7 +182,7 @@ def change_doctestcommand_to_use_dashm_flag():
 def ensure_future_compatible(mod_fpath):
     failed_future_list = []
     # Test for print function
-    futureline = '^from __future__ import absolute_import, division, print_function$'
+    futureline = '^from __future__ import absolute_import, division, print_function, unicode_literals$'
     lines, lineno = ut.grepfile(mod_fpath, futureline)
     if len(lines) == 0:
         print(mod_fpath)
@@ -190,7 +190,7 @@ def ensure_future_compatible(mod_fpath):
         lines, lineno = ut.grepfile(mod_fpath, futureline)
 
 
-def ensure_six_moves_compatible(mod_fpath):
+def check_six_moves_compatibility(mod_fpath):
     six_moves = ['zip', 'map', 'range', 'filter', 'cPickle', 'cStringio', 'zip_longest']
     for funcname in six_moves:
         funcname_regex = r'\b%s\b' % (funcname)
@@ -215,9 +215,9 @@ def ensure_no_invalid_commands(mod_fpath):
 
 
 def ensure_utool_compatible(mod_fpath):
-    ut_inject_line1 = r'print, print_, printDBG, rrr, profile ='
-    ut_inject_line2 = r'\(print, print_, printDBG, rrr, profile\) ='
-    ut_inject_line3 = r'inject\(__name__,'
+    ut_inject_line1 = r'print, rrr, profile ='
+    ut_inject_line2 = r'\(print, rrr, profile\) ='
+    ut_inject_line3 = r'inject2\(__name__,'
     ut_inject_lines = (ut_inject_line1, ut_inject_line2, ut_inject_line3)
     #ut.inject(__name'
     lines, lineno = ut.grepfile(mod_fpath, ut_inject_lines)
@@ -235,6 +235,6 @@ if __name__ == '__main__':
 
     for mod_fpath in module_fpath_list:
         #ensure_compatible_modfpath(mod_fpath)
-        #ensure_six_moves_compatible(mod_fpath)
+        #check_six_moves_compatibility(mod_fpath)
         #ensure_utool_compatible(mod_fpath)
         ensure_no_invalid_commands(mod_fpath)

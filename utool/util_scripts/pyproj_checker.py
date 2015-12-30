@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Checks python files in a project for consistent header patterns
+
+Rectify with ensure_python3_compatible
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
