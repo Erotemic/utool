@@ -2562,7 +2562,7 @@ def chr_range(*args, **kw):
         list:
 
     CommandLine:
-        python -m ibeis.model.hots.bayes --exec-chr_range
+        python -m ibeis.algo.hots.bayes --exec-chr_range
 
     Example:
         >>> # ENABLE_DOCTEST

@@ -430,8 +430,8 @@ def generate(func, args_list, ordered=True, force_serial=None,
         >>> #    vt.imwrite(cfpath, chipBGR)
         >>> #    return cfpath, width, height
         >>> import utool as ut
-        >>> from ibeis.model.preproc.preproc_chip import gen_chip
-        >>> #from ibeis.model.preproc.preproc_feat import gen_feat_worker
+        >>> from ibeis.algo.preproc.preproc_chip import gen_chip
+        >>> #from ibeis.algo.preproc.preproc_feat import gen_feat_worker
         >>> key_list = ['grace.jpg', 'easy1.png', 'ada2.jpg', 'easy3.png',
         >>>             'hard3.png', 'zebra.png', 'patsy.jpg', 'ada.jpg',
         >>>             'carl.jpg', 'lena.png', 'easy2.png']
@@ -453,7 +453,7 @@ def generate(func, args_list, ordered=True, force_serial=None,
         >>> # otherwise the parallel loop works fine. Could be an opencv 3.0.0-dev issue.
         >>> import vtool as vt
         >>> import utool as ut
-        >>> from ibeis.model.preproc.preproc_chip import gen_chip
+        >>> from ibeis.algo.preproc.preproc_chip import gen_chip
         >>> import cv2
         >>> from utool.util_parallel import __testwarp
         >>> key_list = ['grace.jpg', 'easy1.png', 'ada2.jpg', 'easy3.png',

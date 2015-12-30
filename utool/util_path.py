@@ -54,7 +54,8 @@ def relpath_unix(path, otherpath):
 def truepath_relative(path, otherpath=None):
     """ Normalizes and returns absolute path with so specs  """
     if otherpath is None:
-        otherpath = truepath(os.getcwd())
+        otherpath = os.getcwd()
+    otherpath = truepath(otherpath)
     return normpath(relpath(path, otherpath))
 
 
@@ -1114,7 +1115,7 @@ def fnames_to_fpaths(fname_list, path):
     return fpath_list
 
 
-def get_modpath_from_modname(modname, prefer_main=False):
+def get_modpath_from_modname(modname, prefer_pkg=False, prefer_main=False):
     r"""
     Args:
         modname (str):
@@ -1125,20 +1126,46 @@ def get_modpath_from_modname(modname, prefer_main=False):
     CommandLine:
         python -m utool.util_path --test-get_modpath_from_modname
 
-    Example:
-        >>> # DISABLE_DOCTEST
+    Setup:
         >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
+        >>> utool_dir = dirname(dirname(ut.__file__))
+
+    Example:
+        >>> # ENABLE_DOCTEST
         >>> modname = 'utool.util_path'
         >>> module_dir = get_modpath_from_modname(modname)
-        >>> result = str(module_dir)
+        >>> result = ut.truepath_relative(module_dir, utool_dir)
         >>> print(result)
+        utool/util_path.py
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> modname = 'utool._internal'
+        >>> module_dir = get_modpath_from_modname(modname, prefer_pkg=True)
+        >>> result = ut.truepath_relative(module_dir, utool_dir)
+        >>> print(result)
+        utool/_internal
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> modname = 'utool'
+        >>> module_dir = get_modpath_from_modname(modname)
+        >>> result = ut.truepath_relative(module_dir, utool_dir)
+        >>> print(result)
+        utool/__init__.py
     """
     import importlib
     module = importlib.import_module(modname)
     modpath = module.__file__.replace('.pyc', '.py')
+    initname = '__init__.py'
+    mainname = '__main__.py'
+    if prefer_pkg:
+        if modpath.endswith(initname) or modpath.endswith(mainname):
+            modpath = modpath[:-len(initname)]
     if prefer_main:
-        if modpath.endswith('__init__.py'):
-            main_modpath = modpath[:-11] + '__main__.py'
+        if modpath.endswith(initname):
+            main_modpath = modpath[:-len(initname)] + mainname
             if exists(main_modpath):
                 modpath = main_modpath
     #modname = modname.replace('.__init__', '').strip()
@@ -1537,7 +1564,7 @@ def grepfile(fpath, regexpr_list, reflags=0):
     Example:
         >>> # DISABLE_DOCTEST
         >>> import utool as ut
-        >>> fpath = ut.truepath('~/code/ibeis/ibeis/model/hots/smk/smk_match.py')
+        >>> fpath = ut.truepath('~/code/ibeis/ibeis/algo/hots/smk/smk_match.py')
         >>> regexpr_list = ['get_argflag', 'get_argval']
         >>> result = ut.grepfile(fpath, regexpr_list)
         >>> print(result)

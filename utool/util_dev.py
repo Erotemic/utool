@@ -2223,7 +2223,8 @@ def get_dev_paste_code(func):
 
 
 def argparse_funckw(func, defaults={}, **kwargs):
-    """ allows kwargs to be specified on the commandline from testfuncs
+    """
+    allows kwargs to be specified on the commandline from testfuncs
 
     Args:
         func (function):
@@ -2263,9 +2264,12 @@ def search_utool(pat):
 
 def search_module(mod, pat, ignore_case=True, recursive=False, _seen=None):
     r"""
+    Searches module functions, classes, and constants for members matching a
+    pattern.
+
     Args:
-        mod (module):
-        pat (str):
+        mod (module): live python module
+        pat (str): regular expression
 
     Returns:
         list: found_list
@@ -2311,16 +2315,42 @@ def search_module(mod, pat, ignore_case=True, recursive=False, _seen=None):
     return found_list
 
 
-def get_submodules_from_dpath(dpath):
-    # dpath = ut.get_module_dir(mod)
+def get_submodules_from_dpath(dpath, only_packages=False):
+    r"""
+    Args:
+        dpath (str): directory path
+        only_packages (bool): if True returns only package directories,
+            otherwise returns module files. (default = False)
+
+    Returns:
+        list: submod_fpaths
+
+    CommandLine:
+        python -m utool.util_dev --exec-get_submodules_from_dpath --only_packages
+
+    Example:
+        >>> # SCRIPT
+        >>> from utool.util_dev import *  # NOQA
+        >>> import utool as ut
+        >>> dpath = ut.truepath_relative(ut.get_argval('--dpath', default='.'))
+        >>> print(dpath)
+        >>> only_packages = ut.get_argflag('--only_packages')
+        >>> submod_fpaths = get_submodules_from_dpath(dpath, only_packages)
+        >>> submod_fpaths = ut.lmap(ut.truepath_relative, submod_fpaths)
+        >>> result = ('submod_fpaths = %s' % (ut.repr3(submod_fpaths),))
+        >>> print(result)
+    """
     import utool as ut
-    submod_fpaths = ut.ls_modulefiles(dpath)
     submod_dpaths = [d for d in ut.ls_dirs(dpath) if ut.is_module_dir(d) ]
+    if only_packages:
+        submod_fpaths = submod_dpaths
+    else:
+        submod_fpaths = ut.ls_modulefiles(dpath)
     if len(submod_dpaths) > 0:
-        submod_fpaths.extend(ut.flatten([get_submodules_from_dpath(d) for d in submod_dpaths]))
+        recusive_results = [get_submodules_from_dpath(d, only_packages)
+                            for d in submod_dpaths]
+        submod_fpaths.extend(ut.flatten(recusive_results))
     return submod_fpaths
-    # is_module_dir
-    # ut.glob(dpath)
 
 
 if __name__ == '__main__':

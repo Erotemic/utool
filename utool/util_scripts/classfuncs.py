@@ -16,7 +16,7 @@ fname = ut.truepath('~/code/plottool/plottool/fig_presenter.py')
 import sys
 sys.argv.append('~/code/plottool/plottool/fig_presenter.py')
 
-classfuncs.py C:/Users/joncrall/code/ibeis/ibeis/model/hots/query_request.py %HOME%/code/ibeis
+classfuncs.py C:/Users/joncrall/code/ibeis/ibeis/algo/hots/query_request.py %HOME%/code/ibeis
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut

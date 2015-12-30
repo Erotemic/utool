@@ -252,7 +252,7 @@ def infer_arg_types_and_descriptions(argname_list, defaults):
         python -m utool.util_inspect --test-infer_arg_types_and_descriptions
 
     Ignore:
-        python -c "import utool; print(utool.auto_docstr('ibeis.model.hots.pipeline', 'build_chipmatches'))"
+        python -c "import utool; print(utool.auto_docstr('ibeis.algo.hots.pipeline', 'build_chipmatches'))"
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -358,7 +358,7 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
         tuple (str, callable): (funcname, func) doctestable
 
     CommandLine:
-        python -m utool --tf iter_module_doctestable --modname=ibeis.model.hots.chip_match
+        python -m utool --tf iter_module_doctestable --modname=ibeis.algo.hots.chip_match
         python -m utool --tf iter_module_doctestable --modname=ibeis.control.IBEISControl
         python -m utool --tf iter_module_doctestable --modname=ibeis.control.SQLDatabaseControl
         python -m utool --tf iter_module_doctestable --modname=ibeis.control.manual_annot_funcs
@@ -1442,8 +1442,8 @@ def recursive_parse_kwargs(root_func, path_=None):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
-        >>> import ibeis.model.preproc.preproc_image
-        >>> root_func = ibeis.model.preproc.preproc_image.add_images_params_gen
+        >>> import ibeis.algo.preproc.preproc_image
+        >>> root_func = ibeis.algo.preproc.preproc_image.add_images_params_gen
         >>> path_ = None
         >>> result = ut.repr2(recursive_parse_kwargs(root_func))
         >>> print(result)
@@ -1451,7 +1451,7 @@ def recursive_parse_kwargs(root_func, path_=None):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
-        >>> from ibeis.model.hots import chip_match
+        >>> from ibeis.algo.hots import chip_match
         >>> root_func = chip_match.ChipMatch2.show_ranked_matches
         >>> path_ = None
         >>> result = ut.repr2(recursive_parse_kwargs(root_func))

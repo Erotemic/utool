@@ -280,7 +280,7 @@ def print_code(text, lexer_name='python'):
 
 
 def get_colored_diff(text):
-    highlight_text(text, lexer_name='diff')
+    return highlight_text(text, lexer_name='diff')
 
 
 def print_difftext(text):

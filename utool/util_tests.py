@@ -244,7 +244,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
         tuple: (nPass, nTotal, failed_cmd_list)
 
     CommandLine:
-        python -m ibeis.model.preproc.preproc_chip --all-examples
+        python -m ibeis.algo.preproc.preproc_chip --all-examples
 
     References:
         http://legacy.python.org/dev/peps/pep-0338/
@@ -303,13 +303,12 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
         flag = testtup.flag
         #if ut.is_developer():
         #    ut.change_term_title('DocTest ' + modname + ' ' + name)
-        print('\n\n')
-        print('--------------------------------------------------------------')
-        print('--------------------------------------------------------------')
-        #if EXEC_MODE:
-        #    print(' ---- EXEC ' + name.upper() + ':' + str(num) + '---')
-        #else:
-        print(' ---- DOCTEST ' + modname + ' ' + name.upper() + ':' + str(num) + '---')
+        print('\n')
+        fmtdict = dict(modname=modname, name=name, num=num)
+        #      1          v12     v20       v30       v40       v50         v62
+        print('+------------------------------------------------------------+')
+        print('*  DOCTEST {modname:<20} {name:>26}:{num:d} '.format(**fmtdict))
+        print('+------------------------------------------------------------+')
 
         if PRINT_SRC or VERBOSE_TEST:
             print(ut.msgblock('EXEC SRC', src))
@@ -347,6 +346,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
                     print('Silently Failing: '
                           'maybe adding the --super-strict flag would help debug?')
             pass
+        print('L_____________________________________________________________')
     #L__________________
     #+-------------------
     # Print Results
@@ -547,7 +547,6 @@ def _exec_doctest(src, kwargs, nocheckwant=None):
         # References: https://bugs.python.org/issue13557
         #exec(code, test_globals, test_locals)
         test_locals = test_globals
-        print('test_globals = %r' % (test_globals,))
         exec(code, test_globals)
     except ExitTestException:
         print('Test exited before show')
@@ -632,8 +631,8 @@ def parse_docblocks_from_docstr(docstr):
         >>> from utool.util_tests import *  # NOQA
         >>> import utool as ut
         >>> #import ibeis
-        >>> #import ibeis.model.hots.query_request
-        >>> #func_or_class = ibeis.model.hots.query_request.QueryParams
+        >>> #import ibeis.algo.hots.query_request
+        >>> #func_or_class = ibeis.algo.hots.query_request.QueryParams
         >>> func_or_class = ut.parse_docblocks_from_docstr
         >>> docstr = ut.get_docstr(func_or_class)
         >>> docstr_blocks = parse_docblocks_from_docstr(docstr)
@@ -724,7 +723,7 @@ def parse_doctest_from_docstr(docstr):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> #from ibeis.model.hots import score_normalization
+        >>> #from ibeis.algo.hots import score_normalization
         >>> #func_or_class = score_normalization.cached_ibeis_score_normalizer
         >>> func_or_class = parse_doctest_from_docstr
         >>> docstr = ut.get_docstr(func_or_class)
@@ -1581,7 +1580,8 @@ def show_if_requested():
     pt.show_if_requested(N=2)
 
 
-def find_testfunc(module, test_funcname, ignore_prefix=[], ignore_suffix=[], func_to_module_dict={}):
+def find_testfunc(module, test_funcname, ignore_prefix=[], ignore_suffix=[],
+                  func_to_module_dict={}):
     import utool as ut
     if isinstance(module, six.string_types):
         module = ut.import_modname(module)
@@ -1649,7 +1649,8 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
         #locals_ = {}
         ut.inject_colored_exceptions()
         print('[utool] __main__ Begin Function Test')
-        test_func, testno = find_testfunc(module, test_funcname, ignore_prefix, ignore_suffix, func_to_module_dict)
+        test_func, testno = find_testfunc(module, test_funcname, ignore_prefix,
+                                          ignore_suffix, func_to_module_dict)
 
         if test_func is not None:
             globals_ = {}
@@ -1673,6 +1674,19 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
             print('Did not find any function named %r ' % (test_funcname,))
             print('...exiting')
             sys.exit(0)
+
+
+def execute_doctest(func, testnum=0):
+    import utool as ut
+    # TODO RECTIFY WITH EXEC DOCTEST
+    globals_ = {}
+    testsrc = ut.get_doctest_examples(func)[0][testnum]
+    try:
+        code = compile(testsrc, '<string>', 'exec')
+        print('testsrc = \n%s' % (ut.indent(testsrc, '>>> '),))
+        exec(code, globals_)
+    except ExitTestException:
+        print('Test exited before show')
 
 
 if __name__ == '__main__':
