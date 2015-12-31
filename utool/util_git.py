@@ -69,6 +69,23 @@ def gitcmd(repo, command, sudo=False, dryrun=DRY_RUN):
     print("L***********")
 
 
+"""
+def squash_consecutive_commits_with_same_message():
+    http://stackoverflow.com/questions/8226278/git-alias-to-squash-all-commits-with-a-particular-commit-message
+
+    # Can do interactively with this. Can it be done automatically and pay attention to
+    # Timestamps etc?
+    git rebase --interactive HEAD~100 --autosquash
+
+    # Lookbehind correct version
+    %s/\([a-z]* [a-z0-9]* wip\n\)\@<=pick \([a-z0-9]*\) wip/squash \2 wip/gc
+
+   14d778fa30a93f85c61f34d09eddb6d2cafd11e2
+   c509a95d4468ebb61097bd9f4d302367424772a3
+   b0ffc26011e33378ee30730c5e0ef1994bfe1a90
+"""
+
+
 def rename_branch(old_branch_name, new_branch_name, repo='.', remote='origin', dryrun=DRY_RUN):
     r"""
     References:
