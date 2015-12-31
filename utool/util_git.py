@@ -131,7 +131,8 @@ def std_build_command(repo='.'):
     print("+**** stdbuild *******")
     print('repo = %r' % (repo,))
     if sys.platform.startswith('win32'):
-        #scriptname = './mingw_build.bat'  # vtool --rebuild-sver didnt work with this line
+        # vtool --rebuild-sver didnt work with this line
+        #scriptname = './mingw_build.bat'
         scriptname = 'mingw_build.bat'
     else:
         scriptname = './unix_build.sh'
