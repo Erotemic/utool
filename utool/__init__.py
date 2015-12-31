@@ -229,13 +229,14 @@ if DOELSE:
                                    get_first_None_position, lists_eq,) 
     from utool.util_autogen import (PythonStatement, auto_docstr, 
                                     autofix_codeblock, deque, 
+                                    dump_autogen_code, 
                                     find_modname_in_pythonpath, 
                                     is_modname_in_pythonpath, 
                                     load_func_from_module, make_args_docstr, 
                                     make_cmdline_docstr, make_default_docstr, 
                                     make_default_module_maintest, 
                                     make_docstr_block, make_example_docstr, 
-                                    make_returns_or_yeilds_docstr, 
+                                    make_returns_or_yeilds_docstr, makeinit, 
                                     print_auto_docstr, 
                                     remove_codeblock_syntax_sentinals, 
                                     write_modscript_alias,) 
@@ -305,15 +306,15 @@ if DOELSE:
     from utool.util_config import (get_default_global_config, 
                                    get_default_repo_config, read_repo_config, 
                                    write_default_repo_config,) 
-    from utool.util_dbg import (EmbedOnException, FORCE_TB, IPYTHON_EMBED_STR, 
-                                RAISE_ALL, TB, all_rrr, breakpoint, 
-                                debug_exception, debug_hstack, debug_list, 
-                                debug_npstack, debug_vstack, dict_dbgstr, 
-                                embed, embed2, embed_on_exception_context, 
-                                eoxc, execstr_attr_list, execstr_dict, 
-                                execstr_embed, execstr_func, 
-                                execstr_parent_locals, execstr_src, 
-                                explore_module, explore_stack, 
+    from utool.util_dbg import (COLORED_EXCEPTIONS, EmbedOnException, FORCE_TB, 
+                                IPYTHON_EMBED_STR, RAISE_ALL, TB, all_rrr, 
+                                breakpoint, debug_exception, debug_hstack, 
+                                debug_list, debug_npstack, debug_vstack, 
+                                dict_dbgstr, embed, embed2, 
+                                embed_on_exception_context, eoxc, 
+                                execstr_attr_list, execstr_dict, execstr_embed, 
+                                execstr_func, execstr_parent_locals, 
+                                execstr_src, explore_module, explore_stack, 
                                 fix_embed_globals, fmtlocals, formatex, 
                                 get_caller_lineno, get_caller_locals, 
                                 get_caller_modname, get_caller_name, 
@@ -396,8 +397,8 @@ if DOELSE:
                                  dict_isect, dict_isect_combine, 
                                  dict_keysubset, dict_map_apply_vals, 
                                  dict_setdiff, dict_stack, dict_stack2, 
-                                 dict_subset, dict_take, dict_take_gen, 
-                                 dict_take_list, dict_take_pop, 
+                                 dict_subset, dict_take, dict_take_asnametup, 
+                                 dict_take_gen, dict_take_list, dict_take_pop, 
                                  dict_to_keyvals, dict_union, dict_union2, 
                                  dict_union3, dict_union_combine, 
                                  dict_update_newkeys, dict_val_map, 
@@ -761,10 +762,10 @@ if DOELSE:
                                   SAD_FACE_SMALL, SYSEXIT_ON_FAIL, TestTuple, 
                                   VERBOSE_TEST, VERBOSE_TIMER, doctest_funcs, 
                                   doctest_module_list, doctest_was_requested, 
-                                  find_doctestable_modnames, find_testfunc, 
-                                  find_untested_modpaths, get_doctest_examples, 
-                                  get_module_doctest_tup, get_module_testlines, 
-                                  main_function_tester, 
+                                  execute_doctest, find_doctestable_modnames, 
+                                  find_testfunc, find_untested_modpaths, 
+                                  get_doctest_examples, get_module_doctest_tup, 
+                                  get_module_testlines, main_function_tester, 
                                   make_run_tests_script_text, 
                                   parse_docblocks_from_docstr, 
                                   parse_doctest_from_docstr, quit_if_noshow, 
@@ -816,9 +817,10 @@ if DOELSE:
             def fbrrr(*args, **kwargs):
                 """ fallback reload """
                 if verbose:
-                    print('Trying fallback relaod for mod=%r' % (mod,))
-                import imp
-                imp.reload(mod)
+                    print('No fallback relaod for mod=%r' % (mod,))
+                # Breaks ut.Pref (which should be depricated anyway)
+                # import imp
+                # imp.reload(mod)
             return fbrrr
         def get_rrr(mod):
             if hasattr(mod, 'rrr'):

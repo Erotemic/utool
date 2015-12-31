@@ -498,7 +498,7 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
         import ibeis
         species = ibeis.const.Species.ZEB_PLAIN
         qaids = ibs.get_valid_aids(species=species)
-        qreq_ = ibeis.testdata_qreq()
+        qreq_ = ibeis.testdata_qreq_()
         foo = make_example_docstr(qaids, qreq_)
         result = ('foo = %s' % (ut.repr2(foo),))
         print(result)
@@ -518,7 +518,7 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
         'ibs'         : 'ibeis.opendb(defaultdb=\'testdb1\')',
         'testres' : 'ibeis.testdata_expts(\'PZ_MTEST\')',
         #'qreq_'       : 'ibs.new_query_request(qaids, daids)',
-        'qreq_'       : 'ibeis.testdata_qreq()',
+        'qreq_'       : 'ibeis.testdata_qreq_()',
         'qres_list'   : 'ibs.query_chips([1], [2, 3, 4, 5], cfgdict=dict())',
         'qres'        : 'ibs.query_chips([1], [2, 3, 4, 5], cfgdict=dict())[0]',
         'aid_list'    : 'ibs.get_valid_aids()',

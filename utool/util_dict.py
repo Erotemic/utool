@@ -730,6 +730,14 @@ def dict_take(dict_, keys, *d):
         return dict_take_list(dict_, [keys], *d)[0]
 
 
+def dict_take_asnametup(dict_, keys, name='_NamedTup'):
+    from collections import namedtuple
+    values = dict_take(dict_, keys)
+    _NamedTup = namedtuple(name, keys)
+    tup = _NamedTup(*values)
+    return tup
+
+
 def dict_take_pop(dict_, keys, *d):
     """ like dict_take but pops values off
 

@@ -236,9 +236,10 @@ def _inject_execstr(modname, IMPORT_TUPLES):
                 def fbrrr(*args, **kwargs):
                     """ fallback reload """
                     if verbose:
-                        print('Trying fallback relaod for mod=%r' % (mod,))
-                    import imp
-                    imp.reload(mod)
+                        print('No fallback relaod for mod=%r' % (mod,))
+                    # Breaks ut.Pref (which should be depricated anyway)
+                    # import imp
+                    # imp.reload(mod)
                 return fbrrr
             def get_rrr(mod):
                 if hasattr(mod, 'rrr'):

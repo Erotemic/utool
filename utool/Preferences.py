@@ -8,7 +8,7 @@ FIXME:
 """
 from __future__ import absolute_import, division, print_function
 import six
-from six.moves import cPickle
+from six.moves import cPickle as pickle
 try:
     import numpy as np
 except ImportError as ex:
@@ -18,7 +18,8 @@ from utool import util_dbg
 from utool import util_arg
 from utool import util_type
 from utool import util_inject
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[pref]')
+# print, rrr, profile = util_inject.inject(__name__, '[pref]')
+util_inject.noinject(__name__, '[pref]')
 
 # ---
 # GLOBALS
@@ -27,11 +28,6 @@ PrefNode = DynamicStruct.DynStruct
 
 
 VERBOSE_PREF = util_arg.get_argflag('--verbpref')
-
-
-def printDBG(msg):
-    #print('[PREFS] '+msg)
-    pass
 
 
 # ---
@@ -130,8 +126,8 @@ class Pref(PrefNode):
         self._intern = PrefInternal(name, doc, default, hidden, fpath, depeq, choices)
         self._tree = PrefTree(parent)
         #if default is PrefNode:
-        #    printDBG('----------')
-        #    printDBG('new Pref(default=PrefNode)')
+        #    print('----------')
+        #    print('new Pref(default=PrefNode)')
 
     def get_type(self):
         return self._intern.get_type()
@@ -357,7 +353,7 @@ class Pref(PrefNode):
         return pref_dict
 
     def save(self):
-        'Saves prefs to disk in dict format'
+        """ Saves prefs to disk in dict format """
         fpath = self.get_fpath()
         if fpath in ['', None]:
             if self._tree.parent is not None:
@@ -370,7 +366,7 @@ class Pref(PrefNode):
         with open(fpath, 'w') as f:
             print('[pref] Saving to ' + fpath)
             pref_dict = self.to_dict()
-            cPickle.dump(pref_dict, f)
+            pickle.dump(pref_dict, f, protocol=pickle.HIGHEST_PROTOCOL)
         return True
 
     def get_fpath(self):
@@ -382,14 +378,13 @@ class Pref(PrefNode):
             print('[pref.load()]')
             #if not os.path.exists(self._intern.fpath):
             #    msg = '[pref] fpath=%r does not exist' % (self._intern.fpath)
-            #    #printDBG(msg)
             #    return msg
         fpath = self.get_fpath()
         try:
             with open(fpath, 'r') as f:
                 if VERBOSE_PREF:
                     print('load: %r' % fpath)
-                pref_dict = cPickle.load(f)
+                pref_dict = pickle.load(f)
         except EOFError as ex1:
             util_dbg.printex(ex1, 'did not load pref fpath=%r correctly' % fpath, iswarning=True)
             #warnings.warn(msg)
