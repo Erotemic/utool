@@ -1369,6 +1369,13 @@ def list_where(flag_list):
     return [index for index, flag in enumerate(flag_list) if flag]
 
 
+def where_not_None(item_list):
+    """ returns list of indexes of non None values """
+    return [index for index, item in enumerate(item_list) if item is not None]
+
+where = list_where
+
+
 def scalar_input_map(func, input_):
     """
     Map like function

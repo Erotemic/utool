@@ -1379,6 +1379,20 @@ def apply_grouping(items, groupxs):
     return [util_list.list_take(items, xs) for xs in groupxs]
 
 
+def ungroup(grouped_items, groupxs, maxval):
+    """
+    Ungroups items
+
+    SeeAlso:
+        vt.invert_apply_grouping
+    """
+    ungrouped_items = [None] * (maxval + 1)
+    for itemgroup, xs in zip(grouped_items, groupxs):
+        for item, x in zip(itemgroup, xs):
+            ungrouped_items[x] = item
+    return ungrouped_items
+
+
 if __name__ == '__main__':
     """
     CommandLine:

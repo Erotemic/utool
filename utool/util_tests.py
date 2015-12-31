@@ -1573,6 +1573,10 @@ def quit_if_noshow():
     import utool as ut
     if not (ut.get_argflag(('--show', '--save')) or ut.inIPython()):
         raise ExitTestException('This should be caught gracefully by ut.run_test')
+    import plottool as pt
+    # Hack
+    if ut.is_developer():
+        pt.ensure_pylab_qt4()
 
 
 def show_if_requested():
