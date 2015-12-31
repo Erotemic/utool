@@ -749,10 +749,6 @@ def list_all_eq_to(list_, val, strict=True):
             raise
 
 
-def flag_None_items(list_):
-    return [item is None for item in list_]
-
-
 def get_dirty_items(item_list, flag_list):
     """
     Returns each item in item_list where not flag in flag_list
@@ -1370,8 +1366,20 @@ def list_where(flag_list):
 
 
 def where_not_None(item_list):
-    """ returns list of indexes of non None values """
+    """ returns list of indexes of non None values
+
+    SeeAlso:
+        flag_None_items
+    """
     return [index for index, item in enumerate(item_list) if item is not None]
+
+
+def flag_None_items(list_):
+    return [item is None for item in list_]
+
+
+def flag_not_None_items(list_):
+    return [item is not None for item in list_]
 
 where = list_where
 
