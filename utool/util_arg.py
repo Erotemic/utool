@@ -336,10 +336,12 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
 
     """
     if verbose is None:
-        verbose = VERYVERBOSE
+        pass
+        # verbose = VERYVERBOSE
 
     if debug is None:
-        debug = VERYVERBOSE
+        # debug = VERYVERBOSE
+        pass
 
     if argv is None:
         argv = sys.argv
