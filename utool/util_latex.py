@@ -1002,6 +1002,7 @@ def get_bibtex_dict(bib_fpath):
 
     CommandLine:
         python -m utool.util_latex --test-get_bibtex_dict
+        pip install bibtexparser
 
     Example:
         >>> # DISABLE_DOCTEST

@@ -1305,7 +1305,8 @@ def max_size_max_distance_subset(items, min_thresh=0, Kstart=2, verbose=False):
     for K in range(Kstart, len(items)):
         if verbose:
             print('Running subset chooser')
-        value, subset_idx, subset = ut.maximum_distance_subset(items, K=K, verbose=verbose)
+        value, subset_idx, subset = ut.maximum_distance_subset(items, K=K,
+                                                               verbose=verbose)
         if verbose:
             print('subset = %r' % (subset,))
             print('subset_idx = %r' % (subset_idx,))

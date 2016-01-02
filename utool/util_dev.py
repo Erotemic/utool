@@ -2353,6 +2353,16 @@ def get_submodules_from_dpath(dpath, only_packages=False):
     return submod_fpaths
 
 
+def pylab_qt4():
+    import plottool as pt
+    pt.ensure_pylab_qt4()
+
+
+def ensure_pylab_qt4():
+    import plottool as pt
+    pt.ensure_pylab_qt4()
+
+
 if __name__ == '__main__':
     """
     CommandLine:
