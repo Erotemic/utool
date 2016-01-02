@@ -59,7 +59,8 @@ __RELOAD_OK__  = '--noreloadable' not in sys.argv
 __INJECTED_MODULES__ = set([])
 
 # Do not inject into these modules
-__INJECT_BLACKLIST__ = frozenset(['tri', 'gc', 'sys', 'string', 'types', '_dia', 'responce', 'six', __name__])
+__INJECT_BLACKLIST__ = frozenset(['tri', 'gc', 'sys', 'string', 'types',
+                                  '_dia', 'responce', 'six', __name__])
 
 
 def _inject_funcs(module, *func_list):
@@ -104,7 +105,7 @@ def _get_module(module_name=None, module=None, register=True):
 def colored_pygments_excepthook(type_, value, tb):
     """
     References:
-        https://stackoverflow.com/questions/14775916/coloring-exceptions-from-python-on-a-terminal
+        https://stackoverflow.com/questions/14775916/color-exceptions-python
 
     CommandLine:
         python -m utool.util_inject --test-colored_pygments_excepthook
@@ -112,12 +113,9 @@ def colored_pygments_excepthook(type_, value, tb):
     """
     tbtext = ''.join(traceback.format_exception(type_, value, tb))
     try:
-        #sys.stderr.write('USING COLORED EXCEPTHOOK')
         from utool import util_print
-        formatted_text = util_print.highlight_text(tbtext, lexer_name='pytb', stripall=True)
-        #lexer = pygments.lexers.get_lexer_by_name('pytb', stripall=True)
-        #formatter = pygments.formatters.TerminalFormatter(bg='dark')
-        #formatted_text = pygments.highlight(tbtext, lexer, formatter)
+        formatted_text = util_print.highlight_text(tbtext, lexer_name='pytb',
+                                                   stripall=True)
     except Exception:
         # FIXME silent errro
         formatted_text = tbtext
@@ -190,7 +188,8 @@ def inject_print_func2(module):
     return print
 
 
-def inject_print_functions(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
+def inject_print_functions(module_name=None, module_prefix='[???]',
+                           DEBUG=False, module=None):
     """
     makes print functions to be injected into the module
     """
@@ -476,9 +475,9 @@ def inject_all(DEBUG=False):
 
 def split_python_text_into_lines(text):
     """
-    # TODO: make it so this function returns text so one statment is on one line
-    # that means no splitting up things like function definitions into multiple
-    # lines
+    # TODO: make it so this function returns text so one statment is on one
+    # line that means no splitting up things like function definitions into
+    # multiple lines
     """
     #import jedi
     #script = jedi.Script(text, line=1, column=None, path='')
@@ -487,7 +486,7 @@ def split_python_text_into_lines(text):
         helper
 
         References:
-            http://stackoverflow.com/questions/18007995/recursive-method-for-parentheses-balancing-python
+            http://stackoverflow.com/questions/18007995/recursive-paren-balance
         """
         def balanced(str_, i=0, cnt=0, left='(', right=')'):
             if i == len(str_):
@@ -522,8 +521,12 @@ def inject_python_code2(fpath, patch_code, tag):
     ut.writeto(fpath, new_text)
 
 
-def inject_python_code(fpath, patch_code, tag=None, inject_location='after_imports'):
-    """ puts code into files on disk """
+def inject_python_code(fpath, patch_code, tag=None,
+                       inject_location='after_imports'):
+    """
+    DEPRICATE
+    puts code into files on disk
+    """
     import utool as ut
     assert tag is not None, 'TAG MUST BE SPECIFIED IN INJECTED CODETEXT'
     text = ut.read_from(fpath)
@@ -552,7 +555,8 @@ def inject_python_code(fpath, patch_code, tag=None, inject_location='after_impor
             first_nonimport_pos = 0
             for line in text_lines:
                 list_ = ['import ', 'from ', '#', ' ']
-                isvalid = len(line) == 0 or any([line.startswith(str_) for str_ in list_])
+                isvalid = (len(line) == 0 or
+                           any(line.startswith(str_) for str_ in list_))
                 if not isvalid:
                     break
                 first_nonimport_pos += 1

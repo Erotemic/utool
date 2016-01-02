@@ -302,6 +302,7 @@ def highlight_text(text, lexer_name='python', **kwargs):
         color_text
     """
     import utool as ut
+    print('ENABLE_COLORS = %r' % (ENABLE_COLORS,))
     if ENABLE_COLORS:
         try:
             import pygments

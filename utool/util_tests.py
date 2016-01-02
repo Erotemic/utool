@@ -1633,7 +1633,7 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
     unique function names
     """
     import utool as ut
-    print('[utool] main_function_tester')
+    ut.colorprint('[utool] main_function_tester', 'yellow')
 
     test_funcname = ut.get_argval(
         ('--test-func', '--tfunc', '--tf', '--testfunc'),
@@ -1648,6 +1648,7 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
     if test_funcname is not None:
         #locals_ = {}
         ut.inject_colored_exceptions()
+        # print('[utool] __main__ Begin Function Test')
         print('[utool] __main__ Begin Function Test')
         test_func, testno = find_testfunc(module, test_funcname, ignore_prefix,
                                           ignore_suffix, func_to_module_dict)
@@ -1657,11 +1658,12 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
             func_globals = meta_util_six.get_funcglobals(test_func)
             globals_.update(func_globals)
             testsrc = ut.get_doctest_examples(test_func)[0][testno]
+            if ut.get_argflag(('--cmd', '--embed')):
+                testsrc += '\nimport utool as ut; ut.embed()'  # TODO RECTIFY WITH EXEC DOCTEST
+            colored_src = ut.highlight_code(ut.indent(testsrc, '>>> '))
+            print('testsrc = \n%s' % (colored_src,))
             try:
-                if ut.get_argflag(('--cmd', '--embed')):
-                    testsrc += '\nimport utool as ut; ut.embed()'  # TODO RECTIFY WITH EXEC DOCTEST
                 code = compile(testsrc, '<string>', 'exec')
-                print('testsrc = \n%s' % (ut.indent(testsrc, '>>> '),))
                 exec(code, globals_)  # , locals_)
             except ExitTestException:
                 print('Test exited before show')
@@ -1681,9 +1683,11 @@ def execute_doctest(func, testnum=0):
     # TODO RECTIFY WITH EXEC DOCTEST
     globals_ = {}
     testsrc = ut.get_doctest_examples(func)[0][testnum]
+    # colored_src = ut.highlight_code(ut.indent(testsrc, '>>> '))
+    colored_src = ut.highlight_code(ut.indent(testsrc, '>>> '))
+    print('testsrc = \n%s' % (colored_src,))
     try:
         code = compile(testsrc, '<string>', 'exec')
-        print('testsrc = \n%s' % (ut.indent(testsrc, '>>> '),))
         exec(code, globals_)
     except ExitTestException:
         print('Test exited before show')
