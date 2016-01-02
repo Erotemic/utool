@@ -972,12 +972,30 @@ class Cachable(object):
         #    loaded_dict = pickle.load(file_)
         #    self.__dict__.update(loaded_dict)
 
+    def list_valid_targets(self, cachedir=None, partial_cfgstr=''):
+        from utool import util_path
+        prefix = self.get_prefix()
+        pattern = prefix + '*' + partial_cfgstr + '*' + self.ext
+        cachedir = self.get_cachedir(cachedir)
+        valid_targets = util_path.glob(cachedir, pattern, recursive=False)
+        return valid_targets
+
+    def fuzzyload(self, cachedir=None, partial_cfgstr=''):
+        """
+        Try and load from a partially specified configuration string
+        """
+        valid_targets = self.list_valid_targets(cachedir, partial_cfgstr)
+        assert valid_targets == 1, 'need to further specify target'
+        fpath = valid_targets[0]
+        return self.load(fpath=fpath)
+
     @profile
-    def load(self, cachedir=None, cfgstr=None, verbose=VERBOSE, quiet=QUIET, ignore_keys=None):
+    def load(self, cachedir=None, cfgstr=None, fpath=None, verbose=VERBOSE, quiet=QUIET, ignore_keys=None):
         """
         Loads the result from the given database
         """
-        fpath = self.get_fpath(cachedir, cfgstr=cfgstr)
+        if fpath is not None:
+            fpath = self.get_fpath(cachedir, cfgstr=cfgstr)
         if verbose:
             print('[Cachable] cache tryload: %r' % (basename(fpath),))
         try:
