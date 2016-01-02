@@ -986,6 +986,7 @@ class Cachable(object):
         """
         valid_targets = self.glob_valid_targets(cachedir, partial_cfgstr)
         if len(valid_targets) != 1:
+            import utool as ut
             msg = 'need to further specify target. valid_targets=%s' % (ut.repr3(valid_targets,))
             raise ValueError(msg)
         fpath = valid_targets[0]
