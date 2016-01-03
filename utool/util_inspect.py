@@ -88,9 +88,9 @@ def get_dev_hints():
         ('ibs.*'   , ('ibeis.IBEISController', 'image analysis api')),
         ('testres', ('ibeis.TestResult', 'test result object')),
         ('qreq_'   , ('ibeis.QueryRequest', 'query request object with hyper-parameters')),
-        ('cm'  , ('ibeis.ChipMatch2', 'object of feature correspondences and scores')),
+        ('cm'  , ('ibeis.ChipMatch', 'object of feature correspondences and scores')),
         ('qparams*', ('ibeis.QueryParams', 'query hyper-parameters')),
-        ('qaid2_cm.*'   , ('dict', 'dict of ``ChipMatch2`` objects')),
+        ('qaid2_cm.*'   , ('dict', 'dict of ``ChipMatch`` objects')),
         ('vecs'    , ('ndarray[uint8_t, ndim=2]', 'descriptor vectors')),
         ('maws'    , ('ndarray[float32_t, ndim=1]', 'multiple assignment weights')),
         ('words'   , ('ndarray[uint8_t, ndim=2]', 'aggregate descriptor cluster centers')),
@@ -1452,7 +1452,7 @@ def recursive_parse_kwargs(root_func, path_=None):
         >>> # DISABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
         >>> from ibeis.algo.hots import chip_match
-        >>> root_func = chip_match.ChipMatch2.show_ranked_matches
+        >>> root_func = chip_match.ChipMatch.show_ranked_matches
         >>> path_ = None
         >>> result = ut.repr2(recursive_parse_kwargs(root_func))
         >>> print(result)

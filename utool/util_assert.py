@@ -81,6 +81,9 @@ def assert_same_len(list1, list2, additional_msg=''):
             len(list1), len(list2), additional_msg))
 
 
+assert_eq_len = assert_same_len
+
+
 def lists_eq(list1, list2):
     """ recursive """
     if len(list1) != len(list2):

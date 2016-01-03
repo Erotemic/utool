@@ -19,12 +19,13 @@ if util_type.HAVE_NUMPY:
 # --- List Allocations ---
 
 
-def lmap(func, iter_):
+def lmap(func, iter_, **kwargs):
     """
     list map - eagerly evaulates map like in python2
     (but you aren't using that right?)
     """
-    return list(map(func, iter_))
+    return [func(arg, **kwargs) for arg in iter_]
+    # return list(map(func, iter_))
 
 
 def maplen(iter_):
@@ -181,6 +182,7 @@ def get_list_column(list_, colx):
     #    return [row[colx] for row in list_]
 
 
+take_column = get_list_column
 #def get_list_row(list_, rowx):
 #    return list_[rowx]
 
@@ -1314,6 +1316,13 @@ def list_take(list_, index_list):
     #if util_iter.isiterable(index_list):
     #else:
 
+# def take
+take = list_take
+
+# def take2(item_list, indicies, axis):
+#     def _get_axes(list_, axis);
+#     pass
+
 
 def list_inverse_take(list_, index_list):
     r"""
@@ -1784,7 +1793,7 @@ def list_deep_types(list_):
     return type_list
 
 
-def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_consecutive=False):
+def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_consecutive=False, new_depth=False):
     r"""
     Returns a nested list corresponding the shape of the nested structures
     lists represent depth, tuples represent shape. The values of the items do
@@ -1799,9 +1808,11 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_cons
     CommandLine:
         python -m utool.util_list --test-depth_profile
 
+    Setup:
+        >>> from utool.util_list import *  # NOQA
+
     Example0:
         >>> # ENABLE_DOCTEST
-        >>> from utool.util_list import *  # NOQA
         >>> list_ = [[[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]], [[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]]]
         >>> result = depth_profile(list_)
         >>> print(result)
@@ -1809,7 +1820,6 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_cons
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> from utool.util_list import *  # NOQA
         >>> list_ = [[[[[1]]], [3, 4, 33]], [[1], [2, 3], [4, [5, 5]]], [1, 3]]
         >>> result = depth_profile(list_)
         >>> print(result)
@@ -1817,15 +1827,13 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_cons
 
     Example2:
         >>> # ENABLE_DOCTEST
-        >>> from utool.util_list import *  # NOQA
         >>> list_ = [[[[[1]]], [3, 4, 33]], [[1], [2, 3], [4, [5, 5]]], [1, 3]]
-        >>> result = depth_profile(list_, 1)
+        >>> result = depth_profile(list_, max_depth=1)
         >>> print(result)
         [[(1, '1'), 3], [1, 2, [1, '2']], 2]
 
     Example3:
         >>> # ENABLE_DOCTEST
-        >>> from utool.util_list import *  # NOQA
         >>> list_ = [[[1, 2], [1, 2, 3]], None]
         >>> result = depth_profile(list_, compress_homogenous=True)
         >>> print(result)
@@ -1833,7 +1841,6 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_cons
 
     Example4:
         >>> # ENABLE_DOCTEST
-        >>> from utool.util_list import *  # NOQA
         >>> list_ = [[3, 2], [3, 2], [3, 2], [3, 2], [3, 2], [3, 2], [9, 5, 3], [2, 2]]
         >>> result = depth_profile(list_, compress_homogenous=True, compress_consecutive=True)
         >>> print(result)
@@ -1841,7 +1848,6 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_cons
 
     Example5:
         >>> # ENABLE_DOCTEST
-        >>> from utool.util_list import *  # NOQA
         >>> list_ = [[[3, 9], 2], [[3, 9], 2], [[3, 9], 2], [[3, 9], 2]]  #, [3, 2], [3, 2]]
         >>> result = depth_profile(list_, compress_homogenous=True, compress_consecutive=True)
         >>> print(result)
@@ -1849,7 +1855,6 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_cons
 
     Example6:
         >>> # ENABLE_DOCTEST
-        >>> from utool.util_list import *  # NOQA
         >>> list_ = [[[[1, 2]], [1, 2]], [[[1, 2]], [1, 2]], [[[0, 2]], [1]]]
         >>> result1 = depth_profile(list_, compress_homogenous=True, compress_consecutive=False)
         >>> result2 = depth_profile(list_, compress_homogenous=True, compress_consecutive=True)
@@ -1860,21 +1865,18 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_cons
 
     Example7:
         >>> # ENABLE_DOCTEST
-        >>> from utool.util_list import *  # NOQA
         >>> list_ = [[{'a': [1, 2], 'b': [3, 4, 5]}, [1, 2, 3]], None]
         >>> result = depth_profile(list_, compress_homogenous=True)
         >>> print(result)
 
     Example8:
         >>> # ENABLE_DOCTEST
-        >>> from utool.util_list import *  # NOQA
         >>> list_ = [[[1]], [[[1, 1], [1, 1]]], [[[[1, 3], 1], [[1, 3, 3], 1, 1]]]]
         >>> result = depth_profile(list_, compress_homogenous=True)
         >>> print(result)
 
     Example9:
         >>> # ENABLE_DOCTEST
-        >>> from utool.util_list import *  # NOQA
         >>> list_ = []
         >>> result = depth_profile(list_)
         >>> print(result)
@@ -1883,6 +1885,17 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_cons
         SHOULD BE
         #[1, 1], [1, 2, 2], (1, ([1, 2]), (
 
+    Example10:
+        >>> # ENABLE_DOCTEST
+        >>> fm1 = [[0, 0], [0, 0]]
+        >>> fm2 = [[0, 0], [0, 0], [0, 0]]
+        >>> fm3 = [[0, 0], [0, 0], [0, 0], [0, 0]]
+        >>> list_ = [0, 0, 0]
+        >>> list_ = [fm1, fm2, fm3]
+        >>> max_depth = 0
+        >>> new_depth = True
+        >>> result = depth_profile(list_, max_depth=max_depth, new_depth=new_depth)
+        >>> print(result)
     """
     if isinstance(list_, dict):
         list_ = list(list_.values())   # handle dict
@@ -1890,19 +1903,40 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_cons
     # For a pure bottom level list return the length
     if not any(map(util_type.is_listlike, list_)):
         return len(list_)
-    for item in list_:
-        if isinstance(item, dict):
-            item = list(item.values())  # handle dict
-        if util_type.is_listlike(item):
-            if max_depth is None:
-                level_shape_list.append(depth_profile(item, None))
-            else:
-                if max_depth >= 0:
-                    level_shape_list.append(depth_profile(item, max_depth - 1))
+
+    if False and new_depth:
+        pass
+        # max_depth_ = None if max_depth is None else max_depth - 1
+        # if max_depth_ is None or max_depth_ > 0:
+        #     pass
+        # else:
+        #     for item in list_:
+        #         if isinstance(item, dict):
+        #             item = list(item.values())  # handle dict
+        #         if util_type.is_listlike(item):
+        #             if max_depth is None:
+        #                 level_shape_list.append(depth_profile(item, None))
+        #             else:
+        #                 if max_depth >= 0:
+        #                     level_shape_list.append(depth_profile(item, max_depth - 1))
+        #                 else:
+        #                     level_shape_list.append(str(len(item)))
+        #         else:
+        #             level_shape_list.append(1)
+    else:
+        for item in list_:
+            if isinstance(item, dict):
+                item = list(item.values())  # handle dict
+            if util_type.is_listlike(item):
+                if max_depth is None:
+                    level_shape_list.append(depth_profile(item, None))
                 else:
-                    level_shape_list.append(str(len(item)))
-        else:
-            level_shape_list.append(1)
+                    if max_depth >= 0:
+                        level_shape_list.append(depth_profile(item, max_depth - 1))
+                    else:
+                        level_shape_list.append(str(len(item)))
+            else:
+                level_shape_list.append(1)
 
     if compress_homogenous:
         # removes redudant information by returning a shape duple
@@ -1913,6 +1947,7 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_cons
                 level_shape_list = tuple([len_] + list(dim_))
             else:
                 level_shape_list = tuple([len_, dim_])
+
     if compress_consecutive:
         hash_list = list(map(hash, map(str, level_shape_list)))
         consec_list = group_consecutives(hash_list, 0)
@@ -1978,6 +2013,10 @@ def list_type_profile(sequence, compress_homogenous=True):
     #if not any(map(util_type.is_listlike, sequence)) or (isinstance(sequence, np.ndarray) and sequence.dtype != object):
     if not util_type.is_listlike(sequence) or (isinstance(sequence, np.ndarray) and sequence.dtype != object):
         typename = str(type(sequence)).replace('<type \'', '').replace('\'>', '')
+        if typename == 'numpy.ndarray':
+            typename = typename.replace('numpy.', '')
+            typename += '[%s]' % (sequence.dtype,)
+
         level_type_str = typename
         return level_type_str
     if len(sequence) == 0:
@@ -1998,6 +2037,9 @@ def list_type_profile(sequence, compress_homogenous=True):
     typename = str(type(sequence)).replace('<type \'', '').replace('\'>', '')
     level_type_str = typename + '(' + str(level_type_str) + ')'
     return level_type_str
+
+
+type_profile = list_type_profile
 
 
 def list_cover(list1, list2):
@@ -2341,7 +2383,6 @@ def list_reshape(list_, new_shape, trail=False):
     return newlist
 
 
-take = list_take
 compress = list_compress
 
 

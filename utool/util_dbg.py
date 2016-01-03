@@ -31,7 +31,8 @@ print, rrr, profile = util_inject.inject2(__name__, '[dbg]')
 
 RAISE_ALL = util_arg.get_argflag('--raise-all', help='Causes ut.printex to always reraise errors')
 FORCE_TB = util_arg.get_argflag('--force-tb', help='Causes ut.printex to always print traceback')
-COLORED_EXCEPTIONS = util_arg.get_argflag(('--colorex', '--cex'))
+# COLORED_EXCEPTIONS = util_arg.get_argflag(('--colorex', '--cex'))
+COLORED_EXCEPTIONS = not util_arg.get_argflag(('--no-colorex', '--no-cex'))
 
 # --- Exec Strings ---
 IPYTHON_EMBED_STR = r'''

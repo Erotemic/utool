@@ -1917,6 +1917,8 @@ def align_lines(line_list, character='=', replchar=None, pos=0):
         three=4    = fish
 
     """
+
+    # FIXME: continue to fix ansii
     if pos is None:
         # Align all occurences
         num_pos = max([line.count(character) for line in line_list])
@@ -1941,10 +1943,18 @@ def align_lines(line_list, character='=', replchar=None, pos=0):
 
     tup_list = [line.split(character) for line in line_list]
 
+    handle_ansi = True
+    if handle_ansi:
+        # Remove ansi from length calculation
+        # References: http://stackoverflow.com/questions/14693701remove-ansi
+        ansi_escape = re.compile(r'\x1b[^m]*m')
+
     # Find how much padding is needed
     maxlen = 0
     for tup in tup_list:
         if len(tup) >= rpos + 1:
+            if handle_ansi:
+                tup = [ansi_escape.sub('', x) for x in tup]
             left_lenlist = list(map(len, tup[0:rpos]))
             left_len = sum(left_lenlist) + lpos * len(replchar)
             maxlen = max(maxlen, left_len)
@@ -1956,13 +1966,7 @@ def align_lines(line_list, character='=', replchar=None, pos=0):
             lhs = character.join(tup[0:rpos])
             rhs = character.join(tup[rpos:])
             # pad the new line with requested justification
-            #if False:
             newline = lhs.ljust(maxlen) + replchar + rhs
-            #else:
-            #    if lpos < 1:
-            #        newline = lhs.rjust(maxlen) + replchar + rhs
-            #    else:
-            #        newline = lhs.ljust(maxlen) + replchar + rhs
             new_lines.append(newline)
         else:
             new_lines.append(replchar.join(tup))

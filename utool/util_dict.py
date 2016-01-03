@@ -224,10 +224,31 @@ def dict_stack2(dict_list, key_suffix=None, default=None):
         >>> result = ut.repr2(dict_stacked, sorted_=True)
         >>> print(result)
         {}
+
+    Example3:
+        >>> # ENABLE_DOCTEST
+        >>> # Corner case: 3 dicts
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
+        >>> dict_list = [{'a': 1}, {'b': 1}, {'c': 1}, {'b': 2}]
+        >>> default = None
+        >>> dict_stacked = dict_stack2(dict_list, default=default)
+        >>> result = ut.repr2(dict_stacked, sorted_=True)
+        >>> print(result)
+        {'a': [1, None, None, None], 'b': [None, 1, None, 2], 'c': [None, None, 1, None]}
     """
     if len(dict_list) > 0:
         dict_list_ = [map_dict_vals(lambda x: [x], kw) for kw in dict_list]
-        stacked_dict = reduce(partial(dict_union_combine, default=[default]), dict_list_)
+        # Reduce does not handle default quite correctly
+        default1 = []
+        default2 = [default]
+        accum_ = dict_list_[0]
+        for dict_ in dict_list_[1:]:
+            default1.append(default)
+            accum_ = dict_union_combine(accum_, dict_, default=default1,
+                                        default2=default2)
+        stacked_dict = accum_
+        # stacked_dict = reduce(partial(dict_union_combine, default=[default]), dict_list_)
     else:
         stacked_dict = {}
     # Augment keys if requested
@@ -1154,13 +1175,22 @@ def dict_isect_combine(dict1, dict2, combine_op=operator.add):
     return dict3
 
 
-def dict_union_combine(dict1, dict2, combine_op=operator.add, default=util_const.NoParam):
-    """ Combine of dict keys and uses dfault value when key does not exist """
+def dict_union_combine(dict1, dict2, combine_op=operator.add,
+                       default=util_const.NoParam,
+                       default2=util_const.NoParam):
+    """
+    Combine of dict keys and uses dfault value when key does not exist
+
+    CAREFUL WHEN USING THIS WITH REDUCE. Use dict_stack2 instead
+    """
     keys3 = set(dict1.keys()).union(set(dict2.keys()))
     if default is util_const.NoParam:
         dict3 = {key: combine_op(dict1[key], dict2[key]) for key in keys3}
     else:
-        dict3 = {key: combine_op(dict1.get(key, default), dict2.get(key, default)) for key in keys3}
+        if default2 is util_const.NoParam:
+            default2 = default
+        dict3 = {key: combine_op(dict1.get(key, default), dict2.get(key, default2))
+                 for key in keys3}
     return dict3
 
 

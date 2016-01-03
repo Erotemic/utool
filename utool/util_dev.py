@@ -2363,6 +2363,120 @@ def ensure_pylab_qt4():
     pt.ensure_pylab_qt4()
 
 
+class DictLike(object):
+    def __repr__(self):
+        return repr(dict(self.items()))
+
+    def __str__(self):
+        return str(dict(self.items()))
+
+    def __len__(self):
+        return len(self.keys())
+
+    def __contains__(self, key):
+        return key in self.keys()
+
+    def copy(self):
+        return dict(self.items())
+
+    def get(self, key, default=None):
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
+    def iteritems(self):
+        for key, val in zip(self.iterkeys(), self.itervalues()):
+            yield key, val
+
+    def itervalues(self):
+        return (self[key] for key in self.keys())
+
+    def values(self):
+        return list(self.itervalues())
+
+    def keys(self):
+        return list(self.iterkeys())
+
+    def items(self):
+        return list(self.iteritems())
+
+
+class ClassAttrDictProxy(DictLike):
+    def __init__(self, obj, keys, attrs=None):
+        if attrs is None:
+            attrs = keys
+        self.obj = obj
+        self._keys = keys
+        self._attrs = attrs
+        self.key2_attrs = dict(zip(keys, attrs))
+
+    def iterkeys(self):
+        return iter(self._keys)
+
+    def __getitem__(self, key):
+        return getattr(self.obj, self.key2_attrs[key])
+
+    def __setitem__(self, key, val):
+        setattr(self.obj, self.key2_attrs[key], val)
+
+
+class AlignedListDictProxy(DictLike):
+    """
+    simulates a dict when using parallel lists the point of this class is that
+    when there are many instances of this class, then key2_idx can be shared between
+    them. Ideally this class wont be used and will disappear when the parallel
+    lists are being used properly.
+    """
+    def __init__(self, key2_idx, key_list, val_list):
+        self.key_list = key_list
+        self.val_list = val_list
+        self.key2_idx = key2_idx
+
+    def __eq__(self, key):
+        raise NotImplementedError()
+
+    def pop(self, key):
+        raise NotImplementedError()
+
+    def __getitem__(self, key):
+        try:
+            return self.val_list[self.key2_idx[key]]
+        except (KeyError, IndexError):
+            # behave like a default dict here
+            self[key] = []
+            return self[key]
+        #return ut.list_take(self.val_list, ut.dict_take(self.key2_idx, key))
+
+    def __setitem__(self, key, val):
+        try:
+            idx = self.key2_idx[key]
+        except KeyError:
+            idx = len(self.key_list)
+            self.key_list.append(key)
+            self.key2_idx[key] = idx
+        try:
+            self.val_list[idx] = val
+        except IndexError:
+            if idx == len(self.val_list):
+                self.val_list.append(val)
+            else:
+                raise
+            #else:
+            #    offset = idx - len(self.val_list)
+            #    self.val_list.extend(([None] * offset) + [val])
+
+    def iteritems(self):
+        for key, val in zip(self.key_list, self.val_list):
+            yield key, val
+
+    def iterkeys(self):
+        return iter(self.key_list)
+
+    def itervalues(self):
+        return iter(self.val_list)
+
+
 if __name__ == '__main__':
     """
     CommandLine:
