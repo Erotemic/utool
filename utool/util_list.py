@@ -1324,6 +1324,13 @@ take = list_take
 #     pass
 
 
+def take_percentile(arr, percent):
+    """ take the top `percent` items in a list rounding up """
+    size = len(arr)
+    stop = min(int(size * percent), len(arr))
+    return arr[0:stop]
+
+
 def list_inverse_take(list_, index_list):
     r"""
     Args:

@@ -1248,6 +1248,68 @@ def time_different_diskstores():
     cPickle_read_test2()
 
 
+class DictLike2(object):
+    """
+    move to util_dict rectify with util_dev
+    """
+    def __repr__(self):
+        return repr(self.copy())
+
+    def __str__(self):
+        return str(self.copy())
+
+    def __len__(self):
+        return len(list(self.keys()))
+
+    def __contains__(self, key):
+        return key in self.keys()
+
+    def __getitem__(self, key):
+        return self.getitem(key)
+
+    def __setitem__(self, key, value):
+        return self.setitem(key, value)
+
+    def iteritems(self):
+        for key, val in zip(self.iterkeys(), self.itervalues()):
+            yield key, val
+
+    def itervalues(self):
+        return (self[key] for key in self.keys())
+
+    def iterkeys(self):
+        return (self[key] for key in self.keys())
+
+    def items(self):
+        return list(self.iteritems())
+
+    def copy(self):
+        return dict(self.items())
+
+
+class KeyedDefaultDict(DictLike2):
+    def __init__(self, default_func, *args, **kwargs):
+        self._default_func = default_func
+        self._args = args
+        self._kwargs = kwargs
+        self._internal = {}
+
+    def setitem(self, key, value):
+        self._internal[key] = value
+
+    def getitem(self, key):
+        if key not in self._internal:
+            value = self._default_func(key, *self._args, **self._kwargs)
+            self._internal[key] = value
+        return self._internal[key]
+
+    def keys(self):
+        return self._internal.keys()
+
+    def values(self):
+        return self._internal.values()
+
+
 @six.add_metaclass(util_class.ReloadingMetaclass)
 class LazyDict(object):
     #class LazyDict(collections.Mapping):
