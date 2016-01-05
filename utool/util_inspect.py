@@ -1502,7 +1502,8 @@ def recursive_parse_kwargs(root_func, path_=None):
             if isinstance(subfunc_name, tuple) or '.' in subfunc_name:
                 # look up attriute chain
                 subtup = subfunc_name.split('.')
-                subdict = root_func.func_globals
+                #subdict = root_func.func_globals
+                subdict = meta_util_six.get_funcglobals(root_func)
                 for attr in subtup[:-1]:
                     try:
                         subdict = subdict[attr].__dict__
@@ -1522,7 +1523,8 @@ def recursive_parse_kwargs(root_func, path_=None):
             else:
                 # can directly take func from globals
                 try:
-                    subfunc = root_func.func_globals[subfunc_name]
+                    subfunc = meta_util_six.get_funcglobals(root_func)[subfunc_name]
+                    #subfunc = root_func.func_globals[subfunc_name]
                 except KeyError:
                     print('Unable to find function definition subfunc_name=%r' % (subfunc_name,))
                     if ut.SUPER_STRICT:
@@ -1883,9 +1885,9 @@ def find_pyfunc_above_row(line_list, row, orclass=False):
         >>> from utool.util_inspect import *  # NOQA
         >>> import utool as ut
         >>> func = find_pyfunc_above_row
-        >>> fpath = func.func_globals['__file__'].replace('.pyc', '.py')
+        >>> fpath = meta_util_six.get_funcglobals(func)['__file__'].replace('.pyc', '.py')
         >>> line_list = ut.read_from(fpath, aslines=True)
-        >>> row = func.func_code.co_firstlineno + 1
+        >>> row = meta_util_six.get_funccode(func).co_firstlineno + 1
         >>> pyfunc, searchline = find_pyfunc_above_row(line_list, row)
         >>> result = pyfunc
         >>> print(result)

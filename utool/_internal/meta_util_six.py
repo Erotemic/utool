@@ -42,6 +42,7 @@ if six.PY2:
     #
     def get_funcdoc(func):
         return getattr(func, 'func_doc')
+    #
     def set_funcdoc(func, newdoc):
         return setattr(func, 'func_doc', newdoc)
     #

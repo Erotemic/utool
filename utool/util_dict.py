@@ -514,7 +514,8 @@ def augdict(dict1, dict2=None, **kwargs):
     return dict1_
 
 
-def update_existing(dict1, dict2, copy=False, assert_exists=False, alias_dict=None):
+def update_existing(dict1, dict2, copy=False, assert_exists=False,
+                    iswarning=False, alias_dict=None):
     r"""
     updates vals in dict1 using vals from dict2 only if the
     key is already in dict1.
@@ -548,7 +549,12 @@ def update_existing(dict1, dict2, copy=False, assert_exists=False, alias_dict=No
         >>> assert dict1_ is dict1
     """
     if assert_exists:
-        assert_keys_are_subset(dict1, dict2)
+        try:
+            assert_keys_are_subset(dict1, dict2)
+        except AssertionError as ex:
+            ut.printex(ex, iswarning=iswarning)
+            if not iswarning:
+                raise
     if copy:
         dict1 = dict(dict1)
     if alias_dict is None:

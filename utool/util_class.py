@@ -160,7 +160,12 @@ def inject_all_external_modules(self, classname=None,
 def reload_injected_modules(classname):
     injected_modules = get_injected_modules(classname)
     for module in injected_modules:
-        module.rrr()
+        if hasattr(module, 'rrr'):
+            module.rrr()
+        else:
+            import imp
+            print('rrr not defined in module=%r' % (module,))
+            imp.reload(module)
 
 
 def get_injected_modules(classname):
