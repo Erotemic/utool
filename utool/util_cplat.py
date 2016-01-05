@@ -47,6 +47,23 @@ def in_pyinstaller_package():
     return hasattr(sys, '_MEIPASS')
 
 
+def get_system_python_library():
+    """
+    FIXME; hacky way of finding python library. Not cross platform yet.
+    """
+    import os
+    import utool as ut
+    from os.path import basename, realpath
+    pyname = basename(realpath(sys.executable))
+    ld_library_path = os.environ['LD_LIBRARY_PATH']
+    libdirs = [x for x in ld_library_path.split(os.pathsep) if x] + ['/usr/lib']
+    libfiles = ut.flatten([ut.glob(d, '*' + ut.get_lib_ext(), recursive=True) for d in libdirs])
+    python_libs = [realpath(f) for f in libfiles if 'lib' + pyname in basename(f)]
+    python_libs = ut.unique_keep_order(python_libs)
+    assert len(python_libs) == 1, str(python_libs)
+    return python_libs[0]
+
+
 def get_free_diskbytes(dir_):
     r"""
     Args:
