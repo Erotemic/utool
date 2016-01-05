@@ -38,9 +38,9 @@ def show_function_usage(fname, funcname_list, dpath_list):
             flagged_funcnames.append(funcname_)
         # See where external usage is
         isexternal_list = [fname == fname_ for fname_ in found_filestr_list]
-        external_filestr_list = ut.list_compress(found_filestr_list, isexternal_list)
-        external_lines_list = ut.list_compress(found_lines_list, isexternal_list)
-        #external_lxs_list = ut.list_compress(found_lxs_list, isexternal_list)
+        external_filestr_list = ut.compress(found_filestr_list, isexternal_list)
+        external_lines_list = ut.compress(found_lines_list, isexternal_list)
+        #external_lxs_list = ut.compress(found_lxs_list, isexternal_list)
         if len(external_filestr_list) == 0:
             print(' no external usage')
         else:

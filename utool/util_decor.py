@@ -776,7 +776,7 @@ def preserve_sig(wrapper, orig_func, force=False):
         >>> def myfunction(self, listinput_, arg1, *args, **kwargs):
         >>>     " just a test function "
         >>>     return [x + 1 for x in listinput_]
-        >>> #orig_func = ut.list_take
+        >>> #orig_func = ut.take
         >>> orig_func = myfunction
         >>> wrapper = ut.accepts_scalar_input2([0])(orig_func)
         >>> _wrp_preserve1 = ut.preserve_sig(wrapper, orig_func, True)

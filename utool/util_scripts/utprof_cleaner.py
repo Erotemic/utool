@@ -98,8 +98,8 @@ def get_summary(profile_block_list, maxlines=20):
     time_list = [time if time is not None else -1 for time in time_list]
     blockid_list = [get_block_id(block) for block in profile_block_list]
     sortx = ut.list_argsort(time_list)
-    sorted_time_list = ut.list_take(time_list, sortx)
-    sorted_blockid_list = ut.list_take(blockid_list, sortx)
+    sorted_time_list = ut.take(time_list, sortx)
+    sorted_blockid_list = ut.take(blockid_list, sortx)
 
     aligned_blockid_list = ut.util_str.align_lines(sorted_blockid_list, ':')
     summary_lines = [('%6.2f seconds - ' % time) + line

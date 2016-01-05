@@ -982,7 +982,7 @@ def maximin_distance_subset1d(items, K=None, min_thresh=None, verbose=False):
     # Put chosen mask back in the input order of items
     chosen_items_mask = chosen_mask.take(initial_sortx.argsort())
     chosen_items_idxs = np.nonzero(chosen_items_mask)[0]
-    chosen_items = ut.list_take(items, chosen_items_idxs)
+    chosen_items = ut.take(items, chosen_items_idxs)
     #current_idx = np.nonzero(chosen_mask)[0]
     if verbose:
         print('Chose subset')

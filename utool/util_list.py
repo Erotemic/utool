@@ -315,7 +315,7 @@ def search_list(text_list, pattern, flags=0):
     import utool as ut
     match_list = [re.search(pattern, text, flags=flags) for text in text_list]
     valid_index_list = [index for index, match in enumerate(match_list) if match is not None]
-    valid_match_list = ut.list_take(match_list, valid_index_list)
+    valid_match_list = ut.take(match_list, valid_index_list)
     return valid_index_list, valid_match_list
 
 
@@ -772,7 +772,7 @@ def get_dirty_items(item_list, flag_list):
     return dirty_items
 
 
-def list_compress(item_list, flag_list):
+def compress(item_list, flag_list):
     """
     like np.compress but for lists
 
@@ -798,11 +798,8 @@ def ziptake(items_list, indexes_list):
     SeeAlso:
         vt.ziptake
     """
-    return [list_take(list_, index_list)
+    return [take(list_, index_list)
             for list_, index_list in zip(items_list, indexes_list)]
-
-
-list_ziptake = ziptake
 
 
 def zipcompress(items_list, flags_list):
@@ -810,10 +807,12 @@ def zipcompress(items_list, flags_list):
     SeeAlso:
         vt.zipcompress
     """
-    return [list_compress(list_, flags)
+    return [compress(list_, flags)
             for list_, flags in zip(items_list, flags_list)]
 
 
+list_compress = compress
+list_ziptake = ziptake
 list_zipcompress = zipcompress
 
 
@@ -822,7 +821,7 @@ def list_zipflatten(*items_lists):
 
 
 def list_compresstake(items_list, flags_list):
-    return [list_compress(list_, flags) for list_, flags in zip(items_list, flags_list)]
+    return [compress(list_, flags) for list_, flags in zip(items_list, flags_list)]
 
 
 def filter_items(item_list, flag_list):
@@ -839,7 +838,7 @@ def filter_items(item_list, flag_list):
     SeeAlso:
         util_iter.iter_compress
     """
-    return list_compress(item_list, flag_list)
+    return compress(item_list, flag_list)
 
 
 def filterfalse_items(item_list, flag_list):
@@ -1011,7 +1010,7 @@ def priority_argsort(list_, priority):
         >>> priority = [8, 2, 6, 9]
         >>> sortx = priority_argsort(list_, priority)
         >>> reordered_list = priority_sort(list_, priority)
-        >>> assert ut.list_take(list_, sortx) == reordered_list
+        >>> assert ut.take(list_, sortx) == reordered_list
         >>> result = str(sortx)
         >>> print(result)
         [3, 0, 2, 1, 4]
@@ -1086,7 +1085,7 @@ def unique_keep_order(list_):
         unique_list = [4, 6, 0, 1, 2]
     """
     flag_list = flag_unique_items(list_)
-    unique_list = list_compress(list_, flag_list)
+    unique_list = compress(list_, flag_list)
     return unique_list
 
 unique_ordered = unique_keep_order
@@ -1251,7 +1250,7 @@ def list_unflat_take(items_list, unflat_index_list):
         >>> result = list_unflat_take(items_list, unflat_index_list)
         >>> print(result)
     """
-    return [list_unflat_take(items_list, xs) if isinstance(xs, list) else list_take(items_list, xs) for xs in unflat_index_list]
+    return [list_unflat_take(items_list, xs) if isinstance(xs, list) else take(items_list, xs) for xs in unflat_index_list]
 
 
 def list_argsort(*args, **kwargs):
@@ -1269,7 +1268,7 @@ def list_argsort(*args, **kwargs):
 argsort = list_argsort
 
 
-def list_take(list_, index_list):
+def take(list_, index_list):
     """ like np.take but for lists
 
     Args:
@@ -1280,14 +1279,14 @@ def list_take(list_, index_list):
         list or scalar: subset of the list
 
     CommandLine:
-        python -m utool.util_list --test-list_take
+        python -m utool.util_list --test-take
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> list_ = [0, 1, 2, 3]
         >>> index_list = [2, 0]
-        >>> result = list_take(list_, index_list)
+        >>> result = take(list_, index_list)
         >>> print(result)
         [2, 0]
 
@@ -1296,7 +1295,7 @@ def list_take(list_, index_list):
         >>> from utool.util_list import *  # NOQA
         >>> list_ = [0, 1, 2, 3]
         >>> index = 2
-        >>> result = list_take(list_, index)
+        >>> result = take(list_, index)
         >>> print(result)
         2
 
@@ -1305,7 +1304,7 @@ def list_take(list_, index_list):
         >>> from utool.util_list import *  # NOQA
         >>> list_ = [0, 1, 2, 3]
         >>> index = slice(1, None, 2)
-        >>> result = list_take(list_, index)
+        >>> result = take(list_, index)
         >>> print(result)
         [1, 3]
     """
@@ -1317,7 +1316,7 @@ def list_take(list_, index_list):
     #else:
 
 # def take
-take = list_take
+list_take = take
 
 # def take2(item_list, indicies, axis):
 #     def _get_axes(list_, axis);
@@ -1339,7 +1338,7 @@ def list_inverse_take(list_, index_list):
 
     Note:
         Seems to be logically equivalent to
-        ut.list_take(list_, ut.list_argsort(index_list)), but faster
+        ut.take(list_, ut.list_argsort(index_list)), but faster
 
     Returns:
         list: output_list_ - the input list in the unsorted domain
@@ -1355,11 +1354,11 @@ def list_inverse_take(list_, index_list):
         >>> rank_list = [3, 2, 4, 1, 9, 2]
         >>> prop_list = [0, 1, 2, 3, 4, 5]
         >>> index_list = ut.list_argsort(rank_list)
-        >>> sorted_prop_list = ut.list_take(prop_list, index_list)
+        >>> sorted_prop_list = ut.take(prop_list, index_list)
         >>> # execute function
         >>> list_ = sorted_prop_list
         >>> output_list_  = list_inverse_take(list_, index_list)
-        >>> output_list2_ = ut.list_take(list_, ut.list_argsort(index_list))
+        >>> output_list2_ = ut.take(list_, ut.list_argsort(index_list))
         >>> assert output_list_ == prop_list
         >>> assert output_list2_ == prop_list
         >>> # verify results
@@ -1368,7 +1367,7 @@ def list_inverse_take(list_, index_list):
 
     Timeit::
         %timeit list_inverse_take(list_, index_list)
-        %timeit ut.list_take(list_, ut.list_argsort(index_list))
+        %timeit ut.take(list_, ut.list_argsort(index_list))
     """
     output_list_ = [None] * len(index_list)
     for item, index in zip(list_, index_list):
@@ -1990,7 +1989,7 @@ def list_type(list_):
         return types
 
 
-def list_type_profile(sequence, compress_homogenous=True):
+def list_type_profile(sequence, compress_homogenous=True, with_dtype=True):
     """
     similar to depth_profile but reports types
 
@@ -2020,7 +2019,7 @@ def list_type_profile(sequence, compress_homogenous=True):
     #if not any(map(util_type.is_listlike, sequence)) or (isinstance(sequence, np.ndarray) and sequence.dtype != object):
     if not util_type.is_listlike(sequence) or (isinstance(sequence, np.ndarray) and sequence.dtype != object):
         typename = str(type(sequence)).replace('<type \'', '').replace('\'>', '')
-        if typename == 'numpy.ndarray':
+        if with_dtype and typename == 'numpy.ndarray':
             typename = typename.replace('numpy.', '')
             typename += '[%s]' % (sequence.dtype,)
 
@@ -2032,7 +2031,7 @@ def list_type_profile(sequence, compress_homogenous=True):
     level_type_list = []
     for item in sequence:
         #if util_type.is_listlike(item):
-        level_type_list.append(list_type_profile(item))
+        level_type_list.append(list_type_profile(item, with_dtype=with_dtype))
 
     if compress_homogenous:
         # removes redudant information by returning a type and number
@@ -2117,7 +2116,7 @@ def make_sortby_func(item_list, reverse=False):
     sortxs_ = list_argsort(item_list)
     sortxs = sortxs_[::-1] if reverse else sortxs_
     def sortby_func(list_):
-        return list_take(list_, sortxs)
+        return take(list_, sortxs)
     return sortby_func
 
 
@@ -2388,9 +2387,6 @@ def list_reshape(list_, new_shape, trail=False):
     if not trail:
         newlist = newlist[0]
     return newlist
-
-
-compress = list_compress
 
 
 def index_to_boolmask(index_list, maxval=None):
