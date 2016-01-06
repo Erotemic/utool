@@ -14,7 +14,7 @@ try:
     HAS_NUMPY = True
 except ImportError as ex:
     HAS_NUMPY = False
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[io]')
+print, rrr, profile = util_inject.inject2(__name__, '[io]')
 
 
 __PRINT_IO__ = True

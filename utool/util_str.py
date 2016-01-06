@@ -2035,11 +2035,11 @@ def long_fname_format(fmt_str, fmt_dict, hashable_keys=[], max_len=64,
                 break
         if len(fname) > max_len:
             diff = len(fname) - max_len
-            msg = ('Warning: Too big by %d chars. Exausted all options'
+            msg = ('[util_str] Warning: Too big by %d chars. Exausted all options'
                    'to make fname fit into size. ')  % (diff,)
             print(msg)
-            print('len(fname) = %r' % len(fname))
-            print('fname = %r' % fname)
+            print('* len(fname) = %r' % len(fname))
+            print('* fname = %r' % fname)
             if ABS_MAX_LEN is not None and len(fname) > ABS_MAX_LEN:
                 raise AssertionError(msg)
     return fname
