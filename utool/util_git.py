@@ -43,6 +43,9 @@ def get_project_repo_dirs():
 
 
 def gitcmd(repo, command, sudo=False, dryrun=DRY_RUN):
+    import utool as ut
+    if ut.WIN32:
+        assert not sudo, 'cant sudo on windows'
     print("+****gitcmd*******")
     print('repo=%s' % repo)
     if not isinstance(command, (tuple, list)):
@@ -151,12 +154,14 @@ def std_build_command(repo='.'):
     print("L**** stdbuild *******")
 
 
-def gg_command(command, sudo=False):
+def gg_command(command, sudo=False, repo_dirs=None):
     """ Runs a command on all of your PROJECT_REPO_DIRS """
+    if repo_dirs is None:
+        repo_dirs = PROJECT_REPO_DIRS
     print('+------- GG_COMMAND -------')
     print('| sudo=%s' % sudo)
     print('| command=%s' % command)
-    for repo in PROJECT_REPO_DIRS:
+    for repo in repo_dirs:
         if exists(repo):
             gitcmd(repo, command, sudo=sudo)
     print('L___ FINISHED GG_COMMAND ___')
@@ -166,7 +171,7 @@ def checkout_repos(repo_urls, repo_dirs=None, checkout_dir=None):
     """ Checkout every repo in repo_urls into checkout_dir """
     # Check out any repo you dont have
     if checkout_dir is not None:
-        repo_dirs = mu.get_repo_dirs(checkout_dir)
+        repo_dirs = mu.get_repo_dirs(repo_urls, checkout_dir)
     assert repo_dirs is not None, 'specify checkout dir or repo_dirs'
     for repodir, repourl in zip(repo_dirs, repo_urls):
         print('[git] checkexist: ' + repodir)
@@ -183,19 +188,20 @@ def ensure_repos(repo_urls, repo_dirs=None, checkout_dir=None):
     """ Checkout every repo in repo_urls into checkout_dir """
     # Check out any repo you dont have
     if checkout_dir is not None:
-        repo_dirs = mu.get_repo_dirs(checkout_dir)
+        repo_dirs = mu.get_repo_dirs(repo_urls, checkout_dir)
     assert repo_dirs is not None, 'specify checkout dir or repo_dirs'
     for repodir, repourl in zip(repo_dirs, repo_urls):
         print('[git] checkexist: ' + repodir)
         if not exists(repodir):
             mu.cd(dirname(repodir))
             mu.cmd('git clone ' + repourl)
+    return repo_dirs
 
 
 def setup_develop_repos(repo_dirs):
     """ Run python installs """
     for repodir in repo_dirs:
-        print('Installing: ' + repodir)
+        print('\n[git] Setup Develop: ' + repodir)
         mu.cd(repodir)
         assert exists('setup.py'), 'cannot setup a nonpython repo'
         mu.cmd('python setup.py develop')
