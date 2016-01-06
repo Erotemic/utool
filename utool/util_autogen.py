@@ -496,7 +496,7 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
         from utool.util_autogen import *  # NOQA
         import utool as ut
         import ibeis
-        species = ibeis.const.Species.ZEB_PLAIN
+        species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
         qaids = ibs.get_valid_aids(species=species)
         qreq_ = ibeis.testdata_qreq_()
         foo = make_example_docstr(qaids, qreq_)
@@ -525,7 +525,7 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
         'nid_list'    : 'ibs._get_all_known_nids()',
         'qaids'       : 'ibs.get_valid_aids(species=species)',
         'daids'       : 'ibs.get_valid_aids(species=species)',
-        'species'     : 'ibeis.const.Species.ZEB_PLAIN',
+        'species'     : 'ibeis.const.TEST_SPECIES.ZEB_PLAIN',
         'kpts'        : 'vt.dummy.get_dummy_kpts()',
         'dodraw'      : 'ut.show_was_requested()',
         'img_fpath'   : 'ut.grab_test_imgpath(\'carl.jpg\')',
