@@ -47,6 +47,30 @@ truepath = meta_util_path.truepath
 unixjoin = meta_util_path.unixjoin
 
 
+def ensure_ext(fname, ext):
+    r"""
+    Args:
+        fname (str):  file name
+        ext (?):
+
+    Returns:
+        str: fname -  file name
+
+    CommandLine:
+        python -m utool.util_path --exec-ensure_ext --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> print(ensure_ext('foo', '.bar'))
+        >>> print(ensure_ext('foo.bar', '.bar'))
+    """
+    fname_, ext_ = splitext(fname)
+    if ext != ext_:
+        fname = fname_ + ext_ + ext
+    return fname
+
+
 def relpath_unix(path, otherpath):
     return relpath(path, otherpath).replace('\\', '/')
 
