@@ -1410,7 +1410,7 @@ def get_kwargs(func):
     if argspec.defaults is not None:
         num_args = len(argspec.args)
         num_keys = len(argspec.defaults)
-        keys = ut.list_take(argspec.args, range(num_args - num_keys, num_args))
+        keys = ut.take(argspec.args, range(num_args - num_keys, num_args))
     else:
         keys = []
     is_arbitrary = argspec.keywords is not None

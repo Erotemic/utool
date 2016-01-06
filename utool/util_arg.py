@@ -327,7 +327,7 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
         >>>     res = get_argval(argstr_, **kwargs)
         >>>     print('---')
         >>>     print('res = %r' % (res,))
-        >>>     print('list1[%r=%r] = %r' % (argstr_, res, ut.list_take(list1, res),))
+        >>>     print('list1[%r=%r] = %r' % (argstr_, res, ut.take(list1, res),))
         >>>     print('list2[%r=%r] = %r' % (argstr_, res, list2[res].tolist(),))
         >>>     res_list.append(res)
         >>> result = ut.dict_str(ut.odict(zip(argstr_list, res_list)))

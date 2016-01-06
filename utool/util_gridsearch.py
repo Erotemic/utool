@@ -541,7 +541,7 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
                         cfg_combos_list.append(cfg_combo)
             # SUBX Cannot work here because of acfg hackiness
             #if subx is not None:
-            #    cfg_combo = ut.list_take(cfg_combo, subx)
+            #    cfg_combo = ut.take(cfg_combo, subx)
             if expand_nested:
                 cfg_combos_list.append(cfg_combos)
         #    print('Updated to: ' + str(ut.depth_profile(cfg_combos_list)))
@@ -807,7 +807,7 @@ class GridSearch(object):
         param_range_list = ut.get_list_column(gridsearch.grid_basis, 1)
         if exclude_unvaried_dimension:
             is_varied = [len(param_range) > 1 for param_range in param_range_list]
-            param_label_list = ut.list_compress(param_label_list_, is_varied)
+            param_label_list = ut.compress(param_label_list_, is_varied)
         else:
             param_label_list = param_label_list_
         return param_label_list
@@ -1188,10 +1188,10 @@ def interact_gridsearch_result_images(show_result_func, cfgdict_list,
     else:
         # sort by score if available
         sortx_list = ut.list_argsort(score_list, reverse=True)
-        score_list = ut.list_take(score_list, sortx_list)
-        cfgdict_list = ut.list_take(cfgdict_list, sortx_list)
-        cfglbl_list = ut.list_take(cfglbl_list, sortx_list)
-        cfgresult_list = ut.list_take(cfgresult_list, sortx_list)
+        score_list = ut.take(score_list, sortx_list)
+        cfgdict_list = ut.take(cfgdict_list, sortx_list)
+        cfglbl_list = ut.take(cfglbl_list, sortx_list)
+        cfgresult_list = ut.take(cfgresult_list, sortx_list)
     # Dont show too many results only the top few
     score_list = ut.listclip(score_list, max_plots)
 

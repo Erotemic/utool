@@ -384,7 +384,7 @@ def remove_existing_fpaths(fpath_list, verbose=VERBOSE, quiet=QUIET,
         print(('[util_path.remove_existing_fpaths] '
                ' %d/%d exist and need to be deleted')
               % (nExist, nValid))
-    existing_fpath_list = ut.list_compress(fpath_list_, exists_list)
+    existing_fpath_list = ut.compress(fpath_list_, exists_list)
     return remove_fpaths(existing_fpath_list, verbose=verbose, quiet=quiet,
                             strict=strict, print_caller=False, lbl=lbl)
 

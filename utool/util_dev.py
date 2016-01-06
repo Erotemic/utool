@@ -2131,10 +2131,10 @@ def uninvert_unique_two_lists(flat_list, reconstruct_tup):
     """
     import utool as ut
     (inverse3, cumsum, inverse2, inverse1) = reconstruct_tup
-    flat_stacked_ = ut.list_take(flat_list, inverse3)
+    flat_stacked_ = ut.take(flat_list, inverse3)
     unique_list1_, unique_list2_ = ut.unflatten2(flat_stacked_, cumsum)
-    res_list1_ = ut.list_take(unique_list1_, inverse1)
-    res_list2_ = ut.list_take(unique_list2_, inverse2)
+    res_list1_ = ut.take(unique_list1_, inverse1)
+    res_list2_ = ut.take(unique_list2_, inverse2)
     return res_list1_, res_list2_
 
 
@@ -2160,7 +2160,7 @@ def inverable_group_multi_list(item_lists):
     # Find uniques in those lists
     flat_unique, stack_groups = vt.group_indices(np.array(flat_stacked))
     # Get a list of corresonding group indicies from each input list
-    flat_groupx_multilist = [ut.list_take(groups_stacked, groupx) for groupx in stack_groups]
+    flat_groupx_multilist = [ut.take(groups_stacked, groupx) for groupx in stack_groups]
     # flat_unique corresponds with the aids (hence chips) the flag_groupxs
     # multilist is a list where each item is a tuple who's nth item indexes
     # into the nth input list. Ie (1, 0) is a list of indexes into the 1st chip
@@ -2446,7 +2446,7 @@ class AlignedListDictProxy(DictLike):
             # behave like a default dict here
             self[key] = []
             return self[key]
-        #return ut.list_take(self.val_list, ut.dict_take(self.key2_idx, key))
+        #return ut.take(self.val_list, ut.dict_take(self.key2_idx, key))
 
     def __setitem__(self, key, val):
         try:
