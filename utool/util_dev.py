@@ -1646,7 +1646,7 @@ def get_object_size(obj, fallback_type=None, follow_pointers=False, exclude_modu
         >>> from ibeis.expt.experiment_harness import *  # NOQA
         >>> import ibeis
         >>> import utool as ut
-        >>> species = ibeis.const.Species.ZEB_PLAIN
+        >>> species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> qaids = ibs.get_valid_aids(species=species)
         >>> daids = ibs.get_valid_aids(species=species)
