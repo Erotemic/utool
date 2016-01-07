@@ -1249,8 +1249,12 @@ def list_unflat_take(items_list, unflat_index_list):
         >>> unflat_index_list = [[0, 1], [2, 3], [0, 4]]
         >>> result = list_unflat_take(items_list, unflat_index_list)
         >>> print(result)
+        [[1, 2], [3, 4], [1, 5]]
     """
-    return [list_unflat_take(items_list, xs) if isinstance(xs, list) else take(items_list, xs) for xs in unflat_index_list]
+    return [list_unflat_take(items_list, xs)
+            if isinstance(xs, list) else
+            take(items_list, xs)
+            for xs in unflat_index_list]
 
 
 def list_argsort(*args, **kwargs):
