@@ -19,6 +19,9 @@ from utool._internal import meta_util_six
 print, rrr, profile = util_inject.inject2(__name__, '[inspect]')
 
 
+VERBOSE_INSPECT, VERYVERB_INSPECT = util_arg.get_module_verbosity_flags('inspect')
+
+
 LIB_PATH = dirname(os.__file__)
 
 
@@ -809,7 +812,7 @@ def find_child_kwarg_funcs(sourcecode, target_kwargs_name='kwargs'):
     sourcecode = 'from __future__ import print_function\n' + sourcecode
     pt = ast.parse(sourcecode)
     child_funcnamess = []
-    debug = False
+    debug = False or VERYVERB_INSPECT
 
     if debug:
         print('\nInput:')
@@ -820,7 +823,10 @@ def find_child_kwarg_funcs(sourcecode, target_kwargs_name='kwargs'):
         print('\nParse:')
         print(astor.dump(pt))
 
-    class CallVisitor(ast.NodeVisitor):
+    class KwargParseVisitor(ast.NodeVisitor):
+        """
+        TODO: understand ut.update_existing and dict update
+        """
         def visit_FunctionDef(self, node):
             if debug:
                 print('\nVISIT FunctionDef node = %r' % (node,))
@@ -858,7 +864,7 @@ def find_child_kwarg_funcs(sourcecode, target_kwargs_name='kwargs'):
                 print('kwargs_name = %r' % (kwargs_name,))
             ast.NodeVisitor.generic_visit(self, node)
     try:
-        CallVisitor().visit(pt)
+        KwargParseVisitor().visit(pt)
     except Exception:
         pass
         #import utool as ut
@@ -866,6 +872,26 @@ def find_child_kwarg_funcs(sourcecode, target_kwargs_name='kwargs'):
         #    raise
     return child_funcnamess
     #print('child_funcnamess = %r' % (child_funcnamess,))
+
+
+def is_valid_python(code, reraise=True, ipy_magic_workaround=False):
+    """
+    References:
+        http://stackoverflow.com/questions/23576681/python-check-syntax
+    """
+    import ast
+    try:
+        if ipy_magic_workaround:
+            code = '\n'.join(['pass' if re.match(r'\s*%[a-z]*', line) else line for line in code.split('\n')])
+        ast.parse(code)
+    except SyntaxError:
+        if reraise:
+            import utool as ut
+            print('Syntax Error')
+            ut.print_python_code(code)
+            raise
+        return False
+    return True
 
 
 def parse_return_type(sourcecode):
@@ -1422,6 +1448,21 @@ def get_kwargs(func):
     return keys, is_arbitrary
 
 
+def lookup_attribute_chain(attrname, namespace):
+    """
+        >>> import utool as ut
+        >>> globals_ = ut.util_inspect.__dict__
+        >>> attrname = 'KWReg.print_defaultkw'
+    """
+    #subdict = meta_util_six.get_funcglobals(root_func)
+    subtup = attrname.split('.')
+    subdict = namespace
+    for attr in subtup[:-1]:
+        subdict = subdict[attr].__dict__
+    leaf_attr = subdict[subtup[-1]]
+    return leaf_attr
+
+
 def recursive_parse_kwargs(root_func, path_=None):
     """
     recursive kwargs parser
@@ -1439,19 +1480,31 @@ def recursive_parse_kwargs(root_func, path_=None):
         python -m utool.util_inspect --exec-recursive_parse_kwargs:1
         python -m utool.util_inspect --exec-recursive_parse_kwargs:2 --mod plottool --func draw_histogram
 
+        python -m utool.util_inspect --exec-recursive_parse_kwargs:2 --mod vtool --func ScoreNormalizer.visualize
+
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
-        >>> import ibeis.algo.preproc.preproc_image
-        >>> root_func = ibeis.algo.preproc.preproc_image.add_images_params_gen
+        >>> import utool as ut
+        >>> root_func = iter_module_doctestable
         >>> path_ = None
-        >>> result = ut.repr2(recursive_parse_kwargs(root_func))
+        >>> result = ut.repr2(recursive_parse_kwargs(root_func), nl=1)
         >>> print(result)
+        [
+            ('include_funcs', True),
+            ('include_classes', True),
+            ('include_methods', True),
+            ('include_builtin', True),
+            ('include_inherited', False),
+            ('debug_key', None),
+        ]
+
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
         >>> from ibeis.algo.hots import chip_match
+        >>> import utool as ut
         >>> root_func = chip_match.ChipMatch.show_ranked_matches
         >>> path_ = None
         >>> result = ut.repr2(recursive_parse_kwargs(root_func))
@@ -1460,13 +1513,17 @@ def recursive_parse_kwargs(root_func, path_=None):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
+        >>> import utool as ut
         >>> modname = ut.get_argval('--mod', type_=str, default='plottool')
         >>> funcname = ut.get_argval('--func', type_=str, default='draw_histogram')
         >>> mod = ut.import_modname(modname)
-        >>> root_func = mod.__dict__[funcname]
+        >>> root_func = lookup_attribute_chain(funcname, mod.__dict__)
         >>> result = ut.repr2(recursive_parse_kwargs(root_func))
         >>> print(result)
     """
+    if VERBOSE_INSPECT:
+        print('[inspect] recursive parse kwargs root_func = %r ' % (root_func,))
+
     import utool as ut
     if path_ is None:
         path_ = []
@@ -1496,44 +1553,61 @@ def recursive_parse_kwargs(root_func, path_=None):
             subdict = None
         return subdict
 
-    if spec.keywords is not None:
-        subfunc_name_list = ut.find_child_kwarg_funcs(sourcecode, spec.keywords)
-        for subfunc_name in subfunc_name_list:
-            if isinstance(subfunc_name, tuple) or '.' in subfunc_name:
-                # look up attriute chain
-                subtup = subfunc_name.split('.')
-                #subdict = root_func.func_globals
-                subdict = meta_util_six.get_funcglobals(root_func)
-                for attr in subtup[:-1]:
-                    try:
-                        subdict = subdict[attr].__dict__
-                    except (KeyError, TypeError):
-                        # limited support for class lookup
-                        if ut.is_method(root_func) and spec.args[0] == attr:
-                            subdict = root_func.im_class.__dict__
-                        else:
-                            # FIXME
-                            subdict = hack_lookup_mod_attrs(attr)
-                            if subdict is None:
-                                print('Unable to find attribute of attr=%r' % (attr,))
-                                if ut.SUPER_STRICT:
-                                    raise
-                if subdict is not None:
-                    subfunc = subdict[subtup[-1]]
-            else:
-                # can directly take func from globals
+    def resolve_attr_subfunc(subfunc_name):
+        # look up attriute chain
+        #subdict = root_func.func_globals
+        subdict = meta_util_six.get_funcglobals(root_func)
+        subtup = subfunc_name.split('.')
+        try:
+            subdict = lookup_attribute_chain(subfunc_name, subdict)
+        except (KeyError, TypeError):
+            for attr in subtup[:-1]:
                 try:
-                    subfunc = meta_util_six.get_funcglobals(root_func)[subfunc_name]
-                    #subfunc = root_func.func_globals[subfunc_name]
-                except KeyError:
-                    print('Unable to find function definition subfunc_name=%r' % (subfunc_name,))
-                    if ut.SUPER_STRICT:
-                        raise
-                    subkw_list = []
-                else:
-                    subkw_list = recursive_parse_kwargs(subfunc)
+                    subdict = subdict[attr].__dict__
+                except (KeyError, TypeError):
+                    # limited support for class lookup
+                    if ut.is_method(root_func) and spec.args[0] == attr:
+                        subdict = root_func.im_class.__dict__
+                    else:
+                        # FIXME TODO lookup_attribute_chain
+                        subdict = hack_lookup_mod_attrs(attr)
+                        if subdict is None:
+                            print('Unable to find attribute of attr=%r' % (attr,))
+                            if ut.SUPER_STRICT:
+                                raise
+        if subdict is not None:
+            subfunc = subdict[subtup[-1]]
+        return subfunc
+
+    def check_subfunc_name(subfunc_name):
+        if isinstance(subfunc_name, tuple) or '.' in subfunc_name:
+            subfunc = resolve_attr_subfunc(subfunc_name)
+        else:
+            # try to directly take func from globals
+            func_globals = meta_util_six.get_funcglobals(root_func)
+            try:
+                subfunc = func_globals[subfunc_name]
+            except KeyError:
+                print('Unable to find function definition subfunc_name=%r' % (subfunc_name,))
+                if ut.SUPER_STRICT:
+                    raise
+                subfunc = None
+        if subfunc is not None:
+            subkw_list = recursive_parse_kwargs(subfunc)
             have_keys = set(ut.get_list_column(kwargs_list, 0))
             new_subkw = [item for item in subkw_list if item[0] not in have_keys]
+        else:
+            new_subkw = []
+        return new_subkw
+
+    if spec.keywords is not None:
+        if VERBOSE_INSPECT:
+            print('[inspect] Checking spec.keywords=%r' % (spec.keywords,))
+        subfunc_name_list = ut.find_child_kwarg_funcs(sourcecode, spec.keywords)
+        if VERBOSE_INSPECT:
+            print('[inspect] Checking subfunc_name_list=%r' % (subfunc_name_list,))
+        for subfunc_name in subfunc_name_list:
+            new_subkw = check_subfunc_name(subfunc_name)
             kwargs_list.extend(new_subkw)
     return kwargs_list
 

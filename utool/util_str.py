@@ -25,10 +25,12 @@ if util_type.HAVE_NUMPY:
 TAU = (2 * math.pi)  # References: tauday.com
 
 NO_TRUNCATE = '--no-truncate' in sys.argv
+
 TRIPLE_DOUBLE_QUOTE = r'"' * 3
 TRIPLE_SINGLE_QUOTE = r"'" * 3
 SINGLE_QUOTE = r"'"
 DOUBLE_QUOTE = r'"'
+BACKSLASH = '\\'
 NEWLINE = '\n'
 
 TAUFMTSTR = '{coeff:,.1f}{taustr}'

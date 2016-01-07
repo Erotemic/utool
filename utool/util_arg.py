@@ -37,8 +37,8 @@ __REGISTERED_ARGS__ = []
 
 def get_module_verbosity_flags(*labels):
     """ checks for standard flags for enableing module specific verbosity """
-    verbose_prefix_list = ['--verbose-', '--verb']
-    veryverbose_prefix_list = ['--veryverbose-', '--veryverb']
+    verbose_prefix_list = ['--verbose-', '--verb', '--verb-']
+    veryverbose_prefix_list = ['--veryverbose-', '--veryverb', '--veryverb-']
     verbose_flags = tuple(
         [prefix + lbl for prefix, lbl in
          itertools.product(verbose_prefix_list, labels)])

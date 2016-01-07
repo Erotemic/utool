@@ -926,6 +926,34 @@ def remove_private_obfuscation(self):
         setattr(self, truename, method)
 
 
+def get_classname(class_, local=False):
+    r"""
+    Args:
+        class_ (type):
+        local (bool): (default = False)
+
+    Returns:
+        str: classname
+
+    CommandLine:
+        python -m utool.util_class --exec-get_classname --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_class import *  # NOQA
+        >>> import utool as ut
+        >>> class_ = ReloadingMetaclass
+        >>> local = False
+        >>> assert get_classname(class_, local) == 'utool.util_class.ReloadingMetaclass'
+        >>> assert get_classname(class_, local=True) == 'ReloadingMetaclass'
+    """
+    if not local:
+        classname = class_.__module__ + '.' + class_.__name__
+    else:
+        classname = class_.__name__
+    return classname
+
+
 if __name__ == '__main__':
     """
     python -c "import utool; utool.doctest_funcs(utool.util_class, allexamples=True)"

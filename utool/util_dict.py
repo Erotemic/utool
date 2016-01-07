@@ -552,7 +552,8 @@ def update_existing(dict1, dict2, copy=False, assert_exists=False,
         try:
             assert_keys_are_subset(dict1, dict2)
         except AssertionError as ex:
-            ut.printex(ex, iswarning=iswarning)
+            from utool import util_dbg
+            util_dbg.printex(ex, iswarning=iswarning, N=1)
             if not iswarning:
                 raise
     if copy:
