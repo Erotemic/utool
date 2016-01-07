@@ -446,8 +446,8 @@ def accepts_scalar_input2(argx_list=[0], outer_wrapper=True):
             code that operates on lists. Ensures that decorated function gets
             the argument as an iterable.
     """
-    if not isinstance(argx_list, (list, tuple)):
-        raise AssertionError('accepts_scalar_input2 must be called with argument positions')
+    assert isinstance(argx_list, (list, tuple)), (
+        'accepts_scalar_input2 must be called with argument positions')
 
     def closure_asi2(func):
         #@on_exception_report_input
