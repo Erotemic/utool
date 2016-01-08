@@ -15,9 +15,13 @@ import collections
 from os.path import split
 from utool import util_type
 from utool import util_time
+from utool import util_cplat
 from utool._internal import meta_util_six
+from utool._internal import meta_util_arg
 from utool import util_inject
 print, rrr, profile = util_inject.inject2(__name__, '[str]')
+
+ENABLE_COLORS = not util_cplat.WIN32 and not meta_util_arg.get_argflag('--nopygments')
 
 if util_type.HAVE_NUMPY:
     import numpy as np
@@ -2609,6 +2613,88 @@ def chr_range(*args, **kw):
         step = 1
     list_ = list(map(six.text_type, map(chr_, range(start, stop, step))))
     return list_
+
+
+def get_colored_diff(text):
+    return highlight_text(text, lexer_name='diff')
+
+
+def highlight_code(text, lexer_name='python'):
+    return highlight_text(text, lexer_name)
+
+
+def highlight_text(text, lexer_name='python', **kwargs):
+    r"""
+    SeeAlso:
+        color_text
+    """
+    import utool as ut
+    if ENABLE_COLORS:
+        try:
+            import pygments
+            import pygments.lexers
+            import pygments.formatters
+            #from pygments import highlight
+            #from pygments.lexers import get_lexer_by_name
+            #from pygments.formatters import TerminalFormatter
+            #if ut.WIN32:
+            #    assert False
+            #    #formater = pygments.formatters.terminal256.Terminal256Formatter()
+            #    import pygments.formatters.terminal256
+            #    formater = pygments.formatters.terminal256.Terminal256Formatter()
+            #else:
+            import pygments.formatters.terminal
+            formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
+            lexer = pygments.lexers.get_lexer_by_name(lexer_name, **kwargs)
+            return pygments.highlight(text, lexer, formater)
+        except Exception:
+            if ut.SUPER_STRICT:
+                raise
+            return text
+    return text
+
+
+def color_text(text, color):
+    r"""
+    SeeAlso:
+        highlight_text
+    """
+    import utool as ut
+    if color is None or not ENABLE_COLORS:
+        return text
+    try:
+        import pygments
+        import pygments.console
+        ansi_text = pygments.console.colorize(color, text)
+        if ut.WIN32:
+            import colorama
+            ansi_reset = (colorama.Style.RESET_ALL)
+        else:
+            ansi_reset = pygments.console.colorize('reset', '')
+        ansi_text = ansi_text + ansi_reset
+        return ansi_text
+    except ImportError:
+        return text
+
+
+def highlight_regex(str_, pat, reflags=0):
+    """
+    FIXME Use pygments instead
+    """
+    #import colorama
+    from colorama import Fore, Style
+    #color = Fore.MAGENTA
+    color = Fore.RED
+    match = re.search(pat, str_, flags=reflags)
+    if match is None:
+        return str_
+    else:
+        start = match.start()
+        end = match.end()
+        #colorama.init()
+        colored = str_[:start] + color + str_[start:end] + Style.RESET_ALL + str_[end:]
+        #colorama.deinit()
+        return colored
 
 
 if __name__ == '__main__':

@@ -30,6 +30,7 @@ from utool import util_inspect
 from utool import util_list
 from utool import util_class  # NOQA
 from utool import util_type
+from utool import util_decor
 from utool._internal import meta_util_constants
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[cache]')
 
@@ -40,7 +41,6 @@ VERBOSE = util_arg.VERBOSE
 QUIET = util_arg.QUIET
 VERBOSE_CACHE = util_arg.NOT_QUIET
 USE_CACHE = not util_arg.get_argflag('--nocache')
-__SHELF__ = None  # GLOBAL CACHE
 __APPNAME__ = meta_util_constants.default_appname  # the global application name
 
 
@@ -394,6 +394,7 @@ class Cacher(object):
         save_cache(self.dpath, self.fname, cfgstr, data)
 
 
+@util_decor.memoize
 def make_utool_json_encoder(allow_pickle=False):
     """
     References:
@@ -483,7 +484,7 @@ def make_utool_json_encoder(allow_pickle=False):
     return UtoolJSONEncoder
 
 
-def to_json(val, allow_pickle=True):
+def to_json(val, allow_pickle=False):
     r"""
     Converts a python object to a JSON string using the utool convention
 
@@ -519,31 +520,28 @@ def to_json(val, allow_pickle=True):
         >>> #val = ut.LazyDict(x='fo')
         >>> json_str = ut.to_json(val, allow_pickle=True)
         >>> result = ut.repr3(json_str)
-        >>> print(result)
         >>> reload_val = ut.from_json(json_str, allow_pickle=True)
-        >>> print('original = ' + ut.repr3(val, nl=1))
-        >>> print('reconstructed = ' + ut.repr3(reload_val, nl=1))
         >>> # Make sure pickle doesnt happen by default
         >>> try:
         >>>     json_str = ut.to_json(val)
+        >>>     assert False, 'expected a type error'
         >>> except TypeError:
         >>>     print('Correctly got type error')
-        >>> else:
-        >>>     assert False, 'expected a type error'
         >>> try:
         >>>     json_str = ut.from_json(val)
+        >>>     assert False, 'expected a type error'
         >>> except TypeError:
         >>>     print('Correctly got type error')
-        >>> else:
-        >>>     assert False, 'expected a type error'
-
+        >>> print(result)
+        >>> print('original = ' + ut.repr3(val, nl=1))
+        >>> print('reconstructed = ' + ut.repr3(reload_val, nl=1))
     """
     UtoolJSONEncoder = make_utool_json_encoder(allow_pickle)
     json_str = json.dumps(val, cls=UtoolJSONEncoder)
     return json_str
 
 
-def from_json(json_str, allow_pickle=True):
+def from_json(json_str, allow_pickle=False):
     """
     Decodes a JSON object specified in the utool convention
     """
@@ -799,45 +797,6 @@ def get_global_shelf_fpath(appname='default', ensure=False):
     global_cache_dir = get_global_cache_dir(appname, ensure=ensure)
     shelf_fpath = join(global_cache_dir, meta_util_constants.global_cache_fname)
     return shelf_fpath
-
-
-#def get_global_shelf(appname='default'):
-#    """ Returns the global shelf object """
-#    global __SHELF__
-#    if __SHELF__ is None:
-#        try:
-#            shelf_fpath = get_global_shelf_fpath(appname, ensure=True)
-#            print(shelf_fpath)
-#            __SHELF__ = shelve.open(shelf_fpath)
-#        except Exception as ex:
-#            from utool import util_dbg
-#            util_dbg.printex(ex, 'Failed opening shelf_fpath',
-#                             key_list=['shelf_fpath'])
-#            raise
-#        #shelf_file = open(shelf_fpath, 'w')
-#    return __SHELF__
-
-
-#@atexit.register
-#def close_global_shelf(appname='default'):
-#    # FIXME: If the program closes with ctrl+c this isnt called and
-#    # the global cache is not written
-#    global __SHELF__
-#    if __SHELF__ is not None:
-#        __SHELF__.close()
-#    __SHELF__ = None
-
-
-#class ShelfContext(shelve.Shelf):
-#    """
-#    References:
-#        http://stackoverflow.com/questions/7489732/easiest-way-to-add-a-function-to-existing-class
-#    """
-#    def __enter__(self):
-#        return self
-
-#    def __exit__(self, exc_type, exc_value, exc_trace):
-#        self.close()
 
 
 def shelf_open(fpath):

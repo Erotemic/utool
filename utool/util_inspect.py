@@ -25,6 +25,7 @@ VERBOSE_INSPECT, VERYVERB_INSPECT = util_arg.get_module_verbosity_flags('inspect
 LIB_PATH = dirname(os.__file__)
 
 
+@profile
 def check_module_usage(modpath_partterns):
     """
     Args:
@@ -32,6 +33,7 @@ def check_module_usage(modpath_partterns):
 
     CommandLine:
         python -m utool.util_inspect --exec-check_module_usage --show
+        python -m utool.util_inspect --exec-check_module_usage --pat="['auto*', 'user_dialogs.py', 'special_query.py', 'qt_inc_automatch.py', 'devcases.py']"
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -56,7 +58,8 @@ def check_module_usage(modpath_partterns):
     # context.
 
     for modname, modpath in zip(modnames, modpaths):
-        found_fpath_list, found_lines_list = ut.grep_projects('\\b' + modname + '\\b', new=True, verbose=False)
+        pattern = '\\b' + modname + '\\b',
+        found_fpath_list, found_lines_list = ut.grep_projects(pattern, new=True, verbose=False)
         parent_modnames = ut.lmap(ut.get_modname_from_modpath, found_fpath_list)
         parent_numlines = ut.lmap(len, found_lines_list)
         importance = dict(zip(parent_modnames, parent_numlines))

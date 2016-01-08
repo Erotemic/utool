@@ -1159,8 +1159,8 @@ def formatex(ex, msg='[!?] Caught exception',
     if tb or FORCE_TB:
         tbtext = traceback.format_exc()
         if colored or COLORED_EXCEPTIONS:
-            from utool import util_print
-            tbtext = util_print.highlight_text(tbtext, lexer_name='pytb', stripall=True)
+            from utool import util_str
+            tbtext = util_str.highlight_text(tbtext, lexer_name='pytb', stripall=True)
         errstr_list.append(tbtext)
     errstr_list.append(prefix + ' ' + str(msg) + '\n%r: %s' % (type(ex), str(ex)))
     #errstr_list.append(prefix + ' ' + str(msg) + '\ntype(ex)=%r' % (type(ex),))

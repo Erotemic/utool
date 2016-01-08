@@ -113,9 +113,9 @@ def colored_pygments_excepthook(type_, value, tb):
     """
     tbtext = ''.join(traceback.format_exception(type_, value, tb))
     try:
-        from utool import util_print
-        formatted_text = util_print.highlight_text(tbtext, lexer_name='pytb',
-                                                   stripall=True)
+        from utool import util_str
+        formatted_text = util_str.highlight_text(tbtext, lexer_name='pytb',
+                                                 stripall=True)
     except Exception:
         # FIXME silent errro
         formatted_text = tbtext
