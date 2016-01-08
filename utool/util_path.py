@@ -1572,7 +1572,7 @@ def matching_fnames(dpath_list, include_patterns, exclude_dirs=[],
 
 
 @profile
-def grepfile(fpath, regexpr_list, reflags=0):
+def grepfile(fpath, regexpr_list, reflags=0, cache=None):
     """
     grepfile - greps a specific file
 
@@ -1599,24 +1599,36 @@ def grepfile(fpath, regexpr_list, reflags=0):
     # Ensure a list
     islist = isinstance(regexpr_list, (list, tuple))
     regexpr_list_ = regexpr_list if islist else [regexpr_list]
-    # Open file and search lines
-    with open(fpath, 'r') as file_:
-        #line_list = file_.readlines()
-        # Search each line for each pattern
-        for lx, line in enumerate(file_):
-            for regexpr_ in regexpr_list_:
-                # FIXME: multiline mode doesnt work
-                match_object = re.search(regexpr_, line, flags=reflags)
-                if match_object is not None:
-                    found_lines.append(line)
-                    found_lxs.append(lx)
+    re_list = [re.compile(pat, flags=reflags) for pat in  regexpr_list_]
+
+    # Open file and search lines or use cache
+    if cache is None or fpath not in cache:
+        with open(fpath, 'r') as file_:
+            lines = list(file_.readlines())
+        if cache is not None:
+            cache[fpath] = lines
+    else:
+        lines = cache[fpath]
+
+    # Search each line for each pattern
+    for lx, line in enumerate(lines):
+        #for regexpr_ in regexpr_list_:
+        match_objects = [re_.search(line) for re_ in re_list]
+        for match in match_objects:
+            if match is not None:
+                found_lines.append(line)
+                found_lxs.append(lx)
+        #for re_ in re_list:
+            # FIXME: multiline mode doesnt work
+            #match_object = re.search(regexpr_, line, flags=reflags)
+            #match_object =
     return found_lines, found_lxs
 
 
 @profile
 def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
-         exclude_dirs=[], greater_exclude_dirs=None,
-         inverse=False, verbose=VERBOSE, fpath_list=None, reflags=0):
+         exclude_dirs=[], greater_exclude_dirs=None, inverse=False,
+         verbose=VERBOSE, fpath_list=None, reflags=0, cache=None):
     r"""
     greps for patterns
     Python implementation of grep. NOT FINISHED
@@ -1685,7 +1697,7 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
     # For each matching filepath
     for fpath in fpath_generator:
         # For each search pattern
-        found_lines, found_lxs = grepfile(fpath, extended_regex_list, reflags)
+        found_lines, found_lxs = grepfile(fpath, extended_regex_list, reflags, cache=cache)
         if inverse:
             if len(found_lines) == 0:
                 # Append files that the pattern was not found in

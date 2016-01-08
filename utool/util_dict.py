@@ -114,24 +114,32 @@ def get_dict_hashid(dict_):
 
     CommandLine:
         python -m utool.util_dict --test-get_dict_hashid
+        python3 -m utool.util_dict --test-get_dict_hashid
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
-        >>> # build test data
         >>> dict_ = {}
         >>> dict_ = {'a': 'b'}
         >>> dict_ = {'a': {'c': 'd'}}
-        >>> # execute function
+        >>> #dict_ = {'a': {'c': 'd'}, 1: 143, dict: set}
+        >>> dict_ = {'a': {'c': 'd'}, 1: 143 }
         >>> hashid = get_dict_hashid(dict_)
-        >>> # verify results
         >>> result = str(hashid)
         >>> print(result)
+        oegknoalkrkojumi
+
+        fprzgbpsdzfqueqh
+
         5127623379007436803
     """
-    from utool import util_hash
+    import utool as ut
+    raw_text = ut.dict_str(dict_, sorted_=True, strvals=True)
+    #print('raw_text = %r' % (raw_text,))
+    hashid = ut.hashstr27(raw_text)
+    #from utool import util_hash
     #hashid = hash(frozenset(dict_.items()))
-    hashid = util_hash.make_hash(dict_)
+    #hashid = util_hash.make_hash(dict_)
     return hashid
 
 

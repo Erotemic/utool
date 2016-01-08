@@ -33,6 +33,7 @@ def check_module_usage(modpath_partterns):
 
     CommandLine:
         python -m utool.util_inspect --exec-check_module_usage --show
+        utprof.py -m utool.util_inspect --exec-check_module_usage --show
         python -m utool.util_inspect --exec-check_module_usage --pat="['auto*', 'user_dialogs.py', 'special_query.py', 'qt_inc_automatch.py', 'devcases.py']"
 
     Example:
@@ -56,10 +57,11 @@ def check_module_usage(modpath_partterns):
     # introspection to determine the content of the for loop body executes code
     # using the values of the local variables in a parallel / distributed
     # context.
+    cache = {}
 
     for modname, modpath in zip(modnames, modpaths):
         pattern = '\\b' + modname + '\\b',
-        found_fpath_list, found_lines_list = ut.grep_projects(pattern, new=True, verbose=False)
+        found_fpath_list, found_lines_list = ut.grep_projects(pattern, new=True, verbose=False, cache=cache)
         parent_modnames = ut.lmap(ut.get_modname_from_modpath, found_fpath_list)
         parent_numlines = ut.lmap(len, found_lines_list)
         importance = dict(zip(parent_modnames, parent_numlines))

@@ -2,13 +2,231 @@
 from __future__ import absolute_import, division, print_function  # , unicode_literals
 from six.moves import zip, filter, filterfalse, map, range  # NOQA
 import six  # NOQA
-from os.path import split, dirname
+from os.path import split, dirname, join
 from utool import util_class  # NOQA
 from utool import util_inject
 print, rrr, profile = util_inject.inject2(__name__, '[util_project]')
 
 
 __GLOBAL_PROFILE__ = None
+
+
+def ensure_text(fname, text, repo_dpath='.', force=False, locals_={}):
+    """
+    Args:
+        fname (str):  file name
+        text (str):
+        repo_dpath (str):  directory path string(default = '.')
+        force (bool): (default = False)
+        locals_ (dict): (default = {})
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_git import *  # NOQA
+        >>> import utool as ut
+        >>> result = setup_repo()
+        >>> print(result)
+    """
+    print('Ensuring fname=%r' % (fname))
+    import utool as ut
+    fpath = join(repo_dpath, fname)
+    if force or not ut.checkpath(fpath, verbose=2, n=5):
+        text_ = ut.remove_codeblock_syntax_sentinals(text)
+        text_ = text_.format(**locals_) + '\n'
+        ut.writeto(fpath, text_)
+
+
+def setup_repo():
+    r"""
+    Creates default structure for a new repo
+
+    CommandLine:
+        python -m utool.util_git --exec-setup_repo --repo=dtool --codedir=~/code
+
+        python -m utool --tf setup_repo --repo=dtool --codedir=~/code
+        python -m utool --tf setup_repo --repo=ibeis-flukematch-module --codedir=~/code --modname=ibeis_flukematch
+
+        python -m utool --tf setup_repo
+
+    Python:
+        ipython
+        import utool as ut
+        ut.rrrr(0); ut.setup_repo()
+
+    Example:
+        >>> # SCRIPT
+        >>> from utool.util_git import *  # NOQA
+        >>> import utool as ut
+        >>> result = setup_repo()
+        >>> print(result)
+    """
+    print('\n [setup_repo]!')
+    # import os
+    from functools import partial
+    import utool as ut
+    # import os
+    code_dpath  = ut.truepath(ut.get_argval('--code-dir', default='~/code'))
+    repo_fname = (ut.get_argval(('--repo', '--repo-name'), type_=str))
+    repo_dpath = join(code_dpath, repo_fname)
+    modname = ut.get_argval('--modname', default=repo_fname)
+    ut.ensuredir(repo_dpath, verbose=True)
+    with ut.ChdirContext(repo_dpath):
+        # os.chdir(repo_fname)
+        locals_ = locals()
+        force = True
+
+        _ensure_text = partial(ensure_text, repo_dpath='.', force=False, locals_=locals_)
+
+        _ensure_text(
+            fname='todo.md',
+            text=ut.codeblock(
+                r'''
+                # STARTBLOCK
+                # {modname} TODO File
+
+                * Add TODOS!
+                # ENDBLOCK
+                ''')
+        )
+
+        _ensure_text(
+            fname='README.md',
+            text=ut.codeblock(
+                r'''
+                # STARTBLOCK
+                # {modname} README FILE
+                # ENDBLOCK
+                ''')
+        )
+
+        _ensure_text(
+            fname='setup.py',
+            text=ut.codeblock(
+                r'''
+                # STARTBLOCK
+                #!/usr/bin/env python2.7
+                from __future__ import absolute_import, division, print_function, unicode_literals
+                from setuptools import setup
+                try:
+                    from utool import util_setup
+                except ImportError:
+                    print('ERROR: setup requires utool')
+                    raise
+
+                INSTALL_REQUIRES = [
+                    #'cython >= 0.21.1',
+                    #'numpy >= 1.9.0',
+                    #'scipy >= 0.16.0',
+                ]
+
+                CLUTTER_PATTERNS = [
+                    # Patterns removed by python setup.py clean
+                ]
+
+                if __name__ == '__main__':
+                    kwargs = util_setup.setuptools_setup(
+                        setup_fpath=__file__,
+                        name='{modname}',
+                        packages=util_setup.find_packages(),
+                        version=util_setup.parse_package_for_version('{modname}'),
+                        license=util_setup.read_license('LICENSE'),
+                        long_description=util_setup.parse_readme('README.md'),
+                        ext_modules=util_setup.find_ext_modules(),
+                        cmdclass=util_setup.get_cmdclass(),
+                        #description='description of module',
+                        #url='https://github.com/<username>/{repo_fname}.git',
+                        #author='<author>',
+                        #author_email='<author_email>',
+                        keywords='',
+                        install_requires=INSTALL_REQUIRES,
+                        clutter_patterns=CLUTTER_PATTERNS,
+                        #package_data={{'build': ut.get_dynamic_lib_globstrs()}},
+                        #build_command=lambda: ut.std_build_command(dirname(__file__)),
+                        classifiers=[],
+                    )
+                    setup(**kwargs)
+                # ENDBLOCK
+                '''
+            )
+        )
+
+        _ensure_text(
+            fname='.gitignore',
+            text=ut.codeblock(
+                r'''
+                # STARTBLOCK
+                *.py[cod]
+
+                # C extensions
+                *.so
+                # Packages
+                *.egg
+                *.egg-info
+                dist
+                build
+                eggs
+                parts
+                bin
+                var
+                sdist
+                develop-eggs
+                .installed.cfg
+                lib
+                lib64
+                __pycache__
+
+                # Installer logs
+                pip-log.txt
+
+                # Print Logs
+                logs
+
+                # Unit test / coverage reports
+                .coverage
+                .tox
+                nosetests.xml
+
+                # Translations
+                *.mo
+
+                # Mr Developer
+                .mr.developer.cfg
+                .project
+                .pydevproject
+                .DS_Store
+                *.dump.txt
+                *.sqlite3
+
+                # profiler
+                *.lprof
+                *.prof
+
+                *.flann
+                *.npz
+
+                # utool output
+                _test_times.txt
+                failed.txt
+
+                *.orig
+                _doc
+                test_times.txt
+                failed_doctests.txt
+                # ENDBLOCK
+                '''
+            )
+        )
+
+        _ensure_text(
+            fname=join(repo_dpath, modname, '__init__.py'),
+            text=ut.codeblock(
+                r'''
+                __version__ = '0.0.0'
+                '''
+            )
+        )
+
+    ut.ensuredir(join(repo_dpath, modname), verbose=True)
 
 
 #@util_class.ReloadingMetaclass

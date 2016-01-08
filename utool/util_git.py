@@ -9,7 +9,7 @@ from utool._internal import meta_util_git as mu  # NOQA
 from utool._internal.meta_util_git import get_repo_dirs, get_repo_dname  # NOQA
 from utool import util_inject
 from utool import util_arg
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[git]')
+print, rrr, profile = util_inject.inject2(__name__, '[git]')
 
 repo_list = mu.repo_list
 set_userid = mu.set_userid
@@ -225,90 +225,6 @@ def is_gitrepo(repo_dir):
     gitdir = join(repo_dir, '.git')
     return exists(gitdir) and isdir(gitdir)
 
-
-def ensure_text(fname, text, repo_dpath='.', force=False, locals_={}):
-    """
-    Args:
-        fname (str):  file name
-        text (str):
-        repo_dpath (str):  directory path string(default = '.')
-        force (bool): (default = False)
-        locals_ (dict): (default = {})
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from utool.util_git import *  # NOQA
-        >>> import utool as ut
-        >>> result = setup_repo()
-        >>> print(result)
-    """
-    import utool as ut
-    fpath = join(repo_dpath, fname)
-    if force or not ut.checkpath(fpath, verbose=2, n=5):
-        text_ = ut.remove_codeblock_syntax_sentinals(text)
-        text_ = text_.format(**locals_)
-        ut.writeto(fpath, text_)
-
-
-def setup_repo():
-    r"""
-    CommandLine:
-        python -m utool.util_git --exec-setup_repo --repo=dtool --codedir=~/code
-        python -m utool --tf setup_repo --repo=dtool --codedir=~/code
-
-        python -m utool --tf setup_repo
-
-    Python:
-        ipython
-        import utool as ut
-        ut.rrrr(0); ut.setup_repo()
-
-    Example:
-        >>> # SCRIPT
-        >>> from utool.util_git import *  # NOQA
-        >>> import utool as ut
-        >>> result = setup_repo()
-        >>> print(result)
-    """
-    print('\n [setup_repo]!!!')
-    # import os
-    from functools import partial
-    import utool as ut
-    # import os
-    code_dpath  = ut.truepath(ut.get_argval('--code-dir', default='~/code'))
-    repo_fname = (ut.get_argval('--repo-name', default='dtool'))
-    repo_dpath = join(code_dpath, repo_fname)
-    ut.ensuredir(repo_dpath, verbose=True)
-    with ut.ChdirContext(repo_dpath):
-        # os.chdir(repo_fname)
-        locals_ = locals()
-        force = True
-
-        _ensure_text = partial(ensure_text, repo_dpath='.', force=False, locals_={})
-
-        _ensure_text(
-            fname='todo.md',
-            text=ut.codeblock(
-                r'''
-                # STARTBLOCK
-                # {repo_fname} TODO File
-
-                * Add TODOS!
-                # ENDBLOCK
-                ''')
-        )
-
-        _ensure_text(
-            fname='README.md',
-            text=ut.codeblock(
-                r'''
-                # STARTBLOCK
-                # {repo_fname} README FILE
-                # ENDBLOCK
-                ''')
-        )
-
-    ut.ensuredir(join(repo_dpath, repo_fname), verbose=True)
 
 if __name__ == '__main__':
     import multiprocessing
