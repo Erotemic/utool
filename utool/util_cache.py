@@ -406,6 +406,7 @@ def make_utool_json_encoder(allow_pickle=False):
     """
     PYOBJECT_TAG = '__PYTHON_OBJECT__'
     UUID_TAG = '__UUID__'
+    SLICE_TAG = '__SLICE__'
 
     def decode_pickle(text):
         obj = pickle.loads(codecs.decode(text.encode(), 'base64'))
@@ -418,6 +419,7 @@ def make_utool_json_encoder(allow_pickle=False):
 
     type_to_tag = collections.OrderedDict([
         (object, PYOBJECT_TAG),
+        (slice, SLICE_TAG),
         (uuid.UUID, UUID_TAG),
     ])
 
@@ -426,11 +428,13 @@ def make_utool_json_encoder(allow_pickle=False):
     encoders = {
         UUID_TAG: str,
         PYOBJECT_TAG: encode_pickle,
+        SLICE_TAG: lambda s: ':'.join([str(s.start), str(s.stop), str(s.step)])
     }
 
     decoders = {
         UUID_TAG: uuid.UUID,
         PYOBJECT_TAG: decode_pickle,
+        SLICE_TAG: lambda x: ut.smart_cast(x, slice),
     }
 
     if not allow_pickle:
@@ -511,6 +515,7 @@ def to_json(val, allow_pickle=False):
         >>>    '{"foo": "not a dict"}',
         >>>    1.3,
         >>>    [1],
+        >>>    slice(1, None, 1),
         >>>    b'an ascii string',
         >>>    np.array([1, 2, 3]),
         >>>    ut.get_zero_uuid(),
