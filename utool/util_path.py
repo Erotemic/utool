@@ -2018,13 +2018,13 @@ class ChdirContext(object):
 
     def __enter__(self):
         if self.dpath is not None:
-            print('Change directory to %r' % (self.dpath,))
+            print('[path.push] Change directory to %r' % (self.dpath,))
             os.chdir(self.dpath)
         return self
 
     def __exit__(self, type_, value, trace):
         if not self.stay:
-            print('Change directory to %r' % (self.curdir,))
+            print('[path.pop] Change directory to %r' % (self.curdir,))
             os.chdir(self.curdir)
         if trace is not None:
             if VERBOSE:

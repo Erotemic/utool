@@ -606,7 +606,7 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
         examplecode_lines.append('# DISABLE_DOCTEST')
     else:
         # Enable the test if it can be run immediately
-        examplecode_lines.append('# ENABLE_DOCTEST')
+        examplecode_lines.append('# DISABLE_DOCTEST')
 
     examplecode_lines.extend(import_lines)
     #examplecode_lines.append('# build test data')

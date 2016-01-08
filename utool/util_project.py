@@ -52,7 +52,7 @@ def ensure_user_profile(user_profile=None):
     return user_profile
 
 
-def grep_projects(tofind_list, user_profile=None, verbose=True, **kwargs):
+def grep_projects(tofind_list, user_profile=None, verbose=True, new=False, **kwargs):
     r"""
     Greps the projects defined in the current UserProfile
 
@@ -112,7 +112,11 @@ def grep_projects(tofind_list, user_profile=None, verbose=True, **kwargs):
     if verbose:
         print('\n'.join(msg_list2))
     msg_list = msg_list1 + msg_list2
-    return msg_list
+
+    if new:
+        return found_fpath_list, found_lines_list
+    else:
+        return msg_list
 
 
 ## Grep my projects

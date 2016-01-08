@@ -25,6 +25,50 @@ VERBOSE_INSPECT, VERYVERB_INSPECT = util_arg.get_module_verbosity_flags('inspect
 LIB_PATH = dirname(os.__file__)
 
 
+def check_module_usage(modpath_partterns):
+    """
+    Args:
+        modpath_partterns (?):
+
+    CommandLine:
+        python -m utool.util_inspect --exec-check_module_usage --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_inspect import *  # NOQA
+        >>> import utool as ut
+        >>> modpath_partterns = ['_grave*']
+        >>> modpath_partterns = ['auto*', 'user_dialogs.py', 'special_query.py', 'qt_inc_automatch.py', 'devcases.py']
+        >>> result = check_module_usage(modpath_partterns)
+        >>> print(result)
+    """
+    import utool as ut
+    dpath = '~/code/ibeis/ibeis/algo/hots'
+    modpaths = ut.flatten([ut.glob(dpath, pat) for pat in modpath_partterns])
+    modnames = ut.lmap(ut.get_modname_from_modpath, modpaths)
+
+    importance_dict = {}
+
+    # HACK: ut.parfor
+    # returns a 0 lenth iterator so the for loop is never run uses code
+    # introspection to determine the content of the for loop body executes code
+    # using the values of the local variables in a parallel / distributed
+    # context.
+
+    for modname, modpath in zip(modnames, modpaths):
+        found_fpath_list, found_lines_list = ut.grep_projects('\\b' + modname + '\\b', new=True, verbose=False)
+        parent_modnames = ut.lmap(ut.get_modname_from_modpath, found_fpath_list)
+        parent_numlines = ut.lmap(len, found_lines_list)
+        importance = dict(zip(parent_modnames, parent_numlines))
+        ut.delete_keys(importance, modnames)
+        importance_dict[modname] = importance
+
+    print('importance_dict = %s' % (ut.repr3(importance_dict),))
+    combo = reduce(ut.dict_union, importance_dict.values())
+    print('combined %s' % (ut.repr3(combo),))
+    # print(ut.repr3(found_fpath_list))
+
+
 def help_members(obj):
     r"""
     Args:
