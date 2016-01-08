@@ -1318,12 +1318,12 @@ def max_size_max_distance_subset(items, min_thresh=0, Kstart=2, verbose=False):
     return best_idxs
 
 
-def group_indices(items):
+def group_indices(groupid_list):
     """
-    groups indicies of each item in ``items``
+    groups indicies of each item in ``groupid_list``
 
     Args:
-        items (list): group ids
+        groupid_list (list): list of group ids
 
     SeeAlso:
         vt.group_indices - optimized numpy version
@@ -1331,20 +1331,28 @@ def group_indices(items):
 
     CommandLine:
         python -m utool.util_alg --exec-group_indices
+        python3 -m utool.util_alg --exec-group_indices
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
-        >>> idx2_groupid = ['b', 1, 'b', 1, 'b', 1, 'b', 'c', 'c', 'c', 'c']
-        >>> (keys, groupxs) = ut.group_indices(idx2_groupid)
+        >>> groupid_list = ['b', 1, 'b', 1, 'b', 1, 'b', 'c', 'c', 'c', 'c']
+        >>> (keys, groupxs) = ut.group_indices(groupid_list)
         >>> result = ut.repr3((keys, groupxs), nobraces=1, nl=1)
         >>> print(result)
         [1, 'c', 'b'],
         [[1, 3, 5], [7, 8, 9, 10], [0, 2, 4, 6]],
     """
-    grouped_dict = util_dict.group_items(range(len(items)), items)
-    keys = list(grouped_dict.keys())
+    item_list = range(len(groupid_list))
+    grouped_dict = util_dict.group_items(item_list, groupid_list)
+    # Sort by groupid for cache efficiency
+    keys_ = list(grouped_dict.keys())
+    try:
+        keys = sorted(keys_)
+    except TypeError:
+        # Python 3 does not allow sorting mixed types
+        keys = util_list.sortedby2(keys_, keys_)
     groupxs = util_dict.dict_take(grouped_dict, keys)
     return keys, groupxs
 

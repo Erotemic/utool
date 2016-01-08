@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import builtins
 import inspect
 import textwrap
@@ -281,23 +281,28 @@ def on_exception_report_input(func_=None, force=False, keys=None):
                 print('ERROR occured! Reporting input to function')
                 if keys is not None:
                     from utool import util_inspect
-                    import utool as ut
+                    from utool import util_list
+                    from utool import util_dict
                     argspec = util_inspect.get_func_argspec(func)
                     in_kwargs_flags = [key in kwargs for key in keys]
-                    kwarg_keys = ut.compress(keys, in_kwargs_flags)
+                    kwarg_keys = util_list.compress(keys, in_kwargs_flags)
                     kwarg_vals = [kwargs.get(key) for key in kwarg_keys]
-                    arg_keys = ut.compress(keys, ut.not_list(in_kwargs_flags))
+                    flags = util_list.not_list(in_kwargs_flags)
+                    arg_keys = util_list.compress(keys, flags)
                     arg_idxs = [argspec.args.index(key) for key in arg_keys]
-                    num_without_default = len(argspec.args) - len(argspec.defaults)
-                    default_vals = ([None] * (num_without_default)) + list(argspec.defaults)
+                    num_nodefault = len(argspec.args) - len(argspec.defaults)
+                    default_vals = (([None] * (num_nodefault)) +
+                                    list(argspec.defaults))
                     args_ = list(args) + default_vals[len(args) + 1:]
-                    arg_vals = ut.take(args_, arg_idxs)
-                    requested_dict = dict(ut.flatten([zip(kwarg_keys, kwarg_vals), zip(arg_keys, arg_vals)]))
-                    print('input dict = ' + util_str.dict_str(ut.dict_subset(requested_dict, keys)))
-                    #ut.embed()
+                    arg_vals = util_list.take(args_, arg_idxs)
+                    requested_dict = dict(util_list.flatten(
+                        [zip(kwarg_keys, kwarg_vals), zip(arg_keys, arg_vals)]))
+                    print('input dict = ' + util_str.dict_str(
+                        util_dict.dict_subset(requested_dict, keys)))
                     # (print out specific keys only)
                     pass
-                arg_strs = ', '.join([repr(util_str.truncate_str(str(arg))) for arg in args])
+                arg_strs = ', '.join([repr(util_str.truncate_str(str(arg)))
+                                      for arg in args])
                 kwarg_strs = ', '.join([
                     util_str.truncate_str('%s=%r' % (key, val))
                     for key, val in six.iteritems(kwargs)])
@@ -387,10 +392,10 @@ def accepts_scalar_input(func):
     DEPRICATE in favor of accepts_scalar_input2
     only accepts one input as vector
 
-    accepts_scalar_input is a decorator which expects to be used on class methods.
-    It lets the user pass either a vector or a scalar to a function, as long as
-    the function treats everything like a vector. Input and output is sanitized
-    to the user expected format on return.
+    accepts_scalar_input is a decorator which expects to be used on class
+    methods.  It lets the user pass either a vector or a scalar to a function,
+    as long as the function treats everything like a vector. Input and output
+    is sanitized to the user expected format on return.
 
     Args:
         func (func):
@@ -437,10 +442,10 @@ def accepts_scalar_input2(argx_list=[0], outer_wrapper=True):
 
     used in IBEIS setters
 
-    accepts_scalar_input2 is a decorator which expects to be used on class methods.
-    It lets the user pass either a vector or a scalar to a function, as long as
-    the function treats everything like a vector. Input and output is sanitized
-    to the user expected format on return.
+    accepts_scalar_input2 is a decorator which expects to be used on class
+    methods.  It lets the user pass either a vector or a scalar to a function,
+    as long as the function treats everything like a vector. Input and output
+    is sanitized to the user expected format on return.
 
     Args:
         argx_list (list): indexes of args that could be passed in as scalars to
@@ -500,12 +505,11 @@ def accepts_scalar_input_vector_output(func):
     accepts_scalar_input_vector_output
 
     Notes:
-
-        Input:                                Excpeted Output 1to1           Expected Output 1toM
-            scalar         : 1                x                              [X]
-            n element list : [1, 2, 3]        [x, y, z]                      [[X], [Y], [Z]]
-            1 element list : [1]              [x]                            [[X]]
-            0 element list : []               []                             []
+        Input:                           Excpeted Output 1to1   Expected Output 1toM
+            scalar         : 1           x                      [X]
+            n element list : [1, 2, 3]   [x, y, z]              [[X], [Y], [Z]]
+            1 element list : [1]         [x]                    [[X]]
+            0 element list : []          []                     []
         There seems to be no real issue here, I be the thing that tripped me up
         was when using sql and getting multiple columns that returned the
         values inside of the N-tuple whereas when you get one column you get
@@ -578,7 +582,7 @@ def memoize_nonzero(func):
     Memoization decorator for functions taking a nonzero number of arguments.
 
     References:
-        http://code.activestate.com/recipes/578231-probably-the-fastest-memoization-decorator-in-the-/
+        http://code.activestate.com/recipes/578231-fastest-memoization-decorator
     """
     class _memorizer(dict):
         def __init__(self, func):
@@ -595,7 +599,7 @@ def memoize_single(func):
     """ Memoization decorator for a function taking a single argument
 
     References:
-        http://code.activestate.com/recipes/578231-probably-the-fastest-memoization-decorator-in-the-/
+        http://code.activestate.com/recipes/578231-fastest-memoization-decorator
     """
     class memodict_single(dict):
         def __missing__(self, key):
@@ -635,7 +639,8 @@ def interested(func):
     def wrp_interested(*args, **kwargs):
         sys.stdout.write('#\n')
         sys.stdout.write('#\n')
-        sys.stdout.write('<!INTERESTED>: ' + meta_util_six.get_funcname(func) + '\n')
+        sys.stdout.write(
+            '<!INTERESTED>: ' + meta_util_six.get_funcname(func) + '\n')
         print('INTERESTING... ' + (' ' * 30) + ' <----')
         return func(*args, **kwargs)
     return wrp_interested
@@ -839,7 +844,8 @@ def preserve_sig(wrapper, orig_func, force=False):
         # Put wrapped function into a scope
         globals_ =  {'wrapper': wrapper}
         locals_ = {}
-        # argspec is :ArgSpec(args=['bar', 'baz'], varargs=None, keywords=None, defaults=(True,))
+        # argspec is :ArgSpec(args=['bar', 'baz'], varargs=None, keywords=None,
+        # defaults=(True,))
         # get orig functions argspec
         # get functions signature
         # Get function call signature (no defaults)
@@ -889,9 +895,9 @@ def preserve_sig(wrapper, orig_func, force=False):
             {orig_docstr}
             '''
         )
-    new_docstr = new_docstr_fmtstr.format(wrap_name=wrap_name,
-                                          orig_name=orig_name, orig_docstr=orig_docstr,
-                                          orig_argspec=orig_argspec)
+    new_docstr = new_docstr_fmtstr.format(
+        wrap_name=wrap_name, orig_name=orig_name, orig_docstr=orig_docstr,
+        orig_argspec=orig_argspec)
     meta_util_six.set_funcdoc(_wrp_preserve, new_docstr)
     _wrp_preserve._utinfo = _utinfo
     return _wrp_preserve

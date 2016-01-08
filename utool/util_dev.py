@@ -1642,8 +1642,19 @@ def get_object_size(obj, fallback_type=None, follow_pointers=False, exclude_modu
         python -m utool.util_dev --test-get_object_size:1
 
     Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dev import *  # NOQA
+        >>> import numpy as np
+        >>> import utool as ut
+        >>> obj = [np.empty(1, dtype=np.uint8) for _ in range(8)]
+        >>> nBytes = ut.get_object_size(obj)
+        >>> result = ('nBytes = %s' % (nBytes,))
+        >>> print(result)
+        nBytes = 8
+
+    Example:
         >>> # UNSTABLE_DOCTEST
-        >>> from ibeis.expt.experiment_harness import *  # NOQA
+        >>> from utool.util_dev import *  # NOQA
         >>> import ibeis
         >>> import utool as ut
         >>> species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
@@ -1654,17 +1665,6 @@ def get_object_size(obj, fallback_type=None, follow_pointers=False, exclude_modu
         >>> nBytes = ut.get_object_size(qreq_)
         >>> result = (ut.byte_str2(nBytes))
         >>> print('result = %r' % (result,))
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.expt.experiment_harness import *  # NOQA
-        >>> import numpy as np
-        >>> import utool as ut
-        >>> obj = [np.empty(1, dtype=np.uint8) for _ in range(8)]
-        >>> nBytes = ut.get_object_size(obj)
-        >>> result = ('nBytes = %s' % (nBytes,))
-        >>> print(result)
-        nBytes = 8
 
     Ignore:
         import sys
@@ -1798,7 +1798,7 @@ def get_object_size_str(obj, lbl='', unit=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.expt.experiment_harness import *  # NOQA
+        >>> from utool.util_dev import *  # NOQA
         >>> import numpy as np
         >>> import utool as ut
         >>> obj = [np.empty((512), dtype=np.uint8) for _ in range(10)]

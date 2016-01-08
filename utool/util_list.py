@@ -811,11 +811,6 @@ def zipcompress(items_list, flags_list):
             for list_, flags in zip(items_list, flags_list)]
 
 
-list_compress = compress
-list_ziptake = ziptake
-list_zipcompress = zipcompress
-
-
 def list_zipflatten(*items_lists):
     return [flatten(items) for items in zip(*items_lists)]
 
@@ -1209,18 +1204,34 @@ def sortedby2(item_list, *args, **kwargs):
         list : ``list_`` sorted by the values of another ``list``. defaults to
         ascending order
 
+    CommandLine:
+        python -m utool.util_list --exec-sortedby2 --show
+
     Examples:
         >>> # ENABLE_DOCTEST
-        >>> import utool
+        >>> from utool.util_list import *  # NOQA
+        >>> import utool as ut
         >>> item_list = [1, 2, 3, 4, 5]
         >>> key_list1 = [1, 1, 2, 3, 4]
         >>> key_list2 = [2, 1, 4, 1, 1]
         >>> args = (key_list1, key_list2)
         >>> kwargs = dict(reverse=False)
-        >>> result = utool.sortedby2(item_list, *args, **kwargs)
+        >>> result = ut.sortedby2(item_list, *args, **kwargs)
         >>> print(result)
         [2, 1, 3, 4, 5]
 
+    Examples:
+        >>> # ENABLE_DOCTEST
+        >>> # Python 3 Compatibility Test
+        >>> import utool as ut
+        >>> item_list = [1, 2, 3, 4, 5]
+        >>> key_list1 = ['a', 'a', 2, 3, 4]
+        >>> key_list2 = ['b', 'a', 4, 1, 1]
+        >>> args = (key_list1, key_list2)
+        >>> kwargs = dict(reverse=False)
+        >>> result = ut.sortedby2(item_list, *args, **kwargs)
+        >>> print(result)
+        [3, 4, 5, 2, 1]
     """
     import operator
     assert all([len(item_list) == len_ for len_ in map(len, args)])
@@ -1228,7 +1239,13 @@ def sortedby2(item_list, *args, **kwargs):
     key = operator.itemgetter(*range(1, len(args) + 1))
     tup_list = list(zip(item_list, *args))
     #print(tup_list)
-    sorted_tups = sorted(tup_list, key=key, reverse=reverse)
+    try:
+        sorted_tups = sorted(tup_list, key=key, reverse=reverse)
+    except TypeError:
+        # Python 3 does not allow sorting mixed types
+        def keyfunc(tup):
+            return tuple(map(str, tup[1:]))
+        sorted_tups = sorted(tup_list, key=keyfunc, reverse=reverse)
     sorted_list = [tup[0] for tup in sorted_tups]
     return sorted_list
 
@@ -1257,7 +1274,7 @@ def list_unflat_take(items_list, unflat_index_list):
             for xs in unflat_index_list]
 
 
-def list_argsort(*args, **kwargs):
+def argsort(*args, **kwargs):
     """ like np.argsort but for lists
 
     Varargs:
@@ -1268,8 +1285,6 @@ def list_argsort(*args, **kwargs):
     """
     index_list = list(range(len(args[0])))
     return sortedby2(index_list, *args, **kwargs)
-
-argsort = list_argsort
 
 
 def take(list_, index_list):
@@ -1320,7 +1335,6 @@ def take(list_, index_list):
     #else:
 
 # def take
-list_take = take
 
 # def take2(item_list, indicies, axis):
 #     def _get_axes(list_, axis);
@@ -1342,7 +1356,7 @@ def list_inverse_take(list_, index_list):
 
     Note:
         Seems to be logically equivalent to
-        ut.take(list_, ut.list_argsort(index_list)), but faster
+        ut.take(list_, ut.argsort(index_list)), but faster
 
     Returns:
         list: output_list_ - the input list in the unsorted domain
@@ -1357,12 +1371,12 @@ def list_inverse_take(list_, index_list):
         >>> # build test data
         >>> rank_list = [3, 2, 4, 1, 9, 2]
         >>> prop_list = [0, 1, 2, 3, 4, 5]
-        >>> index_list = ut.list_argsort(rank_list)
+        >>> index_list = ut.argsort(rank_list)
         >>> sorted_prop_list = ut.take(prop_list, index_list)
         >>> # execute function
         >>> list_ = sorted_prop_list
         >>> output_list_  = list_inverse_take(list_, index_list)
-        >>> output_list2_ = ut.take(list_, ut.list_argsort(index_list))
+        >>> output_list2_ = ut.take(list_, ut.argsort(index_list))
         >>> assert output_list_ == prop_list
         >>> assert output_list2_ == prop_list
         >>> # verify results
@@ -1371,7 +1385,7 @@ def list_inverse_take(list_, index_list):
 
     Timeit::
         %timeit list_inverse_take(list_, index_list)
-        %timeit ut.take(list_, ut.list_argsort(index_list))
+        %timeit ut.take(list_, ut.argsort(index_list))
     """
     output_list_ = [None] * len(index_list)
     for item, index in zip(list_, index_list):
@@ -1379,7 +1393,7 @@ def list_inverse_take(list_, index_list):
     return output_list_
 
 
-def list_where(flag_list):
+def where(flag_list):
     """ takes flags returns indexes of True values """
     return [index for index, flag in enumerate(flag_list) if flag]
 
@@ -1399,8 +1413,6 @@ def flag_None_items(list_):
 
 def flag_not_None_items(list_):
     return [item is not None for item in list_]
-
-where = list_where
 
 
 def scalar_input_map(func, input_):
@@ -2117,7 +2129,7 @@ def or_lists(*args):
 
 
 def make_sortby_func(item_list, reverse=False):
-    sortxs_ = list_argsort(item_list)
+    sortxs_ = argsort(item_list)
     sortxs = sortxs_[::-1] if reverse else sortxs_
     def sortby_func(list_):
         return take(list_, sortxs)
@@ -2428,6 +2440,15 @@ def index_to_boolmask(index_list, maxval=None):
     for index in index_list:
         mask[index] = True
     return mask
+
+
+# Aliases
+list_compress = compress
+list_ziptake = ziptake
+list_zipcompress = zipcompress
+list_where = where
+list_take = take
+list_argsort = argsort
 
 
 if __name__ == '__main__':

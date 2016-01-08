@@ -1317,11 +1317,28 @@ def group_items(item_list, groupid_list, sorted_=True):
         >>> print(result)
         {'dairy': ['cheese'], 'fruit': ['jam', 'bannana'], 'protein': ['ham', 'spam', 'eggs']}
     """
+    pair_list_ = list(zip(groupid_list, item_list))
     if sorted_:
         # Sort by groupid for cache efficiency
-        pair_list = sorted(list(zip(groupid_list, item_list)), key=lambda tup: tup[0])
+        try:
+            pair_list = sorted(pair_list_, key=operator.itemgetter(0))
+        except TypeError:
+            # FIXME: make something a little cleaner?
+            #pair_list = pair_list_
+            #pair_list = sorted(pair_list_, key=operator.itemgetter(0))
+            # Python 3 does not allow sorting mixed types
+            #keys = util_list.take_column(pair_list_, 0)
+            #types = util_list.list_type(keys)
+            def keyfunc(tup):
+                return str(tup[0])
+            pair_list = sorted(pair_list_, key=keyfunc)
+            #from utool import util_alg
+            #groupid_list = list(map(type, keys))
+            #util_alg.group_indices()
+            #pair_list = sorted(pair_list_, key=lambda tup: tup[0])
     else:
-        pair_list = list(zip(groupid_list, item_list))
+        pair_list = pair_list_
+
     # Initialize dict of lists
     groupid2_items = defaultdict(list)
     # Insert each item into the correct group
