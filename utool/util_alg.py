@@ -1330,8 +1330,8 @@ def group_indices(groupid_list):
         ut.apply_grouping
 
     CommandLine:
-        python -m utool.util_alg --exec-group_indices
-        python3 -m utool.util_alg --exec-group_indices
+        python -m utool.util_alg --test-group_indices
+        python3 -m utool.util_alg --test-group_indices
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1341,8 +1341,8 @@ def group_indices(groupid_list):
         >>> (keys, groupxs) = ut.group_indices(groupid_list)
         >>> result = ut.repr3((keys, groupxs), nobraces=1, nl=1)
         >>> print(result)
-        [1, 'c', 'b'],
-        [[1, 3, 5], [7, 8, 9, 10], [0, 2, 4, 6]],
+        [1, 'b', 'c'],
+        [[1, 3, 5], [0, 2, 4, 6], [7, 8, 9, 10]],
     """
     item_list = range(len(groupid_list))
     grouped_dict = util_dict.group_items(item_list, groupid_list)
