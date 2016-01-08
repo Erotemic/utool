@@ -159,7 +159,8 @@ def get_levels(dict_, n=0, levels=None):
         levels (None): (default = None)
 
     CommandLine:
-        python -m utool.util_graph --exec-get_levels --show
+        python -m utool.util_graph --test-get_levels --show
+        python3 -m utool.util_graph --test-get_levels --show
 
     Example:
         >>> # ENABLE_DOCTEST
