@@ -492,7 +492,7 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
         >>> # verify results
         >>> result = str(examplecode)
         >>> print(result)
-        # ENABLE_DOCTEST
+        # DISABLE_DOCTEST
         from utool.util_autogen import *  # NOQA
         import utool as ut
         import ibeis

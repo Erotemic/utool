@@ -1,19 +1,26 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
+import six
 from six.moves import cPickle as pickle
+from utool import util_path
+from utool import util_inject
+from os.path import splitext, basename
 try:
     import lockfile
     HAVE_LOCKFILE = True
 except ImportError:
     HAVE_LOCKFILE = False
-from utool import util_path
-from utool import util_inject
-from os.path import splitext
 try:
     import numpy as np
     HAS_NUMPY = True
 except ImportError as ex:
     HAS_NUMPY = False
+try:
+    import h5py
+    HAS_H5PY = True
+except ImportError:
+    HAS_H5PY = False
+
 print, rrr, profile = util_inject.inject2(__name__, '[io]')
 
 
@@ -106,10 +113,10 @@ def read_from(fpath, verbose=None, aslines=False, strict=True, n=3):
                 text = file_.read()
         return text
     except IOError as ex:
-        from utool.util_dbg import printex
+        from utool import util_dbg
         if verbose or strict:
-            printex(ex, ' * Error reading fpath=%r' %
-                    util_path.tail(fpath, n=n), '[io]')
+            util_dbg.printex(ex, ' * Error reading fpath=%r' %
+                             util_path.tail(fpath, n=n), '[io]')
         if strict:
             raise
 
@@ -160,10 +167,11 @@ def lock_and_save_cPkl(fpath, data, verbose=False):
 
 def save_hdf5(fpath, data, verbose=False, compression='lzf'):
     r"""
-    restricted save of data using hdf5. Can only save ndarrays and dicts of ndarrays
+    Restricted save of data using hdf5. Can only save ndarrays and dicts of
+    ndarrays.
 
     Args:
-        fpath (?):
+        fpath (str):
         data (ndarray):
         compression (str):
             DEFLATE/GZIP - standard
@@ -181,7 +189,7 @@ def save_hdf5(fpath, data, verbose=False, compression='lzf'):
         http://docs.h5py.org/en/latest/mpi.html
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # ENABLE_IF HAS_H5PY
         >>> from utool.util_io import *  # NOQA
         >>> import numpy as np
         >>> import utool as ut
@@ -307,9 +315,6 @@ def save_hdf5(fpath, data, verbose=False, compression='lzf'):
         else:
             print('[util_io] ... shape=%r' % (data.shape,))
 
-    import h5py
-    from os.path import basename
-    import numpy as np
     chunks = True  # True enables auto-chunking
     fname = basename(fpath)
 
@@ -324,7 +329,6 @@ def save_hdf5(fpath, data, verbose=False, compression='lzf'):
     h5kw = {}
 
     if isinstance(data, dict):
-        import six
         assert all([
             isinstance(vals, np.ndarray)
             for vals in six.itervalues(data)
@@ -354,10 +358,6 @@ def save_hdf5(fpath, data, verbose=False, compression='lzf'):
 
 
 def load_hdf5(fpath, verbose=False):
-    import h5py
-    from os.path import basename
-    import numpy as np
-    import six
     fname = basename(fpath)
     #file_ = h5py.File(fpath, 'r')
     #file_.values()

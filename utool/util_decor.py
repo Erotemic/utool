@@ -58,6 +58,7 @@ def test_ignore_exec_traceback():
         >>> print(result)
     """
     import utool as ut
+    from utool import util_dbg
 
     @ut.indent_func
     def foobar():
@@ -72,7 +73,7 @@ def test_ignore_exec_traceback():
         #exc_type, exc_value, exc_traceback = sys.exc_info()
         #print(exc_traceback)
         # TODO: ensure decorators are not printed in stack trace
-        ut.printex(ex, tb=True)
+        util_dbg.printex(ex, tb=True)
 
 
 if six.PY2:

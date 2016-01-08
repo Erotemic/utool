@@ -1069,6 +1069,11 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         test_sentinals.append('SLOW_DOCTEST')
     if testslow or ut.get_argflag(('--testall', '--testunstable')):
         test_sentinals.append('UNSTABLE_DOCTEST')
+
+    #conditional_sentinals = [  # TODO
+        #'ENABLE_IF'
+    #]
+
     # FIND THE TEST NAMES REQUESTED
     # Grab sys.argv enabled tests
     valid_prefix_list = ['--exec-', '--test-']

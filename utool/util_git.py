@@ -264,7 +264,7 @@ def setup_repo():
         ut.rrrr(0); ut.setup_repo()
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SCRIPT
         >>> from utool.util_git import *  # NOQA
         >>> import utool as ut
         >>> result = setup_repo()
