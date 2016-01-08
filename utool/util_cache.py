@@ -394,65 +394,99 @@ class Cacher(object):
         save_cache(self.dpath, self.fname, cfgstr, data)
 
 
-class UtoolJSONEncoder(json.JSONEncoder):
+def make_utool_json_encoder(allow_pickle=False):
     """
     References:
-        http://stackoverflow.com/questions/8230315/python-sets-are-not-json-serializable
-        http://stackoverflow.com/questions/11561932/why-does-json-dumpslistnp-arange5-fail-while-json-dumpsnp-arange5-tolis
+        http://stackoverflow.com/questions/8230315/python-sets-are
+        http://stackoverflow.com/questions/11561932/why-does-json
         https://github.com/jsonpickle/jsonpickle
-        http://stackoverflow.com/questions/24369666/typeerror-b1-is-not-json-serializable
-        http://stackoverflow.com/questions/30469575/how-to-pickle-and-unpickle-to-portable-string-in-python-3
+        http://stackoverflow.com/questions/24369666/typeerror-b1
+        http://stackoverflow.com/questions/30469575/how-to-pickle
     """
-    JSON_PYOBJ_TAG = '__PYTHON_OBJECT__'
+    PYOBJECT_TAG = '__PYTHON_OBJECT__'
     UUID_TAG = '__UUID__'
 
-    def default(self, obj):
-        if isinstance(obj, util_type.NUMPY_TYPE_TUPLE):
-            #print('Decode Numpy')
-            return obj.tolist()
-        elif six.PY3 and isinstance(obj, bytes):
-            #print('Decode bytes')
-            return obj.decode('utf-8')
-        elif isinstance(obj, uuid.UUID):
-            #print('Decode UUID')
-            #return str(obj)
-            return {self.UUID_TAG: str(obj)}
-        elif isinstance(obj, util_type.PRIMATIVE_TYPES):
-            #print('Decode Primative')
-            return json.JSONEncoder.default(self, obj)
-        elif hasattr(obj, '__getstate__'):
-            #print('Decode Object State')
-            return obj.__getstate__()
-        #obj.decode('utf-8')
-        else:
-            #print('Decode Object Pickle')
-            #print('dump pickle %r, %r' % (hash(obj), type(obj)))
-            #raise TypeError('Cannot serialize type(obj)=%r ' % (type(obj)))
-            #if six.PY3:
-            pickle_bytes = pickle.dumps(obj, pickle.HIGHEST_PROTOCOL)
-            pickled_data = codecs.encode(pickle_bytes, 'base64').decode()
-            #else:
-            #    import utool as ut
-            #    ut.embed()
-            #    pickled_data = pickle.dumps(obj, pickle.HIGHEST_PROTOCOL)
-            return {self.JSON_PYOBJ_TAG: pickled_data}
+    def decode_pickle(text):
+        obj = pickle.loads(codecs.decode(text.encode(), 'base64'))
+        return obj
 
-    @classmethod
-    def _json_object_hook(cls, value, verbose=False, **kwargs):
-        if cls.JSON_PYOBJ_TAG in value:
-            #if six.PY3:
-            pickled_data = value[cls.JSON_PYOBJ_TAG]
-            return pickle.loads(codecs.decode(pickled_data.encode(), 'base64'))
-            #else:
-            #    pickled_data = value[cls.JSON_PYOBJ_TAG]
-            #    return pickle.loads(pickled_data)
-        elif cls.UUID_TAG in value:
-            return uuid.UUID(value[cls.UUID_TAG])
-        return value
+    def encode_pickle(obj):
+        pickle_bytes = pickle.dumps(obj, pickle.HIGHEST_PROTOCOL)
+        text = codecs.encode(pickle_bytes, 'base64').decode()
+        return text
+
+    type_to_tag = collections.OrderedDict([
+        (object, PYOBJECT_TAG),
+        (uuid.UUID, UUID_TAG),
+    ])
+
+    tag_to_type = {tag: type_ for type_, tag in type_to_tag.items()}
+
+    encoders = {
+        UUID_TAG: str,
+        PYOBJECT_TAG: encode_pickle,
+    }
+
+    decoders = {
+        UUID_TAG: uuid.UUID,
+        PYOBJECT_TAG: decode_pickle,
+    }
+
+    if not allow_pickle:
+        del encoders[PYOBJECT_TAG]
+        del decoders[PYOBJECT_TAG]
+        type_ = tag_to_type[PYOBJECT_TAG]
+        del tag_to_type[PYOBJECT_TAG]
+        del type_to_tag[type_]
+
+    class UtoolJSONEncoder(json.JSONEncoder):
+        def default(self, obj):
+            if isinstance(obj, util_type.NUMPY_TYPE_TUPLE):
+                return obj.tolist()
+            elif six.PY3 and isinstance(obj, bytes):
+                return obj.decode('utf-8')
+            elif isinstance(obj, util_type.PRIMATIVE_TYPES):
+                return json.JSONEncoder.default(self, obj)
+            elif hasattr(obj, '__getstate__'):
+                return obj.__getstate__()
+            #elif isinstance(obj, uuid.UUID):
+            #    func = encoders[UUID_TAG]
+            #    return {UUID_TAG: func(obj)}
+            #elif isinstance(obj, object):
+            #    func = encoders[PYOBJECT_TAG]
+            #    return {PYOBJECT_TAG: func(obj)}
+            else:
+                for type_, tag in type_to_tag.items():
+                    if isinstance(obj, type_):
+                        func = encoders[tag]
+                        text = func(obj)
+                        return {tag: text}
+                raise TypeError('Invalid serialization type=%r' % (type(obj)))
+
+        @classmethod
+        def _json_object_hook(cls, value, verbose=False, **kwargs):
+            if len(value) == 1:
+                tag, text = list(value.items())[0]
+                if tag in decoders:
+                    func = decoders[tag]
+                    obj = func(text)
+                    return obj
+            else:
+                return value
+            #if cls.JSON_PYOBJ_TAG in value:
+            #    text = value[cls.JSON_PYOBJ_TAG]
+            #    return pickle.loads(codecs.decode(text.encode(), 'base64'))
+            #elif cls.UUID_TAG in value:
+            #    text = value[cls.UUID_TAG]
+            #    return uuid.UUID(text)
+            return value
+    return UtoolJSONEncoder
 
 
-def to_json(val):
+def to_json(val, allow_pickle=True):
     r"""
+    Converts a python object to a JSON string using the utool convention
+
     Args:
         val (object):
 
@@ -460,11 +494,11 @@ def to_json(val):
         str: json_str
 
     References:
-        http://stackoverflow.com/questions/11561932/why-does-json-dumpslistnp-arange5-fail-while-json-dumpsnp-arange5-tolis
+        http://stackoverflow.com/questions/11561932/why-does-json-dumpslistnp
 
     CommandLine:
-        python -m utool.util_cache --exec-to_json
-        python3 -m utool.util_cache --exec-to_json
+        python -m utool.util_cache --test-to_json
+        python3 -m utool.util_cache --test-to_json
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -483,18 +517,39 @@ def to_json(val):
         >>>    ut.LazyDict,
         >>> ]
         >>> #val = ut.LazyDict(x='fo')
-        >>> json_str = ut.to_json(val)
+        >>> json_str = ut.to_json(val, allow_pickle=True)
         >>> result = ut.repr3(json_str)
         >>> print(result)
-        >>> reload_val = ut.from_json(json_str)
-        >>> print(ut.repr3(reload_val, nl=1))
+        >>> reload_val = ut.from_json(json_str, allow_pickle=True)
+        >>> print('original = ' + ut.repr3(val, nl=1))
+        >>> print('reconstructed = ' + ut.repr3(reload_val, nl=1))
+        >>> # Make sure pickle doesnt happen by default
+        >>> try:
+        >>>     json_str = ut.to_json(val)
+        >>> except TypeError:
+        >>>     print('Correctly got type error')
+        >>> else:
+        >>>     assert False, 'expected a type error'
+        >>> try:
+        >>>     json_str = ut.from_json(val)
+        >>> except TypeError:
+        >>>     print('Correctly got type error')
+        >>> else:
+        >>>     assert False, 'expected a type error'
+
     """
-    json_str = (json.dumps(val, cls=UtoolJSONEncoder))
+    UtoolJSONEncoder = make_utool_json_encoder(allow_pickle)
+    json_str = json.dumps(val, cls=UtoolJSONEncoder)
     return json_str
 
 
-def from_json(json_str):
-    val = json.loads(json_str, object_hook=UtoolJSONEncoder._json_object_hook)
+def from_json(json_str, allow_pickle=True):
+    """
+    Decodes a JSON object specified in the utool convention
+    """
+    UtoolJSONEncoder = make_utool_json_encoder(allow_pickle)
+    object_hook = UtoolJSONEncoder._json_object_hook
+    val = json.loads(json_str, object_hook=object_hook)
     return val
 
 
