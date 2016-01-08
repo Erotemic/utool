@@ -34,3 +34,8 @@ functions, introduce more documentaion and doctests, and clean up all the (or
 most of the) TODOs and FIXMEs.
 
 Utool is released under the Apache License Version 2.0
+
+
+The pypi release is currently broken. Installing utool can be done via pip and github.
+
+pip install git+https://github.com/Erotemic/utool.git@next

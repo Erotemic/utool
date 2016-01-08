@@ -1,4 +1,7 @@
 #!/usr/bin/env python2.7
+"""
+pip install git+https://github.com/Erotemic/utool.git@next
+"""
 # -*- coding: utf-8 -*-
 # Utool is released under the Apache License Version 2.0
 # no warenty liability blah blah blah blah legal blah
