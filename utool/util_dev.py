@@ -2275,9 +2275,10 @@ def search_module(mod, pat, ignore_case=True, recursive=False, _seen=None):
         list: found_list
 
     CommandLine:
-        python -m utool.util_dev --exec-search_module --show --mod=utool --pat=module
-        python -m utool.util_dev --exec-search_module --show --mod=opengm --pat=cut
-        python -m utool.util_dev --exec-search_module --show --mod=opengm --pat=multi
+        python -m utool.util_dev --exec-search_module --mod=utool --pat=module
+        python -m utool.util_dev --exec-search_module --mod=opengm --pat=cut
+        python -m utool.util_dev --exec-search_module --mod=opengm --pat=multi
+        python -m utool.util_dev --exec-search_module --mod=plottool --pat=networkx
 
     Example:
         >>> # ENABLE_DOCTEST

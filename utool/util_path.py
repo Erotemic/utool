@@ -10,7 +10,7 @@ from six.moves import zip, filter, filterfalse, map, range
 import six
 from os.path import (join, basename, relpath, normpath, split, isdir, isfile,
                      exists, islink, ismount, dirname, splitext, realpath,
-                     splitdrive, commonprefix)
+                     splitdrive, commonprefix, expanduser)
 import os
 import re
 import sys
@@ -86,6 +86,13 @@ def truepath_relative(path, otherpath=None):
 def tail(fpath, n=2, trailing=True):
     """ Alias for path_ndir_split """
     return path_ndir_split(fpath, n=n, trailing=trailing)
+
+
+def unexpanduser(path):
+    homedir = expanduser('~')
+    if path.startswith(homedir):
+        path = '~' + path[len(homedir):]
+    return path
 
 
 def path_ndir_split(path_, n, force_unix=True, winroot='C:', trailing=True):

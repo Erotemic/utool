@@ -130,6 +130,7 @@ def chmod_add_executable(fpath, group=True, user=True):
     References:
         http://stackoverflow.com/questions/15607903/python-module-os-chmodfile-664-does-not-change-the-permission-to-rw-rw-r-bu
         http://www.tutorialspoint.com/python/os_chmod.htm
+        https://en.wikipedia.org/wiki/Chmod
     """
     import stat
     orig_mode = os.stat(fpath).st_mode
@@ -137,7 +138,21 @@ def chmod_add_executable(fpath, group=True, user=True):
     if group:
         new_mode |= stat.S_IXGRP
     if user:
+        # new_mode |= stat.S_IXUSR | stat.S_IEXEC
         new_mode |= stat.S_IXGRP | stat.S_IEXEC
+    os.chmod(fpath, new_mode)
+
+
+def chmod(fpath, option):
+    import stat
+    orig_mode = os.stat(fpath).st_mode
+    new_mode = orig_mode
+    if option == '+x':
+        # Hack
+        new_mode |= stat.S_IEXEC
+    if option == 'g+x':
+        new_mode |= stat.S_IXGRP
+
     os.chmod(fpath, new_mode)
 
 
