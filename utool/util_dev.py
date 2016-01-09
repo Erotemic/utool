@@ -2315,7 +2315,7 @@ def search_module(mod, pat, ignore_case=True, recursive=False, _seen=None):
     return found_list
 
 
-def get_submodules_from_dpath(dpath, only_packages=False):
+def get_submodules_from_dpath(dpath, only_packages=False, recursive=True):
     r"""
     Args:
         dpath (str): directory path
@@ -2346,7 +2346,7 @@ def get_submodules_from_dpath(dpath, only_packages=False):
         submod_fpaths = submod_dpaths
     else:
         submod_fpaths = ut.ls_modulefiles(dpath)
-    if len(submod_dpaths) > 0:
+    if recursive and len(submod_dpaths) > 0:
         recusive_results = [get_submodules_from_dpath(d, only_packages)
                             for d in submod_dpaths]
         submod_fpaths.extend(ut.flatten(recusive_results))

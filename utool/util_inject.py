@@ -576,7 +576,7 @@ def inject_python_code(fpath, patch_code, tag=None,
     #print(newtext)
 
 
-if '--inject-color' in sys.argv:
+if '--inject-color' in sys.argv or '--cex' in sys.argv:
     inject_colored_exceptions()
 
 # Inject this module with itself!
