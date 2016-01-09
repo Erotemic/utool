@@ -616,19 +616,56 @@ def memoize_zero(func):
     return wrp_memoize_zero
 
 
-def memoize(obj):
+def memoize(func):
     """
+    simple memoization decorator
+
     References:
         https://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
-    """
-    cache = obj.cache = {}
 
-    @functools.wraps(obj)
+    Args:
+        func (function):  live python function
+
+    Returns:
+        func:
+
+    CommandLine:
+        python -m utool.util_decor --exec-memoize --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_decor import *  # NOQA
+        >>> import utool as ut
+        >>> closure = {'a': 'b', 'c': 'd'}
+        >>> incr = [0]
+        >>> def foo(key):
+        >>>    value = closure[key]
+        >>>    incr[0] += 1
+        >>>    return value
+        >>> foo_memo = memoize(foo)
+        >>> assert foo('a') == 'b' and foo('c') == 'd'
+        >>> assert incr[0] == 2
+        >>> print('Call memoized version')
+        >>> assert foo_memo('a') == 'b' and foo_memo('c') == 'd'
+        >>> assert incr[0] == 4
+        >>> assert foo_memo('a') == 'b' and foo_memo('c') == 'd'
+        >>> print('Counter should no longer increase')
+        >>> assert incr[0] == 4
+        >>> print('Closure changes result without memoization')
+        >>> closure = {'a': 0, 'c': 1}
+        >>> assert foo('a') == 0 and foo('c') == 1
+        >>> assert incr[0] == 6
+        >>> assert foo_memo('a') == 'b' and foo_memo('c') == 'd'
+    """
+    cache = func._util_decor_memoize_cache = {}
+
+    # @functools.wraps(func)
     def memoizer(*args, **kwargs):
         key = str(args) + str(kwargs)
         if key not in cache:
-            cache[key] = obj(*args, **kwargs)
+            cache[key] = func(*args, **kwargs)
         return cache[key]
+    memoizer = preserve_sig(memoizer, func)
     return memoizer
 
 
