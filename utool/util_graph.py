@@ -15,6 +15,10 @@ def dict_depth(dict_, accum=0):
 def paths_to_root(tablename, root, child_to_parents):
     """
 
+    CommandLine:
+        python -m utool.util_graph --exec-paths_to_root:0
+        python -m utool.util_graph --exec-paths_to_root:1
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_graph import *  # NOQA
@@ -44,6 +48,29 @@ def paths_to_root(tablename, root, child_to_parents):
                 'dummy_annot': None,
             },
         }
+
+    Example:
+        >>> from utool.util_graph import *  # NOQA
+        >>> import utool as ut
+        >>> root = u'annotations'
+        >>> tablename = u'Notch_Tips'
+        >>> child_to_parents = {
+        >>>     'Block_Curvature': [
+        >>>         'Trailing_Edge',
+        >>>     ],
+        >>>     'Has_Notch': [
+        >>>         'annotations',
+        >>>     ],
+        >>>     'Notch_Tips': [
+        >>>         'annotations',
+        >>>     ],
+        >>>     'Trailing_Edge': [
+        >>>         'Notch_Tips',
+        >>>     ],
+        >>> }
+        >>> to_root = paths_to_root(tablename, root, child_to_parents)
+        >>> result = ut.repr3(to_root)
+        >>> print(result)
     """
     if tablename == root:
         return None
