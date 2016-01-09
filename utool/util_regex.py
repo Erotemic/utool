@@ -115,19 +115,31 @@ def named_field(key, regex, vim=False):
         return r'(?P<%s>%s)' % (key, regex)
 
 
-def positive_lookahead(regex):
-    return '(?=' + regex + ')'
+def positive_lookahead(regex, vim=False):
+    if vim:
+        return '\(' + regex + '\)\@='
+    else:
+        return '(?=' + regex + ')'
 
 
-def positive_lookbehind(regex):
-    return '(?<=' + regex + ')'
+def positive_lookbehind(regex, vim=False):
+    if vim:
+        return '\(' + regex + '\)\@<='
+    else:
+        return '(?<=' + regex + ')'
 
 
-def negative_lookahead(regex):
-    return '(?!' + regex + ')'
+# lookahead_pos
+# lookahead_neg
+
+def negative_lookahead(regex, vim=False):
+    if vim:
+        return '\(' + regex + '\)\@!'
+    else:
+        return '(?!' + regex + ')'
 
 
-def negative_lookbehind(regex):
+def negative_lookbehind(regex, vim=False):
     r"""
     Args:
         regex (?):
@@ -148,7 +160,10 @@ def negative_lookbehind(regex):
         >>> match3 = re.search(pattern, '\' foo\'')
         >>> match4 = re.search(pattern, '" foo"')
     """
-    return '(?<!' + regex + ')'
+    if vim:
+        return '\(' + regex + '\)\@<!'
+    else:
+        return '(?<!' + regex + ')'
 
 
 def whole_word(regex):

@@ -78,15 +78,137 @@ def squash_consecutive_commits_with_same_message():
 
     # Can do interactively with this. Can it be done automatically and pay attention to
     # Timestamps etc?
-    git rebase --interactive HEAD~100 --autosquash
+    git rebase --interactive HEAD~40 --autosquash
 
     # Lookbehind correct version
     %s/\([a-z]* [a-z0-9]* wip\n\)\@<=pick \([a-z0-9]*\) wip/squash \2 wip/gc
 
-   14d778fa30a93f85c61f34d09eddb6d2cafd11e2
-   c509a95d4468ebb61097bd9f4d302367424772a3
-   b0ffc26011e33378ee30730c5e0ef1994bfe1a90
+   # THE FULL NON-INTERACTIVE AUTOSQUASH SCRIPT
+   # TODO: Dont squash if there is a one hour timedelta between commits
+
+   GIT_EDITOR="cat $1" GIT_SEQUENCE_EDITOR="python -m utool.util_git --exec-git_sequence_editor_squash --fpath $1" git rebase -i $(git rev-list HEAD | tail -n 1) --autosquash --no-verify
+   GIT_EDITOR="cat $1" GIT_SEQUENCE_EDITOR="python -m utool.util_git --exec-git_sequence_editor_squash --fpath $1" git rebase -i HEAD~10 --autosquash --no-verify
+
+   # 14d778fa30a93f85c61f34d09eddb6d2cafd11e2
+   # c509a95d4468ebb61097bd9f4d302367424772a3
+   # b0ffc26011e33378ee30730c5e0ef1994bfe1a90
+   # GIT_SEQUENCE_EDITOR=<script> git rebase -i <params>
+   # GIT_SEQUENCE_EDITOR="echo 'FOOBAR $1' " git rebase -i HEAD~40 --autosquash
+   # git checkout master
+   # git branch -D tmp
+   # git checkout -b tmp
+   # option to get the tail commit
+   $(git rev-list HEAD | tail -n 1)
+   # GIT_SEQUENCE_EDITOR="python -m utool.util_git --exec-git_sequence_editor_squash --fpath $1" git rebase -i HEAD~40 --autosquash
+   # GIT_SEQUENCE_EDITOR="python -m utool.util_git --exec-git_sequence_editor_squash --fpath $1" git rebase -i HEAD~40 --autosquash --no-verify
+   <params>
 """
+
+
+def git_sequence_editor_squash(fpath):
+    """
+    squashes wip messages
+
+    CommandLine:
+        python -m utool.util_git --exec-git_sequence_editor_squash
+
+    Example:
+        >>> # SCRIPT
+        >>> import utool as ut
+        >>> from utool.util_git import *  # NOQA
+        >>> fpath = ut.get_argval('--fpath', str, default=None)
+        >>> git_sequence_editor_squash(fpath)
+
+    Ignore:
+        text = ut.codeblock(
+            '''
+            pick 852aa05 better doctest for tips
+            pick 3c779b8 wip
+            pick 02bc21d wip
+            pick 1853828 Fixed root tablename
+            pick 9d50233 doctest updates
+            pick 66230a5 wip
+            pick c612e98 wip
+            pick b298598 Fixed tablename error
+            pick 1120a87 wip
+            pick f6c4838 wip
+            pick 7f92575 wip
+            ''')
+    """
+    # print(sys.argv)
+    import utool as ut
+    text = ut.read_from(fpath)
+    # print('fpath = %r' % (fpath,))
+    print(text)
+
+    # Doesnt work because of fixed witdth requirement
+    # search = (ut.util_regex.positive_lookbehind('[a-z]* [a-z0-9]* wip\n') + 'pick ' +
+    #           ut.named_field('hash', '[a-z0-9]*') + ' wip')
+    # repl = ('squash ' + ut.bref_field('hash') + ' wip')
+    # import re
+    # new_text = re.sub(search, repl, text, flags=re.MULTILINE)
+    # print(new_text)
+
+    prev_msg = None
+    prev_dt = None
+    new_lines = []
+
+    def get_commit_date(hashid):
+        out, err, ret = ut.cmd('git show -s --format=%ci ' + hashid, verbose=False, quiet=True, pad_stdout=False)
+        # from datetime import datetime
+        from dateutil import parser
+        # print('out = %r' % (out,))
+        stamp = out.strip('\n')
+        # print('stamp = %r' % (stamp,))
+        dt = parser.parse(stamp)
+        # dt = datetime.strptime(stamp, "%Y-%m-%d %H:%M:%S %Z")
+        # print('dt = %r' % (dt,))
+        return dt
+
+    for line in text.split('\n'):
+        commit_line = line.split(' ')
+        if len(commit_line) < 3:
+            prev_msg = None
+            prev_dt = None
+            new_lines += [line]
+            continue
+        action = commit_line[0]
+        hashid = commit_line[1]
+        msg = ' ' .join(commit_line[2:])
+        try:
+            dt = get_commit_date(hashid)
+        except ValueError:
+            prev_msg = None
+            prev_dt = None
+            new_lines += [line]
+            continue
+        orig_msg = msg
+        can_squash = action == 'pick' and msg == 'wip' and prev_msg == 'wip'
+        if prev_dt is not None and prev_msg == 'wip':
+            tdelta = dt - prev_dt
+            # Only squash closely consecutive commits
+            threshold_minutes = 45
+            td_min = (tdelta.total_seconds() / 60.)
+            # print(tdelta)
+            can_squash &= td_min < threshold_minutes
+            msg = msg + ' -- tdelta=%r' % (ut.get_timedelta_str(tdelta),)
+        if can_squash:
+            new_line = ' ' .join(['squash', hashid, msg])
+            new_lines += [new_line]
+        else:
+            new_lines += [line]
+        prev_msg = orig_msg
+        prev_dt = dt
+    new_text = '\n'.join(new_lines)
+
+    def get_commit_date(hashid):
+        out = ut.cmd('git show -s --format=%ci ' + hashid, verbose=False)
+        print('out = %r' % (out,))
+
+    # print('Dry run')
+    print(new_text)
+    ut.write_to(fpath, new_text, n=None)
+    # ut.dump_autogen_code(fpath, new_text)
 
 
 def rename_branch(old_branch_name, new_branch_name, repo='.', remote='origin', dryrun=DRY_RUN):

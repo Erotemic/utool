@@ -1113,36 +1113,36 @@ def formatex(ex, msg='[!?] Caught exception',
         python -m utool.util_dbg --exec-formatex
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTET
         >>> from utool.util_dbg import *  # NOQA
         >>> import utool as ut
         >>> msg = 'Testing Exception'
         >>> prefix = '[test]'
         >>> key_list = ['N', 'foo', 'tb']
         >>> locals_ = None
-        >>> iswarning = False
+        >>> iswarning = True
         >>> keys = None
         >>> colored = None
         >>> def failfunc():
         >>>     tb = True
         >>>     N = 0
         >>>     try:
-        >>>         raise Exception('test exception')
+        >>>         raise Exception('test exception. This is not an error')
         >>>     except Exception as ex:
         >>>         result = formatex(ex, msg, prefix, key_list, locals_,
         >>>                           iswarning, tb, N, keys, colored)
         >>>         return result
         >>> result = failfunc().replace('\n\n', '')
         >>> print(result)
-        <!!! EXCEPTION !!!>
+        <!!! WARNING !!!>
         Traceback (most recent call last):
           File "<string>", line 15, in failfunc
-        Exception: test exception[test] Testing Exception
-        <type 'exceptions.Exception'>: test exception
+        Exception: test exception. This is not an error[test] Testing Exception
+        <type 'exceptions.Exception'>: test exception. This is not an error
         [test] N = 0
-        !!! foo not populated!
+        [test] !!! foo not populated!
         [test] tb = True
-        </!!! EXCEPTION !!!>
+        </!!! WARNING !!!>
     """
     # Get error prefix and local info
     if prefix is None:
@@ -1277,20 +1277,25 @@ def parse_locals_keylist(locals_, key_list, strlist_=None, prefix=''):
         python -m utool.util_dbg --exec-parse_locals_keylist
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_dbg import *  # NOQA
         >>> import utool as ut
         >>> locals_ = {'foo': [1,2,3], 'bar': 'spam', 'eggs': 4, 'num': 5}
-        >>> key_list = [(len, 'foo'), 'bar.lower', 'eggs', 'num']
+        >>> key_list = [(len, 'foo'), 'bar.lower.__name__', 'eggs', 'num', 'other']
         >>> strlist_ = None
         >>> prefix = u''
         >>> strlist_ = parse_locals_keylist(locals_, key_list, strlist_, prefix)
         >>> result = ('strlist_ = %s' % (ut.repr2(strlist_, nl=True),))
         >>> print(result)
-
+        strlist_ = [
+            ' len(foo) = 3',
+            " bar.lower.__name__ = 'lower'",
+            ' eggs = 4',
+            ' num = 5',
+            ' !!! other not populated!',
+        ]
     """
-    #from utool.util_str import get_callable_name
-    from utool.util_str import get_callable_name
+    from utool import util_str
     if strlist_ is None:
         strlist_ = []
 
@@ -1304,7 +1309,8 @@ def parse_locals_keylist(locals_, key_list, strlist_=None, prefix=''):
                 func, key_ = tup
                 val = get_varval_from_locals(key_, locals_)
                 funcvalstr = str(func(val))
-                strlist_.append('%s %s(%s) = %s' % (prefix, get_callable_name(func), key_, funcvalstr))
+                callname = util_str.get_callable_name(func)
+                strlist_.append('%s %s(%s) = %s' % (prefix, callname, key_, funcvalstr))
             elif isinstance(key, six.string_types):
                 # Try to infer print from variable name
                 val = get_varval_from_locals(key, locals_)
@@ -1318,7 +1324,7 @@ def parse_locals_keylist(locals_, key_list, strlist_=None, prefix=''):
                 valstr = util_str.truncate_str(repr(val), maxlen=200)
                 strlist_.append('%s %s %s = %s' % (prefix, typestr, namestr, valstr))
         except AssertionError as ex:
-            strlist_.append(str(ex))
+            strlist_.append(prefix + ' ' + str(ex))
     return strlist_
 
 
