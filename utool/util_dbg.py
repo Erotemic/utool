@@ -1226,7 +1226,7 @@ def get_varval_from_locals(key, locals_, strict=False):
                     raise
                 val = ex
         else:
-            raise AssertionError('!!! %s not populated!' % (key))
+            raise AssertionError('%s = NameError' % (key))
     else:
         val = locals_[key]
     return val
@@ -1292,7 +1292,7 @@ def parse_locals_keylist(locals_, key_list, strlist_=None, prefix=''):
             " bar.lower.__name__ = 'lower'",
             ' eggs = 4',
             ' num = 5',
-            ' !!! other not populated!',
+            ' other = NameError',
         ]
     """
     from utool import util_str

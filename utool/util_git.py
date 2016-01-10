@@ -79,6 +79,7 @@ def squash_consecutive_commits_with_same_message():
     # Can do interactively with this. Can it be done automatically and pay attention to
     # Timestamps etc?
     git rebase --interactive HEAD~40 --autosquash
+    git rebase --interactive $(git merge-base HEAD master) --autosquash
 
     # Lookbehind correct version
     %s/\([a-z]* [a-z0-9]* wip\n\)\@<=pick \([a-z0-9]*\) wip/squash \2 wip/gc
@@ -88,6 +89,10 @@ def squash_consecutive_commits_with_same_message():
 
    GIT_EDITOR="cat $1" GIT_SEQUENCE_EDITOR="python -m utool.util_git --exec-git_sequence_editor_squash --fpath $1" git rebase -i $(git rev-list HEAD | tail -n 1) --autosquash --no-verify
    GIT_EDITOR="cat $1" GIT_SEQUENCE_EDITOR="python -m utool.util_git --exec-git_sequence_editor_squash --fpath $1" git rebase -i HEAD~10 --autosquash --no-verify
+
+   GIT_EDITOR="cat $1" GIT_SEQUENCE_EDITOR="python -m utool.util_git --exec-git_sequence_editor_squash --fpath $1" git rebase -i $(git merge-base HEAD master) --autosquash --no-verify
+
+
 
    # 14d778fa30a93f85c61f34d09eddb6d2cafd11e2
    # c509a95d4468ebb61097bd9f4d302367424772a3

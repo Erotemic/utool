@@ -561,15 +561,16 @@ class ParamInfo(object):
     """
     def __init__(pi, varname, default, shortprefix=util_dev.NoParam,
                  type_=util_dev.NoParam, varyvals=[], varyslice=None,
-                 hideif=util_dev.NoParam, help_=None):
+                 hideif=util_dev.NoParam, help_=None, valid_values=None):
         r"""
         Args:
             varname (?):
-            default (?):
-            shortprefix (ClassNoParam):
-            type_ (ClassNoParam):
+            default (str):
+            shortprefix (str):
+            type_ (type):
             varyvals (list):
-            hideif (var): if the variable value of config is this the itemstr is empty
+            valid_values (list):
+            hideif (func or value): if the variable value of config is this the itemstr is empty
 
         CommandLine:
             python -m utool.util_gridsearch --test-__init__
@@ -592,6 +593,7 @@ class ParamInfo(object):
         # for gridsearch
         pi.varyvals = varyvals
         pi.varyslice = varyslice
+        pi.valid_values = valid_values
         pi.hideif_list = []
         if hideif is not util_dev.NoParam:
             pi.append_hideif(hideif)

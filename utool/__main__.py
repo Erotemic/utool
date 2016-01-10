@@ -7,10 +7,6 @@ def utool_main():
     ignore_prefix = []
     ignore_suffix = []
     import utool as ut
-    try:
-        import utool as vt  # NOQA
-    except ImportError:
-        raise
     # allows for --tf
     ut.main_function_tester('utool', ignore_prefix, ignore_suffix)
 

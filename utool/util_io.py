@@ -138,18 +138,18 @@ save_text = write_to
 load_text = read_from
 
 
-def save_cPkl(fpath, data, verbose=None):
+def save_cPkl(fpath, data, verbose=None, n=2):
     """ Saves data to a pickled file with optional verbosity """
     if verbose or (verbose is None and __PRINT_WRITES__) or __FORCE_PRINT_WRITES__:
-        print('[util_io] * save_cPkl(%r, data)' % (util_path.tail(fpath),))
+        print('[util_io] * save_cPkl(%r, data)' % (util_path.tail(fpath, n=n),))
     with open(fpath, 'wb') as file_:
         pickle.dump(data, file_, pickle.HIGHEST_PROTOCOL)
 
 
-def load_cPkl(fpath, verbose=None):
+def load_cPkl(fpath, verbose=None, n=2):
     """ Loads a pickled file with optional verbosity """
     if verbose or (verbose is None and __PRINT_READS__) or __FORCE_PRINT_READS__:
-        print('[util_io] * load_cPkl(%r)' % (util_path.tail(fpath),))
+        print('[util_io] * load_cPkl(%r)' % (util_path.tail(fpath, n=n),))
     with open(fpath, 'rb') as file_:
         data = pickle.load(file_)
     return data

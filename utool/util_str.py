@@ -1223,6 +1223,10 @@ def repr3(obj_, **kwargs):
     return repr2(obj_, **_kw)
 
 
+def trunc_repr(obj):
+    return truncate_str(repr2(obj), 50, truncmsg='~//~')
+
+
 def repr2(obj_, **kwargs):
     """
     Use in favor of obj_str.
@@ -2470,6 +2474,24 @@ def to_title_caps(underscore_case):
     return title_str
 
 
+def to_underscore_case(camelcase_str):
+    r"""
+    References:
+        http://stackoverflow.com/questions/1175208/elegant-python-function-to-convert-camelcase-to-camel-case
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> camelcase_str = 'UnderscoreFuncname'
+        >>> camel_case_str = to_underscore_case(camelcase_str)
+        >>> result = ('underscore_str = %s' % (str(camel_case_str),))
+        >>> print(result)
+        underscore_str = underscore_funcname
+    """
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', camelcase_str)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+
+
 def to_camel_case(underscore_case, mixed=False):
     r"""
     Args:
@@ -2695,6 +2717,47 @@ def highlight_regex(str_, pat, reflags=0):
         colored = str_[:start] + color + str_[start:end] + Style.RESET_ALL + str_[end:]
         #colorama.deinit()
         return colored
+
+
+def varinfo_str(varval, varname, onlyrepr=False, canshowrepr=True, varcolor='yellow', colored=True):
+    import utool as ut
+    # varval = getattr(cm, varname.replace('cm.', ''))
+    varinfo_list = []
+    print_summary = not onlyrepr and ut.isiterable(varval)
+    show_repr = True
+    show_repr = show_repr or (onlyrepr or not print_summary)
+    symbol = '*'
+    if colored is not False and ut.util_dbg.COLORED_EXCEPTIONS:
+        varname = ut.color_text(varname, varcolor)
+    if show_repr:
+        varval_str = ut.repr2(varval, precision=2)
+        if len(varval_str) > 100:
+            varval_str = '<omitted>'
+        varval_str = ut.truncate_str(varval_str, maxlen=50)
+        varinfo_list += ['    * %s = %s' % (varname, varval_str)]
+        symbol = '+'
+    if print_summary:
+        if isinstance(varval, np.ndarray):
+            depth = varval.shape
+        else:
+            depth = ut.depth_profile(varval)
+        if not show_repr:
+            varinfo_list += [
+                # '    %s varinfo(%s):' % (symbol, varname,),
+                '    %s %s = <not shown!>' % (symbol, varname,),
+            ]
+        varinfo_list += [
+            '          len = %r' % (len(varval),)]
+        if depth != len(varval):
+            depth_str = ut.truncate_str(str(depth), maxlen=70)
+            varinfo_list += [
+                '          depth = %s' % (depth_str,)]
+        varinfo_list += [
+            '          types = %s' % (ut.list_type_profile(varval),)]
+        #varinfo = '\n'.join(ut.align_lines(varinfo_list, '='))
+    aligned_varinfo_list = ut.align_lines(varinfo_list, '=')
+    varinfo = '\n'.join(aligned_varinfo_list)
+    return varinfo
 
 
 if __name__ == '__main__':

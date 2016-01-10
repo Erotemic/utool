@@ -31,6 +31,7 @@ from utool import util_list
 from utool import util_class  # NOQA
 from utool import util_type
 from utool import util_decor
+from utool import util_dict
 from utool._internal import meta_util_constants
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[cache]')
 
@@ -1267,46 +1268,7 @@ def time_different_diskstores():
     cPickle_read_test2()
 
 
-class DictLike2(object):
-    """
-    move to util_dict rectify with util_dev
-    """
-    def __repr__(self):
-        return repr(self.copy())
-
-    def __str__(self):
-        return str(self.copy())
-
-    def __len__(self):
-        return len(list(self.keys()))
-
-    def __contains__(self, key):
-        return key in self.keys()
-
-    def __getitem__(self, key):
-        return self.getitem(key)
-
-    def __setitem__(self, key, value):
-        return self.setitem(key, value)
-
-    def iteritems(self):
-        for key, val in zip(self.iterkeys(), self.itervalues()):
-            yield key, val
-
-    def itervalues(self):
-        return (self[key] for key in self.keys())
-
-    def iterkeys(self):
-        return (self[key] for key in self.keys())
-
-    def items(self):
-        return list(self.iteritems())
-
-    def copy(self):
-        return dict(self.items())
-
-
-class KeyedDefaultDict(DictLike2):
+class KeyedDefaultDict(util_dict.DictLike):
     def __init__(self, default_func, *args, **kwargs):
         self._default_func = default_func
         self._args = args

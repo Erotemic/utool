@@ -2364,7 +2364,10 @@ def ensure_pylab_qt4():
     pt.ensure_pylab_qt4()
 
 
-class DictLike(object):
+class DictLike_old(object):
+    """
+    todo use util_dict.DictLike instead
+    """
     def __repr__(self):
         return repr(dict(self.items()))
 
@@ -2403,7 +2406,7 @@ class DictLike(object):
         return list(self.iteritems())
 
 
-class ClassAttrDictProxy(DictLike):
+class ClassAttrDictProxy(DictLike_old):
     def __init__(self, obj, keys, attrs=None):
         if attrs is None:
             attrs = keys
@@ -2422,7 +2425,7 @@ class ClassAttrDictProxy(DictLike):
         setattr(self.obj, self.key2_attrs[key], val)
 
 
-class AlignedListDictProxy(DictLike):
+class AlignedListDictProxy(DictLike_old):
     """
     simulates a dict when using parallel lists the point of this class is that
     when there are many instances of this class, then key2_idx can be shared between

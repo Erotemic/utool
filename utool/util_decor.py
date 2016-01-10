@@ -785,8 +785,16 @@ def apply_docstr(docstr_func):
     def docstr_applier(func):
         #docstr = meta_util_six.get_funcdoc(docstr_func)
         #meta_util_six.set_funcdoc(func, docstr)
-        preserved_func = preserve_sig(func, docstr_func)
-        return preserved_func
+        if isinstance(docstr_func, six.string_types):
+            olddoc = meta_util_six.get_funcdoc(func)
+            if olddoc is None:
+                olddoc = ''
+            newdoc = olddoc + docstr_func
+            meta_util_six.set_funcdoc(func, newdoc)
+            return func
+        else:
+            preserved_func = preserve_sig(func, docstr_func)
+            return preserved_func
     return docstr_applier
 
 

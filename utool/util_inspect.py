@@ -105,22 +105,7 @@ def help_members(obj):
         #args = ut.get_func_argspec(func).args
         argspec = ut.get_func_argspec(func)
         args = argspec.args
-        defaults = argspec.defaults
-        if defaults is not None:
-            kwpos = len(args) - len(defaults)
-            unbound_args = args[:kwpos]
-            #kwdefaults = ut.odict(zip(args[kwpos:], defaults))
-        else:
-            unbound_args = args
-            #kwdefaults = {}
-        #argrepr_list = ut.get_itemstr_list(
-        #    unbound_args, with_comma=False, nl=False, strvals=True)
-        #kwrepr_list = ut.dict_itemstr_list(
-        #    kwdefaults, explicit=True, with_comma=False, nl=False)
-        #repr_list = argrepr_list + kwrepr_list
-        #argskwargs_str = newlined_list(repr_list, ', ', textwidth=80)
-        #argskwargs_str = ', '.join(repr_list)
-        #defsig = (ut.get_callable_name(func) + '(' + argskwargs_str + ')')
+        unbound_args = get_unbound_args(argspec)
         defsig = ut.func_defsig(func)
         defsig_list.append(defsig)
         num_unbound_args_list.append(len(unbound_args))
@@ -1424,6 +1409,23 @@ def get_func_sourcecode(func, stripdef=False, stripret=False,
     return sourcecode
     #else:
     #return get_func_sourcecode(func._utinfo['src'])
+
+
+def get_unbound_args(argspec):
+    try:
+        args = argspec.args
+    except Exception:
+        func = argspec
+        argspec = get_func_argspec(func)
+        args = argspec.args
+    args = argspec.args
+    defaults = argspec.defaults
+    if defaults is not None:
+        kwpos = len(args) - len(defaults)
+        unbound_args = args[:kwpos]
+    else:
+        unbound_args = args
+    return unbound_args
 
 
 def get_func_argspec(func):
