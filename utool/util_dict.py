@@ -766,6 +766,13 @@ def dict_take(dict_, keys, *d):
         return dict_take_list(dict_, [keys], *d)[0]
 
 
+#def dict_unflat_take(dict_, unflat_key_list, *d):
+#    return [dict_unflat_take(dict_, xs, *d)
+#            if isinstance(xs, list) else
+#            dict_take(dict_, xs, *d)
+#            for xs in unflat_key_list]
+
+
 def dict_take_asnametup(dict_, keys, name='_NamedTup'):
     from collections import namedtuple
     values = dict_take(dict_, keys)
