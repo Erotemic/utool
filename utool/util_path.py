@@ -76,11 +76,34 @@ def relpath_unix(path, otherpath):
 
 
 def truepath_relative(path, otherpath=None):
-    """ Normalizes and returns absolute path with so specs  """
+    """ Normalizes and returns absolute path with so specs
+
+    Args:
+        path (str):  path to file or directory
+        otherpath (None): (default = None)
+
+    Returns:
+        str: path_
+
+    CommandLine:
+        python -m utool.util_path --exec-truepath_relative --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
+        >>> path = 'C:/foobar/foobiz'
+        >>> otherpath = 'C:/foobar'
+        >>> path_ = truepath_relative(path, otherpath)
+        >>> result = ('path_ = %s' % (ut.repr2(path_),))
+        >>> print(result)
+        path_ = 'foobiz'
+    """
     if otherpath is None:
         otherpath = os.getcwd()
     otherpath = truepath(otherpath)
-    return normpath(relpath(path, otherpath))
+    path_ = normpath(relpath(path, otherpath))
+    return path_
 
 
 def tail(fpath, n=2, trailing=True):
@@ -1167,6 +1190,7 @@ def get_modpath_from_modname(modname, prefer_pkg=False, prefer_main=False):
         >>> modname = 'utool.util_path'
         >>> module_dir = get_modpath_from_modname(modname)
         >>> result = ut.truepath_relative(module_dir, utool_dir)
+        >>> result = ut.ensure_unixslash(result)
         >>> print(result)
         utool/util_path.py
 
@@ -1175,6 +1199,7 @@ def get_modpath_from_modname(modname, prefer_pkg=False, prefer_main=False):
         >>> modname = 'utool._internal'
         >>> module_dir = get_modpath_from_modname(modname, prefer_pkg=True)
         >>> result = ut.truepath_relative(module_dir, utool_dir)
+        >>> result = ut.ensure_unixslash(result)
         >>> print(result)
         utool/_internal
 
@@ -1183,6 +1208,7 @@ def get_modpath_from_modname(modname, prefer_pkg=False, prefer_main=False):
         >>> modname = 'utool'
         >>> module_dir = get_modpath_from_modname(modname)
         >>> result = ut.truepath_relative(module_dir, utool_dir)
+        >>> result = ut.ensure_unixslash(result)
         >>> print(result)
         utool/__init__.py
     """
