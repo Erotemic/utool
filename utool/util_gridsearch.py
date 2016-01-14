@@ -484,7 +484,9 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
                 cfgname, cfgopt_strs, subx = parse_cfgstr_name_options(cfgstr)
                 assert cfgname.endswith('=')
                 cfgname = cfgname[:-1]
-                base_cfg_list = lookup_base_cfg_list(cfgname, named_defaults_dict, metadata=metadata)
+                base_cfg_list = lookup_base_cfg_list(cfgname,
+                                                     named_defaults_dict,
+                                                     metadata=metadata)
                 cfg_options = noexpand_parse_cfgstrs(cfgopt_strs)
                 dyndef_named_defaults[cfgname] = cfg_options
             else:
@@ -525,7 +527,9 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
                 # --
                 # Lookup named default settings
                 try:
-                    base_cfg_list = lookup_base_cfg_list(cfgname, named_defaults_dict, metadata=metadata)
+                    base_cfg_list = lookup_base_cfg_list(cfgname,
+                                                         named_defaults_dict,
+                                                         metadata=metadata)
                 except Exception as ex:
                     ut.printex(ex, keys=['cfgstr_list', 'cfgstr_list_'])
                     raise
