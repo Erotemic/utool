@@ -335,7 +335,9 @@ def indent(str_, indent='    '):
 
 
 def indent_rest(str_, indent='    '):
-    """ TODO fix name """
+    """ TODO fix name Indents every part of the string except the beginning
+    SeeAlso: ibeis/templates/generate_notebook.py
+    """
     return str_.replace('\n', '\n' + indent)
 
 

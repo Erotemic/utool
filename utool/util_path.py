@@ -17,6 +17,7 @@ import sys
 import shutil
 import fnmatch
 import warnings
+import itertools
 from utool.util_regex import extend_regex
 from utool import util_dbg
 from utool import util_progress
@@ -150,7 +151,8 @@ def path_ndir_split(path_, n, force_unix=True, winroot='C:', trailing=True):
         >>> force_unix = True
         >>> tuplist = [(n, path_ndir_split(path_, n)) for path_, n in iter_]
         >>> chunklist = list(ut.ichunks(tuplist, N))
-        >>> list_ = [['n=%r: %s' % (x, ut.reprfunc(y)) for x, y in chunk] for chunk in chunklist]
+        >>> list_ = [['n=%r: %s' % (x, ut.reprfunc(y)) for x, y in chunk]
+        >>>          for chunk in chunklist]
         >>> line_list = [', '.join(strs) for strs in list_]
         >>> result = '\n'.join(line_list)
         >>> print(result)
@@ -277,7 +279,8 @@ def remove_dirs(dpath, dryrun=False, ignore_errors=True, quiet=QUIET, **kwargs):
 #import os
 
 
-def augpath(path, augsuf='', augext='', augdir=None, newext=None, newfname=None, ensure=False):
+def augpath(path, augsuf='', augext='', augdir=None, newext=None,
+            newfname=None, ensure=False):
     """
     augments end of path before the extension.
 
@@ -334,7 +337,7 @@ def augpath(path, augsuf='', augext='', augdir=None, newext=None, newfname=None,
 
 
 def touch(fname, times=None, verbose=True):
-    """
+    r"""
     Args:
         fname (str)
         times (None):
@@ -349,7 +352,7 @@ def touch(fname, times=None, verbose=True):
         >>> print(result)
 
     References:
-        'http://stackoverflow.com/questions/1158076/implement-touch-using-python'
+        http://stackoverflow.com/questions/1158076/implement-touch-using-python
     """
     try:
         if verbose:
@@ -362,8 +365,9 @@ def touch(fname, times=None, verbose=True):
         raise
 
 
-def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False, verbose=VERBOSE,
-                        dryrun=False, ignore_errors=False, **kwargs):
+def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False,
+                        verbose=VERBOSE, dryrun=False, ignore_errors=False,
+                        **kwargs):
     """ Removes files matching a pattern from a directory """
     if isinstance(fname_pattern_list, six.string_types):
         fname_pattern_list = [fname_pattern_list]
@@ -430,7 +434,8 @@ def remove_existing_fpaths(fpath_list, verbose=VERBOSE, quiet=QUIET,
         nTotal = len(fpath_list)
         nValid = len(fpath_list_)
         nExist = sum(exists_list)
-        print('[util_path.remove_existing_fpaths] requesting delete of %d %s' % (nTotal, lbl))
+        print('[util_path.remove_existing_fpaths] request delete of %d %s' % (
+            nTotal, lbl))
         if nValid != nTotal:
             print(('[util_path.remove_existing_fpaths] '
                    'trying to delete %d/%d non None %s ') %
@@ -463,11 +468,13 @@ def remove_fpaths(fpath_list, verbose=VERBOSE, quiet=QUIET, strict=False,
             if VERYVERBOSE:
                 print('WARNING: Could not remove fpath = %r' % (fpath,))
             if strict:
-                util_dbg.printex(ex, 'Could not remove fpath = %r' % (fpath,), iswarning=False)
+                util_dbg.printex(ex, 'Could not remove fpath = %r' % (fpath,),
+                                 iswarning=False)
                 raise
             pass
     if _verbose:
-        print('[util_path.remove_fpaths] ... removed %d / %d %s' % (nRemoved, nTotal, lbl))
+        print('[util_path.remove_fpaths] ... removed %d / %d %s' % (
+            nRemoved, nTotal, lbl))
     return nRemoved
 
 
@@ -475,7 +482,7 @@ remove_file_list = remove_fpaths  # backwards compatible
 
 
 def longest_existing_path(_path):
-    """
+    r"""
     Returns the longest root of _path that exists
 
     Args:
@@ -488,8 +495,9 @@ def longest_existing_path(_path):
         python -m utool.util_path --exec-longest_existing_path
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
         >>> target = dirname(ut.__file__)
         >>> _path = join(target, 'nonexist/foobar')
         >>> existing_path = longest_existing_path(_path)
@@ -512,7 +520,7 @@ def longest_existing_path(_path):
 
 
 def get_path_type(path_):
-    """
+    r"""
     returns if a path is a file, directory, link, or mount
     """
     path_type = ''
@@ -528,10 +536,11 @@ def get_path_type(path_):
 
 
 def checkpath(path_, verbose=VERYVERBOSE, n=None, info=VERYVERBOSE):
-    """ verbose wrapper around ``os.path.exists``
+    r""" verbose wrapper around ``os.path.exists``
 
     Returns:
-        true if ``path_`` exists on the filesystem show only the top n directories
+        true if ``path_`` exists on the filesystem show only the
+        top `n` directories
 
     Args:
         path_ (?):
@@ -601,7 +610,10 @@ def ensurepath(path_, verbose=VERYVERBOSE):
 
 
 def ensuredir(path_, verbose=VERYVERBOSE, info=False, mode=0o1777):
-    """ Ensures that directory will exist. creates new dir with sticky bits by default """
+    r"""
+    Ensures that directory will exist. creates new dir with sticky bits by
+    default
+    """
     if not checkpath(path_, verbose=verbose, info=info):
         if verbose:
             print('[util_path] mkdir(%r)' % path_)
@@ -643,9 +655,11 @@ def copy_files_to(src_fpath_list, dst_dpath=None, dst_fpath_list=None,
         >>> overwrite = False
         >>> veryverbose = False
         >>> verbose = True
-        >>> src_fpath_list = [ut.grab_test_imgpath(key) for key in  ut.get_valid_test_imgkeys()]
+        >>> src_fpath_list = [ut.grab_test_imgpath(key)
+        >>>                   for key in ut.get_valid_test_imgkeys()]
         >>> dst_dpath = ut.get_app_resource_dir('utool', 'filecopy_tests')
-        >>> copy_files_to(src_fpath_list, dst_dpath, overwrite=overwrite, verbose=verbose)
+        >>> copy_files_to(src_fpath_list, dst_dpath, overwrite=overwrite,
+        >>>               verbose=verbose)
     """
     from utool import util_list
     from utool import util_parallel
@@ -656,17 +670,20 @@ def copy_files_to(src_fpath_list, dst_dpath=None, dst_fpath_list=None,
 
     if dst_fpath_list is None:
         ensuredir(dst_dpath, verbose=veryverbose)
-        dst_fpath_list = [join(dst_dpath, basename(fpath)) for fpath in src_fpath_list]
+        dst_fpath_list = [join(dst_dpath, basename(fpath))
+                          for fpath in src_fpath_list]
     else:
         assert dst_dpath is None, 'dst_dpath was specified but overrided'
         assert len(dst_fpath_list) == len(src_fpath_list), 'bad correspondence'
 
     exists_list = list(map(exists, dst_fpath_list))
     if verbose:
-        print('[util_path]  * %d files already exist dst_dpath' % (sum(exists_list),))
+        print('[util_path]  * %d files already exist dst_dpath' % (
+            sum(exists_list),))
     if not overwrite:
-        dst_fpath_list_ = util_list.filterfalse_items(dst_fpath_list, exists_list)
-        src_fpath_list_ = util_list.filterfalse_items(src_fpath_list, exists_list)
+        notexists_list = util_list.not_list(exists_list)
+        dst_fpath_list_ = util_list.compress(dst_fpath_list, notexists_list)
+        src_fpath_list_ = util_list.compress(src_fpath_list, notexists_list)
     else:
         dst_fpath_list_ = dst_fpath_list
         src_fpath_list_ = src_fpath_list
@@ -678,7 +695,8 @@ def copy_files_to(src_fpath_list, dst_dpath=None, dst_fpath_list=None,
 
     #success_list = copy_list(src_fpath_list_, dst_fpath_list_)
     if verbose:
-        print('[util_path]  * Copied %d / %d' % (sum(success_list), len(src_fpath_list)))
+        print('[util_path]  * Copied %d / %d' % (sum(success_list),
+                                                 len(src_fpath_list)))
         print('[util_path] L___ DONE COPYING FILES ___')
 
 
@@ -690,14 +708,16 @@ def copy(src, dst, overwrite=True, deeplink=True, verbose=True, dryrun=False):
             ut.copy_files_to(src, dst, overwrite=overwrite, verbose=verbose)
         else:
             # list to list
-            ut.copy_files_to(src, dst_fpath_list=dst, overwrite=overwrite, verbose=verbose)
+            ut.copy_files_to(src, dst_fpath_list=dst, overwrite=overwrite,
+                             verbose=verbose)
     else:
         return copy_single(src, dst, overwrite=overwrite, deeplink=deeplink,
                            dryrun=dryrun, verbose=verbose)
 
 
-def copy_single(src, dst, overwrite=True, verbose=True, deeplink=True, dryrun=False):
-    """
+def copy_single(src, dst, overwrite=True, verbose=True, deeplink=True,
+                dryrun=False):
+    r"""
     Args:
         src (str): file or directory to copy
         dst (str): directory or new file to copy to
@@ -746,8 +766,8 @@ def copy_single(src, dst, overwrite=True, verbose=True, deeplink=True, dryrun=Fa
                 print('[%s] src=%s does not exist!' % (prefix, src))
                 print('[%s] dst=%s' % (prefix, dst))
     except Exception as ex:
-        import utool as ut
-        ut.printex(ex, 'Error copying single', keys=['src', 'dst'])
+        from utool import util_dbg
+        util_dbg.printex(ex, 'Error copying single', keys=['src', 'dst'])
         raise
 
 
@@ -776,7 +796,6 @@ def copy_list(src_list, dst_list, lbl='Copying',
               ioerr_ok=False, sherro_ok=False, oserror_ok=False):
     """ Copies all data and stat info """
     # Feb - 6 - 2014 Copy function
-    import utool as ut
     task_iter = zip(src_list, dst_list)
     def docopy(src, dst):
         try:
@@ -794,9 +813,8 @@ def copy_list(src_list, dst_list, lbl='Copying',
                 return False
             raise
         return True
-    success_list = [
-        docopy(src, dst)
-        for (src, dst) in ut.ProgressIter(task_iter, adjust=True, lbl=lbl)]
+    progiter = util_progress.ProgIter(task_iter, adjust=True, lbl=lbl)
+    success_list = [docopy(src, dst) for (src, dst) in progiter]
     return success_list
 
 
@@ -813,11 +831,8 @@ def move_list(src_list, dst_list, lbl='Moving'):
             return False
         return True
     task_iter = zip(src_list, dst_list)
-    success_list = [
-        trymove(src, dst)
-        for (src, dst) in util_progress.ProgressIter(task_iter, lbl=lbl,
-                                                     adjust=True)
-    ]
+    progiter = util_progress.ProgIter(task_iter, lbl=lbl, adjust=True)
+    success_list = [trymove(src, dst) for (src, dst) in progiter]
     return success_list
 
 
@@ -915,7 +930,8 @@ def glob(dpath, pattern=None, recursive=False, with_files=True, with_dirs=True,
 
     Args:
         dpath (str): directory path or pattern
-        pattern (str or list): pattern or list of patterns (use only if pattern is not in dpath)
+        pattern (str or list): pattern or list of patterns
+            (use only if pattern is not in dpath)
         recursive (bool): (default = False)
         with_files (bool): (default = True)
         with_dirs (bool): (default = True)
@@ -946,7 +962,8 @@ def glob(dpath, pattern=None, recursive=False, with_files=True, with_dirs=True,
         >>> fullpath = False
         >>> exclude_dirs = ['_internal', join(dpath, 'experimental')]
         >>> print('exclude_dirs = ' + ut.list_str(exclude_dirs))
-        >>> path_list = glob(dpath, pattern, recursive, with_files, with_dirs, maxdepth, exclude_dirs, fullpath)
+        >>> path_list = glob(dpath, pattern, recursive, with_files, with_dirs,
+        >>>                  maxdepth, exclude_dirs, fullpath)
         >>> result = ('path_list = %s' % (ut.list_str(path_list),))
         >>> result = result.replace(r'\\', '/')
         >>> print(result)
@@ -992,7 +1009,7 @@ def iglob(dpath, pattern=None, recursive=False, with_files=True, with_dirs=True,
         path
 
     References:
-        http://stackoverflow.com/questions/19859840/excluding-directories-in-os-walk
+        http://stackoverflow.com/questions/19859840/excluding-dirs-in-os-walk
     """
     from utool import util_iter
     if kwargs.get('verbose', False):  # log what i'm going to do
@@ -1213,7 +1230,10 @@ def get_modpath_from_modname(modname, prefer_pkg=False, prefer_main=False):
         utool/__init__.py
     """
     import importlib
-    module = importlib.import_module(modname)
+    if isinstance(modname, six.string_types):
+        module = importlib.import_module(modname)
+    else:
+        module = modname  # Hack
     modpath = module.__file__.replace('.pyc', '.py')
     initname = '__init__.py'
     mainname = '__main__.py'
@@ -1445,7 +1465,7 @@ def is_module_dir(path):
 
 def list_images(img_dpath_, ignore_list=[], recursive=False, fullpath=False,
                 full=None, sort=True):
-    """
+    r"""
     Returns a list of images in a directory. By default returns relative paths.
 
     TODO: rename to ls_images
@@ -1474,7 +1494,8 @@ def list_images(img_dpath_, ignore_list=[], recursive=False, fullpath=False,
         >>> fullpath = False
         >>> full = None
         >>> sort = True
-        >>> gname_list = list_images(img_dpath_, ignore_list, recursive, fullpath, full, sort)
+        >>> gname_list = list_images(img_dpath_, ignore_list, recursive,
+        >>>                          fullpath, full, sort)
         >>> result = ('gname_list = %s' % (str(gname_list),))
         >>> print(result)
     """
@@ -1545,7 +1566,8 @@ def pathsplit_full(path):
 
 
 def get_standard_exclude_dnames():
-    return ['lib.linux-x86_64-2.7', 'dist', 'build', '_page', '_doc', 'utool.egg-info', '.git']
+    return ['lib.linux-x86_64-2.7', 'dist', 'build', '_page', '_doc',
+            'utool.egg-info', '.git']
 
 
 def get_standard_include_patterns():
@@ -1555,7 +1577,6 @@ def get_standard_include_patterns():
 def matching_fnames(dpath_list, include_patterns, exclude_dirs=[],
                     greater_exclude_dirs=[], recursive=True):
     r"""
-
     matching_fnames. walks dpath lists returning all directories that match the
     requested pattern.
 
@@ -1578,7 +1599,8 @@ def matching_fnames(dpath_list, include_patterns, exclude_dirs=[],
         >>> exclude_dirs = ['_page']
         >>> greater_exclude_dirs = get_standard_exclude_dnames()
         >>> recursive = True
-        >>> fpath_gen = matching_fnames(dpath_list, include_patterns, exclude_dirs, greater_exclude_dirs, recursive)
+        >>> fpath_gen = matching_fnames(dpath_list, include_patterns, exclude_dirs,
+        >>>                             greater_exclude_dirs, recursive)
         >>> result = list(fpath_gen)
         >>> print('\n'.join(result))
     """
@@ -1690,7 +1712,8 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
         >>> regex_list = ['grepfile']
         >>> verbose = False
         >>> recursive = True
-        >>> result = ut.grep(regex_list, recursive, dpath_list, include_patterns, exclude_dirs)
+        >>> result = ut.grep(regex_list, recursive, dpath_list, include_patterns,
+        >>>                  exclude_dirs)
         >>> (found_fpath_list, found_lines_list, found_lxs_list) = result
         >>> assert 'util_path.py' in list(map(basename, found_fpath_list))
     """
@@ -1707,7 +1730,9 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
         dpath_list = [os.getcwd()]
     if verbose:
         recursive_stat_str = ['flat', 'recursive'][recursive]
-        print('[util_path] Greping (%s) %r for %r' % (recursive_stat_str, dpath_list, regex_list))
+        print('[util_path] Greping (%s) %r for %r' % (recursive_stat_str,
+                                                      dpath_list, regex_list))
+        print('[util_path] regex_list = %s' % (regex_list))
     if isinstance(regex_list, six.string_types):
         regex_list = [regex_list]
     found_fpath_list = []
@@ -1721,6 +1746,8 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
     else:
         fpath_generator = fpath_list
     extended_regex_list = list(map(extend_regex, regex_list))
+    if verbose:
+        print('extended_regex_list=%s' % (extended_regex_list,))
     if len(extended_regex_list) == 1:
         if extended_regex_list[0].startswith('\\c'):
             # hack for vim-like ignore case
@@ -1730,7 +1757,8 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
     # For each matching filepath
     for fpath in fpath_generator:
         # For each search pattern
-        found_lines, found_lxs = grepfile(fpath, extended_regex_list, reflags, cache=cache)
+        found_lines, found_lxs = grepfile(fpath, extended_regex_list, reflags,
+                                          cache=cache)
         if inverse:
             if len(found_lines) == 0:
                 # Append files that the pattern was not found in
@@ -1748,7 +1776,8 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
 
         pat = util_regex.regex_or(extended_regex_list)
 
-        for fpath, found, lxs in zip(found_fpath_list, found_lines_list, found_lxs_list):
+        for fpath, found, lxs in zip(found_fpath_list, found_lines_list,
+                                     found_lxs_list):
             if len(found) > 0:
                 print('----------------------')
                 print('Found %d line(s) in %r: ' % (len(found), fpath))
@@ -1771,7 +1800,7 @@ def get_win32_short_path_name(long_name):
 
     References:
         http://stackoverflow.com/a/23598461/200291
-        http://stackoverflow.com/questions/23598289/how-to-get-windows-short-file-name-in-python
+        http://stackoverflow.com/questions/23598289/get-win-short-fname-python
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1877,7 +1906,8 @@ def platform_path(path):
     return path2
 
 
-def existing_subpath(root_path, valid_subpaths, tiebreaker='first', verbose=VERYVERBOSE):
+def existing_subpath(root_path, valid_subpaths, tiebreaker='first',
+                     verbose=VERYVERBOSE):
     """
     Returns join(root_path, subpath) where subpath in valid_subpath ane
     exists(subpath)
@@ -2070,10 +2100,14 @@ def search_candidate_paths(candidate_path_list, candidate_name_list=None,
     searches for existing paths that meed a requirement
 
     Args:
-        candidate_path_list (list): list of paths to check. If candidate_name_list is specified this is the dpath list instead
-        candidate_name_list (list): specifies several names to check (default = None)
-        priority_paths (None): specifies paths to check first. Ignore candidate_name_list (default = None)
-        required_subpaths (list): specified required directory structure (default = [])
+        candidate_path_list (list): list of paths to check. If
+            candidate_name_list is specified this is the dpath list instead
+        candidate_name_list (list): specifies several names to check
+            (default = None)
+        priority_paths (None): specifies paths to check first.
+            Ignore candidate_name_list (default = None)
+        required_subpaths (list): specified required directory structure
+            (default = [])
         verbose (bool):  verbosity flag(default = True)
 
     Returns:
@@ -2085,19 +2119,21 @@ def search_candidate_paths(candidate_path_list, candidate_name_list=None,
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_path import *  # NOQA
-        >>> candidate_path_list = [ut.truepath('~/RPI/code/utool'), ut.truepath('~/code/utool')]
+        >>> candidate_path_list = [ut.truepath('~/RPI/code/utool'),
+        >>>                        ut.truepath('~/code/utool')]
         >>> candidate_name_list = None
         >>> required_subpaths = []
         >>> verbose = True
         >>> priority_paths = None
-        >>> return_path = search_candidate_paths(candidate_path_list, candidate_name_list, priority_paths, required_subpaths, verbose)
+        >>> return_path = search_candidate_paths(candidate_path_list,
+        >>>                                      candidate_name_list,
+        >>>                                      priority_paths, required_subpaths,
+        >>>                                      verbose)
         >>> result = ('return_path = %s' % (str(return_path),))
         >>> print(result)
     """
     print('[search_candidate_paths] Searching for candidate paths')
     import utool as ut
-    from os.path import join, exists
-    import itertools
 
     if candidate_name_list is not None:
         candidate_path_list_ = [join(dpath, fname) for dpath, fname in

@@ -6,8 +6,10 @@ from __future__ import absolute_import, division, print_function
 
 from itertools import product
 from collections import defaultdict, OrderedDict, namedtuple
+from functools import partial
 
 ddict = defaultdict
 odict = OrderedDict
 iprod = product
 namedtuple = namedtuple
+partial = partial

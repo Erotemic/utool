@@ -62,8 +62,10 @@ def extend_regex(regexpr):
       with re friendly syntax. Nameely things that I use in vim like \<\>
     """
     regex_map = {
-        r'\<': r'\b(?=\w)',
-        r'\>': r'\b(?!\w)',
+        #r'\<': r'\b(?=\w)',
+        #r'\>': r'\b(?!\w)',
+        r'\<': r'\b' + positive_lookahead(r'\w'),
+        r'\>': r'\b' + negative_lookahead(r'\w'),
         ('UNSAFE', r'\x08'): r'\b',
     }
     for key, repl in six.iteritems(regex_map):
@@ -447,7 +449,7 @@ def regex_replace_lines(lines, regexpat, replpat):
     return newlines
 
 
-def sed(regexpr, repl, force=False, recursive=False, dpath_list=None):
+def sed(regexpr, repl, force=False, recursive=False, dpath_list=None, fpath_list=None):
     """
     Python implementation of sed. NOT FINISHED
 
@@ -471,20 +473,58 @@ def sed(regexpr, repl, force=False, recursive=False, dpath_list=None):
     print(' * recursive: %r' % (recursive,))
     print(' * force: %r' % (force,))
     regexpr = util_path.extend_regex(regexpr)
-    if '\x08' in regexpr:
-        print('Remember \\x08 != \\b')
-        print('subsituting for you for you')
-        regexpr = regexpr.replace('\x08', '\\b')
-        print(' * regular expression : %r' % (regexpr,))
+    #if '\x08' in regexpr:
+    #    print('Remember \\x08 != \\b')
+    #    print('subsituting for you for you')
+    #    regexpr = regexpr.replace('\x08', '\\b')
+    #    print(' * regular expression : %r' % (regexpr,))
+
+    if fpath_list is None:
+        greater_exclude_dirs =  util_path.get_standard_exclude_dnames()
+        exclude_dirs = []
+        fpath_generator = util_path.matching_fnames(
+            dpath_list, include_patterns, exclude_dirs, greater_exclude_dirs,
+            recursive=recursive)
+        #fpath_generator = util_path.matching_fnames(dpath_list, include_patterns, recursive=recursive)
+    else:
+        fpath_generator = fpath_list
 
     # Walk through each directory recursively
-    for fpath in util_path.matching_fnames(dpath_list, include_patterns, recursive=recursive):
+    for fpath in fpath_generator:
         sedfile(fpath, regexpr, repl, force)
 
 
 def sedfile(fpath, regexpr, repl, force=False, verbose=True, veryverbose=False):
     """
     Executes sed on a specific file
+
+    Args:
+        fpath (str):  file path string
+        regexpr (str):
+        repl (str):
+        force (bool): (default = False)
+        verbose (bool):  verbosity flag(default = True)
+        veryverbose (bool): (default = False)
+
+    Returns:
+        list: changed_lines
+
+    CommandLine:
+        python -m utool.util_regex --exec-sedfile --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_regex import *  # NOQA
+        >>> import utool as ut
+        >>> fpath = ut.get_modpath_from_modname(ut.util_regex)
+        >>> regexpr = 'sedfile'
+        >>> repl = 'saidfile'
+        >>> force = False
+        >>> verbose = True
+        >>> veryverbose = False
+        >>> changed_lines = sedfile(fpath, regexpr, repl, force, verbose, veryverbose)
+        >>> result = ('changed_lines = %s' % (ut.repr3(changed_lines),))
+        >>> print(result)
     """
     # TODO: move to util_edit
     path, name = split(fpath)
