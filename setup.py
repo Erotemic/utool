@@ -115,6 +115,10 @@ def utool_setup():
                     '_test_times.txt',
                     'test_times.txt',
                     'Tgen.sh',
+                    'raw_profile.*.prof'
+                    'clean_profile.*.prof'
+                    'raw_profile.txt',
+                    'clean_profile.txt',
                 ]
                 utool.clean(dirname(__file__), CLUTTER_PATTERNS, clutter_dirs)
         ext_modules = util_setup.find_ext_modules()
