@@ -1314,14 +1314,16 @@ def parse_locals_keylist(locals_, key_list, strlist_=None, prefix=''):
             elif isinstance(key, six.string_types):
                 # Try to infer print from variable name
                 val = get_varval_from_locals(key, locals_)
-                valstr = util_str.truncate_str(repr(val), maxlen=200)
+                #valstr = util_str.truncate_str(repr(val), maxlen=200)
+                valstr = util_str.truncate_str(util_str.repr2(val), maxlen=200)
                 strlist_.append('%s %s = %s' % (prefix, key, valstr))
             else:
                 # Try to infer print from variable value
                 val = key
                 typestr = repr(type(val))
                 namestr = get_varname_from_locals(val, locals_)
-                valstr = util_str.truncate_str(repr(val), maxlen=200)
+                #valstr = util_str.truncate_str(repr(val), maxlen=200)
+                valstr = util_str.truncate_str(util_str.repr2(val), maxlen=200)
                 strlist_.append('%s %s %s = %s' % (prefix, typestr, namestr, valstr))
         except AssertionError as ex:
             strlist_.append(prefix + ' ' + str(ex))
