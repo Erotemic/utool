@@ -115,8 +115,8 @@ def utool_setup():
                     '_test_times.txt',
                     'test_times.txt',
                     'Tgen.sh',
-                    'raw_profile.*.prof'
-                    'clean_profile.*.prof'
+                    'raw_profile.*.prof',
+                    'clean_profile.*.prof',
                     'raw_profile.txt',
                     'clean_profile.txt',
                 ]
