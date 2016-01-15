@@ -273,7 +273,7 @@ def print_code(text, lexer_name='python'):
     print(util_str.highlight_code(text, lexer_name))
 
 
-def print_difftext(text):
+def print_difftext(text, other=None):
     """
     Args:
         text (str):
@@ -283,6 +283,9 @@ def print_difftext(text):
         #autopep8 ingest_data.py --diff | python -m utool.util_print --test-print_difftext
 
     """
+    if other is not None:
+        # hack
+        text = util_str.difftext(text, other)
     print(util_str.get_colored_diff(text))
 
 

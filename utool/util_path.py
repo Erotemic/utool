@@ -1626,6 +1626,138 @@ def matching_fnames(dpath_list, include_patterns, exclude_dirs=[],
     #return fname_list
 
 
+def sed(regexpr, repl, force=False, recursive=False, dpath_list=None,
+        fpath_list=None, verbose=None):
+    """
+    Python implementation of sed. NOT FINISHED
+
+    searches and replaces text in files
+
+    Args:
+        regexpr (str): regx patterns to find
+        repl (str): text to replace
+        force (bool):
+        recursive (bool):
+        dpath_list (list): directories to search (defaults to cwd)
+    """
+    #_grep(r, [repl], dpath_list=dpath_list, recursive=recursive)
+    include_patterns = ['*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h']
+    if dpath_list is None:
+        dpath_list = [os.getcwd()]
+    if verbose is None:
+        verbose = ut.NOT_QUIET
+    if fpath_list is None:
+        greater_exclude_dirs = get_standard_exclude_dnames()
+        exclude_dirs = []
+        fpath_generator = matching_fnames(
+            dpath_list, include_patterns, exclude_dirs, greater_exclude_dirs,
+            recursive=recursive)
+        #fpath_generator = matching_fnames(dpath_list, include_patterns, recursive=recursive)
+    else:
+        fpath_generator = fpath_list
+    if verbose:
+        print('sed-ing %r' % (dpath_list,))
+        print(' * regular expression : %r' % (regexpr,))
+        print(' * replacement        : %r' % (repl,))
+        print(' * recursive: %r' % (recursive,))
+        print(' * force: %r' % (force,))
+        from utool import util_str
+        print(' * fpath_list: %s' % (util_str.repr3(fpath_list),))
+    regexpr = extend_regex(regexpr)
+    #if '\x08' in regexpr:
+    #    print('Remember \\x08 != \\b')
+    #    print('subsituting for you for you')
+    #    regexpr = regexpr.replace('\x08', '\\b')
+    #    print(' * regular expression : %r' % (regexpr,))
+
+    # Walk through each directory recursively
+    for fpath in fpath_generator:
+        sedfile(fpath, regexpr, repl, force, verbose=verbose)
+
+
+def sedfile(fpath, regexpr, repl, force=False, verbose=True, veryverbose=False):
+    """
+    Executes sed on a specific file
+
+    Args:
+        fpath (str):  file path string
+        regexpr (str):
+        repl (str):
+        force (bool): (default = False)
+        verbose (bool):  verbosity flag(default = True)
+        veryverbose (bool): (default = False)
+
+    Returns:
+        list: changed_lines
+
+    CommandLine:
+        python -m utool.util_path --exec-sedfile --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
+        >>> fpath = ut.get_modpath_from_modname(ut.util_path)
+        >>> regexpr = 'sedfile'
+        >>> repl = 'saidfile'
+        >>> force = False
+        >>> verbose = True
+        >>> veryverbose = False
+        >>> changed_lines = sedfile(fpath, regexpr, repl, force, verbose, veryverbose)
+        >>> result = ('changed_lines = %s' % (ut.repr3(changed_lines),))
+        >>> print(result)
+    """
+    # TODO: move to util_edit
+    path, name = split(fpath)
+    new_file_lines = []
+
+    if veryverbose:
+        print('[sedfile] fpath=%r' % fpath)
+        print('[sedfile] regexpr=%r' % regexpr)
+        print('[sedfile] repl=%r' % repl)
+        print('[sedfile] force=%r' % force)
+    with open(fpath, 'r') as file:
+        file_lines = file.readlines()
+        # Search each line for the desired regexpr
+        new_file_lines = [re.sub(regexpr, repl, line) for line in file_lines]
+
+    changed_lines = [(newline, line)
+                     for newline, line in zip(new_file_lines, file_lines)
+                     if  newline != line]
+    nChanged = len(changed_lines)
+    if nChanged > 0:
+        rel_fpath = relpath(fpath, os.getcwd())
+        print(' * %s changed %d lines in %r ' %
+              (['(dry-run)', '(real-run)'][force], nChanged, rel_fpath))
+        print(' * --------------------')
+        new_file = ''.join(new_file_lines)
+        #print(new_file.replace('\n','\n))
+        if verbose:
+            if True:
+                import utool as ut
+                ut.print_difftext(''.join(file_lines), new_file)
+            else:
+                changed_new, changed_old = zip(*changed_lines)
+                prefixold = ' * old (%d, %r):  \n | ' % (nChanged, name)
+                prefixnew = ' * new (%d, %r):  \n | ' % (nChanged, name)
+                print(prefixold + (' | '.join(changed_old)).strip('\n'))
+                print(' * ____________________')
+                print(prefixnew + (' | '.join(changed_new)).strip('\n'))
+                print(' * --------------------')
+                print(' * =====================================================')
+        # Write back to file
+        if force:
+            print(' ! WRITING CHANGES')
+            with open(fpath, 'w') as file:
+                file.write(new_file)
+        else:
+            print(' dry run')
+        return changed_lines
+    #elif verbose:
+    #    print('Nothing changed')
+    return None
+
+
 @profile
 def grepfile(fpath, regexpr_list, reflags=0, cache=None):
     """
