@@ -58,7 +58,7 @@ def gitcmd(repo, command, sudo=False, dryrun=DRY_RUN):
     else:
         command_list = command
     cmdstr = '\n        '.join([cmd_ for cmd_ in command_list])
-    print('+**** repocmd(%s) *******' % (cmdstr,))
+    print('+--- *** repocmd(%s) *** ' % (cmdstr,))
     print('repo=%s' % ut.color_text(repo, 'yellow'))
     os.chdir(repo)
     #if command.find('git') != 0:
@@ -76,7 +76,7 @@ def gitcmd(repo, command, sudo=False, dryrun=DRY_RUN):
                 print('ret(%d) = %r' % (count, ret,))
             if ret != 0:
                 raise Exception('Failed command %r' % (cmd,))
-    print("L***********")
+    print('L____')
 
 
 """
@@ -173,7 +173,7 @@ def git_sequence_editor_squash(fpath):
         stamp = out.strip('\n')
         # print('stamp = %r' % (stamp,))
         dt = parser.parse(stamp)
-        # dt = datetime.strptime(stamp, "%Y-%m-%d %H:%M:%S %Z")
+        # dt = datetime.strptime(stamp, '%Y-%m-%d %H:%M:%S %Z')
         # print('dt = %r' % (dt,))
         return dt
 
@@ -265,7 +265,7 @@ def std_build_command(repo='.'):
     Calls mingw_build.bat on windows and unix_build.sh  on unix
     """
     import utool as ut
-    print("+**** stdbuild *******")
+    print('+**** stdbuild *******')
     print('repo = %r' % (repo,))
     if sys.platform.startswith('win32'):
         # vtool --rebuild-sver didnt work with this line
@@ -285,7 +285,7 @@ def std_build_command(repo='.'):
     # Execute build
     ut.cmd(scriptname)
     #os.system(scriptname)
-    print("L**** stdbuild *******")
+    print('L**** stdbuild *******')
 
 
 def gg_command(command, sudo=False, repo_dirs=None):
