@@ -52,7 +52,7 @@ def ensure_ext(fname, ext):
     r"""
     Args:
         fname (str):  file name
-        ext (?):
+        ext (str):
 
     Returns:
         str: fname -  file name
@@ -543,9 +543,9 @@ def checkpath(path_, verbose=VERYVERBOSE, n=None, info=VERYVERBOSE):
         top `n` directories
 
     Args:
-        path_ (?):
-        verbose (bool):  verbosity flag(default = False)
-        n (None): (default = None)
+        path_ (str): path string
+        verbose (bool): verbosity flag(default = False)
+        n (int):  (default = None)
         info (bool): (default = False)
 
     CommandLine:
@@ -1472,7 +1472,7 @@ def list_images(img_dpath_, ignore_list=[], recursive=False, fullpath=False,
     TODO: Change all instances of fullpath to full
 
     Args:
-        img_dpath_ (?):
+        img_dpath_ (str):
         ignore_list (list): (default = [])
         recursive (bool): (default = False)
         fullpath (bool): (default = False)
@@ -1582,7 +1582,7 @@ def matching_fnames(dpath_list, include_patterns, exclude_dirs=[],
 
     Args:
         dpath_list       (list):
-        include_patterns (?):
+        include_patterns (str):
         exclude_dirs     (None):
         recursive        (bool):
 
@@ -1938,10 +1938,11 @@ def search_in_dirs(fname, search_dpaths=[], shortcircuit=True,
     search_in_dirs
 
     Args:
-        fname (?):
+        fname (str):  file name
         search_dpaths (list):
         shortcircuit (bool):
-        return_tried(bool): return tried paths
+        return_tried (bool): return tried paths
+        strict (bool): (default = False)
 
     Returns:
         fpath: None
@@ -2049,7 +2050,7 @@ def ensure_mingw_drive(win32_path):
     r""" replaces windows drives with mingw style drives
 
     Args:
-        path (?):
+        win32_path (str):
 
     CommandLine:
         python -m utool.util_path --test-ensure_mingw_drive
