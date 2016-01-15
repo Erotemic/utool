@@ -34,18 +34,6 @@ FORCE_TB = util_arg.get_argflag('--force-tb', help='Causes ut.printex to always 
 # COLORED_EXCEPTIONS = util_arg.get_argflag(('--colorex', '--cex'))
 COLORED_EXCEPTIONS = not util_arg.get_argflag(('--no-colorex', '--no-cex'))
 
-# --- Exec Strings ---
-IPYTHON_EMBED_STR = r'''
-try:
-    import IPython
-    print('Presenting in new ipython shell.')
-    embedded = True
-    IPython.embed()
-except Exception as ex:
-    warnings.warn(repr(ex)+'\n!!!!!!!!')
-    embedded = False
-'''
-
 
 def print_traceback(with_colors=True):
     """
@@ -69,43 +57,6 @@ def print_traceback(with_colors=True):
             print(tbtext)
     else:
         print(tbtext)
-
-
-def execstr_embed():
-    return IPYTHON_EMBED_STR
-
-
-def ipython_execstr2():
-    return textwrap.dedent(r'''
-    import sys
-    embedded = False
-    try:
-        __IPYTHON__
-        in_ipython = True
-    except NameError:
-        in_ipython = False
-    try:
-        import IPython
-        have_ipython = True
-    except NameError:
-        have_ipython = False
-    if in_ipython:
-        print('Presenting in current ipython shell.')
-    elif '--cmd' in sys.argv:
-        print('[utool.dbg] Requested IPython shell with --cmd argument.')
-        if have_ipython:
-            print('[utool.dbg] Found IPython')
-            try:
-                import IPython
-                print('[utool.dbg] Presenting in new ipython shell.')
-                embedded = True
-                IPython.embed()
-            except Exception as ex:
-                print(repr(ex)+'\n!!!!!!!!')
-                embedded = False
-        else:
-            print('[utool.dbg] IPython is not installed')
-    ''')
 
 
 def ipython_execstr():
@@ -277,10 +228,6 @@ def execstr_func(func):
         after  = execstr[stmt_endx:]
         execstr = before + after
     return execstr
-
-
-def execstr_src(func):
-    return execstr_func(func)
 
 
 def save_testdata(*args, **kwargs):

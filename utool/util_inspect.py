@@ -1865,7 +1865,7 @@ def infer_function_info(func):
                             print('---')
                             print('argline = \n%s' % (argline,))
                             print('---')
-                            raise
+                            raise Exception('Unable to parse argline=%s' % (argline,))
                         #print('groupdict_ = %s' % (ut.dict_str(groupdict_),))
                         argname = groupdict_['argname']
                         known_arginfo[argname]['argdesc'] = groupdict_['argdesc'].rstrip('\n')
