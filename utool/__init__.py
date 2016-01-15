@@ -208,7 +208,7 @@ if DOELSE:
                                 triangular_number, ungroup, unixtime_hourdiff, 
                                 upper_diag_self_prodx, xywh_to_tlbr,) 
     from utool.util_aliases import (OrderedDict, ddict, iprod, namedtuple, 
-                                    odict, product,) 
+                                    odict, partial, product,) 
     from utool.util_arg import (ArgumentParser2, DEBUG2, NOT_QUIET, NO_ASSERTS, 
                                 QUIET, REPORT, SAFE, SILENT, STRICT, 
                                 SUPER_STRICT, TRACE, USE_ASSERT, VERBOSE, 
@@ -254,7 +254,7 @@ if DOELSE:
                                   get_global_cache_dir, get_global_shelf_fpath, 
                                   get_lru_cache, global_cache_dump, 
                                   global_cache_read, global_cache_write, 
-                                  load_cache, make_utool_json_encoder, partial, 
+                                  load_cache, make_utool_json_encoder, 
                                   save_cache, shelf_open, text_dict_read, 
                                   text_dict_write, time_different_diskstores, 
                                   to_json, tryload_cache, tryload_cache_list, 
@@ -457,8 +457,8 @@ if DOELSE:
                                 ensure_project_repos, ensure_repos, 
                                 get_project_repo_dirs, get_repo_dirs, 
                                 get_repo_dname, gg_command, 
-                                git_sequence_editor_squash, gitcmd, is_gitrepo, 
-                                isdir, pull_repos, rename_branch, repo_list, 
+                                git_sequence_editor_squash, is_gitrepo, isdir, 
+                                pull_repos, rename_branch, repo_list, repocmd, 
                                 set_code_dir, set_project_repos, set_userid, 
                                 setup_develop_repos, std_build_command,) 
     from utool.util_latex import (compile_latex_text, compress_pdf, 

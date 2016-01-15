@@ -45,7 +45,7 @@ def get_project_repo_dirs():
     return PROJECT_REPO_DIRS
 
 
-def gitcmd(repo, command, sudo=False, dryrun=DRY_RUN):
+def repocmd(repo, command, sudo=False, dryrun=DRY_RUN):
     """
     TODO change name to repo command
     runs a command on a repo
@@ -255,7 +255,7 @@ def rename_branch(old_branch_name, new_branch_name, repo='.', remote='origin', d
         # push new branch
         'git push {remote} {new_branch_name}'.format(**fmtdict),
     ]
-    gitcmd(repo, command_list, dryrun=dryrun)
+    repocmd(repo, command_list, dryrun=dryrun)
 
 
 def std_build_command(repo='.'):
@@ -297,7 +297,7 @@ def gg_command(command, sudo=False, repo_dirs=None):
     print('| command=%s' % command)
     for repo in repo_dirs:
         if exists(repo):
-            gitcmd(repo, command, sudo=sudo)
+            repocmd(repo, command, sudo=sudo)
     print('L___ FINISHED GG_COMMAND ___')
 
 
