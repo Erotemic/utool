@@ -360,6 +360,26 @@ def is_gitrepo(repo_dir):
     return exists(gitdir) and isdir(gitdir)
 
 
+"""
+Rename branch
+from flann temp
+
+export OLD_BRANCH_NAME=new_addpoints
+export NEW_BRANCH_NAME=new_python_bindings
+
+#git branch -m $OLD_BRANCH_NAME $NEW_BRANCH_NAME
+# References:
+# http://stackoverflow.com/questions/1526794/rename-master-branch-for-both-local-and-remote-git-repositories?answertab=votes#tab-top
+# http://stackoverflow.com/questions/9524933/renaming-a-branch-in-github
+
+git branch -m $OLD_BRANCH_NAME $NEW_BRANCH_NAME
+git push origin :$OLD_BRANCH_NAME  # delete old branch
+git push origin $NEW_BRANCH_NAME # push new branch
+
+
+"""
+
+
 if __name__ == '__main__':
     import multiprocessing
     import utool as ut  # NOQA
