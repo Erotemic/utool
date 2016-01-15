@@ -637,10 +637,10 @@ if DOELSE:
                                  remove_dirs, remove_existing_fpaths, 
                                  remove_file, remove_file_list, 
                                  remove_files_in_dir, remove_fpaths, 
-                                 search_candidate_paths, search_in_dirs, 
-                                 splitdrive, symlink, tail, touch, truepath, 
-                                 truepath_relative, unexpanduser, unixjoin, 
-                                 win_shortcut,) 
+                                 search_candidate_paths, search_in_dirs, sed, 
+                                 sedfile, splitdrive, symlink, tail, touch, 
+                                 truepath, truepath_relative, unexpanduser, 
+                                 unixjoin, win_shortcut,) 
     from utool.util_print import (Indenter, NO_INDENT, PrintStartEndContext, 
                                   colorprint, dictprint, horiz_print, 
                                   printNOTQUIET, printVERBOSE, printWARN, 
@@ -752,8 +752,8 @@ if DOELSE:
                                   positive_lookbehind, regex_get_match, 
                                   regex_matches, regex_or, regex_parse, 
                                   regex_replace, regex_replace_lines, 
-                                  regex_search, regex_split, regex_word, sed, 
-                                  sedfile, whole_word,) 
+                                  regex_search, regex_split, regex_word, 
+                                  whole_word,) 
     from utool.util_time import (Timer, determine_timestamp_format, 
                                  ensure_timedelta, exiftime_to_unixtime, 
                                  get_datestamp, get_posix_timedelta_str, 
