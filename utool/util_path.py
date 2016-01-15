@@ -1881,10 +1881,14 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
     if verbose:
         print('extended_regex_list=%s' % (extended_regex_list,))
     if len(extended_regex_list) == 1:
-        if extended_regex_list[0].startswith('\\c'):
+        IGNORE_CASE_PREFIX = '\\c'
+        if extended_regex_list[0].startswith(IGNORE_CASE_PREFIX):
             # hack for vim-like ignore case
-            extended_regex_list[0] = extended_regex_list[0][2:]
+            extended_regex_list[0] = extended_regex_list[0][len(IGNORE_CASE_PREFIX):]
+            # TODO: reflags_list
             reflags = re.IGNORECASE | reflags
+            #print('reflags = %r' % (reflags,))
+            #print('extended_regex_list = %r' % (extended_regex_list,))
 
     # For each matching filepath
     for fpath in fpath_generator:
@@ -1919,7 +1923,7 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
                 fmt_str = '%s : %' + ndigits + 'd |%s'
                 for (lx, line) in zip(lxs, found):
                     # hack
-                    colored_line = util_str.highlight_regex(line.rstrip('\n'), pat)
+                    colored_line = util_str.highlight_regex(line.rstrip('\n'), pat, reflags=reflags)
                     print(fmt_str % (name, lx, colored_line))
 
         #print('[util_path] found matches in %d files' % len(found_fpath_list))
