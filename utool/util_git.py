@@ -1,4 +1,7 @@
 #!/usr/bin/env python2.7
+"""
+TODO: export from utool
+"""
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import sys
@@ -43,16 +46,20 @@ def get_project_repo_dirs():
 
 
 def gitcmd(repo, command, sudo=False, dryrun=DRY_RUN):
+    """
+    TODO change name to repo command
+    runs a command on a repo
+    """
     import utool as ut
     if ut.WIN32:
         assert not sudo, 'cant sudo on windows'
-    print("+****gitcmd*******")
-    print('repo=%s' % repo)
     if not isinstance(command, (tuple, list)):
         command_list = [command]
     else:
         command_list = command
-    print('command=%s' % '\n        '.join([cmd_ for cmd_ in command_list]))
+    cmdstr = '\n        '.join([cmd_ for cmd_ in command_list])
+    print('+**** repocmd(%s) *******' % (cmdstr,))
+    print('repo=%s' % ut.color_text(repo, 'yellow'))
     os.chdir(repo)
     #if command.find('git') != 0:
     #    command = 'git ' + command
@@ -65,7 +72,7 @@ def gitcmd(repo, command, sudo=False, dryrun=DRY_RUN):
             else:
                 ret = os.system('sudo ' + cmd)
             verbose = True
-            if verbose:
+            if verbose > 1:
                 print('ret(%d) = %r' % (count, ret,))
             if ret != 0:
                 raise Exception('Failed command %r' % (cmd,))
