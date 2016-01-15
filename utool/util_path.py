@@ -1671,8 +1671,16 @@ def sed(regexpr, repl, force=False, recursive=False, dpath_list=None,
     #    print(' * regular expression : %r' % (regexpr,))
 
     # Walk through each directory recursively
+    num_changed = 0
+    fpaths_changed = []
     for fpath in fpath_generator:
-        sedfile(fpath, regexpr, repl, force, verbose=verbose)
+        changed_lines = sedfile(fpath, regexpr, repl, force, verbose=verbose)
+        if changed_lines is not None:
+            fpaths_changed.append(fpath)
+            num_changed += len(changed_lines)
+    import utool as ut
+    print('fpaths_changed = %s' % (ut.repr3(sorted(fpaths_changed)),))
+    print('total lines changed = %r' % (num_changed,))
 
 
 def sedfile(fpath, regexpr, repl, force=False, verbose=True, veryverbose=False):
@@ -1730,12 +1738,15 @@ def sedfile(fpath, regexpr, repl, force=False, verbose=True, veryverbose=False):
         print(' * %s changed %d lines in %r ' %
               (['(dry-run)', '(real-run)'][force], nChanged, rel_fpath))
         print(' * --------------------')
+        import utool as ut
+        new_file_lines = ut.lmap(ut.ensure_unicode, new_file_lines)
         new_file = ''.join(new_file_lines)
         #print(new_file.replace('\n','\n))
         if verbose:
             if True:
                 import utool as ut
-                ut.print_difftext(''.join(file_lines), new_file)
+                old_file = ut.ensure_unicode(''.join(ut.lmap(ut.ensure_unicode, file_lines)))
+                ut.print_difftext(old_file, new_file)
             else:
                 changed_new, changed_old = zip(*changed_lines)
                 prefixold = ' * old (%d, %r):  \n | ' % (nChanged, name)
@@ -1749,7 +1760,7 @@ def sedfile(fpath, regexpr, repl, force=False, verbose=True, veryverbose=False):
         if force:
             print(' ! WRITING CHANGES')
             with open(fpath, 'w') as file:
-                file.write(new_file)
+                file.write(new_file.encode('utf8'))
         else:
             print(' dry run')
         return changed_lines

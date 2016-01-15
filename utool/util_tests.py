@@ -481,7 +481,7 @@ def run_test(func_or_testtup, return_error_report=False, *args, **kwargs):
                 print_report(ut.msgblock('FAILED DOCTEST IN %s' % (funcname,), src_with_lineno))
             #ut.embed()
 
-            #print('\n... test encountered error. sys.exit(1)\n')
+            #print('\n... test error. sys.exit(1)\n')
             #sys.exit(1)
             #failed_execline = traceback.format_tb(tb)[-1]
             #parse_str = 'File {fname}, line {lineno}, in {modname}'
