@@ -2654,6 +2654,9 @@ def highlight_text(text, lexer_name='python', **kwargs):
     SeeAlso:
         color_text
     """
+    if lexer_name in ['red', 'yellow', 'blue', 'green']:
+        # hack for coloring
+        return color_text(text, lexer_name)
     import utool as ut
     if ENABLE_COLORS:
         try:
@@ -2764,10 +2767,15 @@ def varinfo_str(varval, varname, onlyrepr=False, canshowrepr=True, varcolor='yel
     return varinfo
 
 
-def regex_reconstruct_split(pattern, text):
+def regex_reconstruct_split(pattern, text, debug=False):
     import re
     #separators = re.findall(pattern, text)
     separators = [match.group() for match in re.finditer(pattern, text)]
+    #separators = [match.group() for match in re.finditer(pattern, text, flags=re.MULTILINE)]
+    if debug:
+        import utool as ut
+        ut.colorprint('[recon] separators = ' + ut.repr3(separators), 'green')
+
     remaining = text
     block_list = []
     for sep in separators:
@@ -2775,35 +2783,52 @@ def regex_reconstruct_split(pattern, text):
         block_list.append(head)
         remaining = tail
     block_list.append(remaining)
+
+    if debug:
+        ut.colorprint('[recon] block_list = ' + ut.repr3(block_list), 'red')
+
     return block_list, separators
 
 
-def format_multiple_paragraph_sentences(text):
+def format_multiple_paragraph_sentences(text, myprefix=True, debug=False):
     """
+    FIXME: funky things happen when multiple newlines in the middle of
+    paragraphs
 
     CommandLine:
         python ~/local/vim/rc/pyvim_funcs.py --test-format_multiple_paragraph_sentences
+
+    CommandLine:
+        python -m utool.util_str --exec-format_multiple_paragraph_sentences --show
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_str import *  # NOQA
         >>> import os, sys
-        >>> sys.path.append(os.path.expanduser('~/local/vim/rc'))
+        >>> #sys.path.append(os.path.expanduser('~/local/vim/rc'))
         >>> text = testdata_text(2)
-        >>> formated_text = format_multiple_paragraph_sentences(text)
-        >>> print('--------')
+        >>> formated_text = format_multiple_paragraph_sentences(text, debug=True)
+        >>> print('+--- Text ---')
         >>> print(text)
-        >>> print('--------')
+        >>> print('+--- Formated Text ---')
         >>> print(formated_text)
+        >>> print('L_____')
     """
+    debug = _rectify_countdown_or_bool(debug)
     import utool as ut
+    # Hack
     text = re.sub('^ *$', '', text, flags=re.MULTILINE)
-    ut.util_dbg.COLORED_EXCEPTIONS = False
+    if debug:
+        ut.colorprint(msgblock('[fmt] text', text), 'yellow')
+    #print(text.replace(' ', '_'))
+    #ut.util_dbg.COLORED_EXCEPTIONS = False
     # Patterns that define separations between paragraphs in latex
     #NL = '\n'
     pattern_list = [
-        #'\n\n\n*',     # newlines
-        '\n\n*',     # newlines
+        '\n\n\n*',     # newlines
+        #'\n\n*$',     # newlines
+        #'^\n\n*',     # newlines
+        #'\n\n*',     # newlines
         '\n? *%.*\n',  # comments
 
         # paragraph commands
@@ -2828,32 +2853,54 @@ def format_multiple_paragraph_sentences(text):
     ]
     pattern = '|'.join(['(%s)' % (pat,) for pat in pattern_list])
     # break into paragraph blocks
-    block_list, separators = regex_reconstruct_split(pattern, text)
+    block_list, separators = regex_reconstruct_split(pattern, text,
+                                                     debug=False)
 
     collapse_pos_list = []
     # Dont format things within certain block types
     _iter = ut.iter_window([''] + separators + [''], 2)
     for count, (block, window) in enumerate(zip(block_list, _iter)):
-        if window[0].strip() == r'\begin{comment}' and window[1].strip() == r'\end{comment}':
+        if (window[0].strip() == r'\begin{comment}' and
+             window[1].strip() == r'\end{comment}'):
             collapse_pos_list.append(count)
+
+    tofmt_block_list = block_list[:]
 
     collapse_pos_list = sorted(collapse_pos_list)[::-1]
     for pos in collapse_pos_list:
-        collapsed_sep = separators[pos - 1] + block_list[pos] + separators[pos]
+        collapsed_sep = separators[pos - 1] + tofmt_block_list[pos] + separators[pos]
         separators[pos - 1] = collapsed_sep
         del separators[pos]
-        del block_list[pos]
+        del tofmt_block_list[pos]
+
+    if debug:
+        ut.colorprint('[fmt] tofmt_block_list = ' + ut.repr3(tofmt_block_list), 'white')
 
     #print(pattern)
     #print(separators)
     # apply formatting
-    formated_block_list = [format_single_paragraph_sentences(block) for block in block_list]
+    #if debug:
+    #    ut.colorprint('--- FORMAT SENTENCE --- ', 'white')
+    formated_block_list = []
+    for block in tofmt_block_list:
+        fmtblock = format_single_paragraph_sentences(
+            block, myprefix=myprefix, debug=debug)
+        formated_block_list.append(fmtblock)
+        #ut.colorprint('---------- ', 'white')
+    #if debug:
+    #    ut.colorprint('--- / FORMAT SENTENCE --- ', 'white')
     rejoined_list = list(ut.interleave((formated_block_list, separators)))
+    if debug:
+        ut.colorprint('[fmt] formated_block_list = ' + ut.repr3(formated_block_list), 'turquoise')
+        #print(rejoined_list)
     formated_text = ''.join(rejoined_list)
+    #ut.colorprint(formated_text.replace(' ', '_'), 'red')
     return formated_text
 
+format_multi_paragraphs = format_multiple_paragraph_sentences
 
-def format_single_paragraph_sentences(text, debug=False):
+
+def format_single_paragraph_sentences(text, debug=False, myprefix=True):
     r"""
     helps me separatate sentences grouped in paragraphs that I have a difficult
     time reading due to dyslexia
@@ -2883,15 +2930,20 @@ def format_single_paragraph_sentences(text, debug=False):
         >>> print(result)
     """
     import utool as ut
-    ut.util_dbg.COLORED_EXCEPTIONS = False
+    #ut.util_dbg.COLORED_EXCEPTIONS = False
     import textwrap
     import re
     #ut.rrrr(verbose=False)
+    debug = _rectify_countdown_or_bool(debug)
     min_indent = ut.get_minimum_indentation(text)
     min_indent = (min_indent // 4) * 4
+    if debug:
+        print(ut.colorprint(msgblock('preflat', repr(text)), 'darkyellow'))
     text_ = ut.remove_doublspaces(text)
     # TODO: more intelligent sentence parsing
     text_ = ut.flatten_textlines(text)
+    if debug:
+        print(ut.colorprint(msgblock('postflat', repr(text_)), 'yellow'))
 
     raw_sep_chars = ['.', '?', '!', ':']
     USE_REGEX_SPLIT = True
@@ -2939,7 +2991,11 @@ def format_single_paragraph_sentences(text, debug=False):
 
     def wrap_sentences(sentence_list, min_indent):
         # prefix for continuations of a sentence
-        sentence_prefix = '  '
+        if myprefix:
+            # helps me read LaTeX
+            sentence_prefix = '  '
+        else:
+            sentence_prefix = ''
         if text_.startswith('>>>'):
             # Hack to do docstrings
             # TODO: make actualy docstring reformater
@@ -3040,11 +3096,19 @@ def format_single_paragraph_sentences(text, debug=False):
         wrapped_block = rejoin_sentences(wrapped_sentences, sep_list)
     else:
         # New way
+        #print('last_is_nl = %r' % (last_is_nl,))
         sentence_list, sep_list = split_sentences(text_)
         sentence_list2 = rewrap_sentences2(sentence_list, sep_list)
         wrapped_sentences = wrap_sentences(sentence_list2, min_indent)
         wrapped_block = '\n'.join(wrapped_sentences)
 
+        # HACK for last nl
+        last_is_nl = text.endswith('\n') and  not wrapped_block.endswith('\n')
+        first_is_nl = text.startswith('\n') and not wrapped_block.startswith('\n')
+        if last_is_nl:
+            wrapped_block += '\n'
+        if first_is_nl:
+            wrapped_block = '\n' + wrapped_block
     # Do the final indentation
     wrapped_text = ut.indent(wrapped_block, ' ' * min_indent)
     return wrapped_text
@@ -3052,7 +3116,7 @@ def format_single_paragraph_sentences(text, debug=False):
 
 def testdata_text(num=1):
     import utool as ut
-    ut.util_dbg.COLORED_EXCEPTIONS = False
+    #ut.util_dbg.COLORED_EXCEPTIONS = False
     text = r'''
         % COMMENT
         Image matching relies on finding similar features between query and
@@ -3093,7 +3157,7 @@ def testdata_text(num=1):
                   If $\momentmatNOARG$ is degenerate than $\mat{X}$ does not
                 exist.)
         \end{enumerate}
-    '''.strip('\n')
+    '''.strip('\n') + '\n'
 
     text2 = ut.codeblock(r'''
         \begin{comment}
@@ -3108,7 +3172,7 @@ def testdata_text(num=1):
         invariance we we discuss here only refers to keypoint shape and not the
         invariance that is implicit in the SIFT descriptor).
         }{PZInvarViewExpt}
-    ''')
+    ''')  + '\n\n foobar foobar fooo. hwodefoobardoo\n\n'
     return text if num == 1 else text2
 
 
