@@ -88,7 +88,10 @@ def get_varied_cfg_lbls(cfg_list, default_cfg=None, mainkey='_cfgname'):
         >>> print(result)
         cfglbl_list = ['test:f=1', 'test:f=2', 'test:f=3,z=4']
     """
-    cfgname_list = [cfg[mainkey] for cfg in cfg_list]
+    try:
+        cfgname_list = [cfg[mainkey] for cfg in cfg_list]
+    except KeyError:
+        cfgname_list = [''] * len(cfg_list)
     varied_cfg_list = partition_varied_cfg_list(cfg_list, default_cfg)[1]
     cfglbl_list = [get_cfg_lbl(cfg, name)
                    for cfg, name in zip(varied_cfg_list, cfgname_list)]
@@ -439,6 +442,7 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
         >>> expand_nested = True
         >>> strict = False
         >>> metadata = None
+        >>> is_nestedcfgtype=False
 
     Example0:
         >>> # ENABLE_DOCTEST
