@@ -145,7 +145,7 @@ def text_dict_write(fpath, dict_):
 
 def consensed_cfgstr(prefix, cfgstr, max_len=128, cfgstr_hashlen=16):
     if len(prefix) + len(cfgstr) > max_len:
-        hashed_cfgstr = util_hash.hashstr(cfgstr, cfgstr_hashlen)
+        hashed_cfgstr = util_hash.hashstr27(cfgstr, hashlen=cfgstr_hashlen)
         #if write_hashtbl:
         #    # DONT WRITE TO HASHTABLE THE FUNCTION IS BROKEN
         #    text_dict_write(join(dpath, 'hashtbl.txt'), hashed_cfgstr, cfgstr)
@@ -265,7 +265,7 @@ def load_cache(dpath, fname, cfgstr, verbose=None):
     """
     if not USE_CACHE:
         if verbose:
-            print('[util_io] ... cache disabled: dpath=%s cfgstr=%r' %
+            print('[util_cache] ... cache disabled: dpath=%s cfgstr=%r' %
                     (basename(dpath), cfgstr,))
         raise IOError(3, 'Cache Loading Is Disabled')
     if verbose is None:
@@ -273,19 +273,19 @@ def load_cache(dpath, fname, cfgstr, verbose=None):
     fpath = _args2_fpath(dpath, fname, cfgstr, '.cPkl')
     if not exists(fpath):
         if verbose:
-            print('[util_io] ... cache does not exist: dpath=%s cfgstr=%r' % (
-                basename(dpath), cfgstr,))
+            print('[util_cache] ... cache does not exist: dpath=%r fname=%r cfgstr=%r' % (
+                basename(dpath), fname, cfgstr,))
         raise IOError(2, 'No such file or directory: %r' % (fpath,))
     else:
         if verbose:
-            print('[util_io] ... cache exists: dpath=%s cfgstr=%r' % (
-                basename(dpath), cfgstr,))
+            print('[util_cache] ... cache exists: dpath=%r fname=%r cfgstr=%r' % (
+                basename(dpath), fname, cfgstr,))
     try:
         data = util_io.load_cPkl(fpath, verbose)
     except (EOFError, IOError, ImportError) as ex:
         print('CORRUPTED? fpath = %s' % (fpath,))
         if verbose:
-            print('[util_io] ... cache miss dpath=%s cfgstr=%r' % (
+            print('[util_cache] ... cache miss dpath=%s cfgstr=%r' % (
                 basename(dpath), cfgstr,))
         raise IOError(str(ex))
     except Exception:
@@ -293,7 +293,7 @@ def load_cache(dpath, fname, cfgstr, verbose=None):
         raise
     else:
         if verbose:
-            print('[util_io] ... cache hit')
+            print('[util_cache] ... cache hit')
     return data
 
 

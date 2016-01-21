@@ -1888,6 +1888,9 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
         fpath_generator = fpath_list
     from utool import util_regex
     extended_regex_list, reflags = util_regex.extend_regex3(regex_list, reflags)
+    if verbose:
+        print('extended_regex_list = %r' % (extended_regex_list,))
+        print('reflags = %r' % (reflags,))
 
     # For each matching filepath
     for fpath in fpath_generator:
@@ -1917,7 +1920,7 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
     return grep_result
 
 
-def make_grep_resultstr(grep_result, extended_regex_list, reflags):
+def make_grep_resultstr(grep_result, extended_regex_list, reflags, colored=True):
     from utool import util_regex
     from utool import util_str
     msg_list = []
@@ -1935,8 +1938,9 @@ def make_grep_resultstr(grep_result, extended_regex_list, reflags):
             fmt_str = '%s : %' + ndigits + 'd |%s'
             for (lx, line) in zip(lxs, found):
                 # hack
-                colored_line = util_str.highlight_regex(
-                    line.rstrip('\n'), pat, reflags=reflags)
+                colored_line = line.rstrip('\n')
+                if colored:
+                    colored_line = util_str.highlight_regex(colored_line, pat, reflags=reflags)
                 print_(fmt_str % (name, lx, colored_line))
     return '\n'.join(msg_list)
 

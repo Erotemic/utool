@@ -396,6 +396,10 @@ def grep_projects(tofind_list, user_profile=None, verbose=True, new=False, **kwa
     """
     import utool as ut
     user_profile = ensure_user_profile(user_profile)
+
+    kwargs = kwargs.copy()
+    colored = kwargs.pop('colored', True)
+
     grepkw = {}
     grepkw['exclude_dirs'] = user_profile.project_exclude_dirs
     grepkw['dpath_list'] = user_profile.project_dpaths
@@ -417,7 +421,7 @@ def grep_projects(tofind_list, user_profile=None, verbose=True, new=False, **kwa
 
     from utool import util_regex
     extended_regex_list, reflags = util_regex.extend_regex3(tofind_list, grepkw.get('reflags', 0))
-    resultstr = ut.make_grep_resultstr(grep_result, extended_regex_list, reflags)
+    resultstr = ut.make_grep_resultstr(grep_result, extended_regex_list, reflags, colored=colored)
     msg_list2.append(resultstr)
     print_ = msg_list2.append
     #for fpath, lines, lxs in zip(found_fpath_list, found_lines_list,
