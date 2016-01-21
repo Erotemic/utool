@@ -1860,8 +1860,6 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
         >>> (found_fpath_list, found_lines_list, found_lxs_list) = result
         >>> assert 'util_path.py' in list(map(basename, found_fpath_list))
     """
-    from utool import util_regex
-    from utool import util_str
     if include_patterns is None:
         include_patterns =  get_standard_include_patterns()
     if greater_exclude_dirs is None:
@@ -1888,24 +1886,14 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
                                           recursive=recursive)
     else:
         fpath_generator = fpath_list
-    extended_regex_list = list(map(extend_regex, regex_list))
-    if verbose:
-        print('extended_regex_list=%s' % (extended_regex_list,))
-    if len(extended_regex_list) == 1:
-        IGNORE_CASE_PREFIX = '\\c'
-        if extended_regex_list[0].startswith(IGNORE_CASE_PREFIX):
-            # hack for vim-like ignore case
-            extended_regex_list[0] = extended_regex_list[0][len(IGNORE_CASE_PREFIX):]
-            # TODO: reflags_list
-            reflags = re.IGNORECASE | reflags
-            #print('reflags = %r' % (reflags,))
-            #print('extended_regex_list = %r' % (extended_regex_list,))
+    from utool import util_regex
+    extended_regex_list, reflags = util_regex.extend_regex3(regex_list, reflags)
 
     # For each matching filepath
     for fpath in fpath_generator:
         # For each search pattern
-        found_lines, found_lxs = grepfile(fpath, extended_regex_list, reflags,
-                                          cache=cache)
+        found_lines, found_lxs = grepfile(fpath, extended_regex_list,
+                                          reflags, cache=cache)
         if inverse:
             if len(found_lines) == 0:
                 # Append files that the pattern was not found in
@@ -1916,29 +1904,41 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
             found_fpath_list.append(fpath)  # regular matching
             found_lines_list.append(found_lines)
             found_lxs_list.append(found_lxs)
+
+    grep_result = (found_fpath_list, found_lines_list, found_lxs_list)
     if verbose:
         print('==========')
         print('==========')
-        print('[util_path] found matches in %d files' % len(found_fpath_list))
-
-        pat = util_regex.regex_or(extended_regex_list)
-
-        for fpath, found, lxs in zip(found_fpath_list, found_lines_list,
-                                     found_lxs_list):
-            if len(found) > 0:
-                print('----------------------')
-                print('Found %d line(s) in %r: ' % (len(found), fpath))
-                name = split(fpath)[1]
-                max_line = len(lxs)
-                ndigits = str(len(str(max_line)))
-                fmt_str = '%s : %' + ndigits + 'd |%s'
-                for (lx, line) in zip(lxs, found):
-                    # hack
-                    colored_line = util_str.highlight_regex(line.rstrip('\n'), pat, reflags=reflags)
-                    print(fmt_str % (name, lx, colored_line))
-
+        print('[util_path] found matches in %d files' %
+              len(found_fpath_list))
+        print(make_grep_resultstr(grep_result, extended_regex_list, reflags))
         #print('[util_path] found matches in %d files' % len(found_fpath_list))
-    return found_fpath_list, found_lines_list, found_lxs_list
+
+    return grep_result
+
+
+def make_grep_resultstr(grep_result, extended_regex_list, reflags):
+    from utool import util_regex
+    from utool import util_str
+    msg_list = []
+    print_ = msg_list.append
+    pat = util_regex.regex_or(extended_regex_list)
+    found_fpath_list, found_lines_list, found_lxs_list = grep_result
+    for fpath, found, lxs in zip(found_fpath_list, found_lines_list,
+                                 found_lxs_list):
+        if len(found) > 0:
+            print_('----------------------')
+            print_('Found %d line(s) in %r: ' % (len(found), fpath))
+            name = split(fpath)[1]
+            max_line = len(lxs)
+            ndigits = str(len(str(max_line)))
+            fmt_str = '%s : %' + ndigits + 'd |%s'
+            for (lx, line) in zip(lxs, found):
+                # hack
+                colored_line = util_str.highlight_regex(
+                    line.rstrip('\n'), pat, reflags=reflags)
+                print_(fmt_str % (name, lx, colored_line))
+    return '\n'.join(msg_list)
 
 
 def get_win32_short_path_name(long_name):

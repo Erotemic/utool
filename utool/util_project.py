@@ -2,7 +2,8 @@
 from __future__ import absolute_import, division, print_function  # , unicode_literals
 from six.moves import zip, filter, filterfalse, map, range  # NOQA
 import six  # NOQA
-from os.path import split, dirname, join
+#from os.path import split, dirname, join
+from os.path import dirname, join
 from utool import util_class  # NOQA
 from utool import util_inject
 print, rrr, profile = util_inject.inject2(__name__, '[util_project]')
@@ -411,18 +412,24 @@ def grep_projects(tofind_list, user_profile=None, verbose=True, new=False, **kwa
     if verbose:
         print('\n'.join(msg_list1))
     with ut.Timer('greping', verbose=True):
-        found_fpath_list, found_lines_list, found_lxs_list = ut.grep(tofind_list, **grepkw)
+        grep_result = ut.grep(tofind_list, **grepkw)
+        found_fpath_list, found_lines_list, found_lxs_list = grep_result
 
+    from utool import util_regex
+    extended_regex_list, reflags = util_regex.extend_regex3(tofind_list, grepkw.get('reflags', 0))
+    resultstr = ut.make_grep_resultstr(grep_result, extended_regex_list, reflags)
+    msg_list2.append(resultstr)
     print_ = msg_list2.append
-    for fpath, lines, lxs in zip(found_fpath_list, found_lines_list, found_lxs_list):
-        print_('----------------------')
-        print_('found %d line(s) in %r: ' % (len(lines), fpath))
-        name = split(fpath)[1]
-        max_line = len(lines)
-        ndigits = str(len(str(max_line)))
-        for (lx, line) in zip(lxs, lines):
-            line = line.replace('\n', '')
-            print_(('%s : %' + ndigits + 'd |%s') % (name, lx, line))
+    #for fpath, lines, lxs in zip(found_fpath_list, found_lines_list,
+    #                             found_lxs_list):
+    #    print_('----------------------')
+    #    print_('found %d line(s) in %r: ' % (len(lines), fpath))
+    #    name = split(fpath)[1]
+    #    max_line = len(lines)
+    #    ndigits = str(len(str(max_line)))
+    #    for (lx, line) in zip(lxs, lines):
+    #        line = line.replace('\n', '')
+    #        print_(('%s : %' + ndigits + 'd |%s') % (name, lx, line))
 
     print_('====================')
     print_('found_fpath_list = ' + ut.list_str(found_fpath_list))

@@ -2790,7 +2790,7 @@ def regex_reconstruct_split(pattern, text, debug=False):
     return block_list, separators
 
 
-def format_multiple_paragraph_sentences(text, myprefix=True, debug=False):
+def format_multiple_paragraph_sentences(text, debug=False, **kwargs):
     """
     FIXME: funky things happen when multiple newlines in the middle of
     paragraphs
@@ -2884,7 +2884,7 @@ def format_multiple_paragraph_sentences(text, myprefix=True, debug=False):
     formated_block_list = []
     for block in tofmt_block_list:
         fmtblock = format_single_paragraph_sentences(
-            block, myprefix=myprefix, debug=debug)
+            block, debug=debug, **kwargs)
         formated_block_list.append(fmtblock)
         #ut.colorprint('---------- ', 'white')
     #if debug:
@@ -2900,7 +2900,7 @@ def format_multiple_paragraph_sentences(text, myprefix=True, debug=False):
 format_multi_paragraphs = format_multiple_paragraph_sentences
 
 
-def format_single_paragraph_sentences(text, debug=False, myprefix=True):
+def format_single_paragraph_sentences(text, debug=False, myprefix=True, sentence_break=True):
     r"""
     helps me separatate sentences grouped in paragraphs that I have a difficult
     time reading due to dyslexia
@@ -2915,17 +2915,20 @@ def format_single_paragraph_sentences(text, debug=False, myprefix=True):
         #python  ~/local/vim/rc/pyvim_funcs.py --test-format_single_paragraph_sentences --exec-mode
 
         python -m utool.util_str --exec-format_single_paragraph_sentences --show
+        python -m utool.util_str --exec-format_single_paragraph_sentences --show --nobreak
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_str import *  # NOQA
+        >>> import utool as ut
         >>> text = '     lorium ipsum doloar dolar dolar dolar erata man foobar is this there yet almost man not quit ate 80 chars yet hold out almost there? dolar erat. sau.ltum. fds.fd... . . fd oob fd. list: (1) abcd, (2) foobar (4) 123456789 123456789 123456789 123456789 123 123 123 123 123456789 123 123 123 123 123456789 123456789 123456789 123456789 123456789 123 123 123 123 123 123456789 123456789 123456789 123456789 123456789 123456789 (3) spam.'
         >>> #text = 'list: (1) abcd, (2) foobar (3) spam.'
         >>> #text = 'foo. when: (1) there is a new individual,'
         >>> #text = 'when: (1) there is a new individual,'
         >>> #text = '? ? . lorium. ipsum? dolar erat. saultum. fds.fd...  fd oob fd. ? '  # causes breakdown
         >>> print('text = %r' % (text,))
-        >>> wrapped_text = format_single_paragraph_sentences(text, True)
+        >>> sentence_break = not ut.get_argflag('--nobreak')
+        >>> wrapped_text = format_single_paragraph_sentences(text, debug=True, sentence_break=sentence_break)
         >>> result = ('wrapped_text =\n%s' % (str(wrapped_text),))
         >>> print(result)
     """
@@ -3016,6 +3019,7 @@ def format_single_paragraph_sentences(text, debug=False, myprefix=True):
         return wrapped_sentences
 
     def rewrap_sentences2(sentence_list, sep_list):
+        # FIXME: probably where nl error is
         # ******* #
         # put the newline before or after the sep depending on if it is
         # supposed to prefix or suffix the sentence.
@@ -3097,11 +3101,16 @@ def format_single_paragraph_sentences(text, debug=False, myprefix=True):
     else:
         # New way
         #print('last_is_nl = %r' % (last_is_nl,))
-        sentence_list, sep_list = split_sentences(text_)
-        sentence_list2 = rewrap_sentences2(sentence_list, sep_list)
-        wrapped_sentences = wrap_sentences(sentence_list2, min_indent)
-        wrapped_block = '\n'.join(wrapped_sentences)
-
+        if sentence_break:
+            sentence_list, sep_list = split_sentences(text_)
+            # FIXME: probably where nl error is
+            sentence_list2 = rewrap_sentences2(sentence_list, sep_list)
+            wrapped_sentences = wrap_sentences(sentence_list2, min_indent)
+            wrapped_block = '\n'.join(wrapped_sentences)
+        else:
+            width = 80 - min_indent
+            wrapkw = dict(width=width, break_on_hyphens=False, break_long_words=False)
+            wrapped_block = '\n'.join(textwrap.wrap(text_, **wrapkw))
         # HACK for last nl
         last_is_nl = text.endswith('\n') and  not wrapped_block.endswith('\n')
         first_is_nl = text.startswith('\n') and not wrapped_block.startswith('\n')

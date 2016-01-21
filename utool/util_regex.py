@@ -76,6 +76,18 @@ def extend_regex(regexpr):
     return regexpr
 
 
+def extend_regex3(regex_list, reflags=0):
+    extended_regex_list = list(map(extend_regex, regex_list))
+    if len(extended_regex_list) == 1:
+        IGNORE_CASE_PREFIX = '\\c'
+        if extended_regex_list[0].startswith(IGNORE_CASE_PREFIX):
+            # hack for vim-like ignore case
+            extended_regex_list[0] = extended_regex_list[0][len(IGNORE_CASE_PREFIX):]
+            # TODO: reflags_list
+            reflags = re.IGNORECASE | reflags
+    return extended_regex_list, reflags
+
+
 def get_match_text(match):
     if match is not None:
         start, stop = match.start(), match.end()
