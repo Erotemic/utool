@@ -119,14 +119,16 @@ def add_new_mimetype_association(ext, mime_name, exe_fpath=None, dry=True):
 def make_application_icon(exe_fpath, dry=True, props={}):
     r"""
     CommandLine:
-        python -m utool.util_ubuntu --exec-make_application_icon --exe cockatrice --icon=/home/joncrall/code/Cockatrice/cockatrice/resources/cockatrice.png
+        python -m utool.util_ubuntu --exec-make_application_icon --exe=cockatrice --icon=/home/joncrall/code/Cockatrice/cockatrice/resources/cockatrice.png
+        python -m utool.util_ubuntu --exec-make_application_icon --exe=/opt/zotero/zotero --icon=/opt/zotero/chrome/icons/default/main-window.ico
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_ubuntu import *  # NOQA
+        >>> import utool as ut
         >>> exe_fpath = ut.get_argval('--exe', default='cockatrice')
         >>> icon = ut.get_argval('--icon', default=None)
-        >>> dry = not ut.get_argflag('--nodry')
+        >>> dry = not ut.get_argflag(('--write', '-w'))
         >>> props = {'terminal': False, 'icon': icon}
         >>> result = make_application_icon(exe_fpath, dry, props)
         >>> print(result)

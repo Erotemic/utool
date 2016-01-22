@@ -51,6 +51,7 @@ def setup_repo():
 
         python -m utool --tf setup_repo --repo=dtool --codedir=~/code
         python -m utool --tf setup_repo --repo=ibeis-flukematch-module --codedir=~/code --modname=ibeis_flukematch
+        python -m utool --tf setup_repo --repo=mtgmonte --codedir=~/code --modname=mtgmonte
 
         python -m utool --tf setup_repo
 
@@ -337,6 +338,9 @@ class UserProfile(object):
         self.project_include_patterns = None
         self.project_exclude_dirs = None
 
+    # def __str__(self):
+    #     return
+
 
 def ibeis_user_profile():
     import utool as ut
@@ -361,6 +365,26 @@ def ibeis_user_profile():
 
 
 def ensure_user_profile(user_profile=None):
+    r"""
+    Args:
+        user_profile (UserProfile): (default = None)
+
+    Returns:
+        UserProfile: user_profile
+
+    CommandLine:
+        python -m utool.util_project --exec-ensure_user_profile --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_project import *  # NOQA
+        >>> import utool as ut
+        >>> user_profile = None
+        >>> user_profile = ensure_user_profile(user_profile)
+        >>> result = ('user_profile = %s' % (ut.repr2(user_profile),))
+        >>> print(ut.repr3(user_profile.project_dpaths))
+        >>> print(result)
+    """
     global __GLOBAL_PROFILE__
     if __GLOBAL_PROFILE__ is None:
         import utool as ut
@@ -372,7 +396,8 @@ def ensure_user_profile(user_profile=None):
 
 
 @profile
-def grep_projects(tofind_list, user_profile=None, verbose=True, new=False, **kwargs):
+def grep_projects(tofind_list, user_profile=None, verbose=True, new=False,
+                  **kwargs):
     r"""
     Greps the projects defined in the current UserProfile
 
@@ -391,7 +416,8 @@ def grep_projects(tofind_list, user_profile=None, verbose=True, new=False, **kwa
         >>> from utool.util_project import *  # NOQA
         >>> import utool as ut
         >>> import sys
-        >>> tofind_list = ut.get_argval('--find', type_=list, default=[sys.argv[-1]])
+        >>> tofind_list = ut.get_argval('--find', type_=list,
+        >>>                             default=[sys.argv[-1]])
         >>> grep_projects(tofind_list)
     """
     import utool as ut
@@ -419,8 +445,17 @@ def grep_projects(tofind_list, user_profile=None, verbose=True, new=False, **kwa
         grep_result = ut.grep(tofind_list, **grepkw)
         found_fpath_list, found_lines_list, found_lxs_list = grep_result
 
-    from utool import util_regex
-    extended_regex_list, reflags = util_regex.extend_regex3(tofind_list, grepkw.get('reflags', 0))
+    # HACK, duplicate behavior. TODO: write grep print result function
+    reflags = grepkw.get('reflags', 0)
+    _exprs_flags = [ut.extend_regex2(expr, reflags)
+                    for expr in tofind_list]
+    extended_regex_list = ut.take_column(_exprs_flags, 0)
+    reflags_list = ut.take_column(_exprs_flags, 1)
+    # HACK
+    # pat = ut.util_regex.regex_or(extended_regex_list)
+    reflags = reflags_list[0]
+
+    # from utool import util_regex
     resultstr = ut.make_grep_resultstr(grep_result, extended_regex_list, reflags, colored=colored)
     msg_list2.append(resultstr)
     print_ = msg_list2.append
@@ -434,6 +469,18 @@ def grep_projects(tofind_list, user_profile=None, verbose=True, new=False, **kwa
     #    for (lx, line) in zip(lxs, lines):
     #        line = line.replace('\n', '')
     #        print_(('%s : %' + ndigits + 'd |%s') % (name, lx, line))
+    # iter_ = zip(found_fpath_list, found_lines_list, found_lxs_list)
+    # for fpath, lines, lxs in iter_:
+    #     print_('----------------------')
+    #     print_('found %d line(s) in %r: ' % (len(lines), fpath))
+    #     name = split(fpath)[1]
+    #     max_line = len(lines)
+    #     ndigits = str(len(str(max_line)))
+    #     for (lx, line) in zip(lxs, lines):
+    #         line = line.replace('\n', '')
+    #         colored_line = ut.highlight_regex(
+    #             line.rstrip('\n'), pat, reflags=reflags)
+    #         print_(('%s : %' + ndigits + 'd |%s') % (name, lx, colored_line))
 
     print_('====================')
     print_('found_fpath_list = ' + ut.list_str(found_fpath_list))

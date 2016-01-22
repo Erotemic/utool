@@ -1987,6 +1987,13 @@ def align_lines(line_list, character='=', replchar=None, pos=0):
     return new_lines
 
 
+def strip_ansi(text):
+    # Remove ansi from length calculation
+    # References: http://stackoverflow.com/questions/14693701remove-ansi
+    ansi_escape = re.compile(r'\x1b[^m]*m')
+    return ansi_escape.sub('', text)
+
+
 def get_freespace_str(dir_='.'):
     """ returns string denoting free disk space in a directory """
     from utool import util_cplat
@@ -2706,14 +2713,14 @@ def color_text(text, color):
         return text
 
 
-def highlight_regex(str_, pat, reflags=0):
+def highlight_regex(str_, pat, reflags=0, color='red'):
     """
     FIXME Use pygments instead
     """
     #import colorama
-    from colorama import Fore, Style
+    # from colorama import Fore, Style
     #color = Fore.MAGENTA
-    color = Fore.RED
+    # color = Fore.RED
     match = re.search(pat, str_, flags=reflags)
     if match is None:
         return str_
@@ -2721,12 +2728,16 @@ def highlight_regex(str_, pat, reflags=0):
         start = match.start()
         end = match.end()
         #colorama.init()
-        colored = str_[:start] + color + str_[start:end] + Style.RESET_ALL + str_[end:]
+        colored_part = color_text(str_[start:end], color)
+        colored = str_[:start] + colored_part + str_[end:]
+        # colored = (str_[:start] + color + str_[start:end] +
+        #            Style.RESET_ALL + str_[end:])
         #colorama.deinit()
         return colored
 
 
-def varinfo_str(varval, varname, onlyrepr=False, canshowrepr=True, varcolor='yellow', colored=True):
+def varinfo_str(varval, varname, onlyrepr=False, canshowrepr=True,
+                varcolor='yellow', colored=True):
     import utool as ut
     # varval = getattr(cm, varname.replace('cm.', ''))
     varinfo_list = []

@@ -1641,7 +1641,7 @@ def sed(regexpr, repl, force=False, recursive=False, dpath_list=None,
         dpath_list (list): directories to search (defaults to cwd)
     """
     #_grep(r, [repl], dpath_list=dpath_list, recursive=recursive)
-    include_patterns = ['*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h']
+    include_patterns = ['*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h', '*.html']
     if dpath_list is None:
         dpath_list = [os.getcwd()]
     if verbose is None:
@@ -1745,7 +1745,8 @@ def sedfile(fpath, regexpr, repl, force=False, verbose=True, veryverbose=False):
         if verbose:
             if True:
                 import utool as ut
-                old_file = ut.ensure_unicode(''.join(ut.lmap(ut.ensure_unicode, file_lines)))
+                old_file = ut.ensure_unicode(
+                    ''.join(ut.lmap(ut.ensure_unicode, file_lines)))
                 ut.print_difftext(old_file, new_file)
             else:
                 changed_new, changed_old = zip(*changed_lines)
@@ -1787,7 +1788,7 @@ def grepfile(fpath, regexpr_list, reflags=0, cache=None):
     Example:
         >>> # DISABLE_DOCTEST
         >>> import utool as ut
-        >>> fpath = ut.truepath('~/code/ibeis/ibeis/algo/hots/smk/smk_match.py')
+        >>> fpath = ut.get_modpath_from_modname(ut.util_path)
         >>> regexpr_list = ['get_argflag', 'get_argval']
         >>> result = ut.grepfile(fpath, regexpr_list)
         >>> print(result)
@@ -1796,8 +1797,11 @@ def grepfile(fpath, regexpr_list, reflags=0, cache=None):
     found_lxs = []
     # Ensure a list
     islist = isinstance(regexpr_list, (list, tuple))
+    islist2 = isinstance(reflags, (list, tuple))
     regexpr_list_ = regexpr_list if islist else [regexpr_list]
-    re_list = [re.compile(pat, flags=reflags) for pat in  regexpr_list_]
+    reflags_list = reflags if islist2 else [reflags]
+    re_list = [re.compile(pat, flags=_flags)
+               for pat, _flags in  zip(regexpr_list_, reflags_list)]
 
     # Open file and search lines or use cache
     if cache is None or fpath not in cache:
@@ -1838,7 +1842,7 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
         include_patterns (list) : defaults to standard file extensions
 
     Returns:
-        tuple (list, list, list): (found_fpath_list, found_lines_list, found_lxs_list)
+        (list, list, list): (found_fpaths, found_lines_list, found_lxs_list)
 
     CommandLine:
         python -m utool.util_path --test-grep
@@ -1860,6 +1864,9 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
         >>> (found_fpath_list, found_lines_list, found_lxs_list) = result
         >>> assert 'util_path.py' in list(map(basename, found_fpath_list))
     """
+    from utool import util_regex
+    # from utool import util_str
+    from utool import util_list
     if include_patterns is None:
         include_patterns =  get_standard_include_patterns()
     if greater_exclude_dirs is None:
@@ -1886,17 +1893,23 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
                                           recursive=recursive)
     else:
         fpath_generator = fpath_list
-    from utool import util_regex
-    extended_regex_list, reflags = util_regex.extend_regex3(regex_list, reflags)
-    if verbose:
-        print('extended_regex_list = %r' % (extended_regex_list,))
-        print('reflags = %r' % (reflags,))
+    #     from utool import util_regex
+    #     extended_regex_list, reflags = util_regex.extend_regex3(regex_list, reflags)
+    #     if verbose:
+    #         print('extended_regex_list = %r' % (extended_regex_list,))
+    #         print('reflags = %r' % (reflags,))
+    _exprs_flags = [util_regex.extend_regex2(expr, reflags)
+                    for expr in regex_list]
+    extended_regex_list = util_list.take_column(_exprs_flags, 0)
+    reflags_list = util_list.take_column(_exprs_flags, 1)
+    # HACK
+    reflags = reflags_list[0]
 
     # For each matching filepath
     for fpath in fpath_generator:
         # For each search pattern
         found_lines, found_lxs = grepfile(fpath, extended_regex_list,
-                                          reflags, cache=cache)
+                                          reflags_list, cache=cache)
         if inverse:
             if len(found_lines) == 0:
                 # Append files that the pattern was not found in
@@ -1915,6 +1928,25 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
         print('[util_path] found matches in %d files' %
               len(found_fpath_list))
         print(make_grep_resultstr(grep_result, extended_regex_list, reflags))
+        # print('[util_path] found matches in %d files' % len(found_fpath_list))
+
+        # pat = util_regex.regex_or(extended_regex_list)
+
+        # for fpath, found, lxs in zip(found_fpath_list, found_lines_list,
+        #                              found_lxs_list):
+        #     if len(found) > 0:
+        #         print('----------------------')
+        #         print('Found %d line(s) in %r: ' % (len(found), fpath))
+        #         name = split(fpath)[1]
+        #         max_line = len(lxs)
+        #         ndigits = str(len(str(max_line)))
+        #         fmt_str = '%s : %' + ndigits + 'd |%s'
+        #         for (lx, line) in zip(lxs, found):
+        #             # hack
+        #             colored_line = util_str.highlight_regex(
+        #                 line.rstrip('\n'), pat, reflags=reflags)
+        #             print(fmt_str % (name, lx, colored_line))
+
         #print('[util_path] found matches in %d files' % len(found_fpath_list))
 
     return grep_result
