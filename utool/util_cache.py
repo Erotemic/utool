@@ -195,7 +195,7 @@ def _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl=False):
         >>> write_hashtbl = False
         >>> fpath = _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl)
         >>> result = str(ut.ensure_unixslash(fpath))
-        >>> target = 'F:/data/work/PZ_MTEST/_ibsdb/_ibeis_cache/normalizer_5cv1%3s&@1dtgjlj.cPkl'
+        >>> target = 'F:/data/work/PZ_MTEST/_ibsdb/_ibeis_cache/normalizer_xfylfboirymmcpfg.cPkl'
         >>> ut.assert_eq(result, target)
 
     """
