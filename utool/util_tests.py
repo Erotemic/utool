@@ -68,6 +68,14 @@ class TestTuple(object):
         self.frame_fpath = frame_fpath  # parent file fpath
         self.exec_mode = exec_mode      # flags if running as script
 
+    def __repr__(self):
+        custom = ' '  + self.name + ':' + str(self.num)
+        return '<%s%s at %s>' % (self.__class__.__name__, custom, hex(id(self)),)
+
+    def __str__(self):
+        custom = ' '  + self.name + ':' + str(self.num)
+        return '<%s%s>' % (self.__class__.__name__, custom,)
+
 ##debug_decor = lambda func: func
 
 #if VERBOSE_TEST:
@@ -179,6 +187,7 @@ def doctest_module_list(module_list):
         ut.printex(ex, '[util_test] IOWarning', iswarning=True)
 
     failed_doctest_fname = 'failed_doctests.txt'
+    seen_ = set([])
     with open(failed_doctest_fname, 'a') as file_:
         file_.write('\n-------\n\n')
         file_.write(ut.get_printable_timestamp() + '\n')
@@ -188,7 +197,7 @@ def doctest_module_list(module_list):
         with ut.Timer(verbose=False) as t:
             for module in module_list:
                 (nPass, nTotal, failed_list, error_report_list) = ut.doctest_funcs(
-                    module=module, **testkw)
+                    module=module, seen_=seen_, **testkw)
                 nPass_list.append(nPass)
                 nTotal_list.append(nTotal)
                 failed_cmds_list.append(failed_list)
@@ -227,7 +236,8 @@ def doctest_module_list(module_list):
 
 
 def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples=None,
-                  needs_enable=None, strict=False, verbose=True, return_error_report=False):
+                  needs_enable=None, strict=False, verbose=True,
+                  return_error_report=False, seen_=None):
     """
     Main entry point into utools main module doctest harness
     Imports a module and checks flags for the function to run
@@ -283,14 +293,37 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
         testable_list, check_flags, module, allexamples, needs_enable, N=1,
         verbose=verbose)
     enabled_testtup_list, frame_fpath, all_testflags, module = mod_doctest_tup
-    modname = ut.get_modname_from_modpath(frame_fpath)
 
-    # Run enabled examles
     nPass = 0
     nFail = 0
+    nTotal = len(enabled_testtup_list)
+
+    #flags = [(tup.name, tup.num) in seen_ for tup in enabled_testtup_list]
+    if seen_ is not None:
+        flags = [tup.src not in seen_ for tup in enabled_testtup_list]
+        enabled_testtup_list = ut.compress(enabled_testtup_list, flags)
+
+    # Remove duplicate tests from previous parts of the batch run
+    #print(sum(flags))
+
+    EARLYEXIT = False
+    if seen_ is not None:
+        for tup in enabled_testtup_list:
+            #seen_.add((tup.name, tup.num))
+            seen_.add(tup.src)
+    if EARLYEXIT:
+        nPass = nTotal - sum(flags)
+        if return_error_report:
+            return (nPass, nTotal, [], [])
+        else:
+            return (nPass, nTotal, [])
+
+    modname = ut.get_modname_from_modpath(frame_fpath)
+    nTotal = len(enabled_testtup_list)
+
+    # Run enabled examles
     failed_flag_list = []
     error_report_list = []
-    nTotal = len(enabled_testtup_list)
     if ut.get_argflag(('--edit-test-file', '--etf')):
         ut.editfile(frame_fpath)
     exec_mode = all([testtup.exec_mode for testtup in enabled_testtup_list])
