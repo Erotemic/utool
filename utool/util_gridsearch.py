@@ -98,6 +98,43 @@ def get_varied_cfg_lbls(cfg_list, default_cfg=None, mainkey='_cfgname'):
     return cfglbl_list
 
 
+def get_nonvaried_cfg_lbls(cfg_list, default_cfg=None, mainkey='_cfgname'):
+    r"""
+    TODO: this might only need to return a single value. Maybe not if the names
+        are different.
+
+    Args:
+        cfg_list (list):
+        default_cfg (None): (default = None)
+
+    Returns:
+        list: cfglbl_list
+
+    CommandLine:
+        python -m utool.util_gridsearch --exec-get_nonvaried_cfg_lbls
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_gridsearch import *  # NOQA
+        >>> import utool as ut
+        >>> cfg_list = [{'_cfgname': 'test', 'f': 1, 'b': 1},
+        >>>             {'_cfgname': 'test', 'f': 2, 'b': 1},
+        >>>             {'_cfgname': 'test', 'f': 3, 'b': 1, 'z': 4}]
+        >>> default_cfg = None
+        >>> cfglbl_list = get_nonvaried_cfg_lbls(cfg_list, default_cfg)
+        >>> result = ('cfglbl_list = %s' % (ut.repr2(cfglbl_list),))
+        >>> print(result)
+        cfglbl_list = ['test:b=1', 'test:b=1', 'test:b=1']
+    """
+    try:
+        cfgname_list = [cfg[mainkey] for cfg in cfg_list]
+    except KeyError:
+        cfgname_list = [''] * len(cfg_list)
+    nonvaried_cfg = partition_varied_cfg_list(cfg_list, default_cfg)[0]
+    cfglbl_list = [get_cfg_lbl(nonvaried_cfg, name) for name in cfgname_list]
+    return cfglbl_list
+
+
 def partition_varied_cfg_list(cfg_list, default_cfg=None, recursive=False):
     r"""
     TODO: partition nested configs
@@ -621,6 +658,8 @@ class ParamInfo(object):
     def make_itemstr(pi, cfg):
         varval = getattr(cfg,  pi.varname)
         varstr = six.text_type(varval)
+        if isinstance(varval, slice):
+            varstr = varstr.replace(' ', '')
         if pi.shortprefix is not util_dev.NoParam:
             itemstr = pi.shortprefix + varstr
         else:

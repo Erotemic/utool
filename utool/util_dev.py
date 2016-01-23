@@ -2481,6 +2481,23 @@ class AlignedListDictProxy(DictLike_old):
         return iter(self.val_list)
 
 
+class NiceRepr(object):
+    """
+    base class that defines a nice representation and string func
+    for a class given that the user implements __nice__
+
+    """
+    def __repr__(self):
+        classname = self.__class__.__name__
+        devnice = self.__nice__()
+        return '<%s%s at %s>' % (classname, devnice, hex(id(self)))
+
+    def __str__(self):
+        classname = self.__class__.__name__
+        devnice = self.__nice__()
+        return '<%s%s>' % (classname, devnice)
+
+
 if __name__ == '__main__':
     """
     CommandLine:

@@ -385,7 +385,7 @@ def getroot():
     return root
 
 
-def startfile(fpath, detatch=True, quote=False):
+def startfile(fpath, detatch=True, quote=False, verbose=False, quiet=True):
     """ Uses default program defined by the system to open a file.
 
     References:
@@ -394,7 +394,7 @@ def startfile(fpath, detatch=True, quote=False):
     """
     print('[cplat] startfile(%r)' % fpath)
     fpath = normpath(fpath)
-    print('[cplat] fpath=%s' % fpath)
+    # print('[cplat] fpath=%s' % fpath)
     if not exists(fpath):
         raise Exception('Cannot start nonexistant file: %r' % fpath)
     #if quote:
@@ -404,10 +404,10 @@ def startfile(fpath, detatch=True, quote=False):
         fpath = pipes.quote(fpath)
     if LINUX:
         #out, err, ret = cmd(['xdg-open', fpath], detatch=True)
-        outtup = cmd(('xdg-open', fpath), detatch=detatch)
+        outtup = cmd(('xdg-open', fpath), detatch=detatch, verbose=verbose, quiet=quiet)
         #outtup = cmd('xdg-open', fpath, detatch=detatch)
     elif DARWIN:
-        outtup = cmd(('open', fpath), detatch=detatch)
+        outtup = cmd(('open', fpath), detatch=detatch, verbose=verbose, quiet=quiet)
     elif WIN32:
         os.startfile(fpath)
     else:
