@@ -663,6 +663,7 @@ def copy_files_to(src_fpath_list, dst_dpath=None, dst_fpath_list=None,
     """
     from utool import util_list
     from utool import util_parallel
+
     if verbose:
         print('[util_path] +--- COPYING FILES ---')
         print('[util_path]  * len(src_fpath_list) = %r' % (len(src_fpath_list)))
@@ -756,6 +757,7 @@ def copy_single(src, dst, overwrite=True, verbose=True, deeplink=True,
                     linkto = os.readlink(src)
                     symlink(linkto, dst)
                 elif isdir(src):
+                    print('isdir')
                     shutil.copytree(src, dst)
                 else:
                     shutil.copy2(src, dst)

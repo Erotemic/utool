@@ -774,7 +774,11 @@ def cmd(*args, **kwargs):
                                 # TODO make this play nicely with loggers
                                 print_(line_)
                         logged_out.append(line)
-                out = '\n'.join(logged_out)
+                try:
+                    out = '\n'.join(logged_out)
+                except UnicodeDecodeError:
+                    print('logged_out = %r' % (logged_out,))
+                    raise
                 (out_, err) = proc.communicate()
                 #print('[ut.cmd] out: %s' % (out,))
                 if not quiet:
