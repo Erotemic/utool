@@ -2250,6 +2250,8 @@ def get_textdiff(text1, text2, num_context_lines=0):
         >>> print(result)
     """
     import difflib
+    text1 = ensure_unicode(text1)
+    text2 = ensure_unicode(text2)
     text1_lines = text1.splitlines()
     text2_lines = text2.splitlines()
     all_diff_lines = list(difflib.ndiff(text1_lines, text2_lines))

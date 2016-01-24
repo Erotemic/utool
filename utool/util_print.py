@@ -110,7 +110,7 @@ class Indenter(object):
         if NO_INDENT or not self.enabled:
             return builtins.print
         def indent_msg(*args):
-            mgs = ', '.join(map(str, args))
+            mgs = ', '.join(map(six.text_type, args))
             return self.lbl + mgs.replace('\n', '\n' + self.lbl)
 
         def push_module_functions(dict_, funcname):
@@ -118,10 +118,10 @@ class Indenter(object):
                 try:
                     dict_[mod] = getattr(mod, funcname)
                 except KeyError as ex:
-                    print('[utool] KeyError: ' + str(ex))
+                    print('[utool] KeyError: ' + six.text_type(ex))
                     print('[utool] WARNING: module=%r was loaded between indent sessions' % mod)
                 except AttributeError as ex:
-                    print('[utool] AttributeError: ' + str(ex))
+                    print('[utool] AttributeError: ' + six.text_type(ex))
                     print('[utool] WARNING: module=%r does not have injected utool prints' % mod)
 
         push_module_functions(self.old_print_dict, 'print')
@@ -129,7 +129,7 @@ class Indenter(object):
             # Define the new print function
             @functools.wraps(self.old_print_dict[mod])
             def indent_print(*args):
-                self.old_print_dict[mod](indent_msg(', '.join(map(str, args))))
+                self.old_print_dict[mod](indent_msg(', '.join(map(six.text_type, args))))
             setattr(mod, 'print', indent_print)
         return indent_print
 

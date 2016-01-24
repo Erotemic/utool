@@ -667,6 +667,7 @@ def cmd(*args, **kwargs):
         tuple: (None, None, None)
 
     CommandLine:
+        python -m utool.util_cplat --test-cmd
         python -m utool.util_cplat --test-cmd:0
         python -m utool.util_cplat --test-cmd:1
         python -m utool.util_cplat --test-cmd:2
@@ -775,6 +776,8 @@ def cmd(*args, **kwargs):
                                 print_(line_)
                         logged_out.append(line)
                 try:
+                    from utool import util_str
+                    logged_out = util_str.ensure_unicode_strlist(logged_out)
                     out = '\n'.join(logged_out)
                 except UnicodeDecodeError:
                     print('logged_out = %r' % (logged_out,))

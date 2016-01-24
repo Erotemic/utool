@@ -1245,12 +1245,15 @@ def exec_func_src(func, globals_=None, locals_=None, key_list=None, sentinal=Non
     globals_ = globals_.copy()
     if locals_ is not None:
         globals_.update(locals_)
+    orig_globals = globals_.copy()
     #six.exec_(sourcecode, globals_, locals_)
     six.exec_(sourcecode, globals_)
     # Draw intermediate steps
     if key_list is None:
         #return locals_
-        # TODO autodetermine the key_list from the function vars
+        # Remove keys created in function execution
+        ut.delete_keys(globals_, orig_globals.keys())
+        # ~~ TODO autodetermine the key_list from the function vars
         return globals_
     else:
         #var_list = ut.dict_take(locals_, key_list)
