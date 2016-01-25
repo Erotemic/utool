@@ -128,13 +128,17 @@ def iter_window(iterable, size=2, step=1, wrap=False):
         # Secondary iterables need to be cycled for wraparound
         iter_list = [iter_list[0]] + list(map(itertools.cycle, iter_list[1:]))
     # Step each iterator the approprate number of times
-    for count, iter_ in enumerate(iter_list[1:], start=1):
-        for _ in range(count):
-            six.next(iter_)
-    _window_iter = zip(*iter_list)
-    # Account for the step size
-    window_iter = itertools.islice(_window_iter, 0, None, step)
-    return window_iter
+    try:
+        for count, iter_ in enumerate(iter_list[1:], start=1):
+            for _ in range(count):
+                six.next(iter_)
+    except StopIteration:
+        return iter(())
+    else:
+        _window_iter = zip(*iter_list)
+        # Account for the step size
+        window_iter = itertools.islice(_window_iter, 0, None, step)
+        return window_iter
 
 
 def itertwo(iterable, wrap=False):
@@ -188,12 +192,16 @@ def itertwo(iterable, wrap=False):
     iter1, iter2 = itertools.tee(iterable, 2)
     if wrap:
         iter2 = itertools.cycle(iter2)
-    six.next(iter2)
-    #item_list = list(item_list)  # input can not be a consumable generator need to eagerly evaluate
-    #iter1 = iter(item_list)
-    #iter2 = iter(item_list) if not wrap else itertools.cycle(item_list)
-    #six.next(iter2)
-    return zip(iter1, iter2)
+    try:
+        six.next(iter2)
+    except StopIteration:
+        return iter(())
+    else:
+        #item_list = list(item_list)  # input can not be a consumable generator need to eagerly evaluate
+        #iter1 = iter(item_list)
+        #iter2 = iter(item_list) if not wrap else itertools.cycle(item_list)
+        #six.next(iter2)
+        return zip(iter1, iter2)
 
 
 def iter_compress(item_iter, flag_iter):
