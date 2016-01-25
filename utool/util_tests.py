@@ -25,10 +25,11 @@ import sys
 from os.path import basename
 from utool import util_print  # NOQA
 from utool import util_arg
-from utool import util_path
+#from utool import util_path
 from utool import util_time
 from utool import util_inject
 from utool import util_dbg
+from utool import util_dev
 from utool._internal import meta_util_six
 from utool._internal.meta_util_six import get_funcname
 print, rrr, profile = util_inject.inject2(__name__, '[tests]')
@@ -54,12 +55,12 @@ ModuleDoctestTup = namedtuple('ModuleDoctestTup', ('enabled_testtup_list',
                                                    'all_testflags', 'module'))
 
 
-class TestTuple(object):
+class TestTuple(util_dev.NiceRepr):
     """
     Simple container for test objects to replace old tuple format
     exec mode specifies if the test is being run as a script
     """
-    def __init__(self, name, num, src, want, flag, frame_fpath=None, exec_mode=False):
+    def __init__(self, name, num, src, want, flag, tags=None, frame_fpath=None, exec_mode=False):
         self.name = name  # function / class / testable name
         self.num = num    # doctest index
         self.src = src    # doctest src
@@ -68,13 +69,26 @@ class TestTuple(object):
         self.frame_fpath = frame_fpath  # parent file fpath
         self.exec_mode = exec_mode      # flags if running as script
 
-    def __repr__(self):
-        custom = ' '  + self.name + ':' + str(self.num)
-        return '<%s%s at %s>' % (self.__class__.__name__, custom, hex(id(self)),)
+        if tags is None and src is not None:
+            # hack to parse tag from source
+            tagline = src.split('\n')[0].strip()
+            if tagline.startswith('#'):
+                tagline = tagline[1:].strip()
+                tagline = tagline.replace('_DOCTEST', '')
+                tags = tagline.split(',')
+        self.tags = tags
 
-    def __str__(self):
-        custom = ' '  + self.name + ':' + str(self.num)
-        return '<%s%s>' % (self.__class__.__name__, custom,)
+    def __nice__(self):
+        tagstr = ' ' + ','.join(self.tags) if self.tags is not None else ''
+        return ' '  + self.name + ':' + str(self.num) + tagstr
+
+    #def __repr__(self):
+    #    custom =
+    #    return '<%s%s at %s>' % (self.__class__.__name__, custom, hex(id(self)),)
+
+    #def __str__(self):
+    #    custom = ' '  + self.name + ':' + str(self.num)
+    #    return '<%s%s>' % (self.__class__.__name__, custom,)
 
 ##debug_decor = lambda func: func
 
@@ -129,6 +143,54 @@ else:
     HAPPY_FACE = HAPPY_FACE_SMALL
     #SAD_FACE = SAD_FACE_BIG
     SAD_FACE = SAD_FACE_SMALL
+
+
+def get_package_testables(module=None, **tagkw):
+    r"""
+    New command that should eventually be used intead of old stuff?
+
+    Args:
+        module_list (list): (default = None)
+        test_flags (None): (default = None)
+
+    CommandLine:
+        python -m utool.util_tests --exec-get_package_testables --show --mod ibeis
+        python -m utool.util_tests --exec-get_package_testables --show --mod utool --tags SCRIPT
+        python -m utool.util_tests --exec-get_package_testables --show --mod utool --tags ENABLE
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_tests import *  # NOQA
+        >>> import utool as ut
+        >>> has_any = ut.get_argval('--tags', type_=str, default=None)
+        >>> module = ut.get_argval('--mod', default='utool')
+        >>> test_tuples = get_package_testables(module, has_any=has_any)
+        >>> result = ut.repr3(test_tuples)
+        >>> print(result)
+        >>> #print(ut.repr3(ut.list_getattr(test_tuples, 'tags')))
+    """
+    import utool as ut
+    if isinstance(module, six.string_types):
+        module = ut.import_modname(module)
+    modname_list = ut.package_contents(module, ignore_prefix=[], ignore_suffix=[])
+    module_list = []
+    for modname in modname_list:
+        try:
+            module_list.append(ut.import_modname(modname))
+        except Exception:
+            pass
+
+    test_tuples = []
+    for module in module_list:
+        old_testables = ut.get_module_doctest_tup(module=module,
+                                                  needs_enable=False,
+                                                  allexamples=True, verbose=False)
+        test_tuples.extend(old_testables.enabled_testtup_list)
+    if tagkw:
+        tags_list = ut.list_getattr(test_tuples, 'tags')
+        flags = ut.filterflags_general_tags(tags_list, **tagkw)
+        test_tuples = ut.compress(test_tuples, flags)
+    return test_tuples
 
 
 def test_jedistuff():
@@ -951,6 +1013,16 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     Parses module for testable doctesttups
     Depth 2)
 
+    Args:
+        testable_list (list): a list of functions (default = None)
+        check_flags (bool): (default = True)
+        module (None): (default = None)
+        allexamples (None): (default = None)
+        needs_enable (None): (default = None)
+        N (int): (default = 0)
+        verbose (bool):  verbosity flag(default = True)
+        testslow (bool): (default = False)
+
     Returns:
         ModuleDoctestTup : (enabled_testtup_list, frame_fpath, all_testflags, module)
             enabled_testtup_list (list): a list of testtup
@@ -968,19 +1040,6 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                 the command line arguments that will enable different tests
             exclude_inherited (bool): does not included tests defined in other modules
 
-    Args:
-        testable_list (list): a list of functions (default = None)
-        check_flags (bool): (default = True)
-        module (None): (default = None)
-        allexamples (None): (default = None)
-        needs_enable (None): (default = None)
-        N (int): (default = 0)
-        verbose (bool):  verbosity flag(default = True)
-        testslow (bool): (default = False)
-
-    Returns:
-        tuple: mod_doctest_tup
-
     CommandLine:
         python -m utool.util_tests --exec-get_module_doctest_tup
 
@@ -988,11 +1047,12 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         >>> # ENABLE_DOCTEST
         >>> from utool.util_tests import *  # NOQA
         >>> import utool as ut
-        >>> testable_list = [ut.util_import.package_contents]
+        >>> #testable_list = [ut.util_import.package_contents]
+        >>> testable_list = None
         >>> check_flags = False
-        >>> module = ut.util_import
+        >>> module = ut.util_cplat
         >>> allexamples = False
-        >>> needs_enable = False
+        >>> needs_enable = None
         >>> N = 0
         >>> verbose = True
         >>> testslow = False
@@ -1269,292 +1329,6 @@ def doctest_was_requested():
     """ lets a  __main__ codeblock know that util_test should do its thing """
     valid_prefix_list = ['--exec-', '--test-']
     return any([any([arg.startswith(prefix) for prefix in valid_prefix_list]) for arg in sys.argv])
-
-
-def make_run_tests_script_text(test_headers, test_argvs, quick_tests=None,
-                               repodir=None, exclude_list=[]):
-    """
-    Autogeneration function
-
-    TODO move to util_autogen or just depricate
-
-    Examples:
-        >>> from utool.util_tests import *  # NOQA
-        >>> import utool  # NOQA
-        >>> testdirs = ['~/code/ibeis/test_ibs*.py']
-    """
-    import utool as ut
-    from os.path import relpath, join, dirname  # NOQA
-
-    exclude_list += ['__init__.py']
-
-    # General format of the testing script
-
-    script_fmtstr = ut.codeblock(
-        r'''
-        #!/bin/bash
-        # Runs all tests
-        # Win32 path hacks
-        export CWD=$(pwd)
-        export PYMAJOR="$(python -c "import sys; print(sys.version_info[0])")"
-
-        # <CORRECT_PYTHON>
-        # GET CORRECT PYTHON ON ALL PLATFORMS
-        export SYSNAME="$(expr substr $(uname -s) 1 10)"
-        if [ "$SYSNAME" = "MINGW32_NT" ]; then
-            export PYEXE=python
-        else
-            if [ "$PYMAJOR" = "3" ]; then
-                # virtual env?
-                export PYEXE=python
-            else
-                export PYEXE=python2.7
-            fi
-        fi
-        # </CORRECT_PYTHON>
-
-        PRINT_DELIMETER()
-        {{
-            printf "\n#\n#\n#>>>>>>>>>>> next_test\n\n"
-        }}
-
-        export TEST_ARGV="{test_argvs} $@"
-
-        {dirdef_block}
-
-        # Default tests to run
-        set_test_flags()
-        {{
-            export DEFAULT=$1
-        {testdefault_block}
-        }}
-        set_test_flags OFF
-        {testdefaulton_block}
-
-        # Parse for bash commandline args
-        for i in "$@"
-        do
-        case $i in --testall)
-            set_test_flags ON
-            ;;
-        esac
-        {testcmdline_block}
-        done
-
-        BEGIN_TESTS()
-        {{
-        cat <<EOF
-        {runtests_bubbletext}
-        EOF
-            echo "BEGIN: TEST_ARGV=$TEST_ARGV"
-            PRINT_DELIMETER
-            num_passed=0
-            num_ran=0
-            export FAILED_TESTS=''
-        }}
-
-        RUN_TEST()
-        {{
-            echo "RUN_TEST: $@"
-            export TEST="$PYEXE $@ $TEST_ARGV"
-            $TEST
-            export RETURN_CODE=$?
-            echo "RETURN_CODE=$RETURN_CODE"
-            PRINT_DELIMETER
-            num_ran=$(($num_ran + 1))
-            if [ "$RETURN_CODE" == "0" ] ; then
-                num_passed=$(($num_passed + 1))
-            fi
-            if [ "$RETURN_CODE" != "0" ] ; then
-                export FAILED_TESTS="$FAILED_TESTS\n$TEST"
-            fi
-        }}
-
-        END_TESTS()
-        {{
-            echo "RUN_TESTS: DONE"
-            if [ "$FAILED_TESTS" != "" ] ; then
-                echo "-----"
-                printf "Failed Tests:"
-                printf "$FAILED_TESTS\n"
-                printf "$FAILED_TESTS\n" >> failed_shelltests.txt
-                echo "-----"
-            fi
-            echo "$num_passed / $num_ran tests passed"
-        }}
-
-        #---------------------------------------------
-        # START TESTS
-        BEGIN_TESTS
-
-        {quicktest_block}
-
-        {test_block}
-
-        #---------------------------------------------
-        # END TESTING
-        END_TESTS
-        ''')
-
-    testcmdline_fmtstr = ut.codeblock(
-        r'''
-        case $i in --notest{header_lower})
-            export {testflag}=OFF
-            ;;
-        esac
-        case $i in --test{header_lower})
-            export {testflag}=ON
-            ;;
-        esac
-        ''')
-
-    header_test_block_fmstr = ut.codeblock(
-        r'''
-
-        #---------------------------------------------
-        #{header_text}
-        if [ "${testflag}" = "ON" ] ; then
-        cat <<EOF
-        {header_bubble_text}
-        EOF
-        {testlines_block}
-        fi
-        ''')
-
-    #specialargv = '--noshow'
-    specialargv = ''
-    testline_fmtstr = 'RUN_TEST ${dirvar}/{fpath} {specialargv}'
-    testline_fmtstr2 = 'RUN_TEST {fpath} {specialargv}'
-
-    def format_testline(fpath, dirvar):
-        if dirvar is None:
-            return testline_fmtstr2.format(fpath=fpath, specialargv=specialargv)
-        else:
-            return testline_fmtstr.format(dirvar=dirvar, fpath=fpath, specialargv=specialargv)
-
-    default_flag_line_list = []
-    defaulton_flag_line_list = []
-    testcmdline_list = []
-    dirdef_list = []
-    header_test_block_list = []
-
-    known_tests = ut.ddict(list)
-
-    # Tests to always run
-    if quick_tests is not None:
-        quicktest_block = '\n'.join(
-            ['# Quick Tests (always run)'] +
-            ['RUN_TEST ' + testline for testline in quick_tests])
-    else:
-        quicktest_block = '# No quick tests'
-
-    # Loop over different test types
-    for testdef_tup in test_headers:
-        header, default, modname, dpath, pats, testcmds = testdef_tup
-        # Build individual test type information
-        header_upper =  header.upper()
-        header_lower = header.lower()
-        testflag = header_upper + '_TEST'
-
-        if modname is not None:
-            dirvar = header_upper + '_DIR'
-            dirdef = ''.join([
-                'export {dirvar}=$($PYEXE -c "',
-                'import os, {modname};',
-                'print(str(os.path.dirname(os.path.dirname({modname}.__file__))))',
-                '")']).format(dirvar=dirvar, modname=modname)
-            dirdef_list.append(dirdef)
-        else:
-            dirvar = None
-
-        # Build test dir
-        #dirvar = header_upper + '_DIR'
-        #dirdef = 'export {dirvar}={dirname}'.format(dirvar=dirvar, dirname=dirname)
-        #dirdef_list.append(dirdef)
-
-        # Build command line flags
-        default_flag_line = 'export {testflag}=$DEFAULT'.format(testflag=testflag)
-
-        if default:
-            defaulton_flag_line = 'export {testflag}=ON'.format(testflag=testflag)
-            defaulton_flag_line_list.append(defaulton_flag_line)
-
-        testcmdline_fmtdict = dict(header_lower=header_lower,
-                                        testflag=testflag,)
-        testcmdline = testcmdline_fmtstr.format(**testcmdline_fmtdict)
-
-        #ut.ls(dpath)
-
-        # VERY HACK BIT OF CODE
-
-        # Get list of tests from patterns
-        if testcmds is None:
-            if modname is not None:
-                module = __import__(modname)
-                repo_path = dirname(dirname(module.__file__))
-            else:
-                repo_path = repodir
-            dpath_ = ut.unixpath(util_path.unixjoin(repo_path, dpath))
-
-            if header_upper == 'OTHER':
-                # Hacky way to grab any other tests not explicitly seen in this directory
-                _testfpath_list = list(set(ut.glob(dpath_, '*.py')) - set(known_tests[dpath_]))
-                #_testfpath_list = ut.glob(dpath_, '*.py')
-                #set(known_tests[dpath_])
-            else:
-                _testfpath_list = ut.flatten([ut.glob(dpath_, pat) for pat in pats])
-
-            def not_excluded(x):
-                return not any([x.find(exclude) > -1 for exclude in exclude_list])
-
-            _testfpath_list = list(filter(not_excluded, _testfpath_list))
-
-            known_tests[dpath_].extend(_testfpath_list)
-            #print(_testfpath_list)
-            testfpath_list = [util_path.unixjoin(dpath, relpath(fpath, dpath_))
-                              for fpath in _testfpath_list]
-
-            testline_list = [format_testline(fpath, dirvar) for fpath in testfpath_list]
-        else:
-            testline_list = testcmds
-
-        testlines_block = ut.indentjoin(testline_list).strip('\n')
-
-        # Construct test block for this type
-        header_text = header_upper + ' TESTS'
-        headerfont = 'cybermedium'
-        header_bubble_text =  ut.indent(ut.bubbletext(header_text, headerfont).strip())
-        header_test_block_dict = dict(
-            testflag=testflag,
-            header_text=header_text,
-            testlines_block=testlines_block,
-            header_bubble_text=header_bubble_text,)
-        header_test_block = header_test_block_fmstr.format(**header_test_block_dict)
-
-        # Append to script lists
-        header_test_block_list.append(header_test_block)
-        default_flag_line_list.append(default_flag_line)
-        testcmdline_list.append(testcmdline)
-
-    runtests_bubbletext = ut.bubbletext('RUN TESTS', 'cyberlarge')
-
-    test_block = '\n'.join(header_test_block_list)
-    dirdef_block = '\n'.join(dirdef_list)
-    testdefault_block = ut.indent('\n'.join(default_flag_line_list))
-    testdefaulton_block = '\n'.join(defaulton_flag_line_list)
-    testcmdline_block = '\n'.join(testcmdline_list)
-
-    script_fmtdict = dict(
-        quicktest_block=quicktest_block,
-        runtests_bubbletext=runtests_bubbletext,
-        test_argvs=test_argvs, dirdef_block=dirdef_block,
-        testdefault_block=testdefault_block,
-        testdefaulton_block=testdefaulton_block,
-        testcmdline_block=testcmdline_block,
-        test_block=test_block,)
-    script_text = script_fmtstr.format(**script_fmtdict)
-
-    return script_text
 
 
 def find_doctestable_modnames(dpath_list=None, exclude_doctests_fnames=[], exclude_dirs=[]):
