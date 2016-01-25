@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 from six.moves import cPickle as pickle
 from utool import util_path
 from utool import util_inject
-from os.path import splitext, basename
+from os.path import splitext, basename, exists
 try:
     import lockfile
     HAVE_LOCKFILE = True
@@ -70,11 +70,34 @@ def write_to(fpath, to_write, aslines=False, verbose=None,
 
     Args:
         fpath (str): file path
-        to_write (str): text to write
+        to_write (str): text to write (must be unicode text)
         aslines (bool): if True to_write is assumed to be a list of lines
         verbose (bool): verbosity flag
         onlyifdiff (bool): only writes if needed!
-            checks hash of to_write vs the hash of the contents of fpath
+                checks hash of to_write vs the hash of the contents of fpath
+        mode (unicode): (default = u'w')
+        n (int):  (default = 2)
+
+    CommandLine:
+        python -m utool.util_io --exec-write_to --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_io import *  # NOQA
+        >>> import utool as ut
+        >>> fpath = ut.unixjoin(ut.get_app_resource_dir('utool'), 'testwrite.txt')
+        >>> ut.delete(fpath)
+        >>> to_write = 'utf-8 symbols Δ, Й, ק, م, ๗, あ, 叶, 葉, and 말.'
+        >>> aslines = False
+        >>> verbose = True
+        >>> onlyifdiff = False
+        >>> mode = u'w'
+        >>> n = 2
+        >>> write_to(fpath, to_write, aslines, verbose, onlyifdiff, mode, n)
+        >>> read_ = ut.read_from(fpath)
+        >>> print('read_    = ' + read_)
+        >>> print('to_write = ' + to_write)
+        >>> assert read_ == to_write
     """
     if onlyifdiff:
         import utool as ut
@@ -83,11 +106,34 @@ def write_to(fpath, to_write, aslines=False, verbose=None,
             return
     if verbose or (verbose is None and __PRINT_WRITES__) or __FORCE_PRINT_WRITES__:
         print('[util_io] * Writing to text file: %r ' % util_path.tail(fpath, n=n))
+
+    backup = True and exists(fpath)
+    if backup:
+        util_path.copy(fpath, fpath + '.backup')
+
     with open(fpath, mode) as file_:
         if aslines:
             file_.writelines(to_write)
         else:
-            file_.write(to_write)
+            if six.PY2 and isinstance(to_write, unicode):
+                to_write = to_write.encode('utf8')
+            try:
+                file_.write(to_write)
+            except UnicodeEncodeError as ex:
+                start = max(ex.args[2] - 10, 0)
+                end = ex.args[3] + 10
+                context = to_write[start:end]
+                print(repr(context))
+                print(context)
+                from utool import util_dbg
+                util_dbg.printex(ex, keys=[(type, 'to_write')])
+                file_.close()
+                if backup:
+                    # restore
+                    util_path.copy(fpath + '.backup', fpath)
+                # import utool
+                # utool.embed()
+                raise
 
 
 def read_from(fpath, verbose=None, aslines=False, strict=True, n=3):
@@ -99,7 +145,7 @@ def read_from(fpath, verbose=None, aslines=False, strict=True, n=3):
         verbose (bool): verbosity flag
 
     Returns:
-        text from fpath
+        str: text from fpath (this is unicode)
     """
     if verbose or (verbose is None and __PRINT_READS__) or __FORCE_PRINT_READS__:
         print('[util_io] * Reading text file: %r ' % util_path.tail(fpath, n=n))
@@ -110,7 +156,9 @@ def read_from(fpath, verbose=None, aslines=False, strict=True, n=3):
             if aslines:
                 text = file_.readlines()
             else:
-                text = file_.read()
+                # text = file_.read()
+                if six.PY2:
+                    text = file_.read().decode('utf8')
         return text
     except IOError as ex:
         from utool import util_dbg
