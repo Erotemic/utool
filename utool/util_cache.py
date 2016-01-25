@@ -1427,6 +1427,10 @@ class LazyDict(object):
         """ only keys whose vals that have been explicitly set without a backup func """
         return set(self.all_keys()) - self.reconstructable_keys()
 
+    def cached_keys(self):
+        """ only keys whose vals that have been explicitly set without a backup func """
+        return set(self.nonreconstructable_keys()).union(set(self.evaluated_keys()))
+
     def printinfo(self):
         print('nonreconstructable_keys = %s' % (self.nonreconstructable_keys(),))
         print('reconstructable_keys = %s' % (self.reconstructable_keys(),))
