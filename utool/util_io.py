@@ -66,7 +66,7 @@ def save_data(fpath, data, **kwargs):
 
 def write_to(fpath, to_write, aslines=False, verbose=None,
              onlyifdiff=False, mode='w', n=2):
-    """ Writes text to a file
+    """ Writes text to a file. Automatically encodes text as utf8.
 
     Args:
         fpath (str): file path
@@ -137,7 +137,7 @@ def write_to(fpath, to_write, aslines=False, verbose=None,
 
 
 def read_from(fpath, verbose=None, aslines=False, strict=True, n=3):
-    """ Reads text from a file
+    """ Reads text from a file. Automatically returns utf8.
 
     Args:
         fpath (str): file path

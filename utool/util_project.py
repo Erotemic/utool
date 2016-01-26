@@ -52,6 +52,7 @@ def setup_repo():
         python -m utool --tf setup_repo --repo=dtool --codedir=~/code
         python -m utool --tf setup_repo --repo=ibeis-flukematch-module --codedir=~/code --modname=ibeis_flukematch
         python -m utool --tf setup_repo --repo=mtgmonte --codedir=~/code --modname=mtgmonte
+        python -m utool --tf setup_repo --repo=pydarknet --codedir=~/code --modname=pydarknet
 
         python -m utool --tf setup_repo
 

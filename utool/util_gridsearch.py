@@ -596,7 +596,7 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
 
 
 @six.add_metaclass(util_class.ReloadingMetaclass)
-class ParamInfo(object):
+class ParamInfo(util_dev.NiceRepr):
     """
     small class for individual paramater information
 
@@ -643,6 +643,9 @@ class ParamInfo(object):
         if hideif is not util_dev.NoParam:
             pi.append_hideif(hideif)
 
+    def __nice__(pi):
+        return '(' + pi.make_varstr(pi.default) + ')'
+
     def append_hideif(pi, hideif):
         pi.hideif_list.append(hideif)
 
@@ -655,8 +658,7 @@ class ParamInfo(object):
             if hide:
                 return True
 
-    def make_itemstr(pi, cfg):
-        varval = getattr(cfg,  pi.varname)
+    def make_varstr(pi, varval):
         varstr = six.text_type(varval)
         if isinstance(varval, slice):
             varstr = varstr.replace(' ', '')
@@ -665,6 +667,10 @@ class ParamInfo(object):
         else:
             itemstr =  pi.varname + '=' + varstr
         return itemstr
+
+    def make_itemstr(pi, cfg):
+        varval = getattr(cfg,  pi.varname)
+        return pi.make_varstr(varval)
 
     def get_itemstr(pi, cfg):
         if pi.is_hidden(cfg):

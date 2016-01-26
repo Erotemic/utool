@@ -1467,7 +1467,12 @@ class LazyDict(object):
     # --- dict interface
 
     def get(self, key, *d):
-        assert len(d) == 0, 'no support for default yet'
+        if len(d) > 1:
+            raise ValueError('can only specify one default')
+        elif len(d) == 1:
+            #assert len(d) == 0, 'no support for default yet'
+            if key not in self:
+                return d[0]
         return self.getitem(key, self._is_eager)
 
     def update(self, dict_, **kwargs):
