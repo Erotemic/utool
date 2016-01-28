@@ -72,7 +72,11 @@ def archive_files(archive_fpath, fpath_list, small=True, allowZip64=False,
     compression = zipfile.ZIP_DEFLATED if small else zipfile.ZIP_STORED
     if common_prefix:
         # Note: common prefix does not care about file structures
-        rel_arcpath = commonprefix(fpath_list)
+        if isinstance(common_prefix, six.string_types):
+            # use given path as base path
+            rel_arcpath = common_prefix
+        else:
+            rel_arcpath = commonprefix(fpath_list)
         rel_arcpath = ut.longest_existing_path(rel_arcpath)
     else:
         rel_arcpath = dirname(archive_fpath)
@@ -106,6 +110,8 @@ def unarchive_file(archive_fpath, force_commonprefix=True):
     #    # Example: http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz
     #    return ungz_file(archive_fpath)
     else:
+        if archive_fpath.endswith('.zip') or archive_fpath.endswith('.tar.gz'):
+            raise AssertionError('archive is corrupted: %r' % (archive_fpath,))
         raise AssertionError('unknown archive format: %r' % (archive_fpath,))
 
 
@@ -676,12 +682,36 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
 def grab_zipped_url(zipped_url, ensure=True, appname='utool',
                     download_dir=None, force_commonprefix=True, cleanup=False,
                     redownload=False, spoof=False):
-    """
+    r"""
     downloads and unzips the url
 
     Args:
         zipped_url (str): url which must be either a .zip of a .tar.gz file
+        ensure (bool):  eager evaluation if True(default = True)
+        appname (str): (default = 'utool')
         download_dir (str): containing downloading directory
+        force_commonprefix (bool): (default = True)
+        cleanup (bool): (default = False)
+        redownload (bool): (default = False)
+        spoof (bool): (default = False)
+
+    CommandLine:
+        python -m utool.util_grabdata --exec-grab_zipped_url --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_grabdata import *  # NOQA
+        >>> import utool as ut
+        >>> zipped_url = '?'
+        >>> ensure = True
+        >>> appname = 'utool'
+        >>> download_dir = None
+        >>> force_commonprefix = True
+        >>> cleanup = False
+        >>> redownload = False
+        >>> spoof = False
+        >>> result = grab_zipped_url(zipped_url, ensure, appname, download_dir, force_commonprefix, cleanup, redownload, spoof)
+        >>> print(result)
 
     Examples:
         >>> from utool.util_grabdata import *  # NOQA
@@ -840,6 +870,48 @@ def grab_s3_contents(fpath, bucket, key, auth_access_id=None, auth_secret_key=No
         bucket = s3.get_bucket(bucket)
     key = bucket.get_key(key)
     key.get_contents_to_filename(fpath)
+
+
+def rsync(src_uri, dst_uri, exclude_dirs=[], port=22, dryrun=False):
+    """
+    General function to push or pull a directory from a remote server to a local path
+
+    References:
+        http://www.tecmint.com/rsync-local-remote-file-synchronization-commands/
+        http://serverfault.com/questions/219013/showing-total-progress-in-rsync-is-it-possible
+
+    Notes (rsync commandline options):
+        rsync [OPTION]... SRC [SRC]... DEST
+        -v : verbose
+        -r : copies data recursively (but dont preserve timestamps and
+                permission while transferring data
+        -a : archive mode, allows recursive copying and preserves symlinks,
+                permissions, user and group ownerships, and timestamps
+        -z : compress file data
+        -i, --itemize-changes       output a change-summary for all updates
+        -s, --protect-args :        no space-splitting; only wildcard special-chars
+        -h : human-readable, output numbers in a human-readable format
+        -P                          same as --partial --progress
+    """
+    from utool import util_cplat
+    rsync_exe = 'rsync'
+    rsync_options = '-avhzP'
+    #rsync_options += ' --port=%d' % (port,)
+    rsync_options += ' -e "ssh -p %d"' % (port,)
+    if len(exclude_dirs) > 0:
+        exclude_tup = ['--exclude ' + dir_ for dir_ in exclude_dirs]
+        exclude_opts = ' '.join(exclude_tup)
+        rsync_options += ' ' + exclude_opts
+
+    cmdtuple = (rsync_exe, rsync_options, src_uri, dst_uri)
+    cmdstr = ' '.join(cmdtuple)
+    print('[rsync] src_uri = %r ' % (src_uri,))
+    print('[rsync] dst_uri = %r ' % (dst_uri,))
+    print('[rsync] cmdstr = %r' % cmdstr)
+    print(cmdstr)
+
+    #if not dryrun:
+    util_cplat.cmd(cmdstr, dryrun=dryrun)
 
 
 if __name__ == '__main__':
