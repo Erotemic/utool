@@ -486,6 +486,8 @@ REGEX_STR = r"'[^']*'"
 REGEX_ESCSTR = r"'(.)*'"
 #REGEX_ESCSTR = r"'(?:\\.|[^'])*'"
 
+REGEX_LATEX_COMMENT = negative_lookbehind(re.escape('\\')) + re.escape('%') + '.*$'
+
 REGEX_RVAL = regex_or([REGEX_VARNAME, REGEX_INT, REGEX_FLOAT, REGEX_STR, REGEX_ESCSTR])
 
 

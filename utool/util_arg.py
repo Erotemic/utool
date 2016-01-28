@@ -804,6 +804,12 @@ def argv_flag_dec(*argin, **kwargs):
     Decorators which control program flow based on sys.argv
     the decorated function does not execute without its corresponding
     flag
+
+    Kwargs:
+        default, quiet, indent, default
+
+    ReturnKwargs:
+        alias_flags
     """
     kwargs = kwargs.copy()
     kwargs['default'] = kwargs.get('default', False)
