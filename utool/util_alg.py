@@ -1402,6 +1402,17 @@ def ungroup(grouped_items, groupxs, maxval):
     return ungrouped_items
 
 
+def edit_distance(string1, string2):
+    # Edit distance algorithm
+    try:
+        import Levenshtein
+    except ImportError as ex:
+        import utool as ut
+        ut.printex(ex, 'pip install Levenshtein')
+        raise
+    return Levenshtein.distance(string1, string2)
+
+
 if __name__ == '__main__':
     """
     CommandLine:

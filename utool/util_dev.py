@@ -2279,6 +2279,7 @@ def search_module(mod, pat, ignore_case=True, recursive=False, _seen=None):
         python -m utool.util_dev --exec-search_module --mod=opengm --pat=cut
         python -m utool.util_dev --exec-search_module --mod=opengm --pat=multi
         python -m utool.util_dev --exec-search_module --mod=plottool --pat=networkx
+        python -m utool.util_dev --exec-search_module --mod=utool --pat=Levenshtein
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2286,8 +2287,9 @@ def search_module(mod, pat, ignore_case=True, recursive=False, _seen=None):
         >>> import utool as ut
         >>> recursive = True
         >>> ignore_case = True
-        >>> mod = ut.import_modname(ut.get_argval('--mod', type_=str, default='utool'))
+        >>> modname = ut.get_argval('--mod', type_=str, default='utool')
         >>> pat = ut.get_argval('--pat', type_=str, default='search')
+        >>> mod = ut.import_modname(modname)
         >>> print('pat = %r' % (pat,))
         >>> print('mod = %r' % (mod,))
         >>> found_list = search_module(mod, pat, recursive=recursive)
@@ -2485,6 +2487,8 @@ class NiceRepr(object):
     """
     base class that defines a nice representation and string func
     for a class given that the user implements __nice__
+
+    Rename to NiceObject?
 
     """
     def __repr__(self):
