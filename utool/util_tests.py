@@ -1328,7 +1328,8 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
 def doctest_was_requested():
     """ lets a  __main__ codeblock know that util_test should do its thing """
     valid_prefix_list = ['--exec-', '--test-']
-    return any([any([arg.startswith(prefix) for prefix in valid_prefix_list]) for arg in sys.argv])
+    return '--tf' in sys.argv or any([any([arg.startswith(prefix) for prefix in valid_prefix_list])
+                                      for arg in sys.argv])
 
 
 def find_doctestable_modnames(dpath_list=None, exclude_doctests_fnames=[], exclude_dirs=[]):
