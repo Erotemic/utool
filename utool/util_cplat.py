@@ -236,8 +236,37 @@ def get_pylib_ext():
     return PYLIB_DICT[OS_TYPE]
 
 
-def python_executable():
-    return unixpath(sys.executable)
+def python_executable(check=True, short=False):
+    r"""
+    Args:
+        short (bool): (default = False)
+
+    Returns:
+        str:
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_cplat import *  # NOQA
+        >>> short = False
+        >>> result = python_executable(short)
+        >>> print(result)
+    """
+    if not check:
+        python_exe = 'python'
+    else:
+        from os.path import isdir
+        python_exe_long = unixpath(sys.executable)
+        python_exe = python_exe_long
+        if short:
+            python_exe_short = basename(python_exe_long)
+            found = search_env_paths(python_exe_short, key_list=['PATH'],
+                                     verbose=False)
+            found = [f for f in found if not isdir(f)]
+            if len(found) > 0:
+                if found[0] == python_exe_long:
+                    # Safe to use the short name in this env
+                    python_exe = python_exe_short
+    return python_exe
 
 
 def ls_libs(dpath):
@@ -919,7 +948,7 @@ def print_path(sort=True):
     print('\n'.join(pathdirs))
 
 
-def search_env_paths(fname):
+def search_env_paths(fname, key_list=None, verbose=None):
     r"""
     Searches your PATH to see if fname exists
 
@@ -944,17 +973,23 @@ def search_env_paths(fname):
         OpenCV_CONFIG_PATH:FILEPATH={share_opencv}
 
     """
-    key_list = [key for key in os.environ if key.find('PATH') > -1]
-
     import utool as ut
     from os.path import join
+    if key_list is None:
+        key_list = [key for key in os.environ if key.find('PATH') > -1]
+
+    found = []
+
     for key in key_list:
         dpath_list = os.environ[key].split(os.pathsep)
         for dpath in dpath_list:
             testname = join(dpath, fname)
             if ut.checkpath(testname, verbose=False):
-                print('Found in key=%r' % (key,))
-                ut.checkpath(testname, verbose=True, info=True)
+                if verbose:
+                    print('Found in key=%r' % (key,))
+                    ut.checkpath(testname, verbose=True, info=True)
+                found += [testname]
+    return found
 
 
 def change_term_title(title):

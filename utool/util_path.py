@@ -1347,6 +1347,7 @@ def get_modname_from_modpath(module_fpath):
     modsubdir_list = get_module_subdir_list(module_fpath)
     modname = '.'.join(modsubdir_list)
     modname = modname.replace('.__init__', '').strip()
+    modname = modname.replace('.__main__', '').strip()
     return modname
 
 
@@ -1444,6 +1445,10 @@ def append_suffixlist_to_namelist(name_list, suffix_list):
 
 def is_private_module(path):
     return basename(path).startswith('__')
+
+
+def is_python_module(path):
+    return path.endswith('.py') or path.endswith('.pyc')
 
 
 def is_module_dir(path):
