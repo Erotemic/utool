@@ -21,7 +21,8 @@ from utool._internal import meta_util_arg
 from utool import util_inject
 print, rrr, profile = util_inject.inject2(__name__, '[str]')
 
-ENABLE_COLORS = not util_cplat.WIN32 and not meta_util_arg.get_argflag('--nopygments')
+ENABLE_COLORS = (not util_cplat.WIN32 and
+                 not meta_util_arg.get_argflag('--nopygments'))
 
 if util_type.HAVE_NUMPY:
     import numpy as np
@@ -63,8 +64,10 @@ def ensure_ascii(str_):
 
 def ensure_unicode_strlist(str_list):
     __STR__ = util_type.__STR__
-    flag_list = [not isinstance(str_, __STR__) and is_byte_encoded_unicode(str_) for str_ in str_list]
-    new_str_list = [str_.decode('utf-8') if flag else __STR__(str_) for str_, flag in zip(str_list, flag_list)]
+    flag_list = [not isinstance(str_, __STR__) and is_byte_encoded_unicode(str_)
+                 for str_ in str_list]
+    new_str_list = [str_.decode('utf-8') if flag else __STR__(str_)
+                    for str_, flag in zip(str_list, flag_list)]
     return new_str_list
 
 
@@ -175,7 +178,8 @@ def verts_str(verts, pad=1):
     r""" makes a string from a list of integer verticies """
     if verts is None:
         return 'None'
-    fmtstr = ', '.join(['%' + six.text_type(pad) + 'd' + ', %' + six.text_type(pad) + 'd'] * 1)
+    fmtstr = ', '.join(['%' + six.text_type(pad) + 'd' +
+                        ', %' + six.text_type(pad) + 'd'] * 1)
     return ', '.join(['(' + fmtstr % vert + ')' for vert in verts])
 
 
@@ -243,7 +247,8 @@ def get_minimum_indentation(text):
     returns the number of preceding spaces
     """
     lines = text.split('\n')
-    indentations = [get_indentation(line_) for line_ in lines  if len(line_.strip()) > 0]
+    indentations = [get_indentation(line_)
+                    for line_ in lines  if len(line_.strip()) > 0]
     if len(indentations) == 0:
         return 0
     return min(indentations)
@@ -305,7 +310,8 @@ def textblock(multiline_text):
         >>> result = new_text
         >>> print(result)
     """
-    new_text = '\n\n'.join(list(map(flatten_textlines, multiline_text.split('\n\n'))))
+    new_lines = list(map(flatten_textlines, multiline_text.split('\n\n')))
+    new_text = '\n\n'.join(new_lines)
     return new_text
 
 
@@ -363,7 +369,8 @@ def indentjoin(strlist, indent='\n    ', suffix=''):
     strlist = list(strlist)
     if len(strlist) == 0:
         return ''
-    return indent_ + indent_.join([six.text_type(str_) + suffix for str_ in strlist])
+    return indent_ + indent_.join([six.text_type(str_) + suffix
+                                   for str_ in strlist])
 
 
 def truncate_str(str_, maxlen=110, truncmsg=' ~~~TRUNCATED~~~ '):
@@ -454,7 +461,8 @@ def pack_into(instr, textwidth=160, breakchars=' ', break_words=True,
         while len(word) > available:
             if break_words:
                 # If we are allowed to break words over multiple lines
-                # Fill the rest of the available textwidth with part of the word
+                # Fill the rest of the available textwidth with part of the
+                # word
                 line_list[-1] += word[:available]
                 word = word[available:]
             # Append a new line to the list
@@ -515,18 +523,17 @@ def seconds_str(num, prefix=None):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_str import *  # NOQA
         >>> import utool as ut
-        >>> num_list = sorted([4.2 / (10.0 ** exp_) for exp_ in range(-13, 13, 4)])
+        >>> num_list = sorted([4.2 / (10.0 ** exp_)
+        >>>                    for exp_ in range(-13, 13, 4)])
         >>> secstr_list = [seconds_str(num, prefix=None) for num in num_list]
         >>> result = (', '.join(secstr_list))
         >>> print(result)
         0.04 ns, 0.42 us, 4.20 ms, 0.04 ks, 0.42 Ms, 4.20 Gs, 42.00 Ts
-
-    0.042 ns, 0.42 us, 4.2 ms, 0.042 ks, 0.42 Ms, 4.2 Gs, 42.0 Ts
-    #>>> print(',\n'.join(map(str, zip(secstr_list, num_list))))
     """
     exponent_list = [-12, -9, -6, -3, 0, 3, 6, 9, 12]
     small_prefix_list = ['p', 'n', 'u', 'm', '', 'k', 'M', 'G', 'T']
-    #large_prefix_list = ['pico', 'nano', 'micro', 'mili', '', 'kilo', 'mega', 'giga', 'tera']
+    #large_prefix_list = ['pico', 'nano', 'micro', 'mili', '', 'kilo', 'mega',
+    # 'giga', 'tera']
     #large_suffix = 'second'
     small_suffix = 's'
     suffix = small_suffix
@@ -654,7 +661,8 @@ if USE_GLOBAL_INFO:
 
     def var_aliased_repr(var, type_aliases):
         """
-        Replaces unweildy type strings with predefined more human-readable aliases
+        Replaces unweildy type strings with predefined more human-readable
+        aliases
 
         Args:
             var: some object
@@ -671,7 +679,8 @@ if USE_GLOBAL_INFO:
 
     def list_aliased_repr(list_, type_aliases=[]):
         """
-        Replaces unweildy type strings with predefined more human-readable aliases
+        Replaces unweildy type strings with predefined more human-readable
+        aliases
 
         Args:
             list_ (list): ``list`` to get repr
@@ -684,7 +693,8 @@ if USE_GLOBAL_INFO:
 
     def dict_aliased_repr(dict_, type_aliases=[]):
         """
-        Replaces unweildy type strings with predefined more human-readable aliases
+        Replaces unweildy type strings with predefined more human-readable
+        aliases
 
         Args:
             dict_ (dict): dictionary to get repr
@@ -857,7 +867,8 @@ def array_repr2(arr, max_line_width=None, precision=None, suppress_small=None,
     _typelessdata
 
     References:
-        http://stackoverflow.com/questions/28455982/why-are-there-two-np-int64s-in-numpy-core-numeric-typelessdata-why-is-numpy-in/28461928#28461928
+        http://stackoverflow.com/questions/28455982/why-are-there-two-np-int64s
+        -in-numpy-core-numeric-typelessdata-why-is-numpy-in/28461928#28461928
     """
     import numpy as np
     from numpy.core.numeric import _typelessdata
@@ -968,7 +979,8 @@ def _array2string2(a, max_line_width, precision, suppress_small, separator=' ',
                   'int' : arrayprint.IntegerFormat(data),
                   'float' : arrayprint.FloatFormat(data, precision, suppress_small),
                   'longfloat' : arrayprint.LongFloatFormat(precision),
-                  'complexfloat' : arrayprint.ComplexFormat(data, precision, suppress_small),
+                  'complexfloat' : arrayprint.ComplexFormat(data, precision,
+                                                            suppress_small),
                   'longcomplexfloat' : arrayprint.LongComplexFormat(precision),
                   'datetime' : arrayprint.DatetimeFormat(data),
                   'timedelta' : arrayprint.TimedeltaFormat(data),
@@ -1066,7 +1078,8 @@ def numpy_str(arr, strvals=False, precision=None, pr=None, force_dtype=True,
         precision = pr
     # TODO: make this a util_str func for numpy reprs
     if strvals:
-        valstr = np.array_str(arr, precision=precision, suppress_small=suppress_small, **kwargs)
+        valstr = np.array_str(arr, precision=precision,
+                              suppress_small=suppress_small, **kwargs)
     else:
         #valstr = np.array_repr(arr, precision=precision)
         valstr = array_repr2(arr, precision=precision, force_dtype=force_dtype,
@@ -1272,7 +1285,8 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
         precision (int): (default = 8)
         hack_liststr (bool): turn recursive liststr parsing on (default = False)
         truncate (bool): (default = False)
-        nl (None): prefered alias for newline. can be a coundown variable (default = None)
+        nl (int): prefered alias for newline. can be a coundown variable
+            (default = None)
         explicit (bool): (default = False)
         truncatekw (dict): (default = {})
         key_order (None): overrides default ordering (default = None)
@@ -1464,8 +1478,10 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
                 body_str = joinstr.join([itemstr for itemstr in itemstr_list])
                 braced_body_str = (leftbrace + '' + body_str + '' + rightbrace)
             else:
-                body_str = '\n'.join([ut.indent(itemstr) for itemstr in itemstr_list])
-                braced_body_str = (leftbrace + '\n' + body_str + '\n' + rightbrace)
+                body_str = '\n'.join([ut.indent(itemstr)
+                                      for itemstr in itemstr_list])
+                braced_body_str = (leftbrace + '\n' +
+                                   body_str + '\n' + rightbrace)
             retstr = braced_body_str
     else:
         sequence_str = ' '.join(itemstr_list)
@@ -1622,7 +1638,8 @@ def get_itemstr_list(list_, strvals=False, newlines=True, recursive=True,
             suppress_small = listkws.get('suppress_small', None)
             with_dtype = listkws.get('with_dtype', None)
             return numpy_str(val, strvals=strvals, precision=precision,
-                             suppress_small=suppress_small, with_dtype=with_dtype)
+                             suppress_small=suppress_small,
+                             with_dtype=with_dtype)
         elif precision is not None and (isinstance(val, (float)) or util_type.is_float(val)):
             return scalar_str(val, precision)
         else:
@@ -2368,8 +2385,10 @@ def format_text_as_docstr(text):
     import re
     min_indent = ut.get_minimum_indentation(text)
     indent_ =  ' ' * min_indent
-    formated_text = re.sub('^' + indent_, '' + indent_ + '>>> ', text, flags=re.MULTILINE)
-    formated_text = re.sub('^$', '' + indent_ + '>>> #', formated_text, flags=re.MULTILINE)
+    formated_text = re.sub('^' + indent_, '' + indent_ + '>>> ', text,
+                           flags=re.MULTILINE)
+    formated_text = re.sub('^$', '' + indent_ + '>>> #', formated_text,
+                           flags=re.MULTILINE)
     return formated_text
 
 
@@ -2490,7 +2509,7 @@ def to_title_caps(underscore_case):
 def to_underscore_case(camelcase_str):
     r"""
     References:
-        http://stackoverflow.com/questions/1175208/elegant-python-function-to-convert-camelcase-to-camel-case
+        http://stackoverflow.com/questions/1175208/convert-camelcase
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2911,6 +2930,7 @@ def format_multiple_paragraph_sentences(text, debug=False, **kwargs):
         # '\n? *\\\\item \\\\textbf{[^}]*}: *\n',
         '\n? *\\\\item \\\\textbf{[^:]*}: *\n',
         '\n? *\\\\section{[^}]*}\n',
+        '\n? *\\\\section{[^}]*}\\\\label{[^}]*}\n',
         '\n? *\\\\subsection{[^}]*}\n',
         '\n? *\\\\newcommand{[^}]*}.*\n',
         # generic multiline commands with text inside (like devcomment)
@@ -2945,13 +2965,15 @@ def format_multiple_paragraph_sentences(text, debug=False, **kwargs):
 
     collapse_pos_list = sorted(collapse_pos_list)[::-1]
     for pos in collapse_pos_list:
-        collapsed_sep = separators[pos - 1] + tofmt_block_list[pos] + separators[pos]
+        collapsed_sep = (separators[pos - 1] + tofmt_block_list[pos] +
+                         separators[pos])
         separators[pos - 1] = collapsed_sep
         del separators[pos]
         del tofmt_block_list[pos]
 
     if debug:
-        ut.colorprint('[fmt] tofmt_block_list = ' + ut.repr3(tofmt_block_list), 'white')
+        ut.colorprint('[fmt] tofmt_block_list = ' +
+                      ut.repr3(tofmt_block_list), 'white')
 
     #print(pattern)
     #print(separators)
@@ -2968,7 +2990,8 @@ def format_multiple_paragraph_sentences(text, debug=False, **kwargs):
     #    ut.colorprint('--- / FORMAT SENTENCE --- ', 'white')
     rejoined_list = list(ut.interleave((formated_block_list, separators)))
     if debug:
-        ut.colorprint('[fmt] formated_block_list = ' + ut.repr3(formated_block_list), 'turquoise')
+        ut.colorprint('[fmt] formated_block_list = ' +
+                      ut.repr3(formated_block_list), 'turquoise')
         #print(rejoined_list)
     formated_text = ''.join(rejoined_list)
     #ut.colorprint(formated_text.replace(' ', '_'), 'red')
@@ -2977,7 +3000,8 @@ def format_multiple_paragraph_sentences(text, debug=False, **kwargs):
 format_multi_paragraphs = format_multiple_paragraph_sentences
 
 
-def format_single_paragraph_sentences(text, debug=False, myprefix=True, sentence_break=True):
+def format_single_paragraph_sentences(text, debug=False, myprefix=True,
+                                      sentence_break=True):
     r"""
     helps me separatate sentences grouped in paragraphs that I have a difficult
     time reading due to dyslexia
@@ -2989,8 +3013,6 @@ def format_single_paragraph_sentences(text, debug=False, myprefix=True, sentence
         str: wrapped_text
 
     CommandLine:
-        #python  ~/local/vim/rc/pyvim_funcs.py --test-format_single_paragraph_sentences --exec-mode
-
         python -m utool.util_str --exec-format_single_paragraph_sentences --show
         python -m utool.util_str --exec-format_single_paragraph_sentences --show --nobreak
 
@@ -3186,7 +3208,8 @@ def format_single_paragraph_sentences(text, debug=False, myprefix=True, sentence
             wrapped_block = '\n'.join(wrapped_sentences)
         else:
             width = 80 - min_indent
-            wrapkw = dict(width=width, break_on_hyphens=False, break_long_words=False)
+            wrapkw = dict(width=width, break_on_hyphens=False,
+                          break_long_words=False)
             wrapped_block = '\n'.join(textwrap.wrap(text_, **wrapkw))
         # HACK for last nl
         last_is_nl = text.endswith('\n') and  not wrapped_block.endswith('\n')
