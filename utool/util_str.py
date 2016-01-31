@@ -2780,6 +2780,68 @@ def varinfo_str(varval, varname, onlyrepr=False, canshowrepr=True,
     return varinfo
 
 
+def testdata_text(num=1):
+    import utool as ut
+    #ut.util_dbg.COLORED_EXCEPTIONS = False
+    text = r'''
+        % COMMENT
+        Image matching relies on finding similar features between query and
+        database images, and there are many factors that can cause this to be
+        difficult.
+        % TALK ABOUT APPEARANCE HERE
+        Similar to issues seen in (1) instance and (2) face recognition,
+        images of animals taken ``in the wild'' contain many challenges such as
+        occlusion, distractors and variations in viewpoint, pose, illumination,
+        quality, and camera parameters.  We start the discussion of the problem
+        addressed in this thesis by considering examples of these challenges.
+
+        \distractorexample
+
+        \paragraph{foobar}
+        Occluders are objects in the foreground of an image that impact the
+        visibility of the features on the subject animal.
+         Both scenery and other animals are the main contributors of occlusion in
+        our dataset.
+         Occlusion from other animals is especially challenging because not only
+
+        \begin{enumerate} % Affine Adaptation Procedure
+           \item Compute the second moment matrix at the warped image patch defined by $\ellmat_i$.
+
+           \item If the keypoint is stable, stop.  If convergence has not been reached in
+                some number of iterations stop and discard the keypoint.
+
+           \item
+                  Update the affine shape  using the rule $\ellmat_{i + 1} =
+                \sqrtm{\momentmat} \ellmat_i$.
+                  This ensures the eigenvalues at the previously detected point
+                are equal in the new frame.
+                  If the keypoint is stable, it should be re-detected close to
+                the same location.
+                  (The square root of a matrix defined as:
+                $\sqrtm{\momentmatNOARG} \equiv \mat{X} \where \mat{X}^T\mat{X}
+                = \momentmatNOARG$.
+                  If $\momentmatNOARG$ is degenerate than $\mat{X}$ does not
+                exist.)
+        \end{enumerate}
+    '''.strip('\n') + '\n'
+
+    text2 = ut.codeblock(r'''
+        \begin{comment}
+        python -m ibeis -e rank_cdf -t invar -a viewdiff --test_cfgx_slice=6: --db PZ_Master1 --hargv=expt --prefix "Invariance+View Experiment "  # NOQA
+        \end{comment}
+        \ImageCommand{figuresX/expt_rank_cdf_PZ_Master1_a_viewdiff_t_invar.png}{\textwidth}{
+        Results of the invariance experiment with different viewpoints for plains
+        zebras.  Only the results with different viewpoints are shown.  The query and
+        database annotations are the same as those in the viewpoint experiment.  Thre
+        is less than a $2\percent$ gap between the best results with keypoint
+        invariance and the results without any keypoint invariance.  (Note that
+        invariance we we discuss here only refers to keypoint shape and not the
+        invariance that is implicit in the SIFT descriptor).
+        }{PZInvarViewExpt}
+    ''')  + '\n\n foobar foobar fooo. hwodefoobardoo\n\n'
+    return text if num == 1 else text2
+
+
 def regex_reconstruct_split(pattern, text, debug=False):
     import re
     #separators = re.findall(pattern, text)
@@ -2846,6 +2908,8 @@ def format_multiple_paragraph_sentences(text, debug=False, **kwargs):
 
         # paragraph commands
         '\n? *\\\\paragraph{[^}]*}\n',
+        # '\n? *\\\\item \\\\textbf{[^}]*}: *\n',
+        '\n? *\\\\item \\\\textbf{[^:]*}: *\n',
         '\n? *\\\\section{[^}]*}\n',
         '\n? *\\\\subsection{[^}]*}\n',
         '\n? *\\\\newcommand{[^}]*}.*\n',
@@ -3134,68 +3198,6 @@ def format_single_paragraph_sentences(text, debug=False, myprefix=True, sentence
     # Do the final indentation
     wrapped_text = ut.indent(wrapped_block, ' ' * min_indent)
     return wrapped_text
-
-
-def testdata_text(num=1):
-    import utool as ut
-    #ut.util_dbg.COLORED_EXCEPTIONS = False
-    text = r'''
-        % COMMENT
-        Image matching relies on finding similar features between query and
-        database images, and there are many factors that can cause this to be
-        difficult.
-        % TALK ABOUT APPEARANCE HERE
-        Similar to issues seen in (1) instance and (2) face recognition,
-        images of animals taken ``in the wild'' contain many challenges such as
-        occlusion, distractors and variations in viewpoint, pose, illumination,
-        quality, and camera parameters.  We start the discussion of the problem
-        addressed in this thesis by considering examples of these challenges.
-
-        \distractorexample
-
-        \paragraph{foobar}
-        Occluders are objects in the foreground of an image that impact the
-        visibility of the features on the subject animal.
-         Both scenery and other animals are the main contributors of occlusion in
-        our dataset.
-         Occlusion from other animals is especially challenging because not only
-
-        \begin{enumerate} % Affine Adaptation Procedure
-           \item Compute the second moment matrix at the warped image patch defined by $\ellmat_i$.
-
-           \item If the keypoint is stable, stop.  If convergence has not been reached in
-                some number of iterations stop and discard the keypoint.
-
-           \item
-                  Update the affine shape  using the rule $\ellmat_{i + 1} =
-                \sqrtm{\momentmat} \ellmat_i$.
-                  This ensures the eigenvalues at the previously detected point
-                are equal in the new frame.
-                  If the keypoint is stable, it should be re-detected close to
-                the same location.
-                  (The square root of a matrix defined as:
-                $\sqrtm{\momentmatNOARG} \equiv \mat{X} \where \mat{X}^T\mat{X}
-                = \momentmatNOARG$.
-                  If $\momentmatNOARG$ is degenerate than $\mat{X}$ does not
-                exist.)
-        \end{enumerate}
-    '''.strip('\n') + '\n'
-
-    text2 = ut.codeblock(r'''
-        \begin{comment}
-        python -m ibeis -e rank_cdf -t invar -a viewdiff --test_cfgx_slice=6: --db PZ_Master1 --hargv=expt --prefix "Invariance+View Experiment "  # NOQA
-        \end{comment}
-        \ImageCommand{figuresX/expt_rank_cdf_PZ_Master1_a_viewdiff_t_invar.png}{\textwidth}{
-        Results of the invariance experiment with different viewpoints for plains
-        zebras.  Only the results with different viewpoints are shown.  The query and
-        database annotations are the same as those in the viewpoint experiment.  Thre
-        is less than a $2\percent$ gap between the best results with keypoint
-        invariance and the results without any keypoint invariance.  (Note that
-        invariance we we discuss here only refers to keypoint shape and not the
-        invariance that is implicit in the SIFT descriptor).
-        }{PZInvarViewExpt}
-    ''')  + '\n\n foobar foobar fooo. hwodefoobardoo\n\n'
-    return text if num == 1 else text2
 
 
 if __name__ == '__main__':
