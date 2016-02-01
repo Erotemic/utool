@@ -2742,19 +2742,25 @@ def highlight_regex(str_, pat, reflags=0, color='red'):
     # from colorama import Fore, Style
     #color = Fore.MAGENTA
     # color = Fore.RED
-    match = re.search(pat, str_, flags=reflags)
-    if match is None:
-        return str_
-    else:
+    #match = re.search(pat, str_, flags=reflags)
+    matches = list(re.finditer(pat, str_, flags=reflags))
+
+    colored = str_
+
+    for match in reversed(matches):
+        #pass
+        #if match is None:
+        #    return str_
+        #else:
         start = match.start()
         end = match.end()
         #colorama.init()
-        colored_part = color_text(str_[start:end], color)
-        colored = str_[:start] + colored_part + str_[end:]
-        # colored = (str_[:start] + color + str_[start:end] +
-        #            Style.RESET_ALL + str_[end:])
+        colored_part = color_text(colored[start:end], color)
+        colored = colored[:start] + colored_part + colored[end:]
+        # colored = (colored[:start] + color + colored[start:end] +
+        #            Style.RESET_ALL + colored[end:])
         #colorama.deinit()
-        return colored
+    return colored
 
 
 def varinfo_str(varval, varname, onlyrepr=False, canshowrepr=True,
