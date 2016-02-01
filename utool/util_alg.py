@@ -895,6 +895,7 @@ def choose(n, k):
     N choose k
 
     binomial combination (without replacement)
+    scipy.special.binom
     """
     import scipy.misc
     return scipy.misc.comb(n, k, exact=True, repetition=False)
@@ -1411,6 +1412,49 @@ def edit_distance(string1, string2):
         ut.printex(ex, 'pip install Levenshtein')
         raise
     return Levenshtein.distance(string1, string2)
+
+
+def get_nth_bell_number(n):
+    """
+    Returns the (num_items - 1)-th Bell number using recursion.
+    The Bell numbers count the number of partitions of a set.
+
+    Args:
+        n (int): number of items in a set
+
+    Returns:
+        int:
+
+    References:
+        http://adorio-research.org/wordpress/?p=11460
+
+    CommandLine:
+        python -m utool.util_alg --exec-bell --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> n = 3
+        >>> result = get_nth_bell_number(n)
+        >>> print(result)
+        5
+    """
+    import utool as ut
+    import scipy.special
+    @ut.memoize
+    def bell_(n):
+        if n < 2:
+            return 1
+        sum_ = 0
+        for k in range(1, n + 1):
+            sum_ = sum_ + scipy.special.binom(n - 1, k - 1) * bell_(k - 1)
+        return sum_
+    nth_bell = bell_(n)
+    return nth_bell
+
+
+def num_partitions(num_items):
+    return get_nth_bell_number(num_items - 1)
 
 
 if __name__ == '__main__':

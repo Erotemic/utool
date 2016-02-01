@@ -3211,9 +3211,10 @@ def format_single_paragraph_sentences(text, debug=False, myprefix=True,
             wrapkw = dict(width=width, break_on_hyphens=False,
                           break_long_words=False)
             wrapped_block = '\n'.join(textwrap.wrap(text_, **wrapkw))
-        # HACK for last nl
+        # HACK for last nl (seems to only happen if nl follows a seperator)
         last_is_nl = text.endswith('\n') and  not wrapped_block.endswith('\n')
-        first_is_nl = text.startswith('\n') and not wrapped_block.startswith('\n')
+        first_is_nl = len(text) > 1 and text.startswith('\n') and not wrapped_block.startswith('\n')
+        # if last_is_nl and wrapped_block.strip().endswith('.'):
         if last_is_nl:
             wrapped_block += '\n'
         if first_is_nl:
