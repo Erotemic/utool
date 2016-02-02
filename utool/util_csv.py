@@ -117,10 +117,6 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
             raise
         return ('%d') % int(c)
 
-    import utool
-    utool.embed()
-
-
     try:
         # Loop over every column
         for col, lbl, coltype in zip(column_list, column_lbls, column_type):

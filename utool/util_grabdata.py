@@ -23,13 +23,18 @@ BadZipfile = zipfile.BadZipfile
 
 def archive_files(archive_fpath, fpath_list, small=True, allowZip64=False,
                   overwrite=False, verbose=True, common_prefix=False):
-    """
+    r"""
+    Adds the files in ``fpath_list`` to an zip/tar archive.
+
     Args:
         archive_fpath (str): path to zipfile to create
         fpath_list (list): path of files to add to the zipfile
-        small (bool): if True uses compression but the zipfile will take more time to write
+        small (bool): if True uses compression but the zipfile will take more
+            time to write
         allowZip64 (bool): use if a file is over 2GB
         overwrite (bool):
+        verbose (bool):  verbosity flag(default = True)
+        common_prefix (bool): (default = False)
 
     References:
         https://docs.python.org/2/library/zipfile.html
@@ -55,7 +60,7 @@ def archive_files(archive_fpath, fpath_list, small=True, allowZip64=False,
         >>> assert exists(archive_fpath), 'archive should exist'
 
     Ignore:
-        # http://superuser.com/questions/281573/what-are-the-best-options-to-use-when-compressing-files-using-7-zip
+        # http://superuser.com/questions/281573/best-options-compressing-files-7-zip
         # Create a small 7zip archive
         7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on archive.7z dir1
         7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on ibeis-linux-binary.7z ibeis
@@ -188,8 +193,8 @@ def _extract_archive(archive_fpath, archive_file, archive_namelist, output_dir,
 
 
 def open_url_in_browser(url, browsername=None, fallback=False):
-    """
-    open_url_in_browser
+    r"""
+    Opens a url in the specified or default browser
 
     Args:
         url (str): web url
@@ -244,7 +249,7 @@ def get_prefered_browser(pref_list=[], fallback=True):
 
     # Hack for finding chrome on win32
     if ut.WIN32:
-        # http://stackoverflow.com/questions/24873302/python-generic-webbrowser-get-open-for-chrome-exe-does-not-work
+        # http://stackoverflow.com/questions/24873302/webbrowser-chrome-exe-does-not-work
         win32_chrome_fpath = 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe'
         win32_chrome_browsername = win32_chrome_fpath + ' %s'
         win32_map = {
@@ -275,8 +280,6 @@ def get_prefered_browser(pref_list=[], fallback=True):
 def download_url(url, filename=None, spoof=False):
     r""" downloads a url to a filename.
 
-    download_url
-
     Args:
         url (str): url to download
         filename (str): path to download to. Defaults to basename of url
@@ -285,16 +288,14 @@ def download_url(url, filename=None, spoof=False):
     References:
         http://blog.moleculea.com/2012/10/04/urlretrieve-progres-indicator/
 
-    TODO: Delete any partially downloaded files
+    TODO:
+        Delete any partially downloaded files
 
     Example:
         >>> from utool.util_grabdata import *  # NOQA
         >>> url = 'http://www.jrsoftware.org/download.php/ispack.exe'
         >>> fpath = download_url(url)
         >>> print(fpath)
-        [utool] Downloading url='http://www.jrsoftware.org/download.php/ispack.exe' to filename='ispack.exe'
-        ...100%, 1 MB, 606 KB/s, 3 seconds passed
-        [utool] Finished downloading filename='ispack.exe'
         ispack.exe
     """
     # Weird that we seem to need this here for tests
@@ -348,7 +349,7 @@ def download_url(url, filename=None, spoof=False):
 
 
 def url_read(url, verbose=True):
-    """
+    r"""
     Directly reads data from url
     """
     if url.find('://') == -1:
@@ -366,23 +367,24 @@ def url_read(url, verbose=True):
 
 
 def experiment_download_multiple_urls(url_list):
-    """
+    r"""
     References:
-        http://stackoverflow.com/questions/1112343/how-do-i-capture-sigint-in-python
+        http://stackoverflow.com/questions/1112343/capture-sigint-in-python
+        http://stackoverflow.com/questions/16694907/download-large-file-requests
         GracefulInterruptHandler
-        http://stackoverflow.com/questions/16694907/how-to-download-large-file-in-python-with-requests-py
 
-    import signal
-    import sys
-    def signal_handler(signal, frame):
-            print('You pressed Ctrl+C!')
-            sys.exit(0)
-    signal.signal(signal.SIGINT, signal_handler)
-    print('Press Ctrl+C')
-    signal.pause()
+    Ignore:
+        import signal
+        import sys
+        def signal_handler(signal, frame):
+                print('You pressed Ctrl+C!')
+                sys.exit(0)
+        signal.signal(signal.SIGINT, signal_handler)
+        print('Press Ctrl+C')
+        signal.pause()
 
     Example:
-        >>>
+        >>> # UNSTABLE_DOCTEST
         >>> url_list = [
         >>>     'https://www.dropbox.com/s/jl506apezj42zjz/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe',   # NOQA
         >>>     'https://www.dropbox.com/s/v1ivnmny6tlc364/vgg.caffe.slice_0_30_None.pickle',
@@ -483,7 +485,7 @@ TESTIMG_URL_DICT = {
 
 
 def get_valid_test_imgkeys():
-    """ returns valid keys for grab_test_imgpath """
+    r""" returns valid keys for grab_test_imgpath """
     return list(TESTIMG_URL_DICT.keys())
 
 
@@ -507,7 +509,7 @@ def clear_test_img_cache():
 
 
 def grab_test_imgpath(key='lena.png', allow_external=True, verbose=True):
-    """
+    r"""
     Gets paths to standard / fun test images.
     Downloads them if they dont exits
 
@@ -551,7 +553,7 @@ def grab_test_imgpath(key='lena.png', allow_external=True, verbose=True):
 
 
 def grab_selenium_chromedriver():
-    """
+    r"""
     Automatically download selenium chrome driver if needed
 
     CommandLine:
@@ -614,17 +616,24 @@ def grab_selenium_driver(driver_name=None):
 
 def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
                   delay=None, spoof=False, fname=None, verbose=True, redownload=False):
-    """
-    grab_file_url
+    r"""
+    Downloads a file and returns the local path of the file.
+
+    The resulting file is cached, so multiple calls to this function do not
+    result in multiple dowloads.
 
     Args:
-        file_url (str):
-        ensure (bool):
-        appname (str):
-        download_dir (None):
-        delay (None):
-        spoof (bool):
-        fname (None):
+        file_url (str): url to the file
+        ensure (bool):  if False the file is assumed to be downloaed
+            (default = True)
+        appname (str): (default = 'utool')
+        download_dir custom directory (None): (default = None)
+        delay (None): delay time before download (default = None)
+        spoof (bool): (default = False)
+        fname (str):  custom file name (default = None)
+        verbose (bool):  verbosity flag (default = True)
+        redownload (bool): if True forces redownload of the file
+            (default = False)
 
     Returns:
         str: fpath
@@ -648,11 +657,10 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
         >>> redownload = True
         >>> fname ='lena.png'
         >>> lena_fpath = ut.grab_file_url(file_url, ensure, appname, download_dir,
-        ...     delay, spoof, fname, verbose, redownload)
+        >>>     delay, spoof, fname, verbose, redownload)
         >>> result = basename(lena_fpath)
         >>> print(result)
         lena.png
-
     """
     file_url = fix_dropbox_link(file_url)
     if fname is None:
@@ -710,7 +718,9 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool',
         >>> cleanup = False
         >>> redownload = False
         >>> spoof = False
-        >>> result = grab_zipped_url(zipped_url, ensure, appname, download_dir, force_commonprefix, cleanup, redownload, spoof)
+        >>> result = grab_zipped_url(zipped_url, ensure, appname, download_dir,
+        >>>                          force_commonprefix, cleanup, redownload,
+        >>>                          spoof)
         >>> print(result)
 
     Examples:
@@ -749,7 +759,8 @@ def geo_locate(default='Unknown', timeout=1):
     try:
         import urllib2
         import json
-        req = urllib2.Request('http://freegeoip.net/json/', headers={ 'User-Agent': 'Mozilla/5.0' })
+        req = urllib2.Request('http://freegeoip.net/json/',
+                              headers={'User-Agent': 'Mozilla/5.0' })
         f = urllib2.urlopen(req, timeout=timeout)
         json_string = f.read()
         f.close()
@@ -766,17 +777,6 @@ def geo_locate(default='Unknown', timeout=1):
         location_zip     = default
         location_country = default
     return success, location_city, location_state, location_country, location_zip
-
-
-def scp_pull(remote_path, local_path='.', remote='localhost', user=None):
-    import utool as ut
-    if user is not None:
-        remote_uri = user + '@' + remote + ':' + remote_path
-    else:
-        remote_uri = remote + ':' + remote_path
-    scp_exe = 'scp'
-    scp_args = (scp_exe, '-r', remote_uri, local_path)
-    ut.cmd(scp_args)
 
 
 def s3_dict_encode_to_str(s3_dict):
@@ -872,13 +872,28 @@ def grab_s3_contents(fpath, bucket, key, auth_access_id=None, auth_secret_key=No
     key.get_contents_to_filename(fpath)
 
 
+def scp_pull(remote_path, local_path='.', remote='localhost', user=None):
+    r""" wrapper for scp """
+    import utool as ut
+    if user is not None:
+        remote_uri = user + '@' + remote + ':' + remote_path
+    else:
+        remote_uri = remote + ':' + remote_path
+    scp_exe = 'scp'
+    scp_args = (scp_exe, '-r', remote_uri, local_path)
+    ut.cmd(scp_args)
+
+
 def rsync(src_uri, dst_uri, exclude_dirs=[], port=22, dryrun=False):
-    """
-    General function to push or pull a directory from a remote server to a local path
+    r"""
+    Wrapper for rsync
+
+    General function to push or pull a directory from a remote server to a
+    local path
 
     References:
         http://www.tecmint.com/rsync-local-remote-file-synchronization-commands/
-        http://serverfault.com/questions/219013/showing-total-progress-in-rsync-is-it-possible
+        http://serverfault.com/questions/219013/show-progress-in-rsync
 
     Notes (rsync commandline options):
         rsync [OPTION]... SRC [SRC]... DEST
@@ -918,7 +933,6 @@ if __name__ == '__main__':
     """
     CommandLine:
         sh -c "python ~/code/utool/utool/util_grabdata.py --all-examples"
-        python -c "import utool, utool.util_grabdata; utool.doctest_funcs(utool.util_grabdata)"
         python -m utool.util_grabdata
         python -m utool.util_grabdata --allexamples
     """
