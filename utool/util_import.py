@@ -39,6 +39,10 @@ def package_contents(package, with_pkg=False, with_mod=True, ignore_prefix=[],
         >>> print(ut.list_str(result))
     """
     import pkgutil
+    if not hasattr(package, '__path__'):
+        return [package.__name__]
+    #    pass
+    print('package = %r' % (package,))
     walker = pkgutil.walk_packages(package.__path__,
                                    prefix=package.__name__ + '.',
                                    onerror=lambda x: None)

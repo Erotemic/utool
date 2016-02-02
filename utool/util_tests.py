@@ -1491,8 +1491,26 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
             sys.exit(0)
 
 
-def execute_doctest(func, testnum=0):
+def execute_doctest(func, testnum=0, module=None):
+    """
+    Execute a function doctest. Can optionaly specify func name and module to
+    run from ipython notebooks.
+
+    Example:
+        >>> from utool.util_tests import *  # NOQA
+
+    IPython:
+        import utool as ut
+        ut.execute_doctest(func='dummy_example_depcacahe', module='dtool.example_depcache')
+    """
     import utool as ut
+    if isinstance(func, six.string_types):
+        funcname = func
+        if isinstance(module, six.string_types):
+            modname = module
+            module = ut.import_modname(modname)
+        func, _testno = find_testfunc(module, funcname, ignore_prefix=[],
+                                      ignore_suffix=[])
     # TODO RECTIFY WITH EXEC DOCTEST
     globals_ = {}
     testsrc = ut.get_doctest_examples(func)[0][testnum]
