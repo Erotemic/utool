@@ -579,6 +579,51 @@ def _magnitude_str(abs_num, magnitude, prefix_, suffix):
     return unit_str
 
 
+def parse_bytes(bytes_str):
+    """
+    uint8_size = ut.parse_bytes('1B')
+    image_size = ut.parse_bytes('3.5MB')
+    float32_size = ut.parse_bytes('32bit')
+    desc_size = 128 * uint8_size
+    kpts_size = 6 * float32_size
+    chip_size = ut.parse_bytes('400 KB')
+    probchip_size = ut.parse_bytes('50 KB')
+    nImgs = 80000 # 80,000
+    nAnnots = nImgs * 2
+    desc_per_img = 3000
+    size_stats = {
+        'image': nImgs * image_size,
+        'chips': nAnnots * chip_size,
+        'probchips': nAnnots * probchip_size,
+        'desc': nAnnots * desc_size * desc_per_img,
+        'kpts': nAnnots * kpts_size * desc_per_img,
+    }
+    print(ut.repr3(ut.map_dict_vals(ut.byte_str2, size_stats), align=True))
+    print('total = ' + ut.byte_str2(sum(size_stats.values())))
+    """
+    import utool as ut
+    import re
+    numstr = ut.named_field('num', r'\d\.?\d*')
+    unitstr = ut.named_field('unit', r'[a-zA-Z]+')
+    match = re.match(numstr + ' *' + unitstr, bytes_str)
+    nUnits = float(match.groupdict()['num'])
+    unit = match.groupdict()['unit'].upper()
+    nBytes = get_bytes(nUnits, unit)
+    return nBytes
+
+
+def get_bytes(nUnits, unit):
+    unitdict = {'TB': 2 ** 40, 'GB': 2 ** 30, 'MB': 2 ** 20, 'KB': 2 ** 10, 'B': 2 ** 0}
+    # https://en.wikipedia.org/wiki/Units_of_information#Obsolete_and_unusual_units
+    unitdict['BIT'] = 1 / 8
+    unitdict['CRUMB'] = 1 / 4
+    unitdict['NIBBLE'] = 1 / 2
+    unitdict['CHOMP'] = 2
+    unit_nBytes = unitdict[unit]
+    nBytes = unit_nBytes * nUnits
+    return nBytes
+
+
 def byte_str2(nBytes, precision=2):
     """
     Automatically chooses relevant unit (KB, MB, or GB) for displaying some
