@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 try:
     import numpy as np
 except ImportError as ex:
@@ -8,7 +8,7 @@ from six.moves import zip, map
 import six
 from utool import util_type
 from utool import util_inject
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[csv]')
+print, rrr, profile = util_inject.inject2(__name__, '[csv]')
 
 
 def numpy_to_csv(arr, col_lbls=None, header='', col_type=None):
@@ -55,6 +55,7 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
               3,      C
     """
     import utool as ut
+
     assert comma_repl.find(',') == -1, 'comma_repl cannot contain a comma!'
     if transpose:
         column_lbls, row_lbls = row_lbls, column_lbls
@@ -69,9 +70,9 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
         if isinstance(row_lbls, np.ndarray):
             row_lbls = row_lbls.tolist()
         column_list = [row_lbls] + column_list
-        column_lbls = ['ROWLBL'] + list(map(str, column_lbls))
+        column_lbls = ['ROWLBL'] + list(map(six.text_type, column_lbls))
         if column_type is not None:
-            column_type =  [str] + column_type
+            column_type =  [six.text_type] + column_type
     if len(column_list) == 0:
         print('[csv] No columns')
         return header
@@ -116,31 +117,35 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
             raise
         return ('%d') % int(c)
 
+    import utool
+    utool.embed()
+
+
     try:
         # Loop over every column
         for col, lbl, coltype in zip(column_list, column_lbls, column_type):
             # Loop over every row in the column (using list comprehension)
             if coltype is list or util_type.is_list(coltype):
                 #print('list')
-                #col_str = [str(c).replace(',', comma_repl).replace('.', '<dot>') for c in iter(col)]
-                col_str = [str(c).replace(',', ' ').replace('.', '<dot>') for c in col]
+                #col_str = [six.text_type(c).replace(',', comma_repl).replace('.', '<dot>') for c in (col)]
+                col_str = [six.text_type(c).replace(',', ' ').replace('.', '<dot>') for c in col]
             elif (coltype is float or
                   util_type.is_float(coltype) or
                   coltype == np.float32 or
                   util_type.is_valid_floattype(coltype)):
-                precision_fmtstr = '%.' + str(precision) + 'f'
+                precision_fmtstr = '%.' + six.text_type(precision) + 'f'
                 col_str = ['None' if r is None else precision_fmtstr % float(r) for r in col]
             elif coltype is int or util_type.is_int(coltype) or coltype == np.int64:
-                col_str = [_toint(c) for c in iter(col)]
-            elif coltype is str or coltype is six.text_type or  util_type.is_str(coltype):
+                col_str = [_toint(c) for c in (col)]
+            elif coltype is six.text_type or coltype is six.text_type or  util_type.is_str(coltype):
                 if coltype is six.text_type:
                     col_str = [six.text_type(c).replace(',', comma_repl) for c in col]
                 else:
-                    col_str = [str(c).replace(',', comma_repl) for c in col]
+                    col_str = [six.text_type(c).replace(',', comma_repl) for c in col]
             else:
                 print('[csv] is_unknown coltype=%r' % (coltype,))
-                col_str = [str(c) for c in iter(col)]
-            col_lens = [len(s) for s in iter(col_str)]
+                col_str = [six.text_type(c) for c in (col)]
+            col_lens = [len(s) for s in (col_str)]
             max_len  = max(col_lens)
             if use_lbl_width:
                 # The column label counts towards the column width
@@ -152,7 +157,8 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
         ut.printex(ex, keys=['col', 'lbl', 'coltype'])
         raise
 
-    _fmtfn = lambda maxlen: ''.join(['%', str(maxlen + 2), 's'])
+    def _fmtfn(maxlen):
+        return  ''.join(['%', six.text_type(maxlen + 2), 's'])
     fmtstr = ','.join([_fmtfn(maxlen) for maxlen in column_maxlen])
     try:
         csv_rows.append('# ' + fmtstr % tuple(column_lbls))
