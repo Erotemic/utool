@@ -452,7 +452,13 @@ def fix_dropbox_link(dropbox_url):
         dl.dropbox.com/foobar.zip
     """
     cleaned_url = dropbox_url.replace('www.dropbox', 'dl.dropbox')
-    cleaned_url = cleaned_url.rstrip('?dl=0')
+    postfix_list = [
+        '?dl=0'
+    ]
+    for postfix in postfix_list:
+        if cleaned_url.endswith(postfix):
+            cleaned_url = cleaned_url[:-1 * len(postfix)]
+    # cleaned_url = cleaned_url.rstrip('?dl=0')
     return cleaned_url
 
 
