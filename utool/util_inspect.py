@@ -35,6 +35,7 @@ def check_module_usage(modpath_partterns):
         python -m utool.util_inspect --exec-check_module_usage --show
         utprof.py -m utool.util_inspect --exec-check_module_usage --show
         python -m utool.util_inspect --exec-check_module_usage --pat="['auto*', 'user_dialogs.py', 'special_query.py', 'qt_inc_automatch.py', 'devcases.py']"
+        python -m utool.util_inspect --exec-check_module_usage --pat="preproc_detectimg.py"
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -42,22 +43,48 @@ def check_module_usage(modpath_partterns):
         >>> import utool as ut
         >>> modpath_partterns = ['_grave*']
         >>> modpath_partterns = ['auto*', 'user_dialogs.py', 'special_query.py', 'qt_inc_automatch.py', 'devcases.py']
+        >>> modpath_partterns = ut.get_argval('--pat', type_=list, default=['*'])
         >>> result = check_module_usage(modpath_partterns)
         >>> print(result)
     """
     import utool as ut
-    dpath = '~/code/ibeis/ibeis/algo/hots'
+    #dpath = '~/code/ibeis/ibeis/algo/hots'
+    dpath = '.'
     modpaths = ut.flatten([ut.glob(dpath, pat) for pat in modpath_partterns])
     modnames = ut.lmap(ut.get_modname_from_modpath, modpaths)
 
+    def get_funcnames_from_modpath(modpath):
+        import jedi
+        source = ut.read_from(modpath)
+        #script = jedi.Script(source=source, source_path=modpath, line=source.count('\n') + 1)
+        definition_list = jedi.names(source)
+        funcname_list = [definition.name for definition in definition_list if definition.type == 'function']
+        return funcname_list
+
+    cache = {}
+    func_call_graph = {}
     importance_dict = {}
 
-    # HACK: ut.parfor
-    # returns a 0 lenth iterator so the for loop is never run uses code
+    # Extract public members from each module
+    for modname, modpath in zip(modnames, modpaths):
+        funcname_list = get_funcnames_from_modpath(modpath)
+        for funcname in funcname_list:
+            pattern = '\\b' + funcname + '\\b',
+            # Search which module uses each public member
+            found_fpath_list, found_lines_list = ut.grep_projects(pattern, new=True, verbose=False, cache=cache)
+            parent_modnames = ut.lmap(ut.get_modname_from_modpath, found_fpath_list)
+            parent_numlines = ut.lmap(len, found_lines_list)
+            _callgraph = dict(zip(parent_modnames, parent_numlines))
+            # Remove self references
+            ut.delete_keys(_callgraph, modnames)
+            func_call_graph[modname] = _callgraph
+    print('func_call_graph = %s' % (ut.repr3(func_call_graph),))
+
+    # HACK: how to write ut.parfor
+    # returns a 0 lenth iterator so the for loop is never run. Then uses code
     # introspection to determine the content of the for loop body executes code
     # using the values of the local variables in a parallel / distributed
     # context.
-    cache = {}
 
     for modname, modpath in zip(modnames, modpaths):
         pattern = '\\b' + modname + '\\b',

@@ -545,7 +545,7 @@ def generate_primes(start_guess=2):
         guess += 1
 
 
-def knapsack(items, maxweight, recursive=True):
+def knapsack(items, maxweight, method='recursive'):
     r"""
     Solve the knapsack problem by finding the most valuable
     subsequence of `items` subject that weighs no more than
@@ -575,14 +575,67 @@ def knapsack(items, maxweight, recursive=True):
         python -m utool.util_alg --test-knapsack:0
         python -m utool.util_alg --exec-knapsack:1
 
+    Ignore:
+        maxweight = 2
+        items = [
+            (0.7005208343554686, 0.7005208343554686, 0),
+            (0.669270834329427, 0.669270834329427, 1),
+            (0.669270834329427, 0.669270834329427, 2),
+            (0.7005208343554686, 0.7005208343554686, 3),
+            (0.7005208343554686, 0.7005208343554686, 4),
+            (0.669270834329427, 0.669270834329427, 5),
+            (0.669270834329427, 0.669270834329427, 6),
+            (0.669270834329427, 0.669270834329427, 7),
+            (0.669270834329427, 0.669270834329427, 8),
+            (0.669270834329427, 0.669270834329427, 9),
+            (0.669270834329427, 0.669270834329427, 10),
+            (0.669270834329427, 0.669270834329427, 11),
+            (0.669270834329427, 0.669270834329427, 12),
+            (0.669270834329427, 0.669270834329427, 13),
+            (0.669270834329427, 0.669270834329427, 14),
+            (0.669270834329427, 0.669270834329427, 15),
+            (0.669270834329427, 0.669270834329427, 16),
+            (0.669270834329427, 0.669270834329427, 17),
+            (0.7005208343554686, 0.7005208343554686, 18),
+            (0.7005208343554686, 0.7005208343554686, 19),
+            (0.669270834329427, 0.669270834329427, 20),
+            (0.7005208343554686, 0.7005208343554686, 21),
+            (0.669270834329427, 0.669270834329427, 22),
+            (0.669270834329427, 0.669270834329427, 23),
+            (0.669270834329427, 0.669270834329427, 24),
+            (0.669270834329427, 0.669270834329427, 25),
+            (0.669270834329427, 0.669270834329427, 26),
+            (0.669270834329427, 0.669270834329427, 27),
+            (0.669270834329427, 0.669270834329427, 28),
+            (0.7005208343554686, 0.7005208343554686, 29),
+            (0.669270834329427, 0.669270834329427, 30),
+            (0.669270834329427, 0.669270834329427, 31),
+            (0.669270834329427, 0.669270834329427, 32),
+            (0.669270834329427, 0.669270834329427, 33),
+            (0.7005208343554686, 0.7005208343554686, 34),
+            (0.669270834329427, 0.669270834329427, 35),
+            (0.669270834329427, 0.669270834329427, 36),
+            (0.669270834329427, 0.669270834329427, 37),
+            (0.7005208343554686, 0.7005208343554686, 38),
+            (0.669270834329427, 0.669270834329427, 39),
+            (0.669270834329427, 0.669270834329427, 40),
+            (0.7005208343554686, 0.7005208343554686, 41),
+            (0.669270834329427, 0.669270834329427, 42),
+            (0.669270834329427, 0.669270834329427, 43),
+            (0.669270834329427, 0.669270834329427, 44),
+        ]
+        values = ut.take_column(values, 0)
+        weights = ut.take_column(weights, 0)
+
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> items = [(4, 12, 0), (2, 1, 1), (6, 4, 2), (1, 1, 3), (2, 2, 4)]
         >>> maxweight = 15
-        >>> total_value, items_subset = knapsack(items, maxweight, recursive=True)
-        >>> total_value1, items_subset1 = knapsack(items, maxweight, recursive=False)
+        >>> total_value, items_subset = knapsack(items, maxweight, method='recursive')
+        >>> total_value1, items_subset1 = knapsack(items, maxweight, method='iterative')
         >>> result =  'total_value = %.2f\n' % (total_value,)
         >>> result += 'items_subset = %r' % (items_subset,)
         >>> print(result)
@@ -599,8 +652,8 @@ def knapsack(items, maxweight, recursive=True):
         >>> weights = [2.15, 2.75, 3.35, 3.55, 4.2, 5.8] * 2
         >>> items = [(w, w, i) for i, w in enumerate(weights)]
         >>> maxweight = 15.05
-        >>> total_value, items_subset = knapsack(items, maxweight, recursive=True)
-        >>> total_value1, items_subset1 = knapsack(items, maxweight, recursive=False)
+        >>> total_value, items_subset = knapsack(items, maxweight, method='recursive')
+        >>> total_value1, items_subset1 = knapsack(items, maxweight, method='iterative')
         >>> total_weight = sum([t[1] for t in items_subset])
         >>> print('total_weight = %r' % (total_weight,))
         >>> result =  'total_value = %.2f' % (total_value,)
@@ -632,10 +685,12 @@ def knapsack(items, maxweight, recursive=True):
                 ''').split('\n')
         >>> ut.util_dev.timeit_compare(stmt_list1, setup, int(5))
     """
-    if recursive:
+    if method == 'recursive':
         return knapsack_recursive(items, maxweight)
-    else:
+    elif method == 'iterative':
         return knapsack_iterative(items, maxweight)
+    else:
+        raise NotImplementedError('[util_alg] knapsack method=%r' % (method,))
         #return knapsack_iterative_numpy(items, maxweight)
 
 
