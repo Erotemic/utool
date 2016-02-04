@@ -107,7 +107,7 @@ def write_to(fpath, to_write, aslines=False, verbose=None,
     if verbose or (verbose is None and __PRINT_WRITES__) or __FORCE_PRINT_WRITES__:
         print('[util_io] * Writing to text file: %r ' % util_path.tail(fpath, n=n))
 
-    backup = True and exists(fpath)
+    backup = False and exists(fpath)
     if backup:
         util_path.copy(fpath, fpath + '.backup')
 

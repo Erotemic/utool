@@ -547,14 +547,13 @@ def generate_primes(start_guess=2):
 
 def knapsack(items, maxweight, method='recursive'):
     r"""
-    Solve the knapsack problem by finding the most valuable
-    subsequence of `items` subject that weighs no more than
-    `maxweight`.
+    Solve the knapsack problem by finding the most valuable subsequence of
+    `items` subject that weighs no more than `maxweight`.
 
     Args:
-        items (tuple): is a sequence of tuples `(value, weight, id_)`, where `value`
-            is a number and `weight` is a non-negative integer, and `id_` is an
-            item identifier.
+        items (tuple): is a sequence of tuples `(value, weight, id_)`, where
+            `value` is a number and `weight` is a non-negative integer, and
+            `id_` is an item identifier.
 
         maxweight (scalar):  is a non-negative integer.
 
@@ -576,6 +575,7 @@ def knapsack(items, maxweight, method='recursive'):
         python -m utool.util_alg --exec-knapsack:1
 
     Ignore:
+        annots_per_view = 2
         maxweight = 2
         items = [
             (0.7005208343554686, 0.7005208343554686, 0),
@@ -624,8 +624,9 @@ def knapsack(items, maxweight, method='recursive'):
             (0.669270834329427, 0.669270834329427, 43),
             (0.669270834329427, 0.669270834329427, 44),
         ]
-        values = ut.take_column(values, 0)
-        weights = ut.take_column(weights, 0)
+        values = ut.take_column(items, 0)
+        weights = ut.take_column(items, 1)
+        indices = ut.take_column(items, 2)
 
 
     Example:
@@ -751,7 +752,7 @@ def knapsack_iterative(items, maxweight):
 
 
 def knapsack_iterative_int(items, maxweight):
-    """
+    r"""
     Iterative knapsack method
 
     Math:
