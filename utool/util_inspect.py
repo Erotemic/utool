@@ -25,17 +25,19 @@ VERBOSE_INSPECT, VERYVERB_INSPECT = util_arg.get_module_verbosity_flags('inspect
 LIB_PATH = dirname(os.__file__)
 
 
-@profile
+#@profile
 def check_module_usage(modpath_partterns):
     """
     Args:
-        modpath_partterns (?):
+        modpath_partterns (list):
 
     CommandLine:
         python -m utool.util_inspect --exec-check_module_usage --show
         utprof.py -m utool.util_inspect --exec-check_module_usage --show
         python -m utool.util_inspect --exec-check_module_usage --pat="['auto*', 'user_dialogs.py', 'special_query.py', 'qt_inc_automatch.py', 'devcases.py']"
         python -m utool.util_inspect --exec-check_module_usage --pat="preproc_detectimg.py"
+
+    Ignore:
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -44,6 +46,7 @@ def check_module_usage(modpath_partterns):
         >>> modpath_partterns = ['_grave*']
         >>> modpath_partterns = ['auto*', 'user_dialogs.py', 'special_query.py', 'qt_inc_automatch.py', 'devcases.py']
         >>> modpath_partterns = ut.get_argval('--pat', type_=list, default=['*'])
+        >>> modpath_partterns = ['test_result.py']
         >>> result = check_module_usage(modpath_partterns)
         >>> print(result)
     """
@@ -59,16 +62,23 @@ def check_module_usage(modpath_partterns):
         #script = jedi.Script(source=source, source_path=modpath, line=source.count('\n') + 1)
         definition_list = jedi.names(source)
         funcname_list = [definition.name for definition in definition_list if definition.type == 'function']
+        if True:
+            classdef_list = [definition for definition in definition_list if definition.type == 'class']
+            defined_methods = ut.flatten([definition.defined_names() for definition in classdef_list])
+            funcname_list += [method.name for method in defined_methods if method.type == 'function' and not method.name.startswith('_')]
         return funcname_list
 
     cache = {}
-    func_call_graph = {}
+    func_call_graph = ut.ddict(dict)
     importance_dict = {}
 
     # Extract public members from each module
-    for modname, modpath in zip(modnames, modpaths):
+    progiter = ut.ProgIter(list(zip(modnames, modpaths)))
+    for modname, modpath in progiter:
+        #progiter.prog_hook(
         funcname_list = get_funcnames_from_modpath(modpath)
-        for funcname in funcname_list:
+
+        for funcname in ut.ProgIter(funcname_list, lbl='funcs'):
             pattern = '\\b' + funcname + '\\b',
             # Search which module uses each public member
             found_fpath_list, found_lines_list = ut.grep_projects(pattern, new=True, verbose=False, cache=cache)
@@ -76,9 +86,20 @@ def check_module_usage(modpath_partterns):
             parent_numlines = ut.lmap(len, found_lines_list)
             _callgraph = dict(zip(parent_modnames, parent_numlines))
             # Remove self references
-            ut.delete_keys(_callgraph, modnames)
-            func_call_graph[modname] = _callgraph
+            #ut.delete_keys(_callgraph, modnames)
+            func_call_graph[modname][funcname] = _callgraph
     print('func_call_graph = %s' % (ut.repr3(func_call_graph),))
+
+    import copy
+    func_call_graph2 = copy.deepcopy(func_call_graph)
+    num_callers = ut.ddict(dict)
+    for modname, modpath in list(zip(modnames, modpaths)):
+        subdict = func_call_graph2[modname]
+        for funcname in subdict.keys():
+            _callgraph = subdict[funcname]
+            ut.delete_keys(_callgraph, modnames)
+            num_callers[modname][funcname] = sum(_callgraph.values())
+        print(ut.dict_str(num_callers[modname], sorted_=True, key_order_metric='val'))
 
     # HACK: how to write ut.parfor
     # returns a 0 lenth iterator so the for loop is never run. Then uses code

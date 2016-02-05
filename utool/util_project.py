@@ -353,10 +353,12 @@ def ibeis_user_profile():
         sys.path.append(module_dpath)
     __REPOS1__ = ut.import_module_from_fpath(module_fpath)
     self = UserProfile()
-    self.project_dpaths = __REPOS1__.PROJECT_REPOS
+    #self.project_dpaths = __REPOS1__.PROJECT_REPOS
+    self.project_dpaths = __REPOS1__.IBEIS_REPOS
     self.project_dpaths += [ut.truepath('~/latex/crall-candidacy-2015/')]
     self.project_include_patterns = [
-        '*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h', '*.vim'
+        #'*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h', '*.vim'
+        '*.py',  # '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h', '*.vim'
     ]
     self.project_exclude_dirs = [
         '_graveyard', '_broken', 'CompilerIdCXX', 'CompilerIdC', 'build',
@@ -439,12 +441,12 @@ def grep_projects(tofind_list, user_profile=None, verbose=True, new=False,
     print_ = msg_list1.append
     print_('Greping Projects')
     print_('tofind_list = %s' % (ut.list_str(tofind_list, nl=True),))
-    print_('grepkw = %s' % ut.dict_str(grepkw, nl=True))
+    #print_('grepkw = %s' % ut.dict_str(grepkw, nl=True))
     if verbose:
         print('\n'.join(msg_list1))
-    with ut.Timer('greping', verbose=True):
-        grep_result = ut.grep(tofind_list, **grepkw)
-        found_fpath_list, found_lines_list, found_lxs_list = grep_result
+    #with ut.Timer('greping', verbose=True):
+    grep_result = ut.grep(tofind_list, **grepkw)
+    found_fpath_list, found_lines_list, found_lxs_list = grep_result
 
     # HACK, duplicate behavior. TODO: write grep print result function
     reflags = grepkw.get('reflags', 0)

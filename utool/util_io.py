@@ -29,6 +29,7 @@ __PRINT_WRITES__ = __PRINT_IO__
 __PRINT_READS__  =  __PRINT_IO__
 __FORCE_PRINT_READS__ = False
 __FORCE_PRINT_WRITES__ = False
+__READ_TAIL_N__ = 3
 #__FORCE_PRINT_READS__ = True
 #__FORCE_PRINT_WRITES__ = True
 
@@ -136,7 +137,7 @@ def write_to(fpath, to_write, aslines=False, verbose=None,
                 raise
 
 
-def read_from(fpath, verbose=None, aslines=False, strict=True, n=3):
+def read_from(fpath, verbose=None, aslines=False, strict=True, n=None, errors='replace'):
     """ Reads text from a file. Automatically returns utf8.
 
     Args:
@@ -147,18 +148,27 @@ def read_from(fpath, verbose=None, aslines=False, strict=True, n=3):
     Returns:
         str: text from fpath (this is unicode)
     """
+    if n is None:
+        n = __READ_TAIL_N__
     if verbose or (verbose is None and __PRINT_READS__) or __FORCE_PRINT_READS__:
         print('[util_io] * Reading text file: %r ' % util_path.tail(fpath, n=n))
     try:
         if not util_path.checkpath(fpath, verbose=verbose, n=n):
             raise IOError('[io] * FILE DOES NOT EXIST!')
-        with open(fpath, 'r') as file_:
+        #with open(fpath, 'r') as file_:
+        with open(fpath, 'rb') as file_:
             if aslines:
-                text = file_.readlines()
+                #text = file_.readlines()
+                if six.PY2:
+                    text = [line.decode('utf8', errors=errors) for line in file_.readlines()]
+                else:
+                    text = file_.readlines()
             else:
                 # text = file_.read()
                 if six.PY2:
-                    text = file_.read().decode('utf8')
+                    text = file_.read().decode('utf8', errors=errors)
+                else:
+                    text = file_.read()
         return text
     except IOError as ex:
         from utool import util_dbg

@@ -1287,6 +1287,12 @@ def argsort(*args, **kwargs):
     return sortedby2(index_list, *args, **kwargs)
 
 
+def take_complement(list_, index_list):
+    """ Returns items in ``list_`` not indexed by index_list """
+    mask = not_list(index_to_boolmask(index_list, len(list_)))
+    return compress(list_, mask)
+
+
 def take(list_, index_list):
     """ like np.take but for lists
 

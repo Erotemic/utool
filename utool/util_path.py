@@ -1794,11 +1794,18 @@ def grepfile(fpath, regexpr_list, reflags=0, cache=None):
 
     Example:
         >>> # DISABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
         >>> import utool as ut
         >>> fpath = ut.get_modpath_from_modname(ut.util_path)
-        >>> regexpr_list = ['get_argflag', 'get_argval']
-        >>> result = ut.grepfile(fpath, regexpr_list)
+        >>> regexpr_list = ['foundthisline', '__future__']
+        >>> cache = None
+        >>> reflags = 0
+        >>> found_lines, found_lxs = ut.grepfile(fpath, regexpr_list)
+        >>> result = ut.repr3({'found_lines': found_lines, 'found_lxs': found_lxs})
         >>> print(result)
+        >>> assert 7 in found_lxs
+        >>> others = ut.take_complement(found_lxs, [found_lxs.index(7)])
+        >>> assert others[0] == others[1]
     """
     found_lines = []
     found_lxs = []
@@ -1806,34 +1813,82 @@ def grepfile(fpath, regexpr_list, reflags=0, cache=None):
     islist = isinstance(regexpr_list, (list, tuple))
     islist2 = isinstance(reflags, (list, tuple))
     regexpr_list_ = regexpr_list if islist else [regexpr_list]
-    reflags_list = reflags if islist2 else [reflags]
+    reflags_list = reflags if islist2 else [reflags] * len(regexpr_list_)
     re_list = [re.compile(pat, flags=_flags)
                for pat, _flags in  zip(regexpr_list_, reflags_list)]
+    #print('regexpr_list_ = %r' % (regexpr_list_,))
+    #print('re_list = %r' % (re_list,))
 
+    import numpy as np
     # Open file and search lines or use cache
     if cache is None or fpath not in cache:
-        with open(fpath, 'r') as file_:
-            lines = list(file_.readlines())
+        #with open(fpath, 'r') as file_:
+        #    lines = list(file_.readlines())
+        from utool import util_io
+        lines = util_io.read_from(fpath, aslines=True, verbose=False)
+        #import utool as ut
+        #cumsum = ut.cumsum(map(len, lines))
+        cumsum = np.cumsum(list(map(len, lines)))
+        text = ''.join(lines)
         if cache is not None:
-            cache[fpath] = lines
+            cache[fpath] = (cumsum, text, lines)
     else:
-        lines = cache[fpath]
+        (cumsum, text, lines) = cache[fpath]
 
     # Search each line for each pattern
-    for lx, line in enumerate(lines):
-        #for regexpr_ in regexpr_list_:
-        match_objects = [re_.search(line) for re_ in re_list]
-        for match in match_objects:
-            if match is not None:
-                found_lines.append(line)
-                found_lxs.append(lx)
-        #for re_ in re_list:
+    old_method = False
+    if old_method:
+        for lx, line in enumerate(lines):
+            #for regexpr_ in regexpr_list_:
+            match_objects = [re_.search(line) for re_ in re_list]
+            for match in match_objects:
+                if match is not None:
+                    found_lines.append(line)
+                    found_lxs.append(lx)
+    else:
+        for re_ in re_list:
             # FIXME: multiline mode doesnt work
-            #match_object = re.search(regexpr_, line, flags=reflags)
-            #match_object =
+            for match_object in re_.finditer(text):
+                #print('match_object = %r' % (match_object,))
+                lxs = np.where(match_object.start() < cumsum)[0][0:1]
+                if len(lxs) == 1:
+                    lx = lxs[0]
+                    if lx > 0:
+                        line_start = cumsum[lx - 1]
+                    else:
+                        line_start = 0
+                    line_end = cumsum[lx]
+                    line = text[line_start:line_end]
+                    found_lines.append(line)
+                    found_lxs.append(lx)
+                #[match_object.start > x for x in cumsum]
     return found_lines, found_lxs
 
 
+def testgrep():
+    """
+    utprof.py -m utool.util_path --exec-testgrep
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
+        >>> #dpath_list = [ut.truepath('~/code/utool/utool')]
+        >>> dpath_list = [ut.truepath(dirname(ut.__file__))]
+        >>> include_patterns = ['*.py']
+        >>> exclude_dirs = []
+        >>> regex_list = ['grepfile']
+        >>> verbose = True
+        >>> recursive = True
+        >>> result = ut.grep(regex_list, recursive, dpath_list, include_patterns,
+        >>>                  exclude_dirs)
+        >>> (found_fpath_list, found_lines_list, found_lxs_list) = result
+        >>> assert 'util_path.py' in list(map(basename, found_fpath_list))
+    """
+    pass
+
+
+# FIXME: util_test can't find the function if profile is enabled
 @profile
 def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
          exclude_dirs=[], greater_exclude_dirs=None, inverse=False,
@@ -1854,6 +1909,7 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
     CommandLine:
         python -m utool.util_path --test-grep
         utprof.py -m utool.util_path --exec-grep
+        utprof.py utool/util_path.py --exec-grep
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1864,7 +1920,7 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
         >>> include_patterns = ['*.py']
         >>> exclude_dirs = []
         >>> regex_list = ['grepfile']
-        >>> verbose = False
+        >>> verbose = True
         >>> recursive = True
         >>> result = ut.grep(regex_list, recursive, dpath_list, include_patterns,
         >>>                  exclude_dirs)

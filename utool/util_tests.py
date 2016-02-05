@@ -13,6 +13,8 @@ TODO:
 
     * restructure so there is a test collection step, a filtering step, and an
       execution step
+
+    * Fix finding tests when running with @profile
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
