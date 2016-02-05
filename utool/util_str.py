@@ -1218,6 +1218,10 @@ def list_str_summarized(list_, list_name, maxlen=5):
         return '%s=%r' % (list_name, list_)
 
 
+def countdown_flag(count_or_bool):
+    return _rectify_countdown_or_bool(count_or_bool)
+
+
 def _rectify_countdown_or_bool(count_or_bool):
     """
     used by recrusive functions to specify which level to turn a bool on in

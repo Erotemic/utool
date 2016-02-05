@@ -990,6 +990,22 @@ def are_you_sure(msg=''):
     return ans.lower() in valid_ans
 
 
+def grace_period(msg='', seconds=10):
+    """
+    Gives user a window to stop a process before it happens
+    """
+    import time
+    print(msg)
+    loops = 10
+    print('starting grace period')
+    for count in range(loops):
+        time.sleep(seconds / loops)
+        print('%d' % (count,))
+    time.sleep(seconds / loops)
+    print('grace period is over')
+    return True
+
+
 def tuples_to_unique_scalars(tup_list):
     seen = {}
     def addval(tup):
