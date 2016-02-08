@@ -1374,7 +1374,8 @@ class LazyDict(object):
 
     def nocache_eval(self, key):
         """ forces function evaluation """
-        value = self._eval_funcs[key]()
+        func_ = self._eval_funcs[key]
+        value = func_()
         return value
 
     def eager_eval(self, key):
@@ -1529,7 +1530,10 @@ class LazyList(object):
         try:
             return self._hackstore[index]
         except KeyError:
-            raise ValueError('index=%r out of bounds' % (index,))
+            #raise ValueError('index=%r out of bounds' % (index,))
+            raise ValueError(
+                'index=%r out of bounds or error computing lazy value.' % (
+                    index,))
 
     def append(self, item):
         self._hackstore[len(self._hackstore)] = item
