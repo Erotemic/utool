@@ -10,6 +10,36 @@ import sys
 print, rrr, profile = util_inject.inject2(__name__, '[import]')
 
 
+def possible_import_patterns(modname):
+    """
+    does not support from x import *
+    does not support from x import z, y
+
+    Example:
+        >>> import utool as ut
+        >>> modname = 'package.submod.submod2.module'
+        >>> result = ut.repr3(ut.possible_import_patterns(modname))
+        >>> print(result)
+        [
+            'import package.submod.submod2.module',
+            'from package.submod.submod2 import module',
+        ]
+    """
+    patterns = ['import %s' % (modname,)]
+    if '.' in modname:
+        parts = modname.split('.')
+        patterns += ['from %s import %s' % (
+            '.'.join(parts[0:-1]), parts[-1])]
+    NONSTANDARD = False
+    if NONSTANDARD:
+        if '.' in modname:
+            for i in range(1, len(parts) - 1):
+                patterns += ['from %s import %s' % (
+                    '.'.join(parts[i:-1]), parts[-1])]
+            patterns += ['import %s' % (parts[-1],)]
+    return patterns
+
+
 def package_contents(package, with_pkg=False, with_mod=True, ignore_prefix=[],
                      ignore_suffix=[]):
     r"""

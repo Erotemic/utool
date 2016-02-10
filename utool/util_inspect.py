@@ -36,6 +36,7 @@ def check_module_usage(modpath_partterns):
         utprof.py -m utool.util_inspect --exec-check_module_usage --show
         python -m utool.util_inspect --exec-check_module_usage --pat="['auto*', 'user_dialogs.py', 'special_query.py', 'qt_inc_automatch.py', 'devcases.py']"
         python -m utool.util_inspect --exec-check_module_usage --pat="preproc_detectimg.py"
+        python -m utool.util_inspect --exec-check_module_usage --pat="neighbor_index.py"
 
     Ignore:
 
@@ -46,7 +47,7 @@ def check_module_usage(modpath_partterns):
         >>> modpath_partterns = ['_grave*']
         >>> modpath_partterns = ['auto*', 'user_dialogs.py', 'special_query.py', 'qt_inc_automatch.py', 'devcases.py']
         >>> modpath_partterns = ut.get_argval('--pat', type_=list, default=['*'])
-        >>> modpath_partterns = ['test_result.py']
+        >>> modpath_partterns = ['neighbor_index.py']
         >>> result = check_module_usage(modpath_partterns)
         >>> print(result)
     """
@@ -72,34 +73,89 @@ def check_module_usage(modpath_partterns):
     func_call_graph = ut.ddict(dict)
     importance_dict = {}
 
+    # Find places where the module was imported
+    modname_fpath_lists = []
+    for modname in modnames:
+        patterns = ut.possible_import_patterns(modname)
+        patterns = [re.escape(pat) for pat in patterns]
+        # do modname grep with all possible import patterns
+        grepres = ut.grep_projects(patterns, new=True, verbose=True, cache=cache)
+        modname_fpath_lists += [grepres.found_fpath_list]
+
+    grep_results = ut.ddict(dict)
+
     # Extract public members from each module
-    progiter = ut.ProgIter(list(zip(modnames, modpaths)))
-    for modname, modpath in progiter:
+    progiter = ut.ProgIter(list(zip(modnames, modpaths, modname_fpath_lists)))
+    for modname, modpath, found_import_fpath_list in progiter:
         #progiter.prog_hook(
         funcname_list = get_funcnames_from_modpath(modpath)
 
         for funcname in ut.ProgIter(funcname_list, lbl='funcs'):
             pattern = '\\b' + funcname + '\\b',
             # Search which module uses each public member
-            found_fpath_list, found_lines_list = ut.grep_projects(pattern, new=True, verbose=False, cache=cache)
-            parent_modnames = ut.lmap(ut.get_modname_from_modpath, found_fpath_list)
-            parent_numlines = ut.lmap(len, found_lines_list)
+            #found_fpath_list, found_lines_list = ut.grep_projects(pattern, new=True, verbose=False, cache=cache)
+            grepres = ut.grep_projects(
+                pattern, new=True, verbose=False, cache=cache,
+                fpath_list=found_import_fpath_list)
+            parent_modnames = ut.lmap(ut.get_modname_from_modpath, grepres.found_fpath_list)
+            grepres.found_modnames = parent_modnames
+            parent_numlines = ut.lmap(len, grepres.found_lines_list)
             _callgraph = dict(zip(parent_modnames, parent_numlines))
             # Remove self references
             #ut.delete_keys(_callgraph, modnames)
+            grep_results[modname][funcname] = grepres
             func_call_graph[modname][funcname] = _callgraph
     print('func_call_graph = %s' % (ut.repr3(func_call_graph),))
 
     import copy
     func_call_graph2 = copy.deepcopy(func_call_graph)
+    #ignore_modnames = []
+    ignore_modnames = ['ibeis.algo.hots.multi_index', 'ibeis.algo.hots._neighbor_experiment']
     num_callers = ut.ddict(dict)
     for modname, modpath in list(zip(modnames, modpaths)):
         subdict = func_call_graph2[modname]
         for funcname in subdict.keys():
             _callgraph = subdict[funcname]
             ut.delete_keys(_callgraph, modnames)
+            ut.delete_keys(_callgraph, ignore_modnames)
             num_callers[modname][funcname] = sum(_callgraph.values())
         print(ut.dict_str(num_callers[modname], sorted_=True, key_order_metric='val'))
+
+    # Check external usage
+    unused_external = []
+    grep_results2 = copy.deepcopy(grep_results)
+    for modname, grepres_subdict in grep_results2.items():
+        for funcname, grepres_ in grepres_subdict.items():
+            idxs = ut.find_list_indexes(grepres_.found_modnames, modnames)
+            idxs += ut.find_list_indexes(grepres_.found_modnames, ignore_modnames)
+            idxs = list(ut.filter_Nones(idxs))
+            ut.delete_items_by_index(grepres_, idxs)
+            ut.delete_items_by_index(grepres_.found_modnames, idxs)
+            if len(grepres_) > 0:
+                print(grepres_.make_resultstr())
+            else:
+                unused_external += [funcname]
+
+
+    print('internal grep')
+    # Check internal usage
+    unused_internal = []
+    grep_results2 = copy.deepcopy(grep_results)
+    for modname, grepres_subdict in grep_results2.items():
+        for funcname, grepres_ in grepres_subdict.items():
+            idxs = ut.filter_Nones(ut.find_list_indexes(grepres_.found_modnames, [modname]))
+            idxs_ = ut.index_complement(idxs, len(grepres_.found_modnames))
+            ut.delete_items_by_index(grepres_, idxs_)
+            ut.delete_items_by_index(grepres_.found_modnames, idxs_)
+            grepres_.hack_remove_pystuff()
+            #self = grepres_
+            if len(grepres_) > 0:
+                #print(modname)
+                #print(funcname)
+                #print(grepres_.extended_regex_list)
+                print(grepres_.make_resultstr())
+            else:
+                unused_internal += [funcname]
 
     # HACK: how to write ut.parfor
     # returns a 0 lenth iterator so the for loop is never run. Then uses code
@@ -109,9 +165,9 @@ def check_module_usage(modpath_partterns):
 
     for modname, modpath in zip(modnames, modpaths):
         pattern = '\\b' + modname + '\\b',
-        found_fpath_list, found_lines_list = ut.grep_projects(pattern, new=True, verbose=False, cache=cache)
-        parent_modnames = ut.lmap(ut.get_modname_from_modpath, found_fpath_list)
-        parent_numlines = ut.lmap(len, found_lines_list)
+        grepres = ut.grep_projects(pattern, new=True, verbose=False, cache=cache)
+        parent_modnames = ut.lmap(ut.get_modname_from_modpath, grepres.found_fpath_list)
+        parent_numlines = ut.lmap(len, grepres.found_lines_list)
         importance = dict(zip(parent_modnames, parent_numlines))
         ut.delete_keys(importance, modnames)
         importance_dict[modname] = importance

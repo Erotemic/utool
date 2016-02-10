@@ -5,6 +5,7 @@ import six  # NOQA
 #from os.path import split, dirname, join
 from os.path import dirname, join
 from utool import util_class  # NOQA
+from utool import util_dev
 from utool import util_inject
 print, rrr, profile = util_inject.inject2(__name__, '[util_project]')
 
@@ -494,9 +495,80 @@ def grep_projects(tofind_list, user_profile=None, verbose=True, new=False,
     msg_list = msg_list1 + msg_list2
 
     if new:
-        return found_fpath_list, found_lines_list
+        return GrepResult(found_fpath_list, found_lines_list, found_lxs_list, extended_regex_list, reflags)
     else:
         return msg_list
+
+
+class GrepResult(util_dev.NiceRepr):
+    def __init__(self, found_fpath_list, found_lines_list,
+                 found_lxs_list, extended_regex_list, reflags):
+        self.found_fpath_list = found_fpath_list
+        self.found_lines_list = found_lines_list
+        self.found_lxs_list = found_lxs_list
+        self.extended_regex_list = extended_regex_list
+        self.reflags = reflags
+
+    def __nice__(self):
+        return '(%d)' % (len(self),)
+
+    def __len__(self):
+        return len(self.found_fpath_list)
+
+    def __delitem__(self, index):
+        import utool as ut
+        index = ut.ensure_iterable(index)
+        ut.delete_items_by_index(self.found_fpath_list, index)
+        ut.delete_items_by_index(self.found_lines_list, index)
+        ut.delete_items_by_index(self.found_lxs_list, index)
+
+    def remove_results(self, indicies):
+        del self[indicies]
+
+    def make_resultstr(self, colored=True):
+        import utool as ut
+        tup = (self.found_fpath_list, self.found_lines_list,
+               self.found_lxs_list)
+        return ut.make_grep_resultstr(tup, self.extended_regex_list,
+                                      self.reflags, colored=colored)
+
+    def hack_remove_pystuff(self):
+        import utool as ut
+        # Hack of a method
+        new_lines = []
+        for lines in self.found_lines_list:
+            # remove comment results
+            flags = [not line.strip().startswith('# ') for line in lines]
+            lines = ut.compress(lines, flags)
+
+            # remove doctest results
+            flags = [not line.strip().startswith('>>> ') for line in lines]
+            lines = ut.compress(lines, flags)
+
+            # remove cmdline tests
+            import re
+            flags = [not re.search('--test-' + self.extended_regex_list[0], line) for line in lines]
+            lines = ut.compress(lines, flags)
+
+            flags = [not re.search('--exec-' + self.extended_regex_list[0], line) for line in lines]
+            lines = ut.compress(lines, flags)
+
+            flags = [not re.search('--exec-[a-zA-z]*\.' + self.extended_regex_list[0], line) for line in lines]
+            lines = ut.compress(lines, flags)
+
+            flags = [not re.search('--test-[a-zA-z]*\.' + self.extended_regex_list[0], line) for line in lines]
+            lines = ut.compress(lines, flags)
+
+            # remove func defs
+            flags = [not re.search('def ' + self.extended_regex_list[0], line) for line in lines]
+            lines = ut.compress(lines, flags)
+            new_lines += [lines]
+        self.found_lines_list = new_lines
+
+        # compress self
+        flags = [len(lines_) > 0 for lines_ in self.found_lines_list]
+        idxs = ut.list_where(ut.not_list(flags))
+        del self[idxs]
 
 
 ## Grep my projects

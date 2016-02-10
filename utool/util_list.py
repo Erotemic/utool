@@ -1287,6 +1287,12 @@ def argsort(*args, **kwargs):
     return sortedby2(index_list, *args, **kwargs)
 
 
+def index_complement(index_list, len_=None):
+    mask = not_list(index_to_boolmask(index_list, len_))
+    index_list_bar = list_where(mask)
+    return index_list_bar
+
+
 def take_complement(list_, index_list):
     """ Returns items in ``list_`` not indexed by index_list """
     mask = not_list(index_to_boolmask(index_list, len(list_)))
