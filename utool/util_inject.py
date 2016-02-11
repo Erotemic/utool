@@ -31,7 +31,7 @@ QUIET = '--quiet' in sys.argv
 SILENT = '--silent' in sys.argv
 VERYVERBOSE = meta_util_arg.VERYVERBOSE
 VERBOSE = meta_util_arg.VERBOSE
-PRINT_INJECT_ORDER = meta_util_arg.PRINT_INJECT_ORDER
+PRINT_INJECT_ORDER = meta_util_arg.PRINT_INJECT_ORDER  # --verbinject
 # only word
 EXIT_ON_INJECT_MODNAME = meta_util_arg.get_argval('--exit-on-inject', type_=str, default=None)
 
