@@ -895,6 +895,35 @@ def get_comparison_methods():
     return method_list
 
 
+class HashComparableMetaclass(type):
+    """
+    Defines extra methods for Configs
+    """
+    def __new__(cls, name, bases, dct):
+        """
+        Args:
+            cls (type): meta
+            name (str): classname
+            supers (list): bases
+            dct (dict): class dictionary
+        """
+        method_list = get_comparison_methods()
+        for func in method_list:
+            if get_funcname(func) not in dct:
+                funcname = get_funcname(func)
+                dct[funcname] = func
+            else:
+                funcname = get_funcname(func)
+                dct['meta_' + funcname] = func
+            #ut.inject_func_as_method(metaself, func)
+        return type.__new__(cls, name, bases, dct)
+
+
+@six.add_metaclass(HashComparableMetaclass)
+class HashComparable(object):
+    pass
+
+
 class KwargsWrapper(collections.Mapping):
     """
     Allows an arbitrary object attributes to be passed as a **kwargs

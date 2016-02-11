@@ -26,7 +26,8 @@ if six.PY2:
             if isinstance(func, functools.partial):
                 return get_funcname(func.func)
             elif isinstance(func, six.class_types):
-                return str(func).replace('<class \'', '').replace('\'>', '')
+                return func.__name__
+                #return str(func).replace('<class \'', '').replace('\'>', '')
             else:
                 raise
         #except Exception as ex:

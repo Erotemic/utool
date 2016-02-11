@@ -136,7 +136,6 @@ def check_module_usage(modpath_partterns):
             else:
                 unused_external += [funcname]
 
-
     print('internal grep')
     # Check internal usage
     unused_internal = []

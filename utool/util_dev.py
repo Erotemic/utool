@@ -996,12 +996,10 @@ def grace_period(msg='', seconds=10):
     """
     import time
     print(msg)
-    loops = 10
     print('starting grace period')
-    for count in range(loops):
-        time.sleep(seconds / loops)
+    for count in reversed(range(seconds + 1)):
+        time.sleep(1)
         print('%d' % (count,))
-    time.sleep(seconds / loops)
     print('grace period is over')
     return True
 

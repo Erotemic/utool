@@ -721,12 +721,16 @@ def make_default_docstr(func,
     Ignore:
         pass
 
+    CommandLine:
+        python -m utool.util_autogen --exec-make_default_docstr --show
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_autogen import *  # NOQA
         >>> import utool as ut
         >>> func = ut.make_default_docstr
         >>> #func = ut.make_args_docstr
+        >>> func = PythonStatement
         >>> default_docstr = make_default_docstr(func)
         >>> result = str(default_docstr)
         >>> print(result)
