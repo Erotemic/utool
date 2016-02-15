@@ -2506,14 +2506,20 @@ class NiceRepr(object):
 
     """
     def __repr__(self):
-        classname = self.__class__.__name__
-        devnice = self.__nice__()
-        return '<%s%s at %s>' % (classname, devnice, hex(id(self)))
+        try:
+            classname = self.__class__.__name__
+            devnice = self.__nice__()
+            return '<%s%s at %s>' % (classname, devnice, hex(id(self)))
+        except AttributeError:
+            return super(NiceRepr, self).__repr__()
 
     def __str__(self):
-        classname = self.__class__.__name__
-        devnice = self.__nice__()
-        return '<%s%s>' % (classname, devnice)
+        try:
+            classname = self.__class__.__name__
+            devnice = self.__nice__()
+            return '<%s%s>' % (classname, devnice)
+        except AttributeError:
+            return super(NiceRepr, self).__str__()
 
 
 if __name__ == '__main__':
