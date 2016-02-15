@@ -6,6 +6,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import operator as op
 import decimal
 import six
+import itertools
 from six.moves import zip, range, reduce, map
 from collections import defaultdict
 from utool import util_type
@@ -237,6 +238,13 @@ def self_prodx(list_):
     return [(item1, item2)
             for n1, item1 in enumerate(list_)
             for n2, item2 in enumerate(list_) if n1 != n2]
+
+
+def product_nonsame(list1, list2):
+    """ product of list1 and list2 where items are non equal """
+    for item1, item2 in itertools.product(list1, list2):
+        if item1 != item2:
+            yield (item1, item2)
 
 
 def greedy_max_inden_setcover(candidate_sets_dict, items, max_covers=None):
