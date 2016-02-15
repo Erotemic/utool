@@ -2522,6 +2522,11 @@ class NiceRepr(object):
             return super(NiceRepr, self).__str__()
 
 
+def execstr_funckw(func):
+    """ for doctests """
+    import utool as ut
+    return ut.execstr_dict(ut.get_func_kwargs(func), explicit=True)
+
 if __name__ == '__main__':
     """
     CommandLine:
