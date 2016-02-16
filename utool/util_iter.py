@@ -1,17 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-#try:
-#    import numpy as np
-#except ImportError as ex:
-#    pass
 import six
 import itertools
 import functools
 from six.moves import zip, range, zip_longest, reduce
-from itertools import chain, cycle, islice
+from itertools import chain, cycle
 from utool import util_inject
 from utool._internal import meta_util_iter
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[iter]')
+print, rrr, profile = util_inject.inject2(__name__, '[iter]')
 
 ensure_iterable = meta_util_iter.ensure_iterable
 isiterable = meta_util_iter.isiterable
@@ -55,7 +51,9 @@ def next_counter(start=0, step=1):
 
 
 def evaluate_generator(iter_):
-    """ for evaluating each item in a generator and ignoring output """
+    """
+    for evaluating each item in a generator and ignoring output
+    """
     for _ in iter_:  # NOQA
         pass
     # TODO: check if faster
@@ -197,10 +195,6 @@ def itertwo(iterable, wrap=False):
     except StopIteration:
         return iter(())
     else:
-        #item_list = list(item_list)  # input can not be a consumable generator need to eagerly evaluate
-        #iter1 = iter(item_list)
-        #iter2 = iter(item_list) if not wrap else itertools.cycle(item_list)
-        #six.next(iter2)
         return zip(iter1, iter2)
 
 
@@ -260,13 +254,10 @@ def ifilter_Nones(iter_):
 
 
 def iflatten(list_):
-    """ flattens a list iteratively """
-    flat_iter = chain.from_iterable(list_)  # very fast flatten
+    r""" flattens a list iteratively """
+    # very fast flatten
+    flat_iter = chain.from_iterable(list_)
     return flat_iter
-
-
-def iflatten_scalars(list_):
-    [item for item in list_]
 
 
 def iter_multichunks(iterable, chunksizes, bordermode=None):
@@ -318,7 +309,7 @@ def iter_multichunks(iterable, chunksizes, bordermode=None):
 
 
 def ichunks(iterable, chunksize, bordermode=None):
-    """
+    r"""
     generates successive n-sized chunks from ``iterable``.
 
     Args:
@@ -327,7 +318,7 @@ def ichunks(iterable, chunksize, bordermode=None):
         bordermode (str): None, 'cycle', or 'replicate'
 
     References:
-        http://stackoverflow.com/questions/434287/what-is-the-most-pythonic-way-to-iterate-over-a-list-in-chunks
+        http://stackoverflow.com/questions/434287/iterate-over-a-list-in-chunks
 
     Timeit:
         >>> import utool as ut
@@ -340,7 +331,7 @@ def ichunks(iterable, chunksize, bordermode=None):
         ...     'list(ichunks(iterable, chunksize))',
         ...     'list(ichunks_list(iterable, chunksize))'
         ... ]
-        >>> (passed, time_list, result_list) = ut.timeit_compare(stmt_list, setup)
+        >>> (passed, times, results) = ut.timeit_compare(stmt_list, setup)
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -399,25 +390,24 @@ def ichunks(iterable, chunksize, bordermode=None):
 
 
 def ichunks_list(list_, chunksize):
-    """ input must be a list.
+    """
+    input must be a list.
 
     SeeAlso:
         ichunks
 
     References:
-        http://stackoverflow.com/questions/434287/what-is-the-most-pythonic-way-to-iterate-over-a-list-in-chunks
+        http://stackoverflow.com/questions/434287/to-iterate-over-a-list-in-chunks
     """
     return (list_[ix:ix + chunksize] for ix in range(0, len(list_), chunksize))
-    #for ix in range(0, len(list_), chunksize):
-    #    yield list_[ix: ix + chunksize]
 
 
 def interleave(args):
-    """
-    interleave
+    r"""
+    zip followed by flatten
 
     Args:
-        args (tuple):
+        args (tuple): tuple of lists to interleave
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -435,44 +425,6 @@ def interleave(args):
         yield six.next(iter_)
 
 
-def interleave2(*iterables):
-    #from six.moves import izip_longest
-    #izip_longest(args)
-    raise NotImplementedError('not sure if this implementation is correct')
-    return chain.from_iterable(zip(*iterables))
-
-
-def interleave3(*args):
-    cycle_iter = zip(*args)
-    raise NotImplementedError('not sure if this implementation is correct')
-    if six.PY2:
-        for iter_ in cycle_iter:
-            yield iter_.next()
-    else:
-        for iter_ in cycle_iter:
-            yield next(iter_)
-
-
-def roundrobin(*iterables):
-    """roundrobin('ABC', 'D', 'EF') --> A D E B F C"""
-    raise NotImplementedError('not sure if this implementation is correct')
-    # http://stackoverflow.com/questions/11125212/interleaving-lists-in-python
-    #sentinel = object()
-    #return (x for x in chain(*zip_longest(fillvalue=sentinel, *iterables)) if x is not sentinel)
-    pending = len(iterables)
-    if six.PY2:
-        nexts = cycle(iter(it).next for it in iterables)
-    else:
-        nexts = cycle(iter(it).__next__ for it in iterables)
-    while pending:
-        try:
-            for next in nexts:
-                yield next()
-        except StopIteration:
-            pending -= 1
-            nexts = cycle(islice(nexts, pending))
-
-
 def and_iters(*args):
     return (all(tup) for tup in zip(*args))
 
@@ -480,8 +432,6 @@ def and_iters(*args):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -c "import utool, utool.util_iter; utool.doctest_funcs(utool.util_iter, allexamples=True)"
-        python -c "import utool, utool.util_iter; utool.doctest_funcs(utool.util_iter)"
         python -m utool.util_iter
         python -m utool.util_iter --allexamples
     """

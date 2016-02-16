@@ -996,7 +996,11 @@ def grace_period(msg='', seconds=10):
     """
     import time
     print(msg)
+    override = util_arg.get_argflag(('--yes', '--y', '-y'))
     print('starting grace period')
+    if override:
+        print('ending based on command line flag')
+        return True
     for count in reversed(range(seconds + 1)):
         time.sleep(1)
         print('%d' % (count,))
@@ -1031,7 +1035,7 @@ def find_interesting_stats(stat_dict, col_lbls=None, lbl=None):
         else:
             sel_sortx = sortx
         sel_indices.extend(sel_sortx)
-    sel_indices = ut.unique_keep_order(sel_indices)
+    sel_indices = ut.unique_ordered(sel_indices)
     sel_stat_dict = ut.get_dict_column(stat_dict, sel_indices)
     sel_stat_dict = ut.order_dict_by(sel_stat_dict, STAT_KEY_ORDER)
     return sel_stat_dict, sel_indices
@@ -2328,7 +2332,7 @@ def search_module(mod, pat, ignore_case=True, recursive=False, _seen=None):
         for submod in submodules:
             found_list += search_module(submod, pat, ignore_case=ignore_case, recursive=recursive, _seen=_seen)
     # found_list = [name for name in dir(mod) if name.find(pat) >= 0]
-    found_list = ut.unique_keep_order(found_list)
+    found_list = ut.unique_ordered(found_list)
     return found_list
 
 
@@ -2526,6 +2530,13 @@ def execstr_funckw(func):
     """ for doctests """
     import utool as ut
     return ut.execstr_dict(ut.get_func_kwargs(func), explicit=True)
+
+
+def ifnone(default, value):
+    """
+    shorthand for inline if / else statements
+    """
+    return default if value is None else value
 
 if __name__ == '__main__':
     """

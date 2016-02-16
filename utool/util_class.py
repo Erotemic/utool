@@ -646,80 +646,7 @@ class ReloadingMetaclass(type):
     """
     def __init__(metaself, name, bases, dct):
         super(ReloadingMetaclass, metaself).__init__(name, bases, dct)
-        #print('Making rrr for %r' % (name,))
         rrr = private_rrr_factory()
-        #def rrr(self, verbose=True):
-        #    classname = self.__class__.__name__
-        #    try:
-        #        modname = self.__class__.__module__
-        #        if verbose:
-        #            print('reloading ' + classname + ' from ' + modname)
-        #        # --HACK--
-        #        if hasattr(self, '_on_reload'):
-        #            self._on_reload()
-
-        #        NEW = True
-        #        if NEW:
-        #            # Do for all inheriting classes
-        #            def find_base_clases(_class, find_base_clases=None):
-        #                class_list = []
-        #                for _baseclass in _class.__bases__:
-        #                    class_list.extend(find_base_clases(_baseclass, find_base_clases))
-        #                if _class is not object:
-        #                    class_list.append(_class)
-        #                return class_list
-
-        #            _class = self.__class__
-        #            class_list = find_base_clases(_class, find_base_clases)
-        #            for _class in class_list:
-        #                if verbose:
-        #                    print('reloading parent ' + _class.__name__ + '
-        #                    from ' + _class.__module__)
-        #                if _class.__module__ != '__main__':
-        #                    module_ = sys.modules[_class.__module__]
-        #                    if hasattr(module_, 'rrr'):
-        #                        module_.rrr()
-        #                    else:
-        #                        import imp
-        #                        imp.reload(module_)
-        #                _newclass = getattr(module_, _class.__name__)
-        #                reload_class_methods(self, _newclass)
-        #        else:
-        #            # --------
-        #            # Reload the parent module if it is not main
-        #            module = sys.modules[modname]
-        #            if modname != '__main__':
-        #                if hasattr(module, 'rrr'):
-        #                    module.rrr()
-        #                else:
-        #                    import imp
-        #                    imp.reload(module)
-        #            # --------
-        #            # Reload parent classes (if inherited)
-        #            # TODO: figure out how to do this
-        #            #for _baseclass in self.__class__.__bases__:
-        #            #    if hasattr(_baseclass, 'rrr'):
-        #            #        print('Reloading parent: %r' % (_baseclass))
-        #            #        # make a bound rrr method that belongs to the parent instance
-        #            #        base_rrr = _baseclass.rrr.__get__(self, _baseclass)
-        #            #        base_rrr(verbose=verbose)
-        #            # Get new class definition
-        #            class_ = getattr(module, classname)
-        #            reload_class_methods(self, class_)
-        #        # --HACK--
-        #        # TODO: handle injected definitions
-        #        if hasattr(self, '_initialize_self'):
-        #            self._initialize_self()
-        #    except Exception as ex:
-        #        import utool as ut
-        #        ut.printex(ex, 'Error Reloading Class', keys=[
-        #            'modname',
-        #            'module',
-        #            'class_',
-        #            'self', ])
-        #        #ut.embed()
-        #        #print(ut.dict_str(module.__dict__))
-        #        raise
         metaself.rrr = rrr
 
 
@@ -922,6 +849,13 @@ class HashComparableMetaclass(type):
 @six.add_metaclass(HashComparableMetaclass)
 class HashComparable(object):
     pass
+
+
+def reloadable_class(cls):
+    """
+    convinience decorator instead of @six.add_metaclass(ReloadingMetaclass)
+    """
+    return six.add_metaclass(ReloadingMetaclass)(cls)
 
 
 class KwargsWrapper(collections.Mapping):

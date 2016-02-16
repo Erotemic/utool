@@ -59,7 +59,7 @@ def get_system_python_library():
     libdirs = [x for x in ld_library_path.split(os.pathsep) if x] + ['/usr/lib']
     libfiles = ut.flatten([ut.glob(d, '*' + ut.get_lib_ext(), recursive=True) for d in libdirs])
     python_libs = [realpath(f) for f in libfiles if 'lib' + pyname in basename(f)]
-    python_libs = ut.unique_keep_order(python_libs)
+    python_libs = ut.unique_ordered(python_libs)
     assert len(python_libs) == 1, str(python_libs)
     return python_libs[0]
 
@@ -344,7 +344,7 @@ def get_dynlib_exports(lib_path):
                 others.append(line)
 
         # remove duplicate address spaces
-        info = ut.unique_keep_order(info)
+        info = ut.unique_ordered(info)
         # remove stdlib
         info = [line for line in info if 'std::' not in line[0]]
         info = [line for line in info if not line[0].startswith('typeinfo')]

@@ -984,7 +984,7 @@ def priority_sort(list_, priority):
     """
     # remove requested priority items not in the list
     priority_ = setintersect_ordered(priority, list_)
-    reordered_list = unique_keep_order(priority_ + list_)
+    reordered_list = unique_ordered(priority_ + list_)
     return reordered_list
 
 
@@ -1056,10 +1056,9 @@ def iflag_unique_items(list_):
     return flag_iter
 
 
-def unique_keep_order(list_):
+def unique_ordered(list_):
     """
-    pure python version of unique_keep_ordered
-    TODO: change name
+    Returns unique items in ``list_`` in the order they were seen.
 
     Args:
         list_ (list):
@@ -1068,13 +1067,13 @@ def unique_keep_order(list_):
         list: unique_list - unique list which maintains order
 
     CommandLine:
-        python -m utool.util_list --exec-unique_keep_order
+        python -m utool.util_list --exec-unique_ordered
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> list_ = [4, 6, 6, 0, 6, 1, 0, 2, 2, 1]
-        >>> unique_list = unique_keep_order(list_)
+        >>> unique_list = unique_ordered(list_)
         >>> result = ('unique_list = %s' % (str(unique_list),))
         >>> print(result)
         unique_list = [4, 6, 0, 1, 2]
@@ -1083,18 +1082,33 @@ def unique_keep_order(list_):
     unique_list = compress(list_, flag_list)
     return unique_list
 
-unique_ordered = unique_keep_order
-
 
 def unique_unordered(list_):
+    """
+    wrapper around list(set(list_))
+    """
     return list(set(list_))
+
+
+def unique(list_, ordered=True):
+    """
+    Returns unique items in ``list_``.
+    Generally, unordered (*should be) faster.
+    """
+    if ordered:
+        return unique_ordered(list_)
+    else:
+        return unique_unordered(list_)
+
+
+def flat_unique(*lists_, **kwargs):
+    """ returns items unique across all lists """
+    return unique(flatten(lists_), **kwargs)
 
 
 def setdiff(list1, list2):
     """
     returns list1 elements that are not in list2. preserves order of list1
-
-    setdiff_ordered
 
     Args:
         list1 (list):
@@ -1288,8 +1302,12 @@ def argsort(*args, **kwargs):
 
 
 def index_complement(index_list, len_=None):
-    mask = not_list(index_to_boolmask(index_list, len_))
-    index_list_bar = list_where(mask)
+    """
+    Returns the other indicies in a list of length ``len_``
+    """
+    mask1 = index_to_boolmask(index_list, len_)
+    mask2 = not_list(mask1)
+    index_list_bar = list_where(mask2)
     return index_list_bar
 
 
@@ -2010,7 +2028,7 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_cons
 
 
 def list_type(list_):
-    types =  unique_keep_order(list(map(type, list_)))
+    types =  unique_ordered(list(map(type, list_)))
     if len(types) == 1:
         return types[0]
     else:
@@ -2461,6 +2479,13 @@ list_zipcompress = zipcompress
 list_where = where
 list_take = take
 list_argsort = argsort
+
+
+#def partition2(list_, idxs1, idxs2):
+#    list1_ = ut.take(list_, idxs1)
+#    list2_ = list(zip(ut.take(list_, idxs2)))
+#    partitioned_items = [list1_, list2_]
+#    return partitioned_items
 
 
 if __name__ == '__main__':

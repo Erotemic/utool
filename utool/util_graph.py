@@ -12,6 +12,14 @@ def dict_depth(dict_, accum=0):
                 for key, val in dict_.items()])
 
 
+def edges_to_adjacency_list(edges):
+    import utool as ut
+    children_, parents_ = list(zip(*edges))
+    parent_to_children = ut.group_items(parents_, children_)
+    #to_leafs = {tablename: path_to_leafs(tablename, parent_to_children)}
+    return parent_to_children
+
+
 def paths_to_root(tablename, root, child_to_parents):
     """
 

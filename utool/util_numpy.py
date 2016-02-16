@@ -134,7 +134,7 @@ def intersect2d(A, B):
     return C, Ax, Bx
 
 
-#def unique_keep_order(arr):
+#def unique_ordered(arr):
     #""" pandas.unique preseves order and seems to be faster due to index overhead """
     #import pandas as pd
     #return pd.unique(arr)

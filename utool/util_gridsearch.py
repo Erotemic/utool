@@ -1177,7 +1177,7 @@ def get_cfgdict_list_subset(cfgdict_list, keys):
     import utool as ut
     cfgdict_sublist_ = [ut.dict_subset(cfgdict, keys) for cfgdict in cfgdict_list]
     cfgtups_sublist_ = [tuple(ut.dict_to_keyvals(cfgdict)) for cfgdict in cfgdict_sublist_]
-    cfgtups_sublist = ut.unique_keep_order(cfgtups_sublist_)
+    cfgtups_sublist = ut.unique_ordered(cfgtups_sublist_)
     cfgdict_sublist = list(map(dict, cfgtups_sublist))
     return cfgdict_sublist
 

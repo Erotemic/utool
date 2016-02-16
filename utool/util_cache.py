@@ -646,7 +646,7 @@ def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults,
     if key_argx is None:
         key_argx = list(range(len(args)))
     if key_kwds is None:
-        key_kwds = ut.unique_keep_order(list(kwdefaults.keys()) + list(kwargs.keys()))
+        key_kwds = ut.unique_ordered(list(kwdefaults.keys()) + list(kwargs.keys()))
 
     #def kwdval(key):
     #    return kwargs.get(key, kwdefaults.get(key, None))
