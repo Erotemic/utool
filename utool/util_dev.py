@@ -1001,9 +1001,10 @@ def grace_period(msg='', seconds=10):
     if override:
         print('ending based on command line flag')
         return True
-    for count in reversed(range(seconds + 1)):
+    for count in reversed(range(1, seconds + 1)):
         time.sleep(1)
         print('%d' % (count,))
+    print('%d' % (0,))
     print('grace period is over')
     return True
 
