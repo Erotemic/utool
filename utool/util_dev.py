@@ -2515,7 +2515,8 @@ class NiceRepr(object):
             devnice = self.__nice__()
             return '<%s%s at %s>' % (classname, devnice, hex(id(self)))
         except AttributeError:
-            return super(NiceRepr, self).__repr__()
+            return object.__repr__(self)
+            #return super(NiceRepr, self).__repr__()
 
     def __str__(self):
         try:
@@ -2523,7 +2524,8 @@ class NiceRepr(object):
             devnice = self.__nice__()
             return '<%s%s>' % (classname, devnice)
         except AttributeError:
-            return super(NiceRepr, self).__str__()
+            return object.__str__(self)
+            #return super(NiceRepr, self).__str__()
 
 
 def execstr_funckw(func):
