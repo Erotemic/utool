@@ -20,6 +20,29 @@ def edges_to_adjacency_list(edges):
     return parent_to_children
 
 
+def get_ancestor_levels(graph, tablename):
+    import networkx as nx
+    import utool as ut
+    root = nx.topological_sort(graph)[0]
+    reverse_edges = [(e2, e1) for e1, e2 in graph.edges()]
+    child_to_parents = ut.edges_to_adjacency_list(reverse_edges)
+    to_root = ut.paths_to_root(tablename, root, child_to_parents)
+    from_root = ut.reverse_path(to_root, root, child_to_parents)
+    ancestor_levels_ = ut.get_levels(from_root)
+    ancestor_levels = ut.longest_levels(ancestor_levels_)
+    return ancestor_levels
+
+
+def get_descendant_levels(graph, tablename):
+    #import networkx as nx
+    import utool as ut
+    parent_to_children = ut.edges_to_adjacency_list(graph.edges())
+    to_leafs = ut.path_to_leafs(tablename, parent_to_children)
+    descendant_levels_ = ut.get_levels(to_leafs)
+    descendant_levels = ut.longest_levels(descendant_levels_)
+    return descendant_levels
+
+
 def paths_to_root(tablename, root, child_to_parents):
     """
 
