@@ -2,8 +2,8 @@
 """
 progress handler.
 
-Old progress funcs needto be depricated ProgressIter and progress_chunks are
-pretty much the only useful things here.
+Old progress funcs needto be depricated ProgressIter and ProgChunks are pretty
+much the only useful things here.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import time
@@ -137,16 +137,18 @@ def get_nTotalChunks(nTotal, chunksize):
     return nTotalChunks
 
 
-def progress_chunks(list_, chunksize, **kwargs):
+def ProgChunks(list_, chunksize, nInput=None, **kwargs):
     """
     Yeilds an iterator in chunks and computes progress
     Progress version of ut.ichunks
     """
-    chunk_iter = util_iter.ichunks(list_, chunksize)
-    nTotalChunks = get_nTotalChunks(len(list_), chunksize)
+    if nInput is None:
+        nInput = len(list_)
+    nTotalChunks = get_nTotalChunks(nInput, chunksize)
+    kwargs['nTotal'] = nTotalChunks
     if 'freq' not in kwargs:
         kwargs['freq'] = 1
-    kwargs['nTotal'] = nTotalChunks
+    chunk_iter = util_iter.ichunks(list_, chunksize)
     progiter_ = ProgressIter(chunk_iter, **kwargs)
     return progiter_
 

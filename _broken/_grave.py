@@ -81,3 +81,52 @@ def interleave3(*args):
     else:
         for iter_ in cycle_iter:
             yield next(iter_)
+
+
+def commas(num, n=8):
+    if util_type.is_float(num):
+        #ret = sigfig_str(num, n=2)
+        ret = '%.3f' % num
+        return ret
+        #return fewest_digits_float_str(num, n)
+    return '%d' % num
+    #return int_comma_str(num)
+
+
+def fewest_digits_float_str(num, n=8):
+    int_part = int(num)
+    dec_part = num - int_part
+    x = decimal.Decimal(dec_part, decimal.Context(prec=8))
+    decimal_list = x.as_tuple()[1]
+    nonzero_pos = 0
+    for i in range(0, min(len(decimal_list), n)):
+        if decimal_list[i] != 0:
+            nonzero_pos = i
+    sig_dec = int(dec_part * 10 ** (nonzero_pos + 1))
+    float_str = int_comma_str(int_part) + '.' + str(sig_dec)
+    return float_str
+    #x.as_tuple()[n]
+
+
+def format_(num, n=8):
+    """
+        makes numbers pretty e.g.
+        nums = [9001, 9.053]
+        print([format_(num) for num in nums])
+    """
+    if num is None:
+        return 'None'
+    if util_type.is_float(num):
+        ret = ('%.' + str(n) + 'E') % num
+        exp_pos  = ret.find('E')
+        exp_part = ret[(exp_pos + 1):]
+        exp_part = exp_part.replace('+', '')
+        if exp_part.find('-') == 0:
+            exp_part = '-' + exp_part[1:].strip('0')
+        exp_part = exp_part.strip('0')
+        if len(exp_part) > 0:
+            exp_part = 'E' + exp_part
+        flt_part = ret[:exp_pos].strip('0').strip('.')
+        ret = flt_part + exp_part
+        return ret
+    return '%d' % num

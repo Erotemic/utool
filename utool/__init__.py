@@ -484,10 +484,10 @@ if DOELSE:
                                   make_score_tabular, make_stats_tabular, 
                                   make_table2, render, render_latex_text, 
                                   replace_all, tabular_join,) 
-    from utool.util_graph import (dict_depth, get_allkeys, get_levels, 
-                                  longest_levels, path_to_leafs, paths_to_root, 
-                                  reverse_path, shortest_levels, 
-                                  traverse_path,) 
+    from utool.util_graph import (dict_depth, edges_to_adjacency_list, 
+                                  get_allkeys, get_levels, longest_levels, 
+                                  path_to_leafs, paths_to_root, reverse_path, 
+                                  shortest_levels, traverse_path,) 
     from utool.util_hash import (ALPHABET, ALPHABET_16, ALPHABET_27, BIGBASE, 
                                  DictProxyType, HASH_LEN, augment_uuid, 
                                  convert_hexstr_to_bigbase, deterministic_uuid, 
@@ -512,7 +512,7 @@ if DOELSE:
                                    inject_profile_function, inject_python_code, 
                                    inject_python_code2, inject_reload_function, 
                                    memprof, noinject, 
-                                   split_python_text_into_lines, wraps,) 
+                                   split_python_text_into_lines,) 
     from utool.util_io import (HAS_H5PY, HAS_NUMPY, HAVE_LOCKFILE, load_cPkl, 
                                load_data, load_hdf5, load_numpy, load_pytables, 
                                load_text, lock_and_load_cPkl, 
@@ -521,9 +521,10 @@ if DOELSE:
                                save_numpy, save_pytables, save_text, 
                                try_decode, write_to, writeto,) 
     from utool.util_iter import (and_iters, cycle, ensure_iterable, 
-                                 evaluate_generator, ichunks, ichunks_list, 
-                                 ifilter_Nones, ifilter_items, 
-                                 ifilterfalse_items, iflatten, 
+                                 evaluate_generator, ichunks, ichunks_cycle, 
+                                 ichunks_list, ichunks_noborder, 
+                                 ichunks_replicate, ifilter_Nones, 
+                                 ifilter_items, ifilterfalse_items, iflatten, 
                                  iget_list_column, iget_list_column_slice, 
                                  interleave, isiterable, iter_compress, 
                                  iter_multichunks, iter_window, itertwo, 
@@ -574,8 +575,8 @@ if DOELSE:
                                  filterfalse_items, find_duplicate_items, 
                                  find_list_indexes, find_nonconsec_indices, 
                                  flag_None_items, flag_not_None_items, 
-                                 flag_unique_items, flatten, flattenize, 
-                                 get_dirty_items, get_list_column, 
+                                 flag_unique_items, flat_unique, flatten, 
+                                 flattenize, get_dirty_items, get_list_column, 
                                  get_list_column_slice, group_consecutives, 
                                  group_consecutives_numpy, iflag_unique_items, 
                                  index_complement, index_to_boolmask, 
@@ -608,12 +609,10 @@ if DOELSE:
                                  take_complement, take_percentile, tuplize, 
                                  type_profile, unflat_map, 
                                  unflat_unique_rowid_map, unflat_vecmap, 
-                                 unflatten, unflatten2, unique_ordered, 
-                                 unique_ordered, unique_unordered, where, 
-                                 where_not_None, xor_lists, zipcompress, 
-                                 ziptake,) 
-    from utool.util_num import (commas, fewest_digits_float_str, 
-                                float_to_decimal, format_, get_sys_maxfloat, 
+                                 unflatten, unflatten2, unique, unique_ordered, 
+                                 unique_unordered, where, where_not_None, 
+                                 xor_lists, zipcompress, ziptake,) 
+    from utool.util_num import (float_to_decimal, get_sys_maxfloat, 
                                 get_sys_maxint, get_sys_minint, int_comma_str, 
                                 num2_sigfig, num_fmt, order_of_magnitude_ceil, 
                                 sigfig_str,) 
@@ -669,10 +668,10 @@ if DOELSE:
     from utool.util_progress import (AGGROFLUSH, DEBUG_FREQ_ADJUST, 
                                      FORCE_ALL_PROGRESS, NO_PROGRESS, 
                                      PROGGRESS_BACKSPACE, PROGRESS_FLUSH, 
-                                     PROGRESS_WRITE, ProgIter, ProgPartial, 
-                                     ProgressIter, VALID_PROGRESS_TYPES, 
-                                     get_nTotalChunks, log_progress, progiter, 
-                                     progress_chunks, progress_str, 
+                                     PROGRESS_WRITE, ProgChunks, ProgIter, 
+                                     ProgPartial, ProgressIter, 
+                                     VALID_PROGRESS_TYPES, get_nTotalChunks, 
+                                     log_progress, progiter, progress_str, 
                                      simple_progres_func, test_progress,) 
     from utool.util_project import (GrepResult, UserProfile, ensure_text, 
                                     ensure_user_profile, grep_projects, 

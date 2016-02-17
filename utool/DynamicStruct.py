@@ -82,6 +82,9 @@ class DynStruct(Printable.AbstractPrintable):
         copy_.update(**kwargs)
         return copy_
 
+    def copy(self):
+        return self.to_dict()
+
     def execstr(self, local_name):
         """returns a string which when evaluated will
            add the stored variables to the current namespace

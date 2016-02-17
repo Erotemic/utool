@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six
 import itertools
 import functools
+import operator
 from six.moves import zip, range, zip_longest, reduce
 from itertools import chain, cycle
 from utool import util_inject
@@ -276,12 +277,10 @@ def iter_multichunks(iterable, chunksizes, bordermode=None):
         >>> multichunks = list(genresult)
         >>> depthprofile = ut.depth_profile(multichunks)
         >>> assert depthprofile[1:] == chunksizes, 'did not generate chunks correctly'
-        >>> result = ut.list_str(map(str, multichunks))
+        >>> result = ut.list_str(map(str, multichunks), nobr=True)
         >>> print(result)
-        [
-            '[[[0, 1, 2], [3, 4, 5]], [[6, 7, 8], [9, 10, 11]], [[12, 13, 14], [15, 16, 17]]]',
-            '[[[18, 19, 0], [1, 2, 3]], [[4, 5, 6], [7, 8, 9]], [[10, 11, 12], [13, 14, 15]]]',
-        ]
+        '[[[0, 1, 2], [3, 4, 5]], [[6, 7, 8], [9, 10, 11]], [[12, 13, 14], [15, 16, 17]]]',
+        '[[[18, 19, 0], [1, 2, 3]], [[4, 5, 6], [7, 8, 9]], [[10, 11, 12], [13, 14, 15]]]',
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -299,7 +298,6 @@ def iter_multichunks(iterable, chunksizes, bordermode=None):
         >>> print(result)
         [[0, 1, 2], [3, 4, 5], [6, 0, 1]]
     """
-    import operator
     chunksize = reduce(operator.mul, chunksizes)
     for chunk in ichunks(iterable, chunksize, bordermode=bordermode):
         reshaped_chunk = chunk
@@ -320,6 +318,12 @@ def ichunks(iterable, chunksize, bordermode=None):
     References:
         http://stackoverflow.com/questions/434287/iterate-over-a-list-in-chunks
 
+    SeeAlso:
+        util_progress.get_nTotalChunks
+
+    CommandLine:
+        python -m utool.util_iter --exec-ichunks --show
+
     Timeit:
         >>> import utool as ut
         >>> setup = ut.codeblock('''
@@ -329,7 +333,8 @@ def ichunks(iterable, chunksize, bordermode=None):
                 ''')
         >>> stmt_list = [
         ...     'list(ichunks(iterable, chunksize))',
-        ...     'list(ichunks_list(iterable, chunksize))'
+        ...     'list(ichunks_noborder(iterable, chunksize))',
+        ...     'list(ichunks_list(iterable, chunksize))',
         ... ]
         >>> (passed, times, results) = ut.timeit_compare(stmt_list, setup)
 
@@ -365,28 +370,55 @@ def ichunks(iterable, chunksize, bordermode=None):
         >>> print(result)
         [[1, 2, 3], [4, 5, 6], [7, 7, 7]]
     """
+    if bordermode is None:
+        return ichunks_noborder(iterable, chunksize)
+    elif bordermode == 'cycle':
+        return ichunks_cycle(iterable, chunksize)
+    elif bordermode == 'replicate':
+        return ichunks_replicate(iterable, chunksize)
+    else:
+        raise ValueError('unknown bordermode=%r' % (bordermode,))
+
+
+def ichunks_noborder(iterable, chunksize):
     # feed the same iter to zip_longest multiple times, this causes it to
     # consume successive values of the same sequence rather than striped values
     sentinal = object()
     copied_iterators = [iter(iterable)] * chunksize
     chunks_with_sentinals = zip_longest(*copied_iterators, fillvalue=sentinal)
     # Yeild smaller chunks without sentinals
-    if bordermode is None:
-        for chunk in chunks_with_sentinals:
-            yield [item for item in chunk if item is not sentinal]
-    elif bordermode == 'cycle':
-        bordervalues = cycle(iter(iterable))
-        for chunk in chunks_with_sentinals:
-            yield [item if item is not sentinal else six.next(bordervalues) for item in chunk]
-    elif bordermode == 'replicate':
-        for chunk in chunks_with_sentinals:
-            filtered_chunk = [item for item in chunk if item is not sentinal]
-            if len(filtered_chunk) == chunksize:
-                yield filtered_chunk
-            else:
-                sizediff = (chunksize - len(filtered_chunk))
-                padded_chunk = filtered_chunk + [filtered_chunk[-1]] * sizediff
-                yield padded_chunk
+    for chunk in chunks_with_sentinals:
+        yield [item for item in chunk if item is not sentinal]
+
+
+def ichunks_cycle(iterable, chunksize):
+    # feed the same iter to zip_longest multiple times, this causes it to
+    # consume successive values of the same sequence rather than striped values
+    sentinal = object()
+    copied_iterators = [iter(iterable)] * chunksize
+    chunks_with_sentinals = zip_longest(*copied_iterators, fillvalue=sentinal)
+    bordervalues = cycle(iter(iterable))
+    # Yeild smaller chunks without sentinals
+    for chunk in chunks_with_sentinals:
+        yield [item if item is not sentinal else six.next(bordervalues)
+               for item in chunk]
+
+
+def ichunks_replicate(iterable, chunksize):
+    # feed the same iter to zip_longest multiple times, this causes it to
+    # consume successive values of the same sequence rather than striped values
+    sentinal = object()
+    copied_iterators = [iter(iterable)] * chunksize
+    chunks_with_sentinals = zip_longest(*copied_iterators, fillvalue=sentinal)
+    # Yeild smaller chunks without sentinals
+    for chunk in chunks_with_sentinals:
+        filtered_chunk = [item for item in chunk if item is not sentinal]
+        if len(filtered_chunk) == chunksize:
+            yield filtered_chunk
+        else:
+            sizediff = (chunksize - len(filtered_chunk))
+            padded_chunk = filtered_chunk + [filtered_chunk[-1]] * sizediff
+            yield padded_chunk
 
 
 def ichunks_list(list_, chunksize):
@@ -397,7 +429,7 @@ def ichunks_list(list_, chunksize):
         ichunks
 
     References:
-        http://stackoverflow.com/questions/434287/to-iterate-over-a-list-in-chunks
+        http://stackoverflow.com/questions/434287/iterate-over-a-list-in-chunks
     """
     return (list_[ix:ix + chunksize] for ix in range(0, len(list_), chunksize))
 

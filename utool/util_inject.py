@@ -8,7 +8,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from six.moves import builtins, range, zip, map  # NOQA
 #import builtins
 import sys
-from functools import wraps
+import functools
 from utool._internal import meta_util_six
 from utool._internal import meta_util_arg
 from utool import util_logging
@@ -285,10 +285,10 @@ def DUMMYPROF_FUNC(func):
 
 
 def TIMERPROF_FUNC(func):
-    @wraps(func)
+    @functools.wraps(func)
     def prof_wrapper(*args, **kwargs):
-        import utool
-        with utool.Timer(meta_util_six.get_funcname(func)):
+        import utool as ut
+        with ut.Timer(meta_util_six.get_funcname(func)):
             return func(*args, **kwargs)
         #return ret
     return prof_wrapper
