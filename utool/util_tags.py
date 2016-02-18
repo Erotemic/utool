@@ -7,17 +7,11 @@ from utool import util_inject
 print, rrr, profile = util_inject.inject2(__name__, '[util_tags]')
 
 
-def filterflags_general_tags(tags_list,
-                             has_any=None,
-                             has_all=None,
-                             has_none=None,
-                             min_num=None,
-                             max_num=None,
-                             any_startswith=None,
-                             any_endswith=None,
-                             any_match=None,
-                             none_match=None,
-                             logic='and'):
+def filterflags_general_tags(tags_list, has_any=None, has_all=None,
+                             has_none=None, min_num=None, max_num=None,
+                             any_startswith=None, any_endswith=None,
+                             any_match=None, none_match=None, logic='and',
+                             ignore_case=True):
     r"""
     maybe integrate into utool? Seems pretty general
 
@@ -85,7 +79,10 @@ def filterflags_general_tags(tags_list,
     import utool as ut
 
     def fix_tags(tags):
-        return set([]) if tags is None else {six.text_type(t.lower()) for t in tags}
+        if ignore_case:
+            return set([]) if tags is None else {six.text_type(t.lower()) for t in tags}
+        else:
+            return set([]) if tags is None else {six.text_type() for t in tags}
 
     if logic is None:
         logic = 'and'
@@ -139,6 +136,8 @@ def filterflags_general_tags(tags_list,
     def execute_filter(flags, tags_list, fields, op, compare):
         if fields is not None:
             fields = ut.ensure_iterable(fields)
+            if ignore_case:
+                fields = [f.lower() for f in fields]
             flags_ = flag_tags(tags_list, fields, op, compare)
             logic_func(flags, flags_, out=flags)
         return flags

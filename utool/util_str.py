@@ -71,6 +71,13 @@ def ensure_unicode_strlist(str_list):
     return new_str_list
 
 
+def insert_before_sentinal(text, repl_, sentinal):
+    import re
+    parts = re.split('(' + sentinal + ')', text)
+    assert len(parts) == 3
+    return parts[0] + repl_ + parts[1] + parts[2]
+
+
 def replace_between_tags(text, repl_, start_tag, end_tag=None):
     r"""
     Replaces text between sentinal lines in a block of text.

@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import functools
 import six
+import codecs
 
 
 if six.PY2:
@@ -102,6 +103,10 @@ def ensure_unicode(str_):
         try:
             return __STR__(str_)
         except UnicodeDecodeError:
+            if str_.startswith(codecs.BOM_UTF8):
+                # Can safely remove the utf8 marker
+                # http://stackoverflow.com/questions/12561063/python-extract-data-from-file
+                str_ = str_[len(codecs.BOM_UTF8):]
             return str_.decode('utf-8')
     #if not isinstance(str_, __STR__) and is_byte_encoded_unicode(str_):
     #    return str_.decode('utf-8')

@@ -358,8 +358,8 @@ def ibeis_user_profile():
     self.project_dpaths = __REPOS1__.IBEIS_REPOS
     self.project_dpaths += [ut.truepath('~/latex/crall-candidacy-2015/')]
     self.project_include_patterns = [
-        #'*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h', '*.vim'
-        '*.py',  # '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h', '*.vim'
+        '*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h', '*.vim'
+        #'*.py',  # '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h', '*.vim'
     ]
     self.project_exclude_dirs = [
         '_graveyard', '_broken', 'CompilerIdCXX', 'CompilerIdC', 'build',

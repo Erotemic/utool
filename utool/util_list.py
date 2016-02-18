@@ -1186,6 +1186,9 @@ def sortedby(item_list, key_list, reverse=False):
         list : ``list_`` sorted by the values of another ``list``. defaults to
         ascending order
 
+    SeeAlso:
+        sortedby2
+
     Examples:
         >>> # ENABLE_DOCTEST
         >>> import utool

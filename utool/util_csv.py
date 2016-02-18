@@ -16,9 +16,20 @@ def numpy_to_csv(arr, col_lbls=None, header='', col_type=None):
     return make_csv_table(col_list, col_lbls, header, col_type)
 
 
+def read_csv(fpath):
+    """ reads csv in unicode """
+    import csv
+    import utool as ut
+    #csvfile = open(fpath, 'rb')
+    with open(fpath, 'rb') as csvfile:
+        row_iter = csv.reader(csvfile, delimiter=str(','), quotechar=str('|'))
+        row_list = [ut.lmap(ut.ensure_unicode, row) for row in row_iter]
+    return row_list
+
+
 def make_csv_table(column_list=[], column_lbls=None, header='',
                    column_type=None, row_lbls=None, transpose=False,
-                   precision=2, use_lbl_width=True, comma_repl='<comma>'):
+                   precision=2, use_lbl_width=True, comma_repl='<comma>', raw=False):
     """
     Creates a csv table with aligned columns
 
@@ -92,8 +103,9 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
         #column_type = [type(col[0]) for col in column_list]
 
     csv_rows = []
-    csv_rows.append(header)
-    csv_rows.append('# num_rows=%r' % num_data)
+    if not raw:
+        csv_rows.append(header)
+        csv_rows.append('# num_rows=%r' % num_data)
 
     column_maxlen = []
     column_str_list = []
@@ -157,8 +169,9 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
         return  ''.join(['%', six.text_type(maxlen + 2), 's'])
     fmtstr = ','.join([_fmtfn(maxlen) for maxlen in column_maxlen])
     try:
-        csv_rows.append('# ' + fmtstr % tuple(column_lbls))
-        #csv_rows.append('# ' + fmtstr % column_lbls)
+        if not raw:
+            csv_rows.append('# ' + fmtstr % tuple(column_lbls))
+            #csv_rows.append('# ' + fmtstr % column_lbls)
     except Exception as ex:
         #print(len(column_list))
         #ut.embed()
