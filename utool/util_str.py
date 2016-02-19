@@ -2278,7 +2278,7 @@ def number_text_lines(text):
     return text_with_lineno
 
 
-def get_textdiff(text1, text2, num_context_lines=0):
+def get_textdiff(text1, text2, num_context_lines=0, ignore_whitespace=False):
     r"""
     Uses difflib to return a difference string between two
     similar texts
@@ -2327,7 +2327,10 @@ def get_textdiff(text1, text2, num_context_lines=0):
     text2 = ensure_unicode(text2)
     text1_lines = text1.splitlines()
     text2_lines = text2.splitlines()
-    all_diff_lines = list(difflib.ndiff(text1_lines, text2_lines))
+    if ignore_whitespace:
+        all_diff_lines = list(difflib.ndiff(text1_lines, text2_lines, difflib.IS_LINE_JUNK, difflib.IS_CHARACTER_JUNK))
+    else:
+        all_diff_lines = list(difflib.ndiff(text1_lines, text2_lines))
     if num_context_lines is None:
         diff_lines = all_diff_lines
     else:
@@ -3284,6 +3287,39 @@ def format_single_paragraph_sentences(text, debug=False, myprefix=True,
     # Do the final indentation
     wrapped_text = ut.indent(wrapped_block, ' ' * min_indent)
     return wrapped_text
+
+
+def find_block_end(row, line_list, sentinal, direction=1):
+    """
+    Searches up and down until it finds the endpoints of a block
+    Rectify with find_paragraph_end in pyvim_funcs
+    """
+    import re
+    row_ = row
+    line_ = line_list[row_]
+    flag1 = row_ == 0 or row_ == len(line_list) - 1
+    flag2 = re.match(sentinal, line_)
+    if not (flag1 or flag2):
+        while True:
+            if (row_ == 0 or row_ == len(line_list) - 1):
+                break
+            line_ = line_list[row_]
+            if re.match(sentinal, line_):
+                break
+            row_ += direction
+    return row_
+
+
+def insert_block_between_lines(text, row1, row2, line_list, inplace=False):
+    lines = [line.encode('utf-8') for line in text.split('\n')]
+    if inplace:
+        buffer_tail = line_list[row2:]  # Original end of the file
+        new_tail = lines + buffer_tail
+        del line_list[row1 - 1:]  # delete old data
+        line_list.append(new_tail)  # append new data
+    else:
+        line_list = line_list[:row1 + 1] + lines + line_list[row2:]
+    return line_list
 
 
 if __name__ == '__main__':
