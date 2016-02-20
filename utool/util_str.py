@@ -2353,7 +2353,8 @@ def get_textdiff(text1, text2, num_context_lines=0, ignore_whitespace=False):
                 if valid:
                     diff_lines.append(line)
                 elif prev:
-                    diff_lines.append(visual_break)
+                    if False:
+                        diff_lines.append(visual_break)
                 prev = valid
         else:
             diff_lines = util_list.filter_items(all_diff_lines, isvalid_list)

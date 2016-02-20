@@ -477,6 +477,15 @@ def get_module_owned_functions(module):
     return list_
 
 
+def zzz_profiled_is_no():
+    pass
+
+
+@profile
+def zzz_profiled_is_yes():
+    pass
+
+
 def iter_module_doctestable(module, include_funcs=True, include_classes=True,
                             include_methods=True,
                             include_builtin=True,
@@ -501,14 +510,19 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
         tuple (str, callable): (funcname, func) doctestable
 
     CommandLine:
-        python -m utool --tf iter_module_doctestable --modname=ibeis.algo.hots.chip_match
-        python -m utool --tf iter_module_doctestable --modname=ibeis.control.IBEISControl
-        python -m utool --tf iter_module_doctestable --modname=ibeis.control.SQLDatabaseControl
-        python -m utool --tf iter_module_doctestable --modname=ibeis.control.manual_annot_funcs
-        python -m utool --tf iter_module_doctestable --modname=ibeis.control.manual_annot_funcs
-        python -m utool --tf iter_module_doctestable --modname=ibeis.expt.test_result
-        python -m utool --tf iter_module_doctestable --modname=utool.util_progress --debug-key=build_msg_fmtstr_time2
-        python -m utool --tf iter_module_doctestable --modname=utool.util_progress --debug-key=ProgressIter
+        python -m utool --tf iter_module_doctestable \
+            --modname=ibeis.algo.hots.chip_match
+            --modname=ibeis.control.IBEISControl
+            --modname=ibeis.control.SQLDatabaseControl
+            --modname=ibeis.control.manual_annot_funcs
+            --modname=ibeis.control.manual_annot_funcs
+            --modname=ibeis.expt.test_result
+            --modname=utool.util_progress --debug-key=build_msg_fmtstr_time2
+            --modname=utool.util_progress --debug-key=ProgressIter
+
+   Debug:
+       # fix profile with doctest
+       utprof.py -m utool --tf iter_module_doctestable --modname=utool.util_inspect --debugkey=zzz_profiled_is_yes
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -517,7 +531,8 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
         >>> modname = ut.get_argval('--modname', type_=str, default=None)
         >>> kwargs = ut.argparse_funckw(iter_module_doctestable)
         >>> module = ut.util_tests if modname is None else ut.import_modname(modname)
-        >>> #debug_key = ut.get_argval('--debugkey', type_=str, default=None)
+        >>> debug_key = ut.get_argval('--debugkey', type_=str, default=None)
+        >>> kwargs['debug_key'] = debug_key
         >>> doctestable_list = list(iter_module_doctestable(module, **kwargs))
         >>> func_names = sorted(ut.get_list_column(doctestable_list, 0))
         >>> print(ut.list_str(func_names))
@@ -556,8 +571,11 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
     for key, val in six.iteritems(module.__dict__):
         # <DEBUG>
         if debug_key is not None and key == debug_key:
-            import utool as ut
-            ut.embed()
+            print('DEBUG')
+            print('debug_key = %r' % (debug_key,))
+            exec('item = val')
+            # import utool as ut
+            # ut.embed()
         # </DEBUG>
         if hasattr(val, '__module__'):
             # HACK: todo. figure out true parent module
@@ -624,14 +642,16 @@ def is_defined_by_module(item, module):
     flag = False
     if isinstance(item, types.ModuleType):
         if not hasattr(item, '__file__'):
-            return False
-        item_modpath = os.path.realpath(dirname(item.__file__))
-        mod_fpath = module.__file__.replace('.pyc', '.py')
-        if not mod_fpath.endswith('__init__.py'):
-            return False
-        modpath = os.path.realpath(dirname(mod_fpath))
-        modpath = modpath.replace('.pyc', '.py')
-        return item_modpath.startswith(modpath)
+            flag = False
+        else:
+            item_modpath = os.path.realpath(dirname(item.__file__))
+            mod_fpath = module.__file__.replace('.pyc', '.py')
+            if not mod_fpath.endswith('__init__.py'):
+                flag = False
+            else:
+                modpath = os.path.realpath(dirname(mod_fpath))
+                modpath = modpath.replace('.pyc', '.py')
+                flag = item_modpath.startswith(modpath)
     elif hasattr(item, '_utinfo'):
         # Capture case where there is a utool wrapper
         orig_func = item._utinfo['orig_func']
@@ -642,7 +662,11 @@ def is_defined_by_module(item, module):
             item = item.__func__
         try:
             func_globals = meta_util_six.get_funcglobals(item)
-            if func_globals['__name__'] == module.__name__:
+            func_module_name = func_globals['__name__']
+            if func_module_name == 'line_profiler':
+                if item.func_name in dir(module) and len(item.func_name) > 8:
+                    flag = True
+            elif func_module_name == module.__name__:
                 flag = True
         except  AttributeError:
             if hasattr(item, '__module__'):
@@ -1755,7 +1779,8 @@ def recursive_parse_kwargs(root_func, path_=None):
         if subfunc is not None:
             subkw_list = recursive_parse_kwargs(subfunc)
             have_keys = set(ut.get_list_column(kwargs_list, 0))
-            new_subkw = [item for item in subkw_list if item[0] not in have_keys]
+            new_subkw = [item for item in subkw_list
+                         if item[0] not in have_keys]
         else:
             new_subkw = []
         return new_subkw

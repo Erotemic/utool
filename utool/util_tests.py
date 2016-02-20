@@ -299,9 +299,9 @@ def doctest_module_list(module_list):
     return nPass, nTotal, failed_cmd_list
 
 
-def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples=None,
-                  needs_enable=None, strict=False, verbose=True,
-                  return_error_report=False, seen_=None):
+def doctest_funcs(testable_list=None, check_flags=True, module=None,
+                  allexamples=None, needs_enable=None, strict=False,
+                  verbose=True, return_error_report=False, seen_=None):
     """
     Main entry point into utools main module doctest harness
     Imports a module and checks flags for the function to run
@@ -352,7 +352,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None, allexamples
     if ut.is_developer():
         ut.change_term_title('DocTest ' + ' '.join(sys.argv))
 
-    # parse out testable doctesttups
+    # PARSE OUT TESTABLE DOCTESTTUPS
     mod_doctest_tup = get_module_doctest_tup(
         testable_list, check_flags, module, allexamples, needs_enable, N=1,
         verbose=verbose)
@@ -1085,6 +1085,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         parse_testables = False
     #L________________________
     #+------------------------
+    # GET_MODULE_DOCTEST_TUP Step 1:
     # Inspect caller module for testable names
     if module is None:
         frame_fpath = '???'
@@ -1112,24 +1113,30 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         frame_fpath = module.__file__
         allexamples = True
     #L________________________
+
     #+------------------------
+    # GET_MODULE_DOCTEST_TUP Step 2:
+    # --- PARSE TESTABLE FUNCTIONS ---
+    # FIXME:
+    # BUG: We need to verify that this function actually belongs to this
+    # module. In util_type ndarray is imported and we try to parse it
+
     # Get testable functions
     if parse_testables:
         try:
             if verbose or VERBOSE_TEST and ut.NOT_QUIET:
-                print('[util_test.get module_doctest_tup] Iterating over module funcs')
-                print('[util_test.get module_doctest_tup] module =%r' % (module,))
+                print('[ut.test] Iterating over module funcs')
+                print('[ut.test] module =%r' % (module,))
 
-            for key, val in ut.iter_module_doctestable(module,
-                                                       include_inherited=False):
+            _testableiter = ut.iter_module_doctestable(module,
+                                                       include_inherited=False)
+            if __debug__:
+                _testableiter = list(_testableiter)
+            for key, val in _testableiter:
                 if isinstance(val, staticmethod):
                     docstr = inspect.getdoc(val.__func__)
                 else:
                     docstr = inspect.getdoc(val)
-                #docstr = ut.ensure_unicode(docstr)
-                # FIXME:
-                # BUG: We need to verify that this function actually belongs to this
-                # module. In util_type ndarray is imported and we try to parse it
                 docstr = ut.ensure_unicode(docstr)
                 if docstr is not None and docstr.find('Example') >= 0:
                     testable_name_list.append(key)
@@ -1137,21 +1144,23 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                 else:
                     if VERBOSE_TEST and ut.NOT_QUIET:
                         if docstr.find('Example') >= 0:
-                            print('[util_dev] Ignoring (disabled) : %s' % key)
+                            print('[ut.test] Ignoring (disabled) : %s' % key)
                         else:
-                            print('[util_dev] Ignoring (no Example) : %s' % key)
-                        #print('[util_dev] DOCTEST DISABLED: %s' % key)
+                            print('[ut.test] Ignoring (no Example) : %s' % key)
         except Exception as ex:
             print('FAILED')
             print(docstr)
             ut.printex(ex, keys=['frame'])
             raise
-    #if verbose:
-    #    for val in testable_list:
-    #        print('[util_dev] DOCTEST ENABLED: %s' % val)
+
+    # OUTPUTS: testable_list
     #L________________________
     #+------------------------
+    # GET_MODULE_DOCTEST_TUP Step 3:
+    # --- FILTER TESTABLES_---
+
     # Get testable function examples
+
     test_sentinals = [
         'ENABLE_DOCTEST',
         #'ENABLE_TEST',
