@@ -1382,15 +1382,46 @@ def hierarchical_group_items(item_list, groupids_list):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
         >>> import utool as ut
+        >>> item_list     = [1, 2, 3, 4]
+        >>> groupids_list = [[1, 1, 2, 2]]
+        >>> tree = hierarchical_group_items(item_list, groupids_list)
+        >>> result = ('tree = ' + ut.dict_str(tree, nl=len(groupids_list) - 1))
+        >>> print(result)
+        tree = {1: [1, 2], 2: [3, 4]}
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> item_list     = [1, 2, 3, 4, 5, 6, 7, 8]
         >>> groupids_list = [[1, 2, 1, 2, 1, 2, 1, 2], [3, 2, 2, 2, 3, 1, 1, 1]]
         >>> tree = hierarchical_group_items(item_list, groupids_list)
-        >>> result = ('tree = ' + ut.dict_str(tree, nl=1))
+        >>> result = ('tree = ' + ut.dict_str(tree, nl=len(groupids_list) - 1))
         >>> print(result)
         tree = {
             1: {1: [7], 2: [3], 3: [1, 5]},
             2: {1: [6, 8], 2: [2, 4]},
         }
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
+        >>> item_list     = [1, 2, 3, 4]
+        >>> groupids_list = [[1, 1, 1, 2], [1, 2, 2, 2], [1, 3, 1, 1]]
+        >>> tree = hierarchical_group_items(item_list, groupids_list)
+        >>> result = ('tree = ' + ut.dict_str(tree, nl=len(groupids_list) - 1))
+        >>> print(result)
+        tree = {
+            1: {
+                1: {1: [1]},
+                2: {1: [3], 3: [2]},
+            },
+            2: {
+                2: {1: [4]},
+            },
+        }
+
     """
     # Construct a defaultdict type with the appropriate number of levels
     num_groups = len(groupids_list)
@@ -1400,8 +1431,10 @@ def hierarchical_group_items(item_list, groupids_list):
         for _ in range(len(groupids_list) - 2):
             node_type = partial(defaultdict, node_type)
         root_type = node_type
+    elif num_groups == 1:
+        root_type = list
     else:
-        root_type = leaf_type
+        raise ValueError('must suply groupids')
     tree = defaultdict(root_type)
     #
     groupid_tuple_list = list(zip(*groupids_list))
@@ -1615,6 +1648,15 @@ class DictLike(object):
 
     def iterkeys(self):
         return (key for key in self.keys())
+
+
+def sort_dict(dict_):
+    """ enforces ordering on dict """
+    import utool as ut
+    keys = dict_.keys()
+    items = dict_.items()
+    sortx = ut.argsort(keys)
+    return ut.odict(ut.take(items, sortx))
 
 
 if __name__ == '__main__':

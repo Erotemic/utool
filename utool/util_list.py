@@ -1173,6 +1173,9 @@ def setintersect_ordered(list1, list2):
     return [item for item in list1 if item in set(list2)]
 
 
+setintersect = setintersect_ordered
+
+
 def sortedby(item_list, key_list, reverse=False):
     """ sorts ``item_list`` using key_list
 
