@@ -138,12 +138,6 @@ def theta_str(theta, taustr=TAUSTR, fmtstr='{coeff:,.1f}{taustr}'):
     r"""
     Format theta so it is interpretable in base 10
 
-    theta_str
-
-    CommandLine:
-        python utool/util_str.py --noface --nosrc --test-theta_str:0
-        python utool/util_str.py --noface --nosrc --test-theta_str:1
-
     Args:
         theta (float) angle in radians
         taustr (str): default 2pi
@@ -519,6 +513,30 @@ def packstr(instr, textwidth=160, breakchars=' ', break_words=True,
     if indentation != '':
         str_ = indent(str_, indentation)
     return str_
+
+
+def packtext(text, width=80):
+    r"""
+    Args:
+        text (str):
+
+    CommandLine:
+        python -m utool.util_str --exec-pack_paragraph --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> import utool as ut
+        >>> width = 80
+        >>> text = lorium_ipsum()
+        >>> result = packtext(text)
+        >>> print(result)
+    """
+    import utool as ut
+    import textwrap
+    new_text = '\n'.join(textwrap.wrap(text, width))
+    new_text = ut.remove_doublspaces(new_text).strip()
+    return new_text
 
 
 def joins(string, list_, with_head=True, with_tail=False, tostrip='\n'):

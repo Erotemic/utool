@@ -5,6 +5,155 @@ from utool import util_inject
 (print, rrr, profile) = util_inject.inject2(__name__, '[depgraph_helpers]')
 
 
+def testdata_graph():
+    import networkx as nx
+    import utool as ut
+    # Define adjacency list
+    graph = {
+        'a': ['b'],
+        'b': ['c', 'f', 'e'],
+        'c': ['g', 'd'],
+        'd': ['c', 'h'],
+        'e': ['a', 'f'],
+        'f': ['g'],
+        'g': ['f'],
+        'h': ['g', 'd'],
+        'i': ['j'],
+        'j': [],
+    }
+    #graph = {'a': ['b'], 'b': ['c'], 'c': ['d'], 'd': ['a']}
+    #graph = {'a': ['b'], 'b': ['c'], 'c': ['d'], 'd': ['e'], 'e': ['a']}
+    #graph = {'a': ['b'], 'b': ['c'], 'c': ['d'], 'd': ['e'], 'e': ['b']}
+    # Extract G = (V, E)
+    nodes = list(graph.keys())
+    edges = ut.flatten([[(v1, v2) for v2 in v2s] for v1, v2s in graph.items()])
+    G = nx.DiGraph()
+    G.add_nodes_from(nodes)
+    G.add_edges_from(edges)
+
+    if False:
+        G.remove_node('e')
+        del graph['e']
+
+        for val in graph.values():
+            try:
+                val.remove('e')
+            except ValueError:
+                pass
+
+    #ut.ensure_pylab_qt4()
+    #pt.show_netx(G, layout='pygraphviz')
+    return graph, G
+
+
+def find_odd_cycle():
+    r"""
+    CommandLine:
+        python -m utool.util_graph --exec-find_odd_cycle --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_graph import *  # NOQA
+        >>> import utool as ut
+        >>> result = find_odd_cycle()
+        >>> print(result)
+        >>> ut.show_if_requested()
+    """
+    import utool as ut
+    graph, G = testdata_graph()
+
+    seen_ = set()
+    roots = set()
+    meta = {
+        'clock': 0,
+        'pre': {},
+        'post': {},
+    }
+
+    def previsit(node):
+        meta['pre'][node] = meta['clock']
+        meta['clock'] += 1
+
+    def postvisit(node):
+        meta['post'][node] = meta['clock']
+        meta['clock'] += 1
+
+    def explore(graph, node, seen_):
+        # Mark visited
+        seen_.add(node)
+        previsit(node)
+        # Explore children
+        children = graph[node]
+        for child in children:
+            if child not in seen_:
+                explore(graph, child, seen_)
+        postvisit(node)
+
+    # Run Depth First Search
+    for node in graph.keys():
+        if node not in seen_:
+            roots.add(node)
+            explore(graph, node, seen_)
+
+    # Mark edge types
+    edge_types = {
+        (0, 1, 3, 2) : 'forward',
+        (1, 0, 2, 3): 'back',
+        (1, 3, 0, 2): 'cross',
+    }
+
+    #orderkeys = ['u[', 'v[', ']u', ']v']
+    edge_labels = {}
+    type_to_edges = ut.ddict(list)
+    for u, v in G.edges():
+        orders = [meta['pre'][u], meta['pre'][v], meta['post'][u], meta['post'][v]]
+        sortx = tuple(ut.argsort(orders))
+        #lbl = ut.take(orderkeys, sortx)
+        #print(sortx)
+        #print(' '.join(lbl))
+        type_ = edge_types[sortx]
+        edge_labels[(u, v)] = type_
+        #print('type_ = %r' % (type_,))
+        type_to_edges[type_].append((u, v))
+
+    # Check back edges
+    print('type_to_edges = %r' % (type_to_edges,))
+    is_odd_list = []
+    for back_edge in type_to_edges['back']:
+        u, v = back_edge
+        pre_v = meta['pre'][v]
+        post_u = meta['post'][u]
+        is_even = (post_u - pre_v) % 2 == 0
+        is_odd = not is_even
+        is_odd_list.append(is_odd)
+
+    if any(is_odd_list):
+        print("FOUND ODD CYCLE")
+    else:
+        print("NO ODD CYCLES")
+
+    # Visualize the graph
+    node_labels = {
+        node: (meta['pre'][node], meta['post'][node])
+        for node in graph
+    }
+
+    import networkx as nx
+    import plottool as pt
+    scc_list = list(nx.strongly_connected_components(G))
+
+    node_colors = {node: color for scc, color in zip(scc_list, pt.distinct_colors(len(scc_list))) for node in scc}
+    nx.set_node_attributes(G, 'label', node_labels)
+    nx.set_node_attributes(G, 'color', node_colors)
+    nx.set_edge_attributes(G, 'label', edge_labels)
+
+    ut.ensure_pylab_qt4()
+    #pt.figure(pt.next_fnum())
+    pt.show_netx(G, layout='pygraphviz')
+
+    #dfs(G)
+
+
 def dict_depth(dict_, accum=0):
     if not isinstance(dict_, dict):
         return accum
