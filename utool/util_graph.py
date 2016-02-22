@@ -21,13 +21,13 @@ def testdata_graph():
         'i': ['j'],
         'j': [],
     }
-    graph = {
-        'a': ['b'],
-        'b': ['c'],
-        'c': ['d'],
-        'd': ['a', 'e'],
-        'e': ['c'],
-    }
+    #graph = {
+    #    'a': ['b'],
+    #    'b': ['c'],
+    #    'c': ['d'],
+    #    'd': ['a', 'e'],
+    #    'e': ['c'],
+    #}
     #graph = {'a': ['b'], 'b': ['c'], 'c': ['d'], 'd': ['a']}
     #graph = {'a': ['b'], 'b': ['c'], 'c': ['d'], 'd': ['e'], 'e': ['a']}
     #graph = {'a': ['b'], 'b': ['c'], 'c': ['d'], 'd': ['e'], 'e': ['b']}
@@ -49,12 +49,140 @@ def testdata_graph():
                 pass
 
     #ut.ensure_pylab_qt4()
-    #pt.show_netx(G, layout='pygraphviz')
+    pt.show_netx(G, layout='pygraphviz')
     return graph, G
+
+
+def dfs_template(graph, previsit, postvisit):
+    seen_ = set()
+    meta = {}  # NOQA
+
+    def previsit(parent):
+        pass
+
+    def postvisit(parent):
+        pass
+
+    def explore(graph, parent, seen_):
+        # Mark visited
+        seen_.add(parent)
+        previsit(parent)
+        # Explore children
+        children = graph[parent]
+        for child in children:
+            if child not in seen_:
+                explore(graph, child, seen_)
+        postvisit(parent)
+
+    # Run Depth First Search
+    for node in graph.keys():
+        if node not in seen_:
+            explore(graph, node, seen_)
+
+
+def topsort_dfs(G, previsit, postvisit):
+
+    Gr = G.reverse()
+    graph = dict(zip(Gr.nodes(), Gr.adjacency_list()))
+
+    seen_ = set()
+    meta = {
+        'clock': 0,
+        'pre': {},
+        'post': {},
+    }
+
+    def previsit(parent):
+        meta['pre'][parent] = meta['clock']
+        meta['clock'] += 1
+
+    def postvisit(parent):
+        meta['post'][parent] = meta['clock']
+        meta['clock'] += 1
+
+    def explore(graph, parent, seen_):
+        # Mark visited
+        seen_.add(parent)
+        previsit(parent)
+        # Explore children
+        children = graph[parent]
+        for child in children:
+            if child not in seen_:
+                explore(graph, child, seen_)
+        postvisit(parent)
+
+    # Run Depth First Search
+    nodes = graph.keys()
+    import numpy as np
+    np.random.shuffle(nodes)
+
+    for node in nodes:
+        if node not in seen_:
+            explore(graph, node, seen_)
+
+    #for node in nodes:
+    #    postorder = list(nx.dfs_postorder_nodes(Gr, node))
+
+    top_sort_order = ut.sortedby(meta['post'].keys(), meta['post'].values())
+    print('top_sort_order = %r' % (top_sort_order,))
+
+    graph = dict(zip(G.nodes(), G.adjacency_list()))
+
+    seen_ = set()
+    meta = {
+        'clock': 0,
+        'pre': {},
+        'post': {},
+    }
+
+    def previsit(parent):
+        meta['pre'][parent] = meta['clock']
+        meta['clock'] += 1
+
+    def postvisit(parent):
+        meta['post'][parent] = meta['clock']
+        meta['clock'] += 1
+
+    def explore(graph, parent, seen_):
+        # Mark visited
+        seen_.add(parent)
+        previsit(parent)
+        # Explore children
+        children = graph[parent]
+        for child in children:
+            if child not in seen_:
+                explore(graph, child, seen_)
+        postvisit(parent)
+
+    # Run Depth First Search
+    strongly_connected_compoments = []
+
+    for node in reversed(top_sort_order):
+        if node not in seen_:
+            before = seen_.copy()
+            explore(graph, node, seen_)
+            strongly_connected_compoments.append(seen_ - before)
 
 
 def find_odd_cycle():
     r"""
+    given any starting point in an scc
+    if there is an odd length cycle in the scc
+    then the starting node is part of the odd length cycle
+
+    Let s* be part of the odd length cycle
+    Start from any point s
+    There is also a cycle from (s* to s) due to scc.
+    If that cycle is even, then go to s*, then go in the odd length cycle back to s*
+    and then go back to s, which makes this path odd.
+    If s s* s is odd we are done.
+
+    because it is strongly connected there is a path from s* to s and
+    s to s*. If that cycle is odd then done otherwise,
+
+    # Run pairity check on each scc
+    # Then check all edges for equal pairity
+
     CommandLine:
         python -m utool.util_graph --exec-find_odd_cycle --show
 
@@ -74,36 +202,28 @@ def find_odd_cycle():
         'clock': 0,
         'pre': {},
         'post': {},
-        'pairity': ut.ddict(lambda : 0),
+        'pairity': {n: 0 for n in graph}
     }
-    import sys
 
-    def previsit(node):
-        meta['pre'][node] = meta['clock']
+    def previsit(parent):
+        meta['pre'][parent] = meta['clock']
         meta['clock'] += 1
 
-    def postvisit(node):
-        meta['post'][node] = meta['clock']
+    def postvisit(parent):
+        meta['post'][parent] = meta['clock']
         meta['clock'] += 1
 
-    def explore(graph, node, seen_):
+    def explore(graph, parent, seen_):
         # Mark visited
-        seen_.add(node)
-        previsit(node)
+        seen_.add(parent)
+        previsit(parent)
         # Explore children
-        children = graph[node]
+        children = graph[parent]
         for child in children:
             if child not in seen_:
-                meta['pairity'][child] = 1 - meta['pairity'][node]
+                meta['pairity'][child] = 1 - meta['pairity'][parent]
                 explore(graph, child, seen_)
-            else:
-                is_odd = meta['pairity'][child] == 1 - meta['pairity'][node]
-                print('is_odd = %r' % (is_odd,))
-                #sys.exit(0)
-        postvisit(node)
-
-    # Run pairity check on each scc
-    # Then check all edges for equal pairity
+        postvisit(parent)
 
     # Run Depth First Search
     for node in graph.keys():
@@ -111,44 +231,24 @@ def find_odd_cycle():
             explore(graph, node, seen_)
 
     # Mark edge types
-    #orderkeys = ['u[', 'v[', ']u', ']v']
-    edge_types = {
-        (0, 1, 3, 2): 'forward',
-        (1, 0, 2, 3): 'back',
-        (1, 3, 0, 2): 'cross',
-    }
-    # given any starting point in an scc
-    # if there is an odd length cycle in the scc
-    # then the starting node is part of the odd length cycle
-    #
-    # Let s* be part of the odd length cycle
-    # Start from any point s
-    # There is also a cycle from (s* to s) due to scc.
-    # If that cycle is even, then go to s*, then go in the odd length cycle back to s*
-    # and then go back to s, which makes this path odd.
-    # If s s* s is odd we are done.
-    #
-    # because it is strongly connected there is a path from s* to s and
-    # s to s*. If that cycle is odd then done otherwise,
+    edge_types = {(0, 1, 3, 2): 'forward',
+                  (1, 0, 2, 3): 'back',
+                  (1, 3, 0, 2): 'cross', }
 
     edge_labels = {}
     type_to_edges = ut.ddict(list)
+    pre = meta['pre']
+    post = meta['post']
     for u, v in G.edges():
-        orders = [meta['pre'][u], meta['pre'][v], meta['post'][u], meta['post'][v]]
+        orders = [pre[u], pre[v], post[u], post[v]]
         sortx = tuple(ut.argsort(orders))
-        #lbl = ut.take(orderkeys, sortx)
-        #print(sortx)
-        #print(' '.join(lbl))
         type_ = edge_types[sortx]
         edge_labels[(u, v)] = type_
-        #print('type_ = %r' % (type_,))
         type_to_edges[type_].append((u, v))
 
     # Check back edges
-    print('type_to_edges = %r' % (type_to_edges,))
     is_odd_list = []
     for back_edge in type_to_edges['back']:
-        print('back_edge = %r' % (back_edge,))
         u, v = back_edge
         pre_v = meta['pre'][v]
         post_u = meta['post'][u]
