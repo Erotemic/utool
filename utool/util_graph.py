@@ -21,6 +21,13 @@ def testdata_graph():
         'i': ['j'],
         'j': [],
     }
+    graph = {
+        'a': ['b'],
+        'b': ['c'],
+        'c': ['d'],
+        'd': ['a', 'e'],
+        'e': ['c'],
+    }
     #graph = {'a': ['b'], 'b': ['c'], 'c': ['d'], 'd': ['a']}
     #graph = {'a': ['b'], 'b': ['c'], 'c': ['d'], 'd': ['e'], 'e': ['a']}
     #graph = {'a': ['b'], 'b': ['c'], 'c': ['d'], 'd': ['e'], 'e': ['b']}
@@ -63,12 +70,13 @@ def find_odd_cycle():
     graph, G = testdata_graph()
 
     seen_ = set()
-    roots = set()
     meta = {
         'clock': 0,
         'pre': {},
         'post': {},
+        'pairity': ut.ddict(lambda : 0),
     }
+    import sys
 
     def previsit(node):
         meta['pre'][node] = meta['clock']
@@ -86,23 +94,43 @@ def find_odd_cycle():
         children = graph[node]
         for child in children:
             if child not in seen_:
+                meta['pairity'][child] = 1 - meta['pairity'][node]
                 explore(graph, child, seen_)
+            else:
+                is_odd = meta['pairity'][child] == 1 - meta['pairity'][node]
+                print('is_odd = %r' % (is_odd,))
+                #sys.exit(0)
         postvisit(node)
+
+    # Run pairity check on each scc
+    # Then check all edges for equal pairity
 
     # Run Depth First Search
     for node in graph.keys():
         if node not in seen_:
-            roots.add(node)
             explore(graph, node, seen_)
 
     # Mark edge types
+    #orderkeys = ['u[', 'v[', ']u', ']v']
     edge_types = {
-        (0, 1, 3, 2) : 'forward',
+        (0, 1, 3, 2): 'forward',
         (1, 0, 2, 3): 'back',
         (1, 3, 0, 2): 'cross',
     }
+    # given any starting point in an scc
+    # if there is an odd length cycle in the scc
+    # then the starting node is part of the odd length cycle
+    #
+    # Let s* be part of the odd length cycle
+    # Start from any point s
+    # There is also a cycle from (s* to s) due to scc.
+    # If that cycle is even, then go to s*, then go in the odd length cycle back to s*
+    # and then go back to s, which makes this path odd.
+    # If s s* s is odd we are done.
+    #
+    # because it is strongly connected there is a path from s* to s and
+    # s to s*. If that cycle is odd then done otherwise,
 
-    #orderkeys = ['u[', 'v[', ']u', ']v']
     edge_labels = {}
     type_to_edges = ut.ddict(list)
     for u, v in G.edges():
@@ -120,6 +148,7 @@ def find_odd_cycle():
     print('type_to_edges = %r' % (type_to_edges,))
     is_odd_list = []
     for back_edge in type_to_edges['back']:
+        print('back_edge = %r' % (back_edge,))
         u, v = back_edge
         pre_v = meta['pre'][v]
         post_u = meta['post'][u]
@@ -127,14 +156,10 @@ def find_odd_cycle():
         is_odd = not is_even
         is_odd_list.append(is_odd)
 
-    if any(is_odd_list):
-        print("FOUND ODD CYCLE")
-    else:
-        print("NO ODD CYCLES")
-
     # Visualize the graph
     node_labels = {
-        node: (meta['pre'][node], meta['post'][node])
+        #node: (meta['pre'][node], meta['post'][node])
+        node: (meta['pairity'][node])
         for node in graph
     }
 
@@ -145,7 +170,7 @@ def find_odd_cycle():
     node_colors = {node: color for scc, color in zip(scc_list, pt.distinct_colors(len(scc_list))) for node in scc}
     nx.set_node_attributes(G, 'label', node_labels)
     nx.set_node_attributes(G, 'color', node_colors)
-    nx.set_edge_attributes(G, 'label', edge_labels)
+    #nx.set_edge_attributes(G, 'label', edge_labels)
 
     ut.ensure_pylab_qt4()
     #pt.figure(pt.next_fnum())
