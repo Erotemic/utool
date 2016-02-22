@@ -2760,6 +2760,13 @@ def highlight_text(text, lexer_name='python', **kwargs):
     SeeAlso:
         color_text
     """
+    # Resolve extensions to languages
+    lexer_name = {
+        'py': 'python',
+        'h': 'cpp',
+        'cpp': 'cpp',
+        'c': 'cpp',
+    }.get(lexer_name.replace('.', ''), lexer_name)
     if lexer_name in ['red', 'yellow', 'blue', 'green']:
         # hack for coloring
         return color_text(text, lexer_name)
