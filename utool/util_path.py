@@ -2080,7 +2080,7 @@ def get_win32_short_path_name(long_name):
     return short_name
 
 
-def fixwin32_shortname(path1):
+def expand_win32_shortname(path1):
     try:
         #try:
         #    import win32file
@@ -2143,7 +2143,7 @@ def platform_path(path):
         # get path relative to cwd
         path1 = truepath_relative(path)
         if sys.platform.startswith('win32'):
-            path2 = fixwin32_shortname(path1)
+            path2 = expand_win32_shortname(path1)
         else:
             path2 = path1
     except Exception as ex:

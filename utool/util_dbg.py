@@ -1021,7 +1021,9 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
             sys.stdout.write(msg + '\n')
             sys.stdout.flush()
     else:
-        print_func = print
+        import utool as ut
+        print_func = ut.partial(ut.colorprint, color='yellow' if iswarning else 'red')
+        # print_func = print
     if pad_stdout:
         print_func('\n+------\n')
     # print the execption

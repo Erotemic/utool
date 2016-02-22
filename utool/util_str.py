@@ -252,6 +252,24 @@ def get_indentation(line_):
 def get_minimum_indentation(text):
     """
     returns the number of preceding spaces
+
+    Args:
+        text (str): unicode text
+
+    Returns:
+        int: indentation
+
+    CommandLine:
+        python -m utool.util_str --exec-get_minimum_indentation --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> import utool as ut
+        >>> text = '    foo\n   bar'
+        >>> result = get_minimum_indentation(text)
+        >>> print(result)
+        3
     """
     lines = text.split('\n')
     indentations = [get_indentation(line_)

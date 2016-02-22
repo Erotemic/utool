@@ -439,14 +439,14 @@ def experiment_download_multiple_urls(url_list):
             break
 
 
-def fix_dropbox_link(dropbox_url):
+def clean_dropbox_link(dropbox_url):
     """ Dropbox links should be en-mass downloaed from dl.dropbox
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_grabdata import *  # NOQA
         >>> dropbox_url = 'www.dropbox.com/foobar.zip?dl=0'
-        >>> cleaned_url = fix_dropbox_link(dropbox_url)
+        >>> cleaned_url = clean_dropbox_link(dropbox_url)
         >>> result = str(cleaned_url)
         >>> print(result)
         dl.dropbox.com/foobar.zip
@@ -668,7 +668,7 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
         >>> print(result)
         lena.png
     """
-    file_url = fix_dropbox_link(file_url)
+    file_url = clean_dropbox_link(file_url)
     if fname is None:
         fname = basename(file_url)
     # Download zipfile to
@@ -735,7 +735,7 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool',
         >>> zipped_url = 'http://www.spam.com/eggs/data.zip'
 
     """
-    zipped_url = fix_dropbox_link(zipped_url)
+    zipped_url = clean_dropbox_link(zipped_url)
     zip_fname = split(zipped_url)[1]
     data_name = split_archive_ext(zip_fname)[0]
     # Download zipfile to

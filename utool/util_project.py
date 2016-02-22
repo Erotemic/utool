@@ -605,7 +605,7 @@ def sed_projects(regexpr, repl, force=False, recursive=True, user_profile=None, 
 
     Ignore:
         regexpr = 'annotation match_scores'
-        repl = 'draw_score_sep'
+        repl = 'draw_annot_scoresep'
 
     """
     # FIXME: finishme
