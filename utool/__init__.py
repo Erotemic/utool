@@ -660,7 +660,7 @@ if DOELSE:
                                  symlink, tail, testgrep, touch, truepath,
                                  truepath_relative, unexpanduser, unixjoin,
                                  win_shortcut,)
-    from utool.util_print import (Indenter, NO_INDENT, PrintStartEndContext,
+    from utool.util_print import (Indenter, NO_INDENT,
                                   colorprint, dictprint, horiz_print,
                                   printNOTQUIET, printVERBOSE, printWARN,
                                   print_code, print_dict, print_difftext,

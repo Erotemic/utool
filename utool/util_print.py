@@ -177,24 +177,6 @@ def printshape(arr_name, locals_):
         print('len(%s) = %r' % (arr_name, len(arr)))
 
 
-class PrintStartEndContext(object):
-    """
-    prints on open and close of some section of interest
-    """
-
-    def __init__(self, msg='', verbose=True):
-        self.verbose = verbose
-        self.msg = msg
-
-    def __enter__(self):
-        if self.verbose:
-            print('+--- START ' + self.msg)
-
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        if self.verbose:
-            print('L___ END ' + self.msg)
-
-
 #class NpPrintOpts(object):
 #    def __init__(self, **kwargs):
 #        self.orig_opts = np.get_printoptions()
