@@ -700,6 +700,8 @@ delete_keys = delete_dict_keys
 
 def dict_take_gen(dict_, keys, *d):
     r"""
+    generate multiple values from a dictionary
+
     Args:
         dict_ (dict):
         keys (list):
@@ -753,17 +755,21 @@ def dict_take_gen(dict_, keys, *d):
             yield dictget(key, *d)
 
 
-def dict_take_list(dict_, keys, *d):
-    return list(dict_take_gen(dict_, keys, *d))
+def dict_take(dict_, keys, *d):
+    """ get multiple values from a dictionary """
+    try:
+        return list(dict_take_gen(dict_, keys, *d))
+    except TypeError:
+        return list(dict_take_gen(dict_, keys, *d))[0]
     #return [dict_[key] for key in keys]
 
-
-def dict_take(dict_, keys, *d):
-    """ alias """
-    try:
-        return dict_take_list(dict_, keys, *d)
-    except TypeError:
-        return dict_take_list(dict_, [keys], *d)[0]
+dict_take_list = dict_take
+#def dict_take(dict_, keys, *d):
+#    """ alias """
+#    try:
+#        return dict_take_list(dict_, keys, *d)
+#    except TypeError:
+#        return dict_take_list(dict_, [keys], *d)[0]
 
 
 #def dict_unflat_take(dict_, unflat_key_list, *d):

@@ -49,7 +49,7 @@ def testdata_graph():
                 pass
 
     #ut.ensure_pylab_qt4()
-    pt.show_netx(G, layout='pygraphviz')
+    pt.show_nx(G, layout='pygraphviz')
     return graph, G
 
 
@@ -274,7 +274,7 @@ def find_odd_cycle():
 
     ut.ensure_pylab_qt4()
     #pt.figure(pt.next_fnum())
-    pt.show_netx(G, layout='pygraphviz')
+    pt.show_nx(G, layout='pygraphviz')
 
     #dfs(G)
 

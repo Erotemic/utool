@@ -1359,32 +1359,45 @@ def parse_return_type(sourcecode):
 #    return return_type, return_name, return_header, return_desc
 
 
-def exec_func_src(func, globals_=None, locals_=None, key_list=None, sentinal=None):
-    """ execs a func and returns requested local vars """
+def exec_func_src(func, globals_=None, locals_=None, key_list=None,
+                  sentinal=None, update=None):
+    """
+    execs a func and returns requested local vars.
+
+    Does not modify globals unless update=True (or in IPython)
+
+    SeeAlso:
+        ut.execstr_funckw
+    """
     import utool as ut
     sourcecode = ut.get_func_sourcecode(func, stripdef=True, stripret=True)
+    if update is None:
+        update = ut.inIPython()
     if globals_ is None:
         globals_ = ut.get_parent_globals()
     if locals_ is None:
         locals_ = ut.get_parent_locals()
     if sentinal is not None:
         sourcecode = ut.replace_between_tags(sourcecode, '', sentinal)
-    globals_ = globals_.copy()
+    globals_new = globals_.copy()
     if locals_ is not None:
-        globals_.update(locals_)
-    orig_globals = globals_.copy()
-    #six.exec_(sourcecode, globals_, locals_)
-    six.exec_(sourcecode, globals_)
+        globals_new.update(locals_)
+    orig_globals = globals_new.copy()
+    #six.exec_(sourcecode, globals_new, locals_)
+    six.exec_(sourcecode, globals_new)
     # Draw intermediate steps
     if key_list is None:
         #return locals_
         # Remove keys created in function execution
-        ut.delete_keys(globals_, orig_globals.keys())
+        ut.delete_keys(globals_new, orig_globals.keys())
+        if update:
+            # update input globals?
+            globals_.update(globals_new)
         # ~~ TODO autodetermine the key_list from the function vars
-        return globals_
+        return globals_new
     else:
         #var_list = ut.dict_take(locals_, key_list)
-        var_list = ut.dict_take(globals_, key_list)
+        var_list = ut.dict_take(globals_new, key_list)
         return var_list
 
 

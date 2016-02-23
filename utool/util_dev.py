@@ -2530,7 +2530,12 @@ class NiceRepr(object):
 
 
 def execstr_funckw(func):
-    """ for doctests """
+    """
+    for doctests kwargs
+
+    SeeAlso:
+        ut.exec_func_src
+    """
     import utool as ut
     return ut.execstr_dict(ut.get_func_kwargs(func), explicit=True)
 
