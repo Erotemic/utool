@@ -587,7 +587,7 @@ if DOELSE:
                                  invertible_flatten2_numpy, is_subset,
                                  is_subset_of_any, is_superset, isetdiff_flags,
                                  issorted, issubset, issuperset, isunique,
-                                 list_all_eq_to, list_allsame, list_argmax,
+                                 list_all_eq_to, allsame, list_argmax,
                                  list_argmaxima, list_argsort, list_compress,
                                  list_compresstake, list_cover,
                                  list_deep_types, list_depth, list_getattr,

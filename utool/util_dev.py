@@ -431,7 +431,7 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
         passed = all(passed_list)
         is_numpy = True
     else:
-        passed = ut.util_list.list_allsame(result_list, strict=False)
+        passed = ut.util_list.allsame(result_list, strict=False)
         is_numpy = False
     if verbose:
         print('| Output:')
@@ -1312,7 +1312,7 @@ def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=No
             isfloat = ut.is_float(val)
             if not isfloat and isinstance(val, list):
                 type_list = list(map(type, val))
-                if len(type_list) > 0 and ut.list_allsame(type_list):
+                if len(type_list) > 0 and ut.allsame(type_list):
                     if ut.is_float(val[0]):
                         isfloat = True
                         val = np.array(val)

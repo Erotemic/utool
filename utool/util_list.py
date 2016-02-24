@@ -713,7 +713,7 @@ def safe_slice(list_, *args):
 # --- List Queries --- #
 
 
-def list_allsame(list_, strict=True):
+def allsame(list_, strict=True):
     """
     checks to see if list is equal everywhere
 
@@ -1998,7 +1998,7 @@ def depth_profile(list_, max_depth=None, compress_homogenous=True, compress_cons
 
     if compress_homogenous:
         # removes redudant information by returning a shape duple
-        if list_allsame(level_shape_list):
+        if allsame(level_shape_list):
             dim_ = level_shape_list[0]
             len_ = len(level_shape_list)
             if isinstance(dim_, tuple):
@@ -2087,7 +2087,7 @@ def list_type_profile(sequence, compress_homogenous=True, with_dtype=True):
 
     if compress_homogenous:
         # removes redudant information by returning a type and number
-        if list_allsame(level_type_list):
+        if allsame(level_type_list):
             type_ = level_type_list[0]
             level_type_str = str(type_) + '*' + str(len(level_type_list))
         else:

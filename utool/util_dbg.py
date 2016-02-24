@@ -922,14 +922,14 @@ def debug_list(list_):
     if all([util_type.is_listlike(item) for item in list_]):
         append(' * list items are all listlike')
         all_lens = [len(item) for item in list_]
-        if util_list.list_allsame(all_lens):
+        if util_list.allsame(all_lens):
             dim2 = all_lens[0]
             append(' * uniform lens=%d' % dim2)
         else:
             append(' * nonuniform lens = %r' % np.unique(all_lens).tolist())
     else:
         all_types = [type(item) for item in list_]
-        if util_list.list_allsame(all_types):
+        if util_list.allsame(all_types):
             append(' * uniform types=%r' % all_types[0])
         else:
             append(' * nonuniform types: %r' % np.unique(all_types).tolist())
