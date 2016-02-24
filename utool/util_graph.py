@@ -6,6 +6,23 @@ from utool import util_inject
 
 
 def testdata_graph():
+    r"""
+    Returns:
+        tuple: (graph, G)
+
+    CommandLine:
+        python -m utool.util_graph --exec-testdata_graph --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_graph import *  # NOQA
+        >>> import utool as ut
+        >>> (graph, G) = testdata_graph()
+        >>> import plottool as pt
+        >>> ut.ensure_pylab_qt4()
+        >>> pt.show_nx(G, layout='pygraphviz')
+        >>> ut.show_if_requested()
+    """
     import networkx as nx
     import utool as ut
     # Define adjacency list
@@ -21,16 +38,21 @@ def testdata_graph():
         'i': ['j'],
         'j': [],
     }
-    #graph = {
-    #    'a': ['b'],
-    #    'b': ['c'],
-    #    'c': ['d'],
-    #    'd': ['a', 'e'],
-    #    'e': ['c'],
-    #}
+    graph = {
+        'a': ['b'],
+        'b': ['c'],
+        'c': ['d'],
+        'd': ['a', 'e'],
+        'e': ['c'],
+    }
     #graph = {'a': ['b'], 'b': ['c'], 'c': ['d'], 'd': ['a']}
     #graph = {'a': ['b'], 'b': ['c'], 'c': ['d'], 'd': ['e'], 'e': ['a']}
+    graph = {'a': ['b'], 'b': ['c'], 'c': ['d'], 'd': ['e'], 'e': ['a'], 'f': ['c']}
     #graph = {'a': ['b'], 'b': ['c'], 'c': ['d'], 'd': ['e'], 'e': ['b']}
+
+    graph = {'a': ['b', 'c', 'd'], 'e': ['d'], 'f': ['d', 'e'], 'b': [], 'c': [], 'd': []}  # double pair in non-scc
+    graph = {'a': ['b', 'c', 'd'], 'e': ['d'], 'f': ['d', 'e'], 'b': [], 'c': [], 'd': ['e']}  # double pair in non-scc
+    graph = {'a': ['b', 'c', 'd'], 'e': ['d', 'f'], 'f': ['d', 'e'], 'b': [], 'c': [], 'd': ['e']}  # double pair in non-scc
     # Extract G = (V, E)
     nodes = list(graph.keys())
     edges = ut.flatten([[(v1, v2) for v2 in v2s] for v1, v2s in graph.items()])
@@ -49,7 +71,7 @@ def testdata_graph():
                 pass
 
     #ut.ensure_pylab_qt4()
-    pt.show_nx(G, layout='pygraphviz')
+    #pt.show_nx(G, layout='pygraphviz')
     return graph, G
 
 
@@ -135,24 +157,24 @@ def topsort_dfs(G, previsit, postvisit):
         'post': {},
     }
 
-    def previsit(parent):
+    def previsit2(parent):
         meta['pre'][parent] = meta['clock']
         meta['clock'] += 1
 
-    def postvisit(parent):
+    def postvisit2(parent):
         meta['post'][parent] = meta['clock']
         meta['clock'] += 1
 
     def explore(graph, parent, seen_):
         # Mark visited
         seen_.add(parent)
-        previsit(parent)
+        previsit2(parent)
         # Explore children
         children = graph[parent]
         for child in children:
             if child not in seen_:
                 explore(graph, child, seen_)
-        postvisit(parent)
+        postvisit2(parent)
 
     # Run Depth First Search
     strongly_connected_compoments = []
@@ -230,6 +252,22 @@ def find_odd_cycle():
         if node not in seen_:
             explore(graph, node, seen_)
 
+    # Check edges for neighboring pairities
+    import networkx as nx
+    scc_list = list(nx.strongly_connected_components(G))
+
+    found = False
+
+    for scc in scc_list:
+        SCC_G = nx.subgraph(G, scc)
+        for u, v in SCC_G.edges():
+            if meta['pairity'][u] == meta['pairity'][v]:
+                found = True
+                print('FOUND ODD CYCLE')
+
+    if not found:
+        print("NO ODD CYCLES")
+
     # Mark edge types
     edge_types = {(0, 1, 3, 2): 'forward',
                   (1, 0, 2, 3): 'back',
@@ -239,6 +277,7 @@ def find_odd_cycle():
     type_to_edges = ut.ddict(list)
     pre = meta['pre']
     post = meta['post']
+
     for u, v in G.edges():
         orders = [pre[u], pre[v], post[u], post[v]]
         sortx = tuple(ut.argsort(orders))
@@ -246,15 +285,15 @@ def find_odd_cycle():
         edge_labels[(u, v)] = type_
         type_to_edges[type_].append((u, v))
 
-    # Check back edges
-    is_odd_list = []
-    for back_edge in type_to_edges['back']:
-        u, v = back_edge
-        pre_v = meta['pre'][v]
-        post_u = meta['post'][u]
-        is_even = (post_u - pre_v) % 2 == 0
-        is_odd = not is_even
-        is_odd_list.append(is_odd)
+    ## Check back edges
+    #is_odd_list = []
+    #for back_edge in type_to_edges['back']:
+    #    u, v = back_edge
+    #    pre_v = meta['pre'][v]
+    #    post_u = meta['post'][u]
+    #    is_even = (post_u - pre_v) % 2 == 0
+    #    is_odd = not is_even
+    #    is_odd_list.append(is_odd)
 
     # Visualize the graph
     node_labels = {
