@@ -1647,6 +1647,10 @@ def get_kwargs(func):
 
 def lookup_attribute_chain(attrname, namespace):
     """
+        >>> attrname = funcname
+        >>> namespace = mod.__dict__
+
+
         >>> import utool as ut
         >>> globals_ = ut.util_inspect.__dict__
         >>> attrname = 'KWReg.print_defaultkw'
@@ -1656,7 +1660,8 @@ def lookup_attribute_chain(attrname, namespace):
     subdict = namespace
     for attr in subtup[:-1]:
         subdict = subdict[attr].__dict__
-    leaf_attr = subdict[subtup[-1]]
+    leaf_name = subtup[-1]
+    leaf_attr = subdict[leaf_name]
     return leaf_attr
 
 
@@ -1679,6 +1684,8 @@ def recursive_parse_kwargs(root_func, path_=None):
 
         python -m utool.util_inspect --exec-recursive_parse_kwargs:2 --mod vtool --func ScoreNormalizer.visualize
 
+        python -m utool.util_inspect --exec-recursive_parse_kwargs:2 --mod ibeis.viz.viz_matches --func show_name_matches --verbinspect
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
@@ -1695,7 +1702,6 @@ def recursive_parse_kwargs(root_func, path_=None):
             ('include_inherited', False),
             ('debug_key', None),
         ]
-
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1715,7 +1721,9 @@ def recursive_parse_kwargs(root_func, path_=None):
         >>> funcname = ut.get_argval('--func', type_=str, default='draw_histogram')
         >>> mod = ut.import_modname(modname)
         >>> root_func = lookup_attribute_chain(funcname, mod.__dict__)
-        >>> result = ut.repr2(recursive_parse_kwargs(root_func))
+        >>> path_ = None
+        >>> parsed = recursive_parse_kwargs(root_func)
+        >>> result = ut.repr2(parsed)
         >>> print(result)
     """
     if VERBOSE_INSPECT:
@@ -1757,6 +1765,10 @@ def recursive_parse_kwargs(root_func, path_=None):
         subtup = subfunc_name.split('.')
         try:
             subdict = lookup_attribute_chain(subfunc_name, subdict)
+            if ut.is_func_or_method(subdict):
+                # Was subdict supposed to be named something else here?
+                subfunc = subdict
+                return subfunc
         except (KeyError, TypeError):
             for attr in subtup[:-1]:
                 try:
@@ -1773,7 +1785,8 @@ def recursive_parse_kwargs(root_func, path_=None):
                             if ut.SUPER_STRICT:
                                 raise
         if subdict is not None:
-            subfunc = subdict[subtup[-1]]
+            attr_name = subtup[-1]
+            subfunc = subdict[attr_name]
         return subfunc
 
     def check_subfunc_name(subfunc_name):

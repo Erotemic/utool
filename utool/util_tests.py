@@ -1484,7 +1484,9 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
             testsrc = ut.get_doctest_examples(test_func)[0][testno]
             if ut.get_argflag(('--cmd', '--embed')):
                 testsrc += '\nimport utool as ut; ut.embed()'  # TODO RECTIFY WITH EXEC DOCTEST
-            colored_src = ut.highlight_code(ut.indent(testsrc, '>>> '))
+            doctest_src = ut.indent(testsrc, '>>> ')
+            doctest_src = '\n'.join(['%3d %s' % (count, line) for count, line in enumerate(doctest_src.splitlines(), start=1)])
+            colored_src = ut.highlight_code(doctest_src)
             print('testsrc = \n%s' % (colored_src,))
             try:
                 code = compile(testsrc, '<string>', 'exec')
@@ -1526,7 +1528,9 @@ def execute_doctest(func, testnum=0, module=None):
     globals_ = {}
     testsrc = ut.get_doctest_examples(func)[0][testnum]
     # colored_src = ut.highlight_code(ut.indent(testsrc, '>>> '))
-    colored_src = ut.highlight_code(ut.indent(testsrc, '>>> '))
+    doctest_src = ut.indent(testsrc, '>>> ')
+    doctest_src = '\n'.join(['%3d %s' % (count, line) for count, line in enumerate(doctest_src.splitlines(), start=1)])
+    colored_src = ut.highlight_code(doctest_src)
     print('testsrc = \n%s' % (colored_src,))
     try:
         code = compile(testsrc, '<string>', 'exec')
