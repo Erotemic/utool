@@ -1289,11 +1289,18 @@ def safe_pdist(arr, *args, **kwargs):
         metric = ut.absdiff
     SeeAlso:
         scipy.spatial.distance.pdist
+
+    TODO: move to vtool
+
     """
     if arr is None or len(arr) < 2:
         return None
     else:
         return spdist.pdist(arr, *args, **kwargs)
+
+
+def square_pdist(arr, *args, **kwargs):
+    return spdist.squareform(safe_pdist(arr, *args, **kwargs))
 
 
 def normalize(array, dim=0):
