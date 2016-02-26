@@ -1556,14 +1556,15 @@ def solve_boolexpr():
     truth_tuples = [ut.dict_take(d, varnames) for d in truth_table]
     outputs = [d['output'] for d in truth_table]
     true_tuples = ut.compress(truth_tuples, outputs)
+    #false_tuples = ut.compress(truth_tuples, ut.not_list(outputs))
+    true_cases = [''.join([str(int(t)) for t in tup]) for tup in true_tuples]
     true_cases = [''.join([str(int(t)) for t in tup]) for tup in true_tuples]
     #truth_nums = [int(s, 2) for s in true_cases]
 
     from quine_mccluskey.qm import QuineMcCluskey
 
     qm = QuineMcCluskey(use_xor=False)
-    ones = true_cases
-    result = qm.simplify(ones)
+    result = qm.simplify_los(true_cases)
     print(result)
     #ut.chr_range(3)
 
