@@ -130,22 +130,29 @@
             
   <h1>Source code for utool.util_io</h1><div class="highlight"><pre>
 <span class="c"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">cPickle</span> <span class="k">as</span> <span class="n">pickle</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_path</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">basename</span><span class="p">,</span> <span class="n">exists</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">lockfile</span>
     <span class="n">HAVE_LOCKFILE</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="n">HAVE_LOCKFILE</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_path</span>
-<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
     <span class="n">HAS_NUMPY</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
     <span class="n">HAS_NUMPY</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[io]&#39;</span><span class="p">)</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">h5py</span>
+    <span class="n">HAS_H5PY</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">HAS_H5PY</span> <span class="o">=</span> <span class="bp">False</span>
+
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[io]&#39;</span><span class="p">)</span>
 
 
 <span class="n">__PRINT_IO__</span> <span class="o">=</span> <span class="bp">True</span>
@@ -153,6 +160,7 @@
 <span class="n">__PRINT_READS__</span>  <span class="o">=</span>  <span class="n">__PRINT_IO__</span>
 <span class="n">__FORCE_PRINT_READS__</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="n">__FORCE_PRINT_WRITES__</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="n">__READ_TAIL_N__</span> <span class="o">=</span> <span class="mi">3</span>
 <span class="c">#__FORCE_PRINT_READS__ = True</span>
 <span class="c">#__FORCE_PRINT_WRITES__ = True</span>
 
@@ -190,15 +198,38 @@
 </div>
 <div class="viewcode-block" id="write_to"><a class="viewcode-back" href="../../utool.html#utool.util_io.write_to">[docs]</a><span class="k">def</span> <span class="nf">write_to</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">to_write</span><span class="p">,</span> <span class="n">aslines</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
              <span class="n">onlyifdiff</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;w&#39;</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Writes text to a file</span>
+    <span class="sd">&quot;&quot;&quot; Writes text to a file. Automatically encodes text as utf8.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        fpath (str): file path</span>
-<span class="sd">        to_write (str): text to write</span>
+<span class="sd">        to_write (str): text to write (must be unicode text)</span>
 <span class="sd">        aslines (bool): if True to_write is assumed to be a list of lines</span>
 <span class="sd">        verbose (bool): verbosity flag</span>
 <span class="sd">        onlyifdiff (bool): only writes if needed!</span>
-<span class="sd">            checks hash of to_write vs the hash of the contents of fpath</span>
+<span class="sd">                checks hash of to_write vs the hash of the contents of fpath</span>
+<span class="sd">        mode (unicode): (default = u&#39;w&#39;)</span>
+<span class="sd">        n (int):  (default = 2)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_io --exec-write_to --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_io import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; fpath = ut.unixjoin(ut.get_app_resource_dir(&#39;utool&#39;), &#39;testwrite.txt&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ut.delete(fpath)</span>
+<span class="sd">        &gt;&gt;&gt; to_write = &#39;utf-8 symbols Δ, Й, ק, م, ๗, あ, 叶, 葉, and 말.&#39;</span>
+<span class="sd">        &gt;&gt;&gt; aslines = False</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; onlyifdiff = False</span>
+<span class="sd">        &gt;&gt;&gt; mode = u&#39;w&#39;</span>
+<span class="sd">        &gt;&gt;&gt; n = 2</span>
+<span class="sd">        &gt;&gt;&gt; write_to(fpath, to_write, aslines, verbose, onlyifdiff, mode, n)</span>
+<span class="sd">        &gt;&gt;&gt; read_ = ut.read_from(fpath)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;read_    = &#39; + read_)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;to_write = &#39; + to_write)</span>
+<span class="sd">        &gt;&gt;&gt; assert read_ == to_write</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">onlyifdiff</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
@@ -207,15 +238,38 @@
             <span class="k">return</span>
     <span class="k">if</span> <span class="n">verbose</span> <span class="ow">or</span> <span class="p">(</span><span class="n">verbose</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">__PRINT_WRITES__</span><span class="p">)</span> <span class="ow">or</span> <span class="n">__FORCE_PRINT_WRITES__</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] * Writing to text file: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">util_path</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">))</span>
+
+    <span class="n">backup</span> <span class="o">=</span> <span class="bp">False</span> <span class="ow">and</span> <span class="n">exists</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">backup</span><span class="p">:</span>
+        <span class="n">util_path</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">fpath</span> <span class="o">+</span> <span class="s">&#39;.backup&#39;</span><span class="p">)</span>
+
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">aslines</span><span class="p">:</span>
             <span class="n">file_</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">to_write</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">to_write</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">to_write</span><span class="p">,</span> <span class="nb">unicode</span><span class="p">):</span>
+                <span class="n">to_write</span> <span class="o">=</span> <span class="n">to_write</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf8&#39;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">to_write</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">UnicodeEncodeError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">ex</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="n">end</span> <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="mi">10</span>
+                <span class="n">context</span> <span class="o">=</span> <span class="n">to_write</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
+                <span class="k">print</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">context</span><span class="p">))</span>
+                <span class="k">print</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+                <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_dbg</span>
+                <span class="n">util_dbg</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[(</span><span class="nb">type</span><span class="p">,</span> <span class="s">&#39;to_write&#39;</span><span class="p">)])</span>
+                <span class="n">file_</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">backup</span><span class="p">:</span>
+                    <span class="c"># restore</span>
+                    <span class="n">util_path</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">fpath</span> <span class="o">+</span> <span class="s">&#39;.backup&#39;</span><span class="p">,</span> <span class="n">fpath</span><span class="p">)</span>
+                <span class="c"># import utool</span>
+                <span class="c"># utool.embed()</span>
+                <span class="k">raise</span>
 
 </div>
-<div class="viewcode-block" id="read_from"><a class="viewcode-back" href="../../utool.html#utool.util_io.read_from">[docs]</a><span class="k">def</span> <span class="nf">read_from</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">aslines</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Reads text from a file</span>
+<div class="viewcode-block" id="read_from"><a class="viewcode-back" href="../../utool.html#utool.util_io.read_from">[docs]</a><span class="k">def</span> <span class="nf">read_from</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">aslines</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s">&#39;replace&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Reads text from a file. Automatically returns utf8.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        fpath (str): file path</span>
@@ -223,24 +277,35 @@
 <span class="sd">        verbose (bool): verbosity flag</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        text from fpath</span>
+<span class="sd">        str: text from fpath (this is unicode)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">__READ_TAIL_N__</span>
     <span class="k">if</span> <span class="n">verbose</span> <span class="ow">or</span> <span class="p">(</span><span class="n">verbose</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">__PRINT_READS__</span><span class="p">)</span> <span class="ow">or</span> <span class="n">__FORCE_PRINT_READS__</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] * Reading text file: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">util_path</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">))</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">util_path</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s">&#39;[io] * FILE DOES NOT EXIST!&#39;</span><span class="p">)</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+        <span class="c">#with open(fpath, &#39;r&#39;) as file_:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">aslines</span><span class="p">:</span>
-                <span class="n">text</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+                <span class="c">#text = file_.readlines()</span>
+                <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
+                    <span class="n">text</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf8&#39;</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">file_</span><span class="o">.</span><span class="n">readlines</span><span class="p">()]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">text</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">text</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+                <span class="c"># text = file_.read()</span>
+                <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
+                    <span class="n">text</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf8&#39;</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">text</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">text</span>
     <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">utool.util_dbg</span> <span class="kn">import</span> <span class="n">printex</span>
+        <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_dbg</span>
         <span class="k">if</span> <span class="n">verbose</span> <span class="ow">or</span> <span class="n">strict</span><span class="p">:</span>
-            <span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39; * Error reading fpath=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
-                    <span class="n">util_path</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">),</span> <span class="s">&#39;[io]&#39;</span><span class="p">)</span>
+            <span class="n">util_dbg</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39; * Error reading fpath=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
+                             <span class="n">util_path</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">),</span> <span class="s">&#39;[io]&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">strict</span><span class="p">:</span>
             <span class="k">raise</span>
 
@@ -262,18 +327,18 @@
 <span class="n">load_text</span> <span class="o">=</span> <span class="n">read_from</span>
 
 
-<div class="viewcode-block" id="save_cPkl"><a class="viewcode-back" href="../../utool.html#utool.util_io.save_cPkl">[docs]</a><span class="k">def</span> <span class="nf">save_cPkl</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="save_cPkl"><a class="viewcode-back" href="../../utool.html#utool.util_io.save_cPkl">[docs]</a><span class="k">def</span> <span class="nf">save_cPkl</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Saves data to a pickled file with optional verbosity &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">verbose</span> <span class="ow">or</span> <span class="p">(</span><span class="n">verbose</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">__PRINT_WRITES__</span><span class="p">)</span> <span class="ow">or</span> <span class="n">__FORCE_PRINT_WRITES__</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] * save_cPkl(</span><span class="si">%r</span><span class="s">, data)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">util_path</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">fpath</span><span class="p">),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] * save_cPkl(</span><span class="si">%r</span><span class="s">, data)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">util_path</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">),))</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
         <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">file_</span><span class="p">,</span> <span class="n">pickle</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="load_cPkl"><a class="viewcode-back" href="../../utool.html#utool.util_io.load_cPkl">[docs]</a><span class="k">def</span> <span class="nf">load_cPkl</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="load_cPkl"><a class="viewcode-back" href="../../utool.html#utool.util_io.load_cPkl">[docs]</a><span class="k">def</span> <span class="nf">load_cPkl</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Loads a pickled file with optional verbosity &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">verbose</span> <span class="ow">or</span> <span class="p">(</span><span class="n">verbose</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">__PRINT_READS__</span><span class="p">)</span> <span class="ow">or</span> <span class="n">__FORCE_PRINT_READS__</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] * load_cPkl(</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">util_path</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">fpath</span><span class="p">),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] * load_cPkl(</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">util_path</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">),))</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file_</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">data</span>
@@ -291,10 +356,11 @@
 </div>
 <div class="viewcode-block" id="save_hdf5"><a class="viewcode-back" href="../../utool.html#utool.util_io.save_hdf5">[docs]</a><span class="k">def</span> <span class="nf">save_hdf5</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s">&#39;lzf&#39;</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    restricted save of data using hdf5. Can only save ndarrays and dicts of ndarrays</span>
+<span class="sd">    Restricted save of data using hdf5. Can only save ndarrays and dicts of</span>
+<span class="sd">    ndarrays.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        fpath (?):</span>
+<span class="sd">        fpath (str):</span>
 <span class="sd">        data (ndarray):</span>
 <span class="sd">        compression (str):</span>
 <span class="sd">            DEFLATE/GZIP - standard</span>
@@ -312,7 +378,7 @@
 <span class="sd">        http://docs.h5py.org/en/latest/mpi.html</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_IF HAS_H5PY</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_io import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">        &gt;&gt;&gt; import utool as ut</span>
@@ -320,7 +386,7 @@
 <span class="sd">        &gt;&gt;&gt; rng = np.random.RandomState(0)</span>
 <span class="sd">        &gt;&gt;&gt; data = (rng.rand(100000, 128) * 255).astype(np.uint8).copy()</span>
 <span class="sd">        &gt;&gt;&gt; verbose = True</span>
-<span class="sd">        &gt;&gt;&gt; fpath = &#39;myfile.hdf5&#39;</span>
+<span class="sd">        &gt;&gt;&gt; fpath = ut.unixjoin(ut.ensure_app_resource_dir(&#39;utool&#39;), &#39;myfile.hdf5&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; compression = &#39;lzf&#39;</span>
 <span class="sd">        &gt;&gt;&gt; # execute function</span>
 <span class="sd">        &gt;&gt;&gt; ut.delete(fpath)</span>
@@ -331,8 +397,82 @@
 <span class="sd">        &gt;&gt;&gt; assert ut.delete(fpath)</span>
 
 <span class="sd">    Timeit:</span>
-<span class="sd">        cPkl seems to be faster with this initial implementation</span>
+<span class="sd">        &gt;&gt;&gt; # cPkl / numpy seems to be faster with this initial implementation</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; data = (rng.rand(1000000, 128) * 255).astype(np.uint8).copy()</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.get_object_size_str(data))</span>
+<span class="sd">        &gt;&gt;&gt; del data</span>
+<span class="sd">        &gt;&gt;&gt; setup = ut.codeblock(</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;&#39;&#39;</span>
+<span class="sd">                import numpy as np</span>
+<span class="sd">                import utool as ut</span>
+<span class="sd">                rng = np.random.RandomState(0)</span>
+<span class="sd">                fpath = ut.unixjoin(ut.ensure_app_resource_dir(&#39;utool&#39;), &#39;io_test_data&#39;)</span>
+<span class="sd">                data = (rng.rand(1000000, 128) * 255).astype(np.uint8).copy()</span>
+<span class="sd">                #print(ut.get_object_size_str(data))</span>
+<span class="sd">                &#39;&#39;&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; # Test load time</span>
+<span class="sd">        &gt;&gt;&gt; stmt_list1 = ut.codeblock(</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;&#39;&#39;</span>
+<span class="sd">                ut.save_hdf5(fpath + &#39;.hdf5&#39;, data, verbose=False, compression=&#39;gzip&#39;)</span>
+<span class="sd">                ut.save_hdf5(fpath + &#39;.hdf5&#39;, data, verbose=False, compression=&#39;lzf&#39;)</span>
+<span class="sd">                ut.save_cPkl(fpath + &#39;.cPkl&#39;, data, verbose=False)</span>
+<span class="sd">                ut.save_numpy(fpath + &#39;.npy&#39;, data, verbose=False)</span>
+<span class="sd">                ut.save_pytables(fpath + &#39;.tables&#39;, data, verbose=False)</span>
+<span class="sd">                &#39;&#39;&#39;).split(&#39;\n&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ut.util_dev.timeit_compare(stmt_list1, setup, int(10))</span>
+<span class="sd">        &gt;&gt;&gt; # Test save time</span>
+<span class="sd">        &gt;&gt;&gt; stmt_list2 = ut.codeblock(</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;&#39;&#39;</span>
+<span class="sd">                ut.load_hdf5(fpath + &#39;.hdf5&#39;, verbose=False)</span>
+<span class="sd">                ut.load_cPkl(fpath + &#39;.cPkl&#39;, verbose=False)</span>
+<span class="sd">                ut.load_numpy(fpath + &#39;.npy&#39;, verbose=False)</span>
+<span class="sd">                ut.load_pytables(fpath + &#39;.tables&#39;, verbose=False)</span>
+<span class="sd">                &#39;&#39;&#39;).split(&#39;\n&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ut.util_dev.timeit_compare(stmt_list2, setup, int(10))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;finished timeing&#39;)</span>
+<span class="sd">        +----------------</span>
+<span class="sd">        | TIMEIT COMPARE</span>
+<span class="sd">        +----------------</span>
+<span class="sd">        | iterations = 10</span>
+<span class="sd">        | Input:</span>
+<span class="sd">        |     | num | stmt</span>
+<span class="sd">        |     |   0 | u&quot;ut.save_hdf5(fpath + &#39;.hdf5&#39;, data, verbose=False, compression=&#39;gzip&#39;)&quot;</span>
+<span class="sd">        |     |   1 | u&quot;ut.save_hdf5(fpath + &#39;.hdf5&#39;, data, verbose=False, compression=&#39;lzf&#39;)&quot;</span>
+<span class="sd">        |     |   2 | u&quot;ut.save_cPkl(fpath + &#39;.cPkl&#39;, data, verbose=False)&quot;</span>
+<span class="sd">        |     |   3 | u&quot;ut.save_numpy(fpath + &#39;.npy&#39;, data, verbose=False)&quot;</span>
+<span class="sd">        |     |   4 | u&quot;ut.save_pytables(fpath + &#39;.tables&#39;, data, verbose=False)&quot;</span>
+<span class="sd">        ...</span>
+<span class="sd">        | Output:</span>
+<span class="sd">        |    * PASSED: each statement produced the same result</span>
+<span class="sd">        |    | num | total time | per loop | stmt</span>
+<span class="sd">        |    |   0 |    0.03 ks |   3.15 s | ut.save_hdf5(fpath + &#39;.hdf5&#39;, data, verbose=False, compression=&#39;gzip&#39;)</span>
+<span class="sd">        |    |   1 |    0.01 ks |   1.25 s | ut.save_hdf5(fpath + &#39;.hdf5&#39;, data, verbose=False, compression=&#39;lzf&#39;)</span>
+<span class="sd">        |    |   2 |     5.30 s |   0.53 s | ut.save_cPkl(fpath + &#39;.cPkl&#39;, data, verbose=False)</span>
+<span class="sd">        |    |   3 |     4.97 s |   0.50 s | ut.save_numpy(fpath + &#39;.npy&#39;, data, verbose=False)</span>
+<span class="sd">        |    |   4 |     9.23 s |   0.92 s | ut.save_pytables(fpath + &#39;.tables&#39;, data, verbose=False)</span>
+<span class="sd">        L_________________</span>
+<span class="sd">        +----------------</span>
+<span class="sd">        | TIMEIT COMPARE</span>
+<span class="sd">        +----------------</span>
+<span class="sd">        | iterations = 10</span>
+<span class="sd">        | Input:</span>
+<span class="sd">        |     | num | stmt</span>
+<span class="sd">        |     |   0 | u&quot;ut.load_hdf5(fpath + &#39;.hdf5&#39;, verbose=False)&quot;</span>
+<span class="sd">        |     |   1 | u&quot;ut.load_cPkl(fpath + &#39;.cPkl&#39;, verbose=False)&quot;</span>
+<span class="sd">        |     |   2 | u&quot;ut.load_numpy(fpath + &#39;.npy&#39;, verbose=False)&quot;</span>
+<span class="sd">        |     |   3 | u&quot;ut.load_pytables(fpath + &#39;.tables&#39;, verbose=False)&quot;</span>
+<span class="sd">        ...</span>
+<span class="sd">        | Output:</span>
+<span class="sd">        |    * PASSED: each statement produced the same result</span>
+<span class="sd">        |    | num | total time | per loop | stmt</span>
+<span class="sd">        |    |   0 |     2.39 s |   0.24 s | ut.load_hdf5(fpath + &#39;.hdf5&#39;, verbose=False)</span>
+<span class="sd">        |    |   1 |     0.39 s |   0.04 s | ut.load_cPkl(fpath + &#39;.cPkl&#39;, verbose=False)</span>
+<span class="sd">        |    |   2 |     0.19 s |   0.02 s | ut.load_numpy(fpath + &#39;.npy&#39;, verbose=False)</span>
+<span class="sd">        |    |   3 |     0.33 s |   0.03 s | ut.load_pytables(fpath + &#39;.tables&#39;, verbose=False)</span>
+<span class="sd">        L_________________</span>
 
+<span class="sd">    Ignore:</span>
 <span class="sd">        %timeit save_hdf5(fpath, data, verbose=False, compression=&#39;gzip&#39;)</span>
 <span class="sd">        %timeit save_hdf5(fpath, data, verbose=False, compression=&#39;lzf&#39;)</span>
 <span class="sd">        %timeit save_cPkl(fpath + &#39;.cPkl&#39;, data, verbose=False)</span>
@@ -341,7 +481,6 @@
 <span class="sd">        10 loops, best of 3: 111 ms per loop</span>
 <span class="sd">        10 loops, best of 3: 53.1 ms per loop</span>
 <span class="sd">        10 loops, best of 3: 96.5 ms per loop</span>
-
 
 <span class="sd">        save_hdf5(fpath, data, verbose=False, compression=&#39;gzip&#39;)</span>
 <span class="sd">        %timeit load_hdf5(fpath, verbose=False)</span>
@@ -356,7 +495,6 @@
 
 <span class="sd">    Notes:</span>
 <span class="sd">        pip install mpi4py</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">verbose</span> <span class="ow">or</span> <span class="p">(</span><span class="n">verbose</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">__PRINT_WRITES__</span><span class="p">)</span> <span class="ow">or</span> <span class="n">__FORCE_PRINT_WRITES__</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] * save_hdf5(</span><span class="si">%r</span><span class="s">, data)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">util_path</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">fpath</span><span class="p">),))</span>
@@ -366,9 +504,6 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] ... shape=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,))</span>
 
-    <span class="kn">import</span> <span class="nn">h5py</span>
-    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span>
-    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
     <span class="n">chunks</span> <span class="o">=</span> <span class="bp">True</span>  <span class="c"># True enables auto-chunking</span>
     <span class="n">fname</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
 
@@ -383,7 +518,6 @@
     <span class="n">h5kw</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-        <span class="kn">import</span> <span class="nn">six</span>
         <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span>
             <span class="nb">isinstance</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">vals</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
@@ -413,10 +547,6 @@
 
 </div>
 <div class="viewcode-block" id="load_hdf5"><a class="viewcode-back" href="../../utool.html#utool.util_io.load_hdf5">[docs]</a><span class="k">def</span> <span class="nf">load_hdf5</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="kn">import</span> <span class="nn">h5py</span>
-    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span>
-    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-    <span class="kn">import</span> <span class="nn">six</span>
     <span class="n">fname</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
     <span class="c">#file_ = h5py.File(fpath, &#39;r&#39;)</span>
     <span class="c">#file_.values()</span>
@@ -581,7 +711,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>

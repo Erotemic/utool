@@ -136,8 +136,9 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">multiprocessing</span>
 <span class="kn">import</span> <span class="nn">atexit</span>
-<span class="kn">import</span> <span class="nn">sys</span>
+<span class="c">#import sys</span>
 <span class="kn">import</span> <span class="nn">signal</span>
+<span class="kn">import</span> <span class="nn">ctypes</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">threading</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">zip</span>  <span class="c"># NOQA</span>
@@ -316,47 +317,47 @@
     <span class="k">if</span> <span class="n">nTasks</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">nTasks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">args_list</span><span class="p">)</span>
     <span class="n">result_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">mark_prog</span><span class="p">,</span> <span class="n">end_prog</span> <span class="o">=</span> <span class="n">util_progress</span><span class="o">.</span><span class="n">progress_func</span><span class="p">(</span>
-        <span class="n">max_val</span><span class="o">=</span><span class="n">nTasks</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;: &#39;</span><span class="p">)</span>
-    <span class="n">mark_prog</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">prog_iter</span> <span class="o">=</span> <span class="n">util_progress</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span>
+        <span class="n">args_list</span><span class="p">,</span> <span class="n">nTotal</span><span class="o">=</span><span class="n">nTasks</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;: &#39;</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="c"># Execute each task sequentially</span>
-    <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">args</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">args_list</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">args</span> <span class="ow">in</span> <span class="n">prog_iter</span><span class="p">:</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">args_dict</span><span class="p">)</span>
         <span class="n">result_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-        <span class="n">mark_prog</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
-    <span class="n">end_prog</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">result_list</span>
 
 
-<span class="k">def</span> <span class="nf">_process_parallel</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">args_dict</span><span class="o">=</span><span class="p">{},</span> <span class="n">nTasks</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="n">QUIET</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_process_parallel</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">args_dict</span><span class="o">=</span><span class="p">{},</span> <span class="n">nTasks</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="n">QUIET</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parallel process map</span>
 
 <span class="sd">    Use generate instead</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">global</span> <span class="n">__POOL__</span>
     <span class="c"># Define progress observers</span>
     <span class="k">if</span> <span class="n">nTasks</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">nTasks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">args_list</span><span class="p">)</span>
+    <span class="n">_prog</span> <span class="o">=</span> <span class="n">util_progress</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span>
+        <span class="nb">range</span><span class="p">(</span><span class="n">nTasks</span><span class="p">),</span> <span class="n">nTotal</span><span class="o">=</span><span class="n">nTasks</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;: &#39;</span><span class="p">,</span>
+        <span class="n">adjust</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">_prog_iter</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">_prog</span><span class="p">)</span>
     <span class="n">num_tasks_returned_ptr</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">mark_prog</span><span class="p">,</span> <span class="n">end_prog</span> <span class="o">=</span> <span class="n">util_progress</span><span class="o">.</span><span class="n">progress_func</span><span class="p">(</span>
-        <span class="n">max_val</span><span class="o">=</span><span class="n">nTasks</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;: &#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_callback</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
-        <span class="n">mark_prog</span><span class="p">(</span><span class="n">num_tasks_returned_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="n">six</span><span class="o">.</span><span class="n">next</span><span class="p">(</span><span class="n">_prog_iter</span><span class="p">)</span>
         <span class="n">num_tasks_returned_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
     <span class="c"># Send all tasks to be executed asynconously</span>
-    <span class="n">apply_results</span> <span class="o">=</span> <span class="p">[</span><span class="n">__POOL__</span><span class="o">.</span><span class="n">apply_async</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">args_dict</span><span class="p">,</span> <span class="n">_callback</span><span class="p">)</span>
+    <span class="n">apply_results</span> <span class="o">=</span> <span class="p">[</span><span class="n">pool</span><span class="o">.</span><span class="n">apply_async</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">args_dict</span><span class="p">,</span> <span class="n">_callback</span><span class="p">)</span>
                      <span class="k">for</span> <span class="n">args</span> <span class="ow">in</span> <span class="n">args_list</span><span class="p">]</span>
     <span class="c"># Wait until all tasks have been processed</span>
     <span class="k">while</span> <span class="n">num_tasks_returned_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">nTasks</span><span class="p">:</span>
         <span class="c">#print(&#39;Waiting: &#39; + str(num_tasks_returned_ptr[0]) + &#39;/&#39; + str(nTasks))</span>
         <span class="k">pass</span>
-    <span class="n">end_prog</span><span class="p">()</span>
     <span class="c"># Get the results</span>
     <span class="n">result_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ap</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="k">for</span> <span class="n">ap</span> <span class="ow">in</span> <span class="n">apply_results</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">__EAGER_JOIN__</span><span class="p">:</span>
-        <span class="n">close_pool</span><span class="p">(</span><span class="n">quiet</span><span class="o">=</span><span class="n">quiet</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">USE_GLOBAL_POOL</span><span class="p">:</span>
+            <span class="n">close_pool</span><span class="p">(</span><span class="n">quiet</span><span class="o">=</span><span class="n">quiet</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">pool</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">result_list</span>
 
 
@@ -560,8 +561,8 @@
 <span class="sd">        &gt;&gt;&gt; #    vt.imwrite(cfpath, chipBGR)</span>
 <span class="sd">        &gt;&gt;&gt; #    return cfpath, width, height</span>
 <span class="sd">        &gt;&gt;&gt; import utool as ut</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_chip import gen_chip</span>
-<span class="sd">        &gt;&gt;&gt; #from ibeis.model.preproc.preproc_feat import gen_feat_worker</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.preproc.preproc_chip import gen_chip</span>
+<span class="sd">        &gt;&gt;&gt; #from ibeis.algo.preproc.preproc_feat import gen_feat_worker</span>
 <span class="sd">        &gt;&gt;&gt; key_list = [&#39;grace.jpg&#39;, &#39;easy1.png&#39;, &#39;ada2.jpg&#39;, &#39;easy3.png&#39;,</span>
 <span class="sd">        &gt;&gt;&gt;             &#39;hard3.png&#39;, &#39;zebra.png&#39;, &#39;patsy.jpg&#39;, &#39;ada.jpg&#39;,</span>
 <span class="sd">        &gt;&gt;&gt;             &#39;carl.jpg&#39;, &#39;lena.png&#39;, &#39;easy2.png&#39;]</span>
@@ -577,13 +578,13 @@
 <span class="sd">        &gt;&gt;&gt; #feats4 = [w for w in ut.generate(gen_feat_worker, arg_list4)]</span>
 
 <span class="sd">    Example3:</span>
-<span class="sd">        &gt;&gt;&gt; # UNSTABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # FAILING_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; # Trying to recreate the freeze seen in IBEIS</span>
 <span class="sd">        &gt;&gt;&gt; # Extremely weird case: freezes only if dsize &gt; (313, 313) AND __testwarp was called beforehand.</span>
 <span class="sd">        &gt;&gt;&gt; # otherwise the parallel loop works fine. Could be an opencv 3.0.0-dev issue.</span>
 <span class="sd">        &gt;&gt;&gt; import vtool as vt</span>
 <span class="sd">        &gt;&gt;&gt; import utool as ut</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_chip import gen_chip</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.preproc.preproc_chip import gen_chip</span>
 <span class="sd">        &gt;&gt;&gt; import cv2</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_parallel import __testwarp</span>
 <span class="sd">        &gt;&gt;&gt; key_list = [&#39;grace.jpg&#39;, &#39;easy1.png&#39;, &#39;ada2.jpg&#39;, &#39;easy3.png&#39;,</span>
@@ -853,7 +854,7 @@
 <span class="sd">        &gt;&gt;&gt; assert result1 == result2, &#39;inconsistent results&#39;</span>
 
 <span class="sd">    Example1:</span>
-<span class="sd">        &gt;&gt;&gt; # UNSTABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # VERYSLLOOWWW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_parallel import _test_buffered_generator</span>
 <span class="sd">        &gt;&gt;&gt; _test_buffered_generator2()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -876,7 +877,7 @@
     <span class="c">#    target = _buffered_generation_process</span>
     <span class="c">#else:</span>
     <span class="n">_Queue</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span>
-    <span class="n">Process</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span>
+    <span class="n">Process</span> <span class="o">=</span> <span class="n">KillableThread</span>
     <span class="n">target</span> <span class="o">=</span> <span class="n">_buffered_generation_thread</span>
 
     <span class="c"># the effective buffer_ size is one less, because the generation process</span>
@@ -952,9 +953,9 @@
 <span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; import utool as ut</span>
 <span class="sd">        &gt;&gt;&gt; num = 8700  # parallel is slower for smaller numbers</span>
-<span class="sd">        &gt;&gt;&gt; flag_generator0 = ut.process(ut.is_prime, zip(range(0, num)), force_serial=True)</span>
+<span class="sd">        &gt;&gt;&gt; flag_generator0 = ut.process(ut.is_prime, list(zip(range(0, num))), force_serial=True)</span>
 <span class="sd">        &gt;&gt;&gt; flag_list0 = list(flag_generator0)</span>
-<span class="sd">        &gt;&gt;&gt; flag_generator1 = ut.process(ut.is_prime, zip(range(0, num)), force_serial=False)</span>
+<span class="sd">        &gt;&gt;&gt; flag_generator1 = ut.process(ut.is_prime, list(zip(range(0, num))), force_serial=False)</span>
 <span class="sd">        &gt;&gt;&gt; flag_list1 = list(flag_generator1)</span>
 <span class="sd">        &gt;&gt;&gt; assert flag_list0 == flag_list1</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -972,11 +973,17 @@
         <span class="n">result_list</span> <span class="o">=</span> <span class="n">_process_serial</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">args_dict</span><span class="p">,</span> <span class="n">nTasks</span><span class="o">=</span><span class="n">nTasks</span><span class="p">,</span>
                                       <span class="n">quiet</span><span class="o">=</span><span class="n">quiet</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">__POOL__</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">pool</span> <span class="o">=</span> <span class="n">new_pool</span><span class="p">(</span><span class="n">num_procs</span><span class="o">=</span><span class="n">get_default_numprocs</span><span class="p">(),</span>
+                            <span class="n">init_worker</span><span class="o">=</span><span class="n">init_worker</span><span class="p">,</span>
+                            <span class="n">maxtasksperchild</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pool</span> <span class="o">=</span> <span class="n">__POOL__</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">QUIET</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_parallel] executing </span><span class="si">%d</span><span class="s"> </span><span class="si">%s</span><span class="s"> tasks using </span><span class="si">%d</span><span class="s"> processes&#39;</span> <span class="o">%</span>
-                  <span class="p">(</span><span class="n">nTasks</span><span class="p">,</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">),</span> <span class="n">__POOL__</span><span class="o">.</span><span class="n">_processes</span><span class="p">))</span>
+                  <span class="p">(</span><span class="n">nTasks</span><span class="p">,</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">),</span> <span class="n">pool</span><span class="o">.</span><span class="n">_processes</span><span class="p">))</span>
         <span class="n">result_list</span> <span class="o">=</span> <span class="n">_process_parallel</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">args_dict</span><span class="p">,</span> <span class="n">nTasks</span><span class="o">=</span><span class="n">nTasks</span><span class="p">,</span>
-                                        <span class="n">quiet</span><span class="o">=</span><span class="n">quiet</span><span class="p">)</span>
+                                        <span class="n">quiet</span><span class="o">=</span><span class="n">quiet</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="n">pool</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">result_list</span>
 
 </div>
@@ -997,7 +1004,7 @@
 <span class="sd">        python -m utool.util_parallel --test-spawn_background_process</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_parallel import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import utool as ut</span>
 <span class="sd">        &gt;&gt;&gt; import time</span>
@@ -1037,15 +1044,102 @@
 <span class="sd">        &gt;&gt;&gt; assert ut.checkpath(fpath, verbose=True)</span>
 <span class="sd">        &gt;&gt;&gt; assert threadid.is_alive() is False, &#39;process should have died&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">proc_obj</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">func_name</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;mp.Progress-&#39;</span> <span class="o">+</span> <span class="n">func_name</span>
+    <span class="c">#proc_obj = multiprocessing.Process(target=func, name=name, args=args, kwargs=kwargs)</span>
+    <span class="n">proc_obj</span> <span class="o">=</span> <span class="n">KillableProcess</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">func</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="c">#proc_obj.daemon = True</span>
     <span class="c">#proc_obj.isAlive = proc_obj.is_alive</span>
     <span class="n">proc_obj</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">proc_obj</span>
 
 </div>
+<div class="viewcode-block" id="KillableProcess"><a class="viewcode-back" href="../../utool.html#utool.util_parallel.KillableProcess">[docs]</a><span class="k">class</span> <span class="nc">KillableProcess</span><span class="p">(</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">Process</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simple subclass of multiprocessing.Process</span>
+<span class="sd">    Gives an additional method to kill all children</span>
+<span class="sd">    as well as itself. calls this function on delete.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c">#def __del__(self):</span>
+    <span class="c">#    self.terminate2()</span>
+    <span class="c">#    super(KillableProcess, self).__del__()</span>
+
+<div class="viewcode-block" id="KillableProcess.terminate2"><a class="viewcode-back" href="../../utool.html#utool.util_parallel.KillableProcess.terminate2">[docs]</a>    <span class="k">def</span> <span class="nf">terminate2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
+            <span class="c">#print(&#39;[terminate2] Killing process&#39;)</span>
+            <span class="c"># Kill all children</span>
+            <span class="kn">import</span> <span class="nn">psutil</span>
+            <span class="n">webproc</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span><span class="n">pid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pid</span><span class="p">)</span>
+            <span class="n">child_proces</span> <span class="o">=</span> <span class="n">webproc</span><span class="o">.</span><span class="n">children</span><span class="p">()</span>
+            <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">child_proces</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c">#print(&#39;[terminate2] Already dead&#39;)</span>
+            <span class="k">pass</span>
+
+<span class="c">#def _process_error_wraper(queue, func, args, kwargs):</span>
+<span class="c">#    pass</span>
+
+
+<span class="c">#def spawn_background_process2(func, *args, **kwargs):</span>
+<span class="c">#    multiprocessing_queue</span>
+<span class="c">#    import utool as ut</span>
+<span class="c">#    func_name = ut.get_funcname(func)</span>
+<span class="c">#    name = &#39;mp.Progress-&#39; + func_name</span>
+<span class="c">#    proc_obj = multiprocessing.Process(target=func, name=name, args=args, kwargs=kwargs)</span>
+<span class="c">#    #proc_obj.isAlive = proc_obj.is_alive</span>
+<span class="c">#    proc_obj.start()</span>
+
+</div></div>
+<span class="k">def</span> <span class="nf">_async_raise</span><span class="p">(</span><span class="n">tid</span><span class="p">,</span> <span class="n">excobj</span><span class="p">):</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">pythonapi</span><span class="o">.</span><span class="n">PyThreadState_SetAsyncExc</span><span class="p">(</span><span class="n">tid</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">py_object</span><span class="p">(</span><span class="n">excobj</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">res</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;nonexistent thread id&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">res</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c"># &quot;&quot;&quot;if it returns a number greater than one, you&#39;re in trouble,</span>
+        <span class="c"># and you should call it again with exc=NULL to revert the effect&quot;&quot;&quot;</span>
+        <span class="n">ctypes</span><span class="o">.</span><span class="n">pythonapi</span><span class="o">.</span><span class="n">PyThreadState_SetAsyncExc</span><span class="p">(</span><span class="n">tid</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">SystemError</span><span class="p">(</span><span class="s">&#39;PyThreadState_SetAsyncExc failed&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="KillableThread"><a class="viewcode-back" href="../../utool.html#utool.util_parallel.KillableThread">[docs]</a><span class="k">class</span> <span class="nc">KillableThread</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    References:</span>
+<span class="sd">        http://code.activestate.com/recipes/496960-thread2-killable-threads/</span>
+<span class="sd">        http://tomerfiliba.com/recipes/Thread2/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="KillableThread.raise_exc"><a class="viewcode-back" href="../../utool.html#utool.util_parallel.KillableThread.raise_exc">[docs]</a>    <span class="k">def</span> <span class="nf">raise_exc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">excobj</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">isAlive</span><span class="p">(),</span> <span class="s">&#39;thread must be started&#39;</span>
+        <span class="k">for</span> <span class="n">tid</span><span class="p">,</span> <span class="n">tobj</span> <span class="ow">in</span> <span class="n">threading</span><span class="o">.</span><span class="n">_active</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">tobj</span> <span class="ow">is</span> <span class="bp">self</span><span class="p">:</span>
+                <span class="n">_async_raise</span><span class="p">(</span><span class="n">tid</span><span class="p">,</span> <span class="n">excobj</span><span class="p">)</span>
+                <span class="k">return</span>
+        <span class="c"># the thread was alive when we entered the loop, but was not found</span>
+        <span class="c"># in the dict, hence it must have been already terminated. should we raise</span>
+        <span class="c"># an exception here? silently ignore?</span>
+</div>
+<div class="viewcode-block" id="KillableThread.terminate"><a class="viewcode-back" href="../../utool.html#utool.util_parallel.KillableThread.terminate">[docs]</a>    <span class="k">def</span> <span class="nf">terminate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># must raise the SystemExit type, instead of a SystemExit() instance</span>
+        <span class="c"># due to a bug in PyThreadState_SetAsyncExc</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">raise_exc</span><span class="p">(</span><span class="ne">SystemExit</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+</div></div>
 <div class="viewcode-block" id="spawn_background_thread"><a class="viewcode-back" href="../../utool.html#utool.util_parallel.spawn_background_thread">[docs]</a><span class="k">def</span> <span class="nf">spawn_background_thread</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="c">#threadobj = IMPLEMENTATION_NUM</span>
-    <span class="n">thread_obj</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">thread_obj</span> <span class="o">=</span> <span class="n">KillableThread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">thread_obj</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">thread_obj</span>
+
+</div>
+<div class="viewcode-block" id="spawn_background_daemon_thread"><a class="viewcode-back" href="../../utool.html#utool.util_parallel.spawn_background_daemon_thread">[docs]</a><span class="k">def</span> <span class="nf">spawn_background_daemon_thread</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="c">#threadobj = IMPLEMENTATION_NUM</span>
+    <span class="n">thread_obj</span> <span class="o">=</span> <span class="n">KillableThread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">thread_obj</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="bp">True</span>
     <span class="n">thread_obj</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">thread_obj</span>
 
@@ -1066,7 +1160,12 @@
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m utool.util_parallel</span>
-<span class="sd">        python -m utool.util_parallel --allexamples</span>
+<span class="sd">        python -m utool.util_parallel --allexamples --testslow</span>
+<span class="sd">        coverage run -m utool.util_parallel --allexamples</span>
+<span class="sd">        coverage run -m utool.util_parallel --allexamples --testslow</span>
+<span class="sd">        coverage report html -m utool/util_parallel.py</span>
+<span class="sd">        coverage html</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c">#import multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
@@ -1083,7 +1182,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>

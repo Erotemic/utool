@@ -591,7 +591,16 @@
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
                 <span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Error calling buildcommand from cwd=</span><span class="si">%r</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
                 <span class="k">raise</span>
+        <span class="k">if</span> <span class="n">arg</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;versions&#39;</span><span class="p">]:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;+ ---&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Testing preqres package versions&#39;</span><span class="p">)</span>
+            <span class="n">install_requires</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;install_requires&#39;</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="kn">import</span> <span class="nn">pip</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Checking install_requires = [</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s">]&#39;</span> <span class="o">%</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">install_requires</span><span class="p">))</span>
+            <span class="n">pip</span><span class="o">.</span><span class="n">main</span><span class="p">([</span><span class="s">&#39;show&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">depline</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">depline</span> <span class="ow">in</span> <span class="n">install_requires</span><span class="p">])</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;L ___ Done Version Testing&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">arg</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;docs&#39;</span><span class="p">]:</span>
+            <span class="c"># FIXME</span>
             <span class="n">autogen_sphinx_apidoc</span><span class="p">()</span>
         <span class="c"># Build optimized files</span>
         <span class="k">if</span> <span class="n">arg</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;o&#39;</span><span class="p">,</span> <span class="s">&#39;pyo&#39;</span><span class="p">]:</span>
@@ -776,7 +785,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>

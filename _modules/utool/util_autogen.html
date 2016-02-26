@@ -131,11 +131,13 @@
   <h1>Source code for utool.util_autogen</h1><div class="highlight"><pre>
 <span class="c"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">deque</span>  <span class="c"># NOQA</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[alg]&#39;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">expanduser</span><span class="p">,</span> <span class="n">normpath</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[autogen]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="PythonStatement"><a class="viewcode-back" href="../../utool.html#utool.util_autogen.PythonStatement">[docs]</a><span class="k">class</span> <span class="nc">PythonStatement</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -146,6 +148,137 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stmt</span>
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stmt</span>
+
+</div>
+<div class="viewcode-block" id="dump_autogen_code"><a class="viewcode-back" href="../../utool.html#utool.util_autogen.dump_autogen_code">[docs]</a><span class="k">def</span> <span class="nf">dump_autogen_code</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">autogen_text</span><span class="p">,</span> <span class="n">codetype</span><span class="o">=</span><span class="s">&#39;python&#39;</span><span class="p">,</span> <span class="n">fullprint</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper that write a file if -w is given on command line, otherwise</span>
+<span class="sd">    it just prints it out. It has the opption of comparing a diff to the file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">dowrite</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;-w&#39;</span><span class="p">,</span> <span class="s">&#39;--write&#39;</span><span class="p">))</span>
+    <span class="n">show_diff</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--diff&#39;</span><span class="p">)</span>
+    <span class="n">num_context_lines</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--diff&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+    <span class="n">show_diff</span> <span class="o">=</span> <span class="n">show_diff</span> <span class="ow">or</span> <span class="n">num_context_lines</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+
+    <span class="n">num_context_lines</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--diff&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">fullprint</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">fullprint</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="k">if</span> <span class="n">fullprint</span> <span class="ow">is</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="n">fullprint</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--print&#39;</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[autogen] Autogenerated </span><span class="si">%s</span><span class="s">...</span><span class="se">\n</span><span class="s">+---</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fpath</span><span class="p">,))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">dowrite</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">fullprint</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">print_code</span><span class="p">(</span><span class="n">autogen_text</span><span class="p">,</span> <span class="n">lexer_name</span><span class="o">=</span><span class="n">codetype</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">L___&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;specify --print to write to stdout&#39;</span><span class="p">)</span>
+            <span class="k">pass</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;specify -w to write, or --diff to compare&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;...would write to: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fpath</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">show_diff</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+            <span class="n">prev_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+            <span class="n">textdiff</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_textdiff</span><span class="p">(</span><span class="n">prev_text</span><span class="p">,</span> <span class="n">autogen_text</span><span class="p">,</span>
+                                       <span class="n">num_context_lines</span><span class="o">=</span><span class="n">num_context_lines</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">print_difftext</span><span class="p">(</span><span class="n">textdiff</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dowrite</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: Not writing. Remove --diff from command line&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">dowrite</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">autogen_text</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="makeinit"><a class="viewcode-back" href="../../utool.html#utool.util_autogen.makeinit">[docs]</a><span class="k">def</span> <span class="nf">makeinit</span><span class="p">(</span><span class="n">mod_dpath</span><span class="p">,</span> <span class="n">exclude_modnames</span><span class="o">=</span><span class="p">[],</span> <span class="n">use_star</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        mod_dpath (str):</span>
+<span class="sd">        exclude_modnames (list): (default = [])</span>
+<span class="sd">        use_star (bool): (default = False)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: init_codeblock</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_autogen --exec-makeinit --modname=ibeis.algo</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SCRIPT</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_autogen import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; modname = ut.get_argval(&#39;--modname&#39;, str, default=None)</span>
+<span class="sd">        &gt;&gt;&gt; mod_dpath = (os.getcwd() if modname is None else</span>
+<span class="sd">        &gt;&gt;&gt;              ut.get_modpath_from_modname(modname, prefer_pkg=True))</span>
+<span class="sd">        &gt;&gt;&gt; mod_dpath = ut.unixpath(mod_dpath)</span>
+<span class="sd">        &gt;&gt;&gt; mod_fpath = join(mod_dpath, &#39;__init__.py&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; exclude_modnames = ut.get_argval((&#39;--exclude&#39;, &#39;-x&#39;), list, default=[])</span>
+<span class="sd">        &gt;&gt;&gt; use_star = ut.get_argflag(&#39;--star&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; init_codeblock = makeinit(mod_dpath, exclude_modnames, use_star)</span>
+<span class="sd">        &gt;&gt;&gt; ut.dump_autogen_code(mod_fpath, init_codeblock)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">utool._internal</span> <span class="kn">import</span> <span class="n">util_importer</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">module_name</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_modname_from_modpath</span><span class="p">(</span><span class="n">mod_dpath</span><span class="p">)</span>
+    <span class="n">IMPORT_TUPLES</span> <span class="o">=</span> <span class="n">util_importer</span><span class="o">.</span><span class="n">make_import_tuples</span><span class="p">(</span><span class="n">mod_dpath</span><span class="p">,</span> <span class="n">exclude_modnames</span><span class="o">=</span><span class="n">exclude_modnames</span><span class="p">)</span>
+    <span class="n">initstr</span> <span class="o">=</span> <span class="n">util_importer</span><span class="o">.</span><span class="n">make_initstr</span><span class="p">(</span><span class="n">module_name</span><span class="p">,</span> <span class="n">IMPORT_TUPLES</span><span class="p">)</span>
+    <span class="n">regen_command</span> <span class="o">=</span> <span class="s">&#39;cd </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mod_dpath</span><span class="p">)</span>
+    <span class="n">regen_command</span> <span class="o">+=</span> <span class="s">&#39;    makeinit.py&#39;</span>
+    <span class="n">regen_command</span> <span class="o">+=</span> <span class="s">&#39; --modname={modname}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">modname</span><span class="o">=</span><span class="n">module_name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">use_star</span><span class="p">:</span>
+        <span class="n">regen_command</span> <span class="o">+=</span> <span class="s">&#39; --star&#39;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">exclude_modnames</span> <span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">regen_command</span> <span class="o">+=</span> <span class="s">&#39; -x &#39;</span> <span class="o">+</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">exclude_modnames</span><span class="p">)</span>
+
+    <span class="n">regen_block</span> <span class="o">=</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">    &quot;&quot;&quot;</span>
+<span class="s">    Regen Command:</span>
+<span class="s">        {regen_command}</span>
+<span class="s">    &quot;&quot;&quot;</span>
+<span class="s">    &#39;&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">regen_command</span><span class="o">=</span><span class="n">regen_command</span><span class="p">))</span>
+
+    <span class="n">importstar_codeblock</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        python -c &quot;import {module_name}&quot; --dump-{module_name}-init</span>
+<span class="sd">        python -c &quot;import {module_name}&quot; --update-{module_name}-init</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        __DYNAMIC__ = True</span>
+<span class="sd">        if __DYNAMIC__:</span>
+<span class="sd">            # TODO: import all utool external prereqs. Then the imports will not import</span>
+<span class="sd">            # anything that has already in a toplevel namespace</span>
+<span class="sd">            # COMMENTED OUT FOR FROZEN __INIT__</span>
+<span class="sd">            # Dynamically import listed util libraries and their members.</span>
+<span class="sd">            from utool._internal import util_importer</span>
+<span class="sd">            # FIXME: this might actually work with rrrr, but things arent being</span>
+<span class="sd">            # reimported because they are already in the modules list</span>
+<span class="sd">            import_execstr = util_importer.dynamic_import(__name__, IMPORT_TUPLES)</span>
+<span class="sd">            exec(import_execstr)</span>
+<span class="sd">            DOELSE = False</span>
+<span class="sd">        else:</span>
+<span class="sd">            # Do the nonexec import (can force it to happen no matter what if alwyas set</span>
+<span class="sd">            # to True)</span>
+<span class="sd">            DOELSE = True</span>
+
+<span class="sd">        if DOELSE:</span>
+<span class="sd">            # &lt;AUTOGEN_INIT&gt;</span>
+<span class="sd">            pass</span>
+<span class="sd">            # &lt;/AUTOGEN_INIT&gt;</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">module_name</span><span class="o">=</span><span class="n">module_name</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">ts_line</span> <span class="o">=</span> <span class="s">&#39;# Autogenerated on {ts}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ts</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_timestamp</span><span class="p">(</span><span class="s">&#39;printable&#39;</span><span class="p">))</span>
+
+    <span class="n">init_codeblock_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;# -*- coding: utf-8 -*-&#39;</span><span class="p">,</span> <span class="n">ts_line</span><span class="p">]</span>
+    <span class="n">init_codeblock_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">initstr</span><span class="p">)</span>
+    <span class="n">init_codeblock_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">IMPORT_TUPLES = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">IMPORT_TUPLES</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">use_star</span><span class="p">:</span>
+        <span class="n">init_codeblock_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">importstar_codeblock</span><span class="p">)</span>
+    <span class="n">init_codeblock_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">regen_block</span><span class="p">)</span>
+
+    <span class="n">init_codeblock</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">init_codeblock_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">init_codeblock</span>
 
 </div>
 <div class="viewcode-block" id="write_modscript_alias"><a class="viewcode-back" href="../../utool.html#utool.util_autogen.write_modscript_alias">[docs]</a><span class="k">def</span> <span class="nf">write_modscript_alias</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">modname</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">pyscript</span><span class="o">=</span><span class="s">&#39;python&#39;</span><span class="p">):</span>
@@ -224,8 +357,11 @@
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # UNSTABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_autogen import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; modname = &#39;plottool.plots&#39;</span>
-<span class="sd">        &gt;&gt;&gt; funcname = &#39;multi_plot&#39;</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; #modname = &#39;plottool.plots&#39;</span>
+<span class="sd">        &gt;&gt;&gt; #funcname = &#39;multi_plot&#39;</span>
+<span class="sd">        &gt;&gt;&gt; modname = &#39;utool.util_path&#39;</span>
+<span class="sd">        &gt;&gt;&gt; funcname = &#39;checkpath&#39;</span>
 <span class="sd">        &gt;&gt;&gt; verbose = True</span>
 <span class="sd">        &gt;&gt;&gt; moddir = None</span>
 <span class="sd">        &gt;&gt;&gt; func, module, error_str = load_func_from_module(modname, funcname, verbose, moddir)</span>
@@ -261,13 +397,15 @@
                 <span class="c">#if hasattr(basemodule, &#39;rrrr&#39;):</span>
                 <span class="c">#    basemodule.rrrr()</span>
                 <span class="c">#imp.reload(basemodule)</span>
-        <span class="c">#print(&#39;--;;;;&#39;)</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">module</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">moddir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="n">module</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">import_module_from_fpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">moddir</span><span class="p">,</span> <span class="n">modname</span> <span class="o">+</span> <span class="s">&#39;.py&#39;</span><span class="p">))</span>
+                <span class="c">#parts =</span>
+                <span class="c"># There can be a weird double import error thing happening here</span>
+                <span class="c"># Rectify the dots in the filename</span>
+                <span class="n">module</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">import_module_from_fpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">moddir</span><span class="p">,</span> <span class="n">modname</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;.py&#39;</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span>
         <span class="c">#import inspect</span>
@@ -275,20 +413,21 @@
             <span class="n">imp</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="k">pass</span>
-        <span class="c"># Try removing pyc if it exists</span>
-        <span class="c">#print(module.__file__)</span>
-        <span class="k">if</span> <span class="n">module</span><span class="o">.</span><span class="n">__file__</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.pyc&#39;</span><span class="p">):</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">__file__</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">module</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">moddir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-                    <span class="n">module</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">import_module_from_fpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">moddir</span><span class="p">,</span> <span class="n">modname</span> <span class="o">+</span> <span class="s">&#39;.py&#39;</span><span class="p">))</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">raise</span>
-            <span class="c">#module = __import__(modname)</span>
-        <span class="c">#print(module.__file__)</span>
-        <span class="n">imp</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
+            <span class="c"># Try removing pyc if it exists</span>
+            <span class="k">if</span> <span class="n">module</span><span class="o">.</span><span class="n">__file__</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.pyc&#39;</span><span class="p">):</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">__file__</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">module</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">moddir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="n">module</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">import_module_from_fpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">moddir</span><span class="p">,</span> <span class="n">modname</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;.py&#39;</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">imp</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">pass</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="c"># FIXME: PYTHON 3</span>
             <span class="n">execstr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
@@ -356,14 +495,16 @@
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m utool.util_autogen --exec-auto_docstr</span>
+<span class="sd">        python -m utool --tf auto_docstr</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; import utool as ut</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_autogen import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ut.util_autogen.rrr(verbose=False)</span>
-<span class="sd">        &gt;&gt;&gt; #docstr = ut.auto_docstr(&#39;ibeis.model.hots.smk.smk_index&#39;, &#39;compute_negentropy_names&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; modname = &#39;utool.util_autogen&#39;</span>
-<span class="sd">        &gt;&gt;&gt; funcname = &#39;auto_docstr&#39;</span>
+<span class="sd">        &gt;&gt;&gt; #docstr = ut.auto_docstr(&#39;ibeis.algo.hots.smk.smk_index&#39;, &#39;compute_negentropy_names&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; modname = ut.get_argval(&#39;--modname&#39;, default=&#39;utool.util_autogen&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; funcname = ut.get_argval(&#39;--funcname&#39;, default=&#39;auto_docstr&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; moddir = ut.get_argval(&#39;--moddir&#39;, type_=str, default=None)</span>
 <span class="sd">        &gt;&gt;&gt; docstr = ut.util_autogen.auto_docstr(modname, funcname)</span>
 <span class="sd">        &gt;&gt;&gt; print(docstr)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -371,115 +512,29 @@
     <span class="n">func</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span> <span class="n">error_str</span> <span class="o">=</span> <span class="n">load_func_from_module</span><span class="p">(</span>
         <span class="n">modname</span><span class="p">,</span> <span class="n">funcname</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">moddir</span><span class="o">=</span><span class="n">moddir</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">error_str</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">docstr</span> <span class="o">=</span> <span class="n">make_default_docstr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">docstr</span> <span class="o">=</span> <span class="n">make_default_docstr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+            <span class="n">error_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">formatex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Caught Error in parsing docstr&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="c">#ut.printex(ex)</span>
+            <span class="n">error_str</span> <span class="o">+=</span> <span class="p">(</span>
+                <span class="s">&#39;</span><span class="se">\n\n</span><span class="s">ReplicateCommand:</span><span class="se">\n</span><span class="s">    &#39;</span>
+                <span class="s">&#39;python -m utool --tf auto_docstr &#39;</span>
+                <span class="s">&#39;--modname={modname} --funcname={funcname} --moddir={moddir}&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">modname</span><span class="o">=</span><span class="n">modname</span><span class="p">,</span> <span class="n">funcname</span><span class="o">=</span><span class="n">funcname</span><span class="p">,</span> <span class="n">moddir</span><span class="o">=</span><span class="n">moddir</span><span class="p">)</span>
+            <span class="n">error_str</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s"> kwargs=&#39;</span>  <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">error_str</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">docstr</span> <span class="o">=</span> <span class="n">error_str</span>
     <span class="k">return</span> <span class="n">docstr</span>
 
-
-<span class="c">#def auto_docstr_old(modname, funcname, verbose=True, moddir=None, **kwargs):</span>
-<span class="c">#    &quot;&quot;&quot;</span>
-<span class="c">#    called from vim. Uses strings of filename and modnames to build docstr</span>
-
-<span class="c">#    Args:</span>
-<span class="c">#        modname (str):</span>
-<span class="c">#        funcname (str):</span>
-
-<span class="c">#    Returns:</span>
-<span class="c">#        docstr</span>
-
-<span class="c">#    Example:</span>
-<span class="c">#        &gt;&gt;&gt; import utool as ut</span>
-<span class="c">#        &gt;&gt;&gt; ut.util_autogen.rrr(verbose=False)</span>
-<span class="c">#        &gt;&gt;&gt; #docstr = ut.auto_docstr(&#39;ibeis.model.hots.smk.smk_index&#39;, &#39;compute_negentropy_names&#39;)</span>
-<span class="c">#        &gt;&gt;&gt; modname = &#39;ut.util_autogen&#39;</span>
-<span class="c">#        &gt;&gt;&gt; funcname = &#39;auto_docstr&#39;</span>
-<span class="c">#        &gt;&gt;&gt; docstr = ut.util_autogen.auto_docstr(modname, funcname)</span>
-<span class="c">#        &gt;&gt;&gt; print(docstr)</span>
-<span class="c">#    &quot;&quot;&quot;</span>
-<span class="c">#    import utool as ut</span>
-<span class="c">#    docstr = &#39;error&#39;</span>
-<span class="c">#    if isinstance(modname, str):</span>
-<span class="c">#        module = __import__(modname)</span>
-<span class="c">#        import imp</span>
-<span class="c">#        #import inspect</span>
-<span class="c">#        #imp.reload(inspect)</span>
-<span class="c">#        # Try removing pyc if it exists</span>
-<span class="c">#        #print(module.__file__)</span>
-<span class="c">#        if module.__file__.endswith(&#39;.pyc&#39;):</span>
-<span class="c">#            ut.delete(module.__file__, verbose=False)</span>
-<span class="c">#            module = __import__(modname)</span>
-<span class="c">#        #print(module.__file__)</span>
-<span class="c">#        imp.reload(module)</span>
-<span class="c">#        try:</span>
-<span class="c">#            # FIXME: PYTHON 3</span>
-<span class="c">#            execstr = ut.codeblock(</span>
-<span class="c">#                &#39;&#39;&#39;</span>
-<span class="c">#                try:</span>
-<span class="c">#                    import {modname}</span>
-<span class="c">#                    module = {modname}</span>
-<span class="c">#                    #print(&#39;Trying to reload module=%r&#39; % (module,))</span>
-<span class="c">#                    imp.reload(module)</span>
-<span class="c">#                except Exception:</span>
-<span class="c">#                    # If it fails maybe the module is not in the path</span>
-<span class="c">#                    if moddir is not None:</span>
-<span class="c">#                        try:</span>
-<span class="c">#                            import imp</span>
-<span class="c">#                            import os</span>
-<span class="c">#                            orig_dir = os.getcwd()</span>
-<span class="c">#                            os.chdir(moddir)</span>
-<span class="c">#                            modname_str = &#39;{modname}&#39;</span>
-<span class="c">#                            modinfo = imp.find_module(modname_str, [moddir])</span>
-<span class="c">#                            module = imp.load_module(modname_str, *modinfo)</span>
-<span class="c">#                            #print(&#39;loaded module=%r&#39; % (module,))</span>
-<span class="c">#                        except Exception as ex:</span>
-<span class="c">#                            ut.printex(ex, &#39;failed to imp.load_module&#39;)</span>
-<span class="c">#                            pass</span>
-<span class="c">#                        finally:</span>
-<span class="c">#                            os.chdir(orig_dir)</span>
-<span class="c">#                import imp</span>
-<span class="c">#                import utool as ut</span>
-<span class="c">#                imp.reload(ut.util_autogen)</span>
-<span class="c">#                imp.reload(ut.util_inspect)</span>
-<span class="c">#                #if hasattr(module, &#39;{funcname}&#39;):</span>
-<span class="c">#                #else:</span>
-<span class="c">#                try:</span>
-<span class="c">#                    func = module.{funcname}</span>
-<span class="c">#                    docstr = ut.util_autogen.make_default_docstr(func, **kwargs)</span>
-<span class="c">#                except AttributeError:</span>
-<span class="c">#                    docstr = &#39;Could not find attribute funcname={funcname} in modname={modname} This might be a reloading issue&#39;</span>
-<span class="c">#                    imp.reload(module)</span>
-<span class="c">#                &#39;&#39;&#39;</span>
-<span class="c">#            ).format(**locals())</span>
-<span class="c">#            exec_globals = globals()</span>
-<span class="c">#            exec_locals = locals()</span>
-<span class="c">#            exec(execstr, exec_globals, exec_locals)</span>
-<span class="c">#            docstr = exec_locals[&#39;docstr&#39;]</span>
-<span class="c">#            #, globals(), locals())</span>
-<span class="c">#            #return &#39;BARFOOO&#39; +  docstr</span>
-<span class="c">#            return docstr</span>
-<span class="c">#            #print(execstr)</span>
-<span class="c">#        except Exception as ex2:</span>
-<span class="c">#            docstr = &#39;error &#39; + str(ex2)</span>
-<span class="c">#            if verbose:</span>
-<span class="c">#                import utool as ut</span>
-<span class="c">#                #ut.printex(ex1, &#39;ex1&#39;)</span>
-<span class="c">#                ut.printex(ex2, &#39;ex2&#39;, tb=True)</span>
-<span class="c">#            testcmd = &#39;python -c &quot;import utool; print(utool.auto_docstr(\&#39;%s\&#39;, \&#39;%s\&#39;))&quot;&#39; % (modname, funcname)</span>
-<span class="c">#            error_str = ut.formatex(ex2, &#39;ex2&#39;, tb=True, keys=[&#39;modname&#39;, &#39;funcname&#39;, &#39;testcmd&#39;])</span>
-<span class="c">#            error_str += &#39;---&#39; + execstr</span>
-<span class="c">#            return error_str</span>
-<span class="c">#            #return docstr + &#39;\n&#39; + execstr</span>
-<span class="c">#    else:</span>
-<span class="c">#        docstr = &#39;error&#39;</span>
-<span class="c">#    return docstr</span>
-
 </div>
 <div class="viewcode-block" id="print_auto_docstr"><a class="viewcode-back" href="../../utool.html#utool.util_autogen.print_auto_docstr">[docs]</a><span class="k">def</span> <span class="nf">print_auto_docstr</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">funcname</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    python -c &quot;import utool; utool.print_auto_docstr(&#39;ibeis.model.hots.smk.smk_index&#39;, &#39;compute_negentropy_names&#39;)&quot;</span>
+<span class="sd">    python -c &quot;import utool; utool.print_auto_docstr(&#39;ibeis.algo.hots.smk.smk_index&#39;, &#39;compute_negentropy_names&#39;)&quot;</span>
 <span class="sd">    python -c &quot;import utool;</span>
-<span class="sd">    utool.print_auto_docstr(&#39;ibeis.model.hots.smk.smk_index&#39;, &#39;compute_negentropy_names&#39;)&quot;</span>
+<span class="sd">    utool.print_auto_docstr(&#39;ibeis.algo.hots.smk.smk_index&#39;, &#39;compute_negentropy_names&#39;)&quot;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">docstr</span> <span class="o">=</span> <span class="n">auto_docstr</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">funcname</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">docstr</span><span class="p">)</span>
@@ -563,7 +618,7 @@
 <span class="sd">        python -m utool.util_autogen --test-make_example_docstr</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_autogen import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; # build test data</span>
 <span class="sd">        &gt;&gt;&gt; funcname = &#39;make_example_docstr&#39;</span>
@@ -578,31 +633,16 @@
 <span class="sd">        &gt;&gt;&gt; # verify results</span>
 <span class="sd">        &gt;&gt;&gt; result = str(examplecode)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        # ENABLE_DOCTEST</span>
+<span class="sd">        # DISABLE_DOCTEST</span>
 <span class="sd">        from utool.util_autogen import *  # NOQA</span>
+<span class="sd">        import utool as ut</span>
 <span class="sd">        import ibeis</span>
-<span class="sd">        species = ibeis.const.Species.ZEB_PLAIN</span>
-<span class="sd">        ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
-<span class="sd">        daids = ibs.get_valid_aids(species=species)</span>
+<span class="sd">        species = ibeis.const.TEST_SPECIES.ZEB_PLAIN</span>
 <span class="sd">        qaids = ibs.get_valid_aids(species=species)</span>
-<span class="sd">        qreq_ = ibs.new_query_request(qaids, daids)</span>
+<span class="sd">        qreq_ = ibeis.testdata_qreq_()</span>
 <span class="sd">        foo = make_example_docstr(qaids, qreq_)</span>
-<span class="sd">        result = (&#39;foo = %s&#39; % (str(foo),))</span>
+<span class="sd">        result = (&#39;foo = %s&#39; % (ut.repr2(foo),))</span>
 <span class="sd">        print(result)</span>
-
-
-<span class="sd">        # ENABLE_DOCTEST</span>
-<span class="sd">        from utool.util_autogen import *  # NOQA</span>
-<span class="sd">        import ibeis</span>
-<span class="sd">        species = ibeis.const.Species.ZEB_PLAIN</span>
-<span class="sd">        ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
-<span class="sd">        daids = ibs.get_valid_aids(species=species)</span>
-<span class="sd">        qaids = ibs.get_valid_aids(species=species)</span>
-<span class="sd">        qreq_ = ibs.new_query_request(qaids, daids)</span>
-<span class="sd">        foo = make_example_docstr(qaids, qreq_)</span>
-<span class="sd">        result = str(foo)</span>
-<span class="sd">        print(result)</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 
@@ -610,20 +650,23 @@
     <span class="n">top_import_fmstr</span> <span class="o">=</span> <span class="s">&#39;from {modname} import *  # NOQA&#39;</span>
     <span class="n">top_import</span> <span class="o">=</span> <span class="n">top_import_fmstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">modname</span><span class="o">=</span><span class="n">modname</span><span class="p">)</span>
     <span class="n">import_lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">top_import</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">modname</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;utool&#39;</span><span class="p">):</span>
+        <span class="n">import_lines</span> <span class="o">+=</span> <span class="p">[</span><span class="s">&#39;import utool as ut&#39;</span><span class="p">]</span>
+    <span class="n">is_show_func</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">modname</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;utool&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">modname</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;mtgmonte&#39;</span><span class="p">)</span>
 
     <span class="c"># TODO: Externally register these</span>
     <span class="n">default_argval_map</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s">&#39;ibs&#39;</span>         <span class="p">:</span> <span class="s">&#39;ibeis.opendb(defaultdb=</span><span class="se">\&#39;</span><span class="s">testdb1</span><span class="se">\&#39;</span><span class="s">)&#39;</span><span class="p">,</span>
         <span class="s">&#39;testres&#39;</span> <span class="p">:</span> <span class="s">&#39;ibeis.testdata_expts(</span><span class="se">\&#39;</span><span class="s">PZ_MTEST</span><span class="se">\&#39;</span><span class="s">)&#39;</span><span class="p">,</span>
         <span class="c">#&#39;qreq_&#39;       : &#39;ibs.new_query_request(qaids, daids)&#39;,</span>
-        <span class="s">&#39;qreq_&#39;</span>       <span class="p">:</span> <span class="s">&#39;ibeis.testdata_qreq()&#39;</span><span class="p">,</span>
+        <span class="s">&#39;qreq_&#39;</span>       <span class="p">:</span> <span class="s">&#39;ibeis.testdata_qreq_()&#39;</span><span class="p">,</span>
         <span class="s">&#39;qres_list&#39;</span>   <span class="p">:</span> <span class="s">&#39;ibs.query_chips([1], [2, 3, 4, 5], cfgdict=dict())&#39;</span><span class="p">,</span>
         <span class="s">&#39;qres&#39;</span>        <span class="p">:</span> <span class="s">&#39;ibs.query_chips([1], [2, 3, 4, 5], cfgdict=dict())[0]&#39;</span><span class="p">,</span>
         <span class="s">&#39;aid_list&#39;</span>    <span class="p">:</span> <span class="s">&#39;ibs.get_valid_aids()&#39;</span><span class="p">,</span>
         <span class="s">&#39;nid_list&#39;</span>    <span class="p">:</span> <span class="s">&#39;ibs._get_all_known_nids()&#39;</span><span class="p">,</span>
         <span class="s">&#39;qaids&#39;</span>       <span class="p">:</span> <span class="s">&#39;ibs.get_valid_aids(species=species)&#39;</span><span class="p">,</span>
         <span class="s">&#39;daids&#39;</span>       <span class="p">:</span> <span class="s">&#39;ibs.get_valid_aids(species=species)&#39;</span><span class="p">,</span>
-        <span class="s">&#39;species&#39;</span>     <span class="p">:</span> <span class="s">&#39;ibeis.const.Species.ZEB_PLAIN&#39;</span><span class="p">,</span>
+        <span class="s">&#39;species&#39;</span>     <span class="p">:</span> <span class="s">&#39;ibeis.const.TEST_SPECIES.ZEB_PLAIN&#39;</span><span class="p">,</span>
         <span class="s">&#39;kpts&#39;</span>        <span class="p">:</span> <span class="s">&#39;vt.dummy.get_dummy_kpts()&#39;</span><span class="p">,</span>
         <span class="s">&#39;dodraw&#39;</span>      <span class="p">:</span> <span class="s">&#39;ut.show_was_requested()&#39;</span><span class="p">,</span>
         <span class="s">&#39;img_fpath&#39;</span>   <span class="p">:</span> <span class="s">&#39;ut.grab_test_imgpath(</span><span class="se">\&#39;</span><span class="s">carl.jpg</span><span class="se">\&#39;</span><span class="s">)&#39;</span><span class="p">,</span>
@@ -704,7 +747,7 @@
         <span class="n">examplecode_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;# DISABLE_DOCTEST&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c"># Enable the test if it can be run immediately</span>
-        <span class="n">examplecode_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;# ENABLE_DOCTEST&#39;</span><span class="p">)</span>
+        <span class="n">examplecode_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;# DISABLE_DOCTEST&#39;</span><span class="p">)</span>
 
     <span class="n">examplecode_lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">import_lines</span><span class="p">)</span>
     <span class="c">#examplecode_lines.append(&#39;# build test data&#39;)</span>
@@ -735,10 +778,19 @@
     <span class="k">if</span> <span class="n">result_print</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">return_name</span> <span class="o">!=</span> <span class="s">&#39;result&#39;</span><span class="p">:</span>
             <span class="c">#examplecode_lines.append(&#39;result = str(&#39; + return_name + &#39;)&#39;)</span>
-            <span class="n">result_line_fmt</span> <span class="o">=</span> <span class="s">&#39;result = (</span><span class="se">\&#39;</span><span class="s">{return_name} = </span><span class="si">%s</span><span class="se">\&#39;</span><span class="s"> % (str({return_name}),))&#39;</span>
+            <span class="n">result_line_fmt</span> <span class="o">=</span> <span class="s">&#39;result = (</span><span class="se">\&#39;</span><span class="s">{return_name} = </span><span class="si">%s</span><span class="se">\&#39;</span><span class="s"> % (ut.repr2({return_name}),))&#39;</span>
             <span class="n">result_line</span> <span class="o">=</span> <span class="n">result_line_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">return_name</span><span class="o">=</span><span class="n">return_name</span><span class="p">)</span>
             <span class="n">examplecode_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result_line</span><span class="p">)</span>
         <span class="n">examplecode_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result_print</span><span class="p">)</span>
+
+    <span class="c"># TODO: infer this</span>
+    <span class="k">if</span> <span class="n">is_show_func</span><span class="p">:</span>
+        <span class="n">examplecode_lines</span> <span class="o">+=</span> <span class="p">[</span>
+            <span class="s">&#39;ut.quit_if_noshow()&#39;</span><span class="p">,</span>
+            <span class="s">&#39;import plottool as pt&#39;</span><span class="p">,</span>
+            <span class="s">&#39;ut.show_if_requested()&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+
     <span class="n">examplecode</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">examplecode_lines</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">examplecode</span>
 
@@ -753,7 +805,12 @@
         <span class="n">cmdline_fmtstr</span> <span class="o">=</span> <span class="s">&#39;python -m {pkg} --tf {funcname}&#39;</span>  <span class="c"># --enableall&#39;</span>
         <span class="k">return</span> <span class="n">cmdline_fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">cmdline_fmtstr</span> <span class="o">=</span> <span class="s">&#39;python -m {modname} --exec-{funcname}&#39;</span>  <span class="c"># --enableall&#39;</span>
+        <span class="c"># TODO: infer this</span>
+        <span class="n">is_show_func</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="n">is_show_func</span><span class="p">:</span>
+            <span class="n">cmdline_fmtstr</span> <span class="o">=</span> <span class="s">&#39;python -m {modname} --exec-{funcname} --show&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cmdline_fmtstr</span> <span class="o">=</span> <span class="s">&#39;python -m {modname} --exec-{funcname}&#39;</span>  <span class="c"># --enableall&#39;</span>
         <span class="k">return</span> <span class="n">cmdline_fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
 
 <span class="c"># &lt;/INVIDIAL DOCSTR COMPONENTS&gt;</span>
@@ -795,12 +852,16 @@
 <span class="sd">    Ignore:</span>
 <span class="sd">        pass</span>
 
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_autogen --exec-make_default_docstr --show</span>
+
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_autogen import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import utool as ut</span>
 <span class="sd">        &gt;&gt;&gt; func = ut.make_default_docstr</span>
 <span class="sd">        &gt;&gt;&gt; #func = ut.make_args_docstr</span>
+<span class="sd">        &gt;&gt;&gt; func = PythonStatement</span>
 <span class="sd">        &gt;&gt;&gt; default_docstr = make_default_docstr(func)</span>
 <span class="sd">        &gt;&gt;&gt; result = str(default_docstr)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
@@ -895,6 +956,25 @@
     <span class="k">return</span> <span class="n">default_docstr</span>
 
 </div>
+<div class="viewcode-block" id="remove_codeblock_syntax_sentinals"><a class="viewcode-back" href="../../utool.html#utool.util_autogen.remove_codeblock_syntax_sentinals">[docs]</a><span class="k">def</span> <span class="nf">remove_codeblock_syntax_sentinals</span><span class="p">(</span><span class="n">code_text</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Removes template comments and vim sentinals</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        code_text (str):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: code_text_</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">flags</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span> <span class="o">|</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span>
+    <span class="n">code_text_</span> <span class="o">=</span> <span class="n">code_text</span>
+    <span class="n">code_text_</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&#39;^ *# *REM [^\n]*$\n?&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">code_text_</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">flags</span><span class="p">)</span>
+    <span class="n">code_text_</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&#39;^ *# STARTBLOCK *$\n&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">code_text_</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">flags</span><span class="p">)</span>
+    <span class="n">code_text_</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&#39;^ *# ENDBLOCK *$\n?&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">code_text_</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">flags</span><span class="p">)</span>
+    <span class="n">code_text_</span> <span class="o">=</span> <span class="n">code_text_</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">code_text_</span>
+
+</div>
 <div class="viewcode-block" id="make_default_module_maintest"><a class="viewcode-back" href="../../utool.html#utool.util_autogen.make_default_module_maintest">[docs]</a><span class="k">def</span> <span class="nf">make_default_module_maintest</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">modpath</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    make_default_module_maintest</span>
@@ -928,31 +1008,56 @@
     <span class="c"># ut.doctest_funcs({modname}, allexamples=True)&quot;</span>
     <span class="c">#in_pythonpath, module_type, path = find_modname_in_pythonpath(modname)</span>
     <span class="c"># only use the -m if it is part of a package directory</span>
-    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">expanduser</span><span class="p">,</span> <span class="n">normpath</span>
 
-    <span class="n">use_modrun</span> <span class="o">=</span> <span class="n">modpath</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">exists</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">modpath</span><span class="p">),</span> <span class="s">&#39;__init__.py&#39;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">modpath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">moddir</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">modpath</span><span class="p">)</span>
+        <span class="n">pkginit_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">moddir</span><span class="p">,</span> <span class="s">&#39;__init__.py&#39;</span><span class="p">)</span>
+        <span class="n">use_modrun</span> <span class="o">=</span> <span class="n">exists</span><span class="p">(</span><span class="n">pkginit_fpath</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">use_modrun</span> <span class="o">=</span> <span class="bp">True</span>
 
     <span class="k">if</span> <span class="n">use_modrun</span><span class="p">:</span>
         <span class="n">pyargs</span> <span class="o">=</span> <span class="s">&#39;-m &#39;</span> <span class="o">+</span> <span class="n">modname</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">WIN32</span><span class="p">:</span>
-            <span class="n">pyargs</span> <span class="o">=</span> <span class="n">normpath</span><span class="p">(</span><span class="n">modpath</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">expanduser</span><span class="p">(</span><span class="s">&#39;~&#39;</span><span class="p">),</span> <span class="s">&#39;~&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">WIN32</span><span class="p">:</span>
+            <span class="n">modpath</span> <span class="o">=</span> <span class="n">normpath</span><span class="p">(</span><span class="n">modpath</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">expanduser</span><span class="p">(</span><span class="s">&#39;~&#39;</span><span class="p">),</span> <span class="s">&#39;%HOME%&#39;</span><span class="p">)</span>
+            <span class="n">pyargs</span> <span class="o">=</span> <span class="s">&#39;-B &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_unixslash</span><span class="p">(</span><span class="n">modpath</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">modpath</span> <span class="o">=</span> <span class="n">normpath</span><span class="p">(</span><span class="n">modpath</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">expanduser</span><span class="p">(</span><span class="s">&#39;~&#39;</span><span class="p">),</span> <span class="s">&#39;~&#39;</span><span class="p">)</span>
+            <span class="n">pyargs</span> <span class="o">=</span> <span class="n">modpath</span>
+
+    <span class="n">cmdline</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        python {pyargs}</span>
+<span class="sd">        python {pyargs} --allexamples</span>
+<span class="sd">        # REM python {pyargs} --allexamples --noface --nosrc</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">use_modrun</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">WIN32</span><span class="p">:</span>
+            <span class="n">augpath</span> <span class="o">=</span> <span class="s">&#39;set PYTHONPATH=%PYTHONPATH%&#39;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">pathsep</span> <span class="o">+</span> <span class="n">moddir</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">augpath</span> <span class="o">=</span> <span class="s">&#39;export PYTHONPATH=$PYTHONPATH&#39;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">pathsep</span> <span class="o">+</span> <span class="n">moddir</span>
+        <span class="n">cmdline</span> <span class="o">=</span> <span class="n">augpath</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">cmdline</span>
+
+    <span class="n">cmdline</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">cmdline</span><span class="p">,</span> <span class="s">&#39; &#39;</span> <span class="o">*</span> <span class="mi">8</span><span class="p">)</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pyargs</span><span class="o">=</span><span class="n">pyargs</span><span class="p">)</span>
 
     <span class="n">text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-        <span class="sd">&#39;&#39;&#39;</span>
+        <span class="sd">r&#39;&#39;&#39;</span>
+<span class="sd">        # STARTBLOCK</span>
 <span class="sd">        if __name__ == &#39;__main__&#39;:</span>
-<span class="sd">            &quot;&quot;&quot;</span>
+<span class="sd">            r&quot;&quot;&quot;</span>
 <span class="sd">            CommandLine:</span>
-<span class="sd">                python {pyargs}</span>
-<span class="sd">                python {pyargs} --allexamples</span>
-<span class="sd">                python {pyargs} --allexamples --noface --nosrc</span>
+<span class="sd">                {cmdline}</span>
 <span class="sd">            &quot;&quot;&quot;</span>
 <span class="sd">            import multiprocessing</span>
 <span class="sd">            multiprocessing.freeze_support()  # for win32</span>
 <span class="sd">            import utool as ut  # NOQA</span>
 <span class="sd">            ut.doctest_funcs()</span>
+<span class="sd">        # ENDBLOCK</span>
 <span class="sd">        &#39;&#39;&#39;</span>
-    <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pyargs</span><span class="o">=</span><span class="n">pyargs</span><span class="p">)</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cmdline</span><span class="o">=</span><span class="n">cmdline</span><span class="p">)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">remove_codeblock_syntax_sentinals</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">text</span>
 
 </div>
@@ -1012,7 +1117,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>

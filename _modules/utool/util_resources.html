@@ -253,7 +253,9 @@
 <span class="sd">    Returns this programs current memory usage in bytes</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">psutil</span>
-    <span class="n">meminfo</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">())</span><span class="o">.</span><span class="n">get_memory_info</span><span class="p">()</span>
+    <span class="n">proc</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">())</span>
+    <span class="c">#meminfo = proc.get_memory_info()</span>
+    <span class="n">meminfo</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">memory_info</span><span class="p">()</span>
     <span class="n">rss</span> <span class="o">=</span> <span class="n">meminfo</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c"># Resident Set Size / Mem Usage</span>
     <span class="n">vms</span> <span class="o">=</span> <span class="n">meminfo</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="c"># Virtual Memory Size / VM Size  # NOQA</span>
     <span class="k">return</span> <span class="n">rss</span>
@@ -415,7 +417,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>

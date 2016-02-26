@@ -148,7 +148,10 @@
 
 <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
     <span class="k">def</span> <span class="nf">type_str</span><span class="p">(</span><span class="n">type_</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">type_</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&lt;type </span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&gt;&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">str_</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">type_</span><span class="p">)</span>
+        <span class="n">str_</span> <span class="o">=</span> <span class="n">str_</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&lt;type </span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&gt;&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">str_</span> <span class="o">=</span> <span class="n">str_</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&lt;class </span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&gt;&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">str_</span>
 <span class="k">else</span><span class="p">:</span>
 <div class="viewcode-block" id="type_str"><a class="viewcode-back" href="../../utool.html#utool.util_type.type_str">[docs]</a>    <span class="k">def</span> <span class="nf">type_str</span><span class="p">(</span><span class="n">type_</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">type_</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&lt;class </span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&gt;&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
@@ -183,6 +186,8 @@
     <span class="n">VALID_BOOL_TYPES</span> <span class="o">=</span> <span class="p">(</span><span class="n">BooleanType</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">)</span>
     <span class="n">NP_NDARRAY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
     <span class="n">LISTLIKE_TYPES</span> <span class="o">=</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">NP_NDARRAY</span><span class="p">)</span>
+    <span class="n">NUMPY_TYPE_TUPLE</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="nb">tuple</span><span class="p">([</span><span class="n">NP_NDARRAY</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">typeDict</span><span class="o">.</span><span class="n">values</span><span class="p">()))))</span>
 <span class="k">except</span> <span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
     <span class="c"># TODO remove numpy</span>
     <span class="n">HAVE_NUMPY</span> <span class="o">=</span> <span class="bp">False</span>
@@ -191,6 +196,12 @@
     <span class="n">VALID_BOOL_TYPES</span> <span class="o">=</span> <span class="p">(</span><span class="n">BooleanType</span><span class="p">,)</span>
     <span class="n">LISTLIKE_TYPES</span> <span class="o">=</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
     <span class="n">NP_NDARRAY</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">NUMPY_TYPE_TUPLE</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">()</span>
+
+
+<span class="n">PRIMATIVE_TYPES</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="nb">tuple</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="bp">None</span><span class="p">))</span>
+<span class="p">)</span>
 
 
 <div class="viewcode-block" id="is_valid_floattype"><a class="viewcode-back" href="../../utool.html#utool.util_type.is_valid_floattype">[docs]</a><span class="k">def</span> <span class="nf">is_valid_floattype</span><span class="p">(</span><span class="n">type_</span><span class="p">):</span>
@@ -311,6 +322,10 @@
             <span class="c">#import re</span>
             <span class="c">#subvar_list = re.split(r&#39;,\s*&#39; + ut.negative_lookahead(r&#39;[^\[\]]*\]&#39;), var[1:-1])</span>
             <span class="k">return</span> <span class="n">smart_cast</span><span class="p">(</span><span class="n">var</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="nb">list</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">var</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;(&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">var</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;)&#39;</span><span class="p">):</span>
+            <span class="c">#import re</span>
+            <span class="c">#subvar_list = re.split(r&#39;,\s*&#39; + ut.negative_lookahead(r&#39;[^\[\]]*\]&#39;), var[1:-1])</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">smart_cast</span><span class="p">(</span><span class="n">var</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="nb">list</span><span class="p">))</span>
         <span class="n">type_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">type_</span> <span class="ow">in</span> <span class="n">type_list</span><span class="p">:</span>
             <span class="n">castvar</span> <span class="o">=</span> <span class="n">try_cast</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">type_</span><span class="p">)</span>
@@ -563,7 +578,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>

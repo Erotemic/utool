@@ -140,11 +140,12 @@
 <span class="kn">import</span> <span class="nn">urllib</span>  <span class="c"># NOQA</span>
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">urllib</span> <span class="k">as</span> <span class="n">_urllib</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_path</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_cplat</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_arg</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[grabdata]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[grabdata]&#39;</span><span class="p">)</span>
 
 
 <span class="n">QUIET</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">QUIET</span>
@@ -153,13 +154,18 @@
 
 <div class="viewcode-block" id="archive_files"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.archive_files">[docs]</a><span class="k">def</span> <span class="nf">archive_files</span><span class="p">(</span><span class="n">archive_fpath</span><span class="p">,</span> <span class="n">fpath_list</span><span class="p">,</span> <span class="n">small</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">allowZip64</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
                   <span class="n">overwrite</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">common_prefix</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Adds the files in ``fpath_list`` to an zip/tar archive.</span>
+
 <span class="sd">    Args:</span>
 <span class="sd">        archive_fpath (str): path to zipfile to create</span>
 <span class="sd">        fpath_list (list): path of files to add to the zipfile</span>
-<span class="sd">        small (bool): if True uses compression but the zipfile will take more time to write</span>
+<span class="sd">        small (bool): if True uses compression but the zipfile will take more</span>
+<span class="sd">            time to write</span>
 <span class="sd">        allowZip64 (bool): use if a file is over 2GB</span>
 <span class="sd">        overwrite (bool):</span>
+<span class="sd">        verbose (bool):  verbosity flag(default = True)</span>
+<span class="sd">        common_prefix (bool): (default = False)</span>
 
 <span class="sd">    References:</span>
 <span class="sd">        https://docs.python.org/2/library/zipfile.html</span>
@@ -168,20 +174,24 @@
 <span class="sd">        python -m utool.util_grabdata --test-archive_files</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # UNSTABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_grabdata import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
 <span class="sd">        &gt;&gt;&gt; archive_fpath = ut.get_app_resource_dir(&#39;utool&#39;, &#39;testarchive.zip&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; # remove an existing test archive</span>
+<span class="sd">        &gt;&gt;&gt; ut.delete(archive_fpath)</span>
+<span class="sd">        &gt;&gt;&gt; assert not exists(archive_fpath), &#39;archive should not exist&#39;</span>
 <span class="sd">        &gt;&gt;&gt; fpath_list = [ut.grab_test_imgpath(key) for key in ut.TESTIMG_URL_DICT]</span>
 <span class="sd">        &gt;&gt;&gt; small = True</span>
 <span class="sd">        &gt;&gt;&gt; allowZip64 = False</span>
-<span class="sd">        &gt;&gt;&gt; # execute function</span>
-<span class="sd">        &gt;&gt;&gt; result = archive_files(archive_fpath, fpath_list, small, allowZip64)</span>
+<span class="sd">        &gt;&gt;&gt; overwrite = True</span>
+<span class="sd">        &gt;&gt;&gt; result = archive_files(archive_fpath, fpath_list, small, allowZip64, overwrite)</span>
 <span class="sd">        &gt;&gt;&gt; # verify results</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; assert exists(archive_fpath), &#39;archive should exist&#39;</span>
 
 <span class="sd">    Ignore:</span>
-<span class="sd">        # http://superuser.com/questions/281573/what-are-the-best-options-to-use-when-compressing-files-using-7-zip</span>
+<span class="sd">        # http://superuser.com/questions/281573/best-options-compressing-files-7-zip</span>
 <span class="sd">        # Create a small 7zip archive</span>
 <span class="sd">        7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on archive.7z dir1</span>
 <span class="sd">        7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on ibeis-linux-binary.7z ibeis</span>
@@ -198,7 +208,11 @@
     <span class="n">compression</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZIP_DEFLATED</span> <span class="k">if</span> <span class="n">small</span> <span class="k">else</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZIP_STORED</span>
     <span class="k">if</span> <span class="n">common_prefix</span><span class="p">:</span>
         <span class="c"># Note: common prefix does not care about file structures</span>
-        <span class="n">rel_arcpath</span> <span class="o">=</span> <span class="n">commonprefix</span><span class="p">(</span><span class="n">fpath_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">common_prefix</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="c"># use given path as base path</span>
+            <span class="n">rel_arcpath</span> <span class="o">=</span> <span class="n">common_prefix</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rel_arcpath</span> <span class="o">=</span> <span class="n">commonprefix</span><span class="p">(</span><span class="n">fpath_list</span><span class="p">)</span>
         <span class="n">rel_arcpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">longest_existing_path</span><span class="p">(</span><span class="n">rel_arcpath</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">rel_arcpath</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">archive_fpath</span><span class="p">)</span>
@@ -232,6 +246,8 @@
     <span class="c">#    # Example: http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz</span>
     <span class="c">#    return ungz_file(archive_fpath)</span>
     <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">archive_fpath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.zip&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">archive_fpath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.tar.gz&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;archive is corrupted: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">archive_fpath</span><span class="p">,))</span>
         <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;unknown archive format: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">archive_fpath</span><span class="p">,))</span>
 
 
@@ -308,8 +324,8 @@
 
 
 <div class="viewcode-block" id="open_url_in_browser"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.open_url_in_browser">[docs]</a><span class="k">def</span> <span class="nf">open_url_in_browser</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">browsername</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    open_url_in_browser</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Opens a url in the specified or default browser</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        url (str): web url</span>
@@ -364,7 +380,7 @@
 
     <span class="c"># Hack for finding chrome on win32</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">WIN32</span><span class="p">:</span>
-        <span class="c"># http://stackoverflow.com/questions/24873302/python-generic-webbrowser-get-open-for-chrome-exe-does-not-work</span>
+        <span class="c"># http://stackoverflow.com/questions/24873302/webbrowser-chrome-exe-does-not-work</span>
         <span class="n">win32_chrome_fpath</span> <span class="o">=</span> <span class="s">&#39;C:/Program Files (x86)/Google/Chrome/Application/chrome.exe&#39;</span>
         <span class="n">win32_chrome_browsername</span> <span class="o">=</span> <span class="n">win32_chrome_fpath</span> <span class="o">+</span> <span class="s">&#39; </span><span class="si">%s</span><span class="s">&#39;</span>
         <span class="n">win32_map</span> <span class="o">=</span> <span class="p">{</span>
@@ -395,8 +411,6 @@
 <div class="viewcode-block" id="download_url"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.download_url">[docs]</a><span class="k">def</span> <span class="nf">download_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">spoof</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot; downloads a url to a filename.</span>
 
-<span class="sd">    download_url</span>
-
 <span class="sd">    Args:</span>
 <span class="sd">        url (str): url to download</span>
 <span class="sd">        filename (str): path to download to. Defaults to basename of url</span>
@@ -405,22 +419,21 @@
 <span class="sd">    References:</span>
 <span class="sd">        http://blog.moleculea.com/2012/10/04/urlretrieve-progres-indicator/</span>
 
-<span class="sd">    TODO: Delete any partially downloaded files</span>
+<span class="sd">    TODO:</span>
+<span class="sd">        Delete any partially downloaded files</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_grabdata import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; url = &#39;http://www.jrsoftware.org/download.php/ispack.exe&#39;</span>
 <span class="sd">        &gt;&gt;&gt; fpath = download_url(url)</span>
 <span class="sd">        &gt;&gt;&gt; print(fpath)</span>
-<span class="sd">        [utool] Downloading url=&#39;http://www.jrsoftware.org/download.php/ispack.exe&#39; to filename=&#39;ispack.exe&#39;</span>
-<span class="sd">        ...100%, 1 MB, 606 KB/s, 3 seconds passed</span>
-<span class="sd">        [utool] Finished downloading filename=&#39;ispack.exe&#39;</span>
 <span class="sd">        ispack.exe</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Weird that we seem to need this here for tests</span>
     <span class="kn">import</span> <span class="nn">urllib</span>  <span class="c"># NOQA</span>
     <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">filename</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Downloading url=</span><span class="si">%r</span><span class="s"> to filename=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">filename</span><span class="p">))</span>
     <span class="k">def</span> <span class="nf">reporthook_</span><span class="p">(</span><span class="n">num_blocks</span><span class="p">,</span> <span class="n">block_nBytes</span><span class="p">,</span> <span class="n">total_nBytes</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="n">total_seconds</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span> <span class="o">+</span> <span class="mf">1E-9</span>
         <span class="n">num_kb_down</span>   <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_blocks</span> <span class="o">*</span> <span class="n">block_nBytes</span><span class="p">)</span> <span class="o">/</span> <span class="mi">1024</span>
@@ -432,7 +445,6 @@
         <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
     <span class="n">reporthook</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">reporthook_</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Downloading url=</span><span class="si">%r</span><span class="s"> to filename=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">filename</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">spoof</span><span class="p">:</span>
         <span class="c"># Different agents that can be used for spoofing</span>
         <span class="n">user_agents</span> <span class="o">=</span> <span class="p">[</span>
@@ -460,17 +472,24 @@
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Finished downloading filename=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filename</span><span class="p">,))</span>
     <span class="k">return</span> <span class="n">filename</span>
 
+
+<span class="c">#if six.PY2:</span>
+<span class="c">#    import urllib as _urllib</span>
+<span class="c">#elif six.PY3:</span>
+<span class="c">#    import urllib.request as _urllib</span>
+
 </div>
-<div class="viewcode-block" id="url_read"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.url_read">[docs]</a><span class="k">def</span> <span class="nf">url_read</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">urllib</span> <span class="kn">as</span> <span class="nn">_urllib</span>
-    <span class="k">elif</span> <span class="n">six</span><span class="o">.</span><span class="n">PY3</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">urllib.request</span> <span class="kn">as</span> <span class="nn">_urllib</span>
+<div class="viewcode-block" id="url_read"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.url_read">[docs]</a><span class="k">def</span> <span class="nf">url_read</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Directly reads data from url</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">url</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;://&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
         <span class="n">url</span> <span class="o">=</span> <span class="s">&#39;http://&#39;</span> <span class="o">+</span> <span class="n">url</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Reading data from url=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,))</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Reading data from url=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,))</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">file_</span> <span class="o">=</span> <span class="n">_urllib</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">file_</span> <span class="o">=</span> <span class="n">_urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="c">#file_ = _urllib.urlopen(url)</span>
     <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
         <span class="k">raise</span>
     <span class="n">data</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
@@ -479,23 +498,24 @@
 
 </div>
 <div class="viewcode-block" id="experiment_download_multiple_urls"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.experiment_download_multiple_urls">[docs]</a><span class="k">def</span> <span class="nf">experiment_download_multiple_urls</span><span class="p">(</span><span class="n">url_list</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    References:</span>
-<span class="sd">        http://stackoverflow.com/questions/1112343/how-do-i-capture-sigint-in-python</span>
+<span class="sd">        http://stackoverflow.com/questions/1112343/capture-sigint-in-python</span>
+<span class="sd">        http://stackoverflow.com/questions/16694907/download-large-file-requests</span>
 <span class="sd">        GracefulInterruptHandler</span>
-<span class="sd">        http://stackoverflow.com/questions/16694907/how-to-download-large-file-in-python-with-requests-py</span>
 
-<span class="sd">    import signal</span>
-<span class="sd">    import sys</span>
-<span class="sd">    def signal_handler(signal, frame):</span>
-<span class="sd">            print(&#39;You pressed Ctrl+C!&#39;)</span>
-<span class="sd">            sys.exit(0)</span>
-<span class="sd">    signal.signal(signal.SIGINT, signal_handler)</span>
-<span class="sd">    print(&#39;Press Ctrl+C&#39;)</span>
-<span class="sd">    signal.pause()</span>
+<span class="sd">    Ignore:</span>
+<span class="sd">        import signal</span>
+<span class="sd">        import sys</span>
+<span class="sd">        def signal_handler(signal, frame):</span>
+<span class="sd">                print(&#39;You pressed Ctrl+C!&#39;)</span>
+<span class="sd">                sys.exit(0)</span>
+<span class="sd">        signal.signal(signal.SIGINT, signal_handler)</span>
+<span class="sd">        print(&#39;Press Ctrl+C&#39;)</span>
+<span class="sd">        signal.pause()</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; # UNSTABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; url_list = [</span>
 <span class="sd">        &gt;&gt;&gt;     &#39;https://www.dropbox.com/s/jl506apezj42zjz/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe&#39;,   # NOQA</span>
 <span class="sd">        &gt;&gt;&gt;     &#39;https://www.dropbox.com/s/v1ivnmny6tlc364/vgg.caffe.slice_0_30_None.pickle&#39;,</span>
@@ -550,20 +570,26 @@
             <span class="k">break</span>
 
 </div>
-<div class="viewcode-block" id="fix_dropbox_link"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.fix_dropbox_link">[docs]</a><span class="k">def</span> <span class="nf">fix_dropbox_link</span><span class="p">(</span><span class="n">dropbox_url</span><span class="p">):</span>
+<div class="viewcode-block" id="clean_dropbox_link"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.clean_dropbox_link">[docs]</a><span class="k">def</span> <span class="nf">clean_dropbox_link</span><span class="p">(</span><span class="n">dropbox_url</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Dropbox links should be en-mass downloaed from dl.dropbox</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_grabdata import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; dropbox_url = &#39;www.dropbox.com/foobar.zip?dl=0&#39;</span>
-<span class="sd">        &gt;&gt;&gt; cleaned_url = fix_dropbox_link(dropbox_url)</span>
+<span class="sd">        &gt;&gt;&gt; cleaned_url = clean_dropbox_link(dropbox_url)</span>
 <span class="sd">        &gt;&gt;&gt; result = str(cleaned_url)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        dl.dropbox.com/foobar.zip</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">cleaned_url</span> <span class="o">=</span> <span class="n">dropbox_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;www.dropbox&#39;</span><span class="p">,</span> <span class="s">&#39;dl.dropbox&#39;</span><span class="p">)</span>
-    <span class="n">cleaned_url</span> <span class="o">=</span> <span class="n">cleaned_url</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s">&#39;?dl=0&#39;</span><span class="p">)</span>
+    <span class="n">postfix_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&#39;?dl=0&#39;</span>
+    <span class="p">]</span>
+    <span class="k">for</span> <span class="n">postfix</span> <span class="ow">in</span> <span class="n">postfix_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cleaned_url</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">postfix</span><span class="p">):</span>
+            <span class="n">cleaned_url</span> <span class="o">=</span> <span class="n">cleaned_url</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">postfix</span><span class="p">)]</span>
+    <span class="c"># cleaned_url = cleaned_url.rstrip(&#39;?dl=0&#39;)</span>
     <span class="k">return</span> <span class="n">cleaned_url</span>
 
 </div>
@@ -596,7 +622,7 @@
 
 
 <div class="viewcode-block" id="get_valid_test_imgkeys"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.get_valid_test_imgkeys">[docs]</a><span class="k">def</span> <span class="nf">get_valid_test_imgkeys</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot; returns valid keys for grab_test_imgpath &quot;&quot;&quot;</span>
+    <span class="sd">r&quot;&quot;&quot; returns valid keys for grab_test_imgpath &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">TESTIMG_URL_DICT</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 
 </div>
@@ -620,7 +646,7 @@
 
 </div>
 <div class="viewcode-block" id="grab_test_imgpath"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.grab_test_imgpath">[docs]</a><span class="k">def</span> <span class="nf">grab_test_imgpath</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s">&#39;lena.png&#39;</span><span class="p">,</span> <span class="n">allow_external</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Gets paths to standard / fun test images.</span>
 <span class="sd">    Downloads them if they dont exits</span>
 
@@ -664,7 +690,7 @@
 
 </div>
 <div class="viewcode-block" id="grab_selenium_chromedriver"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.grab_selenium_chromedriver">[docs]</a><span class="k">def</span> <span class="nf">grab_selenium_chromedriver</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Automatically download selenium chrome driver if needed</span>
 
 <span class="sd">    CommandLine:</span>
@@ -727,17 +753,24 @@
 </div>
 <div class="viewcode-block" id="grab_file_url"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.grab_file_url">[docs]</a><span class="k">def</span> <span class="nf">grab_file_url</span><span class="p">(</span><span class="n">file_url</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s">&#39;utool&#39;</span><span class="p">,</span> <span class="n">download_dir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                   <span class="n">delay</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">spoof</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">redownload</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    grab_file_url</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Downloads a file and returns the local path of the file.</span>
+
+<span class="sd">    The resulting file is cached, so multiple calls to this function do not</span>
+<span class="sd">    result in multiple dowloads.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        file_url (str):</span>
-<span class="sd">        ensure (bool):</span>
-<span class="sd">        appname (str):</span>
-<span class="sd">        download_dir (None):</span>
-<span class="sd">        delay (None):</span>
-<span class="sd">        spoof (bool):</span>
-<span class="sd">        fname (None):</span>
+<span class="sd">        file_url (str): url to the file</span>
+<span class="sd">        ensure (bool):  if False the file is assumed to be downloaed</span>
+<span class="sd">            (default = True)</span>
+<span class="sd">        appname (str): (default = &#39;utool&#39;)</span>
+<span class="sd">        download_dir custom directory (None): (default = None)</span>
+<span class="sd">        delay (None): delay time before download (default = None)</span>
+<span class="sd">        spoof (bool): (default = False)</span>
+<span class="sd">        fname (str):  custom file name (default = None)</span>
+<span class="sd">        verbose (bool):  verbosity flag (default = True)</span>
+<span class="sd">        redownload (bool): if True forces redownload of the file</span>
+<span class="sd">            (default = False)</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        str: fpath</span>
@@ -761,13 +794,12 @@
 <span class="sd">        &gt;&gt;&gt; redownload = True</span>
 <span class="sd">        &gt;&gt;&gt; fname =&#39;lena.png&#39;</span>
 <span class="sd">        &gt;&gt;&gt; lena_fpath = ut.grab_file_url(file_url, ensure, appname, download_dir,</span>
-<span class="sd">        ...     delay, spoof, fname, verbose, redownload)</span>
+<span class="sd">        &gt;&gt;&gt;     delay, spoof, fname, verbose, redownload)</span>
 <span class="sd">        &gt;&gt;&gt; result = basename(lena_fpath)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        lena.png</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">file_url</span> <span class="o">=</span> <span class="n">fix_dropbox_link</span><span class="p">(</span><span class="n">file_url</span><span class="p">)</span>
+    <span class="n">file_url</span> <span class="o">=</span> <span class="n">clean_dropbox_link</span><span class="p">(</span><span class="n">file_url</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">fname</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">fname</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">file_url</span><span class="p">)</span>
     <span class="c"># Download zipfile to</span>
@@ -795,12 +827,38 @@
 <div class="viewcode-block" id="grab_zipped_url"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.grab_zipped_url">[docs]</a><span class="k">def</span> <span class="nf">grab_zipped_url</span><span class="p">(</span><span class="n">zipped_url</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s">&#39;utool&#39;</span><span class="p">,</span>
                     <span class="n">download_dir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">force_commonprefix</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">cleanup</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
                     <span class="n">redownload</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">spoof</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    downloads and unzips the url</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        zipped_url (str): url which must be either a .zip of a .tar.gz file</span>
+<span class="sd">        ensure (bool):  eager evaluation if True(default = True)</span>
+<span class="sd">        appname (str): (default = &#39;utool&#39;)</span>
 <span class="sd">        download_dir (str): containing downloading directory</span>
+<span class="sd">        force_commonprefix (bool): (default = True)</span>
+<span class="sd">        cleanup (bool): (default = False)</span>
+<span class="sd">        redownload (bool): (default = False)</span>
+<span class="sd">        spoof (bool): (default = False)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_grabdata --exec-grab_zipped_url --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_grabdata import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; zipped_url = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ensure = True</span>
+<span class="sd">        &gt;&gt;&gt; appname = &#39;utool&#39;</span>
+<span class="sd">        &gt;&gt;&gt; download_dir = None</span>
+<span class="sd">        &gt;&gt;&gt; force_commonprefix = True</span>
+<span class="sd">        &gt;&gt;&gt; cleanup = False</span>
+<span class="sd">        &gt;&gt;&gt; redownload = False</span>
+<span class="sd">        &gt;&gt;&gt; spoof = False</span>
+<span class="sd">        &gt;&gt;&gt; result = grab_zipped_url(zipped_url, ensure, appname, download_dir,</span>
+<span class="sd">        &gt;&gt;&gt;                          force_commonprefix, cleanup, redownload,</span>
+<span class="sd">        &gt;&gt;&gt;                          spoof)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
 
 <span class="sd">    Examples:</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_grabdata import *  # NOQA</span>
@@ -808,7 +866,7 @@
 <span class="sd">        &gt;&gt;&gt; zipped_url = &#39;http://www.spam.com/eggs/data.zip&#39;</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">zipped_url</span> <span class="o">=</span> <span class="n">fix_dropbox_link</span><span class="p">(</span><span class="n">zipped_url</span><span class="p">)</span>
+    <span class="n">zipped_url</span> <span class="o">=</span> <span class="n">clean_dropbox_link</span><span class="p">(</span><span class="n">zipped_url</span><span class="p">)</span>
     <span class="n">zip_fname</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">zipped_url</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">data_name</span> <span class="o">=</span> <span class="n">split_archive_ext</span><span class="p">(</span><span class="n">zip_fname</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="c"># Download zipfile to</span>
@@ -838,7 +896,8 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">urllib2</span>
         <span class="kn">import</span> <span class="nn">json</span>
-        <span class="n">req</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="s">&#39;http://freegeoip.net/json/&#39;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span> <span class="s">&#39;User-Agent&#39;</span><span class="p">:</span> <span class="s">&#39;Mozilla/5.0&#39;</span> <span class="p">})</span>
+        <span class="n">req</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="s">&#39;http://freegeoip.net/json/&#39;</span><span class="p">,</span>
+                              <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;User-Agent&#39;</span><span class="p">:</span> <span class="s">&#39;Mozilla/5.0&#39;</span> <span class="p">})</span>
         <span class="n">f</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
         <span class="n">json_string</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
         <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -857,7 +916,101 @@
     <span class="k">return</span> <span class="n">success</span><span class="p">,</span> <span class="n">location_city</span><span class="p">,</span> <span class="n">location_state</span><span class="p">,</span> <span class="n">location_country</span><span class="p">,</span> <span class="n">location_zip</span>
 
 </div>
+<div class="viewcode-block" id="s3_dict_encode_to_str"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.s3_dict_encode_to_str">[docs]</a><span class="k">def</span> <span class="nf">s3_dict_encode_to_str</span><span class="p">(</span><span class="n">s3_dict</span><span class="p">):</span>
+    <span class="n">default_s3_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;bucket&#39;</span>          <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+        <span class="s">&#39;key&#39;</span>             <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+        <span class="s">&#39;auth_domain&#39;</span>     <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+        <span class="s">&#39;auth_access_id&#39;</span>  <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+        <span class="s">&#39;auth_secret_key&#39;</span> <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">default_s3_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">s3_dict</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_s3_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="mi">5</span>
+
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">default_s3_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;auth&#39;</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">default_s3_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">default_s3_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;EMPTY&#39;</span>
+
+    <span class="k">assert</span> <span class="bp">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">default_s3_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">default_s3_dict</span><span class="p">[</span><span class="s">&#39;auth_access_id&#39;</span><span class="p">],</span>
+        <span class="n">default_s3_dict</span><span class="p">[</span><span class="s">&#39;auth_secret_key&#39;</span><span class="p">],</span>
+        <span class="n">default_s3_dict</span><span class="p">[</span><span class="s">&#39;auth_domain&#39;</span><span class="p">],</span>
+        <span class="n">default_s3_dict</span><span class="p">[</span><span class="s">&#39;bucket&#39;</span><span class="p">],</span>
+        <span class="n">default_s3_dict</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="s">&#39;s3://</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">@</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">values</span>
+
+</div>
+<div class="viewcode-block" id="s3_str_decode_to_dict"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.s3_str_decode_to_dict">[docs]</a><span class="k">def</span> <span class="nf">s3_str_decode_to_dict</span><span class="p">(</span><span class="n">s3_str</span><span class="p">):</span>
+    <span class="n">default_s3_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;bucket&#39;</span>          <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+        <span class="s">&#39;key&#39;</span>             <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+        <span class="s">&#39;auth_domain&#39;</span>     <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+        <span class="s">&#39;auth_access_id&#39;</span>  <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+        <span class="s">&#39;auth_secret_key&#39;</span> <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">assert</span> <span class="n">s3_str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;s3://&#39;</span><span class="p">)</span>
+
+    <span class="n">s3_str</span> <span class="o">=</span> <span class="n">s3_str</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;s3://&#39;</span><span class="p">)</span>
+    <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="o">=</span> <span class="n">s3_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;@&#39;</span><span class="p">)</span>
+    <span class="n">left</span> <span class="o">=</span> <span class="n">left</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)</span>
+    <span class="n">right</span> <span class="o">=</span> <span class="n">right</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)</span>
+    <span class="n">default_s3_dict</span><span class="p">[</span><span class="s">&#39;bucket&#39;</span><span class="p">]</span>          <span class="o">=</span> <span class="n">right</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">default_s3_dict</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">]</span>             <span class="o">=</span> <span class="n">right</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">default_s3_dict</span><span class="p">[</span><span class="s">&#39;auth_domain&#39;</span><span class="p">]</span>     <span class="o">=</span> <span class="n">right</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">default_s3_dict</span><span class="p">[</span><span class="s">&#39;auth_access_id&#39;</span><span class="p">]</span>  <span class="o">=</span> <span class="n">left</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">default_s3_dict</span><span class="p">[</span><span class="s">&#39;auth_secret_key&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">left</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_s3_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="mi">5</span>
+    <span class="k">assert</span> <span class="bp">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">default_s3_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">default_s3_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;auth&#39;</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">default_s3_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s">&#39;EMPTY&#39;</span><span class="p">:</span>
+                <span class="n">default_s3_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">return</span> <span class="n">default_s3_dict</span>
+
+</div>
+<div class="viewcode-block" id="read_s3_contents"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.read_s3_contents">[docs]</a><span class="k">def</span> <span class="nf">read_s3_contents</span><span class="p">(</span><span class="n">bucket</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">auth_access_id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">auth_secret_key</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                     <span class="n">auth_domain</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">boto</span>
+    <span class="kn">from</span> <span class="nn">boto.s3.connection</span> <span class="kn">import</span> <span class="n">S3Connection</span>
+    <span class="k">if</span> <span class="n">auth_access_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">auth_secret_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">conn</span> <span class="o">=</span> <span class="n">S3Connection</span><span class="p">(</span><span class="n">auth_access_id</span><span class="p">,</span> <span class="n">auth_secret_key</span><span class="p">)</span>
+        <span class="n">bucket</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">get_bucket</span><span class="p">(</span><span class="n">bucket</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># Use system defaults, located in /etc/boto.cfg</span>
+        <span class="c"># Alternatively, use user defaults, located in ~/.boto</span>
+        <span class="n">s3</span> <span class="o">=</span> <span class="n">boto</span><span class="o">.</span><span class="n">connect_s3</span><span class="p">()</span>
+        <span class="n">bucket</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">get_bucket</span><span class="p">(</span><span class="n">bucket</span><span class="p">)</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">bucket</span><span class="o">.</span><span class="n">get_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="n">contents</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">get_contents_as_string</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">contents</span>
+
+</div>
+<div class="viewcode-block" id="grab_s3_contents"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.grab_s3_contents">[docs]</a><span class="k">def</span> <span class="nf">grab_s3_contents</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">auth_access_id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">auth_secret_key</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                     <span class="n">auth_domain</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">boto</span>
+    <span class="kn">from</span> <span class="nn">boto.s3.connection</span> <span class="kn">import</span> <span class="n">S3Connection</span>
+    <span class="k">if</span> <span class="n">auth_access_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">auth_secret_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">conn</span> <span class="o">=</span> <span class="n">S3Connection</span><span class="p">(</span><span class="n">auth_access_id</span><span class="p">,</span> <span class="n">auth_secret_key</span><span class="p">)</span>
+        <span class="n">bucket</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">get_bucket</span><span class="p">(</span><span class="n">bucket</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># Use system defaults, located in /etc/boto.cfg</span>
+        <span class="c"># Alternatively, use user defaults, located in ~/.boto</span>
+        <span class="n">s3</span> <span class="o">=</span> <span class="n">boto</span><span class="o">.</span><span class="n">connect_s3</span><span class="p">()</span>
+        <span class="n">bucket</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">get_bucket</span><span class="p">(</span><span class="n">bucket</span><span class="p">)</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">bucket</span><span class="o">.</span><span class="n">get_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="n">key</span><span class="o">.</span><span class="n">get_contents_to_filename</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+
+</div>
 <div class="viewcode-block" id="scp_pull"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.scp_pull">[docs]</a><span class="k">def</span> <span class="nf">scp_pull</span><span class="p">(</span><span class="n">remote_path</span><span class="p">,</span> <span class="n">local_path</span><span class="o">=</span><span class="s">&#39;.&#39;</span><span class="p">,</span> <span class="n">remote</span><span class="o">=</span><span class="s">&#39;localhost&#39;</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot; wrapper for scp &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
     <span class="k">if</span> <span class="n">user</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">remote_uri</span> <span class="o">=</span> <span class="n">user</span> <span class="o">+</span> <span class="s">&#39;@&#39;</span> <span class="o">+</span> <span class="n">remote</span> <span class="o">+</span> <span class="s">&#39;:&#39;</span> <span class="o">+</span> <span class="n">remote_path</span>
@@ -868,11 +1021,55 @@
     <span class="n">ut</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="n">scp_args</span><span class="p">)</span>
 
 </div>
+<div class="viewcode-block" id="rsync"><a class="viewcode-back" href="../../utool.html#utool.util_grabdata.rsync">[docs]</a><span class="k">def</span> <span class="nf">rsync</span><span class="p">(</span><span class="n">src_uri</span><span class="p">,</span> <span class="n">dst_uri</span><span class="p">,</span> <span class="n">exclude_dirs</span><span class="o">=</span><span class="p">[],</span> <span class="n">port</span><span class="o">=</span><span class="mi">22</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Wrapper for rsync</span>
+
+<span class="sd">    General function to push or pull a directory from a remote server to a</span>
+<span class="sd">    local path</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://www.tecmint.com/rsync-local-remote-file-synchronization-commands/</span>
+<span class="sd">        http://serverfault.com/questions/219013/show-progress-in-rsync</span>
+
+<span class="sd">    Notes (rsync commandline options):</span>
+<span class="sd">        rsync [OPTION]... SRC [SRC]... DEST</span>
+<span class="sd">        -v : verbose</span>
+<span class="sd">        -r : copies data recursively (but dont preserve timestamps and</span>
+<span class="sd">                permission while transferring data</span>
+<span class="sd">        -a : archive mode, allows recursive copying and preserves symlinks,</span>
+<span class="sd">                permissions, user and group ownerships, and timestamps</span>
+<span class="sd">        -z : compress file data</span>
+<span class="sd">        -i, --itemize-changes       output a change-summary for all updates</span>
+<span class="sd">        -s, --protect-args :        no space-splitting; only wildcard special-chars</span>
+<span class="sd">        -h : human-readable, output numbers in a human-readable format</span>
+<span class="sd">        -P                          same as --partial --progress</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_cplat</span>
+    <span class="n">rsync_exe</span> <span class="o">=</span> <span class="s">&#39;rsync&#39;</span>
+    <span class="n">rsync_options</span> <span class="o">=</span> <span class="s">&#39;-avhzP&#39;</span>
+    <span class="c">#rsync_options += &#39; --port=%d&#39; % (port,)</span>
+    <span class="n">rsync_options</span> <span class="o">+=</span> <span class="s">&#39; -e &quot;ssh -p </span><span class="si">%d</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">port</span><span class="p">,)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">exclude_dirs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">exclude_tup</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;--exclude &#39;</span> <span class="o">+</span> <span class="n">dir_</span> <span class="k">for</span> <span class="n">dir_</span> <span class="ow">in</span> <span class="n">exclude_dirs</span><span class="p">]</span>
+        <span class="n">exclude_opts</span> <span class="o">=</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">exclude_tup</span><span class="p">)</span>
+        <span class="n">rsync_options</span> <span class="o">+=</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="n">exclude_opts</span>
+
+    <span class="n">cmdtuple</span> <span class="o">=</span> <span class="p">(</span><span class="n">rsync_exe</span><span class="p">,</span> <span class="n">rsync_options</span><span class="p">,</span> <span class="n">src_uri</span><span class="p">,</span> <span class="n">dst_uri</span><span class="p">)</span>
+    <span class="n">cmdstr</span> <span class="o">=</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cmdtuple</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[rsync] src_uri = </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">src_uri</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[rsync] dst_uri = </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dst_uri</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[rsync] cmdstr = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">cmdstr</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">cmdstr</span><span class="p">)</span>
+
+    <span class="c">#if not dryrun:</span>
+    <span class="n">util_cplat</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="n">cmdstr</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="n">dryrun</span><span class="p">)</span>
+
+</div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        sh -c &quot;python ~/code/utool/utool/util_grabdata.py --all-examples&quot;</span>
-<span class="sd">        python -c &quot;import utool, utool.util_grabdata; utool.doctest_funcs(utool.util_grabdata)&quot;</span>
 <span class="sd">        python -m utool.util_grabdata</span>
 <span class="sd">        python -m utool.util_grabdata --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -891,7 +1088,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>

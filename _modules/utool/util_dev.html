@@ -131,6 +131,7 @@
   <h1>Source code for utool.util_dev</h1><div class="highlight"><pre>
 <span class="c"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">types</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">re</span>
@@ -146,12 +147,14 @@
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_dict</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_arg</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_const</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
     <span class="n">HAVE_NUMPY</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
     <span class="n">HAVE_NUMPY</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="k">pass</span>
+<span class="c"># TODO: remove print_, or grab it dynamically from util_logger</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[dev]&#39;</span><span class="p">)</span>
 
 <span class="k">if</span> <span class="n">HAVE_NUMPY</span><span class="p">:</span>
@@ -160,18 +163,7 @@
     <span class="n">INDEXABLE_TYPES</span> <span class="o">=</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="ClassNoParam"><a class="viewcode-back" href="../../utool.html#utool.util_dev.ClassNoParam">[docs]</a><span class="k">class</span> <span class="nc">ClassNoParam</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    # class used in place of None when None might be a valid value</span>
-<span class="sd">    # probably should just make None not a valid value</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">pass</span>
-    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
-        <span class="k">pass</span>
-
-<span class="c"># Used instance of NoParam</span></div>
-<span class="n">NoParam</span> <span class="o">=</span> <span class="n">ClassNoParam</span><span class="p">()</span>
+<span class="n">NoParam</span> <span class="o">=</span> <span class="n">util_const</span><span class="o">.</span><span class="n">NoParam</span>
 
 
 <div class="viewcode-block" id="DEPRICATED"><a class="viewcode-back" href="../../utool.html#utool.util_dev.DEPRICATED">[docs]</a><span class="k">def</span> <span class="nf">DEPRICATED</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
@@ -552,15 +544,37 @@
     <span class="n">time_list</span>   <span class="o">=</span> <span class="p">[</span><span class="n">timeit</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="n">stmt</span><span class="p">,</span> <span class="n">setup</span><span class="o">=</span><span class="n">setup</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="n">iterations</span><span class="p">)</span>
                    <span class="k">for</span> <span class="n">stmt</span> <span class="ow">in</span> <span class="n">stmt_list</span><span class="p">]</span>
 
-    <span class="n">passed</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_list</span><span class="o">.</span><span class="n">list_allsame</span><span class="p">(</span><span class="n">result_list</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">numpy_diff_tests</span><span class="p">(</span><span class="n">result_list</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Testing numpy arrays&#39;</span><span class="p">)</span>
+        <span class="n">shape_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">shape</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">]</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;shape_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">shape_list</span><span class="p">,))</span>
+        <span class="n">sum_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">]</span>
+        <span class="n">diff_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">a</span> <span class="o">-</span> <span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">itertwo</span><span class="p">(</span><span class="n">result_list</span><span class="p">)]</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;diff stats&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">diffs</span> <span class="ow">in</span> <span class="n">diff_list</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">print_stats</span><span class="p">(</span><span class="n">diffs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">use_median</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;diff_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">diff_list</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;sum_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sum_list</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;passed_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">passed_list</span><span class="p">,))</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_type</span><span class="p">(</span><span class="n">result_list</span><span class="p">)</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">passed_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="o">*</span><span class="n">tup</span><span class="p">)</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">itertwo</span><span class="p">(</span><span class="n">result_list</span><span class="p">)]</span>
+        <span class="n">passed</span> <span class="o">=</span> <span class="nb">all</span><span class="p">(</span><span class="n">passed_list</span><span class="p">)</span>
+        <span class="n">is_numpy</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">passed</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_list</span><span class="o">.</span><span class="n">allsame</span><span class="p">(</span><span class="n">result_list</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">is_numpy</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;| Output:&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">passed</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;|    * FAILED: results differ between some statements&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">is_numpy</span><span class="p">:</span>
+                <span class="n">numpy_diff_tests</span><span class="p">(</span><span class="n">result_list</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;| Results:&#39;</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">result_list</span><span class="p">):</span>
                     <span class="k">print</span><span class="p">(</span><span class="s">&#39;&lt;Result </span><span class="si">%d</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="n">count</span><span class="p">)</span>
+                    <span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
                     <span class="c">#print(ut.truncate_str(repr(result)))</span>
                     <span class="k">print</span><span class="p">(</span><span class="s">&#39;&lt;/Result </span><span class="si">%d</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="n">count</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">strict</span><span class="p">:</span>
@@ -1107,6 +1121,25 @@
     <span class="k">return</span> <span class="n">ans</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">valid_ans</span>
 
 </div>
+<div class="viewcode-block" id="grace_period"><a class="viewcode-back" href="../../utool.html#utool.util_dev.grace_period">[docs]</a><span class="k">def</span> <span class="nf">grace_period</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">seconds</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Gives user a window to stop a process before it happens</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">time</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+    <span class="n">override</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--yes&#39;</span><span class="p">,</span> <span class="s">&#39;--y&#39;</span><span class="p">,</span> <span class="s">&#39;-y&#39;</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;starting grace period&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">override</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;ending based on command line flag&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">for</span> <span class="n">count</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">seconds</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)):</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mi">0</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;grace period is over&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">True</span>
+
+</div>
 <div class="viewcode-block" id="tuples_to_unique_scalars"><a class="viewcode-back" href="../../utool.html#utool.util_dev.tuples_to_unique_scalars">[docs]</a><span class="k">def</span> <span class="nf">tuples_to_unique_scalars</span><span class="p">(</span><span class="n">tup_list</span><span class="p">):</span>
     <span class="n">seen</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">def</span> <span class="nf">addval</span><span class="p">(</span><span class="n">tup</span><span class="p">):</span>
@@ -1134,7 +1167,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">sel_sortx</span> <span class="o">=</span> <span class="n">sortx</span>
         <span class="n">sel_indices</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">sel_sortx</span><span class="p">)</span>
-    <span class="n">sel_indices</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">(</span><span class="n">sel_indices</span><span class="p">)</span>
+    <span class="n">sel_indices</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">(</span><span class="n">sel_indices</span><span class="p">)</span>
     <span class="n">sel_stat_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_dict_column</span><span class="p">(</span><span class="n">stat_dict</span><span class="p">,</span> <span class="n">sel_indices</span><span class="p">)</span>
     <span class="n">sel_stat_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">order_dict_by</span><span class="p">(</span><span class="n">sel_stat_dict</span><span class="p">,</span> <span class="n">STAT_KEY_ORDER</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">sel_stat_dict</span><span class="p">,</span> <span class="n">sel_indices</span>
@@ -1199,9 +1232,9 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">functools</span>
     <span class="n">stats_dict_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">get_stats</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span> <span class="n">arr_list</span><span class="p">))</span>
-    <span class="n">stats_dict_</span> <span class="o">=</span> <span class="n">util_dict</span><span class="o">.</span><span class="n">dict_stack</span><span class="p">(</span><span class="n">stats_dict_list</span><span class="p">)</span>
+    <span class="n">stats_dict</span> <span class="o">=</span> <span class="n">util_dict</span><span class="o">.</span><span class="n">dict_stack</span><span class="p">(</span><span class="n">stats_dict_list</span><span class="p">)</span>
     <span class="c"># Fix order</span>
-    <span class="n">stats_dict</span> <span class="o">=</span> <span class="n">util_dict</span><span class="o">.</span><span class="n">order_dict_by</span><span class="p">(</span><span class="n">stats_dict_</span><span class="p">,</span> <span class="n">STAT_KEY_ORDER</span><span class="p">)</span>
+    <span class="n">stats_dict</span> <span class="o">=</span> <span class="n">util_dict</span><span class="o">.</span><span class="n">order_dict_by</span><span class="p">(</span><span class="n">stats_dict</span><span class="p">,</span> <span class="n">STAT_KEY_ORDER</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">stats_dict</span>
 
 </div>
@@ -1336,6 +1369,7 @@
             <span class="p">(</span><span class="s">&#39;shape&#39;</span><span class="p">,</span> <span class="n">nparr</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span>  <span class="c"># repr(nparr.shape)),</span>
         <span class="p">]</span>
         <span class="k">if</span> <span class="n">use_median</span><span class="p">:</span>
+            <span class="c">#stats_list.append((&#39;med&#39;, np.nanmedian(nparr).astype(np.int)))</span>
             <span class="n">stats_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s">&#39;med&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmedian</span><span class="p">(</span><span class="n">nparr</span><span class="p">)))</span>
         <span class="k">if</span> <span class="n">use_nan</span><span class="p">:</span>
             <span class="n">stats_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s">&#39;num_nan&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">nparr</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()))</span>
@@ -1400,7 +1434,6 @@
             <span class="k">del</span> <span class="n">stat_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
     <span class="c"># apply precision</span>
     <span class="n">statstr_dict</span> <span class="o">=</span> <span class="n">stat_dict</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-    <span class="c">#with ut.EmbedOnException():</span>
     <span class="c">#precisionless_types =  (bool,) + six.string_types</span>
     <span class="k">if</span> <span class="n">precision</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_int</span><span class="p">(</span><span class="n">precision</span><span class="p">),</span> <span class="s">&#39;precision must be an integer&#39;</span>
@@ -1410,13 +1443,13 @@
             <span class="n">isfloat</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_float</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">isfloat</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
                 <span class="n">type_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">type_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_allsame</span><span class="p">(</span><span class="n">type_list</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">type_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">allsame</span><span class="p">(</span><span class="n">type_list</span><span class="p">):</span>
                     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_float</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
                         <span class="n">isfloat</span> <span class="o">=</span> <span class="bp">True</span>
                         <span class="n">val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">isfloat</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-                    <span class="n">strval</span> <span class="o">=</span> <span class="nb">str</span><span class="p">([</span><span class="n">float_fmtstr</span> <span class="o">%</span> <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">val</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+                    <span class="n">strval</span> <span class="o">=</span> <span class="nb">str</span><span class="p">([</span><span class="n">float_fmtstr</span> <span class="o">%</span> <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">val</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s">&#39;u&#39;</span><span class="p">)</span>
                     <span class="c">#np.array_str((val), precision=precision)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">strval</span> <span class="o">=</span> <span class="n">float_fmtstr</span> <span class="o">%</span> <span class="n">val</span>
@@ -1443,7 +1476,7 @@
     <span class="k">return</span> <span class="n">stat_str</span>
 
 </div>
-<div class="viewcode-block" id="print_stats"><a class="viewcode-back" href="../../utool.html#utool.util_dev.print_stats">[docs]</a><span class="k">def</span> <span class="nf">print_stats</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+<div class="viewcode-block" id="print_stats"><a class="viewcode-back" href="../../utool.html#utool.util_dev.print_stats">[docs]</a><span class="k">def</span> <span class="nf">print_stats</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Prints string representation of stat of list_</span>
 
@@ -1467,7 +1500,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">lbl</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;Stats for </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">lbl</span><span class="p">)</span>
-    <span class="n">stat_str</span> <span class="o">=</span> <span class="n">get_stats_str</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="n">newlines</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">stat_str</span> <span class="o">=</span> <span class="n">get_stats_str</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="n">newlines</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">stat_str</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">stat_str</span>
 
@@ -1752,16 +1785,29 @@
     <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
 
 </div>
-<div class="viewcode-block" id="get_object_size"><a class="viewcode-back" href="../../utool.html#utool.util_dev.get_object_size">[docs]</a><span class="k">def</span> <span class="nf">get_object_size</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">fallback_type</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">follow_pointers</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">exclude_modules</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="get_object_size"><a class="viewcode-back" href="../../utool.html#utool.util_dev.get_object_size">[docs]</a><span class="k">def</span> <span class="nf">get_object_size</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">fallback_type</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">follow_pointers</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">exclude_modules</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">listoverhead</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m utool.util_dev --test-get_object_size</span>
+<span class="sd">        python -m utool.util_dev --test-get_object_size:1</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dev import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; obj = [np.empty(1, dtype=np.uint8) for _ in range(8)]</span>
+<span class="sd">        &gt;&gt;&gt; nBytes = ut.get_object_size(obj)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;nBytes = %s&#39; % (nBytes,))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        nBytes = 8</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # UNSTABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.expt.experiment_harness import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dev import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; species = ibeis.const.Species.ZEB_PLAIN</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; species = ibeis.const.TEST_SPECIES.ZEB_PLAIN</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; qaids = ibs.get_valid_aids(species=species)</span>
 <span class="sd">        &gt;&gt;&gt; daids = ibs.get_valid_aids(species=species)</span>
@@ -1769,10 +1815,23 @@
 <span class="sd">        &gt;&gt;&gt; nBytes = ut.get_object_size(qreq_)</span>
 <span class="sd">        &gt;&gt;&gt; result = (ut.byte_str2(nBytes))</span>
 <span class="sd">        &gt;&gt;&gt; print(&#39;result = %r&#39; % (result,))</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        import sys</span>
+<span class="sd">        sizedict = {key: sys.getsizeof(key()) for key in [dict, list, set, tuple, int, float]}</span>
+<span class="sd">        ut.print_dict(sizedict)</span>
+<span class="sd">        sizedict = {</span>
+<span class="sd">            &lt;type &#39;tuple&#39;&gt;: 56,</span>
+<span class="sd">            &lt;type &#39;set&#39;&gt;: 232,</span>
+<span class="sd">            &lt;type &#39;list&#39;&gt;: 72,</span>
+<span class="sd">            &lt;type &#39;float&#39;&gt;: 24,</span>
+<span class="sd">            &lt;type &#39;int&#39;&gt;: 24,</span>
+<span class="sd">            &lt;type &#39;dict&#39;&gt;: 280,</span>
+<span class="sd">        }</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-    <span class="n">seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
     <span class="kn">import</span> <span class="nn">types</span>
+    <span class="n">seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
     <span class="k">def</span> <span class="nf">_get_object_size</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
         <span class="n">object_id</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">object_id</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
@@ -1781,7 +1840,10 @@
             <span class="k">return</span> <span class="n">sys</span><span class="o">.</span><span class="n">getsizeof</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
         <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">object_id</span><span class="p">)</span>
 
-        <span class="n">totalsize</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">getsizeof</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">listoverhead</span><span class="p">:</span>
+            <span class="n">totalsize</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">getsizeof</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">totalsize</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">DynStruct</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">Pref</span><span class="p">)):</span>
                 <span class="c"># dont deal with dynstruct shenanigans</span>
@@ -1797,9 +1859,8 @@
                         <span class="n">totalsize</span> <span class="o">+=</span> <span class="n">obj</span><span class="o">.</span><span class="n">nbytes</span>
                     <span class="k">pass</span>
                 <span class="c"># TODO: check if a view or is memmapped</span>
-                <span class="c"># Nothing to do sys.getsizeof does the right thing sorta</span>
-                <span class="c">#totalsize += obj.nbytes</span>
-                <span class="k">pass</span>
+                <span class="c"># Does sys.getsizeof do the right thing ?</span>
+                <span class="n">totalsize</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">nbytes</span>
             <span class="k">elif</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">set</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">))):</span>
                 <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">:</span>
                     <span class="n">totalsize</span> <span class="o">+=</span> <span class="n">_get_object_size</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
@@ -1880,6 +1941,23 @@
 
 </div>
 <div class="viewcode-block" id="get_object_size_str"><a class="viewcode-back" href="../../utool.html#utool.util_dev.get_object_size_str">[docs]</a><span class="k">def</span> <span class="nf">get_object_size_str</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_dev --test-get_object_size_str --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dev import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; obj = [np.empty((512), dtype=np.uint8) for _ in range(10)]</span>
+<span class="sd">        &gt;&gt;&gt; nBytes = ut.get_object_size_str(obj)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;result = %s&#39; % (ut.repr2(nBytes),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        result = &#39;5.00 KB&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_str</span>
     <span class="n">nBytes</span> <span class="o">=</span> <span class="n">get_object_size</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lbl</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">lbl</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">):</span>
@@ -2203,10 +2281,10 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
     <span class="p">(</span><span class="n">inverse3</span><span class="p">,</span> <span class="n">cumsum</span><span class="p">,</span> <span class="n">inverse2</span><span class="p">,</span> <span class="n">inverse1</span><span class="p">)</span> <span class="o">=</span> <span class="n">reconstruct_tup</span>
-    <span class="n">flat_stacked_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">flat_list</span><span class="p">,</span> <span class="n">inverse3</span><span class="p">)</span>
+    <span class="n">flat_stacked_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">flat_list</span><span class="p">,</span> <span class="n">inverse3</span><span class="p">)</span>
     <span class="n">unique_list1_</span><span class="p">,</span> <span class="n">unique_list2_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unflatten2</span><span class="p">(</span><span class="n">flat_stacked_</span><span class="p">,</span> <span class="n">cumsum</span><span class="p">)</span>
-    <span class="n">res_list1_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">unique_list1_</span><span class="p">,</span> <span class="n">inverse1</span><span class="p">)</span>
-    <span class="n">res_list2_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">unique_list2_</span><span class="p">,</span> <span class="n">inverse2</span><span class="p">)</span>
+    <span class="n">res_list1_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">unique_list1_</span><span class="p">,</span> <span class="n">inverse1</span><span class="p">)</span>
+    <span class="n">res_list2_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">unique_list2_</span><span class="p">,</span> <span class="n">inverse2</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">res_list1_</span><span class="p">,</span> <span class="n">res_list2_</span>
 
 </div>
@@ -2232,7 +2310,7 @@
     <span class="c"># Find uniques in those lists</span>
     <span class="n">flat_unique</span><span class="p">,</span> <span class="n">stack_groups</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">flat_stacked</span><span class="p">))</span>
     <span class="c"># Get a list of corresonding group indicies from each input list</span>
-    <span class="n">flat_groupx_multilist</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">groups_stacked</span><span class="p">,</span> <span class="n">groupx</span><span class="p">)</span> <span class="k">for</span> <span class="n">groupx</span> <span class="ow">in</span> <span class="n">stack_groups</span><span class="p">]</span>
+    <span class="n">flat_groupx_multilist</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">groups_stacked</span><span class="p">,</span> <span class="n">groupx</span><span class="p">)</span> <span class="k">for</span> <span class="n">groupx</span> <span class="ow">in</span> <span class="n">stack_groups</span><span class="p">]</span>
     <span class="c"># flat_unique corresponds with the aids (hence chips) the flag_groupxs</span>
     <span class="c"># multilist is a list where each item is a tuple who&#39;s nth item indexes</span>
     <span class="c"># into the nth input list. Ie (1, 0) is a list of indexes into the 1st chip</span>
@@ -2264,18 +2342,340 @@
 </div>
 <div class="viewcode-block" id="get_partial_func_name"><a class="viewcode-back" href="../../utool.html#utool.util_dev.get_partial_func_name">[docs]</a><span class="k">def</span> <span class="nf">get_partial_func_name</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
     <span class="n">float_fmtstr</span> <span class="o">=</span> <span class="s">&#39;%.&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">precision</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;f&#39;</span>
-    <span class="k">def</span> <span class="nf">repr2</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">repr_</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">float_fmtstr</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,)</span>
         <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
     <span class="n">name_part</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">func_name</span>
-    <span class="n">args_part</span> <span class="o">=</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">repr2</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="n">args</span><span class="p">))</span>
+    <span class="n">args_part</span> <span class="o">=</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">repr_</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="n">args</span><span class="p">))</span>
     <span class="n">kwargs_part</span> <span class="o">=</span> <span class="s">&#39;&#39;</span> <span class="k">if</span> <span class="n">func</span><span class="o">.</span><span class="n">keywords</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="p">(</span>
-        <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">repr2</span><span class="p">(</span><span class="n">val</span><span class="p">))</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">func</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
+        <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">repr_</span><span class="p">(</span><span class="n">val</span><span class="p">))</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">func</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
     <span class="p">)</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">name_part</span> <span class="o">+</span> <span class="s">&#39;(&#39;</span> <span class="o">+</span> <span class="n">args_part</span> <span class="o">+</span> <span class="n">kwargs_part</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span>
     <span class="k">return</span> <span class="n">name</span>
 
+</div>
+<div class="viewcode-block" id="dev_ipython_copypaster"><a class="viewcode-back" href="../../utool.html#utool.util_dev.dev_ipython_copypaster">[docs]</a><span class="k">def</span> <span class="nf">dev_ipython_copypaster</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">code_text</span> <span class="o">=</span> <span class="n">get_dev_paste_code</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">copy_text_to_clipboard</span><span class="p">(</span><span class="n">code_text</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="get_dev_paste_code"><a class="viewcode-back" href="../../utool.html#utool.util_dev.get_dev_paste_code">[docs]</a><span class="k">def</span> <span class="nf">get_dev_paste_code</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">example_texts</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_doctest_examples</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="n">example_text</span> <span class="o">=</span> <span class="n">example_texts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">example_text</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">example_text</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">example_text</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">example_text</span><span class="p">)</span>
+    <span class="n">source_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_func_sourcecode</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="n">get_dev_code</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">example_text</span><span class="p">,</span> <span class="n">source_text</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">get_dev_code</span>
+
+</div>
+<div class="viewcode-block" id="argparse_funckw"><a class="viewcode-back" href="../../utool.html#utool.util_dev.argparse_funckw">[docs]</a><span class="k">def</span> <span class="nf">argparse_funckw</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="p">{},</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    allows kwargs to be specified on the commandline from testfuncs</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        func (function):</span>
+
+<span class="sd">    Kwargs:</span>
+<span class="sd">        lbl, verbose, only_specified, force_keys, type_hint, alias_dict</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: funckw</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_dev --exec-argparse_funckw</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dev import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; func = argparse_funckw</span>
+<span class="sd">        &gt;&gt;&gt; funckw = argparse_funckw(func)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;funckw = %s&#39; % (str(funckw),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">recursive</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">if</span> <span class="n">recursive</span><span class="p">:</span>
+        <span class="n">funckw_</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">recursive_parse_kwargs</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">funckw_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_func_kwargs</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="n">funckw_</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">defaults</span><span class="p">)</span>
+    <span class="n">funckw</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">argparse_dict</span><span class="p">(</span><span class="n">funckw_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">funckw</span>
+
+</div>
+<div class="viewcode-block" id="search_utool"><a class="viewcode-back" href="../../utool.html#utool.util_dev.search_utool">[docs]</a><span class="k">def</span> <span class="nf">search_utool</span><span class="p">(</span><span class="n">pat</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="k">return</span> <span class="n">search_module</span><span class="p">(</span><span class="n">ut</span><span class="p">,</span> <span class="n">pat</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="search_module"><a class="viewcode-back" href="../../utool.html#utool.util_dev.search_module">[docs]</a><span class="k">def</span> <span class="nf">search_module</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">pat</span><span class="p">,</span> <span class="n">ignore_case</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">_seen</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Searches module functions, classes, and constants for members matching a</span>
+<span class="sd">    pattern.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        mod (module): live python module</span>
+<span class="sd">        pat (str): regular expression</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: found_list</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_dev --exec-search_module --mod=utool --pat=module</span>
+<span class="sd">        python -m utool.util_dev --exec-search_module --mod=opengm --pat=cut</span>
+<span class="sd">        python -m utool.util_dev --exec-search_module --mod=opengm --pat=multi</span>
+<span class="sd">        python -m utool.util_dev --exec-search_module --mod=plottool --pat=networkx</span>
+<span class="sd">        python -m utool.util_dev --exec-search_module --mod=utool --pat=Levenshtein</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dev import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; recursive = True</span>
+<span class="sd">        &gt;&gt;&gt; ignore_case = True</span>
+<span class="sd">        &gt;&gt;&gt; modname = ut.get_argval(&#39;--mod&#39;, type_=str, default=&#39;utool&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pat = ut.get_argval(&#39;--pat&#39;, type_=str, default=&#39;search&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; mod = ut.import_modname(modname)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;pat = %r&#39; % (pat,))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;mod = %r&#39; % (mod,))</span>
+<span class="sd">        &gt;&gt;&gt; found_list = search_module(mod, pat, recursive=recursive)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;found_list = %s&#39; % (ut.repr2(found_list),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">_seen</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">mod</span> <span class="ow">in</span> <span class="n">_seen</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">reflags</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span> <span class="o">*</span> <span class="n">ignore_case</span>
+    <span class="n">found_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">mod</span><span class="p">)</span> <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pat</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">reflags</span><span class="p">)]</span>
+    <span class="k">if</span> <span class="n">recursive</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">_seen</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">_seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">_seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">mod</span><span class="p">)</span>
+        <span class="n">module_attrs</span> <span class="o">=</span> <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">mod</span><span class="p">)]</span>
+        <span class="n">submodules</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">submod</span> <span class="k">for</span> <span class="n">submod</span> <span class="ow">in</span> <span class="n">module_attrs</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">submod</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">)</span> <span class="ow">and</span> <span class="n">submod</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_seen</span> <span class="ow">and</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">is_defined_by_module</span><span class="p">(</span><span class="n">submod</span><span class="p">,</span> <span class="n">mod</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">submod</span> <span class="ow">in</span> <span class="n">submodules</span><span class="p">:</span>
+            <span class="n">found_list</span> <span class="o">+=</span> <span class="n">search_module</span><span class="p">(</span><span class="n">submod</span><span class="p">,</span> <span class="n">pat</span><span class="p">,</span> <span class="n">ignore_case</span><span class="o">=</span><span class="n">ignore_case</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span> <span class="n">_seen</span><span class="o">=</span><span class="n">_seen</span><span class="p">)</span>
+    <span class="c"># found_list = [name for name in dir(mod) if name.find(pat) &gt;= 0]</span>
+    <span class="n">found_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">(</span><span class="n">found_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">found_list</span>
+
+</div>
+<div class="viewcode-block" id="get_submodules_from_dpath"><a class="viewcode-back" href="../../utool.html#utool.util_dev.get_submodules_from_dpath">[docs]</a><span class="k">def</span> <span class="nf">get_submodules_from_dpath</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="n">only_packages</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        dpath (str): directory path</span>
+<span class="sd">        only_packages (bool): if True returns only package directories,</span>
+<span class="sd">            otherwise returns module files. (default = False)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: submod_fpaths</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_dev --exec-get_submodules_from_dpath --only_packages</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SCRIPT</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dev import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; dpath = ut.truepath_relative(ut.get_argval(&#39;--dpath&#39;, default=&#39;.&#39;))</span>
+<span class="sd">        &gt;&gt;&gt; print(dpath)</span>
+<span class="sd">        &gt;&gt;&gt; only_packages = ut.get_argflag(&#39;--only_packages&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; submod_fpaths = get_submodules_from_dpath(dpath, only_packages)</span>
+<span class="sd">        &gt;&gt;&gt; submod_fpaths = ut.lmap(ut.truepath_relative, submod_fpaths)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;submod_fpaths = %s&#39; % (ut.repr3(submod_fpaths),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">submod_dpaths</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ls_dirs</span><span class="p">(</span><span class="n">dpath</span><span class="p">)</span> <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_module_dir</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="p">]</span>
+    <span class="k">if</span> <span class="n">only_packages</span><span class="p">:</span>
+        <span class="n">submod_fpaths</span> <span class="o">=</span> <span class="n">submod_dpaths</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">submod_fpaths</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ls_modulefiles</span><span class="p">(</span><span class="n">dpath</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">recursive</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">submod_dpaths</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">recusive_results</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_submodules_from_dpath</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">only_packages</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">submod_dpaths</span><span class="p">]</span>
+        <span class="n">submod_fpaths</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">recusive_results</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">submod_fpaths</span>
+
+</div>
+<div class="viewcode-block" id="pylab_qt4"><a class="viewcode-back" href="../../utool.html#utool.util_dev.pylab_qt4">[docs]</a><span class="k">def</span> <span class="nf">pylab_qt4</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">ensure_pylab_qt4</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="ensure_pylab_qt4"><a class="viewcode-back" href="../../utool.html#utool.util_dev.ensure_pylab_qt4">[docs]</a><span class="k">def</span> <span class="nf">ensure_pylab_qt4</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">ensure_pylab_qt4</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="DictLike_old"><a class="viewcode-back" href="../../utool.html#utool.util_dev.DictLike_old">[docs]</a><span class="k">class</span> <span class="nc">DictLike_old</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    todo use util_dict.DictLike instead</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+<div class="viewcode-block" id="DictLike_old.copy"><a class="viewcode-back" href="../../utool.html#utool.util_dev.DictLike_old.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+</div>
+<div class="viewcode-block" id="DictLike_old.get"><a class="viewcode-back" href="../../utool.html#utool.util_dev.DictLike_old.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">default</span>
+</div>
+<div class="viewcode-block" id="DictLike_old.iteritems"><a class="viewcode-back" href="../../utool.html#utool.util_dev.DictLike_old.iteritems">[docs]</a>    <span class="k">def</span> <span class="nf">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">itervalues</span><span class="p">()):</span>
+            <span class="k">yield</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span>
+</div>
+<div class="viewcode-block" id="DictLike_old.itervalues"><a class="viewcode-back" href="../../utool.html#utool.util_dev.DictLike_old.itervalues">[docs]</a>    <span class="k">def</span> <span class="nf">itervalues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+</div>
+<div class="viewcode-block" id="DictLike_old.values"><a class="viewcode-back" href="../../utool.html#utool.util_dev.DictLike_old.values">[docs]</a>    <span class="k">def</span> <span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">itervalues</span><span class="p">())</span>
+</div>
+<div class="viewcode-block" id="DictLike_old.keys"><a class="viewcode-back" href="../../utool.html#utool.util_dev.DictLike_old.keys">[docs]</a>    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">())</span>
+</div>
+<div class="viewcode-block" id="DictLike_old.items"><a class="viewcode-back" href="../../utool.html#utool.util_dev.DictLike_old.items">[docs]</a>    <span class="k">def</span> <span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iteritems</span><span class="p">())</span>
+
+</div></div>
+<div class="viewcode-block" id="ClassAttrDictProxy"><a class="viewcode-back" href="../../utool.html#utool.util_dev.ClassAttrDictProxy">[docs]</a><span class="k">class</span> <span class="nc">ClassAttrDictProxy</span><span class="p">(</span><span class="n">DictLike_old</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">attrs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">attrs</span> <span class="o">=</span> <span class="n">keys</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_keys</span> <span class="o">=</span> <span class="n">keys</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_attrs</span> <span class="o">=</span> <span class="n">attrs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">key2_attrs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">attrs</span><span class="p">))</span>
+
+<div class="viewcode-block" id="ClassAttrDictProxy.iterkeys"><a class="viewcode-back" href="../../utool.html#utool.util_dev.ClassAttrDictProxy.iterkeys">[docs]</a>    <span class="k">def</span> <span class="nf">iterkeys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_keys</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">key2_attrs</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">key2_attrs</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">val</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="AlignedListDictProxy"><a class="viewcode-back" href="../../utool.html#utool.util_dev.AlignedListDictProxy">[docs]</a><span class="k">class</span> <span class="nc">AlignedListDictProxy</span><span class="p">(</span><span class="n">DictLike_old</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    simulates a dict when using parallel lists the point of this class is that</span>
+<span class="sd">    when there are many instances of this class, then key2_idx can be shared between</span>
+<span class="sd">    them. Ideally this class wont be used and will disappear when the parallel</span>
+<span class="sd">    lists are being used properly.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key2_idx</span><span class="p">,</span> <span class="n">key_list</span><span class="p">,</span> <span class="n">val_list</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">key_list</span> <span class="o">=</span> <span class="n">key_list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">val_list</span> <span class="o">=</span> <span class="n">val_list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">key2_idx</span> <span class="o">=</span> <span class="n">key2_idx</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+<div class="viewcode-block" id="AlignedListDictProxy.pop"><a class="viewcode-back" href="../../utool.html#utool.util_dev.AlignedListDictProxy.pop">[docs]</a>    <span class="k">def</span> <span class="nf">pop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+</div>
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">val_list</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key2_idx</span><span class="p">[</span><span class="n">key</span><span class="p">]]</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">IndexError</span><span class="p">):</span>
+            <span class="c"># behave like a default dict here</span>
+            <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="c">#return ut.take(self.val_list, ut.dict_take(self.key2_idx, key))</span>
+
+    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">key2_idx</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key_list</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">key_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">key2_idx</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">idx</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">val_list</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">val_list</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">val_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span>
+            <span class="c">#else:</span>
+            <span class="c">#    offset = idx - len(self.val_list)</span>
+            <span class="c">#    self.val_list.extend(([None] * offset) + [val])</span>
+
+<div class="viewcode-block" id="AlignedListDictProxy.iteritems"><a class="viewcode-back" href="../../utool.html#utool.util_dev.AlignedListDictProxy.iteritems">[docs]</a>    <span class="k">def</span> <span class="nf">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">val_list</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span>
+</div>
+<div class="viewcode-block" id="AlignedListDictProxy.iterkeys"><a class="viewcode-back" href="../../utool.html#utool.util_dev.AlignedListDictProxy.iterkeys">[docs]</a>    <span class="k">def</span> <span class="nf">iterkeys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key_list</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="AlignedListDictProxy.itervalues"><a class="viewcode-back" href="../../utool.html#utool.util_dev.AlignedListDictProxy.itervalues">[docs]</a>    <span class="k">def</span> <span class="nf">itervalues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">val_list</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="NiceRepr"><a class="viewcode-back" href="../../utool.html#utool.util_dev.NiceRepr">[docs]</a><span class="k">class</span> <span class="nc">NiceRepr</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    base class that defines a nice representation and string func</span>
+<span class="sd">    for a class given that the user implements __nice__</span>
+
+<span class="sd">    Rename to NiceObject?</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">classname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
+            <span class="n">devnice</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__nice__</span><span class="p">()</span>
+            <span class="k">return</span> <span class="s">&#39;&lt;</span><span class="si">%s%s</span><span class="s"> at </span><span class="si">%s</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">classname</span><span class="p">,</span> <span class="n">devnice</span><span class="p">,</span> <span class="nb">hex</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">object</span><span class="o">.</span><span class="n">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="c">#return super(NiceRepr, self).__repr__()</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">classname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
+            <span class="n">devnice</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__nice__</span><span class="p">()</span>
+            <span class="k">return</span> <span class="s">&#39;&lt;</span><span class="si">%s%s</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">classname</span><span class="p">,</span> <span class="n">devnice</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">object</span><span class="o">.</span><span class="n">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="c">#return super(NiceRepr, self).__str__()</span>
+
+</div>
+<div class="viewcode-block" id="execstr_funckw"><a class="viewcode-back" href="../../utool.html#utool.util_dev.execstr_funckw">[docs]</a><span class="k">def</span> <span class="nf">execstr_funckw</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    for doctests kwargs</span>
+
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        ut.exec_func_src</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_func_kwargs</span><span class="p">(</span><span class="n">func</span><span class="p">),</span> <span class="n">explicit</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="ifnone"><a class="viewcode-back" href="../../utool.html#utool.util_dev.ifnone">[docs]</a><span class="k">def</span> <span class="nf">ifnone</span><span class="p">(</span><span class="n">default</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    shorthand for inline if / else statements</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">default</span> <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">value</span>
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -2299,7 +2699,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>

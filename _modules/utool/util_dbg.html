@@ -162,19 +162,8 @@
 
 <span class="n">RAISE_ALL</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--raise-all&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;Causes ut.printex to always reraise errors&#39;</span><span class="p">)</span>
 <span class="n">FORCE_TB</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--force-tb&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;Causes ut.printex to always print traceback&#39;</span><span class="p">)</span>
-<span class="n">COLORED_EXCEPTIONS</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--colorex&#39;</span><span class="p">,</span> <span class="s">&#39;--cex&#39;</span><span class="p">))</span>
-
-<span class="c"># --- Exec Strings ---</span>
-<span class="n">IPYTHON_EMBED_STR</span> <span class="o">=</span> <span class="s">r&#39;&#39;&#39;</span>
-<span class="s">try:</span>
-<span class="s">    import IPython</span>
-<span class="s">    print(&#39;Presenting in new ipython shell.&#39;)</span>
-<span class="s">    embedded = True</span>
-<span class="s">    IPython.embed()</span>
-<span class="s">except Exception as ex:</span>
-<span class="s">    warnings.warn(repr(ex)+&#39;\n!!!!!!!!&#39;)</span>
-<span class="s">    embedded = False</span>
-<span class="s">&#39;&#39;&#39;</span>
+<span class="c"># COLORED_EXCEPTIONS = util_arg.get_argflag((&#39;--colorex&#39;, &#39;--cex&#39;))</span>
+<span class="n">COLORED_EXCEPTIONS</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--no-colorex&#39;</span><span class="p">,</span> <span class="s">&#39;--no-cex&#39;</span><span class="p">))</span>
 
 
 <div class="viewcode-block" id="print_traceback"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.print_traceback">[docs]</a><span class="k">def</span> <span class="nf">print_traceback</span><span class="p">(</span><span class="n">with_colors</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
@@ -199,43 +188,6 @@
             <span class="k">print</span><span class="p">(</span><span class="n">tbtext</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="n">tbtext</span><span class="p">)</span>
-
-</div>
-<div class="viewcode-block" id="execstr_embed"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.execstr_embed">[docs]</a><span class="k">def</span> <span class="nf">execstr_embed</span><span class="p">():</span>
-    <span class="k">return</span> <span class="n">IPYTHON_EMBED_STR</span>
-
-</div>
-<div class="viewcode-block" id="ipython_execstr2"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.ipython_execstr2">[docs]</a><span class="k">def</span> <span class="nf">ipython_execstr2</span><span class="p">():</span>
-    <span class="k">return</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="s">r&#39;&#39;&#39;</span>
-<span class="s">    import sys</span>
-<span class="s">    embedded = False</span>
-<span class="s">    try:</span>
-<span class="s">        __IPYTHON__</span>
-<span class="s">        in_ipython = True</span>
-<span class="s">    except NameError:</span>
-<span class="s">        in_ipython = False</span>
-<span class="s">    try:</span>
-<span class="s">        import IPython</span>
-<span class="s">        have_ipython = True</span>
-<span class="s">    except NameError:</span>
-<span class="s">        have_ipython = False</span>
-<span class="s">    if in_ipython:</span>
-<span class="s">        print(&#39;Presenting in current ipython shell.&#39;)</span>
-<span class="s">    elif &#39;--cmd&#39; in sys.argv:</span>
-<span class="s">        print(&#39;[utool.dbg] Requested IPython shell with --cmd argument.&#39;)</span>
-<span class="s">        if have_ipython:</span>
-<span class="s">            print(&#39;[utool.dbg] Found IPython&#39;)</span>
-<span class="s">            try:</span>
-<span class="s">                import IPython</span>
-<span class="s">                print(&#39;[utool.dbg] Presenting in new ipython shell.&#39;)</span>
-<span class="s">                embedded = True</span>
-<span class="s">                IPython.embed()</span>
-<span class="s">            except Exception as ex:</span>
-<span class="s">                print(repr(ex)+&#39;\n!!!!!!!!&#39;)</span>
-<span class="s">                embedded = False</span>
-<span class="s">        else:</span>
-<span class="s">            print(&#39;[utool.dbg] IPython is not installed&#39;)</span>
-<span class="s">    &#39;&#39;&#39;</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="ipython_execstr"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.ipython_execstr">[docs]</a><span class="k">def</span> <span class="nf">ipython_execstr</span><span class="p">():</span>
@@ -289,14 +241,16 @@
     <span class="k">return</span> <span class="n">isvalid</span>
 
 </div>
-<div class="viewcode-block" id="execstr_dict"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.execstr_dict">[docs]</a><span class="k">def</span> <span class="nf">execstr_dict</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">local_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exclude_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; returns execable python code that declares variables using keys and values</span>
+<div class="viewcode-block" id="execstr_dict"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.execstr_dict">[docs]</a><span class="k">def</span> <span class="nf">execstr_dict</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">local_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exclude_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">explicit</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    returns execable python code that declares variables using keys and values</span>
 
 <span class="sd">    execstr_dict</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        dict_ (dict):</span>
-<span class="sd">        local_name (str): optional: local name of dictionary. Specifying this is much safer</span>
+<span class="sd">        local_name (str): optional: local name of dictionary. Specifying this</span>
+<span class="sd">            is much safer</span>
 <span class="sd">        exclude_list (list):</span>
 
 <span class="sd">    Returns:</span>
@@ -316,7 +270,6 @@
 <span class="sd">        &gt;&gt;&gt; assert b is False and a is True, &#39;execstr failed&#39;</span>
 <span class="sd">        &gt;&gt;&gt; result = execstr</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
-
 <span class="sd">        a = my_dictionary[&#39;a&#39;]</span>
 <span class="sd">        b = my_dictionary[&#39;b&#39;]</span>
 
@@ -326,48 +279,61 @@
 <span class="sd">        &gt;&gt;&gt; import utool as ut</span>
 <span class="sd">        &gt;&gt;&gt; my_dictionary = {&#39;a&#39;: True, &#39;b&#39;:False}</span>
 <span class="sd">        &gt;&gt;&gt; execstr = execstr_dict(my_dictionary)</span>
-<span class="sd">        &gt;&gt;&gt; globals_ = globals()</span>
 <span class="sd">        &gt;&gt;&gt; locals_ = locals()</span>
-<span class="sd">        &gt;&gt;&gt; exec(execstr, globals_, locals_)</span>
+<span class="sd">        &gt;&gt;&gt; exec(execstr, locals_)</span>
 <span class="sd">        &gt;&gt;&gt; a, b = ut.dict_take(locals_, [&#39;a&#39;, &#39;b&#39;])</span>
 <span class="sd">        &gt;&gt;&gt; assert &#39;a&#39; in locals_ and &#39;b&#39; in locals_, &#39;execstr failed&#39;</span>
 <span class="sd">        &gt;&gt;&gt; assert b is False and a is True, &#39;execstr failed&#39;</span>
 <span class="sd">        &gt;&gt;&gt; result = execstr</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
-
 <span class="sd">        a = my_dictionary[&#39;a&#39;]</span>
 <span class="sd">        b = my_dictionary[&#39;b&#39;]</span>
 
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dbg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; my_dictionary = {&#39;a&#39;: True, &#39;b&#39;:False}</span>
+<span class="sd">        &gt;&gt;&gt; execstr = execstr_dict(my_dictionary, explicit=True)</span>
+<span class="sd">        &gt;&gt;&gt; result = execstr</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        a = True</span>
+<span class="sd">        b = False</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">local_name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="c"># Magic way of getting the local name of dict_</span>
-        <span class="n">local_name</span> <span class="o">=</span> <span class="n">get_varname_from_locals</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">get_parent_locals</span><span class="p">())</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="c">#if exclude_list is None:</span>
-        <span class="c">#    execstr = &#39;\n&#39;.join((key + &#39; = &#39; + local_name + &#39;[&#39; + repr(key) + &#39;]&#39;</span>
-        <span class="c">#                        for (key, val) in dict_.items()))</span>
-        <span class="c">#else:</span>
-        <span class="k">if</span> <span class="n">exclude_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">exclude_list</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exclude_list</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
-        <span class="n">exclude_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">local_name</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="k">if</span> <span class="n">explicit</span><span class="p">:</span>
         <span class="n">expr_list</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="nb">dict</span><span class="p">),</span> <span class="s">&#39;incorrect type type(dict_)=</span><span class="si">%r</span><span class="s">, dict_=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="nb">dict</span><span class="p">),</span> <span class="n">dict_</span><span class="p">)</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">dict_</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
             <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">),</span> <span class="s">&#39;keys must be strings&#39;</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_valid_varname</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
-                <span class="k">continue</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">((</span><span class="n">fnmatch</span><span class="o">.</span><span class="n">fnmatch</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">pat</span><span class="p">)</span> <span class="k">for</span> <span class="n">pat</span> <span class="ow">in</span> <span class="n">exclude_list</span><span class="p">)):</span>
-                <span class="n">expr</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> = </span><span class="si">%s</span><span class="s">[</span><span class="si">%r</span><span class="s">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">local_name</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
-                <span class="n">expr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+            <span class="n">expr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">val</span><span class="p">),))</span>
         <span class="n">execstr</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">expr_list</span><span class="p">)</span>
         <span class="c">#print(execstr)</span>
         <span class="k">return</span> <span class="n">execstr</span>
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-        <span class="n">locals_</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;locals_&#39;</span><span class="p">])</span>
-        <span class="k">raise</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">local_name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># Magic way of getting the local name of dict_</span>
+            <span class="n">local_name</span> <span class="o">=</span> <span class="n">get_varname_from_locals</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">get_parent_locals</span><span class="p">())</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">exclude_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">exclude_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exclude_list</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+            <span class="n">exclude_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">local_name</span><span class="p">)</span>
+            <span class="n">expr_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="nb">dict</span><span class="p">),</span> <span class="s">&#39;incorrect type type(dict_)=</span><span class="si">%r</span><span class="s">, dict_=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="nb">dict</span><span class="p">),</span> <span class="n">dict_</span><span class="p">)</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">dict_</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">),</span> <span class="s">&#39;keys must be strings&#39;</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">is_valid_varname</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">((</span><span class="n">fnmatch</span><span class="o">.</span><span class="n">fnmatch</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">pat</span><span class="p">)</span> <span class="k">for</span> <span class="n">pat</span> <span class="ow">in</span> <span class="n">exclude_list</span><span class="p">)):</span>
+                    <span class="n">expr</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> = </span><span class="si">%s</span><span class="s">[</span><span class="si">%s</span><span class="s">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">local_name</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+                    <span class="n">expr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+            <span class="n">execstr</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">expr_list</span><span class="p">)</span>
+            <span class="c">#print(execstr)</span>
+            <span class="k">return</span> <span class="n">execstr</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">locals_</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;locals_&#39;</span><span class="p">])</span>
+            <span class="k">raise</span>
 
 </div>
 <div class="viewcode-block" id="execstr_func"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.execstr_func">[docs]</a><span class="k">def</span> <span class="nf">execstr_func</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
@@ -393,10 +359,6 @@
         <span class="n">after</span>  <span class="o">=</span> <span class="n">execstr</span><span class="p">[</span><span class="n">stmt_endx</span><span class="p">:]</span>
         <span class="n">execstr</span> <span class="o">=</span> <span class="n">before</span> <span class="o">+</span> <span class="n">after</span>
     <span class="k">return</span> <span class="n">execstr</span>
-
-</div>
-<div class="viewcode-block" id="execstr_src"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.execstr_src">[docs]</a><span class="k">def</span> <span class="nf">execstr_src</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">execstr_func</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="save_testdata"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.save_testdata">[docs]</a><span class="k">def</span> <span class="nf">save_testdata</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -443,6 +405,18 @@
         <span class="n">ut</span><span class="o">.</span><span class="n">embed</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">True</span>
     <span class="k">return</span> <span class="bp">False</span>
+
+</div>
+<div class="viewcode-block" id="fix_embed_globals"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.fix_embed_globals">[docs]</a><span class="k">def</span> <span class="nf">fix_embed_globals</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    HACK adds current locals() to globals().</span>
+<span class="sd">    Can be dangerous.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">globals_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_parent_globals</span><span class="p">()</span>
+    <span class="n">locals_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_parent_locals</span><span class="p">()</span>
+    <span class="n">globals_</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">locals_</span><span class="p">)</span>
+    <span class="n">globals_</span><span class="p">[</span><span class="s">&#39;wasfixed&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
 
 </div>
 <div class="viewcode-block" id="embed"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.embed">[docs]</a><span class="k">def</span> <span class="nf">embed</span><span class="p">(</span><span class="n">parent_locals</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parent_globals</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exec_lines</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
@@ -526,6 +500,10 @@
 <span class="sd">        &gt;&gt;&gt; # verify results</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+    <span class="kn">import</span> <span class="nn">IPython</span>
+
     <span class="k">if</span> <span class="n">parent_globals</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">parent_globals</span> <span class="o">=</span> <span class="n">get_parent_globals</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
         <span class="c">#parent_globals1 = get_parent_globals(N=0)</span>
@@ -534,8 +512,6 @@
         <span class="n">parent_locals</span> <span class="o">=</span> <span class="n">get_parent_locals</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
 
     <span class="n">stackdepth</span> <span class="o">=</span> <span class="n">N</span>  <span class="c"># NOQA</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-    <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
     <span class="n">getframe</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_caller_stack_frame</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>  <span class="c"># NOQA</span>
 
     <span class="k">exec</span><span class="p">(</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">parent_globals</span><span class="p">,</span> <span class="s">&#39;parent_globals&#39;</span><span class="p">))</span>
@@ -545,7 +521,6 @@
     <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">bubbletext</span><span class="p">(</span><span class="s">&#39;EMBEDDING&#39;</span><span class="p">))</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;================&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util] embedding&#39;</span><span class="p">)</span>
-    <span class="kn">import</span> <span class="nn">IPython</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">remove_pyqt_hook</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
@@ -1078,14 +1053,14 @@
     <span class="k">if</span> <span class="nb">all</span><span class="p">([</span><span class="n">util_type</span><span class="o">.</span><span class="n">is_listlike</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">list_</span><span class="p">]):</span>
         <span class="n">append</span><span class="p">(</span><span class="s">&#39; * list items are all listlike&#39;</span><span class="p">)</span>
         <span class="n">all_lens</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">list_</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">util_list</span><span class="o">.</span><span class="n">list_allsame</span><span class="p">(</span><span class="n">all_lens</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">util_list</span><span class="o">.</span><span class="n">allsame</span><span class="p">(</span><span class="n">all_lens</span><span class="p">):</span>
             <span class="n">dim2</span> <span class="o">=</span> <span class="n">all_lens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">append</span><span class="p">(</span><span class="s">&#39; * uniform lens=</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">dim2</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">append</span><span class="p">(</span><span class="s">&#39; * nonuniform lens = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">all_lens</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">all_types</span> <span class="o">=</span> <span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">list_</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">util_list</span><span class="o">.</span><span class="n">list_allsame</span><span class="p">(</span><span class="n">all_types</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">util_list</span><span class="o">.</span><span class="n">allsame</span><span class="p">(</span><span class="n">all_types</span><span class="p">):</span>
             <span class="n">append</span><span class="p">(</span><span class="s">&#39; * uniform types=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">all_types</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">append</span><span class="p">(</span><span class="s">&#39; * nonuniform types: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">all_types</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
@@ -1177,7 +1152,9 @@
             <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">msg</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">print_func</span> <span class="o">=</span> <span class="k">print</span>
+        <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+        <span class="n">print_func</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;yellow&#39;</span> <span class="k">if</span> <span class="n">iswarning</span> <span class="k">else</span> <span class="s">&#39;red&#39;</span><span class="p">)</span>
+        <span class="c"># print_func = print</span>
     <span class="k">if</span> <span class="n">pad_stdout</span><span class="p">:</span>
         <span class="n">print_func</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">+------</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
     <span class="c"># print the execption</span>
@@ -1194,7 +1171,59 @@
 <div class="viewcode-block" id="formatex"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.formatex">[docs]</a><span class="k">def</span> <span class="nf">formatex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s">&#39;[!?] Caught exception&#39;</span><span class="p">,</span>
              <span class="n">prefix</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">locals_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
              <span class="n">N</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">colored</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Formats an exception with relevant info &quot;&quot;&quot;</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Formats an exception with relevant info</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ex (Exception): exception to print</span>
+<span class="sd">        msg (unicode):  a message to display to the user (default = u&#39;[!?] Caught exception&#39;)</span>
+<span class="sd">        keys (None): a list of strings denoting variables or expressions of interest (default = [])</span>
+<span class="sd">        iswarning (bool): prints as a warning rather than an error if True (default = False)</span>
+<span class="sd">        tb (bool): if True prints the traceback in the error message (default = False)</span>
+<span class="sd">        prefix (None): (default = None)</span>
+<span class="sd">        locals_ (None): (default = None)</span>
+<span class="sd">        N (int): (default = 0)</span>
+<span class="sd">        colored (None): (default = None)</span>
+<span class="sd">        key_list (list): DEPRICATED use keys</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: formated exception</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_dbg --exec-formatex</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTET</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dbg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; msg = &#39;Testing Exception&#39;</span>
+<span class="sd">        &gt;&gt;&gt; prefix = &#39;[test]&#39;</span>
+<span class="sd">        &gt;&gt;&gt; key_list = [&#39;N&#39;, &#39;foo&#39;, &#39;tb&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; locals_ = None</span>
+<span class="sd">        &gt;&gt;&gt; iswarning = True</span>
+<span class="sd">        &gt;&gt;&gt; keys = None</span>
+<span class="sd">        &gt;&gt;&gt; colored = None</span>
+<span class="sd">        &gt;&gt;&gt; def failfunc():</span>
+<span class="sd">        &gt;&gt;&gt;     tb = True</span>
+<span class="sd">        &gt;&gt;&gt;     N = 0</span>
+<span class="sd">        &gt;&gt;&gt;     try:</span>
+<span class="sd">        &gt;&gt;&gt;         raise Exception(&#39;test exception. This is not an error&#39;)</span>
+<span class="sd">        &gt;&gt;&gt;     except Exception as ex:</span>
+<span class="sd">        &gt;&gt;&gt;         result = formatex(ex, msg, prefix, key_list, locals_,</span>
+<span class="sd">        &gt;&gt;&gt;                           iswarning, tb, N, keys, colored)</span>
+<span class="sd">        &gt;&gt;&gt;         return result</span>
+<span class="sd">        &gt;&gt;&gt; result = failfunc().replace(&#39;\n\n&#39;, &#39;&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &lt;!!! WARNING !!!&gt;</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">          File &quot;&lt;string&gt;&quot;, line 15, in failfunc</span>
+<span class="sd">        Exception: test exception. This is not an error[test] Testing Exception</span>
+<span class="sd">        &lt;type &#39;exceptions.Exception&#39;&gt;: test exception. This is not an error</span>
+<span class="sd">        [test] N = 0</span>
+<span class="sd">        [test] !!! foo not populated!</span>
+<span class="sd">        [test] tb = True</span>
+<span class="sd">        &lt;/!!! WARNING !!!&gt;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Get error prefix and local info</span>
     <span class="k">if</span> <span class="n">prefix</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">prefix</span> <span class="o">=</span> <span class="n">get_caller_prefix</span><span class="p">(</span><span class="n">aserror</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
@@ -1208,24 +1237,10 @@
     <span class="n">ex_tag</span> <span class="o">=</span> <span class="s">&#39;WARNING&#39;</span> <span class="k">if</span> <span class="n">iswarning</span> <span class="k">else</span> <span class="s">&#39;EXCEPTION&#39;</span>
     <span class="n">errstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;!!! </span><span class="si">%s</span><span class="s"> !!!&gt;&#39;</span> <span class="o">%</span> <span class="n">ex_tag</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">tb</span> <span class="ow">or</span> <span class="n">FORCE_TB</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_cplat</span>
         <span class="n">tbtext</span> <span class="o">=</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()</span>
-        <span class="n">colored_exceptions</span> <span class="o">=</span> <span class="n">colored</span> <span class="k">if</span> <span class="n">colored</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="p">(</span><span class="bp">False</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">util_cplat</span><span class="o">.</span><span class="n">WIN32</span><span class="p">)</span>
-        <span class="c">#COLORED_EXCEPTIONS = not util_cplat.WIN32</span>
-        <span class="c">#COLORED_EXCEPTIONS =  False  # disable</span>
-        <span class="k">if</span> <span class="n">colored_exceptions</span> <span class="ow">or</span> <span class="n">COLORED_EXCEPTIONS</span><span class="p">:</span>
-            <span class="c"># TODO: rectify with duplicate in util_inject</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="kn">import</span> <span class="nn">pygments</span>
-                <span class="kn">import</span> <span class="nn">pygments.lexers</span>
-                <span class="kn">import</span> <span class="nn">pygments.formatters</span>
-            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: pygments not installed, cannot color error messages&#39;</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">lexer</span> <span class="o">=</span> <span class="n">pygments</span><span class="o">.</span><span class="n">lexers</span><span class="o">.</span><span class="n">get_lexer_by_name</span><span class="p">(</span><span class="s">&#39;pytb&#39;</span><span class="p">,</span> <span class="n">stripall</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-                <span class="n">formatter</span> <span class="o">=</span> <span class="n">pygments</span><span class="o">.</span><span class="n">formatters</span><span class="o">.</span><span class="n">TerminalFormatter</span><span class="p">(</span><span class="n">bg</span><span class="o">=</span><span class="s">&#39;dark&#39;</span><span class="p">)</span>
-                <span class="n">formatted_text</span> <span class="o">=</span> <span class="n">pygments</span><span class="o">.</span><span class="n">highlight</span><span class="p">(</span><span class="n">tbtext</span><span class="p">,</span> <span class="n">lexer</span><span class="p">,</span> <span class="n">formatter</span><span class="p">)</span>
-                <span class="n">tbtext</span> <span class="o">=</span> <span class="n">formatted_text</span>
+        <span class="k">if</span> <span class="n">colored</span> <span class="ow">or</span> <span class="n">COLORED_EXCEPTIONS</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_str</span>
+            <span class="n">tbtext</span> <span class="o">=</span> <span class="n">util_str</span><span class="o">.</span><span class="n">highlight_text</span><span class="p">(</span><span class="n">tbtext</span><span class="p">,</span> <span class="n">lexer_name</span><span class="o">=</span><span class="s">&#39;pytb&#39;</span><span class="p">,</span> <span class="n">stripall</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">errstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tbtext</span><span class="p">)</span>
     <span class="n">errstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prefix</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="si">%r</span><span class="s">: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">)))</span>
     <span class="c">#errstr_list.append(prefix + &#39; &#39; + str(msg) + &#39;\ntype(ex)=%r&#39; % (type(ex),))</span>
@@ -1291,7 +1306,7 @@
                     <span class="k">raise</span>
                 <span class="n">val</span> <span class="o">=</span> <span class="n">ex</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;!!! </span><span class="si">%s</span><span class="s"> not populated!&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> = NameError&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">val</span> <span class="o">=</span> <span class="n">locals_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">val</span>
@@ -1327,9 +1342,40 @@
 
 </div>
 <div class="viewcode-block" id="parse_locals_keylist"><a class="viewcode-back" href="../../utool.html#utool.util_dbg.parse_locals_keylist">[docs]</a><span class="k">def</span> <span class="nf">parse_locals_keylist</span><span class="p">(</span><span class="n">locals_</span><span class="p">,</span> <span class="n">key_list</span><span class="p">,</span> <span class="n">strlist_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; For each key in keylist, puts its value in locals into a stringlist &quot;&quot;&quot;</span>
-    <span class="c">#from utool.util_str import get_callable_name</span>
-    <span class="kn">from</span> <span class="nn">utool.util_str</span> <span class="kn">import</span> <span class="n">get_callable_name</span>
+    <span class="sd">&quot;&quot;&quot; For each key in keylist, puts its value in locals into a stringlist</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        locals_ (?):</span>
+<span class="sd">        key_list (list):</span>
+<span class="sd">        strlist_ (list): (default = None)</span>
+<span class="sd">        prefix (unicode): (default = u&#39;&#39;)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: strlist_</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_dbg --exec-parse_locals_keylist</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dbg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; locals_ = {&#39;foo&#39;: [1,2,3], &#39;bar&#39;: &#39;spam&#39;, &#39;eggs&#39;: 4, &#39;num&#39;: 5}</span>
+<span class="sd">        &gt;&gt;&gt; key_list = [(len, &#39;foo&#39;), &#39;bar.lower.__name__&#39;, &#39;eggs&#39;, &#39;num&#39;, &#39;other&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; strlist_ = None</span>
+<span class="sd">        &gt;&gt;&gt; prefix = u&#39;&#39;</span>
+<span class="sd">        &gt;&gt;&gt; strlist_ = parse_locals_keylist(locals_, key_list, strlist_, prefix)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;strlist_ = %s&#39; % (ut.repr2(strlist_, nl=True),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        strlist_ = [</span>
+<span class="sd">            &#39; len(foo) = 3&#39;,</span>
+<span class="sd">            &quot; bar.lower.__name__ = &#39;lower&#39;&quot;,</span>
+<span class="sd">            &#39; eggs = 4&#39;,</span>
+<span class="sd">            &#39; num = 5&#39;,</span>
+<span class="sd">            &#39; other = NameError&#39;,</span>
+<span class="sd">        ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_str</span>
     <span class="k">if</span> <span class="n">strlist_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">strlist_</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -1343,21 +1389,24 @@
                 <span class="n">func</span><span class="p">,</span> <span class="n">key_</span> <span class="o">=</span> <span class="n">tup</span>
                 <span class="n">val</span> <span class="o">=</span> <span class="n">get_varval_from_locals</span><span class="p">(</span><span class="n">key_</span><span class="p">,</span> <span class="n">locals_</span><span class="p">)</span>
                 <span class="n">funcvalstr</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">func</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
-                <span class="n">strlist_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">(</span><span class="si">%s</span><span class="s">) = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">get_callable_name</span><span class="p">(</span><span class="n">func</span><span class="p">),</span> <span class="n">key_</span><span class="p">,</span> <span class="n">funcvalstr</span><span class="p">))</span>
+                <span class="n">callname</span> <span class="o">=</span> <span class="n">util_str</span><span class="o">.</span><span class="n">get_callable_name</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+                <span class="n">strlist_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">(</span><span class="si">%s</span><span class="s">) = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">callname</span><span class="p">,</span> <span class="n">key_</span><span class="p">,</span> <span class="n">funcvalstr</span><span class="p">))</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
                 <span class="c"># Try to infer print from variable name</span>
                 <span class="n">val</span> <span class="o">=</span> <span class="n">get_varval_from_locals</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">locals_</span><span class="p">)</span>
-                <span class="n">valstr</span> <span class="o">=</span> <span class="n">util_str</span><span class="o">.</span><span class="n">truncate_str</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">val</span><span class="p">),</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+                <span class="c">#valstr = util_str.truncate_str(repr(val), maxlen=200)</span>
+                <span class="n">valstr</span> <span class="o">=</span> <span class="n">util_str</span><span class="o">.</span><span class="n">truncate_str</span><span class="p">(</span><span class="n">util_str</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">val</span><span class="p">),</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
                 <span class="n">strlist_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">valstr</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c"># Try to infer print from variable value</span>
                 <span class="n">val</span> <span class="o">=</span> <span class="n">key</span>
                 <span class="n">typestr</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
                 <span class="n">namestr</span> <span class="o">=</span> <span class="n">get_varname_from_locals</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">locals_</span><span class="p">)</span>
-                <span class="n">valstr</span> <span class="o">=</span> <span class="n">util_str</span><span class="o">.</span><span class="n">truncate_str</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">val</span><span class="p">),</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+                <span class="c">#valstr = util_str.truncate_str(repr(val), maxlen=200)</span>
+                <span class="n">valstr</span> <span class="o">=</span> <span class="n">util_str</span><span class="o">.</span><span class="n">truncate_str</span><span class="p">(</span><span class="n">util_str</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">val</span><span class="p">),</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
                 <span class="n">strlist_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">typestr</span><span class="p">,</span> <span class="n">namestr</span><span class="p">,</span> <span class="n">valstr</span><span class="p">))</span>
         <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-            <span class="n">strlist_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
+            <span class="n">strlist_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prefix</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">strlist_</span>
 
 </div>
@@ -1496,9 +1545,12 @@
     <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span>
 
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
     <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">trace</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">trace</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;!!!!!!!!!!!!!!!!!!!&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;!!! EMBED ON EXCEPTION !!!&#39;</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_dbg] </span><span class="si">%r</span><span class="s"> in context manager!: </span><span class="si">%s</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">type_</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)))</span>
             <span class="kn">import</span> <span class="nn">utool</span>
             <span class="kn">import</span> <span class="nn">traceback</span>
@@ -1539,7 +1591,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>

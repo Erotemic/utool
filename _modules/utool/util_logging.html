@@ -385,6 +385,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">def</span> <span class="nf">utool_print</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
                 <span class="sd">&quot;&quot;&quot; standard utool print function &quot;&quot;&quot;</span>
+                <span class="c">#import utool as ut</span>
+                <span class="c">#with ut.embed_on_exception_context:</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="k">return</span>  <span class="n">__UTOOL_ROOT_LOGGER__</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">__STR__</span><span class="p">,</span> <span class="n">args</span><span class="p">)))</span>
                 <span class="k">except</span> <span class="ne">UnicodeDecodeError</span><span class="p">:</span>
@@ -459,7 +461,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>

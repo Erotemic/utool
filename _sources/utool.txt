@@ -45,6 +45,14 @@ utool.__main__ module
     :undoc-members:
     :show-inheritance:
 
+utool.oldalg module
+-------------------
+
+.. automodule:: utool.oldalg
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 utool.sandbox module
 --------------------
 
@@ -117,6 +125,14 @@ utool.util_config module
     :undoc-members:
     :show-inheritance:
 
+utool.util_const module
+-----------------------
+
+.. automodule:: utool.util_const
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 utool.util_cplat module
 -----------------------
 
@@ -145,6 +161,14 @@ utool.util_decor module
 -----------------------
 
 .. automodule:: utool.util_decor
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_depricated module
+----------------------------
+
+.. automodule:: utool.util_depricated
     :members:
     :undoc-members:
     :show-inheritance:
@@ -197,6 +221,14 @@ utool.util_grabdata module
     :undoc-members:
     :show-inheritance:
 
+utool.util_graph module
+-----------------------
+
+.. automodule:: utool.util_graph
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 utool.util_gridsearch module
 ----------------------------
 
@@ -241,6 +273,14 @@ utool.util_io module
 --------------------
 
 .. automodule:: utool.util_io
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_ipynb module
+-----------------------
+
+.. automodule:: utool.util_ipynb
     :members:
     :undoc-members:
     :show-inheritance:
@@ -397,6 +437,14 @@ utool.util_sysreq module
     :undoc-members:
     :show-inheritance:
 
+utool.util_tags module
+----------------------
+
+.. automodule:: utool.util_tags
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 utool.util_tests module
 -----------------------
 
@@ -425,6 +473,14 @@ utool.util_ubuntu module
 ------------------------
 
 .. automodule:: utool.util_ubuntu
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+utool.util_web module
+---------------------
+
+.. automodule:: utool.util_web
     :members:
     :undoc-members:
     :show-inheritance:

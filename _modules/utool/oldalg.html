@@ -1,0 +1,632 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>utool.oldalg &mdash; utool 1.1.2.dev1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="utool 1.1.2.dev1 documentation" href="../../index.html"/>
+        <link rel="up" title="utool" href="../utool.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> utool
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.2.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../utool.html">utool package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">utool</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../utool.html">utool</a> &raquo;</li>
+      
+    <li>utool.oldalg</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for utool.oldalg</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="c"># TODO Licence:</span>
+<span class="c">#</span>
+<span class="c"># TODO:  move library intensive functions to vtool</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">operator</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">reduce</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_type</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_decor</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="n">HAVE_NUMPY</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">HAVE_NUMPY</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="c"># TODO remove numpy</span>
+    <span class="k">pass</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">as</span> <span class="nn">spdist</span>
+    <span class="n">HAVE_SCIPY</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">HAVE_SCIPY</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[alg]&#39;</span><span class="p">)</span>
+
+
+<span class="n">PHI</span> <span class="o">=</span> <span class="mf">1.61803398875</span>
+<span class="n">PHI_A</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">PHI</span><span class="p">)</span>
+<span class="n">PHI_B</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">PHI_A</span>
+
+
+<div class="viewcode-block" id="bayesnet"><a class="viewcode-back" href="../../utool.html#utool.oldalg.bayesnet">[docs]</a><span class="k">def</span> <span class="nf">bayesnet</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    References:</span>
+<span class="sd">        https://class.coursera.org/pgm-003/lecture/17</span>
+<span class="sd">        http://www.cs.ubc.ca/~murphyk/Bayes/bnintro.html</span>
+<span class="sd">        http://www3.cs.stonybrook.edu/~sael/teaching/cse537/Slides/chapter14d_BP.pdf</span>
+<span class="sd">        http://www.cse.unsw.edu.au/~cs9417ml/Bayes/Pages/PearlPropagation.html</span>
+<span class="sd">        https://github.com/pgmpy/pgmpy.git</span>
+<span class="sd">        http://pgmpy.readthedocs.org/en/latest/</span>
+<span class="sd">        http://nipy.bic.berkeley.edu:5000/download/11</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># import operator as op</span>
+    <span class="c"># # Enumerate all possible events</span>
+    <span class="c"># varcard_list = list(map(op.attrgetter(&#39;variable_card&#39;), cpd_list))</span>
+    <span class="c"># _esdat = list(ut.iprod(*map(range, varcard_list)))</span>
+    <span class="c"># _escol = list(map(op.attrgetter(&#39;variable&#39;), cpd_list))</span>
+    <span class="c"># event_space = pd.DataFrame(_esdat, columns=_escol)</span>
+
+    <span class="c"># # Custom compression of event space to inspect a specific graph</span>
+    <span class="c"># def compress_space_flags(event_space, var1, var2, var3, cmp12_):</span>
+    <span class="c">#     &quot;&quot;&quot;</span>
+    <span class="c">#     var1, var2, cmp_ = &#39;Lj&#39;, &#39;Lk&#39;, op.eq</span>
+    <span class="c">#     &quot;&quot;&quot;</span>
+    <span class="c">#     import vtool as vt</span>
+    <span class="c">#     data = event_space</span>
+    <span class="c">#     other_cols = ut.setdiff_ordered(data.columns.tolist(), [var1, var2, var3])</span>
+    <span class="c">#     case_flags12 = cmp12_(data[var1], data[var2]).values</span>
+    <span class="c">#     # case_flags23 = cmp23_(data[var2], data[var3]).values</span>
+    <span class="c">#     # case_flags = np.logical_and(case_flags12, case_flags23)</span>
+    <span class="c">#     case_flags = case_flags12</span>
+    <span class="c">#     case_flags = case_flags.astype(np.int64)</span>
+    <span class="c">#     subspace = np.hstack((case_flags[:, None], data[other_cols].values))</span>
+    <span class="c">#     sel_ = vt.unique_row_indexes(subspace)</span>
+    <span class="c">#     mask = vt.index_to_boolmask(sel_, len(data))</span>
+    <span class="c">#     flags = np.logical_and(mask, case_flags)</span>
+    <span class="c">#     return flags</span>
+
+    <span class="c"># # Build special cases</span>
+    <span class="c"># case_same   = event_space.loc[compress_space_flags(event_space, &#39;Li&#39;, &#39;Lj&#39;, &#39;Lk&#39;, op.eq)]</span>
+    <span class="c"># case_diff = event_space.loc[compress_space_flags(event_space, &#39;Li&#39;, &#39;Lj&#39;, &#39;Lk&#39;, op.ne)]</span>
+    <span class="c"># special_cases = [</span>
+    <span class="c">#     case_same,</span>
+    <span class="c">#     case_diff,</span>
+    <span class="c"># ]</span>
+
+    <span class="kn">from</span> <span class="nn">pgmpy.factors</span> <span class="kn">import</span> <span class="n">TabularCPD</span>
+    <span class="kn">from</span> <span class="nn">pgmpy.models</span> <span class="kn">import</span> <span class="n">BayesianModel</span>
+    <span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+    <span class="kn">from</span> <span class="nn">pgmpy.inference</span> <span class="kn">import</span> <span class="n">BeliefPropagation</span>  <span class="c"># NOQA</span>
+    <span class="kn">from</span> <span class="nn">pgmpy.inference</span> <span class="kn">import</span> <span class="n">VariableElimination</span>  <span class="c"># NOQA</span>
+
+    <span class="n">name_nice</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;n1&#39;</span><span class="p">,</span> <span class="s">&#39;n2&#39;</span><span class="p">,</span> <span class="s">&#39;n3&#39;</span><span class="p">]</span>
+    <span class="n">score_nice</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;low&#39;</span><span class="p">,</span> <span class="s">&#39;high&#39;</span><span class="p">]</span>
+    <span class="n">match_nice</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;diff&#39;</span><span class="p">,</span> <span class="s">&#39;same&#39;</span><span class="p">]</span>
+    <span class="n">num_names</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">name_nice</span><span class="p">)</span>
+    <span class="n">num_scores</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">score_nice</span><span class="p">)</span>
+    <span class="n">nid_basis</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_names</span><span class="p">))</span>
+    <span class="n">score_basis</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_scores</span><span class="p">))</span>
+
+    <span class="n">semtype2_nice</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;score&#39;</span><span class="p">:</span> <span class="n">score_nice</span><span class="p">,</span>
+        <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">name_nice</span><span class="p">,</span>
+        <span class="s">&#39;match&#39;</span><span class="p">:</span> <span class="n">match_nice</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">var2_cpd</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="p">}</span>
+    <span class="nb">globals</span><span class="p">()[</span><span class="s">&#39;semtype2_nice&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">semtype2_nice</span>
+    <span class="nb">globals</span><span class="p">()[</span><span class="s">&#39;var2_cpd&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">var2_cpd</span>
+
+    <span class="n">name_combo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">iprod</span><span class="p">(</span><span class="n">nid_basis</span><span class="p">,</span> <span class="n">nid_basis</span><span class="p">)))</span>
+    <span class="n">combo_is_same</span> <span class="o">=</span> <span class="n">name_combo</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">name_combo</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">def</span> <span class="nf">get_expected_scores_prob</span><span class="p">(</span><span class="n">level1</span><span class="p">,</span> <span class="n">level2</span><span class="p">):</span>
+        <span class="n">part1</span> <span class="o">=</span> <span class="n">combo_is_same</span> <span class="o">*</span> <span class="n">level1</span>
+        <span class="n">part2</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">combo_is_same</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">level2</span><span class="p">))</span>
+        <span class="n">expected_scores_level</span> <span class="o">=</span> <span class="n">part1</span> <span class="o">+</span> <span class="n">part2</span>
+        <span class="k">return</span> <span class="n">expected_scores_level</span>
+
+    <span class="c"># def make_cpd():</span>
+
+    <span class="k">def</span> <span class="nf">name_cpd</span><span class="p">(</span><span class="n">aid</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">pgmpy.factors</span> <span class="kn">import</span> <span class="n">TabularCPD</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">TabularCPD</span><span class="p">(</span>
+            <span class="n">variable</span><span class="o">=</span><span class="s">&#39;N&#39;</span> <span class="o">+</span> <span class="n">aid</span><span class="p">,</span>
+            <span class="n">variable_card</span><span class="o">=</span><span class="n">num_names</span><span class="p">,</span>
+            <span class="n">values</span><span class="o">=</span><span class="p">[[</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">num_names</span><span class="p">]</span> <span class="o">*</span> <span class="n">num_names</span><span class="p">])</span>
+        <span class="n">cpd</span><span class="o">.</span><span class="n">semtype</span> <span class="o">=</span> <span class="s">&#39;name&#39;</span>
+        <span class="k">return</span> <span class="n">cpd</span>
+
+    <span class="n">name_cpds</span> <span class="o">=</span> <span class="p">[</span><span class="n">name_cpd</span><span class="p">(</span><span class="s">&#39;i&#39;</span><span class="p">),</span> <span class="n">name_cpd</span><span class="p">(</span><span class="s">&#39;j&#39;</span><span class="p">),</span> <span class="n">name_cpd</span><span class="p">(</span><span class="s">&#39;k&#39;</span><span class="p">)]</span>
+    <span class="n">var2_cpd</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">([</span><span class="n">cpd</span><span class="o">.</span><span class="n">variable</span> <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">name_cpds</span><span class="p">],</span> <span class="n">name_cpds</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">num_same_diff</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">samediff_measure</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="c"># get_expected_scores_prob(.12, .2),</span>
+            <span class="c"># get_expected_scores_prob(.88, .8),</span>
+            <span class="n">get_expected_scores_prob</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+            <span class="n">get_expected_scores_prob</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="p">])</span>
+        <span class="n">samediff_vals</span> <span class="o">=</span> <span class="p">(</span><span class="n">samediff_measure</span> <span class="o">/</span> <span class="n">samediff_measure</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="k">def</span> <span class="nf">samediff_cpd</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">):</span>
+            <span class="n">cpd</span> <span class="o">=</span> <span class="n">TabularCPD</span><span class="p">(</span>
+                <span class="n">variable</span><span class="o">=</span><span class="s">&#39;A&#39;</span> <span class="o">+</span> <span class="n">aid1</span> <span class="o">+</span> <span class="n">aid2</span><span class="p">,</span>
+                <span class="n">variable_card</span><span class="o">=</span><span class="n">num_same_diff</span><span class="p">,</span>
+                <span class="n">values</span><span class="o">=</span><span class="n">samediff_vals</span><span class="p">,</span>
+                <span class="n">evidence</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;N&#39;</span> <span class="o">+</span> <span class="n">aid1</span><span class="p">,</span> <span class="s">&#39;N&#39;</span> <span class="o">+</span> <span class="n">aid2</span><span class="p">],</span>  <span class="c"># [::-1],</span>
+                <span class="n">evidence_card</span><span class="o">=</span><span class="p">[</span><span class="n">num_names</span><span class="p">,</span> <span class="n">num_names</span><span class="p">])</span>  <span class="c"># [::-1])</span>
+            <span class="n">cpd</span><span class="o">.</span><span class="n">semtype</span> <span class="o">=</span> <span class="s">&#39;match&#39;</span>
+            <span class="k">return</span> <span class="n">cpd</span>
+        <span class="n">samediff_cpds</span> <span class="o">=</span> <span class="p">[</span><span class="n">samediff_cpd</span><span class="p">(</span><span class="s">&#39;i&#39;</span><span class="p">,</span> <span class="s">&#39;j&#39;</span><span class="p">),</span> <span class="n">samediff_cpd</span><span class="p">(</span><span class="s">&#39;j&#39;</span><span class="p">,</span> <span class="s">&#39;k&#39;</span><span class="p">),</span> <span class="n">samediff_cpd</span><span class="p">(</span><span class="s">&#39;k&#39;</span><span class="p">,</span> <span class="s">&#39;i&#39;</span><span class="p">)]</span>
+        <span class="n">var2_cpd</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">([</span><span class="n">cpd</span><span class="o">.</span><span class="n">variable</span> <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">samediff_cpds</span><span class="p">],</span> <span class="n">samediff_cpds</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="k">def</span> <span class="nf">score_cpd</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">):</span>
+                <span class="n">semtype</span> <span class="o">=</span> <span class="s">&#39;score&#39;</span>
+                <span class="n">evidence</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;A&#39;</span> <span class="o">+</span> <span class="n">aid1</span> <span class="o">+</span> <span class="n">aid2</span><span class="p">,</span> <span class="s">&#39;N&#39;</span> <span class="o">+</span> <span class="n">aid1</span><span class="p">,</span> <span class="s">&#39;N&#39;</span> <span class="o">+</span> <span class="n">aid2</span><span class="p">]</span>
+                <span class="n">evidence_cpds</span> <span class="o">=</span> <span class="p">[</span><span class="n">var2_cpd</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">evidence</span><span class="p">]</span>
+                <span class="n">evidence_nice</span> <span class="o">=</span> <span class="p">[</span><span class="n">semtype2_nice</span><span class="p">[</span><span class="n">cpd</span><span class="o">.</span><span class="n">semtype</span><span class="p">]</span> <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">evidence_cpds</span><span class="p">]</span>
+                <span class="n">evidence_card</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">evidence_nice</span><span class="p">))</span>
+                <span class="n">evidence_states</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">iprod</span><span class="p">(</span><span class="o">*</span><span class="n">evidence_nice</span><span class="p">))</span>
+                <span class="n">variable_basis</span> <span class="o">=</span> <span class="n">semtype2_nice</span><span class="p">[</span><span class="n">semtype</span><span class="p">]</span>
+
+                <span class="n">variable_values</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">mystate</span> <span class="ow">in</span> <span class="n">variable_basis</span><span class="p">:</span>
+                    <span class="n">row</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">evidence_states</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">state</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">state</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                            <span class="k">if</span> <span class="n">state</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;same&#39;</span><span class="p">:</span>
+                                <span class="n">val</span> <span class="o">=</span> <span class="o">.</span><span class="mi">2</span> <span class="k">if</span> <span class="n">mystate</span> <span class="o">==</span> <span class="s">&#39;low&#39;</span> <span class="k">else</span> <span class="o">.</span><span class="mi">8</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">val</span> <span class="o">=</span> <span class="mi">1</span>
+                                <span class="c"># val = .5 if mystate == &#39;low&#39; else .5</span>
+                        <span class="k">elif</span> <span class="n">state</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">state</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                            <span class="k">if</span> <span class="n">state</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;same&#39;</span><span class="p">:</span>
+                                <span class="n">val</span> <span class="o">=</span> <span class="o">.</span><span class="mi">5</span> <span class="k">if</span> <span class="n">mystate</span> <span class="o">==</span> <span class="s">&#39;low&#39;</span> <span class="k">else</span> <span class="o">.</span><span class="mi">5</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">val</span> <span class="o">=</span> <span class="mi">1</span>
+                                <span class="c"># val = .9 if mystate == &#39;low&#39; else .1</span>
+                        <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+                    <span class="n">variable_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+
+                <span class="n">cpd</span> <span class="o">=</span> <span class="n">TabularCPD</span><span class="p">(</span>
+                    <span class="n">variable</span><span class="o">=</span><span class="s">&#39;S&#39;</span> <span class="o">+</span> <span class="n">aid1</span> <span class="o">+</span> <span class="n">aid2</span><span class="p">,</span>
+                    <span class="n">variable_card</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">variable_basis</span><span class="p">),</span>
+                    <span class="n">values</span><span class="o">=</span><span class="n">variable_values</span><span class="p">,</span>
+                    <span class="n">evidence</span><span class="o">=</span><span class="n">evidence</span><span class="p">,</span>  <span class="c"># [::-1],</span>
+                    <span class="n">evidence_card</span><span class="o">=</span><span class="n">evidence_card</span><span class="p">)</span>  <span class="c"># [::-1])</span>
+                <span class="n">cpd</span><span class="o">.</span><span class="n">semtype</span> <span class="o">=</span> <span class="n">semtype</span>
+                <span class="k">return</span> <span class="n">cpd</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">score_values</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="p">[</span><span class="o">.</span><span class="mi">8</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">],</span>
+                <span class="p">[</span><span class="o">.</span><span class="mi">2</span><span class="p">,</span> <span class="o">.</span><span class="mi">9</span><span class="p">],</span>
+            <span class="p">]</span>
+            <span class="k">def</span> <span class="nf">score_cpd</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">):</span>
+                <span class="n">cpd</span> <span class="o">=</span> <span class="n">TabularCPD</span><span class="p">(</span>
+                    <span class="n">variable</span><span class="o">=</span><span class="s">&#39;S&#39;</span> <span class="o">+</span> <span class="n">aid1</span> <span class="o">+</span> <span class="n">aid2</span><span class="p">,</span>
+                    <span class="n">variable_card</span><span class="o">=</span><span class="n">num_scores</span><span class="p">,</span>
+                    <span class="n">values</span><span class="o">=</span><span class="n">score_values</span><span class="p">,</span>
+                    <span class="n">evidence</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;A&#39;</span> <span class="o">+</span> <span class="n">aid1</span> <span class="o">+</span> <span class="n">aid2</span><span class="p">],</span>  <span class="c"># [::-1],</span>
+                    <span class="n">evidence_card</span><span class="o">=</span><span class="p">[</span><span class="n">num_same_diff</span><span class="p">])</span>  <span class="c"># [::-1])</span>
+                <span class="n">cpd</span><span class="o">.</span><span class="n">semtype</span> <span class="o">=</span> <span class="s">&#39;score&#39;</span>
+                <span class="k">return</span> <span class="n">cpd</span>
+
+        <span class="n">score_cpds</span> <span class="o">=</span> <span class="p">[</span><span class="n">score_cpd</span><span class="p">(</span><span class="s">&#39;i&#39;</span><span class="p">,</span> <span class="s">&#39;j&#39;</span><span class="p">),</span> <span class="n">score_cpd</span><span class="p">(</span><span class="s">&#39;j&#39;</span><span class="p">,</span> <span class="s">&#39;k&#39;</span><span class="p">)]</span>
+        <span class="n">cpd_list</span> <span class="o">=</span> <span class="n">name_cpds</span> <span class="o">+</span> <span class="n">score_cpds</span> <span class="o">+</span> <span class="n">samediff_cpds</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">score_measure</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">get_expected_scores_prob</span><span class="p">(</span><span class="n">level1</span><span class="p">,</span> <span class="n">level2</span><span class="p">)</span>
+                                  <span class="k">for</span> <span class="n">level1</span><span class="p">,</span> <span class="n">level2</span> <span class="ow">in</span>
+                                  <span class="nb">zip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="o">.</span><span class="mi">9</span><span class="p">,</span> <span class="n">num_scores</span><span class="p">),</span>
+                                      <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">.</span><span class="mi">2</span><span class="p">,</span> <span class="o">.</span><span class="mi">8</span><span class="p">,</span> <span class="n">num_scores</span><span class="p">))])</span>
+
+        <span class="n">score_values</span> <span class="o">=</span> <span class="p">(</span><span class="n">score_measure</span> <span class="o">/</span> <span class="n">score_measure</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">score_cpd</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">):</span>
+            <span class="n">cpd</span> <span class="o">=</span> <span class="n">TabularCPD</span><span class="p">(</span>
+                <span class="n">variable</span><span class="o">=</span><span class="s">&#39;S&#39;</span> <span class="o">+</span> <span class="n">aid1</span> <span class="o">+</span> <span class="n">aid2</span><span class="p">,</span>
+                <span class="n">variable_card</span><span class="o">=</span><span class="n">num_scores</span><span class="p">,</span>
+                <span class="n">values</span><span class="o">=</span><span class="n">score_values</span><span class="p">,</span>
+                <span class="n">evidence</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;N&#39;</span> <span class="o">+</span> <span class="n">aid1</span><span class="p">,</span> <span class="s">&#39;N&#39;</span> <span class="o">+</span> <span class="n">aid2</span><span class="p">],</span>
+                <span class="n">evidence_card</span><span class="o">=</span><span class="p">[</span><span class="n">num_names</span><span class="p">,</span> <span class="n">num_names</span><span class="p">])</span>
+            <span class="n">cpd</span><span class="o">.</span><span class="n">semtype</span> <span class="o">=</span> <span class="s">&#39;score&#39;</span>
+            <span class="k">return</span> <span class="n">cpd</span>
+        <span class="n">score_cpds</span> <span class="o">=</span> <span class="p">[</span><span class="n">score_cpd</span><span class="p">(</span><span class="s">&#39;i&#39;</span><span class="p">,</span> <span class="s">&#39;j&#39;</span><span class="p">),</span> <span class="n">score_cpd</span><span class="p">(</span><span class="s">&#39;j&#39;</span><span class="p">,</span> <span class="s">&#39;k&#39;</span><span class="p">)]</span>
+        <span class="n">cpd_list</span> <span class="o">=</span> <span class="n">name_cpds</span> <span class="o">+</span> <span class="n">score_cpds</span>
+        <span class="k">pass</span>
+
+    <span class="n">input_graph</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">cpd_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cpd</span><span class="o">.</span><span class="n">evidence</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">evar</span> <span class="ow">in</span> <span class="n">cpd</span><span class="o">.</span><span class="n">evidence</span><span class="p">:</span>
+                <span class="n">input_graph</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">evar</span><span class="p">,</span> <span class="n">cpd</span><span class="o">.</span><span class="n">variable</span><span class="p">))</span>
+    <span class="n">name_model</span> <span class="o">=</span> <span class="n">BayesianModel</span><span class="p">(</span><span class="n">input_graph</span><span class="p">)</span>
+    <span class="n">name_model</span><span class="o">.</span><span class="n">add_cpds</span><span class="p">(</span><span class="o">*</span><span class="n">cpd_list</span><span class="p">)</span>
+
+    <span class="n">var2_cpd</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">([</span><span class="n">cpd</span><span class="o">.</span><span class="n">variable</span> <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">cpd_list</span><span class="p">],</span> <span class="n">cpd_list</span><span class="p">)))</span>
+    <span class="nb">globals</span><span class="p">()[</span><span class="s">&#39;var2_cpd&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">var2_cpd</span>
+
+    <span class="n">varnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">cpd</span><span class="o">.</span><span class="n">variable</span> <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">cpd_list</span><span class="p">]</span>
+
+    <span class="c"># --- PRINT CPDS ---</span>
+
+    <span class="n">cpd</span> <span class="o">=</span> <span class="n">score_cpds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">def</span> <span class="nf">print_cpd</span><span class="p">(</span><span class="n">cpd</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;CPT: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cpd</span><span class="p">,))</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">semtype2_nice</span><span class="p">[</span><span class="n">cpd</span><span class="o">.</span><span class="n">semtype</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">cpd</span><span class="o">.</span><span class="n">evidence</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;None&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">basis_lists</span> <span class="o">=</span> <span class="p">[</span><span class="n">semtype2_nice</span><span class="p">[</span><span class="n">var2_cpd</span><span class="p">[</span><span class="n">ename</span><span class="p">]</span><span class="o">.</span><span class="n">semtype</span><span class="p">]</span> <span class="k">for</span> <span class="n">ename</span> <span class="ow">in</span> <span class="n">cpd</span><span class="o">.</span><span class="n">evidence</span><span class="p">]</span>
+            <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">iprod</span><span class="p">(</span><span class="o">*</span><span class="n">basis_lists</span><span class="p">)]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">cpd</span><span class="o">.</span><span class="n">get_cpd</span><span class="p">()</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">name_model</span><span class="o">.</span><span class="n">get_cpds</span><span class="p">():</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;----&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">cpd</span><span class="o">.</span><span class="n">_str</span><span class="p">(</span><span class="s">&#39;phi&#39;</span><span class="p">))</span>
+        <span class="n">print_cpd</span><span class="p">(</span><span class="n">cpd</span><span class="p">)</span>
+
+    <span class="c"># --- INFERENCE ---</span>
+
+    <span class="n">Ni</span> <span class="o">=</span> <span class="n">name_cpds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">event_space_combos</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">event_space_combos</span><span class="p">[</span><span class="n">Ni</span><span class="o">.</span><span class="n">variable</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># Set ni to always be Fred</span>
+    <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">cpd_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cpd</span><span class="o">.</span><span class="n">semtype</span> <span class="o">==</span> <span class="s">&#39;score&#39;</span><span class="p">:</span>
+            <span class="n">event_space_combos</span><span class="p">[</span><span class="n">cpd</span><span class="o">.</span><span class="n">variable</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">cpd</span><span class="o">.</span><span class="n">variable_card</span><span class="p">))</span>
+    <span class="n">evidence_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">all_dict_combinations</span><span class="p">(</span><span class="n">event_space_combos</span><span class="p">)</span>
+
+    <span class="c"># Query about name of annotation k given different event space params</span>
+
+    <span class="k">def</span> <span class="nf">pretty_evidence</span><span class="p">(</span><span class="n">evidence</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">key</span> <span class="o">+</span> <span class="s">&#39;=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">semtype2_nice</span><span class="p">[</span><span class="n">var2_cpd</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">semtype</span><span class="p">][</span><span class="n">val</span><span class="p">])</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">evidence</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+
+    <span class="k">def</span> <span class="nf">print_factor</span><span class="p">(</span><span class="n">factor</span><span class="p">):</span>
+        <span class="n">row_cards</span> <span class="o">=</span> <span class="n">factor</span><span class="o">.</span><span class="n">cardinality</span>
+        <span class="n">row_vars</span> <span class="o">=</span> <span class="n">factor</span><span class="o">.</span><span class="n">variables</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">factor</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">row_cards</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="c"># col_cards = 1</span>
+        <span class="c"># col_vars = [&#39;&#39;]</span>
+        <span class="n">basis_lists</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">iprod</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="nb">range</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">row_cards</span><span class="p">]))))</span>
+        <span class="n">nice_basis_lists</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">varname</span><span class="p">,</span> <span class="n">basis</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">row_vars</span><span class="p">,</span> <span class="n">basis_lists</span><span class="p">):</span>
+            <span class="n">cpd</span> <span class="o">=</span> <span class="n">var2_cpd</span><span class="p">[</span><span class="n">varname</span><span class="p">]</span>
+            <span class="n">_nice_basis</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">semtype2_nice</span><span class="p">[</span><span class="n">cpd</span><span class="o">.</span><span class="n">semtype</span><span class="p">],</span> <span class="n">basis</span><span class="p">)</span>
+            <span class="n">nice_basis</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">varname</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">_nice_basis</span><span class="p">]</span>
+            <span class="n">nice_basis_lists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nice_basis</span><span class="p">)</span>
+        <span class="n">row_lbls</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">nice_basis_lists</span><span class="p">)]</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">row_lbls</span><span class="p">,</span> <span class="n">values</span><span class="p">)),</span> <span class="n">precision</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">key_order_metric</span><span class="o">=</span><span class="s">&#39;-val&#39;</span><span class="p">))</span>
+
+    <span class="c"># name_belief = BeliefPropagation(name_model)</span>
+    <span class="n">name_belief</span> <span class="o">=</span> <span class="n">VariableElimination</span><span class="p">(</span><span class="n">name_model</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">pgmpy</span>
+    <span class="kn">import</span> <span class="nn">six</span>  <span class="c"># NOQA</span>
+
+    <span class="k">def</span> <span class="nf">try_query</span><span class="p">(</span><span class="n">evidence</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;--------&#39;</span><span class="p">)</span>
+        <span class="n">query_vars</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff_ordered</span><span class="p">(</span><span class="n">varnames</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">evidence</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="n">evidence_str</span> <span class="o">=</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pretty_evidence</span><span class="p">(</span><span class="n">evidence</span><span class="p">))</span>
+        <span class="n">probs</span> <span class="o">=</span> <span class="n">name_belief</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">query_vars</span><span class="p">,</span> <span class="n">evidence</span><span class="p">)</span>
+        <span class="n">factor_list</span> <span class="o">=</span> <span class="n">probs</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="n">joint_factor</span> <span class="o">=</span> <span class="n">pgmpy</span><span class="o">.</span><span class="n">factors</span><span class="o">.</span><span class="n">factor_product</span><span class="p">(</span><span class="o">*</span><span class="n">factor_list</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;P(&#39;</span> <span class="o">+</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">query_vars</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; | &#39;</span> <span class="o">+</span> <span class="n">evidence_str</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span><span class="p">)</span>
+        <span class="c"># print(six.text_type(joint_factor))</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="n">joint_factor</span>  <span class="c"># NOQA</span>
+        <span class="c"># print_factor(factor)</span>
+        <span class="c"># import utool as ut</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">hz_str</span><span class="p">([(</span><span class="n">f</span><span class="o">.</span><span class="n">_str</span><span class="p">(</span><span class="n">phi_or_p</span><span class="o">=</span><span class="s">&#39;phi&#39;</span><span class="p">))</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">factor_list</span><span class="p">]))</span>
+
+    <span class="k">for</span> <span class="n">evidence</span> <span class="ow">in</span> <span class="n">evidence_dict</span><span class="p">:</span>
+        <span class="n">try_query</span><span class="p">(</span><span class="n">evidence</span><span class="p">)</span>
+
+    <span class="n">evidence</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;Aij&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;Ajk&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;Aki&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;Ni&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+    <span class="n">try_query</span><span class="p">(</span><span class="n">evidence</span><span class="p">)</span>
+
+    <span class="n">evidence</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;Aij&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;Ajk&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;Aki&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;Ni&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+    <span class="n">try_query</span><span class="p">(</span><span class="n">evidence</span><span class="p">)</span>
+
+    <span class="nb">globals</span><span class="p">()[</span><span class="s">&#39;score_nice&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">score_nice</span>
+    <span class="nb">globals</span><span class="p">()[</span><span class="s">&#39;name_nice&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name_nice</span>
+    <span class="nb">globals</span><span class="p">()[</span><span class="s">&#39;score_basis&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">score_basis</span>
+    <span class="nb">globals</span><span class="p">()[</span><span class="s">&#39;nid_basis&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nid_basis</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Independencies&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">name_model</span><span class="o">.</span><span class="n">get_independencies</span><span class="p">())</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">name_model</span><span class="o">.</span><span class="n">local_independencies</span><span class="p">([</span><span class="n">Ni</span><span class="o">.</span><span class="n">variable</span><span class="p">]))</span>
+
+    <span class="c"># name_belief = BeliefPropagation(name_model)</span>
+    <span class="c"># # name_belief = VariableElimination(name_model)</span>
+    <span class="c"># for case in special_cases:</span>
+    <span class="c">#     test_data = case.drop(&#39;Lk&#39;, axis=1)</span>
+    <span class="c">#     test_data = test_data.reset_index(drop=True)</span>
+    <span class="c">#     print(&#39;----&#39;)</span>
+    <span class="c">#     for i in range(test_data.shape[0]):</span>
+    <span class="c">#         evidence = test_data.loc[i].to_dict()</span>
+    <span class="c">#         probs = name_belief.query([&#39;Lk&#39;], evidence)</span>
+    <span class="c">#         factor = probs[&#39;Lk&#39;]</span>
+    <span class="c">#         probs = factor.values</span>
+    <span class="c">#         evidence_ = evidence.copy()</span>
+    <span class="c">#         evidence_[&#39;Li&#39;] = name_nice[evidence[&#39;Li&#39;]]</span>
+    <span class="c">#         evidence_[&#39;Lj&#39;] = name_nice[evidence[&#39;Lj&#39;]]</span>
+    <span class="c">#         evidence_[&#39;Sij&#39;] = score_nice[evidence[&#39;Sij&#39;]]</span>
+    <span class="c">#         evidence_[&#39;Sjk&#39;] = score_nice[evidence[&#39;Sjk&#39;]]</span>
+    <span class="c">#         nice2_prob = ut.odict(zip(name_nice, probs.tolist()))</span>
+    <span class="c">#         ut.print_python_code(&#39;P(Lk | {evidence}) = {cpt}&#39;.format(</span>
+    <span class="c">#             evidence=(ut.repr2(evidence_, explicit=True, nobraces=True, strvals=True)),</span>
+    <span class="c">#             cpt=ut.repr3(nice2_prob, precision=3, align=True, key_order_metric=&#39;-val&#39;)</span>
+    <span class="c">#         ))</span>
+
+    <span class="c"># for case in special_cases:</span>
+    <span class="c">#     test_data = case.drop(&#39;Lk&#39;, axis=1)</span>
+    <span class="c">#     test_data = test_data.drop(&#39;Lj&#39;, axis=1)</span>
+    <span class="c">#     test_data = test_data.reset_index(drop=True)</span>
+    <span class="c">#     print(&#39;----&#39;)</span>
+    <span class="c">#     for i in range(test_data.shape[0]):</span>
+    <span class="c">#         evidence = test_data.loc[i].to_dict()</span>
+    <span class="c">#         query_vars = [&#39;Lk&#39;, &#39;Lj&#39;]</span>
+    <span class="c">#         probs = name_belief.query(query_vars, evidence)</span>
+    <span class="c">#         for queryvar in query_vars:</span>
+    <span class="c">#             factor = probs[queryvar]</span>
+    <span class="c">#             print(factor._str(&#39;phi&#39;))</span>
+    <span class="c">#             probs = factor.values</span>
+    <span class="c">#             evidence_ = evidence.copy()</span>
+    <span class="c">#             evidence_[&#39;Li&#39;] = name_nice[evidence[&#39;Li&#39;]]</span>
+    <span class="c">#             evidence_[&#39;Sij&#39;] = score_nice[evidence[&#39;Sij&#39;]]</span>
+    <span class="c">#             evidence_[&#39;Sjk&#39;] = score_nice[evidence[&#39;Sjk&#39;]]</span>
+    <span class="c">#             nice2_prob = ut.odict(zip([queryvar + &#39;=&#39; + x for x in name_nice], probs.tolist()))</span>
+    <span class="c">#             ut.print_python_code(&#39;P({queryvar} | {evidence}) = {cpt}&#39;.format(</span>
+    <span class="c">#                 query_var=query_var,</span>
+    <span class="c">#                 evidence=(ut.repr2(evidence_, explicit=True, nobraces=True, strvals=True)),</span>
+    <span class="c">#                 cpt=ut.repr3(nice2_prob, precision=3, align=True, key_order_metric=&#39;-val&#39;)</span>
+    <span class="c">#             ))</span>
+
+    <span class="c"># _ draw model</span>
+
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">netx</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>  <span class="c"># NOQA</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+
+    <span class="n">netx_nodes</span> <span class="o">=</span> <span class="p">[(</span><span class="n">node</span><span class="p">,</span> <span class="p">{})</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">name_model</span><span class="o">.</span><span class="n">nodes</span><span class="p">()]</span>
+    <span class="n">netx_edges</span> <span class="o">=</span> <span class="p">[(</span><span class="n">etup</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">etup</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">{})</span> <span class="k">for</span> <span class="n">etup</span> <span class="ow">in</span> <span class="n">name_model</span><span class="o">.</span><span class="n">edges</span><span class="p">()]</span>
+    <span class="n">netx_graph</span> <span class="o">=</span> <span class="n">netx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span>
+    <span class="n">netx_graph</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="n">netx_nodes</span><span class="p">)</span>
+    <span class="n">netx_graph</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="n">netx_edges</span><span class="p">)</span>
+
+    <span class="c"># pos = netx.graphviz_layout(netx_graph)</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">netx</span><span class="o">.</span><span class="n">pydot_layout</span><span class="p">(</span><span class="n">netx_graph</span><span class="p">,</span> <span class="n">prog</span><span class="o">=</span><span class="s">&#39;dot&#39;</span><span class="p">)</span>
+    <span class="n">netx</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">netx_graph</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">with_labels</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s">&#39;foo.png&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">startfile</span><span class="p">(</span><span class="s">&#39;foo.png&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="bayesnet_examples"><a class="viewcode-back" href="../../utool.html#utool.oldalg.bayesnet_examples">[docs]</a><span class="k">def</span> <span class="nf">bayesnet_examples</span><span class="p">():</span>
+    <span class="kn">from</span> <span class="nn">pgmpy.factors</span> <span class="kn">import</span> <span class="n">TabularCPD</span>
+    <span class="kn">from</span> <span class="nn">pgmpy.models</span> <span class="kn">import</span> <span class="n">BayesianModel</span>
+    <span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+
+    <span class="n">student_model</span> <span class="o">=</span> <span class="n">BayesianModel</span><span class="p">([(</span><span class="s">&#39;D&#39;</span><span class="p">,</span> <span class="s">&#39;G&#39;</span><span class="p">),</span>
+                                   <span class="p">(</span><span class="s">&#39;I&#39;</span><span class="p">,</span> <span class="s">&#39;G&#39;</span><span class="p">),</span>
+                                   <span class="p">(</span><span class="s">&#39;G&#39;</span><span class="p">,</span> <span class="s">&#39;L&#39;</span><span class="p">),</span>
+                                   <span class="p">(</span><span class="s">&#39;I&#39;</span><span class="p">,</span> <span class="s">&#39;S&#39;</span><span class="p">)])</span>
+    <span class="c"># we can generate some random data.</span>
+    <span class="n">raw_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">raw_data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;D&#39;</span><span class="p">,</span> <span class="s">&#39;I&#39;</span><span class="p">,</span> <span class="s">&#39;G&#39;</span><span class="p">,</span> <span class="s">&#39;L&#39;</span><span class="p">,</span> <span class="s">&#39;S&#39;</span><span class="p">])</span>
+    <span class="n">data_train</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.75</span><span class="p">)]</span>
+    <span class="n">student_model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">data_train</span><span class="p">)</span>
+    <span class="n">student_model</span><span class="o">.</span><span class="n">get_cpds</span><span class="p">()</span>
+
+    <span class="n">data_test</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="mf">0.75</span> <span class="o">*</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="n">data_test</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s">&#39;D&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">student_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">data_test</span><span class="p">)</span>
+
+    <span class="n">grade_cpd</span> <span class="o">=</span> <span class="n">TabularCPD</span><span class="p">(</span>
+        <span class="n">variable</span><span class="o">=</span><span class="s">&#39;G&#39;</span><span class="p">,</span>
+        <span class="n">variable_card</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">values</span><span class="o">=</span><span class="p">[[</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span>
+                <span class="p">[</span><span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.08</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">],</span>
+                <span class="p">[</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">]],</span>
+        <span class="n">evidence</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;I&#39;</span><span class="p">,</span> <span class="s">&#39;D&#39;</span><span class="p">],</span>
+        <span class="n">evidence_card</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+    <span class="n">difficulty_cpd</span> <span class="o">=</span> <span class="n">TabularCPD</span><span class="p">(</span>
+        <span class="n">variable</span><span class="o">=</span><span class="s">&#39;D&#39;</span><span class="p">,</span>
+        <span class="n">variable_card</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">values</span><span class="o">=</span><span class="p">[[</span><span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">]])</span>
+    <span class="n">intel_cpd</span> <span class="o">=</span> <span class="n">TabularCPD</span><span class="p">(</span>
+        <span class="n">variable</span><span class="o">=</span><span class="s">&#39;I&#39;</span><span class="p">,</span>
+        <span class="n">variable_card</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">values</span><span class="o">=</span><span class="p">[[</span><span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">]])</span>
+    <span class="n">letter_cpd</span> <span class="o">=</span> <span class="n">TabularCPD</span><span class="p">(</span>
+        <span class="n">variable</span><span class="o">=</span><span class="s">&#39;L&#39;</span><span class="p">,</span>
+        <span class="n">variable_card</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">values</span><span class="o">=</span><span class="p">[[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">],</span>
+                <span class="p">[</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">]],</span>
+        <span class="n">evidence</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;G&#39;</span><span class="p">],</span>
+        <span class="n">evidence_card</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+    <span class="n">sat_cpd</span> <span class="o">=</span> <span class="n">TabularCPD</span><span class="p">(</span>
+        <span class="n">variable</span><span class="o">=</span><span class="s">&#39;S&#39;</span><span class="p">,</span>
+        <span class="n">variable_card</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">values</span><span class="o">=</span><span class="p">[[</span><span class="mf">0.95</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">],</span>
+                <span class="p">[</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">]],</span>
+        <span class="n">evidence</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;I&#39;</span><span class="p">],</span>
+        <span class="n">evidence_card</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">student_model</span><span class="o">.</span><span class="n">add_cpds</span><span class="p">(</span><span class="n">grade_cpd</span><span class="p">,</span> <span class="n">difficulty_cpd</span><span class="p">,</span>
+                           <span class="n">intel_cpd</span><span class="p">,</span> <span class="n">letter_cpd</span><span class="p">,</span>
+                           <span class="n">sat_cpd</span><span class="p">)</span>
+</pre></div></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.1.2.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

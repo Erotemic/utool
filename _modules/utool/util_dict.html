@@ -136,9 +136,10 @@
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span> <span class="k">as</span> <span class="n">iprod</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">reduce</span><span class="p">,</span> <span class="nb">filter</span><span class="p">,</span> <span class="nb">map</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_list</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_const</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_iter</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">six</span>
@@ -189,7 +190,9 @@
 
 </div>
 <div class="viewcode-block" id="map_dict_keys"><a class="viewcode-back" href="../../utool.html#utool.util_dict.map_dict_keys">[docs]</a><span class="k">def</span> <span class="nf">map_dict_keys</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">dict_</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; probably a better version of dict_map_apply_vals &quot;&quot;&quot;</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    a better version of dict_map_apply_vals</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">{</span><span class="n">func</span><span class="p">(</span><span class="n">key</span><span class="p">):</span> <span class="n">val</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">dict_</span><span class="p">)}</span>
 
 </div>
@@ -197,9 +200,20 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Implementation of perl&#39;s autovivification feature.</span>
 
-<span class="sd">    References:</span>
-<span class="sd">        http://stackoverflow.com/questions/651794/whats-the-best-way-to-initialize-a-dict-of-dicts-in-python</span>
+<span class="sd">    An AutoVivification is an infinitely nested default dict of dicts.</span>
 
+<span class="sd">    References:</span>
+<span class="sd">        http://stackoverflow.com/questions/651794/best-way-to-init-dict-of-dicts</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dict import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; dict_ = AutoVivification()</span>
+<span class="sd">        &gt;&gt;&gt; # Notice that there is no KeyError</span>
+<span class="sd">        &gt;&gt;&gt; dict_[0][10][100] = None</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;dict_ = %r&#39; % (dict_,))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        dict_ = {0: {10: {100: None}}}</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
@@ -224,30 +238,39 @@
 <span class="sd">        dict_ (dict):</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        dict: inverted_dict</span>
-
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m utool.util_dict --test-get_dict_hashid</span>
+<span class="sd">        int: id hash</span>
 
 <span class="sd">    References:</span>
 <span class="sd">        http://stackoverflow.com/questions/5884066/hashing-a-python-dictionary</span>
 
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_dict --test-get_dict_hashid</span>
+<span class="sd">        python3 -m utool.util_dict --test-get_dict_hashid</span>
+
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_dict import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; # build test data</span>
 <span class="sd">        &gt;&gt;&gt; dict_ = {}</span>
 <span class="sd">        &gt;&gt;&gt; dict_ = {&#39;a&#39;: &#39;b&#39;}</span>
 <span class="sd">        &gt;&gt;&gt; dict_ = {&#39;a&#39;: {&#39;c&#39;: &#39;d&#39;}}</span>
-<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; #dict_ = {&#39;a&#39;: {&#39;c&#39;: &#39;d&#39;}, 1: 143, dict: set}</span>
+<span class="sd">        &gt;&gt;&gt; dict_ = {&#39;a&#39;: {&#39;c&#39;: &#39;d&#39;}, 1: 143 }</span>
 <span class="sd">        &gt;&gt;&gt; hashid = get_dict_hashid(dict_)</span>
-<span class="sd">        &gt;&gt;&gt; # verify results</span>
 <span class="sd">        &gt;&gt;&gt; result = str(hashid)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        oegknoalkrkojumi</span>
+
+<span class="sd">        fprzgbpsdzfqueqh</span>
+
+<span class="sd">        5127623379007436803</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_hash</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">raw_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">sorted_</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">strvals</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="c">#print(&#39;raw_text = %r&#39; % (raw_text,))</span>
+    <span class="n">hashid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr27</span><span class="p">(</span><span class="n">raw_text</span><span class="p">)</span>
+    <span class="c">#from utool import util_hash</span>
     <span class="c">#hashid = hash(frozenset(dict_.items()))</span>
-    <span class="n">hashid</span> <span class="o">=</span> <span class="n">util_hash</span><span class="o">.</span><span class="n">make_hash</span><span class="p">(</span><span class="n">dict_</span><span class="p">)</span>
+    <span class="c">#hashid = util_hash.make_hash(dict_)</span>
     <span class="k">return</span> <span class="n">hashid</span>
 
 </div>
@@ -255,6 +278,8 @@
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    stacks values from two dicts into a new dict where the values are list of</span>
 <span class="sd">    the input values. the keys are the same.</span>
+
+<span class="sd">    DEPRICATE in favor of dict_stack2</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        dict_list (list): list of dicts with similar keys</span>
@@ -269,18 +294,12 @@
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_dict import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import utool as ut</span>
-<span class="sd">        &gt;&gt;&gt; # build test data</span>
 <span class="sd">        &gt;&gt;&gt; dict1_ = {&#39;a&#39;: 1, &#39;b&#39;: 2}</span>
 <span class="sd">        &gt;&gt;&gt; dict2_ = {&#39;a&#39;: 2, &#39;b&#39;: 3, &#39;c&#39;: 4}</span>
-<span class="sd">        &gt;&gt;&gt; # execute function</span>
 <span class="sd">        &gt;&gt;&gt; dict_stacked = dict_stack([dict1_, dict2_])</span>
-<span class="sd">        &gt;&gt;&gt; # verify results</span>
-<span class="sd">        &gt;&gt;&gt; result = ut.dict_str(dict_stacked, sorted_=True, newlines=False)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(dict_stacked, sorted_=True)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        {&#39;a&#39;: [1, 2], &#39;b&#39;: [2, 3], &#39;c&#39;: [4]}</span>
-
-<span class="sd">        {&#39;a&#39;: [1, 2], &#39;c&#39;: [4], &#39;b&#39;: [2, 3]}</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">dict_stacked_</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">dict_</span> <span class="ow">in</span> <span class="n">dict_list</span><span class="p">:</span>
@@ -288,6 +307,93 @@
             <span class="n">dict_stacked_</span><span class="p">[</span><span class="n">key_prefix</span> <span class="o">+</span> <span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
     <span class="n">dict_stacked</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">dict_stacked_</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">dict_stacked</span>
+
+</div>
+<div class="viewcode-block" id="dict_stack2"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_stack2">[docs]</a><span class="k">def</span> <span class="nf">dict_stack2</span><span class="p">(</span><span class="n">dict_list</span><span class="p">,</span> <span class="n">key_suffix</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Stacks vals from a list of dicts into a dict of lists. Inserts Nones in</span>
+<span class="sd">    place of empty items to preserve order.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dict_list (list): list of dicts</span>
+<span class="sd">        key_suffix (str): (default = None)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: stacked_dict</span>
+
+<span class="sd">    Setup:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dict import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # Usual case: multiple dicts as input</span>
+<span class="sd">        &gt;&gt;&gt; dict1_ = {&#39;a&#39;: 1, &#39;b&#39;: 2}</span>
+<span class="sd">        &gt;&gt;&gt; dict2_ = {&#39;a&#39;: 2, &#39;b&#39;: 3, &#39;c&#39;: 4}</span>
+<span class="sd">        &gt;&gt;&gt; dict_list = [dict1_, dict2_]</span>
+<span class="sd">        &gt;&gt;&gt; dict_stacked = dict_stack2(dict_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(dict_stacked, sorted_=True)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        {&#39;a&#39;: [1, 2], &#39;b&#39;: [2, 3], &#39;c&#39;: [None, 4]}</span>
+
+<span class="sd">    Example1:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # Corner case: one dict as input</span>
+<span class="sd">        &gt;&gt;&gt; dict1_ = {&#39;a&#39;: 1, &#39;b&#39;: 2}</span>
+<span class="sd">        &gt;&gt;&gt; dict_list = [dict1_]</span>
+<span class="sd">        &gt;&gt;&gt; dict_stacked = dict_stack2(dict_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(dict_stacked, sorted_=True)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        {&#39;a&#39;: [1], &#39;b&#39;: [2]}</span>
+
+<span class="sd">    Example2:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # Corner case: zero dicts as input</span>
+<span class="sd">        &gt;&gt;&gt; dict_list = []</span>
+<span class="sd">        &gt;&gt;&gt; dict_stacked = dict_stack2(dict_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(dict_stacked, sorted_=True)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        {}</span>
+
+<span class="sd">    Example3:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # Corner case: empty dicts as input</span>
+<span class="sd">        &gt;&gt;&gt; dict_list = [{}]</span>
+<span class="sd">        &gt;&gt;&gt; dict_stacked = dict_stack2(dict_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(dict_stacked, sorted_=True)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        {}</span>
+
+<span class="sd">    Example3:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # Corner case: 3 dicts</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dict import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; dict_list = [{&#39;a&#39;: 1}, {&#39;b&#39;: 1}, {&#39;c&#39;: 1}, {&#39;b&#39;: 2}]</span>
+<span class="sd">        &gt;&gt;&gt; default = None</span>
+<span class="sd">        &gt;&gt;&gt; dict_stacked = dict_stack2(dict_list, default=default)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(dict_stacked, sorted_=True)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        {&#39;a&#39;: [1, None, None, None], &#39;b&#39;: [None, 1, None, 2], &#39;c&#39;: [None, None, 1, None]}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dict_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">dict_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">map_dict_vals</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">kw</span><span class="p">)</span> <span class="k">for</span> <span class="n">kw</span> <span class="ow">in</span> <span class="n">dict_list</span><span class="p">]</span>
+        <span class="c"># Reduce does not handle default quite correctly</span>
+        <span class="n">default1</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">default2</span> <span class="o">=</span> <span class="p">[</span><span class="n">default</span><span class="p">]</span>
+        <span class="n">accum_</span> <span class="o">=</span> <span class="n">dict_list_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">dict_</span> <span class="ow">in</span> <span class="n">dict_list_</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">default1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">default</span><span class="p">)</span>
+            <span class="n">accum_</span> <span class="o">=</span> <span class="n">dict_union_combine</span><span class="p">(</span><span class="n">accum_</span><span class="p">,</span> <span class="n">dict_</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default1</span><span class="p">,</span>
+                                        <span class="n">default2</span><span class="o">=</span><span class="n">default2</span><span class="p">)</span>
+        <span class="n">stacked_dict</span> <span class="o">=</span> <span class="n">accum_</span>
+        <span class="c"># stacked_dict = reduce(partial(dict_union_combine, default=[default]), dict_list_)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">stacked_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c"># Augment keys if requested</span>
+    <span class="k">if</span> <span class="n">key_suffix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">stacked_dict</span> <span class="o">=</span> <span class="n">map_dict_keys</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="n">key_suffix</span><span class="p">,</span> <span class="n">stacked_dict</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">stacked_dict</span>
 
 </div>
 <div class="viewcode-block" id="invert_dict"><a class="viewcode-back" href="../../utool.html#utool.util_dict.invert_dict">[docs]</a><span class="k">def</span> <span class="nf">invert_dict</span><span class="p">(</span><span class="n">dict_</span><span class="p">):</span>
@@ -376,21 +482,6 @@
 <span class="sd">            {&#39;logdist_weight&#39;: 1.0, &#39;pipeline_root&#39;: &#39;vsmany&#39;, &#39;sv_on&#39;: False},</span>
 <span class="sd">            {&#39;logdist_weight&#39;: 1.0, &#39;pipeline_root&#39;: &#39;vsmany&#39;, &#39;sv_on&#39;: None},</span>
 <span class="sd">        ]</span>
-
-<span class="sd">        [</span>
-<span class="sd">            {&#39;pipeline_root&#39;: &#39;vsmany&#39;, &#39;sv_on&#39;: True, &#39;logdist_weight&#39;: 0.0},</span>
-<span class="sd">            {&#39;pipeline_root&#39;: &#39;vsmany&#39;, &#39;sv_on&#39;: True, &#39;logdist_weight&#39;: 1.0},</span>
-<span class="sd">            {&#39;pipeline_root&#39;: &#39;vsmany&#39;, &#39;sv_on&#39;: False, &#39;logdist_weight&#39;: 0.0},</span>
-<span class="sd">            {&#39;pipeline_root&#39;: &#39;vsmany&#39;, &#39;sv_on&#39;: False, &#39;logdist_weight&#39;: 1.0},</span>
-<span class="sd">            {&#39;pipeline_root&#39;: &#39;vsmany&#39;, &#39;sv_on&#39;: None, &#39;logdist_weight&#39;: 0.0},</span>
-<span class="sd">            {&#39;pipeline_root&#39;: &#39;vsmany&#39;, &#39;sv_on&#39;: None, &#39;logdist_weight&#39;: 1.0},</span>
-<span class="sd">        ]</span>
-
-<span class="sd">    Ignore:</span>
-<span class="sd">        print(x)</span>
-<span class="sd">        print(y)</span>
-
-<span class="sd">        print(ut.hz_str(&#39;\n&#39;.join(list(x)), &#39;\n&#39;.join(list(y))))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c">#tups_list = [[(key, val) for val in val_list]</span>
     <span class="c">#             if isinstance(val_list, (list, tuple))</span>
@@ -436,15 +527,6 @@
 <span class="sd">            &#39;logdist_weight=1.0,sv_on=None&#39;,</span>
 <span class="sd">        ]</span>
 
-<span class="sd">        [</span>
-<span class="sd">            &quot;((&#39;logdist_weight&#39;, 0.0), (&#39;sv_on&#39;, True))&quot;,</span>
-<span class="sd">            &quot;((&#39;logdist_weight&#39;, 0.0), (&#39;sv_on&#39;, False))&quot;,</span>
-<span class="sd">            &quot;((&#39;logdist_weight&#39;, 0.0), (&#39;sv_on&#39;, None))&quot;,</span>
-<span class="sd">            &quot;((&#39;logdist_weight&#39;, 1.0), (&#39;sv_on&#39;, True))&quot;,</span>
-<span class="sd">            &quot;((&#39;logdist_weight&#39;, 1.0), (&#39;sv_on&#39;, False))&quot;,</span>
-<span class="sd">            &quot;((&#39;logdist_weight&#39;, 1.0), (&#39;sv_on&#39;, None))&quot;,</span>
-<span class="sd">        ]</span>
-
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; import utool as ut</span>
@@ -457,11 +539,6 @@
 <span class="sd">        [</span>
 <span class="sd">            &#39;logdist_weight=0.0,pipeline_root=vsmany,sv_on=True&#39;,</span>
 <span class="sd">        ]</span>
-
-<span class="sd">        [</span>
-<span class="sd">            &quot;((&#39;logdist_weight&#39;, 0.0), (&#39;pipeline_root&#39;, &#39;vsmany&#39;), (&#39;sv_on&#39;, True))&quot;,</span>
-<span class="sd">        ]</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">is_lone_single</span> <span class="o">=</span> <span class="nb">all</span><span class="p">([</span>
         <span class="nb">isinstance</span><span class="p">(</span><span class="n">val_list</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">val_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
@@ -479,7 +556,12 @@
             <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val_list</span> <span class="ow">in</span> <span class="n">iteritems_sorted</span><span class="p">(</span><span class="n">varied_dict</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val_list</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">val_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
     <span class="n">combtup_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">iprod</span><span class="p">(</span><span class="o">*</span><span class="n">multitups_list</span><span class="p">))</span>
-    <span class="n">comb_lbls</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="k">else</span> <span class="nb">repr</span><span class="p">(</span><span class="n">val</span><span class="p">))</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="n">combtup</span><span class="p">])</span> <span class="k">for</span> <span class="n">combtup</span> <span class="ow">in</span> <span class="n">combtup_list</span><span class="p">]</span>
+    <span class="n">combtup_list2</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="k">else</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+         <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="n">combtup</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">combtup</span> <span class="ow">in</span> <span class="n">combtup_list</span><span class="p">]</span>
+    <span class="n">comb_lbls</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="n">combtup</span><span class="p">])</span>
+                 <span class="k">for</span> <span class="n">combtup</span> <span class="ow">in</span> <span class="n">combtup_list2</span><span class="p">]</span>
     <span class="c">#comb_lbls = list(map(str, comb_pairs))</span>
     <span class="k">return</span> <span class="n">comb_lbls</span>
 
@@ -571,7 +653,8 @@
     <span class="k">return</span> <span class="n">dict1_</span>
 
 </div>
-<div class="viewcode-block" id="update_existing"><a class="viewcode-back" href="../../utool.html#utool.util_dict.update_existing">[docs]</a><span class="k">def</span> <span class="nf">update_existing</span><span class="p">(</span><span class="n">dict1</span><span class="p">,</span> <span class="n">dict2</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">assert_exists</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">alias_dict</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="update_existing"><a class="viewcode-back" href="../../utool.html#utool.util_dict.update_existing">[docs]</a><span class="k">def</span> <span class="nf">update_existing</span><span class="p">(</span><span class="n">dict1</span><span class="p">,</span> <span class="n">dict2</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">assert_exists</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                    <span class="n">iswarning</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">alias_dict</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    updates vals in dict1 using vals from dict2 only if the</span>
 <span class="sd">    key is already in dict1.</span>
@@ -605,7 +688,13 @@
 <span class="sd">        &gt;&gt;&gt; assert dict1_ is dict1</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">assert_exists</span><span class="p">:</span>
-        <span class="n">assert_keys_are_subset</span><span class="p">(</span><span class="n">dict1</span><span class="p">,</span> <span class="n">dict2</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">assert_keys_are_subset</span><span class="p">(</span><span class="n">dict1</span><span class="p">,</span> <span class="n">dict2</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_dbg</span>
+            <span class="n">util_dbg</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="n">iswarning</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">iswarning</span><span class="p">:</span>
+                <span class="k">raise</span>
     <span class="k">if</span> <span class="n">copy</span><span class="p">:</span>
         <span class="n">dict1</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">dict1</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">alias_dict</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -657,7 +746,7 @@
     <span class="k">return</span> <span class="bp">True</span>
 
 </div>
-<div class="viewcode-block" id="dict_subset"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_subset">[docs]</a><span class="k">def</span> <span class="nf">dict_subset</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">):</span>
+<div class="viewcode-block" id="dict_subset"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_subset">[docs]</a><span class="k">def</span> <span class="nf">dict_subset</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
 <span class="sd">        dict_ (dict):</span>
@@ -672,14 +761,17 @@
 <span class="sd">        &gt;&gt;&gt; import utool as ut</span>
 <span class="sd">        &gt;&gt;&gt; dict_ = {&#39;K&#39;: 3, &#39;dcvs_clip_max&#39;: 0.2, &#39;p&#39;: 0.1}</span>
 <span class="sd">        &gt;&gt;&gt; keys = [&#39;K&#39;, &#39;dcvs_clip_max&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; d = tuple([])</span>
 <span class="sd">        &gt;&gt;&gt; subdict_ = dict_subset(dict_, keys)</span>
 <span class="sd">        &gt;&gt;&gt; result = ut.dict_str(subdict_, sorted_=True, newlines=False)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        {&#39;K&#39;: 3, &#39;dcvs_clip_max&#39;: 0.2}</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">item_sublist</span> <span class="o">=</span> <span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="n">dict_</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">]</span>
-    <span class="c">#subdict_ = type(dict_)(item_sublist)  # maintain old dict format</span>
-    <span class="n">subdict_</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="n">item_sublist</span><span class="p">)</span>  <span class="c"># maintain old dict format</span>
+    <span class="n">items</span> <span class="o">=</span> <span class="n">dict_take</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="p">)</span>
+    <span class="n">subdict_</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">items</span><span class="p">)))</span>
+    <span class="c">#item_sublist = [(key, dict_[key]) for key in keys]</span>
+    <span class="c">##subdict_ = type(dict_)(item_sublist)  # maintain old dict format</span>
+    <span class="c">#subdict_ = OrderedDict(item_sublist)</span>
     <span class="k">return</span> <span class="n">subdict_</span>
 
 </div>
@@ -739,6 +831,8 @@
 
 <div class="viewcode-block" id="dict_take_gen"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_take_gen">[docs]</a><span class="k">def</span> <span class="nf">dict_take_gen</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    generate multiple values from a dictionary</span>
+
 <span class="sd">    Args:</span>
 <span class="sd">        dict_ (dict):</span>
 <span class="sd">        keys (list):</span>
@@ -792,17 +886,36 @@
             <span class="k">yield</span> <span class="n">dictget</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="dict_take_list"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_take_list">[docs]</a><span class="k">def</span> <span class="nf">dict_take_list</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="p">):</span>
-    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">dict_take_gen</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="p">))</span>
-    <span class="c">#return [dict_[key] for key in keys]</span>
-
-</div>
 <div class="viewcode-block" id="dict_take"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_take">[docs]</a><span class="k">def</span> <span class="nf">dict_take</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; alias &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot; get multiple values from a dictionary &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">dict_take_list</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">dict_take_gen</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="p">))</span>
     <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">dict_take_list</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="p">[</span><span class="n">keys</span><span class="p">],</span> <span class="o">*</span><span class="n">d</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">dict_take_gen</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c">#return [dict_[key] for key in keys]</span>
+</div>
+<span class="n">dict_take_list</span> <span class="o">=</span> <span class="n">dict_take</span>
+<span class="c">#def dict_take(dict_, keys, *d):</span>
+<span class="c">#    &quot;&quot;&quot; alias &quot;&quot;&quot;</span>
+<span class="c">#    try:</span>
+<span class="c">#        return dict_take_list(dict_, keys, *d)</span>
+<span class="c">#    except TypeError:</span>
+<span class="c">#        return dict_take_list(dict_, [keys], *d)[0]</span>
+
+
+<span class="c">#def dict_unflat_take(dict_, unflat_key_list, *d):</span>
+<span class="c">#    return [dict_unflat_take(dict_, xs, *d)</span>
+<span class="c">#            if isinstance(xs, list) else</span>
+<span class="c">#            dict_take(dict_, xs, *d)</span>
+<span class="c">#            for xs in unflat_key_list]</span>
+
+
+<div class="viewcode-block" id="dict_take_asnametup"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_take_asnametup">[docs]</a><span class="k">def</span> <span class="nf">dict_take_asnametup</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;_NamedTup&#39;</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">dict_take</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">)</span>
+    <span class="n">_NamedTup</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">keys</span><span class="p">)</span>
+    <span class="n">tup</span> <span class="o">=</span> <span class="n">_NamedTup</span><span class="p">(</span><span class="o">*</span><span class="n">values</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tup</span>
 
 </div>
 <div class="viewcode-block" id="dict_take_pop"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_take_pop">[docs]</a><span class="k">def</span> <span class="nf">dict_take_pop</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="p">):</span>
@@ -891,6 +1004,8 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        sorted_dict = {4: 4, 2: 2, 3: 3, 1: 1}</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">other_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">dict_</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">key_order</span><span class="p">))</span>
+    <span class="n">key_order</span> <span class="o">=</span> <span class="n">key_order</span> <span class="o">+</span> <span class="n">other_keys</span>
     <span class="n">sorted_item_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="n">dict_</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">key_order</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">dict_</span><span class="p">]</span>
     <span class="n">sorted_dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="n">sorted_item_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">sorted_dict</span>
@@ -1205,9 +1320,36 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">keys3</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">dict1</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">dict2</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
     <span class="k">if</span> <span class="n">combine</span><span class="p">:</span>
+        <span class="c"># TODO: depcirate this</span>
         <span class="n">dict3</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">combine_op</span><span class="p">(</span><span class="n">dict1</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">dict2</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys3</span><span class="p">}</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">dict3</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">dict1</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys3</span> <span class="k">if</span> <span class="n">dict1</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">==</span> <span class="n">dict2</span><span class="p">[</span><span class="n">key</span><span class="p">]}</span>
+    <span class="k">return</span> <span class="n">dict3</span>
+
+</div>
+<div class="viewcode-block" id="dict_isect_combine"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_isect_combine">[docs]</a><span class="k">def</span> <span class="nf">dict_isect_combine</span><span class="p">(</span><span class="n">dict1</span><span class="p">,</span> <span class="n">dict2</span><span class="p">,</span> <span class="n">combine_op</span><span class="o">=</span><span class="n">operator</span><span class="o">.</span><span class="n">add</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Intersection of dict keys and combination of dict values &quot;&quot;&quot;</span>
+    <span class="n">keys3</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">dict1</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">dict2</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+    <span class="n">dict3</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">combine_op</span><span class="p">(</span><span class="n">dict1</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">dict2</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys3</span><span class="p">}</span>
+    <span class="k">return</span> <span class="n">dict3</span>
+
+</div>
+<div class="viewcode-block" id="dict_union_combine"><a class="viewcode-back" href="../../utool.html#utool.util_dict.dict_union_combine">[docs]</a><span class="k">def</span> <span class="nf">dict_union_combine</span><span class="p">(</span><span class="n">dict1</span><span class="p">,</span> <span class="n">dict2</span><span class="p">,</span> <span class="n">combine_op</span><span class="o">=</span><span class="n">operator</span><span class="o">.</span><span class="n">add</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="n">util_const</span><span class="o">.</span><span class="n">NoParam</span><span class="p">,</span>
+                       <span class="n">default2</span><span class="o">=</span><span class="n">util_const</span><span class="o">.</span><span class="n">NoParam</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Combine of dict keys and uses dfault value when key does not exist</span>
+
+<span class="sd">    CAREFUL WHEN USING THIS WITH REDUCE. Use dict_stack2 instead</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">keys3</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">dict1</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">dict2</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+    <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="n">util_const</span><span class="o">.</span><span class="n">NoParam</span><span class="p">:</span>
+        <span class="n">dict3</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">combine_op</span><span class="p">(</span><span class="n">dict1</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">dict2</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys3</span><span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">default2</span> <span class="ow">is</span> <span class="n">util_const</span><span class="o">.</span><span class="n">NoParam</span><span class="p">:</span>
+            <span class="n">default2</span> <span class="o">=</span> <span class="n">default</span>
+        <span class="n">dict3</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">combine_op</span><span class="p">(</span><span class="n">dict1</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">),</span> <span class="n">dict2</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">default2</span><span class="p">))</span>
+                 <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys3</span><span class="p">}</span>
     <span class="k">return</span> <span class="n">dict3</span>
 
 </div>
@@ -1292,6 +1434,11 @@
     <span class="k">return</span> <span class="n">groupid2_items</span>
 
 </div>
+<div class="viewcode-block" id="groupby_attr"><a class="viewcode-back" href="../../utool.html#utool.util_dict.groupby_attr">[docs]</a><span class="k">def</span> <span class="nf">groupby_attr</span><span class="p">(</span><span class="n">item_list</span><span class="p">,</span> <span class="n">attrname</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">group_items</span><span class="p">(</span><span class="n">item_list</span><span class="p">,</span>
+                       <span class="nb">map</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">attrgetter</span><span class="p">(</span><span class="n">attrname</span><span class="p">),</span> <span class="n">item_list</span><span class="p">))</span>
+
+</div>
 <div class="viewcode-block" id="group_items"><a class="viewcode-back" href="../../utool.html#utool.util_dict.group_items">[docs]</a><span class="k">def</span> <span class="nf">group_items</span><span class="p">(</span><span class="n">item_list</span><span class="p">,</span> <span class="n">groupid_list</span><span class="p">,</span> <span class="n">sorted_</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    group_items</span>
@@ -1317,16 +1464,33 @@
 <span class="sd">        &gt;&gt;&gt; import utool as ut</span>
 <span class="sd">        &gt;&gt;&gt; item_list    = [ &#39;ham&#39;,      &#39;jam&#39;,    &#39;spam&#39;,     &#39;eggs&#39;, &#39;cheese&#39;, &#39;bannana&#39;]</span>
 <span class="sd">        &gt;&gt;&gt; groupid_list = [&#39;protein&#39;, &#39;fruit&#39;, &#39;protein&#39;,  &#39;protein&#39;,  &#39;dairy&#39;,   &#39;fruit&#39;]</span>
-<span class="sd">        &gt;&gt;&gt; groupid2_items = ut.group_items(item_list, groupid_list)</span>
+<span class="sd">        &gt;&gt;&gt; groupid2_items = ut.group_items(item_list, iter(groupid_list))</span>
 <span class="sd">        &gt;&gt;&gt; result = ut.dict_str(groupid2_items, nl=False, strvals=False)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        {&#39;dairy&#39;: [&#39;cheese&#39;], &#39;fruit&#39;: [&#39;jam&#39;, &#39;bannana&#39;], &#39;protein&#39;: [&#39;ham&#39;, &#39;spam&#39;, &#39;eggs&#39;]}</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pair_list_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">groupid_list</span><span class="p">,</span> <span class="n">item_list</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">sorted_</span><span class="p">:</span>
         <span class="c"># Sort by groupid for cache efficiency</span>
-        <span class="n">pair_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">groupid_list</span><span class="p">,</span> <span class="n">item_list</span><span class="p">)),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">tup</span><span class="p">:</span> <span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">pair_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pair_list_</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">operator</span><span class="o">.</span><span class="n">itemgetter</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="c"># FIXME: make something a little cleaner?</span>
+            <span class="c">#pair_list = pair_list_</span>
+            <span class="c">#pair_list = sorted(pair_list_, key=operator.itemgetter(0))</span>
+            <span class="c"># Python 3 does not allow sorting mixed types</span>
+            <span class="c">#keys = util_list.take_column(pair_list_, 0)</span>
+            <span class="c">#types = util_list.list_type(keys)</span>
+            <span class="k">def</span> <span class="nf">keyfunc</span><span class="p">(</span><span class="n">tup</span><span class="p">):</span>
+                <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">pair_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pair_list_</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">keyfunc</span><span class="p">)</span>
+            <span class="c">#from utool import util_alg</span>
+            <span class="c">#groupid_list = list(map(type, keys))</span>
+            <span class="c">#util_alg.group_indices()</span>
+            <span class="c">#pair_list = sorted(pair_list_, key=lambda tup: tup[0])</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">pair_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">groupid_list</span><span class="p">,</span> <span class="n">item_list</span><span class="p">))</span>
+        <span class="n">pair_list</span> <span class="o">=</span> <span class="n">pair_list_</span>
+
     <span class="c"># Initialize dict of lists</span>
     <span class="n">groupid2_items</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
     <span class="c"># Insert each item into the correct group</span>
@@ -1355,15 +1519,46 @@
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_dict import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; item_list     = [1, 2, 3, 4]</span>
+<span class="sd">        &gt;&gt;&gt; groupids_list = [[1, 1, 2, 2]]</span>
+<span class="sd">        &gt;&gt;&gt; tree = hierarchical_group_items(item_list, groupids_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;tree = &#39; + ut.dict_str(tree, nl=len(groupids_list) - 1))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        tree = {1: [1, 2], 2: [3, 4]}</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dict import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
 <span class="sd">        &gt;&gt;&gt; item_list     = [1, 2, 3, 4, 5, 6, 7, 8]</span>
 <span class="sd">        &gt;&gt;&gt; groupids_list = [[1, 2, 1, 2, 1, 2, 1, 2], [3, 2, 2, 2, 3, 1, 1, 1]]</span>
 <span class="sd">        &gt;&gt;&gt; tree = hierarchical_group_items(item_list, groupids_list)</span>
-<span class="sd">        &gt;&gt;&gt; result = (&#39;tree = &#39; + ut.dict_str(tree, nl=1))</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;tree = &#39; + ut.dict_str(tree, nl=len(groupids_list) - 1))</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        tree = {</span>
 <span class="sd">            1: {1: [7], 2: [3], 3: [1, 5]},</span>
 <span class="sd">            2: {1: [6, 8], 2: [2, 4]},</span>
 <span class="sd">        }</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_dict import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; item_list     = [1, 2, 3, 4]</span>
+<span class="sd">        &gt;&gt;&gt; groupids_list = [[1, 1, 1, 2], [1, 2, 2, 2], [1, 3, 1, 1]]</span>
+<span class="sd">        &gt;&gt;&gt; tree = hierarchical_group_items(item_list, groupids_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;tree = &#39; + ut.dict_str(tree, nl=len(groupids_list) - 1))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        tree = {</span>
+<span class="sd">            1: {</span>
+<span class="sd">                1: {1: [1]},</span>
+<span class="sd">                2: {1: [3], 3: [2]},</span>
+<span class="sd">            },</span>
+<span class="sd">            2: {</span>
+<span class="sd">                2: {1: [4]},</span>
+<span class="sd">            },</span>
+<span class="sd">        }</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Construct a defaultdict type with the appropriate number of levels</span>
     <span class="n">num_groups</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">groupids_list</span><span class="p">)</span>
@@ -1373,8 +1568,10 @@
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">groupids_list</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">):</span>
             <span class="n">node_type</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">defaultdict</span><span class="p">,</span> <span class="n">node_type</span><span class="p">)</span>
         <span class="n">root_type</span> <span class="o">=</span> <span class="n">node_type</span>
+    <span class="k">elif</span> <span class="n">num_groups</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">root_type</span> <span class="o">=</span> <span class="nb">list</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">root_type</span> <span class="o">=</span> <span class="n">leaf_type</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;must suply groupids&#39;</span><span class="p">)</span>
     <span class="n">tree</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="n">root_type</span><span class="p">)</span>
     <span class="c">#</span>
     <span class="n">groupid_tuple_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">groupids_list</span><span class="p">))</span>
@@ -1535,6 +1732,70 @@
 <span class="c">#        return {key: func(hierarchical_map_vals(func, val, max_depth, depth + 1)) for key, val in six.iteritems(node)}</span>
 
 
+<div class="viewcode-block" id="DictLike"><a class="viewcode-back" href="../../utool.html#utool.util_dict.DictLike">[docs]</a><span class="k">class</span> <span class="nc">DictLike</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    move to util_dict rectify with util_dev</span>
+
+<span class="sd">    Need to specify</span>
+
+<span class="sd">    getitem, setitem, keys</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+
+    <span class="k">def</span> <span class="nf">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getitem</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">setitem</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DictLike.items"><a class="viewcode-back" href="../../utool.html#utool.util_dict.DictLike.items">[docs]</a>    <span class="k">def</span> <span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iteritems</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="DictLike.values"><a class="viewcode-back" href="../../utool.html#utool.util_dict.DictLike.values">[docs]</a>    <span class="k">def</span> <span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+</div>
+<div class="viewcode-block" id="DictLike.copy"><a class="viewcode-back" href="../../utool.html#utool.util_dict.DictLike.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+</div>
+<div class="viewcode-block" id="DictLike.asdict"><a class="viewcode-back" href="../../utool.html#utool.util_dict.DictLike.asdict">[docs]</a>    <span class="k">def</span> <span class="nf">asdict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+</div>
+<div class="viewcode-block" id="DictLike.iteritems"><a class="viewcode-back" href="../../utool.html#utool.util_dict.DictLike.iteritems">[docs]</a>    <span class="k">def</span> <span class="nf">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">itervalues</span><span class="p">()):</span>
+            <span class="k">yield</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span>
+</div>
+<div class="viewcode-block" id="DictLike.itervalues"><a class="viewcode-back" href="../../utool.html#utool.util_dict.DictLike.itervalues">[docs]</a>    <span class="k">def</span> <span class="nf">itervalues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+</div>
+<div class="viewcode-block" id="DictLike.iterkeys"><a class="viewcode-back" href="../../utool.html#utool.util_dict.DictLike.iterkeys">[docs]</a>    <span class="k">def</span> <span class="nf">iterkeys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+</div></div>
+<div class="viewcode-block" id="sort_dict"><a class="viewcode-back" href="../../utool.html#utool.util_dict.sort_dict">[docs]</a><span class="k">def</span> <span class="nf">sort_dict</span><span class="p">(</span><span class="n">dict_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; enforces ordering on dict &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">keys</span> <span class="o">=</span> <span class="n">dict_</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+    <span class="n">items</span> <span class="o">=</span> <span class="n">dict_</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="n">sortx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">sortx</span><span class="p">))</span>
+
+</div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
@@ -1556,7 +1817,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>

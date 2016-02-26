@@ -213,6 +213,9 @@
         <span class="n">copy_</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">copy_</span>
 </div>
+<div class="viewcode-block" id="DynStruct.copy"><a class="viewcode-back" href="../../utool.html#utool.DynamicStruct.DynStruct.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+</div>
 <div class="viewcode-block" id="DynStruct.execstr"><a class="viewcode-back" href="../../utool.html#utool.DynamicStruct.DynStruct.execstr">[docs]</a>    <span class="k">def</span> <span class="nf">execstr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">local_name</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;returns a string which when evaluated will</span>
 <span class="sd">           add the stored variables to the current namespace</span>
@@ -236,7 +239,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>

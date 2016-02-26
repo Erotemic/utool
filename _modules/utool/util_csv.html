@@ -130,7 +130,7 @@
             
   <h1>Source code for utool.util_csv</h1><div class="highlight"><pre>
 <span class="c"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
@@ -139,7 +139,7 @@
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_type</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[csv]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[csv]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="numpy_to_csv"><a class="viewcode-back" href="../../utool.html#utool.util_csv.numpy_to_csv">[docs]</a><span class="k">def</span> <span class="nf">numpy_to_csv</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">col_lbls</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">col_type</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
@@ -147,9 +147,20 @@
     <span class="k">return</span> <span class="n">make_csv_table</span><span class="p">(</span><span class="n">col_list</span><span class="p">,</span> <span class="n">col_lbls</span><span class="p">,</span> <span class="n">header</span><span class="p">,</span> <span class="n">col_type</span><span class="p">)</span>
 
 </div>
+<div class="viewcode-block" id="read_csv"><a class="viewcode-back" href="../../utool.html#utool.util_csv.read_csv">[docs]</a><span class="k">def</span> <span class="nf">read_csv</span><span class="p">(</span><span class="n">fpath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; reads csv in unicode &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">csv</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="c">#csvfile = open(fpath, &#39;rb&#39;)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
+        <span class="n">row_iter</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">csvfile</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">),</span> <span class="n">quotechar</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="s">&#39;|&#39;</span><span class="p">))</span>
+        <span class="n">row_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ensure_unicode</span><span class="p">,</span> <span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">row_iter</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">row_list</span>
+
+</div>
 <div class="viewcode-block" id="make_csv_table"><a class="viewcode-back" href="../../utool.html#utool.util_csv.make_csv_table">[docs]</a><span class="k">def</span> <span class="nf">make_csv_table</span><span class="p">(</span><span class="n">column_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">column_lbls</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
                    <span class="n">column_type</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">row_lbls</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">transpose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-                   <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">use_lbl_width</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">comma_repl</span><span class="o">=</span><span class="s">&#39;&lt;comma&gt;&#39;</span><span class="p">):</span>
+                   <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">use_lbl_width</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">comma_repl</span><span class="o">=</span><span class="s">&#39;&lt;comma&gt;&#39;</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a csv table with aligned columns</span>
 
@@ -186,6 +197,7 @@
 <span class="sd">              3,      C</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+
     <span class="k">assert</span> <span class="n">comma_repl</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;comma_repl cannot contain a comma!&#39;</span>
     <span class="k">if</span> <span class="n">transpose</span><span class="p">:</span>
         <span class="n">column_lbls</span><span class="p">,</span> <span class="n">row_lbls</span> <span class="o">=</span> <span class="n">row_lbls</span><span class="p">,</span> <span class="n">column_lbls</span>
@@ -200,9 +212,9 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">row_lbls</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
             <span class="n">row_lbls</span> <span class="o">=</span> <span class="n">row_lbls</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
         <span class="n">column_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">row_lbls</span><span class="p">]</span> <span class="o">+</span> <span class="n">column_list</span>
-        <span class="n">column_lbls</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;ROWLBL&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">column_lbls</span><span class="p">))</span>
+        <span class="n">column_lbls</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;ROWLBL&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">,</span> <span class="n">column_lbls</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">column_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">column_type</span> <span class="o">=</span>  <span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">+</span> <span class="n">column_type</span>
+            <span class="n">column_type</span> <span class="o">=</span>  <span class="p">[</span><span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">]</span> <span class="o">+</span> <span class="n">column_type</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">column_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[csv] No columns&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">header</span>
@@ -222,8 +234,9 @@
         <span class="c">#column_type = [type(col[0]) for col in column_list]</span>
 
     <span class="n">csv_rows</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">csv_rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
-    <span class="n">csv_rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;# num_rows=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">num_data</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">raw</span><span class="p">:</span>
+        <span class="n">csv_rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+        <span class="n">csv_rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;# num_rows=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">num_data</span><span class="p">)</span>
 
     <span class="n">column_maxlen</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">column_str_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -253,25 +266,25 @@
             <span class="c"># Loop over every row in the column (using list comprehension)</span>
             <span class="k">if</span> <span class="n">coltype</span> <span class="ow">is</span> <span class="nb">list</span> <span class="ow">or</span> <span class="n">util_type</span><span class="o">.</span><span class="n">is_list</span><span class="p">(</span><span class="n">coltype</span><span class="p">):</span>
                 <span class="c">#print(&#39;list&#39;)</span>
-                <span class="c">#col_str = [str(c).replace(&#39;,&#39;, comma_repl).replace(&#39;.&#39;, &#39;&lt;dot&gt;&#39;) for c in iter(col)]</span>
-                <span class="n">col_str</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="s">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">,</span> <span class="s">&#39;&lt;dot&gt;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">col</span><span class="p">]</span>
+                <span class="c">#col_str = [six.text_type(c).replace(&#39;,&#39;, comma_repl).replace(&#39;.&#39;, &#39;&lt;dot&gt;&#39;) for c in (col)]</span>
+                <span class="n">col_str</span> <span class="o">=</span> <span class="p">[</span><span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="s">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">,</span> <span class="s">&#39;&lt;dot&gt;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">col</span><span class="p">]</span>
             <span class="k">elif</span> <span class="p">(</span><span class="n">coltype</span> <span class="ow">is</span> <span class="nb">float</span> <span class="ow">or</span>
                   <span class="n">util_type</span><span class="o">.</span><span class="n">is_float</span><span class="p">(</span><span class="n">coltype</span><span class="p">)</span> <span class="ow">or</span>
                   <span class="n">coltype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="ow">or</span>
                   <span class="n">util_type</span><span class="o">.</span><span class="n">is_valid_floattype</span><span class="p">(</span><span class="n">coltype</span><span class="p">)):</span>
-                <span class="n">precision_fmtstr</span> <span class="o">=</span> <span class="s">&#39;%.&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">precision</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;f&#39;</span>
+                <span class="n">precision_fmtstr</span> <span class="o">=</span> <span class="s">&#39;%.&#39;</span> <span class="o">+</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">(</span><span class="n">precision</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;f&#39;</span>
                 <span class="n">col_str</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;None&#39;</span> <span class="k">if</span> <span class="n">r</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">precision_fmtstr</span> <span class="o">%</span> <span class="nb">float</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">col</span><span class="p">]</span>
             <span class="k">elif</span> <span class="n">coltype</span> <span class="ow">is</span> <span class="nb">int</span> <span class="ow">or</span> <span class="n">util_type</span><span class="o">.</span><span class="n">is_int</span><span class="p">(</span><span class="n">coltype</span><span class="p">)</span> <span class="ow">or</span> <span class="n">coltype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">:</span>
-                <span class="n">col_str</span> <span class="o">=</span> <span class="p">[</span><span class="n">_toint</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">col</span><span class="p">)]</span>
-            <span class="k">elif</span> <span class="n">coltype</span> <span class="ow">is</span> <span class="nb">str</span> <span class="ow">or</span> <span class="n">coltype</span> <span class="ow">is</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span> <span class="ow">or</span>  <span class="n">util_type</span><span class="o">.</span><span class="n">is_str</span><span class="p">(</span><span class="n">coltype</span><span class="p">):</span>
+                <span class="n">col_str</span> <span class="o">=</span> <span class="p">[</span><span class="n">_toint</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">(</span><span class="n">col</span><span class="p">)]</span>
+            <span class="k">elif</span> <span class="n">coltype</span> <span class="ow">is</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span> <span class="ow">or</span> <span class="n">coltype</span> <span class="ow">is</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span> <span class="ow">or</span>  <span class="n">util_type</span><span class="o">.</span><span class="n">is_str</span><span class="p">(</span><span class="n">coltype</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">coltype</span> <span class="ow">is</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">:</span>
                     <span class="n">col_str</span> <span class="o">=</span> <span class="p">[</span><span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="n">comma_repl</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">col</span><span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">col_str</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="n">comma_repl</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">col</span><span class="p">]</span>
+                    <span class="n">col_str</span> <span class="o">=</span> <span class="p">[</span><span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="n">comma_repl</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">col</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;[csv] is_unknown coltype=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">coltype</span><span class="p">,))</span>
-                <span class="n">col_str</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">col</span><span class="p">)]</span>
-            <span class="n">col_lens</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">col_str</span><span class="p">)]</span>
+                <span class="n">col_str</span> <span class="o">=</span> <span class="p">[</span><span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">(</span><span class="n">col</span><span class="p">)]</span>
+            <span class="n">col_lens</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="p">(</span><span class="n">col_str</span><span class="p">)]</span>
             <span class="n">max_len</span>  <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">col_lens</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">use_lbl_width</span><span class="p">:</span>
                 <span class="c"># The column label counts towards the column width</span>
@@ -283,11 +296,13 @@
         <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;col&#39;</span><span class="p">,</span> <span class="s">&#39;lbl&#39;</span><span class="p">,</span> <span class="s">&#39;coltype&#39;</span><span class="p">])</span>
         <span class="k">raise</span>
 
-    <span class="n">_fmtfn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">maxlen</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;%&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">maxlen</span> <span class="o">+</span> <span class="mi">2</span><span class="p">),</span> <span class="s">&#39;s&#39;</span><span class="p">])</span>
+    <span class="k">def</span> <span class="nf">_fmtfn</span><span class="p">(</span><span class="n">maxlen</span><span class="p">):</span>
+        <span class="k">return</span>  <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;%&#39;</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">(</span><span class="n">maxlen</span> <span class="o">+</span> <span class="mi">2</span><span class="p">),</span> <span class="s">&#39;s&#39;</span><span class="p">])</span>
     <span class="n">fmtstr</span> <span class="o">=</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">_fmtfn</span><span class="p">(</span><span class="n">maxlen</span><span class="p">)</span> <span class="k">for</span> <span class="n">maxlen</span> <span class="ow">in</span> <span class="n">column_maxlen</span><span class="p">])</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">csv_rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;# &#39;</span> <span class="o">+</span> <span class="n">fmtstr</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">column_lbls</span><span class="p">))</span>
-        <span class="c">#csv_rows.append(&#39;# &#39; + fmtstr % column_lbls)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">raw</span><span class="p">:</span>
+            <span class="n">csv_rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;# &#39;</span> <span class="o">+</span> <span class="n">fmtstr</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">column_lbls</span><span class="p">))</span>
+            <span class="c">#csv_rows.append(&#39;# &#39; + fmtstr % column_lbls)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="c">#print(len(column_list))</span>
         <span class="c">#ut.embed()</span>
@@ -322,7 +337,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>

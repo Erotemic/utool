@@ -133,16 +133,21 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">import</span> <span class="nn">shelve</span>
 <span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
 <span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">codecs</span>
+<span class="kn">import</span> <span class="nn">os</span>
 <span class="c">#import lru</span>
 <span class="c">#git+https://github.com/amitdev/lru-dict</span>
 <span class="c">#import atexit</span>
 <span class="c">#import inspect</span>
 <span class="kn">import</span> <span class="nn">contextlib</span>
 <span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">cPickle</span> <span class="k">as</span> <span class="n">pickle</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">zip</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">normpath</span><span class="p">,</span> <span class="n">basename</span><span class="p">,</span> <span class="n">exists</span>
-<span class="kn">import</span> <span class="nn">functools</span>
+<span class="c">#import functools</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span>
 <span class="kn">from</span> <span class="nn">zipfile</span> <span class="kn">import</span> <span class="n">error</span> <span class="k">as</span> <span class="n">BadZipFile</span>  <span class="c"># Screwy naming convention.</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_arg</span>
@@ -155,12 +160,10 @@
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inspect</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_list</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_class</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_type</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_decor</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_dict</span>
 <span class="kn">from</span> <span class="nn">utool._internal</span> <span class="kn">import</span> <span class="n">meta_util_constants</span>
-<span class="k">try</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-    <span class="n">HAVE_NUMPY</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="n">HAVE_NUMPY</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[cache]&#39;</span><span class="p">)</span>
 
 
@@ -170,7 +173,6 @@
 <span class="n">QUIET</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">QUIET</span>
 <span class="n">VERBOSE_CACHE</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">NOT_QUIET</span>
 <span class="n">USE_CACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nocache&#39;</span><span class="p">)</span>
-<span class="n">__SHELF__</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># GLOBAL CACHE</span>
 <span class="n">__APPNAME__</span> <span class="o">=</span> <span class="n">meta_util_constants</span><span class="o">.</span><span class="n">default_appname</span>  <span class="c"># the global application name</span>
 
 
@@ -179,13 +181,33 @@
 
 
 <span class="c">#class YACacher(object):</span></div>
+<span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">util_class</span><span class="o">.</span><span class="n">ReloadingMetaclass</span><span class="p">)</span>
 <div class="viewcode-block" id="ShelfCacher"><a class="viewcode-back" href="../../utool.html#utool.util_cache.ShelfCacher">[docs]</a><span class="k">class</span> <span class="nc">ShelfCacher</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; yet another cacher &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fpath</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[shelfcache] initializing()&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fpath</span> <span class="o">=</span> <span class="n">fpath</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">shelf</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">enabled</span> <span class="k">else</span> <span class="n">shelve</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cachekey</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">cachekey</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cachekey</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">cachekey</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ShelfCacher.keys"><a class="viewcode-back" href="../../utool.html#utool.util_cache.ShelfCacher.keys">[docs]</a>    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">shelf</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+</div>
 <div class="viewcode-block" id="ShelfCacher.load"><a class="viewcode-back" href="../../utool.html#utool.util_cache.ShelfCacher.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cachekey</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[shelfcache] loading </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cachekey</span><span class="p">,))</span>
+
+        <span class="n">cachekey</span> <span class="o">=</span> <span class="n">cachekey</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;ascii&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shelf</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">cachekey</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">shelf</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">CacheMissException</span><span class="p">(</span>
                 <span class="s">&#39;Cache miss cachekey=</span><span class="si">%r</span><span class="s"> self.fpath=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cachekey</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fpath</span><span class="p">))</span>
@@ -193,10 +215,23 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">shelf</span><span class="p">[</span><span class="n">cachekey</span><span class="p">]</span>
 </div>
 <div class="viewcode-block" id="ShelfCacher.save"><a class="viewcode-back" href="../../utool.html#utool.util_cache.ShelfCacher.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cachekey</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[shelfcache] saving </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cachekey</span><span class="p">,))</span>
+
+        <span class="n">cachekey</span> <span class="o">=</span> <span class="n">cachekey</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;ascii&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shelf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">shelf</span><span class="p">[</span><span class="n">cachekey</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shelf</span><span class="o">.</span><span class="n">sync</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="ShelfCacher.clear"><a class="viewcode-back" href="../../utool.html#utool.util_cache.ShelfCacher.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[shelfcache] clearing cache&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shelf</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shelf</span><span class="o">.</span><span class="n">sync</span><span class="p">()</span>
 </div>
 <div class="viewcode-block" id="ShelfCacher.close"><a class="viewcode-back" href="../../utool.html#utool.util_cache.ShelfCacher.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[shelfcache] closing()&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shelf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">shelf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
@@ -241,7 +276,7 @@
 </div>
 <div class="viewcode-block" id="consensed_cfgstr"><a class="viewcode-back" href="../../utool.html#utool.util_cache.consensed_cfgstr">[docs]</a><span class="k">def</span> <span class="nf">consensed_cfgstr</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">,</span> <span class="n">max_len</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">cfgstr_hashlen</span><span class="o">=</span><span class="mi">16</span><span class="p">):</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_len</span><span class="p">:</span>
-        <span class="n">hashed_cfgstr</span> <span class="o">=</span> <span class="n">util_hash</span><span class="o">.</span><span class="n">hashstr</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">,</span> <span class="n">cfgstr_hashlen</span><span class="p">)</span>
+        <span class="n">hashed_cfgstr</span> <span class="o">=</span> <span class="n">util_hash</span><span class="o">.</span><span class="n">hashstr27</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">,</span> <span class="n">hashlen</span><span class="o">=</span><span class="n">cfgstr_hashlen</span><span class="p">)</span>
         <span class="c">#if write_hashtbl:</span>
         <span class="c">#    # DONT WRITE TO HASHTABLE THE FUNCTION IS BROKEN</span>
         <span class="c">#    text_dict_write(join(dpath, &#39;hashtbl.txt&#39;), hashed_cfgstr, cfgstr)</span>
@@ -291,7 +326,7 @@
 <span class="sd">        &gt;&gt;&gt; write_hashtbl = False</span>
 <span class="sd">        &gt;&gt;&gt; fpath = _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl)</span>
 <span class="sd">        &gt;&gt;&gt; result = str(ut.ensure_unixslash(fpath))</span>
-<span class="sd">        &gt;&gt;&gt; target = &#39;F:/data/work/PZ_MTEST/_ibsdb/_ibeis_cache/normalizer_5cv1%3s&amp;@1dtgjlj.cPkl&#39;</span>
+<span class="sd">        &gt;&gt;&gt; target = &#39;F:/data/work/PZ_MTEST/_ibsdb/_ibeis_cache/normalizer_xfylfboirymmcpfg.cPkl&#39;</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_eq(result, target)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -361,32 +396,35 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">USE_CACHE</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] ... cache disabled: dpath=</span><span class="si">%s</span><span class="s"> cfgstr=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">dpath</span><span class="p">),</span> <span class="n">cfgstr</span><span class="p">,))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_cache] ... cache disabled: dpath=</span><span class="si">%s</span><span class="s"> cfgstr=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
+                    <span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">dpath</span><span class="p">),</span> <span class="n">cfgstr</span><span class="p">,))</span>
         <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s">&#39;Cache Loading Is Disabled&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">verbose</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">verbose</span> <span class="o">=</span> <span class="n">VERBOSE_CACHE</span>
     <span class="n">fpath</span> <span class="o">=</span> <span class="n">_args2_fpath</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">,</span> <span class="s">&#39;.cPkl&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">fpath</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] ... cache does not exist: dpath=</span><span class="si">%s</span><span class="s"> cfgstr=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
-                <span class="n">basename</span><span class="p">(</span><span class="n">dpath</span><span class="p">),</span> <span class="n">cfgstr</span><span class="p">,))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_cache] ... cache does not exist: dpath=</span><span class="si">%r</span><span class="s"> fname=</span><span class="si">%r</span><span class="s"> cfgstr=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">basename</span><span class="p">(</span><span class="n">dpath</span><span class="p">),</span> <span class="n">fname</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">,))</span>
         <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s">&#39;No such file or directory: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fpath</span><span class="p">,))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] ... cache exists: dpath=</span><span class="si">%s</span><span class="s"> cfgstr=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">dpath</span><span class="p">),</span> <span class="n">cfgstr</span><span class="p">,))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_cache] ... cache exists: dpath=</span><span class="si">%r</span><span class="s"> fname=</span><span class="si">%r</span><span class="s"> cfgstr=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">basename</span><span class="p">(</span><span class="n">dpath</span><span class="p">),</span> <span class="n">fname</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">,))</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">util_io</span><span class="o">.</span><span class="n">load_cPkl</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">EOFError</span><span class="p">,</span> <span class="ne">IOError</span><span class="p">,</span> <span class="ne">ImportError</span><span class="p">)</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;CORRUPTED? fpath = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fpath</span><span class="p">,))</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] ... cache miss dpath=</span><span class="si">%s</span><span class="s"> cfgstr=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">dpath</span><span class="p">),</span> <span class="n">cfgstr</span><span class="p">,))</span>
-        <span class="k">raise</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_cache] ... cache miss dpath=</span><span class="si">%s</span><span class="s"> cfgstr=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">basename</span><span class="p">(</span><span class="n">dpath</span><span class="p">),</span> <span class="n">cfgstr</span><span class="p">,))</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;CORRUPTED? fpath = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fpath</span><span class="p">,))</span>
         <span class="k">raise</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_io] ... cache hit&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_cache] ... cache hit&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">data</span>
 
 </div>
@@ -411,17 +449,21 @@
 
 </div>
 <span class="nd">@profile</span>
-<div class="viewcode-block" id="tryload_cache_list_with_compute"><a class="viewcode-back" href="../../utool.html#utool.util_cache.tryload_cache_list_with_compute">[docs]</a><span class="k">def</span> <span class="nf">tryload_cache_list_with_compute</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">cfgstr_list</span><span class="p">,</span> <span class="n">compute_fn</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<div class="viewcode-block" id="tryload_cache_list_with_compute"><a class="viewcode-back" href="../../utool.html#utool.util_cache.tryload_cache_list_with_compute">[docs]</a><span class="k">def</span> <span class="nf">tryload_cache_list_with_compute</span><span class="p">(</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">dpath</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">cfgstr_list</span><span class="p">,</span> <span class="n">compute_fn</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    tries to load data, but computes it if it can&#39;t give a compute function</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Load precomputed values</span>
-    <span class="n">data_list</span><span class="p">,</span> <span class="n">ismiss_list</span> <span class="o">=</span> <span class="n">tryload_cache_list</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">cfgstr_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">use_cache</span> <span class="ow">is</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="n">data_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">cfgstr_list</span><span class="p">)</span>
+        <span class="n">ismiss_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">True</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">cfgstr_list</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">data_list</span><span class="p">,</span> <span class="n">ismiss_list</span> <span class="o">=</span> <span class="n">tryload_cache_list</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">cfgstr_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">num_total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cfgstr_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">ismiss_list</span><span class="p">):</span>
         <span class="c"># Compute missing values</span>
         <span class="n">newdata_list</span> <span class="o">=</span> <span class="n">compute_fn</span><span class="p">(</span><span class="n">ismiss_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
-        <span class="n">newcfgstr_list</span> <span class="o">=</span> <span class="n">util_list</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">cfgstr_list</span><span class="p">,</span> <span class="n">ismiss_list</span><span class="p">)</span>
+        <span class="n">newcfgstr_list</span> <span class="o">=</span> <span class="n">util_list</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">cfgstr_list</span><span class="p">,</span> <span class="n">ismiss_list</span><span class="p">)</span>
         <span class="n">index_list</span> <span class="o">=</span> <span class="n">util_list</span><span class="o">.</span><span class="n">list_where</span><span class="p">(</span><span class="n">ismiss_list</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[cache] </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s"> cache hits for </span><span class="si">%s</span><span class="s"> in </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_total</span> <span class="o">-</span>
                                                          <span class="nb">len</span><span class="p">(</span><span class="n">index_list</span><span class="p">),</span>
@@ -444,8 +486,10 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    old non inhertable version of cachable</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cache_dir</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s">&#39;utool&#39;</span><span class="p">,</span>
-                 <span class="n">verbose</span><span class="o">=</span><span class="n">VERBOSE</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cache_dir</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">,</span>
+                 <span class="n">appname</span><span class="o">=</span><span class="s">&#39;utool&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">verbose</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">verbose</span> <span class="o">=</span> <span class="n">VERBOSE</span>
         <span class="k">if</span> <span class="n">cache_dir</span> <span class="o">==</span> <span class="s">&#39;default&#39;</span><span class="p">:</span>
             <span class="n">cache_dir</span> <span class="o">=</span> <span class="n">util_cplat</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="n">appname</span><span class="p">)</span>
         <span class="n">util_path</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">)</span>
@@ -459,7 +503,7 @@
         <span class="k">assert</span> <span class="n">cfgstr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;must specify cfgstr in constructor or call&#39;</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;no fname&#39;</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">dpath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;no dpath&#39;</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">load_cache</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dpath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">load_cache</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dpath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;... &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">fname</span> <span class="o">+</span> <span class="s">&#39; Cacher hit&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span>
@@ -486,28 +530,165 @@
         <span class="n">save_cache</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dpath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fname</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
 
 </div></div>
-<span class="k">if</span> <span class="n">HAVE_NUMPY</span><span class="p">:</span>
-<div class="viewcode-block" id="UtoolJSONEncoder"><a class="viewcode-back" href="../../utool.html#utool.util_cache.UtoolJSONEncoder">[docs]</a>    <span class="k">class</span> <span class="nc">UtoolJSONEncoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">):</span>
-        <span class="n">numpy_type_tuple</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">typeDict</span><span class="o">.</span><span class="n">values</span><span class="p">())))</span>
-<div class="viewcode-block" id="UtoolJSONEncoder.default"><a class="viewcode-back" href="../../utool.html#utool.util_cache.UtoolJSONEncoder.default">[docs]</a>        <span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">numpy_type_tuple</span><span class="p">):</span>
-                <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-            <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span></div></div>
-<span class="k">else</span><span class="p">:</span>
-    <span class="n">UtoolJSONEncoder</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span>
-
-
-<div class="viewcode-block" id="to_json"><a class="viewcode-back" href="../../utool.html#utool.util_cache.to_json">[docs]</a><span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+<span class="nd">@util_decor.memoize</span>
+<div class="viewcode-block" id="make_utool_json_encoder"><a class="viewcode-back" href="../../utool.html#utool.util_cache.make_utool_json_encoder">[docs]</a><span class="k">def</span> <span class="nf">make_utool_json_encoder</span><span class="p">(</span><span class="n">allow_pickle</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    References:</span>
-<span class="sd">        http://stackoverflow.com/questions/11561932/why-does-json-dumpslistnp-arange5-fail-while-json-dumpsnp-arange5-tolis</span>
+<span class="sd">        http://stackoverflow.com/questions/8230315/python-sets-are</span>
+<span class="sd">        http://stackoverflow.com/questions/11561932/why-does-json</span>
+<span class="sd">        https://github.com/jsonpickle/jsonpickle</span>
+<span class="sd">        http://stackoverflow.com/questions/24369666/typeerror-b1</span>
+<span class="sd">        http://stackoverflow.com/questions/30469575/how-to-pickle</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">json_str</span> <span class="o">=</span> <span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">cls</span><span class="o">=</span><span class="n">UtoolJSONEncoder</span><span class="p">))</span>
+    <span class="n">PYOBJECT_TAG</span> <span class="o">=</span> <span class="s">&#39;__PYTHON_OBJECT__&#39;</span>
+    <span class="n">UUID_TAG</span> <span class="o">=</span> <span class="s">&#39;__UUID__&#39;</span>
+    <span class="n">SLICE_TAG</span> <span class="o">=</span> <span class="s">&#39;__SLICE__&#39;</span>
+
+    <span class="k">def</span> <span class="nf">decode_pickle</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">codecs</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span> <span class="s">&#39;base64&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="k">def</span> <span class="nf">encode_pickle</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="n">pickle_bytes</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">pickle</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">codecs</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">pickle_bytes</span><span class="p">,</span> <span class="s">&#39;base64&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">text</span>
+
+    <span class="n">type_to_tag</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">([</span>
+        <span class="p">(</span><span class="nb">object</span><span class="p">,</span> <span class="n">PYOBJECT_TAG</span><span class="p">),</span>
+        <span class="p">(</span><span class="nb">slice</span><span class="p">,</span> <span class="n">SLICE_TAG</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">,</span> <span class="n">UUID_TAG</span><span class="p">),</span>
+    <span class="p">])</span>
+
+    <span class="n">tag_to_type</span> <span class="o">=</span> <span class="p">{</span><span class="n">tag</span><span class="p">:</span> <span class="n">type_</span> <span class="k">for</span> <span class="n">type_</span><span class="p">,</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">type_to_tag</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="n">encoders</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">UUID_TAG</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">PYOBJECT_TAG</span><span class="p">:</span> <span class="n">encode_pickle</span><span class="p">,</span>
+        <span class="n">SLICE_TAG</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="s">&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">start</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">stop</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">step</span><span class="p">)])</span>
+    <span class="p">}</span>
+
+    <span class="n">decoders</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">UUID_TAG</span><span class="p">:</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">,</span>
+        <span class="n">PYOBJECT_TAG</span><span class="p">:</span> <span class="n">decode_pickle</span><span class="p">,</span>
+        <span class="n">SLICE_TAG</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">smart_cast</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">slice</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">allow_pickle</span><span class="p">:</span>
+        <span class="k">del</span> <span class="n">encoders</span><span class="p">[</span><span class="n">PYOBJECT_TAG</span><span class="p">]</span>
+        <span class="k">del</span> <span class="n">decoders</span><span class="p">[</span><span class="n">PYOBJECT_TAG</span><span class="p">]</span>
+        <span class="n">type_</span> <span class="o">=</span> <span class="n">tag_to_type</span><span class="p">[</span><span class="n">PYOBJECT_TAG</span><span class="p">]</span>
+        <span class="k">del</span> <span class="n">tag_to_type</span><span class="p">[</span><span class="n">PYOBJECT_TAG</span><span class="p">]</span>
+        <span class="k">del</span> <span class="n">type_to_tag</span><span class="p">[</span><span class="n">type_</span><span class="p">]</span>
+
+    <span class="k">class</span> <span class="nc">UtoolJSONEncoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">util_type</span><span class="o">.</span><span class="n">NUMPY_TYPE_TUPLE</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">six</span><span class="o">.</span><span class="n">PY3</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">util_type</span><span class="o">.</span><span class="n">PRIMATIVE_TYPES</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s">&#39;__getstate__&#39;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">__getstate__</span><span class="p">()</span>
+            <span class="c">#elif isinstance(obj, uuid.UUID):</span>
+            <span class="c">#    func = encoders[UUID_TAG]</span>
+            <span class="c">#    return {UUID_TAG: func(obj)}</span>
+            <span class="c">#elif isinstance(obj, object):</span>
+            <span class="c">#    func = encoders[PYOBJECT_TAG]</span>
+            <span class="c">#    return {PYOBJECT_TAG: func(obj)}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">type_</span><span class="p">,</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">type_to_tag</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">type_</span><span class="p">):</span>
+                        <span class="n">func</span> <span class="o">=</span> <span class="n">encoders</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span>
+                        <span class="n">text</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="p">{</span><span class="n">tag</span><span class="p">:</span> <span class="n">text</span><span class="p">}</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;Invalid serialization type=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)))</span>
+
+        <span class="nd">@classmethod</span>
+        <span class="k">def</span> <span class="nf">_json_object_hook</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">tag</span><span class="p">,</span> <span class="n">text</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">items</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">decoders</span><span class="p">:</span>
+                    <span class="n">func</span> <span class="o">=</span> <span class="n">decoders</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span>
+                    <span class="n">obj</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">obj</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">value</span>
+            <span class="c">#if cls.JSON_PYOBJ_TAG in value:</span>
+            <span class="c">#    text = value[cls.JSON_PYOBJ_TAG]</span>
+            <span class="c">#    return pickle.loads(codecs.decode(text.encode(), &#39;base64&#39;))</span>
+            <span class="c">#elif cls.UUID_TAG in value:</span>
+            <span class="c">#    text = value[cls.UUID_TAG]</span>
+            <span class="c">#    return uuid.UUID(text)</span>
+            <span class="k">return</span> <span class="n">value</span>
+    <span class="k">return</span> <span class="n">UtoolJSONEncoder</span>
+
+</div>
+<div class="viewcode-block" id="to_json"><a class="viewcode-back" href="../../utool.html#utool.util_cache.to_json">[docs]</a><span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Converts a python object to a JSON string using the utool convention</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        val (object):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: json_str</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://stackoverflow.com/questions/11561932/why-does-json-dumpslistnp</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_cache --test-to_json</span>
+<span class="sd">        python3 -m utool.util_cache --test-to_json</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_cache import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; import uuid</span>
+<span class="sd">        &gt;&gt;&gt; val = [</span>
+<span class="sd">        &gt;&gt;&gt;    &#39;{&quot;foo&quot;: &quot;not a dict&quot;}&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;    1.3,</span>
+<span class="sd">        &gt;&gt;&gt;    [1],</span>
+<span class="sd">        &gt;&gt;&gt;    slice(1, None, 1),</span>
+<span class="sd">        &gt;&gt;&gt;    b&#39;an ascii string&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;    np.array([1, 2, 3]),</span>
+<span class="sd">        &gt;&gt;&gt;    ut.get_zero_uuid(),</span>
+<span class="sd">        &gt;&gt;&gt;    ut.LazyDict(x=&#39;fo&#39;),</span>
+<span class="sd">        &gt;&gt;&gt;    ut.LazyDict,</span>
+<span class="sd">        &gt;&gt;&gt; ]</span>
+<span class="sd">        &gt;&gt;&gt; #val = ut.LazyDict(x=&#39;fo&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; json_str = ut.to_json(val, allow_pickle=True)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr3(json_str)</span>
+<span class="sd">        &gt;&gt;&gt; reload_val = ut.from_json(json_str, allow_pickle=True)</span>
+<span class="sd">        &gt;&gt;&gt; # Make sure pickle doesnt happen by default</span>
+<span class="sd">        &gt;&gt;&gt; try:</span>
+<span class="sd">        &gt;&gt;&gt;     json_str = ut.to_json(val)</span>
+<span class="sd">        &gt;&gt;&gt;     assert False, &#39;expected a type error&#39;</span>
+<span class="sd">        &gt;&gt;&gt; except TypeError:</span>
+<span class="sd">        &gt;&gt;&gt;     print(&#39;Correctly got type error&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; try:</span>
+<span class="sd">        &gt;&gt;&gt;     json_str = ut.from_json(val)</span>
+<span class="sd">        &gt;&gt;&gt;     assert False, &#39;expected a type error&#39;</span>
+<span class="sd">        &gt;&gt;&gt; except TypeError:</span>
+<span class="sd">        &gt;&gt;&gt;     print(&#39;Correctly got type error&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;original = &#39; + ut.repr3(val, nl=1))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;reconstructed = &#39; + ut.repr3(reload_val, nl=1))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">UtoolJSONEncoder</span> <span class="o">=</span> <span class="n">make_utool_json_encoder</span><span class="p">(</span><span class="n">allow_pickle</span><span class="p">)</span>
+    <span class="n">json_str</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">cls</span><span class="o">=</span><span class="n">UtoolJSONEncoder</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">json_str</span>
 
 </div>
-<div class="viewcode-block" id="from_json"><a class="viewcode-back" href="../../utool.html#utool.util_cache.from_json">[docs]</a><span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="n">json_str</span><span class="p">):</span>
-    <span class="n">val</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json_str</span><span class="p">)</span>
+<div class="viewcode-block" id="from_json"><a class="viewcode-back" href="../../utool.html#utool.util_cache.from_json">[docs]</a><span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="n">json_str</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decodes a JSON object specified in the utool convention</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">UtoolJSONEncoder</span> <span class="o">=</span> <span class="n">make_utool_json_encoder</span><span class="p">(</span><span class="n">allow_pickle</span><span class="p">)</span>
+    <span class="n">object_hook</span> <span class="o">=</span> <span class="n">UtoolJSONEncoder</span><span class="o">.</span><span class="n">_json_object_hook</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json_str</span><span class="p">,</span> <span class="n">object_hook</span><span class="o">=</span><span class="n">object_hook</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">val</span>
 
 </div>
@@ -517,7 +698,6 @@
 <span class="sd">    kwargs = {}</span>
 <span class="sd">    args = ([],)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
     <span class="c"># Rectify partials and whatnot</span>
     <span class="n">true_args</span> <span class="o">=</span> <span class="n">args_</span>
@@ -597,7 +777,7 @@
     <span class="k">if</span> <span class="n">key_argx</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">key_argx</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)))</span>
     <span class="k">if</span> <span class="n">key_kwds</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">key_kwds</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">kwdefaults</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="n">key_kwds</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">kwdefaults</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
 
     <span class="c">#def kwdval(key):</span>
     <span class="c">#    return kwargs.get(key, kwdefaults.get(key, None))</span>
@@ -630,11 +810,19 @@
 
 </div>
 <div class="viewcode-block" id="cached_func"><a class="viewcode-back" href="../../utool.html#utool.util_cache.cached_func">[docs]</a><span class="k">def</span> <span class="nf">cached_func</span><span class="p">(</span><span class="n">fname</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cache_dir</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s">&#39;utool&#39;</span><span class="p">,</span> <span class="n">key_argx</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                <span class="n">key_kwds</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+                <span class="n">key_kwds</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Wraps a function with a Cacher object</span>
 
 <span class="sd">    uses a hash of arguments as input</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fname (str):  file name (defaults to function name)</span>
+<span class="sd">        cache_dir (unicode): (default = u&#39;default&#39;)</span>
+<span class="sd">        appname (unicode): (default = u&#39;utool&#39;)</span>
+<span class="sd">        key_argx (None): (default = None)</span>
+<span class="sd">        key_kwds (None): (default = None)</span>
+<span class="sd">        use_cache (bool):  turns on disk based caching(default = None)</span>
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m utool.util_cache --exec-cached_func</span>
@@ -646,7 +834,8 @@
 <span class="sd">        ...    return ([a] * b, c, args, kwargs)</span>
 <span class="sd">        &gt;&gt;&gt; ans0 = costly_func(41, 3)</span>
 <span class="sd">        &gt;&gt;&gt; ans1 = costly_func(42, 3)</span>
-<span class="sd">        &gt;&gt;&gt; closure_ = ut.cached_func(&#39;costly_func&#39;, appname=&#39;utool_test&#39;, key_argx=[0, 1])</span>
+<span class="sd">        &gt;&gt;&gt; closure_ = ut.cached_func(&#39;costly_func&#39;, appname=&#39;utool_test&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;         key_argx=[0, 1])</span>
 <span class="sd">        &gt;&gt;&gt; efficient_func = closure_(costly_func)</span>
 <span class="sd">        &gt;&gt;&gt; ans2 = efficient_func(42, 3)</span>
 <span class="sd">        &gt;&gt;&gt; ans3 = efficient_func(42, 3)</span>
@@ -658,29 +847,42 @@
 <span class="sd">        &gt;&gt;&gt; assert ans5 == ans0</span>
 <span class="sd">        &gt;&gt;&gt; assert ans1 != ans0</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">verbose</span> <span class="o">=</span> <span class="n">VERBOSE_CACHE</span>
     <span class="k">def</span> <span class="nf">cached_closure</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_decor</span>
         <span class="n">fname_</span> <span class="o">=</span> <span class="n">util_inspect</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="k">if</span> <span class="n">fname</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">fname</span>
         <span class="n">kwdefaults</span> <span class="o">=</span> <span class="n">util_inspect</span><span class="o">.</span><span class="n">get_kwdefaults</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
         <span class="n">argnames</span>   <span class="o">=</span> <span class="n">util_inspect</span><span class="o">.</span><span class="n">get_argnames</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-        <span class="n">cacher</span> <span class="o">=</span> <span class="n">Cacher</span><span class="p">(</span><span class="n">fname_</span><span class="p">,</span> <span class="n">cache_dir</span><span class="o">=</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="n">appname</span><span class="p">)</span>
+        <span class="n">cacher</span> <span class="o">=</span> <span class="n">Cacher</span><span class="p">(</span><span class="n">fname_</span><span class="p">,</span> <span class="n">cache_dir</span><span class="o">=</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="n">appname</span><span class="p">,</span>
+                        <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">use_cache</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">use_cache_</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nocache-&#39;</span> <span class="o">+</span> <span class="n">fname</span><span class="p">)</span>
+            <span class="n">use_cache_</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nocache-&#39;</span> <span class="o">+</span> <span class="n">fname_</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">use_cache_</span> <span class="o">=</span> <span class="n">use_cache</span>
         <span class="c">#_dbgdict = dict(fname_=fname_, key_kwds=key_kwds, appname=appname,</span>
         <span class="c">#                key_argx=key_argx, use_cache_=use_cache_)</span>
-        <span class="nd">@functools.wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="c">#@functools.wraps(func)</span>
         <span class="k">def</span> <span class="nf">cached_wraper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-            <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Cached Wrapper Function</span>
+
+<span class="sd">            Additional Kwargs:</span>
+<span class="sd">                use_cache (bool) : enables cache</span>
+<span class="sd">            &quot;&quot;&quot;</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] computing cached function fname_=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fname_</span><span class="p">,))</span>
+                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_cache] computing cached function fname_=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>
+                          <span class="p">(</span> <span class="n">fname_</span><span class="p">,))</span>
                 <span class="c"># Implicitly adds use_cache to kwargs</span>
                 <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">get_cfgstr_from_args</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">key_argx</span><span class="p">,</span>
                                               <span class="n">key_kwds</span><span class="p">,</span> <span class="n">kwdefaults</span><span class="p">,</span> <span class="n">argnames</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">WIN32</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">util_cplat</span><span class="o">.</span><span class="n">WIN32</span><span class="p">:</span>
                     <span class="c"># remove potentially invalid chars</span>
-                    <span class="n">cfgstr</span> <span class="o">=</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr27</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">)</span>
+                    <span class="n">cfgstr</span> <span class="o">=</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">util_hash</span><span class="o">.</span><span class="n">hashstr27</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">)</span>
                 <span class="k">assert</span> <span class="n">cfgstr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;cfgstr=</span><span class="si">%r</span><span class="s"> cannot be None&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfgstr</span><span class="p">,)</span>
-                <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_cache&#39;</span><span class="p">,</span> <span class="n">use_cache_</span><span class="p">):</span>
+                <span class="n">use_cache__</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;use_cache&#39;</span><span class="p">,</span> <span class="n">use_cache_</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">use_cache__</span><span class="p">:</span>
                     <span class="c"># Make cfgstr from specified input</span>
                     <span class="n">data</span> <span class="o">=</span> <span class="n">cacher</span><span class="o">.</span><span class="n">tryload</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
@@ -688,20 +890,25 @@
                 <span class="c"># Cached missed compute function</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
                 <span class="c"># Cache save</span>
+                <span class="c">#if use_cache__:</span>
+                <span class="c"># TODO: save_cache</span>
                 <span class="n">cacher</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">data</span>
             <span class="c">#except ValueError as ex:</span>
             <span class="c"># handle protocal error</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-                <span class="n">_dbgdict2</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">key_argx</span><span class="o">=</span><span class="n">key_argx</span><span class="p">,</span> <span class="n">lenargs</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">),</span> <span class="n">lenkw</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">),)</span>
+                <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_dbg</span>
+                <span class="n">_dbgdict2</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">key_argx</span><span class="o">=</span><span class="n">key_argx</span><span class="p">,</span> <span class="n">lenargs</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">),</span>
+                                 <span class="n">lenkw</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">),)</span>
                 <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
                     <span class="s">&#39;+--- UTOOL --- ERROR IN CACHED FUNCTION&#39;</span><span class="p">,</span>
                     <span class="c">#&#39;dbgdict = &#39; + utool.dict_str(_dbgdict),</span>
-                    <span class="s">&#39;dbgdict2 = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">_dbgdict2</span><span class="p">),</span>
+                    <span class="s">&#39;dbgdict2 = &#39;</span> <span class="o">+</span> <span class="n">util_str</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">_dbgdict2</span><span class="p">),</span>
                 <span class="p">])</span>
-                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+                <span class="n">util_dbg</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
                 <span class="k">raise</span>
         <span class="c"># Give function a handle to the cacher object</span>
+        <span class="n">cached_wraper</span> <span class="o">=</span> <span class="n">util_decor</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">cached_wraper</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
         <span class="n">cached_wraper</span><span class="o">.</span><span class="n">cacher</span> <span class="o">=</span> <span class="n">cacher</span>
         <span class="k">return</span> <span class="n">cached_wraper</span>
     <span class="k">return</span> <span class="n">cached_closure</span>
@@ -732,45 +939,6 @@
     <span class="n">shelf_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">global_cache_dir</span><span class="p">,</span> <span class="n">meta_util_constants</span><span class="o">.</span><span class="n">global_cache_fname</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">shelf_fpath</span>
 
-
-<span class="c">#def get_global_shelf(appname=&#39;default&#39;):</span>
-<span class="c">#    &quot;&quot;&quot; Returns the global shelf object &quot;&quot;&quot;</span>
-<span class="c">#    global __SHELF__</span>
-<span class="c">#    if __SHELF__ is None:</span>
-<span class="c">#        try:</span>
-<span class="c">#            shelf_fpath = get_global_shelf_fpath(appname, ensure=True)</span>
-<span class="c">#            print(shelf_fpath)</span>
-<span class="c">#            __SHELF__ = shelve.open(shelf_fpath)</span>
-<span class="c">#        except Exception as ex:</span>
-<span class="c">#            from utool import util_dbg</span>
-<span class="c">#            util_dbg.printex(ex, &#39;Failed opening shelf_fpath&#39;,</span>
-<span class="c">#                             key_list=[&#39;shelf_fpath&#39;])</span>
-<span class="c">#            raise</span>
-<span class="c">#        #shelf_file = open(shelf_fpath, &#39;w&#39;)</span>
-<span class="c">#    return __SHELF__</span>
-
-
-<span class="c">#@atexit.register</span>
-<span class="c">#def close_global_shelf(appname=&#39;default&#39;):</span>
-<span class="c">#    # FIXME: If the program closes with ctrl+c this isnt called and</span>
-<span class="c">#    # the global cache is not written</span>
-<span class="c">#    global __SHELF__</span>
-<span class="c">#    if __SHELF__ is not None:</span>
-<span class="c">#        __SHELF__.close()</span>
-<span class="c">#    __SHELF__ = None</span>
-
-
-<span class="c">#class ShelfContext(shelve.Shelf):</span>
-<span class="c">#    &quot;&quot;&quot;</span>
-<span class="c">#    References:</span>
-<span class="c">#        http://stackoverflow.com/questions/7489732/easiest-way-to-add-a-function-to-existing-class</span>
-<span class="c">#    &quot;&quot;&quot;</span>
-<span class="c">#    def __enter__(self):</span>
-<span class="c">#        return self</span>
-
-<span class="c">#    def __exit__(self, exc_type, exc_value, exc_trace):</span>
-<span class="c">#        self.close()</span>
-
 </div>
 <div class="viewcode-block" id="shelf_open"><a class="viewcode-back" href="../../utool.html#utool.util_cache.shelf_open">[docs]</a><span class="k">def</span> <span class="nf">shelf_open</span><span class="p">(</span><span class="n">fpath</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -785,7 +953,7 @@
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # UNSTABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; import utool as ut</span>
-<span class="sd">        &gt;&gt;&gt; fpath = ut.unixjoin(ut.ensure_app_resource_dir(&#39;utool&#39;) &#39;testshelf.shelf&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; fpath = ut.unixjoin(ut.ensure_app_resource_dir(&#39;utool&#39;), &#39;testshelf.shelf&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; with ut.shelf_open(fpath) as dict_:</span>
 <span class="sd">        ...     print(ut.dict_str(dict_))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -870,24 +1038,37 @@
     <span class="n">ext</span> <span class="o">=</span> <span class="s">&#39;.cPkl&#39;</span>  <span class="c"># TODO: Capt&#39;n Proto backend to replace pickle backend</span>
 
     <span class="c">#@abc.abstractmethod</span>
-    <span class="c">#def get_cfgstr(self):</span>
-    <span class="c">#    raise NotImplementedError(&#39;abstract method&#39;)</span>
+<div class="viewcode-block" id="Cachable.get_cfgstr"><a class="viewcode-back" href="../../utool.html#utool.util_cache.Cachable.get_cfgstr">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;cfgstr&#39;</span><span class="p">,</span> <span class="s">&#39;DEFAULT&#39;</span><span class="p">)</span>
+        <span class="c"># return &#39;DEFAULT&#39;</span>
+        <span class="c"># raise NotImplementedError(&#39;abstract method&#39;)</span>
 
-    <span class="c">#@abc.abstractmethod</span>
-    <span class="c">#def get_prefix(self):</span>
-    <span class="c">#    raise NotImplementedError(&#39;abstract method&#39;)</span>
-
+    <span class="c">#@abc.abstractmethod</span></div>
+<div class="viewcode-block" id="Cachable.get_prefix"><a class="viewcode-back" href="../../utool.html#utool.util_cache.Cachable.get_prefix">[docs]</a>    <span class="k">def</span> <span class="nf">get_prefix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># import utool as ut</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span>
+        <span class="c"># return ut.get_funcname(self.__class__) + &#39;_&#39;</span>
+        <span class="c"># raise NotImplementedError(&#39;abstract method&#39;)</span>
+</div>
+<div class="viewcode-block" id="Cachable.get_cachedir"><a class="viewcode-back" href="../../utool.html#utool.util_cache.Cachable.get_cachedir">[docs]</a>    <span class="k">def</span> <span class="nf">get_cachedir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cachedir</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">cachedir</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;cachedir&#39;</span><span class="p">):</span>
+                <span class="n">cachedir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cachedir</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cachedir</span> <span class="o">=</span> <span class="s">&#39;.&#39;</span>
+        <span class="k">return</span> <span class="n">cachedir</span>
+</div>
 <div class="viewcode-block" id="Cachable.get_fname"><a class="viewcode-back" href="../../utool.html#utool.util_cache.Cachable.get_fname">[docs]</a>    <span class="k">def</span> <span class="nf">get_fname</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="c"># convinience</span>
         <span class="k">return</span> <span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_fpath</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="n">cfgstr</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="n">ext</span><span class="p">))</span>
 </div>
-<div class="viewcode-block" id="Cachable.get_fpath"><a class="viewcode-back" href="../../utool.html#utool.util_cache.Cachable.get_fpath">[docs]</a>    <span class="k">def</span> <span class="nf">get_fpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cachedir</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Cachable.get_fpath"><a class="viewcode-back" href="../../utool.html#utool.util_cache.Cachable.get_fpath">[docs]</a>    <span class="k">def</span> <span class="nf">get_fpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cachedir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Ignore:</span>
 <span class="sd">            fname = _fname</span>
 <span class="sd">            cfgstr = _cfgstr</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">_dpath</span> <span class="o">=</span> <span class="n">cachedir</span>
+        <span class="n">_dpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
         <span class="n">_fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_prefix</span><span class="p">()</span>
         <span class="n">_cfgstr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span> <span class="k">if</span> <span class="n">cfgstr</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">cfgstr</span>
         <span class="n">_ext</span> <span class="o">=</span>   <span class="bp">self</span><span class="o">.</span><span class="n">ext</span> <span class="k">if</span> <span class="n">ext</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">ext</span>
@@ -895,18 +1076,17 @@
         <span class="n">fpath</span> <span class="o">=</span> <span class="n">_args2_fpath</span><span class="p">(</span><span class="n">_dpath</span><span class="p">,</span> <span class="n">_fname</span><span class="p">,</span> <span class="n">_cfgstr</span><span class="p">,</span> <span class="n">_ext</span><span class="p">,</span> <span class="n">write_hashtbl</span><span class="o">=</span><span class="n">write_hashtbl</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">fpath</span>
 </div>
-<div class="viewcode-block" id="Cachable.delete"><a class="viewcode-back" href="../../utool.html#utool.util_cache.Cachable.delete">[docs]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cachedir</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span> <span class="ow">or</span> <span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">):</span>
+<div class="viewcode-block" id="Cachable.delete"><a class="viewcode-back" href="../../utool.html#utool.util_cache.Cachable.delete">[docs]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cachedir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span> <span class="ow">or</span> <span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        saves query result to directory</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">import</span> <span class="nn">os</span>
         <span class="n">fpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fpath</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="n">cfgstr</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[Cachable] cache delete: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">fpath</span><span class="p">),))</span>
         <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
 </div>
     <span class="nd">@profile</span>
-<div class="viewcode-block" id="Cachable.save"><a class="viewcode-back" href="../../utool.html#utool.util_cache.Cachable.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cachedir</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERBOSE</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="n">QUIET</span><span class="p">,</span>
+<div class="viewcode-block" id="Cachable.save"><a class="viewcode-back" href="../../utool.html#utool.util_cache.Cachable.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cachedir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERBOSE</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="n">QUIET</span><span class="p">,</span>
              <span class="n">ignore_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        saves query result to directory</span>
@@ -914,18 +1094,24 @@
         <span class="n">fpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fpath</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="n">cfgstr</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[Cachable] cache save: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">fpath</span><span class="p">),))</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;__getstate__&#39;</span><span class="p">):</span>
+            <span class="n">statedict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__getstate__</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">statedict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span>
+
         <span class="k">if</span> <span class="n">ignore_keys</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">save_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span>
+            <span class="n">save_dict</span> <span class="o">=</span> <span class="n">statedict</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">save_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">val</span>
-                         <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">)</span>
+                         <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">statedict</span><span class="p">)</span>
                          <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ignore_keys</span><span class="p">}</span>
 
         <span class="n">util_io</span><span class="o">.</span><span class="n">save_cPkl</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">save_dict</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">fpath</span>
         <span class="c">#save_cache(cachedir, &#39;&#39;, cfgstr, self.__dict__)</span>
         <span class="c">#with open(fpath, &#39;wb&#39;) as file_:</span>
-        <span class="c">#    cPickle.dump(self.__dict__, file_)</span>
+        <span class="c">#    pickle.dump(self.__dict__, file_)</span>
 </div>
     <span class="k">def</span> <span class="nf">_unsafe_load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fpath</span><span class="p">,</span> <span class="n">ignore_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="n">loaded_dict</span> <span class="o">=</span> <span class="n">util_io</span><span class="o">.</span><span class="n">load_cPkl</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
@@ -933,17 +1119,44 @@
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">ignore_keys</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">loaded_dict</span><span class="p">:</span>
                     <span class="k">del</span> <span class="n">loaded_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">loaded_dict</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;__setstate__&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__setstate__</span><span class="p">(</span><span class="n">loaded_dict</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">loaded_dict</span><span class="p">)</span>
         <span class="c">#with open(fpath, &#39;rb&#39;) as file_:</span>
-        <span class="c">#    loaded_dict = cPickle.load(file_)</span>
+        <span class="c">#    loaded_dict = pickle.load(file_)</span>
         <span class="c">#    self.__dict__.update(loaded_dict)</span>
 
+<div class="viewcode-block" id="Cachable.glob_valid_targets"><a class="viewcode-back" href="../../utool.html#utool.util_cache.Cachable.glob_valid_targets">[docs]</a>    <span class="k">def</span> <span class="nf">glob_valid_targets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cachedir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">partial_cfgstr</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_path</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_prefix</span><span class="p">()</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="s">&#39;*&#39;</span> <span class="o">+</span> <span class="n">partial_cfgstr</span> <span class="o">+</span> <span class="s">&#39;*&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">ext</span>
+        <span class="n">cachedir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
+        <span class="n">valid_targets</span> <span class="o">=</span> <span class="n">util_path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">valid_targets</span>
+</div>
+<div class="viewcode-block" id="Cachable.fuzzyload"><a class="viewcode-back" href="../../utool.html#utool.util_cache.Cachable.fuzzyload">[docs]</a>    <span class="k">def</span> <span class="nf">fuzzyload</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cachedir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">partial_cfgstr</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Try and load from a partially specified configuration string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">valid_targets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">glob_valid_targets</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">partial_cfgstr</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_targets</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;need to further specify target. valid_targets=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">valid_targets</span><span class="p">,))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">fpath</span> <span class="o">=</span> <span class="n">valid_targets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fpath</span><span class="o">=</span><span class="n">fpath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</div>
     <span class="nd">@profile</span>
-<div class="viewcode-block" id="Cachable.load"><a class="viewcode-back" href="../../utool.html#utool.util_cache.Cachable.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cachedir</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERBOSE</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="n">QUIET</span><span class="p">,</span> <span class="n">ignore_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Cachable.load"><a class="viewcode-back" href="../../utool.html#utool.util_cache.Cachable.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cachedir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fpath</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+             <span class="n">quiet</span><span class="o">=</span><span class="n">QUIET</span><span class="p">,</span> <span class="n">ignore_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Loads the result from the given database</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">fpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fpath</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="n">cfgstr</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">verbose</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">verbose</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;verbose&#39;</span><span class="p">,</span> <span class="n">VERBOSE</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fpath</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">fpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fpath</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="n">cfgstr</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[Cachable] cache tryload: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">fpath</span><span class="p">),))</span>
         <span class="k">try</span><span class="p">:</span>
@@ -1000,7 +1213,6 @@
 <span class="sd">        &gt;&gt;&gt; # UNSTABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_cache import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import utool as ut  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; # build test data</span>
 <span class="sd">        &gt;&gt;&gt; max_size = 5</span>
 <span class="sd">        &gt;&gt;&gt; # execute function</span>
 <span class="sd">        &gt;&gt;&gt; cache_obj = get_lru_cache(max_size)</span>
@@ -1011,9 +1223,9 @@
 <span class="sd">        &gt;&gt;&gt; cache_obj[5] = 5</span>
 <span class="sd">        &gt;&gt;&gt; cache_obj[6] = 6</span>
 <span class="sd">        &gt;&gt;&gt; # verify results</span>
-<span class="sd">        &gt;&gt;&gt; result = str(ut.dict_str(cache_obj, nl=False))</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(dict(cache_obj), nl=False)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        {2: 2, 3: 3, 4: 4, 5: 5, 6: 6,}</span>
+<span class="sd">        {2: 2, 3: 3, 4: 4, 5: 5, 6: 6}</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">USE_C_LRU</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="k">if</span> <span class="n">USE_C_LRU</span><span class="p">:</span>
@@ -1144,11 +1356,8 @@
 <span class="sd">    %timeit json_read_test()</span>
 <span class="sd">    %timeit json_write_test()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">six</span>
-    <span class="kn">import</span> <span class="nn">uuid</span>
-    <span class="kn">import</span> <span class="nn">simplejson</span> <span class="kn">as</span> <span class="nn">json</span>
-    <span class="kn">import</span> <span class="nn">cPickle</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="kn">import</span> <span class="nn">simplejson</span> <span class="kn">as</span> <span class="nn">json</span>
     <span class="n">shelf_path</span> <span class="o">=</span> <span class="s">&#39;test.shelf&#39;</span>
     <span class="n">json_path</span> <span class="o">=</span> <span class="s">&#39;test.json&#39;</span>
     <span class="n">cpkl_path</span> <span class="o">=</span> <span class="s">&#39;test.pkl&#39;</span>
@@ -1173,16 +1382,16 @@
 
     <span class="k">def</span> <span class="nf">cPickle_write_test</span><span class="p">():</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">cpkl_path</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outfile</span><span class="p">:</span>
-            <span class="n">cPickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">outfile</span><span class="p">)</span>
+            <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">outfile</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">cPickle_read_test</span><span class="p">():</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">cpkl_path</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outfile</span><span class="p">:</span>
-            <span class="n">test</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">val</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">cPickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">outfile</span><span class="p">))}</span>
+            <span class="n">test</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">val</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">outfile</span><span class="p">))}</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">test</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
 
     <span class="k">def</span> <span class="nf">cPickle_read_test2</span><span class="p">():</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">cpkl_path</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outfile</span><span class="p">:</span>
-            <span class="n">test</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">outfile</span><span class="p">)</span>
+            <span class="n">test</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">outfile</span><span class="p">)</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">test</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
 
     <span class="n">shelf_write_test</span><span class="p">()</span>
@@ -1194,6 +1403,29 @@
     <span class="n">cPickle_read_test2</span><span class="p">()</span>
 
 </div>
+<div class="viewcode-block" id="KeyedDefaultDict"><a class="viewcode-back" href="../../utool.html#utool.util_cache.KeyedDefaultDict">[docs]</a><span class="k">class</span> <span class="nc">KeyedDefaultDict</span><span class="p">(</span><span class="n">util_dict</span><span class="o">.</span><span class="n">DictLike</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">default_func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_default_func</span> <span class="o">=</span> <span class="n">default_func</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_args</span> <span class="o">=</span> <span class="n">args</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_internal</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="KeyedDefaultDict.setitem"><a class="viewcode-back" href="../../utool.html#utool.util_cache.KeyedDefaultDict.setitem">[docs]</a>    <span class="k">def</span> <span class="nf">setitem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_internal</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+</div>
+<div class="viewcode-block" id="KeyedDefaultDict.getitem"><a class="viewcode-back" href="../../utool.html#utool.util_cache.KeyedDefaultDict.getitem">[docs]</a>    <span class="k">def</span> <span class="nf">getitem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_internal</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_func</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_args</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_internal</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_internal</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="KeyedDefaultDict.keys"><a class="viewcode-back" href="../../utool.html#utool.util_cache.KeyedDefaultDict.keys">[docs]</a>    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_internal</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="KeyedDefaultDict.values"><a class="viewcode-back" href="../../utool.html#utool.util_cache.KeyedDefaultDict.values">[docs]</a>    <span class="k">def</span> <span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_internal</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+
+</div></div>
 <span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">util_class</span><span class="o">.</span><span class="n">ReloadingMetaclass</span><span class="p">)</span>
 <div class="viewcode-block" id="LazyDict"><a class="viewcode-back" href="../../utool.html#utool.util_cache.LazyDict">[docs]</a><span class="k">class</span> <span class="nc">LazyDict</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="c">#class LazyDict(collections.Mapping):</span>
@@ -1240,7 +1472,6 @@
     <span class="c"># --- direct interface</span>
 
 <div class="viewcode-block" id="LazyDict.set_lazy_func"><a class="viewcode-back" href="../../utool.html#utool.util_cache.LazyDict.set_lazy_func">[docs]</a>    <span class="k">def</span> <span class="nf">set_lazy_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_type</span>
         <span class="k">assert</span> <span class="n">util_type</span><span class="o">.</span><span class="n">is_funclike</span><span class="p">(</span><span class="n">func</span><span class="p">),</span> <span class="s">&#39;func must be a callable&#39;</span>
         <span class="c">#if key in self._stored_results:</span>
         <span class="c">#    raise ValueError(</span>
@@ -1253,7 +1484,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_eval_funcs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
 </div>
 <div class="viewcode-block" id="LazyDict.setitem"><a class="viewcode-back" href="../../utool.html#utool.util_cache.LazyDict.setitem">[docs]</a>    <span class="k">def</span> <span class="nf">setitem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_type</span>
         <span class="c"># HACK, lazy funcs should all be registered</span>
         <span class="c"># this should should always just set a value</span>
         <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reconstructable_keys</span><span class="p">():</span>
@@ -1275,7 +1505,8 @@
 </div>
 <div class="viewcode-block" id="LazyDict.nocache_eval"><a class="viewcode-back" href="../../utool.html#utool.util_cache.LazyDict.nocache_eval">[docs]</a>    <span class="k">def</span> <span class="nf">nocache_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; forces function evaluation &quot;&quot;&quot;</span>
-        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_funcs</span><span class="p">[</span><span class="n">key</span><span class="p">]()</span>
+        <span class="n">func_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_funcs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">func_</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">value</span>
 </div>
 <div class="viewcode-block" id="LazyDict.eager_eval"><a class="viewcode-back" href="../../utool.html#utool.util_cache.LazyDict.eager_eval">[docs]</a>    <span class="k">def</span> <span class="nf">eager_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
@@ -1328,6 +1559,10 @@
         <span class="sd">&quot;&quot;&quot; only keys whose vals that have been explicitly set without a backup func &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_keys</span><span class="p">())</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">reconstructable_keys</span><span class="p">()</span>
 </div>
+<div class="viewcode-block" id="LazyDict.cached_keys"><a class="viewcode-back" href="../../utool.html#utool.util_cache.LazyDict.cached_keys">[docs]</a>    <span class="k">def</span> <span class="nf">cached_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; only keys whose vals that have been explicitly set without a backup func &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nonreconstructable_keys</span><span class="p">())</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">evaluated_keys</span><span class="p">()))</span>
+</div>
 <div class="viewcode-block" id="LazyDict.printinfo"><a class="viewcode-back" href="../../utool.html#utool.util_cache.LazyDict.printinfo">[docs]</a>    <span class="k">def</span> <span class="nf">printinfo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;nonreconstructable_keys = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nonreconstructable_keys</span><span class="p">(),))</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;reconstructable_keys = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reconstructable_keys</span><span class="p">(),))</span>
@@ -1338,21 +1573,38 @@
         <span class="n">dict_</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">getitem</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">is_eager</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">()}</span>
         <span class="k">return</span> <span class="n">dict_</span>
 </div>
-<div class="viewcode-block" id="LazyDict.tostring"><a class="viewcode-back" href="../../utool.html#utool.util_cache.LazyDict.tostring">[docs]</a>    <span class="k">def</span> <span class="nf">tostring</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">is_eager</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="LazyDict.tostring"><a class="viewcode-back" href="../../utool.html#utool.util_cache.LazyDict.tostring">[docs]</a>    <span class="k">def</span> <span class="nf">tostring</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">is_eager</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
         <span class="n">dict_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">asdict</span><span class="p">(</span><span class="n">is_eager</span><span class="o">=</span><span class="n">is_eager</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">class</span> <span class="nc">AwakeFaceRepr</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+            <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="k">return</span> <span class="s">&#39;!&#39;</span>
+                <span class="c"># return &#39;(o.o)&#39;</span>
+                <span class="c"># return &quot;٩(ˊᗜˋ*)و&quot;</span>
+        <span class="k">class</span> <span class="nc">SleepFaceRepr</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+            <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="k">return</span> <span class="s">&#39;z&#39;</span>
+                <span class="c"># return &#39;(-_-)&#39;</span>
+                <span class="c"># return &#39;(ᵕ≀ᵕ)&#39;</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluated_keys</span><span class="p">():</span>
+            <span class="c"># dict_[key] = &#39;!&#39;</span>
+            <span class="n">dict_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">AwakeFaceRepr</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unevaluated_keys</span><span class="p">():</span>
+            <span class="c"># dict_[key] = &#39;z&#39;</span>
+            <span class="n">dict_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">SleepFaceRepr</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">dict_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_subset</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">keys</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="c"># --- dict interface</span>
 </div>
-    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">setitem</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-
 <div class="viewcode-block" id="LazyDict.get"><a class="viewcode-back" href="../../utool.html#utool.util_cache.LazyDict.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="p">):</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;no support for default yet&#39;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;can only specify one default&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c">#assert len(d) == 0, &#39;no support for default yet&#39;</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getitem</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_eager</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="LazyDict.update"><a class="viewcode-back" href="../../utool.html#utool.util_cache.LazyDict.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dict_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -1370,6 +1622,12 @@
 <div class="viewcode-block" id="LazyDict.items"><a class="viewcode-back" href="../../utool.html#utool.util_cache.LazyDict.items">[docs]</a>    <span class="k">def</span> <span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
 </div>
+    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setitem</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 
@@ -1403,7 +1661,10 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hackstore</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;index=</span><span class="si">%r</span><span class="s"> out of bounds&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">,))</span>
+            <span class="c">#raise ValueError(&#39;index=%r out of bounds&#39; % (index,))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s">&#39;index=</span><span class="si">%r</span><span class="s"> out of bounds or error computing lazy value.&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">index</span><span class="p">,))</span>
 
 <div class="viewcode-block" id="LazyList.append"><a class="viewcode-back" href="../../utool.html#utool.util_cache.LazyList.append">[docs]</a>    <span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_hackstore</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_hackstore</span><span class="p">)]</span> <span class="o">=</span> <span class="n">item</span>
@@ -1438,7 +1699,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>
