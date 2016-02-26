@@ -7,6 +7,8 @@ from utool import util_inject
 from utool import util_dict
 from utool import util_dev
 from utool import util_decor
+import functools
+import operator
 from six.moves import reduce, map, zip
 import re
 import six
@@ -17,6 +19,66 @@ DimensionBasis = namedtuple('DimensionBasis', ('dimension_name', 'dimension_poin
 
 INTERNAL_CFGKEYS = ['_cfgstr', '_cfgname', '_cfgtype', '_cfgindex']
 NAMEVARSEP = ':'
+
+
+@six.add_metaclass(util_class.ReloadingMetaclass)
+class CountstrParser(object):
+    """
+    Parses a statement like  '#primary>0&#primary1>1' and returns a filtered
+    set.
+
+    FIXME: make generalizable beyond ibeis
+    """
+    numop = '#'
+    compare_op_map = {
+        '<'  : operator.lt,
+        '<=' : operator.le,
+        '>'  : operator.gt,
+        '>=' : operator.ge,
+        '='  : operator.eq,
+        '!=' : operator.ne,
+    }
+
+    def __init__(self, lhs_dict, prop2_nid2_aids):
+        self.lhs_dict = lhs_dict
+        self.prop2_nid2_aids = prop2_nid2_aids
+        pass
+
+    def parse_countstr_binop(self, part):
+        import utool as ut
+        import numpy as np
+        # Parse binary comparison operation
+        left, op, right = re.split(ut.regex_or(('[<>]=?', '=')), part)
+        # Parse length operation. Get prop_left_nids, prop_left_values
+        if left.startswith(self.numop):
+            varname = left[len(self.numop):]
+            # Parse varname
+            prop = self.lhs_dict.get(varname, varname)
+            # Apply length operator to each name with the prop
+            prop_left_nids = self.prop2_nid2_aids.get(prop, {}).keys()
+            valiter = self.prop2_nid2_aids.get(prop, {}).values()
+            prop_left_values = np.array(list(map(len, valiter)))
+        # Pares number
+        if right:
+            prop_right_value = int(right)
+        # Execute comparison
+        prop_binary_result = self.compare_op_map[op](
+            prop_left_values, prop_right_value)
+        prop_nid2_result = dict(zip(prop_left_nids, prop_binary_result))
+        return prop_nid2_result
+
+    def parse_countstr_expr(self, countstr):
+        # Split over ands for now
+        and_parts = countstr.split('&')
+        prop_nid2_result_list = []
+        for part in and_parts:
+            prop_nid2_result = self.parse_countstr_binop(part)
+            prop_nid2_result_list.append(prop_nid2_result)
+        # change to dict_union when parsing ors
+        andcombine = functools.partial(
+            ut.dict_isect_combine, combine_op=operator.and_)
+        expr_nid2_result = reduce(andcombine, prop_nid2_result_list)
+        return expr_nid2_result
 
 
 def parse_argv_cfg(argname, default=[''], named_defaults_dict=None,
