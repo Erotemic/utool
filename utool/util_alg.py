@@ -1528,6 +1528,57 @@ def num_partitions(num_items):
     return get_nth_bell_number(num_items - 1)
 
 
+def solve_boolexpr():
+    """
+    sudo pip install git+https://github.com/tpircher/quine-mccluskey.git
+    sudo pip uninstall quine_mccluskey
+    pip uninstall quine_mccluskey
+    """
+    #false_cases = [
+    #    int('111', 2),
+    #    int('011', 2),
+    #    int('001', 2),
+    #]
+    #true_cases = list(set(range(2 ** 3)) - set(false_cases))
+
+    #import utool as ut
+    varnames = ['sa', 'said', 'aid']
+    truth_table = [
+        dict(sa=True,  said=True,  aid=True,  output=False),
+        dict(sa=True,  said=True,  aid=False, output=True),
+        dict(sa=True,  said=False, aid=True,  output=True),
+        dict(sa=True,  said=False, aid=False, output=True),
+        dict(sa=False, said=True,  aid=True,  output=False),
+        dict(sa=False, said=True,  aid=False, output=True),
+        dict(sa=False, said=False, aid=True,  output=False),
+        dict(sa=False, said=False, aid=False, output=True),
+    ]
+    truth_tuples = [ut.dict_take(d, varnames) for d in truth_table]
+    outputs = [d['output'] for d in truth_table]
+    true_tuples = ut.compress(truth_tuples, outputs)
+    true_cases = [int(''.join([str(int(t)) for t in tup]), 2) for tup in true_tuples]
+
+    from quine_mccluskey.qm import QuineMcCluskey
+
+    qm = QuineMcCluskey(use_xor=True)
+    ones = true_cases
+    result = qm.simplify(ones)
+    print(result)
+    #ut.chr_range(3)
+
+    symbol_map = {
+        '-': '',
+        '1': '{v}',
+        '0': 'not {v}',
+        '^': '^',
+    }
+
+    formulas = [[symbol_map[r].format(v=v) for v, r in zip(varnames, rs)] for rs in result]
+    products = ['(' + ' and '.join([f for f in form if f]) + ')' for form in formulas]
+    final_expr = ' or '.join(products)
+    print(final_expr)
+
+
 if __name__ == '__main__':
     """
     CommandLine:
