@@ -139,7 +139,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">six</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">cPickle</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">cPickle</span> <span class="k">as</span> <span class="n">pickle</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
@@ -149,7 +149,8 @@
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_arg</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_type</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[pref]&#39;</span><span class="p">)</span>
+<span class="c"># print, rrr, profile = util_inject.inject(__name__, &#39;[pref]&#39;)</span>
+<span class="n">util_inject</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[pref]&#39;</span><span class="p">)</span>
 
 <span class="c"># ---</span>
 <span class="c"># GLOBALS</span>
@@ -160,14 +161,9 @@
 <span class="n">VERBOSE_PREF</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--verbpref&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="printDBG"><a class="viewcode-back" href="../../utool.html#utool.Preferences.printDBG">[docs]</a><span class="k">def</span> <span class="nf">printDBG</span><span class="p">(</span><span class="n">msg</span><span class="p">):</span>
-    <span class="c">#print(&#39;[PREFS] &#39;+msg)</span>
-    <span class="k">pass</span>
-
-
 <span class="c"># ---</span>
 <span class="c"># Classes</span>
-<span class="c"># ---</span></div>
+<span class="c"># ---</span>
 <div class="viewcode-block" id="PrefInternal"><a class="viewcode-back" href="../../utool.html#utool.Preferences.PrefInternal">[docs]</a><span class="k">class</span> <span class="nc">PrefInternal</span><span class="p">(</span><span class="n">DynamicStruct</span><span class="o">.</span><span class="n">DynStruct</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">_intern</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">doc</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">hidden</span><span class="p">,</span> <span class="n">fpath</span><span class="p">,</span> <span class="n">depeq</span><span class="p">,</span> <span class="n">choices</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">PrefInternal</span><span class="p">,</span> <span class="n">_intern</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">child_exclude_list</span><span class="o">=</span><span class="p">[])</span>
@@ -261,8 +257,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span> <span class="o">=</span> <span class="n">PrefInternal</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">doc</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">hidden</span><span class="p">,</span> <span class="n">fpath</span><span class="p">,</span> <span class="n">depeq</span><span class="p">,</span> <span class="n">choices</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span> <span class="o">=</span> <span class="n">PrefTree</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
         <span class="c">#if default is PrefNode:</span>
-        <span class="c">#    printDBG(&#39;----------&#39;)</span>
-        <span class="c">#    printDBG(&#39;new Pref(default=PrefNode)&#39;)</span>
+        <span class="c">#    print(&#39;----------&#39;)</span>
+        <span class="c">#    print(&#39;new Pref(default=PrefNode)&#39;)</span>
 
 <div class="viewcode-block" id="Pref.get_type"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.get_type">[docs]</a>    <span class="k">def</span> <span class="nf">get_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intern</span><span class="o">.</span><span class="n">get_type</span><span class="p">()</span>
@@ -488,7 +484,7 @@
         <span class="k">return</span> <span class="n">pref_dict</span>
 </div>
 <div class="viewcode-block" id="Pref.save"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="s">&#39;Saves prefs to disk in dict format&#39;</span>
+        <span class="sd">&quot;&quot;&quot; Saves prefs to disk in dict format &quot;&quot;&quot;</span>
         <span class="n">fpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fpath</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">]:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
@@ -501,7 +497,7 @@
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[pref] Saving to &#39;</span> <span class="o">+</span> <span class="n">fpath</span><span class="p">)</span>
             <span class="n">pref_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
-            <span class="n">cPickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">pref_dict</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+            <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">pref_dict</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="n">pickle</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">True</span>
 </div>
 <div class="viewcode-block" id="Pref.get_fpath"><a class="viewcode-back" href="../../utool.html#utool.Preferences.Pref.get_fpath">[docs]</a>    <span class="k">def</span> <span class="nf">get_fpath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -513,14 +509,13 @@
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[pref.load()]&#39;</span><span class="p">)</span>
             <span class="c">#if not os.path.exists(self._intern.fpath):</span>
             <span class="c">#    msg = &#39;[pref] fpath=%r does not exist&#39; % (self._intern.fpath)</span>
-            <span class="c">#    #printDBG(msg)</span>
             <span class="c">#    return msg</span>
         <span class="n">fpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fpath</span><span class="p">()</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">VERBOSE_PREF</span><span class="p">:</span>
                     <span class="k">print</span><span class="p">(</span><span class="s">&#39;load: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fpath</span><span class="p">)</span>
-                <span class="n">pref_dict</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                <span class="n">pref_dict</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">EOFError</span> <span class="k">as</span> <span class="n">ex1</span><span class="p">:</span>
             <span class="n">util_dbg</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex1</span><span class="p">,</span> <span class="s">&#39;did not load pref fpath=</span><span class="si">%r</span><span class="s"> correctly&#39;</span> <span class="o">%</span> <span class="n">fpath</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
             <span class="c">#warnings.warn(msg)</span>
@@ -780,7 +775,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>

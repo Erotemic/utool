@@ -92,6 +92,14 @@ utool._internal.py2_syntax_funcs module
     :undoc-members:
     :show-inheritance:
 
+utool._internal.randomwrap module
+---------------------------------
+
+.. automodule:: utool._internal.randomwrap
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 utool._internal.util_importer module
 ------------------------------------
 

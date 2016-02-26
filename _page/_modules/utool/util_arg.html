@@ -168,8 +168,8 @@
 
 <div class="viewcode-block" id="get_module_verbosity_flags"><a class="viewcode-back" href="../../utool.html#utool.util_arg.get_module_verbosity_flags">[docs]</a><span class="k">def</span> <span class="nf">get_module_verbosity_flags</span><span class="p">(</span><span class="o">*</span><span class="n">labels</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; checks for standard flags for enableing module specific verbosity &quot;&quot;&quot;</span>
-    <span class="n">verbose_prefix_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;--verbose-&#39;</span><span class="p">,</span> <span class="s">&#39;--verb&#39;</span><span class="p">]</span>
-    <span class="n">veryverbose_prefix_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;--veryverbose-&#39;</span><span class="p">,</span> <span class="s">&#39;--veryverb&#39;</span><span class="p">]</span>
+    <span class="n">verbose_prefix_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;--verbose-&#39;</span><span class="p">,</span> <span class="s">&#39;--verb&#39;</span><span class="p">,</span> <span class="s">&#39;--verb-&#39;</span><span class="p">]</span>
+    <span class="n">veryverbose_prefix_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;--veryverbose-&#39;</span><span class="p">,</span> <span class="s">&#39;--veryverb&#39;</span><span class="p">,</span> <span class="s">&#39;--veryverb-&#39;</span><span class="p">]</span>
     <span class="n">verbose_flags</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
         <span class="p">[</span><span class="n">prefix</span> <span class="o">+</span> <span class="n">lbl</span> <span class="k">for</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">lbl</span> <span class="ow">in</span>
          <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">verbose_prefix_list</span><span class="p">,</span> <span class="n">labels</span><span class="p">)])</span>
@@ -255,7 +255,8 @@
 
 <span class="c">#@profile</span></div>
 <div class="viewcode-block" id="get_argflag"><a class="viewcode-back" href="../../utool.html#utool.util_arg.get_argflag">[docs]</a><span class="k">def</span> <span class="nf">get_argflag</span><span class="p">(</span><span class="n">argstr_</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">help_</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">return_specified</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                <span class="n">need_prefix</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">return_was_specified</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                <span class="n">need_prefix</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">return_was_specified</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">argv</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Checks if the commandline has a flag or a corresponding noflag</span>
 
@@ -297,6 +298,31 @@
     <span class="n">_register_arg</span><span class="p">(</span><span class="n">argstr_list</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">help_</span><span class="p">)</span>
     <span class="n">parsed_val</span> <span class="o">=</span> <span class="n">default</span>
     <span class="n">was_specified</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">debug</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="c"># Check environment variables for default as well as argv</span>
+    <span class="kn">import</span> <span class="nn">os</span>
+    <span class="c">#&quot;&quot;&quot;</span>
+    <span class="c">#set UTOOL_NOCNN=True</span>
+    <span class="c">#export UTOOL_NOCNN True</span>
+    <span class="c">#&quot;&quot;&quot;</span>
+    <span class="c">#argv_orig = argv[:]</span>
+    <span class="c"># HACK: make this not happen very time you loop</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="n">sentinal</span> <span class="o">=</span> <span class="s">&#39;UTOOL_&#39;</span>
+        <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">sentinal</span><span class="p">):</span>
+            <span class="n">flag</span> <span class="o">=</span> <span class="s">&#39;--&#39;</span> <span class="o">+</span> <span class="n">key</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">sentinal</span><span class="p">):]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="s">&#39;-&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;TRUE&#39;</span><span class="p">,</span> <span class="s">&#39;ON&#39;</span><span class="p">]:</span>
+                <span class="k">pass</span>
+            <span class="k">elif</span> <span class="n">val</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;FALSE&#39;</span><span class="p">,</span> <span class="s">&#39;OFF&#39;</span><span class="p">]:</span>
+                <span class="k">continue</span>
+                <span class="c">#flag += &#39;=False&#39;</span>
+            <span class="n">new_argv</span> <span class="o">=</span> <span class="p">[</span><span class="n">flag</span><span class="p">]</span>
+            <span class="n">argv</span> <span class="o">=</span> <span class="n">argv</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">new_argv</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;argv.extend(new_argv=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_argv</span><span class="p">,))</span>
+
     <span class="k">for</span> <span class="n">argstr</span> <span class="ow">in</span> <span class="n">argstr_list</span><span class="p">:</span>
         <span class="c">#if VERYVERBOSE:</span>
         <span class="c">#    print(&#39;[util_arg]   * checking argstr=%r&#39; % (argstr,))</span>
@@ -304,30 +330,30 @@
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;Invalid argstr: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">argstr</span><span class="p">,))</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">need_prefix</span><span class="p">:</span>
             <span class="n">noprefix</span> <span class="o">=</span> <span class="n">argstr</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;--&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">noprefix</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">noprefix</span> <span class="ow">in</span> <span class="n">argv</span><span class="p">:</span>
                 <span class="n">parsed_val</span> <span class="o">=</span> <span class="bp">True</span>
                 <span class="n">was_specified</span> <span class="o">=</span> <span class="bp">True</span>
                 <span class="k">break</span>
         <span class="c">#if argstr.find(&#39;--no&#39;) == 0:</span>
             <span class="c">#argstr = argstr.replace(&#39;--no&#39;, &#39;--&#39;)</span>
         <span class="n">noarg</span> <span class="o">=</span> <span class="n">argstr</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;--&#39;</span><span class="p">,</span> <span class="s">&#39;--no&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">argstr</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">argstr</span> <span class="ow">in</span> <span class="n">argv</span><span class="p">:</span>
             <span class="n">parsed_val</span> <span class="o">=</span> <span class="bp">True</span>
             <span class="n">was_specified</span> <span class="o">=</span> <span class="bp">True</span>
             <span class="c">#if VERYVERBOSE:</span>
             <span class="c">#    print(&#39;[util_arg]   * ...WAS_SPECIFIED. AND PARSED&#39;)</span>
             <span class="k">break</span>
-        <span class="k">elif</span> <span class="n">noarg</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">noarg</span> <span class="ow">in</span> <span class="n">argv</span><span class="p">:</span>
             <span class="n">parsed_val</span> <span class="o">=</span> <span class="bp">False</span>
             <span class="n">was_specified</span> <span class="o">=</span> <span class="bp">True</span>
             <span class="c">#if VERYVERBOSE:</span>
             <span class="c">#    print(&#39;[util_arg]   * ...WAS_SPECIFIED. AND NOT PARSED&#39;)</span>
             <span class="k">break</span>
-        <span class="k">elif</span> <span class="n">argstr</span> <span class="o">+</span> <span class="s">&#39;=True&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">argstr</span> <span class="o">+</span> <span class="s">&#39;=True&#39;</span> <span class="ow">in</span> <span class="n">argv</span><span class="p">:</span>
             <span class="n">parsed_val</span> <span class="o">=</span> <span class="bp">True</span>
             <span class="n">was_specified</span> <span class="o">=</span> <span class="bp">True</span>
             <span class="k">break</span>
-        <span class="k">elif</span> <span class="n">argstr</span> <span class="o">+</span> <span class="s">&#39;=False&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">argstr</span> <span class="o">+</span> <span class="s">&#39;=False&#39;</span> <span class="ow">in</span> <span class="n">argv</span><span class="p">:</span>
             <span class="n">parsed_val</span> <span class="o">=</span> <span class="bp">False</span>
             <span class="n">was_specified</span> <span class="o">=</span> <span class="bp">True</span>
             <span class="k">break</span>
@@ -364,7 +390,16 @@
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m utool.util_arg --test-get_argval</span>
-<span class="sd">        python -m utool.util_arg --exec-get_argval</span>
+<span class="sd">        python -m utool.util_arg --exec-get_argval:0</span>
+<span class="sd">        python -m utool.util_arg --exec-get_argval:1</span>
+<span class="sd">        python -c &quot;import utool; print([(type(x), x) for x in [utool.get_argval(&#39;--quest&#39;)]])&quot; --quest=&quot;holy grail&quot;</span>
+<span class="sd">        python -c &quot;import utool; print([(type(x), x) for x in [utool.get_argval(&#39;--quest&#39;)]])&quot; --quest=&quot;42&quot;</span>
+<span class="sd">        python -c &quot;import utool; print([(type(x), x) for x in [utool.get_argval(&#39;--quest&#39;)]])&quot; --quest=42</span>
+<span class="sd">        python -c &quot;import utool; print([(type(x), x) for x in [utool.get_argval(&#39;--quest&#39;)]])&quot; --quest 42</span>
+<span class="sd">        python -c &quot;import utool; print([(type(x), x) for x in [utool.get_argval(&#39;--quest&#39;, float)]])&quot; --quest 42</span>
+<span class="sd">        python -c &quot;import utool; print([(type(x), x) for x in [utool.get_argval((&#39;--nAssign&#39;), int)]])&quot; --nAssign 42</span>
+<span class="sd">        python -c &quot;import utool; print([(type(x), x) for x in [utool.get_argval((&#39;--test&#39;), str)]])&quot; --test</span>
+<span class="sd">        python -c &quot;import utool; print([(type(x), x) for x in [utool.get_argval((&#39;--test&#39;), str)]])&quot; --test &quot;foobar is good&quot; --youbar ok</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
@@ -399,24 +434,45 @@
 <span class="sd">            &#39;--the-val&#39;: [1, 2, 3],</span>
 <span class="sd">        }</span>
 
-<span class="sd">        eggs, holy grail, 42</span>
-
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -c &quot;import utool; print([(type(x), x) for x in [utool.get_argval(&#39;--quest&#39;)]])&quot; --quest=&quot;holy grail&quot;</span>
-<span class="sd">        python -c &quot;import utool; print([(type(x), x) for x in [utool.get_argval(&#39;--quest&#39;)]])&quot; --quest=&quot;42&quot;</span>
-<span class="sd">        python -c &quot;import utool; print([(type(x), x) for x in [utool.get_argval(&#39;--quest&#39;)]])&quot; --quest=42</span>
-<span class="sd">        python -c &quot;import utool; print([(type(x), x) for x in [utool.get_argval(&#39;--quest&#39;)]])&quot; --quest 42</span>
-<span class="sd">        python -c &quot;import utool; print([(type(x), x) for x in [utool.get_argval(&#39;--quest&#39;, float)]])&quot; --quest 42</span>
-<span class="sd">        python -c &quot;import utool; print([(type(x), x) for x in [utool.get_argval((&#39;--nAssign&#39;), int)]])&quot; --nAssign 42</span>
-<span class="sd">        python -c &quot;import utool; print([(type(x), x) for x in [utool.get_argval((&#39;--test&#39;), str)]])&quot; --test</span>
-<span class="sd">        python -c &quot;import utool; print([(type(x), x) for x in [utool.get_argval((&#39;--test&#39;), str)]])&quot; --test &quot;foobar is good&quot; --youbar ok</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_arg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; import sys</span>
+<span class="sd">        &gt;&gt;&gt; argv = [&#39;--slice1&#39;, &#39;::&#39;, &#39;--slice2=4:&#39;, &#39;--slice3=::4&#39;, &#39;--slice4&#39;, &#39;[1,2,3,4]&#39;, &#39;--slice5=3&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; # specify a list of args and kwargs to get_argval</span>
+<span class="sd">        &gt;&gt;&gt; argstr_kwargs_list = [</span>
+<span class="sd">        &gt;&gt;&gt;     (&#39;--slice1&#39;,            dict(type_=&#39;fuzzy_subset&#39;, default=None, argv=argv)),</span>
+<span class="sd">        &gt;&gt;&gt;     (&#39;--slice2&#39;,            dict(type_=&#39;fuzzy_subset&#39;, default=None, argv=argv)),</span>
+<span class="sd">        &gt;&gt;&gt;     (&#39;--slice3&#39;,            dict(type_=&#39;fuzzy_subset&#39;, default=None, argv=argv)),</span>
+<span class="sd">        &gt;&gt;&gt;     (&#39;--slice4&#39;,            dict(type_=&#39;fuzzy_subset&#39;, default=None, argv=argv)),</span>
+<span class="sd">        &gt;&gt;&gt;     (&#39;--slice5&#39;,            dict(type_=&#39;fuzzy_subset&#39;, default=None, argv=argv)),</span>
+<span class="sd">        &gt;&gt;&gt; ]</span>
+<span class="sd">        &gt;&gt;&gt; # Execute the command with for each of the test cases</span>
+<span class="sd">        &gt;&gt;&gt; res_list = []</span>
+<span class="sd">        &gt;&gt;&gt; argstr_list = ut.get_list_column(argstr_kwargs_list, 0)</span>
+<span class="sd">        &gt;&gt;&gt; list1 = [1,3,5,7,9]</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; list2 = np.array([[1, 2],[3,4],[5,6],[7,8],[9,1]])</span>
+<span class="sd">        &gt;&gt;&gt; for argstr_, kwargs in argstr_kwargs_list:</span>
+<span class="sd">        &gt;&gt;&gt;     res = get_argval(argstr_, **kwargs)</span>
+<span class="sd">        &gt;&gt;&gt;     print(&#39;---&#39;)</span>
+<span class="sd">        &gt;&gt;&gt;     print(&#39;res = %r&#39; % (res,))</span>
+<span class="sd">        &gt;&gt;&gt;     print(&#39;list1[%r=%r] = %r&#39; % (argstr_, res, ut.take(list1, res),))</span>
+<span class="sd">        &gt;&gt;&gt;     print(&#39;list2[%r=%r] = %r&#39; % (argstr_, res, list2[res].tolist(),))</span>
+<span class="sd">        &gt;&gt;&gt;     res_list.append(res)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.dict_str(ut.odict(zip(argstr_list, res_list)))</span>
+<span class="sd">        &gt;&gt;&gt; result = result.replace(&#39;u\&#39;&#39;, &#39;\&#39;&#39;)  # hack</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">verbose</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">verbose</span> <span class="o">=</span> <span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">VERYVERBOSE</span>
+        <span class="k">pass</span>
+        <span class="c"># verbose = VERYVERBOSE</span>
 
     <span class="k">if</span> <span class="n">debug</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">debug</span> <span class="o">=</span> <span class="n">VERYVERBOSE</span>
+        <span class="c"># debug = VERYVERBOSE</span>
+        <span class="k">pass</span>
 
     <span class="k">if</span> <span class="n">argv</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">argv</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
@@ -466,6 +522,23 @@
                     <span class="n">argstr_list2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">argstr2_1</span><span class="p">)</span>
                     <span class="n">seen_</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">argstr2_1</span><span class="p">)</span>
             <span class="n">argstr_list</span> <span class="o">=</span> <span class="n">argstr_list2</span>
+
+        <span class="c"># Check environment variables for default as well as argv</span>
+        <span class="kn">import</span> <span class="nn">os</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        set UTOOL_NOCNN=True</span>
+<span class="sd">        export UTOOL_NOCNN True</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c">#argv_orig = argv[:]</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+            <span class="n">sentinal</span> <span class="o">=</span> <span class="s">&#39;UTOOL_&#39;</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">sentinal</span><span class="p">):</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="s">&#39;--&#39;</span> <span class="o">+</span> <span class="n">key</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">sentinal</span><span class="p">):]</span>
+                <span class="n">new_argv</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">]</span>
+                <span class="n">argv</span> <span class="o">=</span> <span class="n">argv</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">new_argv</span>
+                <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;argv.extend(new_argv=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_argv</span><span class="p">,))</span>
 
         <span class="k">for</span> <span class="n">argx</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">argv</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">argstr</span> <span class="ow">in</span> <span class="n">argstr_list</span><span class="p">:</span>
@@ -519,7 +592,7 @@
                             <span class="n">arg_after</span> <span class="o">=</span> <span class="n">util_type</span><span class="o">.</span><span class="n">smart_cast2</span><span class="p">(</span><span class="n">val_after</span><span class="p">)</span>
                         <span class="k">else</span><span class="p">:</span>
                             <span class="n">arg_after</span> <span class="o">=</span> <span class="n">util_type</span><span class="o">.</span><span class="n">try_cast</span><span class="p">(</span><span class="n">val_after</span><span class="p">,</span> <span class="n">type_</span><span class="p">)</span>
-                            <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">type_</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">type_</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">type_</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
                                 <span class="k">if</span> <span class="n">arg_after</span> <span class="o">==</span> <span class="s">&#39;None&#39;</span><span class="p">:</span>
                                     <span class="c"># hack</span>
                                     <span class="n">arg_after</span> <span class="o">=</span> <span class="bp">None</span>
@@ -529,7 +602,9 @@
                     <span class="k">break</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;problem in arg_val&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;problem in arg_val&#39;</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;type_&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">SUPER_STRICT</span><span class="p">:</span>
+            <span class="k">raise</span>
         <span class="k">pass</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[get_argval] ... Parsed arg_after=</span><span class="si">%r</span><span class="s">, was_specified=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">arg_after</span><span class="p">,</span> <span class="n">was_specified</span><span class="p">))</span>
@@ -541,7 +616,7 @@
 </div>
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="parse_cfgstr_list"><a class="viewcode-back" href="../../utool.html#utool.util_arg.parse_cfgstr_list">[docs]</a><span class="k">def</span> <span class="nf">parse_cfgstr_list</span><span class="p">(</span><span class="n">cfgstr_list</span><span class="p">,</span> <span class="n">smartcast</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">oldmode</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Parses a list of items in the format</span>
 <span class="sd">    [&#39;var1:val1&#39;, &#39;var2:val2&#39;, &#39;var3:val3&#39;]</span>
 <span class="sd">    the &#39;=&#39; character can be used instead of the &#39;:&#39; character if desired</span>
@@ -556,11 +631,13 @@
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_arg import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import utool as ut</span>
-<span class="sd">        &gt;&gt;&gt; cfgstr_list = [&#39;var1:val1&#39;, &#39;var2:1&#39;, &#39;var3:1.0&#39;, &#39;var4:None&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; cfgstr_list = [&#39;var1=val1&#39;, &#39;var2=1&#39;, &#39;var3=1.0&#39;, &#39;var4=None&#39;, &#39;var5=[1,2,3]&#39;, &#39;var6=(a,b,c)&#39;]</span>
 <span class="sd">        &gt;&gt;&gt; smartcast = True</span>
-<span class="sd">        &gt;&gt;&gt; cfgdict = parse_cfgstr_list(cfgstr_list, smartcast)</span>
-<span class="sd">        &gt;&gt;&gt; result = ut.dict_str(cfgdict, sorted_=True, newlines=False)</span>
+<span class="sd">        &gt;&gt;&gt; cfgdict = parse_cfgstr_list(cfgstr_list, smartcast, oldmode=False)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(cfgdict, sorted_=True, newlines=False)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        {&#39;var1&#39;: &#39;val1&#39;, &#39;var2&#39;: 1, &#39;var3&#39;: 1.0, &#39;var4&#39;: None, &#39;var5&#39;: [1, 2, 3], &#39;var6&#39;: (&#39;a&#39;, &#39;b&#39;, &#39;c&#39;)}</span>
+
 <span class="sd">        {&#39;var1&#39;: &#39;val1&#39;, &#39;var2&#39;: 1, &#39;var3&#39;: 1.0, &#39;var4&#39;: None}</span>
 
 <span class="sd">        {&#39;var4&#39;: None, &#39;var1&#39;: &#39;val1&#39;, &#39;var3&#39;: 1.0, &#39;var2&#39;: 1}</span>
@@ -858,6 +935,12 @@
 <span class="sd">    Decorators which control program flow based on sys.argv</span>
 <span class="sd">    the decorated function does not execute without its corresponding</span>
 <span class="sd">    flag</span>
+
+<span class="sd">    Kwargs:</span>
+<span class="sd">        default, quiet, indent, default</span>
+
+<span class="sd">    ReturnKwargs:</span>
+<span class="sd">        alias_flags</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;default&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
@@ -967,7 +1050,7 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">verbose</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">verbose</span> <span class="o">=</span> <span class="n">VERBOSE_ARGPARSE</span> <span class="ow">or</span> <span class="n">VERBOSE</span>
+        <span class="n">verbose</span> <span class="o">=</span> <span class="n">VERBOSE_ARGPARSE</span>
     <span class="k">def</span> <span class="nf">make_argstrs</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">prefix_list</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="n">prefix_list</span><span class="p">:</span>
             <span class="k">yield</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">key</span>
@@ -1041,7 +1124,7 @@
     <span class="n">do_helpx</span> <span class="o">=</span> <span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--helpx&#39;</span><span class="p">,</span>
                            <span class="n">help_</span><span class="o">=</span><span class="s">&#39;Specifies that argparse_dict should print help and quit&#39;</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--help&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">do_helpx</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--help&#39;</span><span class="p">,</span> <span class="s">&#39;--help2&#39;</span><span class="p">))</span> <span class="ow">or</span> <span class="n">do_helpx</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;COMMAND LINE IS ACCEPTING THESE PARAMS WITH DEFAULTS:&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">lbl</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
@@ -1053,42 +1136,64 @@
     <span class="k">return</span> <span class="n">dict_</span>
 
 </div>
-<div class="viewcode-block" id="get_argv_tail"><a class="viewcode-back" href="../../utool.html#utool.util_arg.get_argv_tail">[docs]</a><span class="k">def</span> <span class="nf">get_argv_tail</span><span class="p">(</span><span class="n">scriptname</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; gets the rest of the arguments after a script has been invoked</span>
+<div class="viewcode-block" id="get_argv_tail"><a class="viewcode-back" href="../../utool.html#utool.util_arg.get_argv_tail">[docs]</a><span class="k">def</span> <span class="nf">get_argv_tail</span><span class="p">(</span><span class="n">scriptname</span><span class="p">,</span> <span class="n">prefer_main</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">argv</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    gets the rest of the arguments after a script has been invoked hack.</span>
+<span class="sd">    accounts for python -m scripts.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        scriptname (?):</span>
+<span class="sd">        scriptname (str):</span>
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m utool.util_arg --test-get_argv_tail</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_arg import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; # build test data</span>
-<span class="sd">        &gt;&gt;&gt; scriptname = &#39;util_arg.py&#39;</span>
-<span class="sd">        &gt;&gt;&gt; # execute function</span>
-<span class="sd">        &gt;&gt;&gt; result = get_argv_tail(scriptname)</span>
-<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; from os.path import relpath, dirname</span>
+<span class="sd">        &gt;&gt;&gt; scriptname = &#39;utool.util_arg&#39;</span>
+<span class="sd">        &gt;&gt;&gt; prefer_main = False</span>
+<span class="sd">        &gt;&gt;&gt; argv=[&#39;python&#39;, &#39;-m&#39;, &#39;utool.util_arg&#39;, &#39;--test-get_argv_tail&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; tail = get_argv_tail(scriptname, prefer_main, argv)</span>
+<span class="sd">        &gt;&gt;&gt; # hack</span>
+<span class="sd">        &gt;&gt;&gt; tail[0] = ut.ensure_unixslash(relpath(tail[0], dirname(dirname(ut.__file__))))</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(tail)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [&#39;utool/util_arg.py&#39;, &#39;--test-get_argv_tail&#39;]</span>
+
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_arg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; from os.path import relpath, dirname</span>
+<span class="sd">        &gt;&gt;&gt; scriptname = &#39;utprof.py&#39;</span>
+<span class="sd">        &gt;&gt;&gt; prefer_main = True</span>
+<span class="sd">        &gt;&gt;&gt; argv=[&#39;utprof.py&#39;, &#39;-m&#39;, &#39;utool&#39;, &#39;--tf&#39;, &#39;get_argv_tail&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; tail = get_argv_tail(scriptname, prefer_main, argv)</span>
+<span class="sd">        &gt;&gt;&gt; # hack</span>
+<span class="sd">        &gt;&gt;&gt; tail[0] = ut.ensure_unixslash(relpath(tail[0], dirname(dirname(ut.__file__))))</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(tail)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [&#39;utool/__main__.py&#39;, &#39;--tf&#39;, &#39;get_argv_tail&#39;]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-    <span class="n">modname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;-m&#39;</span><span class="p">,</span> <span class="n">help_</span><span class="o">=</span><span class="s">&#39;specify module name to profile&#39;</span><span class="p">)</span>
-    <span class="c">#print(sys.argv)</span>
+    <span class="n">modname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;-m&#39;</span><span class="p">,</span> <span class="n">help_</span><span class="o">=</span><span class="s">&#39;specify module name to profile&#39;</span><span class="p">,</span> <span class="n">argv</span><span class="o">=</span><span class="n">argv</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">modname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">modpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_modpath_from_modname</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span>
-        <span class="c">#print(modpath)</span>
-        <span class="n">argvx</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
-        <span class="n">argv_tail</span> <span class="o">=</span> <span class="p">[</span><span class="n">modpath</span><span class="p">]</span> <span class="o">+</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">argvx</span><span class="p">:]</span>
+        <span class="c"># hack to account for -m scripts</span>
+        <span class="n">modpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_modpath_from_modname</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">prefer_main</span><span class="o">=</span><span class="n">prefer_main</span><span class="p">)</span>
+        <span class="n">argvx</span> <span class="o">=</span> <span class="n">argv</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">argv_tail</span> <span class="o">=</span> <span class="p">[</span><span class="n">modpath</span><span class="p">]</span> <span class="o">+</span> <span class="n">argv</span><span class="p">[</span><span class="n">argvx</span><span class="p">:]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">argvx</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">scriptname</span><span class="p">)</span>
+            <span class="n">argvx</span> <span class="o">=</span> <span class="n">argv</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">scriptname</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">argvx</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">argvx</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">argv</span><span class="p">):</span>
+                <span class="c"># HACK</span>
                 <span class="k">if</span> <span class="n">scriptname</span> <span class="ow">in</span> <span class="n">arg</span><span class="p">:</span>
                     <span class="k">break</span>
-            <span class="c">#print(&#39;sys.argv = %r&#39; % (sys.argv,))</span>
-        <span class="n">argv_tail</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[(</span><span class="n">argvx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):]</span>
+        <span class="n">argv_tail</span> <span class="o">=</span> <span class="n">argv</span><span class="p">[(</span><span class="n">argvx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):]</span>
     <span class="k">return</span> <span class="n">argv_tail</span>
 
 
@@ -1131,7 +1236,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>

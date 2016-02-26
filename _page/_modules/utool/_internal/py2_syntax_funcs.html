@@ -130,6 +130,7 @@
             
   <h1>Source code for utool._internal.py2_syntax_funcs</h1><div class="highlight"><pre>
 <span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 
 
@@ -156,11 +157,11 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">outer_wrapper</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;outer_wrapper&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">ignores_exc_tb_closure</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_decor</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">IGNORE_TRACEBACK</span><span class="p">:</span>
             <span class="c"># if the global enforces that we should not ignore anytracebacks</span>
             <span class="c"># then just return the original function without any modifcation</span>
             <span class="k">return</span> <span class="n">func</span>
+        <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_decor</span>
         <span class="c">#@wraps(func)</span>
         <span class="k">def</span> <span class="nf">wrp_noexectb</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
@@ -200,7 +201,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>

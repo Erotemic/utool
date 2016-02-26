@@ -133,10 +133,14 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">codecs</span>
+
 
 <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">types</span>
     <span class="n">__STR__</span> <span class="o">=</span> <span class="nb">unicode</span>
+
+    <span class="c"># TODO: use six.text_type</span>
     <span class="k">def</span> <span class="nf">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Weird behavior for classes</span>
@@ -154,7 +158,10 @@
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">func</span><span class="p">)</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">class_types</span><span class="p">):</span>
-                <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&lt;class </span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&gt;&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">func</span><span class="o">.</span><span class="n">__name__</span>
+                <span class="c">#return str(func).replace(&#39;&lt;class \&#39;&#39;, &#39;&#39;).replace(&#39;\&#39;&gt;&#39;, &#39;&#39;)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span>
         <span class="c">#except Exception as ex:</span>
         <span class="c">#    import utool as ut</span>
         <span class="c">#    with ut.embed_on_exception_context:</span>
@@ -168,6 +175,7 @@
     <span class="c">#</span>
     <span class="k">def</span> <span class="nf">get_funcdoc</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s">&#39;func_doc&#39;</span><span class="p">)</span>
+    <span class="c">#</span>
     <span class="k">def</span> <span class="nf">set_funcdoc</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">newdoc</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">setattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s">&#39;func_doc&#39;</span><span class="p">,</span> <span class="n">newdoc</span><span class="p">)</span>
     <span class="c">#</span>
@@ -188,9 +196,13 @@
     <span class="n">BooleanType</span> <span class="o">=</span> <span class="nb">bool</span>
     <span class="n">FloatType</span> <span class="o">=</span> <span class="nb">float</span>
 <div class="viewcode-block" id="get_funcname"><a class="viewcode-back" href="../../../utool._internal.html#utool._internal.meta_util_six.get_funcname">[docs]</a>    <span class="k">def</span> <span class="nf">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">func</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s">&#39;__name__&#39;</span><span class="p">)</span></div>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s">&#39;__name__&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">func</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span></div>
 <div class="viewcode-block" id="set_funcname"><a class="viewcode-back" href="../../../utool._internal.html#utool._internal.meta_util_six.set_funcname">[docs]</a>    <span class="k">def</span> <span class="nf">set_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">newname</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">setattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s">&#39;__name__&#39;</span><span class="p">,</span> <span class="n">newname</span><span class="p">)</span>
     <span class="c">#</span></div>
@@ -222,6 +234,10 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">__STR__</span><span class="p">(</span><span class="n">str_</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">UnicodeDecodeError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">str_</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">codecs</span><span class="o">.</span><span class="n">BOM_UTF8</span><span class="p">):</span>
+                <span class="c"># Can safely remove the utf8 marker</span>
+                <span class="c"># http://stackoverflow.com/questions/12561063/python-extract-data-from-file</span>
+                <span class="n">str_</span> <span class="o">=</span> <span class="n">str_</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">codecs</span><span class="o">.</span><span class="n">BOM_UTF8</span><span class="p">):]</span>
             <span class="k">return</span> <span class="n">str_</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
     <span class="c">#if not isinstance(str_, __STR__) and is_byte_encoded_unicode(str_):</span>
     <span class="c">#    return str_.decode(&#39;utf-8&#39;)</span>
@@ -238,7 +254,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>

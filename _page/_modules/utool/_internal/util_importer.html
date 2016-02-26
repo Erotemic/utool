@@ -285,7 +285,7 @@
 <span class="k">def</span> <span class="nf">_make_module_header</span><span class="p">():</span>
     <span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
         <span class="s">&#39;# flake8: noqa&#39;</span><span class="p">,</span>
-        <span class="s">&#39;from __future__ import absolute_import, division, print_function&#39;</span><span class="p">])</span>
+        <span class="s">&#39;from __future__ import absolute_import, division, print_function, unicode_literals&#39;</span><span class="p">])</span>
 
 <span class="k">def</span> <span class="nf">_make_imports_str</span><span class="p">(</span><span class="n">IMPORTS</span><span class="p">,</span> <span class="n">rootmodname</span><span class="o">=</span><span class="s">&#39;.&#39;</span><span class="p">):</span>
     <span class="n">imports_fmtstr</span> <span class="o">=</span> <span class="s">&#39;from {rootmodname} import </span><span class="si">%s</span><span class="s">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rootmodname</span><span class="o">=</span><span class="n">rootmodname</span><span class="p">)</span>
@@ -323,67 +323,82 @@
         <span class="c"># Normal case implicit import of util_inject</span>
         <span class="n">injecter_import</span> <span class="o">=</span> <span class="s">&#39;import utool&#39;</span>
         <span class="n">injecter</span> <span class="o">=</span> <span class="s">&#39;utool&#39;</span>
-    <span class="n">injectstr_fmt</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="s">r&#39;&#39;&#39;</span>
-<span class="s">    # STARTBLOCK</span>
-<span class="s">    {injecter_import}</span>
-<span class="s">    print, print_, printDBG, rrr, profile = {injecter}.inject(</span>
-<span class="s">        __name__, &#39;[{modname}]&#39;)</span>
+    <span class="n">injectstr_fmt</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span>
+        <span class="sd">r&#39;&#39;&#39;</span>
+<span class="sd">        # STARTBLOCK</span>
+<span class="sd">        {injecter_import}</span>
+<span class="sd">        print, rrr, profile = {injecter}.inject2(__name__, &#39;[{modname}]&#39;)</span>
 
 
-<span class="s">    def reassign_submodule_attributes(verbose=True):</span>
-<span class="s">        &quot;&quot;&quot;</span>
-<span class="s">        why reloading all the modules doesnt do this I don&#39;t know</span>
-<span class="s">        &quot;&quot;&quot;</span>
-<span class="s">        import sys</span>
-<span class="s">        if verbose and &#39;--quiet&#39; not in sys.argv:</span>
-<span class="s">            print(&#39;dev reimport&#39;)</span>
-<span class="s">        # Self import</span>
-<span class="s">        import {modname}</span>
-<span class="s">        # Implicit reassignment.</span>
-<span class="s">        seen_ = set([])</span>
-<span class="s">        for tup in IMPORT_TUPLES:</span>
-<span class="s">            if len(tup) &gt; 2 and tup[2]:</span>
-<span class="s">                continue  # dont import package names</span>
-<span class="s">            submodname, fromimports = tup[0:2]</span>
-<span class="s">            submod = getattr({modname}, submodname)</span>
-<span class="s">            for attr in dir(submod):</span>
-<span class="s">                if attr.startswith(&#39;_&#39;):</span>
-<span class="s">                    continue</span>
-<span class="s">                if attr in seen_:</span>
-<span class="s">                    # This just holds off bad behavior</span>
-<span class="s">                    # but it does mimic normal util_import behavior</span>
-<span class="s">                    # which is good</span>
-<span class="s">                    continue</span>
-<span class="s">                seen_.add(attr)</span>
-<span class="s">                setattr({modname}, attr, getattr(submod, attr))</span>
+<span class="sd">        def reassign_submodule_attributes(verbose=True):</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+<span class="sd">            why reloading all the modules doesnt do this I don&#39;t know</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+<span class="sd">            import sys</span>
+<span class="sd">            if verbose and &#39;--quiet&#39; not in sys.argv:</span>
+<span class="sd">                print(&#39;dev reimport&#39;)</span>
+<span class="sd">            # Self import</span>
+<span class="sd">            import {modname}</span>
+<span class="sd">            # Implicit reassignment.</span>
+<span class="sd">            seen_ = set([])</span>
+<span class="sd">            for tup in IMPORT_TUPLES:</span>
+<span class="sd">                if len(tup) &gt; 2 and tup[2]:</span>
+<span class="sd">                    continue  # dont import package names</span>
+<span class="sd">                submodname, fromimports = tup[0:2]</span>
+<span class="sd">                submod = getattr({modname}, submodname)</span>
+<span class="sd">                for attr in dir(submod):</span>
+<span class="sd">                    if attr.startswith(&#39;_&#39;):</span>
+<span class="sd">                        continue</span>
+<span class="sd">                    if attr in seen_:</span>
+<span class="sd">                        # This just holds off bad behavior</span>
+<span class="sd">                        # but it does mimic normal util_import behavior</span>
+<span class="sd">                        # which is good</span>
+<span class="sd">                        continue</span>
+<span class="sd">                    seen_.add(attr)</span>
+<span class="sd">                    setattr({modname}, attr, getattr(submod, attr))</span>
 
 
-<span class="s">    def reload_subs(verbose=True):</span>
-<span class="s">        &quot;&quot;&quot; Reloads {modname} and submodules &quot;&quot;&quot;</span>
-<span class="s">        rrr(verbose=verbose)</span>
-<span class="s">        def fbrrr(*args, **kwargs):</span>
-<span class="s">            &quot;&quot;&quot; fallback reload &quot;&quot;&quot;</span>
-<span class="s">            pass</span>
-<span class="s">        {reload_body}</span>
-<span class="s">        rrr(verbose=verbose)</span>
-<span class="s">        try:</span>
-<span class="s">            # hackish way of propogating up the new reloaded submodule attributes</span>
-<span class="s">            reassign_submodule_attributes(verbose=verbose)</span>
-<span class="s">        except Exception as ex:</span>
-<span class="s">            print(ex)</span>
-<span class="s">    rrrr = reload_subs</span>
-<span class="s">    # ENDBLOCK</span>
-<span class="s">    &#39;&#39;&#39;</span><span class="p">)</span>
+<span class="sd">        def reload_subs(verbose=True):</span>
+<span class="sd">            &quot;&quot;&quot; Reloads {modname} and submodules &quot;&quot;&quot;</span>
+<span class="sd">            if verbose:</span>
+<span class="sd">                print(&#39;Reloading submodules&#39;)</span>
+<span class="sd">            rrr(verbose=verbose)</span>
+<span class="sd">            def wrap_fbrrr(mod):</span>
+<span class="sd">                def fbrrr(*args, **kwargs):</span>
+<span class="sd">                    &quot;&quot;&quot; fallback reload &quot;&quot;&quot;</span>
+<span class="sd">                    if verbose:</span>
+<span class="sd">                        print(&#39;No fallback relaod for mod=%r&#39; % (mod,))</span>
+<span class="sd">                    # Breaks ut.Pref (which should be depricated anyway)</span>
+<span class="sd">                    # import imp</span>
+<span class="sd">                    # imp.reload(mod)</span>
+<span class="sd">                return fbrrr</span>
+<span class="sd">            def get_rrr(mod):</span>
+<span class="sd">                if hasattr(mod, &#39;rrr&#39;):</span>
+<span class="sd">                    return mod.rrr</span>
+<span class="sd">                else:</span>
+<span class="sd">                    return wrap_fbrrr(mod)</span>
+<span class="sd">            def get_reload_subs(mod):</span>
+<span class="sd">                return getattr(mod, &#39;reload_subs&#39;, wrap_fbrrr(mod))</span>
+<span class="sd">            {reload_body}</span>
+<span class="sd">            rrr(verbose=verbose)</span>
+<span class="sd">            try:</span>
+<span class="sd">                # hackish way of propogating up the new reloaded submodule attributes</span>
+<span class="sd">                reassign_submodule_attributes(verbose=verbose)</span>
+<span class="sd">            except Exception as ex:</span>
+<span class="sd">                print(ex)</span>
+<span class="sd">        rrrr = reload_subs</span>
+<span class="sd">        # ENDBLOCK</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">)</span>
     <span class="n">injectstr_fmt</span> <span class="o">=</span> <span class="n">injectstr_fmt</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;# STARTBLOCK&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
     <span class="n">injectstr_fmt</span> <span class="o">=</span> <span class="n">injectstr_fmt</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;# ENDBLOCK&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
-    <span class="n">rrrdir_fmt</span>  <span class="o">=</span> <span class="s">&#39;    getattr(</span><span class="si">%s</span><span class="s">, </span><span class="se">\&#39;</span><span class="s">reload_subs</span><span class="se">\&#39;</span><span class="s">, fbrrr)(verbose=verbose)&#39;</span>
-    <span class="n">rrrfile_fmt</span> <span class="o">=</span> <span class="s">&#39;    getattr(</span><span class="si">%s</span><span class="s">, </span><span class="se">\&#39;</span><span class="s">rrr</span><span class="se">\&#39;</span><span class="s">, fbrrr)(verbose=verbose)&#39;</span>
+    <span class="n">rrrdir_fmt</span>  <span class="o">=</span> <span class="s">&#39;    get_reload_subs({modname})(verbose=verbose)&#39;</span>
+    <span class="n">rrrfile_fmt</span> <span class="o">=</span> <span class="s">&#39;    get_rrr({modname})(verbose=verbose)&#39;</span>
 
     <span class="k">def</span> <span class="nf">_reload_command</span><span class="p">(</span><span class="n">tup</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">tup</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">rrrdir_fmt</span> <span class="o">%</span> <span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">rrrdir_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">modname</span><span class="o">=</span><span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">rrrfile_fmt</span> <span class="o">%</span> <span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">rrrfile_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">modname</span><span class="o">=</span><span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
     <span class="n">reload_body</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">_reload_command</span><span class="p">,</span> <span class="n">IMPORT_TUPLES</span><span class="p">))</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="n">format_dict</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s">&#39;modname&#39;</span><span class="p">:</span> <span class="n">modname</span><span class="p">,</span>
@@ -410,7 +425,7 @@
 
 <span class="sd">    Using __import__ like this is typically not considered good style However,</span>
 <span class="sd">    it is better than import * and this will generate the good file text that</span>
-<span class="sd">    can be used when the module is &quot;frozen&quot;</span>
+<span class="sd">    can be used when the module is &#39;frozen&quot;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[UTIL_IMPORT] Running Dynamic Imports for modname=</span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">modname</span><span class="p">)</span>
@@ -461,7 +476,7 @@
             <span class="c">#print(new_else)</span>
             <span class="c"># Get path to init file so we can overwrite it</span>
             <span class="n">init_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s">&#39;__init__.py&#39;</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&quot;attempting to update: </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">init_fpath</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;attempting to update: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">init_fpath</span><span class="p">)</span>
             <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">init_fpath</span><span class="p">)</span>
             <span class="n">new_lines</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">editing</span> <span class="o">=</span> <span class="bp">False</span>
@@ -483,12 +498,12 @@
             <span class="c"># TODO:</span>
             <span class="c">#new_text = util_str.replace_between_tags(text, new_else, start_tag, end_tag)</span>
             <span class="k">if</span> <span class="n">updated</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&quot;writing updated file: </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">init_fpath</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;writing updated file: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">init_fpath</span><span class="p">)</span>
                 <span class="n">new_text</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">new_lines</span><span class="p">)</span>
                 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">init_fpath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
                     <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">new_text</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&quot;no write hook for file: </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">init_fpath</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;no write hook for file: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">init_fpath</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">inject_execstr</span>
 
@@ -527,7 +542,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>

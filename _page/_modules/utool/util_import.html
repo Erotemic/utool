@@ -137,9 +137,40 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_arg</span>
+<span class="kn">import</span> <span class="nn">sys</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[import]&#39;</span><span class="p">)</span>
 
 
+<div class="viewcode-block" id="possible_import_patterns"><a class="viewcode-back" href="../../utool.html#utool.util_import.possible_import_patterns">[docs]</a><span class="k">def</span> <span class="nf">possible_import_patterns</span><span class="p">(</span><span class="n">modname</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    does not support from x import *</span>
+<span class="sd">    does not support from x import z, y</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; modname = &#39;package.submod.submod2.module&#39;</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr3(ut.possible_import_patterns(modname))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [</span>
+<span class="sd">            &#39;import package.submod.submod2.module&#39;,</span>
+<span class="sd">            &#39;from package.submod.submod2 import module&#39;,</span>
+<span class="sd">        ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">patterns</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;import </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">modname</span><span class="p">,)]</span>
+    <span class="k">if</span> <span class="s">&#39;.&#39;</span> <span class="ow">in</span> <span class="n">modname</span><span class="p">:</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="n">modname</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span>
+        <span class="n">patterns</span> <span class="o">+=</span> <span class="p">[</span><span class="s">&#39;from </span><span class="si">%s</span><span class="s"> import </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])]</span>
+    <span class="n">NONSTANDARD</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">if</span> <span class="n">NONSTANDARD</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s">&#39;.&#39;</span> <span class="ow">in</span> <span class="n">modname</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">patterns</span> <span class="o">+=</span> <span class="p">[</span><span class="s">&#39;from </span><span class="si">%s</span><span class="s"> import </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])]</span>
+            <span class="n">patterns</span> <span class="o">+=</span> <span class="p">[</span><span class="s">&#39;import </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],)]</span>
+    <span class="k">return</span> <span class="n">patterns</span>
+
+</div>
 <div class="viewcode-block" id="package_contents"><a class="viewcode-back" href="../../utool.html#utool.util_import.package_contents">[docs]</a><span class="k">def</span> <span class="nf">package_contents</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">with_pkg</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">with_mod</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">ignore_prefix</span><span class="o">=</span><span class="p">[],</span>
                      <span class="n">ignore_suffix</span><span class="o">=</span><span class="p">[]):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
@@ -169,6 +200,10 @@
 <span class="sd">        &gt;&gt;&gt; print(ut.list_str(result))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">pkgutil</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="s">&#39;__path__&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">package</span><span class="o">.</span><span class="n">__name__</span><span class="p">]</span>
+    <span class="c">#    pass</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;package = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">package</span><span class="p">,))</span>
     <span class="n">walker</span> <span class="o">=</span> <span class="n">pkgutil</span><span class="o">.</span><span class="n">walk_packages</span><span class="p">(</span><span class="n">package</span><span class="o">.</span><span class="n">__path__</span><span class="p">,</span>
                                    <span class="n">prefix</span><span class="o">=</span><span class="n">package</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span><span class="p">,</span>
                                    <span class="n">onerror</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="bp">None</span><span class="p">)</span>
@@ -211,6 +246,9 @@
 <span class="sd">        &gt;&gt;&gt; assert result == modname_list</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># The __import__ statment is weird</span>
+    <span class="k">if</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">PRINT_INJECT_ORDER</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">modname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
+            <span class="n">util_inject</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">via</span><span class="o">=</span><span class="s">&#39;ut.import_modname&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="s">&#39;.&#39;</span> <span class="ow">in</span> <span class="n">modname</span><span class="p">:</span>
         <span class="n">fromlist</span> <span class="o">=</span> <span class="n">modname</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">fromlist_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">fromlist</span><span class="p">))</span>  <span class="c"># needs to be ascii for python2.7</span>
@@ -247,6 +285,9 @@
     <span class="k">if</span> <span class="n">pipiname</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">pipiname</span> <span class="o">=</span> <span class="n">modname</span>
     <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">PRINT_INJECT_ORDER</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">modname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
+                <span class="n">util_inject</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">via</span><span class="o">=</span><span class="s">&#39;ut.tryimport&#39;</span><span class="p">)</span>
         <span class="n">module</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">module</span>
     <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
@@ -412,11 +453,15 @@
     <span class="kn">import</span> <span class="nn">platform</span>
     <span class="k">if</span> <span class="n">isdir</span><span class="p">(</span><span class="n">module_fpath</span><span class="p">):</span>
         <span class="n">module_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">module_fpath</span><span class="p">,</span> <span class="s">&#39;__init__.py&#39;</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">module_fpath</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;module_fpath = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">module_fpath</span><span class="p">,))</span>
+    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">module_fpath</span><span class="p">),</span> <span class="s">&#39;module_fpath=</span><span class="si">%r</span><span class="s"> does not exist&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">module_fpath</span><span class="p">,)</span>
     <span class="n">python_version</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">python_version</span><span class="p">()</span>
     <span class="n">modname</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">module_fpath</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">modname</span> <span class="o">==</span> <span class="s">&#39;__init__&#39;</span><span class="p">:</span>
         <span class="n">modname</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">module_fpath</span><span class="p">))[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">PRINT_INJECT_ORDER</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">modname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+            <span class="n">util_inject</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">via</span><span class="o">=</span><span class="s">&#39;ut.import_module_from_fpath&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">python_version</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;2.7&#39;</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">imp</span>
         <span class="n">module</span> <span class="o">=</span> <span class="n">imp</span><span class="o">.</span><span class="n">load_source</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">module_fpath</span><span class="p">)</span>
@@ -453,7 +498,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>

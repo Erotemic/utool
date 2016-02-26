@@ -130,7 +130,7 @@
             
   <h1>Source code for utool._internal.meta_util_arg</h1><div class="highlight"><pre>
 <span class="c"># -*- coding: utf-8 -*-</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">import</span> <span class="nn">types</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">sys</span>
@@ -151,7 +151,9 @@
 <span class="n">PRINT_ALL_CALLERS</span>  <span class="o">=</span> <span class="s">&#39;--print-all-callers&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
 <span class="n">USE_ASSERT</span>         <span class="o">=</span> <span class="ow">not</span> <span class="n">NO_ASSERTS</span>
 <span class="n">NOT_QUIET</span>          <span class="o">=</span> <span class="ow">not</span> <span class="n">QUIET</span>
-<span class="n">PRINT_INJECT_ORDER</span> <span class="o">=</span> <span class="n">VERYVERBOSE</span> <span class="ow">or</span> <span class="s">&#39;--print-inject-order&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<span class="n">PRINT_INJECT_ORDER</span> <span class="o">=</span> <span class="p">(</span><span class="n">VERYVERBOSE</span> <span class="ow">or</span> <span class="s">&#39;--print-inject-order&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="ow">or</span>
+                      <span class="s">&#39;--verbinject&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="ow">or</span>
+                      <span class="s">&#39;--verb-inject&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
 <span class="n">LOGGING_VERBOSE</span>    <span class="o">=</span> <span class="n">VERYVERBOSE</span> <span class="ow">or</span> <span class="s">&#39;--verb-logging&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
 
 <span class="k">if</span> <span class="n">PRINT_INJECT_ORDER</span><span class="p">:</span>
@@ -204,8 +206,12 @@
     <span class="k">return</span> <span class="n">newval</span>
 
 
+<div class="viewcode-block" id="get_argflag"><a class="viewcode-back" href="../../../utool._internal.html#utool._internal.meta_util_arg.get_argflag">[docs]</a><span class="k">def</span> <span class="nf">get_argflag</span><span class="p">(</span><span class="n">flag</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+
+
 <span class="c"># FIXME: on a rrrr this get_argval is taken</span>
-<span class="c"># instead of the correct one from util_arg</span>
+<span class="c"># instead of the correct one from util_arg</span></div>
 <div class="viewcode-block" id="get_argval"><a class="viewcode-back" href="../../../utool._internal.html#utool._internal.meta_util_arg.get_argval">[docs]</a><span class="k">def</span> <span class="nf">get_argval</span><span class="p">(</span><span class="n">argstr</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Returns a value of an argument specified on the command line after some flag</span>
 
@@ -254,7 +260,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>utool.__main__ &mdash; utool 1.1.2.dev1 documentation</title>
+  <title>utool.util_const &mdash; utool 1.1.2.dev1 documentation</title>
   
 
   
@@ -116,7 +116,7 @@
       
           <li><a href="../utool.html">utool</a> &raquo;</li>
       
-    <li>utool.__main__</li>
+    <li>utool.util_const</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -128,25 +128,23 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for utool.__main__</h1><div class="highlight"><pre>
-<span class="c">#!/usr/bin/env python2.7</span>
+  <h1>Source code for utool.util_const</h1><div class="highlight"><pre>
 <span class="c"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 
 
-<div class="viewcode-block" id="utool_main"><a class="viewcode-back" href="../../utool.html#utool.__main__.utool_main">[docs]</a><span class="k">def</span> <span class="nf">utool_main</span><span class="p">():</span>
-    <span class="n">ignore_prefix</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">ignore_suffix</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-    <span class="c"># allows for --tf</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">main_function_tester</span><span class="p">(</span><span class="s">&#39;utool&#39;</span><span class="p">,</span> <span class="n">ignore_prefix</span><span class="p">,</span> <span class="n">ignore_suffix</span><span class="p">)</span>
-</div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<div class="viewcode-block" id="ClassNoParam"><a class="viewcode-back" href="../../utool.html#utool.util_const.ClassNoParam">[docs]</a><span class="k">class</span> <span class="nc">ClassNoParam</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    python -m utool --tf infer_function_info:0</span>
+<span class="sd">    # class used in place of None when None might be a valid value</span>
+<span class="sd">    # probably should just make None not a valid value</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Checking utool main&#39;</span><span class="p">)</span>
-    <span class="n">utool_main</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+<span class="c"># Used instance of NoParam</span></div>
+<span class="n">NoParam</span> <span class="o">=</span> <span class="n">ClassNoParam</span><span class="p">()</span>
 </pre></div>
 
            </div>

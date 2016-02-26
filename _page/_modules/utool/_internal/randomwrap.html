@@ -1,0 +1,335 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>utool._internal.randomwrap &mdash; utool 1.1.2.dev1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="utool 1.1.2.dev1 documentation" href="../../../index.html"/>
+        <link rel="up" title="utool" href="../../utool.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> utool
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.2.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../utool.html">utool package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">utool</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../utool.html">utool</a> &raquo;</li>
+      
+    <li>utool._internal.randomwrap</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for utool._internal.randomwrap</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;This is a minimal Python client for Mads Haahr&#39;s random number generator at www.random.org</span>
+
+<span class="sd"># This tiny set of functions only implements a subset of the HTTP interface available. In particular it only uses the &#39;live&#39;</span>
+<span class="sd"># random number generator, and doesn&#39;t offer the option of using the alternative &#39;stored&#39; random</span>
+<span class="sd"># number sets. However, it should be obvious how to extend it by sending requests with different parameters.</span>
+<span class="sd"># The web service code is modelled on Mark Pilgrim&#39;s &quot;Dive into Python&quot; tutorial at http://www.diveintopython.org/http_web_services</span>
+<span class="sd"># This client by George Dunbar, University of Warwick (Copyright George Dunbar, 2008)</span>
+<span class="sd"># It is distributed under the Gnu General Public License.</span>
+<span class="sd">    This program is free software: you can redistribute it and/or modify</span>
+<span class="sd">    it under the terms of the GNU General Public License as published by</span>
+<span class="sd">    the Free Software Foundation, either version 3 of the License, or</span>
+<span class="sd">    (at your option) any later version.</span>
+
+<span class="sd">    This program is distributed in the hope that it will be useful,</span>
+<span class="sd">    but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="sd">    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="sd">    GNU General Public License for more details.</span>
+
+<span class="sd">    See &lt;http://www.gnu.org/licenses/&gt; for a copy of the GNU General Public License.</span>
+<span class="sd">    For use that falls outside this license, please contact me.</span>
+
+
+<span class="sd">To use in a python script or at the interactive prompt</span>
+<span class="sd">(randomwrapy.py has to be in the Python search path, of course):</span>
+
+<span class="sd">from randomwrapy import *</span>
+
+<span class="sd">rnumlistwithoutreplacement(0, 12)</span>
+<span class="sd">   # returns a list of the integers 0 - 12 inclusive, in a random order</span>
+
+<span class="sd">rnumlistwithreplacement(12, 5)</span>
+<span class="sd">   # returns 12 integers from the range [0, 5]</span>
+
+<span class="sd">rnumlistwithreplacement(12, 5, 2)</span>
+<span class="sd">   # returns 12 integers from the range [2, 5]</span>
+
+<span class="sd">rrandom()</span>
+<span class="sd">   # returns a random float in the range [0, 1]</span>
+
+<span class="sd">reportquota()</span>
+<span class="sd">   # tells you how many bits you have available; visit www.random.org/quota for more information</span>
+
+<span class="sd">Arguments where given are (must be) numbers, of course.</span>
+<span class="sd">There is almost no error checking in these scripts! For example, if</span>
+<span class="sd">the web site is down, Python will simply raise an exception and report the</span>
+<span class="sd">http error code. See worldrandom.py for an alternative implementation</span>
+<span class="sd">that goes a little further with error checking.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">urllib</span>
+
+
+<div class="viewcode-block" id="rnumlistwithoutreplacement"><a class="viewcode-back" href="../../../utool._internal.html#utool._internal.randomwrap.rnumlistwithoutreplacement">[docs]</a><span class="k">def</span> <span class="nf">rnumlistwithoutreplacement</span><span class="p">(</span><span class="nb">min</span><span class="p">,</span> <span class="nb">max</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a randomly ordered list of the integers between min and max&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">checkquota</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Your www.random.org quota has already run out.&quot;</span><span class="p">)</span>
+    <span class="n">requestparam</span> <span class="o">=</span> <span class="n">build_request_parameterNR</span><span class="p">(</span><span class="nb">min</span><span class="p">,</span> <span class="nb">max</span><span class="p">)</span>
+    <span class="n">request</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="n">requestparam</span><span class="p">)</span>
+    <span class="n">request</span><span class="o">.</span><span class="n">add_header</span><span class="p">(</span><span class="s">&#39;User-Agent&#39;</span><span class="p">,</span> <span class="s">&#39;randomwrapy/0.1 very alpha&#39;</span><span class="p">)</span>
+    <span class="n">opener</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">build_opener</span><span class="p">()</span>
+    <span class="n">numlist</span> <span class="o">=</span> <span class="n">opener</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">request</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">numlist</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+<span class="c"># helper</span>
+
+</div>
+<div class="viewcode-block" id="build_request_parameterNR"><a class="viewcode-back" href="../../../utool._internal.html#utool._internal.randomwrap.build_request_parameterNR">[docs]</a><span class="k">def</span> <span class="nf">build_request_parameterNR</span><span class="p">(</span><span class="nb">min</span><span class="p">,</span> <span class="nb">max</span><span class="p">):</span>
+    <span class="n">randomorg</span> <span class="o">=</span> <span class="s">&#39;http://www.random.org/sequences/?min=&#39;</span>
+    <span class="n">vanilla</span> <span class="o">=</span> <span class="s">&#39;&amp;format=plain&amp;rnd=new&#39;</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">min</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;&amp;max=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">max</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">randomorg</span> <span class="o">+</span> <span class="n">params</span> <span class="o">+</span> <span class="n">vanilla</span>
+
+</div>
+<div class="viewcode-block" id="rnumlistwithreplacement"><a class="viewcode-back" href="../../../utool._internal.html#utool._internal.randomwrap.rnumlistwithreplacement">[docs]</a><span class="k">def</span> <span class="nf">rnumlistwithreplacement</span><span class="p">(</span><span class="n">howmany</span><span class="p">,</span> <span class="nb">max</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a list of howmany integers with a maximum value = max.</span>
+<span class="sd">    The minimum value defaults to zero.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">checkquota</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Your www.random.org quota has already run out.&quot;</span><span class="p">)</span>
+    <span class="n">requestparam</span> <span class="o">=</span> <span class="n">build_request_parameterWR</span><span class="p">(</span><span class="n">howmany</span><span class="p">,</span> <span class="nb">min</span><span class="p">,</span> <span class="nb">max</span><span class="p">)</span>
+    <span class="n">request</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="n">requestparam</span><span class="p">)</span>
+    <span class="n">request</span><span class="o">.</span><span class="n">add_header</span><span class="p">(</span><span class="s">&#39;User-Agent&#39;</span><span class="p">,</span> <span class="s">&#39;randomwrapy/0.1 very alpha&#39;</span><span class="p">)</span>
+    <span class="n">opener</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">build_opener</span><span class="p">()</span>
+    <span class="n">numlist</span> <span class="o">=</span> <span class="n">opener</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">request</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">numlist</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+</div>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Example usage:</span>
+
+<span class="sd">Roll a dice 12 times (returning integers in the range [0,5]):</span>
+<span class="sd">  rnumlistwithreplacement(12, 5)</span>
+
+<span class="sd">Roll a dice 12 times (returning integers in the more familiar range [1,6]):</span>
+<span class="sd">  rnumlistwithreplacement(12, 6, 1)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c"># helper</span>
+
+
+<div class="viewcode-block" id="build_request_parameterWR"><a class="viewcode-back" href="../../../utool._internal.html#utool._internal.randomwrap.build_request_parameterWR">[docs]</a><span class="k">def</span> <span class="nf">build_request_parameterWR</span><span class="p">(</span><span class="n">howmany</span><span class="p">,</span> <span class="nb">min</span><span class="p">,</span> <span class="nb">max</span><span class="p">):</span>
+    <span class="n">randomorg</span> <span class="o">=</span> <span class="s">&#39;http://www.random.org/integers/?num=&#39;</span>
+    <span class="n">vanilla</span> <span class="o">=</span> <span class="s">&#39;&amp;col=1&amp;base=10&amp;format=plain&amp;rnd=new&#39;</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">howmany</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;&amp;min=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">min</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;&amp;max=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">max</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">randomorg</span> <span class="o">+</span> <span class="n">params</span> <span class="o">+</span> <span class="n">vanilla</span>
+
+<span class="c"># next function is prototype for integration with random module of python</span>
+<span class="c"># see worldrandom module for a more developed implementation</span>
+
+</div>
+<div class="viewcode-block" id="rrandom"><a class="viewcode-back" href="../../../utool._internal.html#utool._internal.randomwrap.rrandom">[docs]</a><span class="k">def</span> <span class="nf">rrandom</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Get the next random number in the range [0.0, 1.0].</span>
+<span class="sd">    Returns a float.&quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">urllib.request</span>
+    <span class="kn">import</span> <span class="nn">urllib.error</span>
+    <span class="kn">import</span> <span class="nn">urllib.parse</span>
+    <span class="k">if</span> <span class="n">checkquota</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Your www.random.org quota has already run out.&quot;</span><span class="p">)</span>
+    <span class="n">request</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span>
+        <span class="s">&#39;http://www.random.org/integers/?num=1&amp;min=0&amp;max=1000000000&amp;col=1&amp;base=10&amp;format=plain&amp;rnd=new&#39;</span><span class="p">)</span>
+    <span class="n">request</span><span class="o">.</span><span class="n">add_header</span><span class="p">(</span><span class="s">&#39;User-Agent&#39;</span><span class="p">,</span> <span class="s">&#39;randomwrapy/0.1 very alpha&#39;</span><span class="p">)</span>
+    <span class="n">opener</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">build_opener</span><span class="p">()</span>
+    <span class="n">numlist</span> <span class="o">=</span> <span class="n">opener</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">request</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="n">numlist</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="o">/</span> <span class="mi">1000000000</span>
+
+</div>
+<div class="viewcode-block" id="checkquota"><a class="viewcode-back" href="../../../utool._internal.html#utool._internal.randomwrap.checkquota">[docs]</a><span class="k">def</span> <span class="nf">checkquota</span><span class="p">():</span>
+    <span class="n">request</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span>
+        <span class="s">&quot;http://www.random.org/quota/?format=plain&quot;</span><span class="p">)</span>
+    <span class="n">request</span><span class="o">.</span><span class="n">add_header</span><span class="p">(</span><span class="s">&#39;User-Agent&#39;</span><span class="p">,</span> <span class="s">&#39;randomwrapy/0.1 very alpha&#39;</span><span class="p">)</span>
+    <span class="n">opener</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">build_opener</span><span class="p">()</span>
+    <span class="n">quota</span> <span class="o">=</span> <span class="n">opener</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">request</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">quota</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="reportquota"><a class="viewcode-back" href="../../../utool._internal.html#utool._internal.randomwrap.reportquota">[docs]</a><span class="k">def</span> <span class="nf">reportquota</span><span class="p">():</span>
+    <span class="n">request</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span>
+        <span class="s">&quot;http://www.random.org/quota/?format=plain&quot;</span><span class="p">)</span>
+    <span class="n">request</span><span class="o">.</span><span class="n">add_header</span><span class="p">(</span><span class="s">&#39;User-Agent&#39;</span><span class="p">,</span> <span class="s">&#39;randomwrapy/0.1 very alpha&#39;</span><span class="p">)</span>
+    <span class="n">opener</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">build_opener</span><span class="p">()</span>
+    <span class="n">quota</span> <span class="o">=</span> <span class="n">opener</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">request</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;This IP address has&quot;</span><span class="p">,</span> <span class="n">quota</span><span class="p">,</span>
+          <span class="s">&quot;bits left. Visit http://www.random.org/quota for more information.&quot;</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.1.2.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

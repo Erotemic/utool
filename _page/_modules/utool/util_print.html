@@ -179,13 +179,48 @@
 <span class="c">#    return prev_flag</span>
 
 </div>
+<span class="k">def</span> <span class="nf">_test_indent_print</span><span class="p">():</span>
+    <span class="c"># Indent test code doesnt work in doctest blocks.</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Checking indent. Should have none&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s">&#39;[INDENT] &#39;</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Checking indent. Should be indented&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Should no longer be indented&#39;</span><span class="p">)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_current_log_text</span><span class="p">()</span>
+    <span class="c"># The last line might sometimes be empty or not.</span>
+    <span class="c"># Not sure.</span>
+    <span class="n">last_lines</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span>
+    <span class="k">if</span> <span class="n">last_lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;DEV ERROR. REMOVE FIRST LINE INSTEAD OF LAST&#39;</span>
+        <span class="n">last_lines</span> <span class="o">=</span> <span class="n">last_lines</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c">#print(&#39;last_lines = %r&#39; % (ut.repr3(last_lines)))</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">last_lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;[INDENT] &#39;</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">last_lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">last_lines</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;[INDENT] &#39;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;did not indent </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">last_lines</span><span class="p">[</span><span class="mi">1</span><span class="p">],)</span>
+        <span class="k">assert</span> <span class="n">last_lines</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;[INDENT] &#39;</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">last_lines</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Error. Last 3 lines&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">last_lines</span><span class="p">))</span>
+        <span class="k">raise</span>
+
+
 <div class="viewcode-block" id="Indenter"><a class="viewcode-back" href="../../utool.html#utool.util_print.Indenter">[docs]</a><span class="k">class</span> <span class="nc">Indenter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Monkey patches modules injected with print to change the way print behaves.</span>
 
 <span class="sd">    Works with utool.inject to allow for prefixing of all within-context</span>
 <span class="sd">    print statements in a semi-dynamic manner. There seem to be some bugs</span>
 <span class="sd">    but it works pretty well.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_print --exec-Indenter</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_print import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; ut.util_print._test_indent_print()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># THIS IS MUCH BETTER</span>
     <span class="c">#@profile</span>
@@ -196,9 +231,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">modules</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">get_injected_modules</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">old_print_dict</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="c">#self.old_prints_ = {}</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">old_printDBG_dict</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="c">#self.old_printDBG_dict = {}</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">lbl</span> <span class="o">=</span> <span class="n">lbl</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">INDENT_PRINT_</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="c">#self.INDENT_PRINT_ = False</span>
 
     <span class="nd">@profile</span>
 <div class="viewcode-block" id="Indenter.start"><a class="viewcode-back" href="../../utool.html#utool.util_print.Indenter.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -206,7 +241,7 @@
         <span class="k">if</span> <span class="n">NO_INDENT</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">builtins</span><span class="o">.</span><span class="k">print</span>
         <span class="k">def</span> <span class="nf">indent_msg</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
-            <span class="n">mgs</span> <span class="o">=</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
+            <span class="n">mgs</span> <span class="o">=</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lbl</span> <span class="o">+</span> <span class="n">mgs</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">lbl</span><span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">push_module_functions</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">funcname</span><span class="p">):</span>
@@ -214,17 +249,18 @@
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">dict_</span><span class="p">[</span><span class="n">mod</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">funcname</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] KeyError: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] KeyError: &#39;</span> <span class="o">+</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
                     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] WARNING: module=</span><span class="si">%r</span><span class="s"> was loaded between indent sessions&#39;</span> <span class="o">%</span> <span class="n">mod</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] AttributeError: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] AttributeError: &#39;</span> <span class="o">+</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
                     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] WARNING: module=</span><span class="si">%r</span><span class="s"> does not have injected utool prints&#39;</span> <span class="o">%</span> <span class="n">mod</span><span class="p">)</span>
 
         <span class="n">push_module_functions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">old_print_dict</span><span class="p">,</span> <span class="s">&#39;print&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">mod</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">old_print_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="c"># Define the new print function</span>
             <span class="nd">@functools.wraps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">old_print_dict</span><span class="p">[</span><span class="n">mod</span><span class="p">])</span>
             <span class="k">def</span> <span class="nf">indent_print</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">old_print_dict</span><span class="p">[</span><span class="n">mod</span><span class="p">](</span><span class="n">indent_msg</span><span class="p">(</span><span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">args</span><span class="p">))))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">old_print_dict</span><span class="p">[</span><span class="n">mod</span><span class="p">](</span><span class="n">indent_msg</span><span class="p">(</span><span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">,</span> <span class="n">args</span><span class="p">))))</span>
             <span class="nb">setattr</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="s">&#39;print&#39;</span><span class="p">,</span> <span class="n">indent_print</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">indent_print</span>
 
@@ -270,24 +306,6 @@
         <span class="k">print</span><span class="p">(</span><span class="n">arr_name</span> <span class="o">+</span> <span class="s">&#39;.shape = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;len(</span><span class="si">%s</span><span class="s">) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">arr_name</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="p">)))</span>
-
-</div>
-<div class="viewcode-block" id="PrintStartEndContext"><a class="viewcode-back" href="../../utool.html#utool.util_print.PrintStartEndContext">[docs]</a><span class="k">class</span> <span class="nc">PrintStartEndContext</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    prints on open and close of some section of interest</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span>
-
-    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;+--- START &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_traceback</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;L___ END &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">)</span>
 
 
 <span class="c">#class NpPrintOpts(object):</span>
@@ -342,50 +360,16 @@
 </div>
 <div class="viewcode-block" id="print_python_code"><a class="viewcode-back" href="../../utool.html#utool.util_print.print_python_code">[docs]</a><span class="k">def</span> <span class="nf">print_python_code</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Args:</span>
-<span class="sd">        text (?):</span>
-
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m utool.util_print --test-print_python_code</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from utool.util_print import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
-<span class="sd">        &gt;&gt;&gt; # build test data</span>
-<span class="sd">        &gt;&gt;&gt; text = ut.read_from(ut.__file__.replace(&#39;.pyc&#39;, &#39;.py&#39;))</span>
-<span class="sd">        &gt;&gt;&gt; # execute function</span>
-<span class="sd">        &gt;&gt;&gt; print_python_code(text)</span>
-
-<span class="sd">    Ignore:</span>
-<span class="sd">        import pygments</span>
-<span class="sd">        print(ut.list_str(list(pygments.formatters.get_all_formatters())))</span>
-<span class="sd">        print(list(pygments.styles.get_all_styles()))</span>
-
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        print_code</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">print_code</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="s">&#39;python&#39;</span><span class="p">)</span>
-    <span class="c">#import pygments</span>
-    <span class="c">#import utool as ut</span>
-    <span class="c">##with ut.embed_on_exception_context:</span>
-    <span class="c">#try:</span>
-    <span class="c">#    if ut.WIN32:</span>
-    <span class="c">#        #formater = pygments.formatters.terminal256.Terminal256Formatter()</span>
-    <span class="c">#        formater = pygments.formatters.terminal256.Terminal256Formatter()</span>
-    <span class="c">#    else:</span>
-    <span class="c">#        import pygments.formatters.terminal</span>
-    <span class="c">#        formater = pygments.formatters.terminal.TerminalFormatter(bg=&#39;dark&#39;)</span>
-    <span class="c">#    #, colorscheme=&#39;darkbg&#39;)</span>
-    <span class="c">#    lexer = pygments.lexers.get_lexer_by_name(&#39;python&#39;)</span>
-    <span class="c">#    print(pygments.highlight(text, lexer, formater))</span>
-    <span class="c">#except Exception:</span>
-    <span class="c">#    raise</span>
-    <span class="c">#    print(text)</span>
 
 </div>
 <div class="viewcode-block" id="print_code"><a class="viewcode-back" href="../../utool.html#utool.util_print.print_code">[docs]</a><span class="k">def</span> <span class="nf">print_code</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">lexer_name</span><span class="o">=</span><span class="s">&#39;python&#39;</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
-<span class="sd">        text (?):</span>
+<span class="sd">        text (str):</span>
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m utool.util_print --test-print_python_code</span>
@@ -398,50 +382,11 @@
 <span class="sd">        &gt;&gt;&gt; text = ut.read_from(ut.__file__.replace(&#39;.pyc&#39;, &#39;.py&#39;))</span>
 <span class="sd">        &gt;&gt;&gt; # execute function</span>
 <span class="sd">        &gt;&gt;&gt; print_python_code(text)</span>
-
-<span class="sd">    Ignore:</span>
-<span class="sd">        import pygments</span>
-<span class="sd">        print(ut.list_str(list(pygments.formatters.get_all_formatters())))</span>
-<span class="sd">        print(list(pygments.styles.get_all_styles()))</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-    <span class="c">#with ut.embed_on_exception_context:</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">pygments</span>
-        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">WIN32</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="bp">False</span>
-            <span class="c">#formater = pygments.formatters.terminal256.Terminal256Formatter()</span>
-            <span class="kn">import</span> <span class="nn">pygments.formatters.terminal256</span>
-            <span class="n">formater</span> <span class="o">=</span> <span class="n">pygments</span><span class="o">.</span><span class="n">formatters</span><span class="o">.</span><span class="n">terminal256</span><span class="o">.</span><span class="n">Terminal256Formatter</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">pygments.formatters.terminal</span>
-            <span class="n">formater</span> <span class="o">=</span> <span class="n">pygments</span><span class="o">.</span><span class="n">formatters</span><span class="o">.</span><span class="n">terminal</span><span class="o">.</span><span class="n">TerminalFormatter</span><span class="p">(</span><span class="n">bg</span><span class="o">=</span><span class="s">&#39;dark&#39;</span><span class="p">)</span>
-        <span class="c">#, colorscheme=&#39;darkbg&#39;)</span>
-        <span class="n">lexer</span> <span class="o">=</span> <span class="n">pygments</span><span class="o">.</span><span class="n">lexers</span><span class="o">.</span><span class="n">get_lexer_by_name</span><span class="p">(</span><span class="n">lexer_name</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">pygments</span><span class="o">.</span><span class="n">highlight</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">lexer</span><span class="p">,</span> <span class="n">formater</span><span class="p">))</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-        <span class="c">#raise</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">util_str</span><span class="o">.</span><span class="n">highlight_code</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">lexer_name</span><span class="p">))</span>
 
 </div>
-<div class="viewcode-block" id="get_colored_diff"><a class="viewcode-back" href="../../utool.html#utool.util_print.get_colored_diff">[docs]</a><span class="k">def</span> <span class="nf">get_colored_diff</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">pygments</span>
-        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">WIN32</span><span class="p">:</span>
-            <span class="n">formater</span> <span class="o">=</span> <span class="n">pygments</span><span class="o">.</span><span class="n">formatters</span><span class="o">.</span><span class="n">terminal256</span><span class="o">.</span><span class="n">Terminal256Formatter</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">pygments.formatters.terminal</span>
-            <span class="n">formater</span> <span class="o">=</span> <span class="n">pygments</span><span class="o">.</span><span class="n">formatters</span><span class="o">.</span><span class="n">terminal</span><span class="o">.</span><span class="n">TerminalFormatter</span><span class="p">(</span><span class="n">bg</span><span class="o">=</span><span class="s">&#39;dark&#39;</span><span class="p">)</span>
-        <span class="n">lexer</span> <span class="o">=</span> <span class="n">pygments</span><span class="o">.</span><span class="n">lexers</span><span class="o">.</span><span class="n">get_lexer_by_name</span><span class="p">(</span><span class="s">&#39;diff&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">pygments</span><span class="o">.</span><span class="n">highlight</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">lexer</span><span class="p">,</span> <span class="n">formater</span><span class="p">))</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-        <span class="c">#raise</span>
-        <span class="k">return</span> <span class="n">text</span>
-
-</div>
-<div class="viewcode-block" id="print_difftext"><a class="viewcode-back" href="../../utool.html#utool.util_print.print_difftext">[docs]</a><span class="k">def</span> <span class="nf">print_difftext</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+<div class="viewcode-block" id="print_difftext"><a class="viewcode-back" href="../../utool.html#utool.util_print.print_difftext">[docs]</a><span class="k">def</span> <span class="nf">print_difftext</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">other</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
 <span class="sd">        text (str):</span>
@@ -451,27 +396,17 @@
 <span class="sd">        #autopep8 ingest_data.py --diff | python -m utool.util_print --test-print_difftext</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">get_colored_diff</span><span class="p">(</span><span class="n">text</span><span class="p">))</span>
-    <span class="c">#import pygments</span>
-    <span class="c">#import utool as ut</span>
-    <span class="c">#try:</span>
-    <span class="c">#    if ut.WIN32:</span>
-    <span class="c">#        formater = pygments.formatters.terminal256.Terminal256Formatter()</span>
-    <span class="c">#    else:</span>
-    <span class="c">#        import pygments.formatters.terminal</span>
-    <span class="c">#        formater = pygments.formatters.terminal.TerminalFormatter(bg=&#39;dark&#39;)</span>
-    <span class="c">#    lexer = pygments.lexers.get_lexer_by_name(&#39;diff&#39;)</span>
-    <span class="c">#    print(pygments.highlight(text, lexer, formater))</span>
-    <span class="c">#except Exception:</span>
-    <span class="c">#    raise</span>
-    <span class="c">#    print(text)</span>
+    <span class="k">if</span> <span class="n">other</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c"># hack</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">util_str</span><span class="o">.</span><span class="n">difftext</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">util_str</span><span class="o">.</span><span class="n">get_colored_diff</span><span class="p">(</span><span class="n">text</span><span class="p">))</span>
 
 </div>
-<div class="viewcode-block" id="colorprint"><a class="viewcode-back" href="../../utool.html#utool.util_print.colorprint">[docs]</a><span class="k">def</span> <span class="nf">colorprint</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">color</span><span class="p">):</span>
+<div class="viewcode-block" id="colorprint"><a class="viewcode-back" href="../../utool.html#utool.util_print.colorprint">[docs]</a><span class="k">def</span> <span class="nf">colorprint</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot; provides some color to terminal output</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        msg (str):</span>
+<span class="sd">        text (str):</span>
 <span class="sd">        color (str):</span>
 
 <span class="sd">    Ignore:</span>
@@ -486,13 +421,17 @@
 <span class="sd">        python -m utool.util_print --exec-colorprint</span>
 <span class="sd">        python -m utool.util_print --exec-colorprint:1</span>
 
+<span class="sd">        import pygments</span>
+<span class="sd">        print(ut.list_str(list(pygments.formatters.get_all_formatters())))</span>
+<span class="sd">        print(list(pygments.styles.get_all_styles()))</span>
+
 <span class="sd">    Example0:</span>
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_print import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import pygments.console</span>
 <span class="sd">        &gt;&gt;&gt; msg_list = list(pygments.console.codes.keys())</span>
 <span class="sd">        &gt;&gt;&gt; color_list = list(pygments.console.codes.keys())</span>
-<span class="sd">        &gt;&gt;&gt; [colorprint(msg, color) for msg, color in zip(msg_list, color_list)]</span>
+<span class="sd">        &gt;&gt;&gt; [colorprint(text, color) for text, color in zip(msg_list, color_list)]</span>
 
 <span class="sd">    Example1:</span>
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST (Windows test)</span>
@@ -506,20 +445,7 @@
 <span class="sd">        &gt;&gt;&gt; colorprint(&#39;line5&#39;, &#39;fuchsia&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; print(&#39;line6&#39;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">pygments</span>
-        <span class="kn">import</span> <span class="nn">pygments.console</span>
-        <span class="n">ansi_msg</span> <span class="o">=</span> <span class="n">pygments</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">colorize</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">WIN32</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">colorama</span>
-            <span class="n">ansi_reset</span> <span class="o">=</span> <span class="p">(</span><span class="n">colorama</span><span class="o">.</span><span class="n">Style</span><span class="o">.</span><span class="n">RESET_ALL</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">ansi_reset</span> <span class="o">=</span> <span class="n">pygments</span><span class="o">.</span><span class="n">console</span><span class="o">.</span><span class="n">colorize</span><span class="p">(</span><span class="s">&#39;reset&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
-        <span class="n">ansi_text</span> <span class="o">=</span> <span class="n">ansi_msg</span> <span class="o">+</span> <span class="n">ansi_reset</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">ansi_text</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">util_str</span><span class="o">.</span><span class="n">color_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">color</span><span class="p">))</span>
 
 </div>
 <div class="viewcode-block" id="print_locals"><a class="viewcode-back" href="../../utool.html#utool.util_print.print_locals">[docs]</a><span class="k">def</span> <span class="nf">print_locals</span><span class="p">():</span>
@@ -550,7 +476,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>

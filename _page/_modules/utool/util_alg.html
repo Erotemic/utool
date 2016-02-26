@@ -129,11 +129,21 @@
            <div itemprop="articleBody">
             
   <h1>Source code for utool.util_alg</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
 <span class="c"># TODO Licence:</span>
 <span class="c">#</span>
 <span class="c"># TODO:  move library intensive functions to vtool</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">operator</span> <span class="kn">as</span> <span class="nn">op</span>
+<span class="kn">import</span> <span class="nn">decimal</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">reduce</span><span class="p">,</span> <span class="nb">map</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_type</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_list</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_dict</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_decor</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
     <span class="n">HAVE_NUMPY</span> <span class="o">=</span> <span class="bp">True</span>
@@ -141,18 +151,12 @@
     <span class="n">HAVE_NUMPY</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="c"># TODO remove numpy</span>
     <span class="k">pass</span>
-<span class="kn">import</span> <span class="nn">operator</span>
-<span class="kn">import</span> <span class="nn">six</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">reduce</span>
-<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_type</span>
-<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
-<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_decor</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">as</span> <span class="nn">spdist</span>
     <span class="n">HAVE_SCIPY</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="n">HAVE_SCIPY</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[alg]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[alg]&#39;</span><span class="p">)</span>
 
 
 <span class="n">PHI</span> <span class="o">=</span> <span class="mf">1.61803398875</span>
@@ -160,8 +164,8 @@
 <span class="n">PHI_B</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">PHI_A</span>
 
 
-<div class="viewcode-block" id="compare_groupings"><a class="viewcode-back" href="../../utool.html#utool.util_alg.compare_groupings">[docs]</a><span class="k">def</span> <span class="nf">compare_groupings</span><span class="p">(</span><span class="n">groups1</span><span class="p">,</span> <span class="n">groups2</span><span class="p">):</span>
-    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="k">def</span> <span class="nf">compare_groupings</span><span class="p">(</span><span class="n">groups1</span><span class="p">,</span> <span class="n">groups2</span><span class="p">):</span>
+<div class="viewcode-block" id="compare_groupings"><a class="viewcode-back" href="../../utool.html#utool.util_alg.compare_groupings">[docs]</a>    <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns a measure of how disimilar two groupings are</span>
 
 <span class="sd">    Args:</span>
@@ -232,9 +236,149 @@
     <span class="n">total_error</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">total_error</span>
 
-</div>
-<div class="viewcode-block" id="greedy_max_inden_setcover"><a class="viewcode-back" href="../../utool.html#utool.util_alg.greedy_max_inden_setcover">[docs]</a><span class="k">def</span> <span class="nf">greedy_max_inden_setcover</span><span class="p">(</span><span class="n">candidate_sets_dict</span><span class="p">,</span> <span class="n">items</span><span class="p">,</span> <span class="n">max_covers</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="k">def</span> <span class="nf">find_grouping_consistencies</span><span class="p">(</span><span class="n">groups1</span><span class="p">,</span> <span class="n">groups2</span><span class="p">):</span></div>
+<div class="viewcode-block" id="find_grouping_consistencies"><a class="viewcode-back" href="../../utool.html#utool.util_alg.find_grouping_consistencies">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a measure of group consistency</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_alg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; groups1 = [[1, 2, 3], [4], [5, 6]]</span>
+<span class="sd">        &gt;&gt;&gt; groups2 = [[1, 2], [4], [5, 6]]</span>
+<span class="sd">        &gt;&gt;&gt; common_groups = find_grouping_consistencies(groups1, groups2)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;common_groups = %r&#39; % (common_groups,))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        common_groups = [(5, 6), (4,)]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">group1_list</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_group</span><span class="p">))</span> <span class="k">for</span> <span class="n">_group</span> <span class="ow">in</span> <span class="n">groups1</span><span class="p">])</span>
+    <span class="n">group2_list</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_group</span><span class="p">))</span> <span class="k">for</span> <span class="n">_group</span> <span class="ow">in</span> <span class="n">groups2</span><span class="p">])</span>
+    <span class="n">common_groups</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">group1_list</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">group2_list</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">common_groups</span>
+
+
+<span class="k">def</span> <span class="nf">upper_diag_self_prodx</span><span class="p">(</span><span class="n">list_</span><span class="p">):</span></div>
+<div class="viewcode-block" id="upper_diag_self_prodx"><a class="viewcode-back" href="../../utool.html#utool.util_alg.upper_diag_self_prodx">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    upper diagnoal of cartesian product of self and self.</span>
+<span class="sd">    Weird name. fixme</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        list_ (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list:</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_alg --exec-upper_diag_self_prodx</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_alg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; list_ = [1, 2, 3]</span>
+<span class="sd">        &gt;&gt;&gt; result = upper_diag_self_prodx(list_)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [(1, 2), (1, 3), (2, 3)]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[(</span><span class="n">item1</span><span class="p">,</span> <span class="n">item2</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">n1</span><span class="p">,</span> <span class="n">item1</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">n2</span><span class="p">,</span> <span class="n">item2</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span> <span class="k">if</span> <span class="n">n1</span> <span class="o">&lt;</span> <span class="n">n2</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">diagonalized_iter</span><span class="p">(</span><span class="n">size</span><span class="p">):</span></div>
+<div class="viewcode-block" id="diagonalized_iter"><a class="viewcode-back" href="../../utool.html#utool.util_alg.diagonalized_iter">[docs]</a>    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    TODO: generalize to more than 2 dimensions to be more like</span>
+<span class="sd">    itertools.product.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_alg --exec-diagonalized_iter</span>
+<span class="sd">        python -m utool.util_alg --exec-diagonalized_iter --size=5</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_alg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; size = ut.get_argval(&#39;--size&#39;, default=4)</span>
+<span class="sd">        &gt;&gt;&gt; iter_ = diagonalized_iter(size)</span>
+<span class="sd">        &gt;&gt;&gt; mat = [[None] * size for _ in range(size)]</span>
+<span class="sd">        &gt;&gt;&gt; for count, (r, c) in enumerate(iter_):</span>
+<span class="sd">        &gt;&gt;&gt;     mat[r][c] = count</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(mat, nl=1, packed=True)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [[0, 2, 5, 9],</span>
+<span class="sd">         [1, 4, 8, 12],</span>
+<span class="sd">         [3, 7, 11, 14],</span>
+<span class="sd">         [6, 10, 13, 15],]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">)),</span> <span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">))):</span>
+            <span class="k">yield</span> <span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">size</span><span class="p">)),</span> <span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">size</span><span class="p">))):</span>
+            <span class="k">yield</span> <span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">colwise_diag_idxs</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span></div>
+<div class="viewcode-block" id="colwise_diag_idxs"><a class="viewcode-back" href="../../utool.html#utool.util_alg.colwise_diag_idxs">[docs]</a>    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    dont trust this implementation or this function name</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        size (int):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ?: upper_diag_idxs</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_alg --exec-colwise_diag_idxs --size=5 --num=2</span>
+<span class="sd">        python -m utool.util_alg --exec-colwise_diag_idxs --size=3 --num=3</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_alg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; size = ut.get_argval(&#39;--size&#39;, default=5)</span>
+<span class="sd">        &gt;&gt;&gt; num = ut.get_argval(&#39;--num&#39;, default=2)</span>
+<span class="sd">        &gt;&gt;&gt; mat = np.zeros([size] * num, dtype=np.int)</span>
+<span class="sd">        &gt;&gt;&gt; upper_diag_idxs = colwise_diag_idxs(size, num)</span>
+<span class="sd">        &gt;&gt;&gt; poses = np.array(upper_diag_idxs)</span>
+<span class="sd">        &gt;&gt;&gt; idxs = np.ravel_multi_index(poses.T, mat.shape)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;poses.T =\n%s&#39; % (ut.repr2(poses.T),))</span>
+<span class="sd">        &gt;&gt;&gt; mat[tuple(poses.T)] = np.arange(1, len(poses) + 1)</span>
+<span class="sd">        &gt;&gt;&gt; print(mat)</span>
+<span class="sd">        poses.T =</span>
+<span class="sd">        np.array([[0, 0, 1, 0, 1, 2, 0, 1, 2, 3],</span>
+<span class="sd">                  [1, 2, 2, 3, 3, 3, 4, 4, 4, 4]])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># diag_idxs = list(diagonalized_iter(size))</span>
+    <span class="c"># upper_diag_idxs = [(r, c) for r, c in diag_idxs if r &lt; c]</span>
+    <span class="c"># # diag_idxs = list(diagonalized_iter(size))</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">diag_idxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">iprod</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="nb">range</span><span class="p">(</span><span class="n">size</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num</span><span class="p">)])</span>
+    <span class="c">#diag_idxs = list(ut.iprod(range(size), range(size)))</span>
+    <span class="c"># this is pretty much a simple c ordering</span>
+    <span class="n">upper_diag_idxs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">tup</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">diag_idxs</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">([</span><span class="n">a</span> <span class="o">&gt;</span> <span class="n">b</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">itertwo</span><span class="p">(</span><span class="n">tup</span><span class="p">)])</span>
+        <span class="c">#if all([a &gt; b for a, b in ut.itertwo(tup[:2])])</span>
+    <span class="p">]</span>
+    <span class="c">#upper_diag_idxs = [(c, r) for r, c in diag_idxs if r &gt; c]</span>
+    <span class="c"># # upper_diag_idxs = [(r, c) for r, c in diag_idxs if r &gt; c]</span>
+    <span class="k">return</span> <span class="n">upper_diag_idxs</span>
+
+
+<span class="k">def</span> <span class="nf">self_prodx</span><span class="p">(</span><span class="n">list_</span><span class="p">):</span></div>
+<div class="viewcode-block" id="self_prodx"><a class="viewcode-back" href="../../utool.html#utool.util_alg.self_prodx">[docs]</a>    <span class="k">return</span> <span class="p">[(</span><span class="n">item1</span><span class="p">,</span> <span class="n">item2</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">n1</span><span class="p">,</span> <span class="n">item1</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">n2</span><span class="p">,</span> <span class="n">item2</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span> <span class="k">if</span> <span class="n">n1</span> <span class="o">!=</span> <span class="n">n2</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">product_nonsame</span><span class="p">(</span><span class="n">list1</span><span class="p">,</span> <span class="n">list2</span><span class="p">):</span></div>
+<div class="viewcode-block" id="product_nonsame"><a class="viewcode-back" href="../../utool.html#utool.util_alg.product_nonsame">[docs]</a>    <span class="sd">&quot;&quot;&quot; product of list1 and list2 where items are non equal &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">item1</span><span class="p">,</span> <span class="n">item2</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">list1</span><span class="p">,</span> <span class="n">list2</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">item1</span> <span class="o">!=</span> <span class="n">item2</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="p">(</span><span class="n">item1</span><span class="p">,</span> <span class="n">item2</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">greedy_max_inden_setcover</span><span class="p">(</span><span class="n">candidate_sets_dict</span><span class="p">,</span> <span class="n">items</span><span class="p">,</span> <span class="n">max_covers</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span></div>
+<div class="viewcode-block" id="greedy_max_inden_setcover"><a class="viewcode-back" href="../../utool.html#utool.util_alg.greedy_max_inden_setcover">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    greedy algorithm for maximum independent set cover</span>
 
 <span class="sd">    Covers items with sets from candidate sets. Could be made faster.</span>
@@ -305,9 +449,9 @@
     <span class="n">covertup</span> <span class="o">=</span> <span class="n">uncovered_items</span><span class="p">,</span> <span class="n">covered_items_list</span><span class="p">,</span> <span class="n">accepted_keys</span>
     <span class="k">return</span> <span class="n">covertup</span>
 
-</div>
-<div class="viewcode-block" id="bayes_rule"><a class="viewcode-back" href="../../utool.html#utool.util_alg.bayes_rule">[docs]</a><span class="k">def</span> <span class="nf">bayes_rule</span><span class="p">(</span><span class="n">b_given_a</span><span class="p">,</span> <span class="n">prob_a</span><span class="p">,</span> <span class="n">prob_b</span><span class="p">):</span>
-    <span class="sd">r&quot;&quot;&quot;</span>
+
+<span class="k">def</span> <span class="nf">bayes_rule</span><span class="p">(</span><span class="n">b_given_a</span><span class="p">,</span> <span class="n">prob_a</span><span class="p">,</span> <span class="n">prob_b</span><span class="p">):</span></div>
+<div class="viewcode-block" id="bayes_rule"><a class="viewcode-back" href="../../utool.html#utool.util_alg.bayes_rule">[docs]</a>    <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    bayes_rule</span>
 
 <span class="sd">    P(A | B) = \frac{ P(B | A) P(A) }{ P(B) }</span>
@@ -334,103 +478,15 @@
     <span class="n">a_given_b</span> <span class="o">=</span> <span class="p">(</span><span class="n">b_given_a</span> <span class="o">*</span> <span class="n">prob_a</span><span class="p">)</span> <span class="o">/</span> <span class="n">prob_b</span>
     <span class="k">return</span> <span class="n">a_given_b</span>
 
-</div>
-<div class="viewcode-block" id="normalize"><a class="viewcode-back" href="../../utool.html#utool.util_alg.normalize">[docs]</a><span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">norm_zero_one</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
 
-</div>
-<div class="viewcode-block" id="norm_zero_one"><a class="viewcode-back" href="../../utool.html#utool.util_alg.norm_zero_one">[docs]</a><span class="k">def</span> <span class="nf">norm_zero_one</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    normalizes a numpy array from 0 to 1 based in its extent</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        array (ndarray):</span>
-<span class="sd">        dim   (int):</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        ndarray:</span>
-
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m utool.util_alg --test-norm_zero_one</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from utool.util_alg import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; array = np.array([ 22, 1, 3, 2, 10, 42, ])</span>
-<span class="sd">        &gt;&gt;&gt; dim = None</span>
-<span class="sd">        &gt;&gt;&gt; array_norm = norm_zero_one(array, dim)</span>
-<span class="sd">        &gt;&gt;&gt; result = np.array_str(array_norm, precision=3)</span>
-<span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        [ 0.512  0.     0.049  0.024  0.22   1.   ]</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">util_type</span><span class="o">.</span><span class="n">is_float</span><span class="p">(</span><span class="n">array</span><span class="p">):</span>
-        <span class="n">array</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-    <span class="n">array_max</span>  <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
-    <span class="n">array_min</span>  <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
-    <span class="n">array_exnt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">array_max</span><span class="p">,</span> <span class="n">array_min</span><span class="p">)</span>
-    <span class="n">array_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">array_min</span><span class="p">),</span> <span class="n">array_exnt</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">array_norm</span>
-
-</div>
-<div class="viewcode-block" id="find_std_inliers"><a class="viewcode-back" href="../../utool.html#utool.util_alg.find_std_inliers">[docs]</a><span class="k">def</span> <span class="nf">find_std_inliers</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
-    <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="n">data</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">data</span><span class="p">))</span> <span class="o">&lt;</span> <span class="n">m</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-
-</div>
-<div class="viewcode-block" id="cartesian"><a class="viewcode-back" href="../../utool.html#utool.util_alg.cartesian">[docs]</a><span class="k">def</span> <span class="nf">cartesian</span><span class="p">(</span><span class="n">arrays</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Generate a cartesian product of input arrays.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        arrays (list of array-like): 1-D arrays to form the cartesian product of</span>
-<span class="sd">        out (ndarray): Outvar which is modified in place if specified</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        out (ndarray): cartesian products formed of input arrays</span>
-<span class="sd">            2-D array of shape (M, len(arrays))</span>
-
-<span class="sd">    References:</span>
-<span class="sd">        https://gist.github.com/hernamesbarbara/68d073f551565de02ac5</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from utool.util_alg import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; arrays = ([1, 2, 3], [4, 5], [6, 7])</span>
-<span class="sd">        &gt;&gt;&gt; out = cartesian(arrays)</span>
-<span class="sd">        &gt;&gt;&gt; result = repr(out.T)</span>
-<span class="sd">        array([[1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3],</span>
-<span class="sd">               [4, 4, 5, 5, 4, 4, 5, 5, 4, 4, 5, 5],</span>
-<span class="sd">               [6, 7, 6, 7, 6, 7, 6, 7, 6, 7, 6, 7]])</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">arrays</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">arrays</span><span class="p">]</span>
-    <span class="n">dtype</span> <span class="o">=</span> <span class="n">arrays</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span>
-
-    <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">arrays</span><span class="p">])</span>
-    <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">arrays</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
-    <span class="n">m</span> <span class="o">=</span> <span class="n">n</span> <span class="o">//</span> <span class="n">arrays</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
-    <span class="n">out</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">arrays</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">m</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">arrays</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
-        <span class="n">cartesian</span><span class="p">(</span><span class="n">arrays</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">m</span><span class="p">,</span> <span class="mi">1</span><span class="p">:])</span>
-        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">arrays</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
-            <span class="n">out</span><span class="p">[</span><span class="n">j</span> <span class="o">*</span> <span class="n">m</span><span class="p">:(</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">m</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">m</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span>
-    <span class="k">return</span> <span class="n">out</span>
-
-</div>
-<div class="viewcode-block" id="euclidean_dist"><a class="viewcode-back" href="../../utool.html#utool.util_alg.euclidean_dist">[docs]</a><span class="k">def</span> <span class="nf">euclidean_dist</span><span class="p">(</span><span class="n">vecs1</span><span class="p">,</span> <span class="n">vec2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(((</span><span class="n">vecs1</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span> <span class="o">-</span> <span class="n">vec2</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
-
-</div>
-<div class="viewcode-block" id="negative_minclamp_inplace"><a class="viewcode-back" href="../../utool.html#utool.util_alg.negative_minclamp_inplace">[docs]</a><span class="k">def</span> <span class="nf">negative_minclamp_inplace</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
-    <span class="n">arr</span><span class="p">[</span><span class="n">arr</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-=</span> <span class="n">arr</span><span class="p">[</span><span class="n">arr</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">negative_minclamp_inplace</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span></div>
+<div class="viewcode-block" id="negative_minclamp_inplace"><a class="viewcode-back" href="../../utool.html#utool.util_alg.negative_minclamp_inplace">[docs]</a>    <span class="n">arr</span><span class="p">[</span><span class="n">arr</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-=</span> <span class="n">arr</span><span class="p">[</span><span class="n">arr</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
     <span class="n">arr</span><span class="p">[</span><span class="n">arr</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">arr</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">arr</span>
 
-</div>
-<div class="viewcode-block" id="xywh_to_tlbr"><a class="viewcode-back" href="../../utool.html#utool.util_alg.xywh_to_tlbr">[docs]</a><span class="k">def</span> <span class="nf">xywh_to_tlbr</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="n">img_wh</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; converts xywh format to (tlx, tly, blx, bly) &quot;&quot;&quot;</span>
+
+<span class="k">def</span> <span class="nf">xywh_to_tlbr</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="n">img_wh</span><span class="p">):</span></div>
+<div class="viewcode-block" id="xywh_to_tlbr"><a class="viewcode-back" href="../../utool.html#utool.util_alg.xywh_to_tlbr">[docs]</a>    <span class="sd">&quot;&quot;&quot; converts xywh format to (tlx, tly, blx, bly) &quot;&quot;&quot;</span>
     <span class="p">(</span><span class="n">img_w</span><span class="p">,</span> <span class="n">img_h</span><span class="p">)</span> <span class="o">=</span> <span class="n">img_wh</span>
     <span class="k">if</span> <span class="n">img_w</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">img_h</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">img_w</span> <span class="o">=</span> <span class="mi">1</span>
@@ -448,15 +504,9 @@
     <span class="n">y2</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">y</span> <span class="o">+</span> <span class="n">h</span><span class="p">,</span> <span class="n">img_h</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">)</span>
 
-</div>
-<div class="viewcode-block" id="search_utool"><a class="viewcode-back" href="../../utool.html#utool.util_alg.search_utool">[docs]</a><span class="k">def</span> <span class="nf">search_utool</span><span class="p">(</span><span class="n">pat</span><span class="p">):</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-    <span class="n">found_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">ut</span><span class="p">)</span> <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">pat</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">found_list</span>
 
-</div>
-<div class="viewcode-block" id="item_hist"><a class="viewcode-back" href="../../utool.html#utool.util_alg.item_hist">[docs]</a><span class="k">def</span> <span class="nf">item_hist</span><span class="p">(</span><span class="n">list_</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; counts the number of times each item appears in the dictionary &quot;&quot;&quot;</span>
+<span class="k">def</span> <span class="nf">item_hist</span><span class="p">(</span><span class="n">list_</span><span class="p">):</span></div>
+<div class="viewcode-block" id="item_hist"><a class="viewcode-back" href="../../utool.html#utool.util_alg.item_hist">[docs]</a>    <span class="sd">&quot;&quot;&quot; counts the number of times each item appears in the dictionary &quot;&quot;&quot;</span>
     <span class="n">dict_hist</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="c"># Insert each item into the correct group</span>
     <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">list_</span><span class="p">:</span>
@@ -466,33 +516,8 @@
     <span class="k">return</span> <span class="n">dict_hist</span>
 
 
-<span class="c">#def unpack_items_sorted(dict_, sortfn, reverse=True):</span>
-<span class="c">#    &quot;&quot;&quot; Unpacks and sorts the dictionary by sortfn</span>
-<span class="c">#    &quot;&quot;&quot;</span>
-<span class="c">#    items = dict_.items()</span>
-<span class="c">#    sorted_items = sorted(items, key=sortfn, reverse=reverse)</span>
-<span class="c">#    sorted_keys, sorted_vals = list(zip(*sorted_items))</span>
-<span class="c">#    return sorted_keys, sorted_vals</span>
-
-
-<span class="c">#def unpack_items_sorted_by_lenvalue(dict_, reverse=True):</span>
-<span class="c">#    &quot;&quot;&quot; Unpacks and sorts the dictionary by key</span>
-<span class="c">#    &quot;&quot;&quot;</span>
-<span class="c">#    def sort_lenvalue(item):</span>
-<span class="c">#        return len(item[1])</span>
-<span class="c">#    return unpack_items_sorted(dict_, sort_lenvalue)</span>
-
-
-<span class="c">#def unpack_items_sorted_by_value(dict_, reverse=True):</span>
-<span class="c">#    &quot;&quot;&quot; Unpacks and sorts the dictionary by key</span>
-<span class="c">#    &quot;&quot;&quot;</span>
-<span class="c">#    def sort_value(item):</span>
-<span class="c">#        return item[1]</span>
-<span class="c">#    return unpack_items_sorted(dict_, sort_value)</span>
-
-</div>
-<div class="viewcode-block" id="flatten_membership_mapping"><a class="viewcode-back" href="../../utool.html#utool.util_alg.flatten_membership_mapping">[docs]</a><span class="k">def</span> <span class="nf">flatten_membership_mapping</span><span class="p">(</span><span class="n">uid_list</span><span class="p">,</span> <span class="n">members_list</span><span class="p">):</span>
-    <span class="n">num_members</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">members_list</span><span class="p">)))</span>
+<span class="k">def</span> <span class="nf">flatten_membership_mapping</span><span class="p">(</span><span class="n">uid_list</span><span class="p">,</span> <span class="n">members_list</span><span class="p">):</span></div>
+<div class="viewcode-block" id="flatten_membership_mapping"><a class="viewcode-back" href="../../utool.html#utool.util_alg.flatten_membership_mapping">[docs]</a>    <span class="n">num_members</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">members_list</span><span class="p">)))</span>
     <span class="n">flat_uids</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_members</span><span class="p">)]</span>
     <span class="n">flat_members</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_members</span><span class="p">)]</span>
     <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
@@ -503,20 +528,20 @@
             <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
     <span class="k">return</span> <span class="n">flat_uids</span><span class="p">,</span> <span class="n">flat_members</span>
 
-</div>
-<div class="viewcode-block" id="get_phi"><a class="viewcode-back" href="../../utool.html#utool.util_alg.get_phi">[docs]</a><span class="k">def</span> <span class="nf">get_phi</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot; Golden Ratio: phi = 1 / sqrt(5) / 2.0 = 1.61803398875 &quot;&quot;&quot;</span>
-    <span class="c">#phi = (1.0 + np.sqrt(5)) / 2.0 = 1.61803398875</span>
+
+<span class="k">def</span> <span class="nf">get_phi</span><span class="p">():</span></div>
+<div class="viewcode-block" id="get_phi"><a class="viewcode-back" href="../../utool.html#utool.util_alg.get_phi">[docs]</a>    <span class="sd">&quot;&quot;&quot; Golden Ratio: phi = 1 / sqrt(5) / 2.0 = 1.61803398875 &quot;&quot;&quot;</span>
+    <span class="c">#phi = (1.0 + sqrt(5)) / 2.0 = 1.61803398875</span>
     <span class="c"># return phi</span>
     <span class="k">return</span> <span class="n">PHI</span>
 
-</div>
-<div class="viewcode-block" id="get_phi_ratio1"><a class="viewcode-back" href="../../utool.html#utool.util_alg.get_phi_ratio1">[docs]</a><span class="k">def</span> <span class="nf">get_phi_ratio1</span><span class="p">():</span>
-    <span class="k">return</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">get_phi</span><span class="p">()</span>
 
-</div>
-<div class="viewcode-block" id="is_prime"><a class="viewcode-back" href="../../utool.html#utool.util_alg.is_prime">[docs]</a><span class="k">def</span> <span class="nf">is_prime</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="k">def</span> <span class="nf">get_phi_ratio1</span><span class="p">():</span></div>
+<div class="viewcode-block" id="get_phi_ratio1"><a class="viewcode-back" href="../../utool.html#utool.util_alg.get_phi_ratio1">[docs]</a>    <span class="k">return</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">get_phi</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">is_prime</span><span class="p">(</span><span class="n">num</span><span class="p">):</span></div>
+<div class="viewcode-block" id="is_prime"><a class="viewcode-back" href="../../utool.html#utool.util_alg.is_prime">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    naive function for finding primes. Good for stress testing</span>
 
 <span class="sd">    References:</span>
@@ -542,9 +567,9 @@
             <span class="k">return</span> <span class="bp">False</span>
     <span class="k">return</span> <span class="bp">True</span>
 
-</div>
-<div class="viewcode-block" id="fibonacci_recursive"><a class="viewcode-back" href="../../utool.html#utool.util_alg.fibonacci_recursive">[docs]</a><span class="k">def</span> <span class="nf">fibonacci_recursive</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="k">def</span> <span class="nf">fibonacci_recursive</span><span class="p">(</span><span class="n">n</span><span class="p">):</span></div>
+<div class="viewcode-block" id="fibonacci_recursive"><a class="viewcode-back" href="../../utool.html#utool.util_alg.fibonacci_recursive">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m utool.util_alg --test-fibonacci_recursive</span>
 
@@ -562,14 +587,14 @@
         <span class="k">return</span> <span class="n">n</span>
     <span class="k">return</span> <span class="n">fibonacci_recursive</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">fibonacci_recursive</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
 
-</div>
-<div class="viewcode-block" id="fibonacci_iterative"><a class="viewcode-back" href="../../utool.html#utool.util_alg.fibonacci_iterative">[docs]</a><span class="k">def</span> <span class="nf">fibonacci_iterative</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="k">def</span> <span class="nf">fibonacci_iterative</span><span class="p">(</span><span class="n">n</span><span class="p">):</span></div>
+<div class="viewcode-block" id="fibonacci_iterative"><a class="viewcode-back" href="../../utool.html#utool.util_alg.fibonacci_iterative">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
-<span class="sd">        n (ing):</span>
+<span class="sd">        n (int):</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        ing: a</span>
+<span class="sd">        int: a</span>
 
 <span class="sd">    References:</span>
 <span class="sd">        http://stackoverflow.com/questions/15047116/a-iterative-algorithm-for-fibonacci-numbers</span>
@@ -592,29 +617,16 @@
         <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span>
     <span class="k">return</span> <span class="n">a</span>
 
-</div>
-<span class="n">fibonacci</span> <span class="o">=</span> <span class="n">fibonacci_iterative</span>
+<span class="n">fibonacci</span> <span class="o">=</span> <span class="n">fibonacci_iterative</span></div>
 
 
-<div class="viewcode-block" id="deg_to_rad"><a class="viewcode-back" href="../../utool.html#utool.util_alg.deg_to_rad">[docs]</a><span class="k">def</span> <span class="nf">deg_to_rad</span><span class="p">(</span><span class="n">degree</span><span class="p">):</span>
-    <span class="n">degree</span> <span class="o">%=</span> <span class="mf">360.0</span>
-    <span class="n">tau</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">degree</span> <span class="o">/</span> <span class="mf">360.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">tau</span>
-
-</div>
-<div class="viewcode-block" id="rad_to_deg"><a class="viewcode-back" href="../../utool.html#utool.util_alg.rad_to_deg">[docs]</a><span class="k">def</span> <span class="nf">rad_to_deg</span><span class="p">(</span><span class="n">radians</span><span class="p">):</span>
-    <span class="n">tau</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
-    <span class="n">radians</span> <span class="o">%=</span> <span class="n">tau</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">radians</span> <span class="o">/</span> <span class="n">tau</span><span class="p">)</span> <span class="o">*</span> <span class="mf">360.0</span>
-
-</div>
-<div class="viewcode-block" id="enumerate_primes"><a class="viewcode-back" href="../../utool.html#utool.util_alg.enumerate_primes">[docs]</a><span class="k">def</span> <span class="nf">enumerate_primes</span><span class="p">(</span><span class="n">max_prime</span><span class="o">=</span><span class="mi">4100</span><span class="p">):</span>
-    <span class="n">primes</span> <span class="o">=</span> <span class="p">[</span><span class="n">num</span> <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_prime</span><span class="p">)</span> <span class="k">if</span> <span class="n">is_prime</span><span class="p">(</span><span class="n">num</span><span class="p">)]</span>
+<span class="k">def</span> <span class="nf">enumerate_primes</span><span class="p">(</span><span class="n">max_prime</span><span class="o">=</span><span class="mi">4100</span><span class="p">):</span>
+<div class="viewcode-block" id="enumerate_primes"><a class="viewcode-back" href="../../utool.html#utool.util_alg.enumerate_primes">[docs]</a>    <span class="n">primes</span> <span class="o">=</span> <span class="p">[</span><span class="n">num</span> <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_prime</span><span class="p">)</span> <span class="k">if</span> <span class="n">is_prime</span><span class="p">(</span><span class="n">num</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">primes</span>
 
-</div>
-<div class="viewcode-block" id="get_nth_prime"><a class="viewcode-back" href="../../utool.html#utool.util_alg.get_nth_prime">[docs]</a><span class="k">def</span> <span class="nf">get_nth_prime</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">max_prime</span><span class="o">=</span><span class="mi">4100</span><span class="p">,</span> <span class="n">safe</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; hacky but still brute force algorithm for finding nth prime for small tests &quot;&quot;&quot;</span>
+
+<span class="k">def</span> <span class="nf">get_nth_prime</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">max_prime</span><span class="o">=</span><span class="mi">4100</span><span class="p">,</span> <span class="n">safe</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span></div>
+<div class="viewcode-block" id="get_nth_prime"><a class="viewcode-back" href="../../utool.html#utool.util_alg.get_nth_prime">[docs]</a>    <span class="sd">&quot;&quot;&quot; hacky but still brute force algorithm for finding nth prime for small tests &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;=</span> <span class="mi">100</span><span class="p">:</span>
         <span class="n">first_100_primes</span> <span class="o">=</span> <span class="p">(</span>
             <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">17</span><span class="p">,</span> <span class="mi">19</span><span class="p">,</span> <span class="mi">23</span><span class="p">,</span> <span class="mi">29</span><span class="p">,</span> <span class="mi">31</span><span class="p">,</span> <span class="mi">37</span><span class="p">,</span> <span class="mi">41</span><span class="p">,</span> <span class="mi">43</span><span class="p">,</span> <span class="mi">47</span><span class="p">,</span> <span class="mi">53</span><span class="p">,</span> <span class="mi">59</span><span class="p">,</span> <span class="mi">61</span><span class="p">,</span>
@@ -636,9 +648,9 @@
             <span class="n">nth_prime</span> <span class="o">=</span> <span class="n">get_nth_prime_bruteforce</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">nth_prime</span>
 
-</div>
-<div class="viewcode-block" id="get_nth_prime_bruteforce"><a class="viewcode-back" href="../../utool.html#utool.util_alg.get_nth_prime_bruteforce">[docs]</a><span class="k">def</span> <span class="nf">get_nth_prime_bruteforce</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">start_guess</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">start_num_primes</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-    <span class="n">guess</span> <span class="o">=</span> <span class="n">start_guess</span>
+
+<span class="k">def</span> <span class="nf">get_nth_prime_bruteforce</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">start_guess</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">start_num_primes</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span></div>
+<div class="viewcode-block" id="get_nth_prime_bruteforce"><a class="viewcode-back" href="../../utool.html#utool.util_alg.get_nth_prime_bruteforce">[docs]</a>    <span class="n">guess</span> <span class="o">=</span> <span class="n">start_guess</span>
     <span class="n">num_primes_found</span> <span class="o">=</span> <span class="n">start_num_primes</span>
     <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">is_prime</span><span class="p">(</span><span class="n">guess</span><span class="p">):</span>
@@ -649,9 +661,9 @@
         <span class="n">guess</span> <span class="o">+=</span> <span class="mi">1</span>
     <span class="k">return</span> <span class="n">nth_prime</span>
 
-</div>
-<div class="viewcode-block" id="get_prime_index"><a class="viewcode-back" href="../../utool.html#utool.util_alg.get_prime_index">[docs]</a><span class="k">def</span> <span class="nf">get_prime_index</span><span class="p">(</span><span class="n">prime</span><span class="p">):</span>
-    <span class="n">guess</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="k">def</span> <span class="nf">get_prime_index</span><span class="p">(</span><span class="n">prime</span><span class="p">):</span></div>
+<div class="viewcode-block" id="get_prime_index"><a class="viewcode-back" href="../../utool.html#utool.util_alg.get_prime_index">[docs]</a>    <span class="n">guess</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">num_primes_found</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">is_prime</span><span class="p">(</span><span class="n">guess</span><span class="p">):</span>
@@ -662,123 +674,170 @@
             <span class="k">assert</span> <span class="n">guess</span> <span class="o">!=</span> <span class="n">prime</span><span class="p">,</span> <span class="s">&#39;input=</span><span class="si">%r</span><span class="s"> is not prime. has </span><span class="si">%r</span><span class="s"> primes less than it&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prime</span><span class="p">,</span> <span class="n">num_primes_found</span><span class="p">)</span>
         <span class="n">guess</span> <span class="o">+=</span> <span class="mi">1</span>
 
-</div>
-<div class="viewcode-block" id="generate_primes"><a class="viewcode-back" href="../../utool.html#utool.util_alg.generate_primes">[docs]</a><span class="k">def</span> <span class="nf">generate_primes</span><span class="p">(</span><span class="n">start_guess</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
-    <span class="n">guess</span> <span class="o">=</span> <span class="n">start_guess</span>
+
+<span class="k">def</span> <span class="nf">generate_primes</span><span class="p">(</span><span class="n">start_guess</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span></div>
+<div class="viewcode-block" id="generate_primes"><a class="viewcode-back" href="../../utool.html#utool.util_alg.generate_primes">[docs]</a>    <span class="n">guess</span> <span class="o">=</span> <span class="n">start_guess</span>
     <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">is_prime</span><span class="p">(</span><span class="n">guess</span><span class="p">):</span>
             <span class="k">yield</span> <span class="n">guess</span>
         <span class="n">guess</span> <span class="o">+=</span> <span class="mi">1</span>
 
-</div>
-<div class="viewcode-block" id="inbounds"><a class="viewcode-back" href="../../utool.html#utool.util_alg.inbounds">[docs]</a><span class="k">def</span> <span class="nf">inbounds</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">,</span> <span class="n">eq</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">r&quot;&quot;&quot;</span>
+
+<span class="k">def</span> <span class="nf">knapsack</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">maxweight</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s">&#39;recursive&#39;</span><span class="p">):</span></div>
+<div class="viewcode-block" id="knapsack"><a class="viewcode-back" href="../../utool.html#utool.util_alg.knapsack">[docs]</a>    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Solve the knapsack problem by finding the most valuable subsequence of</span>
+<span class="sd">    `items` subject that weighs no more than `maxweight`.</span>
+
 <span class="sd">    Args:</span>
-<span class="sd">        num (scalar or ndarray):</span>
-<span class="sd">        low (scalar or ndarray):</span>
-<span class="sd">        high (scalar or ndarray):</span>
-<span class="sd">        eq (bool):</span>
+<span class="sd">        items (tuple): is a sequence of tuples `(value, weight, id_)`, where</span>
+<span class="sd">            `value` is a number and `weight` is a non-negative integer, and</span>
+<span class="sd">            `id_` is an item identifier.</span>
+
+<span class="sd">        maxweight (scalar):  is a non-negative integer.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        scalar or ndarray: is_inbounds</span>
+<span class="sd">        tuple: (total_value, items_subset) - a pair whose first element is the</span>
+<span class="sd">            sum of values in the most valuable subsequence, and whose second</span>
+<span class="sd">            element is the subsequence. Subset may be different depending on</span>
+<span class="sd">            implementation (ie top-odwn recusrive vs bottom-up iterative)</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://codereview.stackexchange.com/questions/20569/dynamic-programming-solution-to-knapsack-problem</span>
+<span class="sd">        http://stackoverflow.com/questions/141779/solving-the-np-complete-problem-in-xkcd</span>
+<span class="sd">        http://www.es.ele.tue.nl/education/5MC10/Solutions/knapsack.pdf</span>
 
 <span class="sd">    CommandLine:</span>
-<span class="sd">        python -m utool.util_alg --test-inbounds</span>
+<span class="sd">        python -m utool.util_alg --test-knapsack</span>
+
+<span class="sd">        python -m utool.util_alg --test-knapsack:0</span>
+<span class="sd">        python -m utool.util_alg --exec-knapsack:1</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        annots_per_view = 2</span>
+<span class="sd">        maxweight = 2</span>
+<span class="sd">        items = [</span>
+<span class="sd">            (0.7005208343554686, 0.7005208343554686, 0),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 1),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 2),</span>
+<span class="sd">            (0.7005208343554686, 0.7005208343554686, 3),</span>
+<span class="sd">            (0.7005208343554686, 0.7005208343554686, 4),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 5),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 6),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 7),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 8),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 9),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 10),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 11),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 12),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 13),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 14),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 15),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 16),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 17),</span>
+<span class="sd">            (0.7005208343554686, 0.7005208343554686, 18),</span>
+<span class="sd">            (0.7005208343554686, 0.7005208343554686, 19),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 20),</span>
+<span class="sd">            (0.7005208343554686, 0.7005208343554686, 21),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 22),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 23),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 24),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 25),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 26),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 27),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 28),</span>
+<span class="sd">            (0.7005208343554686, 0.7005208343554686, 29),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 30),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 31),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 32),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 33),</span>
+<span class="sd">            (0.7005208343554686, 0.7005208343554686, 34),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 35),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 36),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 37),</span>
+<span class="sd">            (0.7005208343554686, 0.7005208343554686, 38),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 39),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 40),</span>
+<span class="sd">            (0.7005208343554686, 0.7005208343554686, 41),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 42),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 43),</span>
+<span class="sd">            (0.669270834329427, 0.669270834329427, 44),</span>
+<span class="sd">        ]</span>
+<span class="sd">        values = ut.take_column(items, 0)</span>
+<span class="sd">        weights = ut.take_column(items, 1)</span>
+<span class="sd">        indices = ut.take_column(items, 2)</span>
+
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_alg import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import utool as ut</span>
-<span class="sd">        &gt;&gt;&gt; # build test data</span>
-<span class="sd">        &gt;&gt;&gt; num = np.array([[ 0.   ,  0.431,  0.279],</span>
-<span class="sd">        ...                 [ 0.204,  0.352,  0.08 ],</span>
-<span class="sd">        ...                 [ 0.107,  0.325,  0.179]])</span>
-<span class="sd">        &gt;&gt;&gt; low  = .1</span>
-<span class="sd">        &gt;&gt;&gt; high = .4</span>
-<span class="sd">        &gt;&gt;&gt; eq = False</span>
-<span class="sd">        &gt;&gt;&gt; # execute function</span>
-<span class="sd">        &gt;&gt;&gt; is_inbounds = inbounds(num, low, high, eq)</span>
-<span class="sd">        &gt;&gt;&gt; # verify results</span>
-<span class="sd">        &gt;&gt;&gt; result = ut.numpy_str(is_inbounds)</span>
+<span class="sd">        &gt;&gt;&gt; items = [(4, 12, 0), (2, 1, 1), (6, 4, 2), (1, 1, 3), (2, 2, 4)]</span>
+<span class="sd">        &gt;&gt;&gt; maxweight = 15</span>
+<span class="sd">        &gt;&gt;&gt; total_value, items_subset = knapsack(items, maxweight, method=&#39;recursive&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; total_value1, items_subset1 = knapsack(items, maxweight, method=&#39;iterative&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; result =  &#39;total_value = %.2f\n&#39; % (total_value,)</span>
+<span class="sd">        &gt;&gt;&gt; result += &#39;items_subset = %r&#39; % (items_subset,)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        np.array([[False, False,  True],</span>
-<span class="sd">                  [ True,  True, False],</span>
-<span class="sd">                  [ True,  True,  True]], dtype=bool)</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">less</span>    <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">le</span> <span class="k">if</span> <span class="n">eq</span> <span class="k">else</span> <span class="n">operator</span><span class="o">.</span><span class="n">lt</span>
-    <span class="n">greater</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">ge</span> <span class="k">if</span> <span class="n">eq</span> <span class="k">else</span> <span class="n">operator</span><span class="o">.</span><span class="n">gt</span>
-    <span class="n">and_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="k">else</span> <span class="n">operator</span><span class="o">.</span><span class="n">and_</span>
-    <span class="n">is_inbounds</span> <span class="o">=</span> <span class="n">and_</span><span class="p">(</span><span class="n">greater</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">low</span><span class="p">),</span> <span class="n">less</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">high</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">is_inbounds</span>
-
-
-<span class="c">#def inbounds(arr, min_, max_):</span>
-<span class="c">#    if min_ &gt; 0 and max_ is not None:</span>
-<span class="c">#        #if max_ is not None and min</span>
-<span class="c">#        islt_max = np.less_equal(arr, max_)</span>
-<span class="c">#        isgt_min = np.greater_equal(arr, min_)</span>
-<span class="c">#        is_inbounds = np.logical_and(islt_max, isgt_min)</span>
-<span class="c">#    elif min_ == 0:</span>
-<span class="c">#        is_inbounds = np.less_equal(arr, max_)</span>
-<span class="c">#    elif max_ is None:</span>
-<span class="c">#        is_inbounds = np.greater_equal(arr, min_)</span>
-<span class="c">#    else:</span>
-<span class="c">#        assert False</span>
-<span class="c">#    return is_inbounds</span>
-
-</div>
-<div class="viewcode-block" id="almost_eq"><a class="viewcode-back" href="../../utool.html#utool.util_alg.almost_eq">[docs]</a><span class="k">def</span> <span class="nf">almost_eq</span><span class="p">(</span><span class="n">arr1</span><span class="p">,</span> <span class="n">arr2</span><span class="p">,</span> <span class="n">thresh</span><span class="o">=</span><span class="mf">1E-11</span><span class="p">,</span> <span class="n">ret_error</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; checks if floating point number are equal to a threshold</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">arr1</span> <span class="o">-</span> <span class="n">arr2</span><span class="p">)</span>
-    <span class="n">passed</span> <span class="o">=</span> <span class="n">error</span> <span class="o">&lt;</span> <span class="n">thresh</span>
-    <span class="k">if</span> <span class="n">ret_error</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">passed</span><span class="p">,</span> <span class="n">error</span>
-    <span class="k">return</span> <span class="n">passed</span>
-
-</div>
-<div class="viewcode-block" id="knapsack"><a class="viewcode-back" href="../../utool.html#utool.util_alg.knapsack">[docs]</a><span class="k">def</span> <span class="nf">knapsack</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">maxweight</span><span class="p">):</span>
-    <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Solve the knapsack problem by finding the most valuable</span>
-<span class="sd">    subsequence of `items` subject that weighs no more than</span>
-<span class="sd">    `maxweight`.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        `items` (tuple): is a sequence of tuples `(value, weight, id_)`, where `value`</span>
-<span class="sd">            is a number and `weight` is a non-negative integer, and `id_` is an</span>
-<span class="sd">            item identifier.</span>
-
-<span class="sd">        `maxweight` (scalar):  is a non-negative integer.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        tuple: (total_value, items_subset) - a pair whose first element is the</span>
-<span class="sd">            sum of values in the most valuable subsequence, and whose second</span>
-<span class="sd">            element is the subsequence.</span>
-
-<span class="sd">    References:</span>
-<span class="sd">        http://codereview.stackexchange.com/questions/20569/dynamic-programming-solution-to-knapsack-problem</span>
-
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m utool.util_alg --test-knapsack</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(total_value1, total_value)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(items_subset1, items_subset)</span>
+<span class="sd">        total_value = 11.00</span>
+<span class="sd">        items_subset = [(2, 1, 1), (6, 4, 2), (1, 1, 3), (2, 2, 4)]</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_alg import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; items = [(4, 12, 0), (2, 1, 1), (6, 4, 2), (1, 1, 3), (2, 2, 4)]</span>
-<span class="sd">        &gt;&gt;&gt; maxweight = 15</span>
-<span class="sd">        &gt;&gt;&gt; total_value, items_subset = knapsack(items, maxweight)</span>
-<span class="sd">        &gt;&gt;&gt; result =  &#39;total_value = %r\n&#39; % (total_value,)</span>
-<span class="sd">        &gt;&gt;&gt; result += &#39;items_subset = %r&#39; % (items_subset,)</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; # Solve https://xkcd.com/287/</span>
+<span class="sd">        &gt;&gt;&gt; weights = [2.15, 2.75, 3.35, 3.55, 4.2, 5.8] * 2</span>
+<span class="sd">        &gt;&gt;&gt; items = [(w, w, i) for i, w in enumerate(weights)]</span>
+<span class="sd">        &gt;&gt;&gt; maxweight = 15.05</span>
+<span class="sd">        &gt;&gt;&gt; total_value, items_subset = knapsack(items, maxweight, method=&#39;recursive&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; total_value1, items_subset1 = knapsack(items, maxweight, method=&#39;iterative&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; total_weight = sum([t[1] for t in items_subset])</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;total_weight = %r&#39; % (total_weight,))</span>
+<span class="sd">        &gt;&gt;&gt; result =  &#39;total_value = %.2f&#39; % (total_value,)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        total_value = 11</span>
-<span class="sd">        items_subset = [(2, 1, 1), (6, 4, 2), (1, 1, 3), (2, 2, 4)]</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;items_subset = %r&#39; % (items_subset,))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;items_subset1 = %r&#39; % (items_subset1,))</span>
+<span class="sd">        &gt;&gt;&gt; #assert items_subset1 == items_subset, &#39;NOT EQ\n%r !=\n%r&#39; % (items_subset1, items_subset)</span>
+<span class="sd">        total_value = 15.05</span>
 
-    <span class="c"># Return the value of the most valuable subsequence of the first i</span>
-    <span class="c"># elements in items whose weights sum to no more than j.</span>
-    <span class="nd">@util_decor.memoize_nonzero</span>
+<span class="sd">    Timeit:</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; setup = ut.codeblock(</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;&#39;&#39;</span>
+<span class="sd">                import utool as ut</span>
+<span class="sd">                weights = [215, 275, 335, 355, 42, 58] * 10</span>
+<span class="sd">                items = [(w, w, i) for i, w in enumerate(weights)]</span>
+<span class="sd">                maxweight = 2505</span>
+<span class="sd">                import numba</span>
+<span class="sd">                knapsack_numba = numba.autojit(ut.knapsack_iterative)</span>
+<span class="sd">                knapsack_numba = numba.autojit(ut.knapsack_iterative_numpy)</span>
+<span class="sd">                &#39;&#39;&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; # Test load time</span>
+<span class="sd">        &gt;&gt;&gt; stmt_list1 = ut.codeblock(</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;&#39;&#39;</span>
+<span class="sd">                ut.knapsack_recursive(items, maxweight)</span>
+<span class="sd">                ut.knapsack_iterative(items, maxweight)</span>
+<span class="sd">                knapsack_numba(items, maxweight)</span>
+<span class="sd">                ut.knapsack_iterative_numpy(items, maxweight)</span>
+<span class="sd">                &#39;&#39;&#39;).split(&#39;\n&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ut.util_dev.timeit_compare(stmt_list1, setup, int(5))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s">&#39;recursive&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">knapsack_recursive</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">maxweight</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s">&#39;iterative&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">knapsack_iterative</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">maxweight</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;[util_alg] knapsack method=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method</span><span class="p">,))</span>
+        <span class="c">#return knapsack_iterative_numpy(items, maxweight)</span>
+
+
+<span class="k">def</span> <span class="nf">knapsack_recursive</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">maxweight</span><span class="p">):</span></div>
+<div class="viewcode-block" id="knapsack_recursive"><a class="viewcode-back" href="../../utool.html#utool.util_alg.knapsack_recursive">[docs]</a>    <span class="nd">@util_decor.memoize_nonzero</span>
     <span class="k">def</span> <span class="nf">bestvalue</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return the value of the most valuable subsequence of the first i</span>
+<span class="sd">        elements in items whose weights sum to no more than j. &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="mi">0</span>
         <span class="n">value</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="n">items</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
@@ -798,9 +857,180 @@
     <span class="n">total_value</span> <span class="o">=</span> <span class="n">bestvalue</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">),</span> <span class="n">maxweight</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">total_value</span><span class="p">,</span> <span class="n">items_subset</span>
 
-</div>
-<div class="viewcode-block" id="knapsack_greedy"><a class="viewcode-back" href="../../utool.html#utool.util_alg.knapsack_greedy">[docs]</a><span class="k">def</span> <span class="nf">knapsack_greedy</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">maxweight</span><span class="p">):</span>
-    <span class="sd">r&quot;&quot;&quot;</span>
+
+<span class="k">def</span> <span class="nf">number_of_decimals</span><span class="p">(</span><span class="n">num</span><span class="p">):</span></div>
+<div class="viewcode-block" id="number_of_decimals"><a class="viewcode-back" href="../../utool.html#utool.util_alg.number_of_decimals">[docs]</a>    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        num (float):</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        stackoverflow.com/questions/6189956/finding-decimal-places</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_alg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; num = 15.05</span>
+<span class="sd">        &gt;&gt;&gt; result = number_of_decimals(num)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        2</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">exp</span> <span class="o">=</span> <span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">num</span><span class="p">))</span><span class="o">.</span><span class="n">as_tuple</span><span class="p">()</span><span class="o">.</span><span class="n">exponent</span>
+    <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">exp</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">knapsack_iterative</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">maxweight</span><span class="p">):</span></div>
+<div class="viewcode-block" id="knapsack_iterative"><a class="viewcode-back" href="../../utool.html#utool.util_alg.knapsack_iterative">[docs]</a>    <span class="c"># Knapsack requires integral weights</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">items</span><span class="p">]</span>
+    <span class="n">max_exp</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="n">number_of_decimals</span><span class="p">(</span><span class="n">w_</span><span class="p">)</span> <span class="k">for</span> <span class="n">w_</span> <span class="ow">in</span> <span class="n">weights</span><span class="p">])</span>
+    <span class="n">coeff</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">**</span> <span class="n">max_exp</span>
+    <span class="c"># Adjust weights to be integral</span>
+    <span class="n">int_maxweight</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">maxweight</span> <span class="o">*</span> <span class="n">coeff</span><span class="p">)</span>
+    <span class="n">int_items</span> <span class="o">=</span> <span class="p">[(</span><span class="n">v</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">coeff</span><span class="p">),</span> <span class="n">idx</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">items</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">knapsack_iterative_int</span><span class="p">(</span><span class="n">int_items</span><span class="p">,</span> <span class="n">int_maxweight</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">knapsack_iterative_int</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">maxweight</span><span class="p">):</span></div>
+<div class="viewcode-block" id="knapsack_iterative_int"><a class="viewcode-back" href="../../utool.html#utool.util_alg.knapsack_iterative_int">[docs]</a>    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Iterative knapsack method</span>
+
+<span class="sd">    Math:</span>
+<span class="sd">        maximize \sum_{i \in T} v_i</span>
+<span class="sd">        subject to \sum_{i \in T} w_i \leq W</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">        dpmat is the dynamic programming memoization matrix.</span>
+<span class="sd">        dpmat[i, w] is the total value of the items with weight at most W</span>
+<span class="sd">        T is idx_subset, the set of indicies in the optimal solution</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_alg --exec-knapsack_iterative_int --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_alg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; weights = [1, 3, 3, 5, 2, 1] * 2</span>
+<span class="sd">        &gt;&gt;&gt; items = [(w, w, i) for i, w in enumerate(weights)]</span>
+<span class="sd">        &gt;&gt;&gt; maxweight = 10</span>
+<span class="sd">        &gt;&gt;&gt; total_value, items_subset = knapsack_iterative_int(items, maxweight)</span>
+<span class="sd">        &gt;&gt;&gt; total_weight = sum([t[1] for t in items_subset])</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;total_weight = %r&#39; % (total_weight,))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;items_subset = %r&#39; % (items_subset,))</span>
+<span class="sd">        &gt;&gt;&gt; result =  &#39;total_value = %.2f&#39; % (total_value,)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        total_value = 10.00</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        DPMAT = [[dpmat[r][c] for c in range(maxweight)] for r in range(len(items))]</span>
+<span class="sd">        KMAT  = [[kmat[r][c] for c in range(maxweight)] for r in range(len(items))]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">values</span>  <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">items</span><span class="p">]</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">items</span><span class="p">]</span>
+    <span class="n">maxsize</span> <span class="o">=</span> <span class="n">maxweight</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="c"># Sparse representation seems better</span>
+    <span class="n">dpmat</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">))</span>
+    <span class="n">kmat</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="bp">False</span><span class="p">))</span>
+    <span class="n">idx_subset</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># NOQA</span>
+    <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maxsize</span><span class="p">):</span>
+        <span class="n">dpmat</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">w</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c"># For each item consider to include it or not</span>
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)):</span>
+        <span class="n">item_val</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">item_weight</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="c"># consider at each possible bag size</span>
+        <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maxsize</span><span class="p">):</span>
+            <span class="n">valid_item</span> <span class="o">=</span> <span class="n">item_weight</span> <span class="o">&lt;=</span> <span class="n">w</span>
+            <span class="n">prev_val</span> <span class="o">=</span> <span class="n">dpmat</span><span class="p">[</span><span class="n">idx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="n">w</span><span class="p">]</span>
+            <span class="n">prev_noitem_val</span> <span class="o">=</span> <span class="n">dpmat</span><span class="p">[</span><span class="n">idx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="n">w</span> <span class="o">-</span> <span class="n">item_weight</span><span class="p">]</span>
+            <span class="n">withitem_val</span> <span class="o">=</span> <span class="n">item_val</span> <span class="o">+</span> <span class="n">prev_noitem_val</span>
+            <span class="n">more_valuable</span> <span class="o">=</span> <span class="n">withitem_val</span> <span class="o">&gt;</span> <span class="n">prev_val</span>
+            <span class="k">if</span> <span class="n">valid_item</span> <span class="ow">and</span> <span class="n">more_valuable</span><span class="p">:</span>
+                <span class="n">dpmat</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="n">w</span><span class="p">]</span> <span class="o">=</span> <span class="n">withitem_val</span>
+                <span class="n">kmat</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="n">w</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dpmat</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="n">w</span><span class="p">]</span> <span class="o">=</span> <span class="n">prev_val</span>
+                <span class="n">kmat</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="n">w</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="c"># Trace backwards to get the items used in the solution</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="n">maxweight</span>
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">))):</span>
+        <span class="k">if</span> <span class="n">kmat</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="n">K</span><span class="p">]:</span>
+            <span class="n">idx_subset</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+            <span class="n">K</span> <span class="o">=</span> <span class="n">K</span> <span class="o">-</span> <span class="n">weights</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+    <span class="n">idx_subset</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">idx_subset</span><span class="p">)</span>
+    <span class="n">items_subset</span> <span class="o">=</span> <span class="p">[</span><span class="n">items</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">idx_subset</span><span class="p">]</span>
+    <span class="n">total_value</span> <span class="o">=</span> <span class="n">dpmat</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="n">maxweight</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">total_value</span><span class="p">,</span> <span class="n">items_subset</span>
+
+
+<span class="k">def</span> <span class="nf">knapsack_iterative_numpy</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">maxweight</span><span class="p">):</span></div>
+<div class="viewcode-block" id="knapsack_iterative_numpy"><a class="viewcode-back" href="../../utool.html#utool.util_alg.knapsack_iterative_numpy">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Iterative knapsack method</span>
+
+<span class="sd">    maximize \sum_{i \in T} v_i</span>
+<span class="sd">    subject to \sum_{i \in T} w_i \leq W</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">        dpmat is the dynamic programming memoization matrix.</span>
+<span class="sd">        dpmat[i, w] is the total value of the items with weight at most W</span>
+<span class="sd">        T is the set of indicies in the optimal solution</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#import numpy as np</span>
+    <span class="n">items</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">items</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="c"># Find maximum decimal place (this problem is in NP)</span>
+    <span class="n">max_exp</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="n">number_of_decimals</span><span class="p">(</span><span class="n">w_</span><span class="p">)</span> <span class="k">for</span> <span class="n">w_</span> <span class="ow">in</span> <span class="n">weights</span><span class="p">])</span>
+    <span class="n">coeff</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">**</span> <span class="n">max_exp</span>
+    <span class="c"># Adjust weights to be integral</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="p">(</span><span class="n">weights</span> <span class="o">*</span> <span class="n">coeff</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+    <span class="n">values</span>  <span class="o">=</span> <span class="n">items</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">MAXWEIGHT</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">maxweight</span> <span class="o">*</span> <span class="n">coeff</span><span class="p">)</span>
+    <span class="n">W_SIZE</span> <span class="o">=</span> <span class="n">MAXWEIGHT</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="n">dpmat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">),</span> <span class="n">W_SIZE</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+    <span class="n">kmat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">),</span> <span class="n">W_SIZE</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+    <span class="n">idx_subset</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">W_SIZE</span><span class="p">):</span>
+        <span class="n">dpmat</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">w</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)):</span>
+        <span class="n">item_val</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">item_weight</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">W_SIZE</span><span class="p">):</span>
+            <span class="n">valid_item</span> <span class="o">=</span> <span class="n">item_weight</span> <span class="o">&lt;=</span> <span class="n">w</span>
+            <span class="n">prev_val</span> <span class="o">=</span> <span class="n">dpmat</span><span class="p">[</span><span class="n">idx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="n">w</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">valid_item</span><span class="p">:</span>
+                <span class="n">prev_noitem_val</span> <span class="o">=</span> <span class="n">dpmat</span><span class="p">[</span><span class="n">idx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="n">w</span> <span class="o">-</span> <span class="n">item_weight</span><span class="p">]</span>
+                <span class="n">withitem_val</span> <span class="o">=</span> <span class="n">item_val</span> <span class="o">+</span> <span class="n">prev_noitem_val</span>
+                <span class="n">more_valuable</span> <span class="o">=</span> <span class="n">withitem_val</span> <span class="o">&gt;</span> <span class="n">prev_val</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">more_valuable</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="n">dpmat</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="n">w</span><span class="p">]</span> <span class="o">=</span> <span class="n">withitem_val</span> <span class="k">if</span> <span class="n">more_valuable</span> <span class="k">else</span> <span class="n">prev_val</span>
+            <span class="n">kmat</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="n">w</span><span class="p">]</span> <span class="o">=</span> <span class="n">more_valuable</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="n">MAXWEIGHT</span>
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">))):</span>
+        <span class="k">if</span> <span class="n">kmat</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="n">K</span><span class="p">]:</span>
+            <span class="n">idx_subset</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+            <span class="n">K</span> <span class="o">=</span> <span class="n">K</span> <span class="o">-</span> <span class="n">weights</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+    <span class="n">idx_subset</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">idx_subset</span><span class="p">)</span>
+    <span class="n">items_subset</span> <span class="o">=</span> <span class="p">[</span><span class="n">items</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">idx_subset</span><span class="p">]</span>
+    <span class="n">total_value</span> <span class="o">=</span> <span class="n">dpmat</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="n">MAXWEIGHT</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">total_value</span><span class="p">,</span> <span class="n">items_subset</span>
+
+
+<span class="c">#def knapsack_all_solns(items, maxweight):</span>
+<span class="c">#    &quot;&quot;&quot;</span>
+<span class="c">#    TODO: return all optimal solutions to the knapsack problem</span>
+
+<span class="c">#    References:</span>
+<span class="c">#        stackoverflow.com/questions/30554290/all-solutions-from-knapsack-dp-matrix</span>
+
+<span class="c">#    &gt;&gt;&gt; items = [(1, 2, 0), (1, 3, 1), (1, 4, 2), (1, 3, 3), (1, 3, 4), (1, 5, 5), (1, 4, 6), (1, 1, 7), (1, 1, 8), (1, 3, 9)]</span>
+<span class="c">#    &gt;&gt;&gt; weights = ut.get_list_column(items, 1)</span>
+<span class="c">#    &gt;&gt;&gt; maxweight = 6</span>
+<span class="c">#    &quot;&quot;&quot;</span>
+
+
+<span class="k">def</span> <span class="nf">knapsack_greedy</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">maxweight</span><span class="p">):</span></div>
+<div class="viewcode-block" id="knapsack_greedy"><a class="viewcode-back" href="../../utool.html#utool.util_alg.knapsack_greedy">[docs]</a>    <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    non-optimal greedy version of knapsack algorithm</span>
 <span class="sd">    does not sort input. Sort the input by largest value</span>
 <span class="sd">    first if desired.</span>
@@ -840,51 +1070,47 @@
             <span class="n">total_value</span> <span class="o">+=</span> <span class="n">value</span>
     <span class="k">return</span> <span class="n">total_value</span><span class="p">,</span> <span class="n">items_subset</span>
 
-</div>
-<div class="viewcode-block" id="max_size_max_distance_subset"><a class="viewcode-back" href="../../utool.html#utool.util_alg.max_size_max_distance_subset">[docs]</a><span class="k">def</span> <span class="nf">max_size_max_distance_subset</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">min_thresh</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">Kstart</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Args:</span>
-<span class="sd">        items (?):</span>
-<span class="sd">        min_thresh (int): (default = 0)</span>
-<span class="sd">        Kstart (int): (default = 2)</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        ?: prev_subset_idx</span>
+<span class="k">def</span> <span class="nf">cumsum</span><span class="p">(</span><span class="n">num_list</span><span class="p">):</span></div>
+<div class="viewcode-block" id="cumsum"><a class="viewcode-back" href="../../utool.html#utool.util_alg.cumsum">[docs]</a>    <span class="sd">&quot;&quot;&quot; python cumsum</span>
 
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m utool.util_alg --exec-max_size_max_distance_subset</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from utool.util_alg import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; items = [1, 2, 3, 4, 5, 6, 7, 8, 9]</span>
-<span class="sd">        &gt;&gt;&gt; min_thresh = 3</span>
-<span class="sd">        &gt;&gt;&gt; Kstart = 2</span>
-<span class="sd">        &gt;&gt;&gt; verbose = True</span>
-<span class="sd">        &gt;&gt;&gt; prev_subset_idx = max_size_max_distance_subset(items, min_thresh, Kstart, verbose=verbose)</span>
-<span class="sd">        &gt;&gt;&gt; result = (&#39;prev_subset_idx = %s&#39; % (str(prev_subset_idx),))</span>
-<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    References:</span>
+<span class="sd">        stackoverflow.com/questions/9258602/elegant-pythonic-cumsum</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-    <span class="k">assert</span> <span class="n">Kstart</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&#39;must start with group of size 2&#39;</span>
-    <span class="n">best_idxs</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">K</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Kstart</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)):</span>
-        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Running subset chooser&#39;</span><span class="p">)</span>
-        <span class="n">value</span><span class="p">,</span> <span class="n">subset_idx</span><span class="p">,</span> <span class="n">subset</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">maximum_distance_subset</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="n">K</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;subset = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">subset</span><span class="p">,))</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;subset_idx = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">subset_idx</span><span class="p">,))</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;value = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,))</span>
-        <span class="n">distances</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">safe_pdist</span><span class="p">(</span><span class="n">subset</span><span class="p">[:,</span> <span class="bp">None</span><span class="p">])</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">distances</span> <span class="o">&lt;</span> <span class="n">min_thresh</span><span class="p">):</span>
-            <span class="k">break</span>
-        <span class="n">best_idxs</span> <span class="o">=</span> <span class="n">subset_idx</span>
-    <span class="k">return</span> <span class="n">best_idxs</span>
+    <span class="k">return</span> <span class="nb">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">acc</span><span class="p">,</span> <span class="n">itm</span><span class="p">:</span> <span class="n">op</span><span class="o">.</span><span class="n">iadd</span><span class="p">(</span><span class="n">acc</span><span class="p">,</span> <span class="p">[</span><span class="n">acc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">itm</span><span class="p">]),</span> <span class="n">num_list</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">])[</span><span class="mi">1</span><span class="p">:]</span>
 
-</div>
-<div class="viewcode-block" id="maximin_distance_subset1d"><a class="viewcode-back" href="../../utool.html#utool.util_alg.maximin_distance_subset1d">[docs]</a><span class="k">def</span> <span class="nf">maximin_distance_subset1d</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">min_thresh</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="k">def</span> <span class="nf">safe_div</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span></div>
+<div class="viewcode-block" id="safe_div"><a class="viewcode-back" href="../../utool.html#utool.util_alg.safe_div">[docs]</a>    <span class="k">return</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">a</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">b</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">a</span> <span class="o">/</span> <span class="n">b</span>
+
+
+<span class="k">def</span> <span class="nf">choose</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span></div>
+<div class="viewcode-block" id="choose"><a class="viewcode-back" href="../../utool.html#utool.util_alg.choose">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    N choose k</span>
+
+<span class="sd">    binomial combination (without replacement)</span>
+<span class="sd">    scipy.special.binom</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">scipy.misc</span>
+    <span class="k">return</span> <span class="n">scipy</span><span class="o">.</span><span class="n">misc</span><span class="o">.</span><span class="n">comb</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">exact</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">repetition</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">triangular_number</span><span class="p">(</span><span class="n">n</span><span class="p">):</span></div>
+<div class="viewcode-block" id="triangular_number"><a class="viewcode-back" href="../../utool.html#utool.util_alg.triangular_number">[docs]</a>    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Latex:</span>
+<span class="sd">        T_n = \sum_{k=1}^{n} k = \frac{n (n + 1)}{2} = \binom{n + 1}{2}</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        en.wikipedia.org/wiki/Triangular_number</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">((</span><span class="n">n</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+
+<span class="c"># Functions using NUMPY / SCIPY (need to make python only or move to vtool)</span>
+
+
+<span class="k">def</span> <span class="nf">maximin_distance_subset1d</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">min_thresh</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span></div>
+<div class="viewcode-block" id="maximin_distance_subset1d"><a class="viewcode-back" href="../../utool.html#utool.util_alg.maximin_distance_subset1d">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Greedy algorithm, may be exact for 1d case.</span>
 
 <span class="sd">    CommandLine:</span>
@@ -951,7 +1177,7 @@
     <span class="c"># Put chosen mask back in the input order of items</span>
     <span class="n">chosen_items_mask</span> <span class="o">=</span> <span class="n">chosen_mask</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">initial_sortx</span><span class="o">.</span><span class="n">argsort</span><span class="p">())</span>
     <span class="n">chosen_items_idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">chosen_items_mask</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">chosen_items</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">chosen_items_idxs</span><span class="p">)</span>
+    <span class="n">chosen_items</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">chosen_items_idxs</span><span class="p">)</span>
     <span class="c">#current_idx = np.nonzero(chosen_mask)[0]</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;Chose subset&#39;</span><span class="p">)</span>
@@ -962,16 +1188,16 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;distances = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">distances</span><span class="p">,))</span>
     <span class="k">return</span> <span class="n">chosen_items_idxs</span><span class="p">,</span> <span class="n">chosen_items</span>
 
-</div>
-<div class="viewcode-block" id="maximum_distance_subset"><a class="viewcode-back" href="../../utool.html#utool.util_alg.maximum_distance_subset">[docs]</a><span class="k">def</span> <span class="nf">maximum_distance_subset</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="k">def</span> <span class="nf">maximum_distance_subset</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span></div>
+<div class="viewcode-block" id="maximum_distance_subset"><a class="viewcode-back" href="../../utool.html#utool.util_alg.maximum_distance_subset">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    FIXME: I believe this does not work.</span>
 
 <span class="sd">    Returns a subset of size K from items with the maximum pairwise distance</span>
 
 <span class="sd">    References:</span>
-<span class="sd">        http://stackoverflow.com/questions/12278528/find-subset-with-elements-that-are-furthest-apart-from-eachother</span>
-<span class="sd">        http://stackoverflow.com/questions/13079563/how-does-condensed-distance-matrix-work-pdist</span>
+<span class="sd">        stackoverflow.com/questions/12278528/subset-elements-furthest-apart-eachother</span>
+<span class="sd">        stackoverflow.com/questions/13079563/condensed-distance-matrix-pdist</span>
 
 <span class="sd">    Recurance:</span>
 <span class="sd">        Let X[n,k] be the solution for selecting k elements from first n elements items.</span>
@@ -994,6 +1220,7 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        (42.0, array([4, 3, 0]), array([22, 21,  1]))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_decor</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;maximum_distance_subset len(items)=</span><span class="si">%r</span><span class="s">, K=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">),</span> <span class="n">K</span><span class="p">,))</span>
 
@@ -1032,8 +1259,6 @@
     <span class="k">def</span> <span class="nf">dist</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
         <span class="n">idx</span> <span class="o">=</span> <span class="n">condensed_idx</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
         <span class="k">return</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">idx</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">pairwise_distance</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
-
-    <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_decor</span>
 
     <span class="nd">@util_decor.memoize_nonzero</span>
     <span class="k">def</span> <span class="nf">optimal_solution</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
@@ -1081,118 +1306,438 @@
     <span class="c">#np.array([[dist(i, k) if k &lt; i else 0 for k in range(len(A))] for i in range(len(A))])</span>
     <span class="c">#raise NotImplementedError(&#39;unfinished&#39;)</span>
 
-</div>
-<div class="viewcode-block" id="cumsum"><a class="viewcode-back" href="../../utool.html#utool.util_alg.cumsum">[docs]</a><span class="k">def</span> <span class="nf">cumsum</span><span class="p">(</span><span class="n">num_list</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; python cumsum</span>
 
-<span class="sd">    References:</span>
-<span class="sd">        http://stackoverflow.com/questions/9258602/elegant-pythonic-cumsum</span>
+<span class="c">#def safe_max(arr):</span>
+<span class="c">#    return np.nan if arr is None or len(arr) == 0 else arr.max()</span>
+
+
+<span class="c">#def safe_min(arr):</span>
+<span class="c">#    return np.nan if arr is None or len(arr) == 0 else arr.min()</span>
+
+
+<span class="k">def</span> <span class="nf">deg_to_rad</span><span class="p">(</span><span class="n">degree</span><span class="p">):</span></div>
+<div class="viewcode-block" id="deg_to_rad"><a class="viewcode-back" href="../../utool.html#utool.util_alg.deg_to_rad">[docs]</a>    <span class="n">degree</span> <span class="o">%=</span> <span class="mf">360.0</span>
+    <span class="n">tau</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">degree</span> <span class="o">/</span> <span class="mf">360.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">tau</span>
+
+
+<span class="k">def</span> <span class="nf">rad_to_deg</span><span class="p">(</span><span class="n">radians</span><span class="p">):</span></div>
+<div class="viewcode-block" id="rad_to_deg"><a class="viewcode-back" href="../../utool.html#utool.util_alg.rad_to_deg">[docs]</a>    <span class="n">tau</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+    <span class="n">radians</span> <span class="o">%=</span> <span class="n">tau</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">radians</span> <span class="o">/</span> <span class="n">tau</span><span class="p">)</span> <span class="o">*</span> <span class="mf">360.0</span>
+
+
+<span class="k">def</span> <span class="nf">inbounds</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">,</span> <span class="n">eq</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span></div>
+<div class="viewcode-block" id="inbounds"><a class="viewcode-back" href="../../utool.html#utool.util_alg.inbounds">[docs]</a>    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        num (scalar or ndarray):</span>
+<span class="sd">        low (scalar or ndarray):</span>
+<span class="sd">        high (scalar or ndarray):</span>
+<span class="sd">        eq (bool):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        scalar or ndarray: is_inbounds</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_alg --test-inbounds</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_alg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; num = np.array([[ 0.   ,  0.431,  0.279],</span>
+<span class="sd">        ...                 [ 0.204,  0.352,  0.08 ],</span>
+<span class="sd">        ...                 [ 0.107,  0.325,  0.179]])</span>
+<span class="sd">        &gt;&gt;&gt; low  = .1</span>
+<span class="sd">        &gt;&gt;&gt; high = .4</span>
+<span class="sd">        &gt;&gt;&gt; eq = False</span>
+<span class="sd">        &gt;&gt;&gt; is_inbounds = inbounds(num, low, high, eq)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.numpy_str(is_inbounds)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        np.array([[False, False,  True],</span>
+<span class="sd">                  [ True,  True, False],</span>
+<span class="sd">                  [ True,  True,  True]], dtype=bool)</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="nb">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">acc</span><span class="p">,</span> <span class="n">itm</span><span class="p">:</span> <span class="n">operator</span><span class="o">.</span><span class="n">iadd</span><span class="p">(</span><span class="n">acc</span><span class="p">,</span> <span class="p">[</span><span class="n">acc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">itm</span><span class="p">]),</span> <span class="n">num_list</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">])[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">less</span>    <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">le</span> <span class="k">if</span> <span class="n">eq</span> <span class="k">else</span> <span class="n">op</span><span class="o">.</span><span class="n">lt</span>
+    <span class="n">greater</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">ge</span> <span class="k">if</span> <span class="n">eq</span> <span class="k">else</span> <span class="n">op</span><span class="o">.</span><span class="n">gt</span>
+    <span class="n">and_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="k">else</span> <span class="n">op</span><span class="o">.</span><span class="n">and_</span>
+    <span class="n">is_inbounds</span> <span class="o">=</span> <span class="n">and_</span><span class="p">(</span><span class="n">greater</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">low</span><span class="p">),</span> <span class="n">less</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">high</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">is_inbounds</span>
 
-</div>
-<div class="viewcode-block" id="haversine"><a class="viewcode-back" href="../../utool.html#utool.util_alg.haversine">[docs]</a><span class="k">def</span> <span class="nf">haversine</span><span class="p">(</span><span class="n">latlon1</span><span class="p">,</span> <span class="n">latlon2</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    #http://gis.stackexchange.com/questions/81551/matching-gps-tracks</span>
-<span class="sd">    Calculate the great circle distance between two points</span>
-<span class="sd">    on the earth (specified in decimal degrees)</span>
 
-<span class="sd">    References:</span>
-<span class="sd">        http://en.wikipedia.org/wiki/Haversine_formula</span>
-<span class="sd">        http://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points</span>
+<span class="k">def</span> <span class="nf">almost_eq</span><span class="p">(</span><span class="n">arr1</span><span class="p">,</span> <span class="n">arr2</span><span class="p">,</span> <span class="n">thresh</span><span class="o">=</span><span class="mf">1E-11</span><span class="p">,</span> <span class="n">ret_error</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span></div>
+<div class="viewcode-block" id="almost_eq"><a class="viewcode-back" href="../../utool.html#utool.util_alg.almost_eq">[docs]</a>    <span class="sd">&quot;&quot;&quot; checks if floating point number are equal to a threshold</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">arr1</span> <span class="o">-</span> <span class="n">arr2</span><span class="p">)</span>
+    <span class="n">passed</span> <span class="o">=</span> <span class="n">error</span> <span class="o">&lt;</span> <span class="n">thresh</span>
+    <span class="k">if</span> <span class="n">ret_error</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">passed</span><span class="p">,</span> <span class="n">error</span>
+    <span class="k">return</span> <span class="n">passed</span>
+
+
+<span class="k">def</span> <span class="nf">almost_allsame</span><span class="p">(</span><span class="n">vals</span><span class="p">):</span></div>
+<div class="viewcode-block" id="almost_allsame"><a class="viewcode-back" href="../../utool.html#utool.util_alg.almost_allsame">[docs]</a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">True</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">])</span>
+
+
+<span class="k">def</span> <span class="nf">unixtime_hourdiff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span></div>
+<div class="viewcode-block" id="unixtime_hourdiff"><a class="viewcode-back" href="../../utool.html#utool.util_alg.unixtime_hourdiff">[docs]</a>    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        x (?):</span>
+<span class="sd">        y (ndarray):  labels</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ?:</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_alg --exec-unixtime_hourdiff --show</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from utool.util_alg import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; import scipy.spatial.distance as spdist</span>
-<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
-<span class="sd">        &gt;&gt;&gt; import functools</span>
-<span class="sd">        &gt;&gt;&gt; gpsarr_track_list_ = [</span>
-<span class="sd">        ...    np.array([[ -80.21895315, -158.81099213],</span>
-<span class="sd">        ...              [ -12.08338926,   67.50368014],</span>
-<span class="sd">        ...              [ -11.08338926,   67.50368014],</span>
-<span class="sd">        ...              [ -11.08338926,   67.50368014],]</span>
-<span class="sd">        ...    ),</span>
-<span class="sd">        ...    np.array([[   9.77816711,  -17.27471498],</span>
-<span class="sd">        ...              [ -51.67678814, -158.91065495],])</span>
-<span class="sd">        ...    ]</span>
-<span class="sd">        &gt;&gt;&gt; latlon1 = gpsarr_track_list_[0][0]</span>
-<span class="sd">        &gt;&gt;&gt; latlon2 = gpsarr_track_list_[0][1]</span>
-<span class="sd">        &gt;&gt;&gt; kilometers = ut.haversine(latlon1, latlon2)</span>
-<span class="sd">        &gt;&gt;&gt; haversin_pdist = functools.partial(spdist.pdist, metric=ut.haversine)</span>
-<span class="sd">        &gt;&gt;&gt; dist_vector_list = list(map(haversin_pdist, gpsarr_track_list_))</span>
-<span class="sd">        &gt;&gt;&gt; dist_matrix_list = list(map(spdist.squareform, dist_vector_list))</span>
+<span class="sd">        &gt;&gt;&gt; x = np.nan</span>
+<span class="sd">        &gt;&gt;&gt; y = 0</span>
+<span class="sd">        &gt;&gt;&gt; result = unixtime_hourdiff(x, y)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># convert decimal degrees to radians</span>
-    <span class="n">lat1</span><span class="p">,</span> <span class="n">lon1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">latlon1</span><span class="p">)</span>
-    <span class="n">lat2</span><span class="p">,</span> <span class="n">lon2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">latlon2</span><span class="p">)</span>
-
-    <span class="c"># haversine formula</span>
-    <span class="n">dlon</span> <span class="o">=</span> <span class="n">lon2</span> <span class="o">-</span> <span class="n">lon1</span>
-    <span class="n">dlat</span> <span class="o">=</span> <span class="n">lat2</span> <span class="o">-</span> <span class="n">lat1</span>
-    <span class="n">a</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dlat</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">lat1</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">lat2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dlon</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
-    <span class="n">c</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">a</span><span class="p">))</span>
-
-    <span class="n">EARTH_RADIUS_KM</span> <span class="o">=</span> <span class="mi">6367</span>
-    <span class="n">kilometers</span> <span class="o">=</span> <span class="n">EARTH_RADIUS_KM</span> <span class="o">*</span> <span class="n">c</span>
-    <span class="k">return</span> <span class="n">kilometers</span>
-
-</div>
-<div class="viewcode-block" id="unixtime_hourdiff"><a class="viewcode-back" href="../../utool.html#utool.util_alg.unixtime_hourdiff">[docs]</a><span class="k">def</span> <span class="nf">unixtime_hourdiff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mf">60.</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
 
-</div>
-<div class="viewcode-block" id="absdiff"><a class="viewcode-back" href="../../utool.html#utool.util_alg.absdiff">[docs]</a><span class="k">def</span> <span class="nf">absdiff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
 
-</div>
-<div class="viewcode-block" id="safe_pdist"><a class="viewcode-back" href="../../utool.html#utool.util_alg.safe_pdist">[docs]</a><span class="k">def</span> <span class="nf">safe_pdist</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="k">def</span> <span class="nf">absdiff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span></div>
+<div class="viewcode-block" id="absdiff"><a class="viewcode-back" href="../../utool.html#utool.util_alg.absdiff">[docs]</a>    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">safe_pdist</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span></div>
+<div class="viewcode-block" id="safe_pdist"><a class="viewcode-back" href="../../utool.html#utool.util_alg.safe_pdist">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Kwargs:</span>
 <span class="sd">        metric = ut.absdiff</span>
 <span class="sd">    SeeAlso:</span>
 <span class="sd">        scipy.spatial.distance.pdist</span>
+
+<span class="sd">    TODO: move to vtool</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">arr</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">None</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">spdist</span><span class="o">.</span><span class="n">pdist</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-</div>
-<div class="viewcode-block" id="safe_div"><a class="viewcode-back" href="../../utool.html#utool.util_alg.safe_div">[docs]</a><span class="k">def</span> <span class="nf">safe_div</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
-    <span class="k">return</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">a</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">b</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">a</span> <span class="o">/</span> <span class="n">b</span>
 
-</div>
-<div class="viewcode-block" id="safe_max"><a class="viewcode-back" href="../../utool.html#utool.util_alg.safe_max">[docs]</a><span class="k">def</span> <span class="nf">safe_max</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="k">if</span> <span class="n">arr</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">arr</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">square_pdist</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span></div>
+<div class="viewcode-block" id="square_pdist"><a class="viewcode-back" href="../../utool.html#utool.util_alg.square_pdist">[docs]</a>    <span class="k">return</span> <span class="n">spdist</span><span class="o">.</span><span class="n">squareform</span><span class="p">(</span><span class="n">safe_pdist</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
 
-</div>
-<div class="viewcode-block" id="safe_min"><a class="viewcode-back" href="../../utool.html#utool.util_alg.safe_min">[docs]</a><span class="k">def</span> <span class="nf">safe_min</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="k">if</span> <span class="n">arr</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">arr</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
 
-</div>
-<div class="viewcode-block" id="choose"><a class="viewcode-back" href="../../utool.html#utool.util_alg.choose">[docs]</a><span class="k">def</span> <span class="nf">choose</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    N choose k</span>
+<span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span></div>
+<div class="viewcode-block" id="normalize"><a class="viewcode-back" href="../../utool.html#utool.util_alg.normalize">[docs]</a>    <span class="k">return</span> <span class="n">norm_zero_one</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
 
-<span class="sd">    binomial combination (without replacement)</span>
+
+<span class="k">def</span> <span class="nf">norm_zero_one</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span></div>
+<div class="viewcode-block" id="norm_zero_one"><a class="viewcode-back" href="../../utool.html#utool.util_alg.norm_zero_one">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    normalizes a numpy array from 0 to 1 based in its extent</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        array (ndarray):</span>
+<span class="sd">        dim   (int):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ndarray:</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_alg --test-norm_zero_one</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_alg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; array = np.array([ 22, 1, 3, 2, 10, 42, ])</span>
+<span class="sd">        &gt;&gt;&gt; dim = None</span>
+<span class="sd">        &gt;&gt;&gt; array_norm = norm_zero_one(array, dim)</span>
+<span class="sd">        &gt;&gt;&gt; result = np.array_str(array_norm, precision=3)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [ 0.512  0.     0.049  0.024  0.22   1.   ]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">scipy.misc</span>
-    <span class="k">return</span> <span class="n">scipy</span><span class="o">.</span><span class="n">misc</span><span class="o">.</span><span class="n">comb</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">exact</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">repetition</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">util_type</span><span class="o">.</span><span class="n">is_float</span><span class="p">(</span><span class="n">array</span><span class="p">):</span>
+        <span class="n">array</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">array_max</span>  <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
+    <span class="n">array_min</span>  <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
+    <span class="n">array_exnt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">array_max</span><span class="p">,</span> <span class="n">array_min</span><span class="p">)</span>
+    <span class="n">array_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">array_min</span><span class="p">),</span> <span class="n">array_exnt</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">array_norm</span>
 
-</div>
-<div class="viewcode-block" id="triangular_number"><a class="viewcode-back" href="../../utool.html#utool.util_alg.triangular_number">[docs]</a><span class="k">def</span> <span class="nf">triangular_number</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
-    <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Latex:</span>
-<span class="sd">        T_n = \sum_{k=1}^{n} k = \frac{n (n + 1)}{2} = \binom{n + 1}{2}</span>
+
+<span class="k">def</span> <span class="nf">euclidean_dist</span><span class="p">(</span><span class="n">vecs1</span><span class="p">,</span> <span class="n">vec2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span></div>
+<div class="viewcode-block" id="euclidean_dist"><a class="viewcode-back" href="../../utool.html#utool.util_alg.euclidean_dist">[docs]</a>    <span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(((</span><span class="n">vecs1</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span> <span class="o">-</span> <span class="n">vec2</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">max_size_max_distance_subset</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">min_thresh</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">Kstart</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span></div>
+<div class="viewcode-block" id="max_size_max_distance_subset"><a class="viewcode-back" href="../../utool.html#utool.util_alg.max_size_max_distance_subset">[docs]</a>    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        items (?):</span>
+<span class="sd">        min_thresh (int): (default = 0)</span>
+<span class="sd">        Kstart (int): (default = 2)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ?: prev_subset_idx</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_alg --exec-max_size_max_distance_subset</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_alg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; items = [1, 2, 3, 4, 5, 6, 7, 8, 9]</span>
+<span class="sd">        &gt;&gt;&gt; min_thresh = 3</span>
+<span class="sd">        &gt;&gt;&gt; Kstart = 2</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; prev_subset_idx = max_size_max_distance_subset(items, min_thresh,</span>
+<span class="sd">        &gt;&gt;&gt;                                                Kstart, verbose=verbose)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;prev_subset_idx = %s&#39; % (str(prev_subset_idx),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="k">assert</span> <span class="n">Kstart</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&#39;must start with group of size 2&#39;</span>
+    <span class="n">best_idxs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">K</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Kstart</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Running subset chooser&#39;</span><span class="p">)</span>
+        <span class="n">value</span><span class="p">,</span> <span class="n">subset_idx</span><span class="p">,</span> <span class="n">subset</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">maximum_distance_subset</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="n">K</span><span class="p">,</span>
+                                                               <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;subset = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">subset</span><span class="p">,))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;subset_idx = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">subset_idx</span><span class="p">,))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;value = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,))</span>
+        <span class="n">distances</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">safe_pdist</span><span class="p">(</span><span class="n">subset</span><span class="p">[:,</span> <span class="bp">None</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">distances</span> <span class="o">&lt;</span> <span class="n">min_thresh</span><span class="p">):</span>
+            <span class="k">break</span>
+        <span class="n">best_idxs</span> <span class="o">=</span> <span class="n">subset_idx</span>
+    <span class="k">return</span> <span class="n">best_idxs</span>
+
+
+<span class="k">def</span> <span class="nf">group_indices</span><span class="p">(</span><span class="n">groupid_list</span><span class="p">):</span></div>
+<div class="viewcode-block" id="group_indices"><a class="viewcode-back" href="../../utool.html#utool.util_alg.group_indices">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    groups indicies of each item in ``groupid_list``</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        groupid_list (list): list of group ids</span>
+
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        vt.group_indices - optimized numpy version</span>
+<span class="sd">        ut.apply_grouping</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_alg --test-group_indices</span>
+<span class="sd">        python3 -m utool.util_alg --test-group_indices</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_alg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; groupid_list = [&#39;b&#39;, 1, &#39;b&#39;, 1, &#39;b&#39;, 1, &#39;b&#39;, &#39;c&#39;, &#39;c&#39;, &#39;c&#39;, &#39;c&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; (keys, groupxs) = ut.group_indices(groupid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr3((keys, groupxs), nobraces=1, nl=1)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [1, &#39;b&#39;, &#39;c&#39;],</span>
+<span class="sd">        [[1, 3, 5], [0, 2, 4, 6], [7, 8, 9, 10]],</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">item_list</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">groupid_list</span><span class="p">))</span>
+    <span class="n">grouped_dict</span> <span class="o">=</span> <span class="n">util_dict</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">item_list</span><span class="p">,</span> <span class="n">groupid_list</span><span class="p">)</span>
+    <span class="c"># Sort by groupid for cache efficiency</span>
+    <span class="n">keys_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">grouped_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">keys_</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="c"># Python 3 does not allow sorting mixed types</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="n">util_list</span><span class="o">.</span><span class="n">sortedby2</span><span class="p">(</span><span class="n">keys_</span><span class="p">,</span> <span class="n">keys_</span><span class="p">)</span>
+    <span class="n">groupxs</span> <span class="o">=</span> <span class="n">util_dict</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">grouped_dict</span><span class="p">,</span> <span class="n">keys</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">keys</span><span class="p">,</span> <span class="n">groupxs</span>
+
+
+<span class="k">def</span> <span class="nf">apply_grouping</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">):</span></div>
+<div class="viewcode-block" id="apply_grouping"><a class="viewcode-back" href="../../utool.html#utool.util_alg.apply_grouping">[docs]</a>    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    applies grouping from group_indicies</span>
+<span class="sd">    non-optimized version</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        items (list): items to group</span>
+<span class="sd">        groupxs (list of list of ints): grouped lists of indicies</span>
+
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        vt.apply_grouping - optimized numpy version</span>
+<span class="sd">        ut.group_indices</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_alg --exec-apply_grouping --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_alg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; idx2_groupid = [2, 1, 2, 1, 2, 1, 2, 3, 3, 3, 3]</span>
+<span class="sd">        &gt;&gt;&gt; items        = [1, 8, 5, 5, 8, 6, 7, 5, 3, 0, 9]</span>
+<span class="sd">        &gt;&gt;&gt; (keys, groupxs) = ut.group_indices(idx2_groupid)</span>
+<span class="sd">        &gt;&gt;&gt; grouped_items = ut.apply_grouping(items, groupxs)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(grouped_items)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [[8, 5, 6], [1, 5, 8, 7], [5, 3, 0, 9]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">util_list</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">xs</span><span class="p">)</span> <span class="k">for</span> <span class="n">xs</span> <span class="ow">in</span> <span class="n">groupxs</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">ungroup</span><span class="p">(</span><span class="n">grouped_items</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">,</span> <span class="n">maxval</span><span class="p">):</span></div>
+<div class="viewcode-block" id="ungroup"><a class="viewcode-back" href="../../utool.html#utool.util_alg.ungroup">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ungroups items</span>
+
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        vt.invert_apply_grouping</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ungrouped_items</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">maxval</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">itemgroup</span><span class="p">,</span> <span class="n">xs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">grouped_items</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">item</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">itemgroup</span><span class="p">,</span> <span class="n">xs</span><span class="p">):</span>
+            <span class="n">ungrouped_items</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span>
+    <span class="k">return</span> <span class="n">ungrouped_items</span>
+
+
+<span class="k">def</span> <span class="nf">edit_distance</span><span class="p">(</span><span class="n">string1</span><span class="p">,</span> <span class="n">string2</span><span class="p">):</span></div>
+<div class="viewcode-block" id="edit_distance"><a class="viewcode-back" href="../../utool.html#utool.util_alg.edit_distance">[docs]</a>    <span class="c"># Edit distance algorithm</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">Levenshtein</span>
+    <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;pip install Levenshtein&#39;</span><span class="p">)</span>
+        <span class="k">raise</span>
+    <span class="k">return</span> <span class="n">Levenshtein</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">string1</span><span class="p">,</span> <span class="n">string2</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">get_nth_bell_number</span><span class="p">(</span><span class="n">n</span><span class="p">):</span></div>
+<div class="viewcode-block" id="get_nth_bell_number"><a class="viewcode-back" href="../../utool.html#utool.util_alg.get_nth_bell_number">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the (num_items - 1)-th Bell number using recursion.</span>
+<span class="sd">    The Bell numbers count the number of partitions of a set.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        n (int): number of items in a set</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        int:</span>
 
 <span class="sd">    References:</span>
-<span class="sd">        http://en.wikipedia.org/wiki/Triangular_number</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="p">((</span><span class="n">n</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+<span class="sd">        http://adorio-research.org/wordpress/?p=11460</span>
 
-</div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_alg --exec-bell --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_alg import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; n = 3</span>
+<span class="sd">        &gt;&gt;&gt; result = get_nth_bell_number(n)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        5</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="kn">import</span> <span class="nn">scipy.special</span>
+    <span class="nd">@ut.memoize</span>
+    <span class="k">def</span> <span class="nf">bell_</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+        <span class="n">sum_</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">sum_</span> <span class="o">=</span> <span class="n">sum_</span> <span class="o">+</span> <span class="n">scipy</span><span class="o">.</span><span class="n">special</span><span class="o">.</span><span class="n">binom</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">bell_</span><span class="p">(</span><span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sum_</span>
+    <span class="n">nth_bell</span> <span class="o">=</span> <span class="n">bell_</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">nth_bell</span>
+
+
+<span class="k">def</span> <span class="nf">num_partitions</span><span class="p">(</span><span class="n">num_items</span><span class="p">):</span></div>
+<div class="viewcode-block" id="num_partitions"><a class="viewcode-back" href="../../utool.html#utool.util_alg.num_partitions">[docs]</a>    <span class="k">return</span> <span class="n">get_nth_bell_number</span><span class="p">(</span><span class="n">num_items</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">solve_boolexpr</span><span class="p">():</span></div>
+<div class="viewcode-block" id="solve_boolexpr"><a class="viewcode-back" href="../../utool.html#utool.util_alg.solve_boolexpr">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    sudo pip install git+https://github.com/tpircher/quine-mccluskey.git</span>
+<span class="sd">    sudo pip uninstall quine_mccluskey</span>
+<span class="sd">    pip uninstall quine_mccluskey</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#false_cases = [</span>
+    <span class="c">#    int(&#39;111&#39;, 2),</span>
+    <span class="c">#    int(&#39;011&#39;, 2),</span>
+    <span class="c">#    int(&#39;001&#39;, 2),</span>
+    <span class="c">#]</span>
+    <span class="c">#true_cases = list(set(range(2 ** 3)) - set(false_cases))</span>
+
+    <span class="c">#import utool as ut</span>
+    <span class="n">varnames</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;sa&#39;</span><span class="p">,</span> <span class="s">&#39;said&#39;</span><span class="p">,</span> <span class="s">&#39;aid&#39;</span><span class="p">]</span>
+    <span class="n">truth_table</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="nb">dict</span><span class="p">(</span><span class="n">sa</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>  <span class="n">said</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>  <span class="n">aid</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>  <span class="n">output</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
+        <span class="nb">dict</span><span class="p">(</span><span class="n">sa</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>  <span class="n">said</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>  <span class="n">aid</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+        <span class="nb">dict</span><span class="p">(</span><span class="n">sa</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>  <span class="n">said</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">aid</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>  <span class="n">output</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+        <span class="nb">dict</span><span class="p">(</span><span class="n">sa</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>  <span class="n">said</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">aid</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+        <span class="nb">dict</span><span class="p">(</span><span class="n">sa</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">said</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>  <span class="n">aid</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>  <span class="n">output</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
+        <span class="nb">dict</span><span class="p">(</span><span class="n">sa</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">said</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>  <span class="n">aid</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+        <span class="nb">dict</span><span class="p">(</span><span class="n">sa</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">said</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">aid</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>  <span class="n">output</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
+        <span class="nb">dict</span><span class="p">(</span><span class="n">sa</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">said</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">aid</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">truth_tuples</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">varnames</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">truth_table</span><span class="p">]</span>
+    <span class="n">outputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s">&#39;output&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">truth_table</span><span class="p">]</span>
+    <span class="n">true_tuples</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">truth_tuples</span><span class="p">,</span> <span class="n">outputs</span><span class="p">)</span>
+    <span class="c">#false_tuples = ut.compress(truth_tuples, ut.not_list(outputs))</span>
+    <span class="n">true_cases</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">))</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tup</span><span class="p">])</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">true_tuples</span><span class="p">]</span>
+    <span class="n">true_cases</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">))</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tup</span><span class="p">])</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">true_tuples</span><span class="p">]</span>
+    <span class="c">#truth_nums = [int(s, 2) for s in true_cases]</span>
+
+    <span class="kn">from</span> <span class="nn">quine_mccluskey.qm</span> <span class="kn">import</span> <span class="n">QuineMcCluskey</span>
+
+    <span class="n">qm</span> <span class="o">=</span> <span class="n">QuineMcCluskey</span><span class="p">(</span><span class="n">use_xor</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">qm</span><span class="o">.</span><span class="n">simplify_los</span><span class="p">(</span><span class="n">true_cases</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="c">#ut.chr_range(3)</span>
+
+    <span class="c">#symbol_map = {</span>
+    <span class="c">#    &#39;-&#39;: &#39;&#39;,</span>
+    <span class="c">#    &#39;1&#39;: &#39;{v}&#39;,</span>
+    <span class="c">#    &#39;0&#39;: &#39;not {v}&#39;,</span>
+    <span class="c">#    &#39;^&#39;: &#39;^&#39;,</span>
+    <span class="c">#}</span>
+
+    <span class="c">#&#39;-&#39; don&#39;t care: this bit can be either zero or one.</span>
+    <span class="c">#&#39;1&#39; the bit must be one.</span>
+    <span class="c">#&#39;0&#39; the bit must be zero.</span>
+    <span class="c">#&#39;^&#39; all bits with the caret are XOR-ed together.</span>
+    <span class="c">#&#39;~&#39; all bits with the tilde are XNOR-ed together.</span>
+
+    <span class="c">#formulas = [[symbol_map[r].format(v=v) for v, r in zip(varnames, rs)] for rs in result]</span>
+    <span class="n">grouped_terms</span> <span class="o">=</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">varnames</span><span class="p">,</span> <span class="n">rs</span><span class="p">))</span> <span class="k">for</span> <span class="n">rs</span> <span class="ow">in</span> <span class="n">result</span><span class="p">]</span>
+    <span class="k">def</span> <span class="nf">parenjoin</span><span class="p">(</span><span class="n">char</span><span class="p">,</span> <span class="n">list_</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&#39;&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&#39;(&#39;</span> <span class="o">+</span> <span class="n">char</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span>
+
+    <span class="n">expanded_terms</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span>
+            <span class="n">term</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;1&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span>
+            <span class="p">[</span><span class="s">&#39;(not &#39;</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">term</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;0&#39;</span><span class="p">,</span> <span class="p">[])]</span> <span class="o">+</span>
+            <span class="p">[</span>
+                <span class="n">parenjoin</span><span class="p">(</span><span class="s">&#39; ^ &#39;</span><span class="p">,</span> <span class="n">term</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;^&#39;</span><span class="p">,</span> <span class="p">[])),</span>
+                <span class="n">parenjoin</span><span class="p">(</span><span class="s">&#39; ~ &#39;</span><span class="p">,</span> <span class="n">term</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;~&#39;</span><span class="p">,</span> <span class="p">[])),</span>
+            <span class="p">]</span>
+        <span class="p">)</span> <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">grouped_terms</span>
+    <span class="p">]</span>
+
+    <span class="n">final_terms</span> <span class="o">=</span> <span class="p">[[</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">term</span> <span class="k">if</span> <span class="n">t</span><span class="p">]</span> <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">expanded_terms</span><span class="p">]</span>
+
+    <span class="n">products</span> <span class="o">=</span> <span class="p">[</span><span class="n">parenjoin</span><span class="p">(</span><span class="s">&#39; and &#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">form</span> <span class="k">if</span> <span class="n">f</span><span class="p">])</span> <span class="k">for</span> <span class="n">form</span> <span class="ow">in</span> <span class="n">final_terms</span><span class="p">]</span>
+    <span class="n">final_expr</span> <span class="o">=</span> <span class="s">&#39; or &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">products</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">final_expr</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span></div>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -c &quot;import utool, utool.util_alg; utool.doctest_funcs(utool.util_alg, allexamples=True)&quot;</span>
@@ -1215,7 +1760,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>

@@ -141,10 +141,10 @@
 <span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">import</span> <span class="nn">shlex</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">normpath</span><span class="p">,</span> <span class="n">basename</span>
-<span class="kn">from</span> <span class="nn">.util_inject</span> <span class="kn">import</span> <span class="n">inject</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
 <span class="kn">from</span> <span class="nn">utool._internal</span> <span class="kn">import</span> <span class="n">meta_util_cplat</span>
 <span class="kn">from</span> <span class="nn">utool._internal.meta_util_path</span> <span class="kn">import</span> <span class="n">unixpath</span><span class="p">,</span> <span class="n">truepath</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[cplat]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[cplat]&#39;</span><span class="p">)</span>
 
 <span class="n">COMPUTER_NAME</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">node</span><span class="p">()</span>
 
@@ -178,13 +178,50 @@
     <span class="k">return</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">sys</span><span class="p">,</span> <span class="s">&#39;_MEIPASS&#39;</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="get_free_diskbytes"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.get_free_diskbytes">[docs]</a><span class="k">def</span> <span class="nf">get_free_diskbytes</span><span class="p">(</span><span class="n">dir_</span><span class="p">):</span>
+<div class="viewcode-block" id="get_system_python_library"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.get_system_python_library">[docs]</a><span class="k">def</span> <span class="nf">get_system_python_library</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    FIXME; hacky way of finding python library. Not cross platform yet.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">os</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">realpath</span>
+    <span class="n">pyname</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">realpath</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">))</span>
+    <span class="n">ld_library_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;LD_LIBRARY_PATH&#39;</span><span class="p">]</span>
+    <span class="n">libdirs</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ld_library_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">pathsep</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s">&#39;/usr/lib&#39;</span><span class="p">]</span>
+    <span class="n">libfiles</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span><span class="n">ut</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="s">&#39;*&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_lib_ext</span><span class="p">(),</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">libdirs</span><span class="p">])</span>
+    <span class="n">python_libs</span> <span class="o">=</span> <span class="p">[</span><span class="n">realpath</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">libfiles</span> <span class="k">if</span> <span class="s">&#39;lib&#39;</span> <span class="o">+</span> <span class="n">pyname</span> <span class="ow">in</span> <span class="n">basename</span><span class="p">(</span><span class="n">f</span><span class="p">)]</span>
+    <span class="n">python_libs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">(</span><span class="n">python_libs</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">python_libs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">python_libs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">python_libs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="get_free_diskbytes"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.get_free_diskbytes">[docs]</a><span class="k">def</span> <span class="nf">get_free_diskbytes</span><span class="p">(</span><span class="n">dir_</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        dir_ (str):</span>
+
 <span class="sd">    Returns:</span>
-<span class="sd">        folder/drive free space (in bytes)</span>
+<span class="sd">        int: bytes_ folder/drive free space (in bytes)</span>
 
 <span class="sd">    References::</span>
 <span class="sd">        http://stackoverflow.com/questions/51658/cross-platform-space-remaining-on-volume-using-python</span>
+<span class="sd">        http://linux.die.net/man/2/statvfs</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_cplat --exec-get_free_diskbytes</span>
+<span class="sd">        python -m utool.util_cplat --exec-get_free_diskbytes --dir /media/raid</span>
+<span class="sd">        python -m utool.util_cplat --exec-get_free_diskbytes --dir E:</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_cplat import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; dir_ = ut.get_argval(&#39;--dir&#39;, type_=str, default=ut.truepath(&#39;~&#39;))</span>
+<span class="sd">        &gt;&gt;&gt; bytes_ = get_free_diskbytes(dir_)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;bytes_ = %s&#39; % (str(bytes_),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;Unused space in %r = %r&#39; % (dir_, ut.byte_str2(bytes_)))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;Total space in %r = %r&#39; % (dir_, ut.byte_str2(get_total_diskbytes(dir_))))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">WIN32</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">ctypes</span>
@@ -196,7 +233,26 @@
         <span class="k">return</span> <span class="n">bytes_</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">st</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">statvfs</span><span class="p">(</span><span class="n">dir_</span><span class="p">)</span>
+        <span class="c"># blocks avaiable * block size</span>
         <span class="n">bytes_</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">f_bavail</span> <span class="o">*</span> <span class="n">st</span><span class="o">.</span><span class="n">f_frsize</span>
+        <span class="c">#bytes_ = st.f_bfree * st.f_frsize  # includes root only space</span>
+        <span class="k">return</span> <span class="n">bytes_</span>
+
+</div>
+<div class="viewcode-block" id="get_total_diskbytes"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.get_total_diskbytes">[docs]</a><span class="k">def</span> <span class="nf">get_total_diskbytes</span><span class="p">(</span><span class="n">dir_</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">WIN32</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">ctypes</span>
+        <span class="n">total_bytes</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ulonglong</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">outvar</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">pointer</span><span class="p">(</span><span class="n">total_bytes</span><span class="p">)</span>
+        <span class="n">dir_ptr</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_wchar_p</span><span class="p">(</span><span class="n">dir_</span><span class="p">)</span>
+        <span class="n">ctypes</span><span class="o">.</span><span class="n">windll</span><span class="o">.</span><span class="n">kernel32</span><span class="o">.</span><span class="n">GetDiskFreeSpaceExW</span><span class="p">(</span><span class="n">dir_ptr</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">outvar</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">bytes_</span> <span class="o">=</span> <span class="n">total_bytes</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">return</span> <span class="n">bytes_</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c">#raise NotImplementedError(&#39;&#39;)</span>
+        <span class="n">st</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">statvfs</span><span class="p">(</span><span class="n">dir_</span><span class="p">)</span>
+        <span class="c"># blocks total * block size</span>
+        <span class="n">bytes_</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">f_blocks</span> <span class="o">*</span> <span class="n">st</span><span class="o">.</span><span class="n">f_frsize</span>
         <span class="k">return</span> <span class="n">bytes_</span>
 
 </div>
@@ -205,6 +261,7 @@
 <span class="sd">    References:</span>
 <span class="sd">        http://stackoverflow.com/questions/15607903/python-module-os-chmodfile-664-does-not-change-the-permission-to-rw-rw-r-bu</span>
 <span class="sd">        http://www.tutorialspoint.com/python/os_chmod.htm</span>
+<span class="sd">        https://en.wikipedia.org/wiki/Chmod</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">stat</span>
     <span class="n">orig_mode</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span><span class="o">.</span><span class="n">st_mode</span>
@@ -212,7 +269,21 @@
     <span class="k">if</span> <span class="n">group</span><span class="p">:</span>
         <span class="n">new_mode</span> <span class="o">|=</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IXGRP</span>
     <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
+        <span class="c"># new_mode |= stat.S_IXUSR | stat.S_IEXEC</span>
         <span class="n">new_mode</span> <span class="o">|=</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IXGRP</span> <span class="o">|</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IEXEC</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">new_mode</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="chmod"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.chmod">[docs]</a><span class="k">def</span> <span class="nf">chmod</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">option</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">stat</span>
+    <span class="n">orig_mode</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span><span class="o">.</span><span class="n">st_mode</span>
+    <span class="n">new_mode</span> <span class="o">=</span> <span class="n">orig_mode</span>
+    <span class="k">if</span> <span class="n">option</span> <span class="o">==</span> <span class="s">&#39;+x&#39;</span><span class="p">:</span>
+        <span class="c"># Hack</span>
+        <span class="n">new_mode</span> <span class="o">|=</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IEXEC</span>
+    <span class="k">if</span> <span class="n">option</span> <span class="o">==</span> <span class="s">&#39;g+x&#39;</span><span class="p">:</span>
+        <span class="n">new_mode</span> <span class="o">|=</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IXGRP</span>
+
     <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">new_mode</span><span class="p">)</span>
 
 </div>
@@ -296,8 +367,37 @@
     <span class="k">return</span> <span class="n">PYLIB_DICT</span><span class="p">[</span><span class="n">OS_TYPE</span><span class="p">]</span>
 
 </div>
-<div class="viewcode-block" id="python_executable"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.python_executable">[docs]</a><span class="k">def</span> <span class="nf">python_executable</span><span class="p">():</span>
-    <span class="k">return</span> <span class="n">unixpath</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">)</span>
+<div class="viewcode-block" id="python_executable"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.python_executable">[docs]</a><span class="k">def</span> <span class="nf">python_executable</span><span class="p">(</span><span class="n">check</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">short</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        short (bool): (default = False)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str:</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_cplat import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; short = False</span>
+<span class="sd">        &gt;&gt;&gt; result = python_executable(short)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">check</span><span class="p">:</span>
+        <span class="n">python_exe</span> <span class="o">=</span> <span class="s">&#39;python&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">isdir</span>
+        <span class="n">python_exe_long</span> <span class="o">=</span> <span class="n">unixpath</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">)</span>
+        <span class="n">python_exe</span> <span class="o">=</span> <span class="n">python_exe_long</span>
+        <span class="k">if</span> <span class="n">short</span><span class="p">:</span>
+            <span class="n">python_exe_short</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">python_exe_long</span><span class="p">)</span>
+            <span class="n">found</span> <span class="o">=</span> <span class="n">search_env_paths</span><span class="p">(</span><span class="n">python_exe_short</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PATH&#39;</span><span class="p">],</span>
+                                     <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="n">found</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">found</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">isdir</span><span class="p">(</span><span class="n">f</span><span class="p">)]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">found</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">found</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">python_exe_long</span><span class="p">:</span>
+                    <span class="c"># Safe to use the short name in this env</span>
+                    <span class="n">python_exe</span> <span class="o">=</span> <span class="n">python_exe_short</span>
+    <span class="k">return</span> <span class="n">python_exe</span>
 
 </div>
 <div class="viewcode-block" id="ls_libs"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.ls_libs">[docs]</a><span class="k">def</span> <span class="nf">ls_libs</span><span class="p">(</span><span class="n">dpath</span><span class="p">):</span>
@@ -375,7 +475,7 @@
 <span class="sd">                others.append(line)</span>
 
 <span class="sd">        # remove duplicate address spaces</span>
-<span class="sd">        info = ut.unique_keep_order(info)</span>
+<span class="sd">        info = ut.unique_ordered(info)</span>
 <span class="sd">        # remove stdlib</span>
 <span class="sd">        info = [line for line in info if &#39;std::&#39; not in line[0]]</span>
 <span class="sd">        info = [line for line in info if not line[0].startswith(&#39;typeinfo&#39;)]</span>
@@ -445,7 +545,7 @@
     <span class="k">return</span> <span class="n">root</span>
 
 </div>
-<div class="viewcode-block" id="startfile"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.startfile">[docs]</a><span class="k">def</span> <span class="nf">startfile</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">detatch</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">quote</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="startfile"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.startfile">[docs]</a><span class="k">def</span> <span class="nf">startfile</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">detatch</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">quote</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Uses default program defined by the system to open a file.</span>
 
 <span class="sd">    References:</span>
@@ -454,7 +554,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[cplat] startfile(</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="n">fpath</span><span class="p">)</span>
     <span class="n">fpath</span> <span class="o">=</span> <span class="n">normpath</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[cplat] fpath=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fpath</span><span class="p">)</span>
+    <span class="c"># print(&#39;[cplat] fpath=%s&#39; % fpath)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">fpath</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;Cannot start nonexistant file: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fpath</span><span class="p">)</span>
     <span class="c">#if quote:</span>
@@ -464,10 +564,10 @@
         <span class="n">fpath</span> <span class="o">=</span> <span class="n">pipes</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">LINUX</span><span class="p">:</span>
         <span class="c">#out, err, ret = cmd([&#39;xdg-open&#39;, fpath], detatch=True)</span>
-        <span class="n">outtup</span> <span class="o">=</span> <span class="n">cmd</span><span class="p">((</span><span class="s">&#39;xdg-open&#39;</span><span class="p">,</span> <span class="n">fpath</span><span class="p">),</span> <span class="n">detatch</span><span class="o">=</span><span class="n">detatch</span><span class="p">)</span>
+        <span class="n">outtup</span> <span class="o">=</span> <span class="n">cmd</span><span class="p">((</span><span class="s">&#39;xdg-open&#39;</span><span class="p">,</span> <span class="n">fpath</span><span class="p">),</span> <span class="n">detatch</span><span class="o">=</span><span class="n">detatch</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="n">quiet</span><span class="p">)</span>
         <span class="c">#outtup = cmd(&#39;xdg-open&#39;, fpath, detatch=detatch)</span>
     <span class="k">elif</span> <span class="n">DARWIN</span><span class="p">:</span>
-        <span class="n">outtup</span> <span class="o">=</span> <span class="n">cmd</span><span class="p">((</span><span class="s">&#39;open&#39;</span><span class="p">,</span> <span class="n">fpath</span><span class="p">),</span> <span class="n">detatch</span><span class="o">=</span><span class="n">detatch</span><span class="p">)</span>
+        <span class="n">outtup</span> <span class="o">=</span> <span class="n">cmd</span><span class="p">((</span><span class="s">&#39;open&#39;</span><span class="p">,</span> <span class="n">fpath</span><span class="p">),</span> <span class="n">detatch</span><span class="o">=</span><span class="n">detatch</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="n">quiet</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">WIN32</span><span class="p">:</span>
         <span class="n">os</span><span class="o">.</span><span class="n">startfile</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -565,9 +665,9 @@
 <span class="n">get_app_resource_dir</span> <span class="o">=</span> <span class="n">meta_util_cplat</span><span class="o">.</span><span class="n">get_app_resource_dir</span>
 
 
-<div class="viewcode-block" id="ensure_app_resource_dir"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.ensure_app_resource_dir">[docs]</a><span class="k">def</span> <span class="nf">ensure_app_resource_dir</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<div class="viewcode-block" id="ensure_app_resource_dir"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.ensure_app_resource_dir">[docs]</a><span class="k">def</span> <span class="nf">ensure_app_resource_dir</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-    <span class="n">app_resource_dir</span> <span class="o">=</span> <span class="n">get_app_resource_dir</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">app_resource_dir</span> <span class="o">=</span> <span class="n">get_app_resource_dir</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">app_resource_dir</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">app_resource_dir</span>
 
@@ -727,6 +827,7 @@
 <span class="sd">        tuple: (None, None, None)</span>
 
 <span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_cplat --test-cmd</span>
 <span class="sd">        python -m utool.util_cplat --test-cmd:0</span>
 <span class="sd">        python -m utool.util_cplat --test-cmd:1</span>
 <span class="sd">        python -m utool.util_cplat --test-cmd:2</span>
@@ -834,7 +935,13 @@
                                 <span class="c"># TODO make this play nicely with loggers</span>
                                 <span class="n">print_</span><span class="p">(</span><span class="n">line_</span><span class="p">)</span>
                         <span class="n">logged_out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
-                <span class="n">out</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">logged_out</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_str</span>
+                    <span class="n">logged_out</span> <span class="o">=</span> <span class="n">util_str</span><span class="o">.</span><span class="n">ensure_unicode_strlist</span><span class="p">(</span><span class="n">logged_out</span><span class="p">)</span>
+                    <span class="n">out</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">logged_out</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">UnicodeDecodeError</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;logged_out = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">logged_out</span><span class="p">,))</span>
+                    <span class="k">raise</span>
                 <span class="p">(</span><span class="n">out_</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
                 <span class="c">#print(&#39;[ut.cmd] out: %s&#39; % (out,))</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">quiet</span><span class="p">:</span>
@@ -972,7 +1079,7 @@
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pathdirs</span><span class="p">))</span>
 
 </div>
-<div class="viewcode-block" id="search_env_paths"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.search_env_paths">[docs]</a><span class="k">def</span> <span class="nf">search_env_paths</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+<div class="viewcode-block" id="search_env_paths"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.search_env_paths">[docs]</a><span class="k">def</span> <span class="nf">search_env_paths</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Searches your PATH to see if fname exists</span>
 
@@ -997,17 +1104,23 @@
 <span class="sd">        OpenCV_CONFIG_PATH:FILEPATH={share_opencv}</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">key_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span> <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;PATH&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
     <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+    <span class="k">if</span> <span class="n">key_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">key_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span> <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;PATH&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">found</span> <span class="o">=</span> <span class="p">[]</span>
+
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">key_list</span><span class="p">:</span>
         <span class="n">dpath_list</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">pathsep</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">dpath</span> <span class="ow">in</span> <span class="n">dpath_list</span><span class="p">:</span>
             <span class="n">testname</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">testname</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;Found in key=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
-                <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">testname</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Found in key=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">testname</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="n">found</span> <span class="o">+=</span> <span class="p">[</span><span class="n">testname</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">found</span>
 
 </div>
 <div class="viewcode-block" id="change_term_title"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.change_term_title">[docs]</a><span class="k">def</span> <span class="nf">change_term_title</span><span class="p">(</span><span class="n">title</span><span class="p">):</span>
@@ -1239,6 +1352,16 @@
 <span class="c">#                print name+&quot; is running&quot;</span>
 <span class="c">#        else:</span>
 <span class="c">#                print name+&quot; is not running&quot;</span>
+
+</div>
+<div class="viewcode-block" id="pip_install"><a class="viewcode-back" href="../../utool.html#utool.util_cplat.pip_install">[docs]</a><span class="k">def</span> <span class="nf">pip_install</span><span class="p">(</span><span class="n">package</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    References:</span>
+<span class="sd">        http://stackoverflow.com/questions/15974100/ipython-install-new-modules</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">pip</span>
+    <span class="n">pip</span><span class="o">.</span><span class="n">main</span><span class="p">([</span><span class="s">&#39;install&#39;</span><span class="p">,</span> <span class="n">package</span><span class="p">])</span>
+
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -1263,7 +1386,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Jon Crall.
+        &copy; Copyright 2016, Jon Crall.
 
     </p>
   </div>

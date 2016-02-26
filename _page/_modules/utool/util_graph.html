@@ -1,0 +1,857 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>utool.util_graph &mdash; utool 1.1.2.dev1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="utool 1.1.2.dev1 documentation" href="../../index.html"/>
+        <link rel="up" title="utool" href="../utool.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> utool
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.2.dev1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../utool.html">utool package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">utool</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../utool.html">utool</a> &raquo;</li>
+      
+    <li>utool.util_graph</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for utool.util_graph</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[depgraph_helpers]&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="testdata_graph"><a class="viewcode-back" href="../../utool.html#utool.util_graph.testdata_graph">[docs]</a><span class="k">def</span> <span class="nf">testdata_graph</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (graph, G)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_graph --exec-testdata_graph --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_graph import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; (graph, G) = testdata_graph()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; ut.ensure_pylab_qt4()</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_nx(G, layout=&#39;pygraphviz&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">nx</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="c"># Define adjacency list</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;a&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;b&#39;</span><span class="p">],</span>
+        <span class="s">&#39;b&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;c&#39;</span><span class="p">,</span> <span class="s">&#39;f&#39;</span><span class="p">,</span> <span class="s">&#39;e&#39;</span><span class="p">],</span>
+        <span class="s">&#39;c&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;g&#39;</span><span class="p">,</span> <span class="s">&#39;d&#39;</span><span class="p">],</span>
+        <span class="s">&#39;d&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;c&#39;</span><span class="p">,</span> <span class="s">&#39;h&#39;</span><span class="p">],</span>
+        <span class="s">&#39;e&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="s">&#39;f&#39;</span><span class="p">],</span>
+        <span class="s">&#39;f&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;g&#39;</span><span class="p">],</span>
+        <span class="s">&#39;g&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;f&#39;</span><span class="p">],</span>
+        <span class="s">&#39;h&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;g&#39;</span><span class="p">,</span> <span class="s">&#39;d&#39;</span><span class="p">],</span>
+        <span class="s">&#39;i&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;j&#39;</span><span class="p">],</span>
+        <span class="s">&#39;j&#39;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="p">}</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;a&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;b&#39;</span><span class="p">],</span>
+        <span class="s">&#39;b&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;c&#39;</span><span class="p">],</span>
+        <span class="s">&#39;c&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;d&#39;</span><span class="p">],</span>
+        <span class="s">&#39;d&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="s">&#39;e&#39;</span><span class="p">],</span>
+        <span class="s">&#39;e&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;c&#39;</span><span class="p">],</span>
+    <span class="p">}</span>
+    <span class="c">#graph = {&#39;a&#39;: [&#39;b&#39;], &#39;b&#39;: [&#39;c&#39;], &#39;c&#39;: [&#39;d&#39;], &#39;d&#39;: [&#39;a&#39;]}</span>
+    <span class="c">#graph = {&#39;a&#39;: [&#39;b&#39;], &#39;b&#39;: [&#39;c&#39;], &#39;c&#39;: [&#39;d&#39;], &#39;d&#39;: [&#39;e&#39;], &#39;e&#39;: [&#39;a&#39;]}</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;a&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;b&#39;</span><span class="p">],</span> <span class="s">&#39;b&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;c&#39;</span><span class="p">],</span> <span class="s">&#39;c&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;d&#39;</span><span class="p">],</span> <span class="s">&#39;d&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;e&#39;</span><span class="p">],</span> <span class="s">&#39;e&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;a&#39;</span><span class="p">],</span> <span class="s">&#39;f&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;c&#39;</span><span class="p">]}</span>
+    <span class="c">#graph = {&#39;a&#39;: [&#39;b&#39;], &#39;b&#39;: [&#39;c&#39;], &#39;c&#39;: [&#39;d&#39;], &#39;d&#39;: [&#39;e&#39;], &#39;e&#39;: [&#39;b&#39;]}</span>
+
+    <span class="n">graph</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;a&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;b&#39;</span><span class="p">,</span> <span class="s">&#39;c&#39;</span><span class="p">,</span> <span class="s">&#39;d&#39;</span><span class="p">],</span> <span class="s">&#39;e&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;d&#39;</span><span class="p">],</span> <span class="s">&#39;f&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;d&#39;</span><span class="p">,</span> <span class="s">&#39;e&#39;</span><span class="p">],</span> <span class="s">&#39;b&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s">&#39;c&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s">&#39;d&#39;</span><span class="p">:</span> <span class="p">[]}</span>  <span class="c"># double pair in non-scc</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;a&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;b&#39;</span><span class="p">,</span> <span class="s">&#39;c&#39;</span><span class="p">,</span> <span class="s">&#39;d&#39;</span><span class="p">],</span> <span class="s">&#39;e&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;d&#39;</span><span class="p">],</span> <span class="s">&#39;f&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;d&#39;</span><span class="p">,</span> <span class="s">&#39;e&#39;</span><span class="p">],</span> <span class="s">&#39;b&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s">&#39;c&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s">&#39;d&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;e&#39;</span><span class="p">]}</span>  <span class="c"># double pair in non-scc</span>
+    <span class="c">#graph = {&#39;a&#39;: [&#39;b&#39;, &#39;c&#39;, &#39;d&#39;], &#39;e&#39;: [&#39;d&#39;, &#39;f&#39;], &#39;f&#39;: [&#39;d&#39;, &#39;e&#39;], &#39;b&#39;: [], &#39;c&#39;: [], &#39;d&#39;: [&#39;e&#39;]}  # double pair in non-scc</span>
+    <span class="c">#graph = {&#39;a&#39;: [&#39;b&#39;, &#39;c&#39;, &#39;d&#39;], &#39;e&#39;: [&#39;d&#39;, &#39;c&#39;], &#39;f&#39;: [&#39;d&#39;, &#39;e&#39;], &#39;b&#39;: [&#39;e&#39;], &#39;c&#39;: [&#39;e&#39;], &#39;d&#39;: [&#39;e&#39;]}  # double pair in non-scc</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;a&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;b&#39;</span><span class="p">,</span> <span class="s">&#39;c&#39;</span><span class="p">,</span> <span class="s">&#39;d&#39;</span><span class="p">],</span> <span class="s">&#39;e&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;d&#39;</span><span class="p">,</span> <span class="s">&#39;c&#39;</span><span class="p">],</span> <span class="s">&#39;f&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;d&#39;</span><span class="p">,</span> <span class="s">&#39;e&#39;</span><span class="p">],</span> <span class="s">&#39;b&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;e&#39;</span><span class="p">],</span> <span class="s">&#39;c&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;e&#39;</span><span class="p">,</span> <span class="s">&#39;b&#39;</span><span class="p">],</span> <span class="s">&#39;d&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;e&#39;</span><span class="p">]}</span>  <span class="c"># double pair in non-scc</span>
+    <span class="c"># Extract G = (V, E)</span>
+    <span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([[(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span> <span class="k">for</span> <span class="n">v2</span> <span class="ow">in</span> <span class="n">v2s</span><span class="p">]</span> <span class="k">for</span> <span class="n">v1</span><span class="p">,</span> <span class="n">v2s</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
+    <span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span>
+    <span class="n">G</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span>
+    <span class="n">G</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="n">G</span><span class="o">.</span><span class="n">remove_node</span><span class="p">(</span><span class="s">&#39;e&#39;</span><span class="p">)</span>
+        <span class="k">del</span> <span class="n">graph</span><span class="p">[</span><span class="s">&#39;e&#39;</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">val</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;e&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+    <span class="c">#ut.ensure_pylab_qt4()</span>
+    <span class="c">#pt.show_nx(G, layout=&#39;pygraphviz&#39;)</span>
+    <span class="k">return</span> <span class="n">graph</span><span class="p">,</span> <span class="n">G</span>
+
+</div>
+<div class="viewcode-block" id="dfs_template"><a class="viewcode-back" href="../../utool.html#utool.util_graph.dfs_template">[docs]</a><span class="k">def</span> <span class="nf">dfs_template</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">previsit</span><span class="p">,</span> <span class="n">postvisit</span><span class="p">):</span>
+    <span class="n">seen_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">meta</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c"># NOQA</span>
+
+    <span class="k">def</span> <span class="nf">previsit</span><span class="p">(</span><span class="n">parent</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">postvisit</span><span class="p">(</span><span class="n">parent</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">explore</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">seen_</span><span class="p">):</span>
+        <span class="c"># Mark visited</span>
+        <span class="n">seen_</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="n">previsit</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="c"># Explore children</span>
+        <span class="n">children</span> <span class="o">=</span> <span class="n">graph</span><span class="p">[</span><span class="n">parent</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">children</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">child</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_</span><span class="p">:</span>
+                <span class="n">explore</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="n">seen_</span><span class="p">)</span>
+        <span class="n">postvisit</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+    <span class="c"># Run Depth First Search</span>
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">node</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_</span><span class="p">:</span>
+            <span class="n">explore</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">seen_</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="topsort_dfs"><a class="viewcode-back" href="../../utool.html#utool.util_graph.topsort_dfs">[docs]</a><span class="k">def</span> <span class="nf">topsort_dfs</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">previsit</span><span class="p">,</span> <span class="n">postvisit</span><span class="p">):</span>
+
+    <span class="n">Gr</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">Gr</span><span class="o">.</span><span class="n">nodes</span><span class="p">(),</span> <span class="n">Gr</span><span class="o">.</span><span class="n">adjacency_list</span><span class="p">()))</span>
+
+    <span class="n">seen_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">meta</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;clock&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s">&#39;pre&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s">&#39;post&#39;</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">previsit</span><span class="p">(</span><span class="n">parent</span><span class="p">):</span>
+        <span class="n">meta</span><span class="p">[</span><span class="s">&#39;pre&#39;</span><span class="p">][</span><span class="n">parent</span><span class="p">]</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s">&#39;clock&#39;</span><span class="p">]</span>
+        <span class="n">meta</span><span class="p">[</span><span class="s">&#39;clock&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">postvisit</span><span class="p">(</span><span class="n">parent</span><span class="p">):</span>
+        <span class="n">meta</span><span class="p">[</span><span class="s">&#39;post&#39;</span><span class="p">][</span><span class="n">parent</span><span class="p">]</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s">&#39;clock&#39;</span><span class="p">]</span>
+        <span class="n">meta</span><span class="p">[</span><span class="s">&#39;clock&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">explore</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">seen_</span><span class="p">):</span>
+        <span class="c"># Mark visited</span>
+        <span class="n">seen_</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="n">previsit</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="c"># Explore children</span>
+        <span class="n">children</span> <span class="o">=</span> <span class="n">graph</span><span class="p">[</span><span class="n">parent</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">children</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">child</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_</span><span class="p">:</span>
+                <span class="n">explore</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="n">seen_</span><span class="p">)</span>
+        <span class="n">postvisit</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+    <span class="c"># Run Depth First Search</span>
+    <span class="n">nodes</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">node</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_</span><span class="p">:</span>
+            <span class="n">explore</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">seen_</span><span class="p">)</span>
+
+    <span class="c">#for node in nodes:</span>
+    <span class="c">#    postorder = list(nx.dfs_postorder_nodes(Gr, node))</span>
+
+    <span class="n">top_sort_order</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">sortedby</span><span class="p">(</span><span class="n">meta</span><span class="p">[</span><span class="s">&#39;post&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">meta</span><span class="p">[</span><span class="s">&#39;post&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;top_sort_order = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">top_sort_order</span><span class="p">,))</span>
+
+    <span class="n">graph</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">(),</span> <span class="n">G</span><span class="o">.</span><span class="n">adjacency_list</span><span class="p">()))</span>
+
+    <span class="n">seen_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">meta</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;clock&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s">&#39;pre&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s">&#39;post&#39;</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">previsit2</span><span class="p">(</span><span class="n">parent</span><span class="p">):</span>
+        <span class="n">meta</span><span class="p">[</span><span class="s">&#39;pre&#39;</span><span class="p">][</span><span class="n">parent</span><span class="p">]</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s">&#39;clock&#39;</span><span class="p">]</span>
+        <span class="n">meta</span><span class="p">[</span><span class="s">&#39;clock&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">postvisit2</span><span class="p">(</span><span class="n">parent</span><span class="p">):</span>
+        <span class="n">meta</span><span class="p">[</span><span class="s">&#39;post&#39;</span><span class="p">][</span><span class="n">parent</span><span class="p">]</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s">&#39;clock&#39;</span><span class="p">]</span>
+        <span class="n">meta</span><span class="p">[</span><span class="s">&#39;clock&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">explore</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">seen_</span><span class="p">):</span>
+        <span class="c"># Mark visited</span>
+        <span class="n">seen_</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="n">previsit2</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="c"># Explore children</span>
+        <span class="n">children</span> <span class="o">=</span> <span class="n">graph</span><span class="p">[</span><span class="n">parent</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">children</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">child</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_</span><span class="p">:</span>
+                <span class="n">explore</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="n">seen_</span><span class="p">)</span>
+        <span class="n">postvisit2</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+    <span class="c"># Run Depth First Search</span>
+    <span class="n">strongly_connected_compoments</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">top_sort_order</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">node</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_</span><span class="p">:</span>
+            <span class="n">before</span> <span class="o">=</span> <span class="n">seen_</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">explore</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">seen_</span><span class="p">)</span>
+            <span class="n">strongly_connected_compoments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">seen_</span> <span class="o">-</span> <span class="n">before</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="find_odd_cycle"><a class="viewcode-back" href="../../utool.html#utool.util_graph.find_odd_cycle">[docs]</a><span class="k">def</span> <span class="nf">find_odd_cycle</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    given any starting point in an scc</span>
+<span class="sd">    if there is an odd length cycle in the scc</span>
+<span class="sd">    then the starting node is part of the odd length cycle</span>
+
+<span class="sd">    Let s* be part of the odd length cycle</span>
+<span class="sd">    Start from any point s</span>
+<span class="sd">    There is also a cycle from (s* to s) due to scc.</span>
+<span class="sd">    If that cycle is even, then go to s*, then go in the odd length cycle back to s*</span>
+<span class="sd">    and then go back to s, which makes this path odd.</span>
+<span class="sd">    If s s* s is odd we are done.</span>
+
+<span class="sd">    because it is strongly connected there is a path from s* to s and</span>
+<span class="sd">    s to s*. If that cycle is odd then done otherwise,</span>
+
+<span class="sd">    # Run pairity check on each scc</span>
+<span class="sd">    # Then check all edges for equal pairity</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_graph --exec-find_odd_cycle --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_graph import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; result = find_odd_cycle()</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">graph</span><span class="p">,</span> <span class="n">G</span> <span class="o">=</span> <span class="n">testdata_graph</span><span class="p">()</span>
+
+    <span class="n">seen_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">meta</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;clock&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s">&#39;pre&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s">&#39;post&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s">&#39;pairity&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">n</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">graph</span><span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">previsit</span><span class="p">(</span><span class="n">parent</span><span class="p">):</span>
+        <span class="n">meta</span><span class="p">[</span><span class="s">&#39;pre&#39;</span><span class="p">][</span><span class="n">parent</span><span class="p">]</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s">&#39;clock&#39;</span><span class="p">]</span>
+        <span class="n">meta</span><span class="p">[</span><span class="s">&#39;clock&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">postvisit</span><span class="p">(</span><span class="n">parent</span><span class="p">):</span>
+        <span class="n">meta</span><span class="p">[</span><span class="s">&#39;post&#39;</span><span class="p">][</span><span class="n">parent</span><span class="p">]</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s">&#39;clock&#39;</span><span class="p">]</span>
+        <span class="n">meta</span><span class="p">[</span><span class="s">&#39;clock&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">explore</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">seen_</span><span class="p">):</span>
+        <span class="c"># Mark visited</span>
+        <span class="n">seen_</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="n">previsit</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="c"># Explore children</span>
+        <span class="n">children</span> <span class="o">=</span> <span class="n">graph</span><span class="p">[</span><span class="n">parent</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">children</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">child</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_</span><span class="p">:</span>
+                <span class="n">meta</span><span class="p">[</span><span class="s">&#39;pairity&#39;</span><span class="p">][</span><span class="n">child</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">meta</span><span class="p">[</span><span class="s">&#39;pairity&#39;</span><span class="p">][</span><span class="n">parent</span><span class="p">]</span>
+                <span class="n">explore</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="n">seen_</span><span class="p">)</span>
+        <span class="n">postvisit</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+    <span class="c"># Run Depth First Search</span>
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">node</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_</span><span class="p">:</span>
+            <span class="n">explore</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">seen_</span><span class="p">)</span>
+
+    <span class="c"># Check edges for neighboring pairities</span>
+    <span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">nx</span>
+    <span class="n">scc_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">strongly_connected_components</span><span class="p">(</span><span class="n">G</span><span class="p">))</span>
+
+    <span class="n">found</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="k">for</span> <span class="n">scc</span> <span class="ow">in</span> <span class="n">scc_list</span><span class="p">:</span>
+        <span class="n">SCC_G</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">scc</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">SCC_G</span><span class="o">.</span><span class="n">edges</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">meta</span><span class="p">[</span><span class="s">&#39;pairity&#39;</span><span class="p">][</span><span class="n">u</span><span class="p">]</span> <span class="o">==</span> <span class="n">meta</span><span class="p">[</span><span class="s">&#39;pairity&#39;</span><span class="p">][</span><span class="n">v</span><span class="p">]:</span>
+                <span class="n">found</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;FOUND ODD CYCLE&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;NO ODD CYCLES&quot;</span><span class="p">)</span>
+
+    <span class="c"># Mark edge types</span>
+    <span class="n">edge_types</span> <span class="o">=</span> <span class="p">{(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span> <span class="s">&#39;forward&#39;</span><span class="p">,</span>
+                  <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span> <span class="s">&#39;back&#39;</span><span class="p">,</span>
+                  <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span> <span class="s">&#39;cross&#39;</span><span class="p">,</span> <span class="p">}</span>
+
+    <span class="n">edge_labels</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">type_to_edges</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">pre</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s">&#39;pre&#39;</span><span class="p">]</span>
+    <span class="n">post</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s">&#39;post&#39;</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">edges</span><span class="p">():</span>
+        <span class="n">orders</span> <span class="o">=</span> <span class="p">[</span><span class="n">pre</span><span class="p">[</span><span class="n">u</span><span class="p">],</span> <span class="n">pre</span><span class="p">[</span><span class="n">v</span><span class="p">],</span> <span class="n">post</span><span class="p">[</span><span class="n">u</span><span class="p">],</span> <span class="n">post</span><span class="p">[</span><span class="n">v</span><span class="p">]]</span>
+        <span class="n">sortx</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">orders</span><span class="p">))</span>
+        <span class="n">type_</span> <span class="o">=</span> <span class="n">edge_types</span><span class="p">[</span><span class="n">sortx</span><span class="p">]</span>
+        <span class="n">edge_labels</span><span class="p">[(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)]</span> <span class="o">=</span> <span class="n">type_</span>
+        <span class="n">type_to_edges</span><span class="p">[</span><span class="n">type_</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+
+    <span class="c">## Check back edges</span>
+    <span class="c">#is_odd_list = []</span>
+    <span class="c">#for back_edge in type_to_edges[&#39;back&#39;]:</span>
+    <span class="c">#    u, v = back_edge</span>
+    <span class="c">#    pre_v = meta[&#39;pre&#39;][v]</span>
+    <span class="c">#    post_u = meta[&#39;post&#39;][u]</span>
+    <span class="c">#    is_even = (post_u - pre_v) % 2 == 0</span>
+    <span class="c">#    is_odd = not is_even</span>
+    <span class="c">#    is_odd_list.append(is_odd)</span>
+
+    <span class="c"># Visualize the graph</span>
+    <span class="n">node_labels</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c">#node: (meta[&#39;pre&#39;][node], meta[&#39;post&#39;][node])</span>
+        <span class="n">node</span><span class="p">:</span> <span class="p">(</span><span class="n">meta</span><span class="p">[</span><span class="s">&#39;pairity&#39;</span><span class="p">][</span><span class="n">node</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">graph</span>
+    <span class="p">}</span>
+
+    <span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">nx</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="n">scc_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">strongly_connected_components</span><span class="p">(</span><span class="n">G</span><span class="p">))</span>
+
+    <span class="n">node_colors</span> <span class="o">=</span> <span class="p">{</span><span class="n">node</span><span class="p">:</span> <span class="n">color</span> <span class="k">for</span> <span class="n">scc</span><span class="p">,</span> <span class="n">color</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">scc_list</span><span class="p">,</span> <span class="n">pt</span><span class="o">.</span><span class="n">distinct_colors</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">scc_list</span><span class="p">)))</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">scc</span><span class="p">}</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="s">&#39;label&#39;</span><span class="p">,</span> <span class="n">node_labels</span><span class="p">)</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="s">&#39;color&#39;</span><span class="p">,</span> <span class="n">node_colors</span><span class="p">)</span>
+    <span class="c">#nx.set_edge_attributes(G, &#39;label&#39;, edge_labels)</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensure_pylab_qt4</span><span class="p">()</span>
+    <span class="c">#pt.figure(pt.next_fnum())</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">show_nx</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="s">&#39;pygraphviz&#39;</span><span class="p">)</span>
+
+    <span class="c">#dfs(G)</span>
+
+</div>
+<div class="viewcode-block" id="dict_depth"><a class="viewcode-back" href="../../utool.html#utool.util_graph.dict_depth">[docs]</a><span class="k">def</span> <span class="nf">dict_depth</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">accum</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">accum</span>
+    <span class="k">return</span> <span class="nb">max</span><span class="p">([</span><span class="n">dict_depth</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">accum</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">dict_</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
+
+</div>
+<div class="viewcode-block" id="edges_to_adjacency_list"><a class="viewcode-back" href="../../utool.html#utool.util_graph.edges_to_adjacency_list">[docs]</a><span class="k">def</span> <span class="nf">edges_to_adjacency_list</span><span class="p">(</span><span class="n">edges</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">children_</span><span class="p">,</span> <span class="n">parents_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">edges</span><span class="p">))</span>
+    <span class="n">parent_to_children</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">parents_</span><span class="p">,</span> <span class="n">children_</span><span class="p">)</span>
+    <span class="c">#to_leafs = {tablename: path_to_leafs(tablename, parent_to_children)}</span>
+    <span class="k">return</span> <span class="n">parent_to_children</span>
+
+</div>
+<div class="viewcode-block" id="get_ancestor_levels"><a class="viewcode-back" href="../../utool.html#utool.util_graph.get_ancestor_levels">[docs]</a><span class="k">def</span> <span class="nf">get_ancestor_levels</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">tablename</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">nx</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">topological_sort</span><span class="p">(</span><span class="n">graph</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">reverse_edges</span> <span class="o">=</span> <span class="p">[(</span><span class="n">e2</span><span class="p">,</span> <span class="n">e1</span><span class="p">)</span> <span class="k">for</span> <span class="n">e1</span><span class="p">,</span> <span class="n">e2</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">()]</span>
+    <span class="n">child_to_parents</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">edges_to_adjacency_list</span><span class="p">(</span><span class="n">reverse_edges</span><span class="p">)</span>
+    <span class="n">to_root</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">paths_to_root</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">child_to_parents</span><span class="p">)</span>
+    <span class="n">from_root</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">reverse_path</span><span class="p">(</span><span class="n">to_root</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">child_to_parents</span><span class="p">)</span>
+    <span class="n">ancestor_levels_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_levels</span><span class="p">(</span><span class="n">from_root</span><span class="p">)</span>
+    <span class="n">ancestor_levels</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">longest_levels</span><span class="p">(</span><span class="n">ancestor_levels_</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ancestor_levels</span>
+
+</div>
+<div class="viewcode-block" id="get_descendant_levels"><a class="viewcode-back" href="../../utool.html#utool.util_graph.get_descendant_levels">[docs]</a><span class="k">def</span> <span class="nf">get_descendant_levels</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">tablename</span><span class="p">):</span>
+    <span class="c">#import networkx as nx</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">parent_to_children</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">edges_to_adjacency_list</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">())</span>
+    <span class="n">to_leafs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">path_to_leafs</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="n">parent_to_children</span><span class="p">)</span>
+    <span class="n">descendant_levels_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_levels</span><span class="p">(</span><span class="n">to_leafs</span><span class="p">)</span>
+    <span class="n">descendant_levels</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">longest_levels</span><span class="p">(</span><span class="n">descendant_levels_</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">descendant_levels</span>
+
+</div>
+<div class="viewcode-block" id="paths_to_root"><a class="viewcode-back" href="../../utool.html#utool.util_graph.paths_to_root">[docs]</a><span class="k">def</span> <span class="nf">paths_to_root</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">child_to_parents</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_graph --exec-paths_to_root:0</span>
+<span class="sd">        python -m utool.util_graph --exec-paths_to_root:1</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_graph import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; child_to_parents = {</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;chip&#39;: [&#39;dummy_annot&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;chipmask&#39;: [&#39;dummy_annot&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;descriptor&#39;: [&#39;keypoint&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;fgweight&#39;: [&#39;keypoint&#39;, &#39;probchip&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;keypoint&#39;: [&#39;chip&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;notch&#39;: [&#39;dummy_annot&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;probchip&#39;: [&#39;dummy_annot&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;spam&#39;: [&#39;fgweight&#39;, &#39;chip&#39;, &#39;keypoint&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; }</span>
+<span class="sd">        &gt;&gt;&gt; root = &#39;dummy_annot&#39;</span>
+<span class="sd">        &gt;&gt;&gt; tablename = &#39;fgweight&#39;</span>
+<span class="sd">        &gt;&gt;&gt; to_root = paths_to_root(tablename, root, child_to_parents)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr3(to_root)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        {</span>
+<span class="sd">            &#39;keypoint&#39;: {</span>
+<span class="sd">                &#39;chip&#39;: {</span>
+<span class="sd">                        &#39;dummy_annot&#39;: None,</span>
+<span class="sd">                    },</span>
+<span class="sd">            },</span>
+<span class="sd">            &#39;probchip&#39;: {</span>
+<span class="sd">                &#39;dummy_annot&#39;: None,</span>
+<span class="sd">            },</span>
+<span class="sd">        }</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_graph import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; root = u&#39;annotations&#39;</span>
+<span class="sd">        &gt;&gt;&gt; tablename = u&#39;Notch_Tips&#39;</span>
+<span class="sd">        &gt;&gt;&gt; child_to_parents = {</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;Block_Curvature&#39;: [</span>
+<span class="sd">        &gt;&gt;&gt;         &#39;Trailing_Edge&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;     ],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;Has_Notch&#39;: [</span>
+<span class="sd">        &gt;&gt;&gt;         &#39;annotations&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;     ],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;Notch_Tips&#39;: [</span>
+<span class="sd">        &gt;&gt;&gt;         &#39;annotations&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;     ],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;Trailing_Edge&#39;: [</span>
+<span class="sd">        &gt;&gt;&gt;         &#39;Notch_Tips&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;     ],</span>
+<span class="sd">        &gt;&gt;&gt; }</span>
+<span class="sd">        &gt;&gt;&gt; to_root = paths_to_root(tablename, root, child_to_parents)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr3(to_root)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">tablename</span> <span class="o">==</span> <span class="n">root</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="n">parents</span> <span class="o">=</span> <span class="n">child_to_parents</span><span class="p">[</span><span class="n">tablename</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">parent</span><span class="p">:</span> <span class="n">paths_to_root</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">child_to_parents</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">parents</span><span class="p">}</span>
+
+</div>
+<div class="viewcode-block" id="path_to_leafs"><a class="viewcode-back" href="../../utool.html#utool.util_graph.path_to_leafs">[docs]</a><span class="k">def</span> <span class="nf">path_to_leafs</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="n">parent_to_children</span><span class="p">):</span>
+    <span class="n">children</span> <span class="o">=</span> <span class="n">parent_to_children</span><span class="p">[</span><span class="n">tablename</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">children</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">child</span><span class="p">:</span> <span class="n">path_to_leafs</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">parent_to_children</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">children</span><span class="p">}</span>
+
+</div>
+<div class="viewcode-block" id="get_allkeys"><a class="viewcode-back" href="../../utool.html#utool.util_graph.get_allkeys">[docs]</a><span class="k">def</span> <span class="nf">get_allkeys</span><span class="p">(</span><span class="n">dict_</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">subkeys</span> <span class="o">=</span> <span class="p">[[</span><span class="n">key</span><span class="p">]</span> <span class="o">+</span> <span class="n">get_allkeys</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+               <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">dict_</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+    <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">subkeys</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="traverse_path"><a class="viewcode-back" href="../../utool.html#utool.util_graph.traverse_path">[docs]</a><span class="k">def</span> <span class="nf">traverse_path</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">seen_</span><span class="p">,</span> <span class="n">allkeys</span><span class="p">,</span> <span class="n">mat</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="k">if</span> <span class="n">seen_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">seen_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">allkeys</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
+    <span class="n">sub_indexes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mat</span><span class="p">[</span><span class="n">index</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sub_indexes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">subkeys</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">allkeys</span><span class="p">,</span> <span class="n">sub_indexes</span><span class="p">)</span>
+        <span class="c"># subkeys_ = ut.take(allkeys, sub_indexes)</span>
+        <span class="c"># subkeys = [subkey for subkey in subkeys_</span>
+        <span class="c">#            if subkey not in seen_]</span>
+        <span class="c"># for sk in subkeys:</span>
+        <span class="c">#     seen_.add(sk)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">subkeys</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="n">subkey</span><span class="p">:</span> <span class="n">traverse_path</span><span class="p">(</span><span class="n">subkey</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">seen_</span><span class="p">,</span> <span class="n">allkeys</span><span class="p">,</span> <span class="n">mat</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">subkey</span> <span class="ow">in</span> <span class="n">subkeys</span><span class="p">}</span>
+    <span class="k">return</span> <span class="bp">None</span>
+
+</div>
+<div class="viewcode-block" id="reverse_path"><a class="viewcode-back" href="../../utool.html#utool.util_graph.reverse_path">[docs]</a><span class="k">def</span> <span class="nf">reverse_path</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">child_to_parents</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_graph --exec-reverse_path --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_graph import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; child_to_parents = {</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;chip&#39;: [&#39;dummy_annot&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;chipmask&#39;: [&#39;dummy_annot&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;descriptor&#39;: [&#39;keypoint&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;fgweight&#39;: [&#39;keypoint&#39;, &#39;probchip&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;keypoint&#39;: [&#39;chip&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;notch&#39;: [&#39;dummy_annot&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;probchip&#39;: [&#39;dummy_annot&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;spam&#39;: [&#39;fgweight&#39;, &#39;chip&#39;, &#39;keypoint&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; }</span>
+<span class="sd">        &gt;&gt;&gt; to_root = {</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;fgweight&#39;: {</span>
+<span class="sd">        &gt;&gt;&gt;         &#39;keypoint&#39;: {</span>
+<span class="sd">        &gt;&gt;&gt;                 &#39;chip&#39;: {</span>
+<span class="sd">        &gt;&gt;&gt;                             &#39;dummy_annot&#39;: None,</span>
+<span class="sd">        &gt;&gt;&gt;                         },</span>
+<span class="sd">        &gt;&gt;&gt;             },</span>
+<span class="sd">        &gt;&gt;&gt;         &#39;probchip&#39;: {</span>
+<span class="sd">        &gt;&gt;&gt;                 &#39;dummy_annot&#39;: None,</span>
+<span class="sd">        &gt;&gt;&gt;             },</span>
+<span class="sd">        &gt;&gt;&gt;     },</span>
+<span class="sd">        &gt;&gt;&gt; }</span>
+<span class="sd">        &gt;&gt;&gt; reversed_ = reverse_path(to_root, &#39;dummy_annot&#39;, child_to_parents)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr3(reversed_)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        {</span>
+<span class="sd">            &#39;dummy_annot&#39;: {</span>
+<span class="sd">                &#39;chip&#39;: {</span>
+<span class="sd">                        &#39;keypoint&#39;: {</span>
+<span class="sd">                                    &#39;fgweight&#39;: None,</span>
+<span class="sd">                                },</span>
+<span class="sd">                    },</span>
+<span class="sd">                &#39;probchip&#39;: {</span>
+<span class="sd">                        &#39;fgweight&#39;: None,</span>
+<span class="sd">                    },</span>
+<span class="sd">            },</span>
+<span class="sd">        }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Hacky but illustrative</span>
+    <span class="c"># TODO; implement non-hacky version</span>
+    <span class="n">allkeys</span> <span class="o">=</span> <span class="n">get_allkeys</span><span class="p">(</span><span class="n">dict_</span><span class="p">)</span>
+    <span class="n">mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">allkeys</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">allkeys</span><span class="p">)))</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">allkeys</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="n">root</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">child_to_parents</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span>
+                <span class="n">rx</span> <span class="o">=</span> <span class="n">allkeys</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+                <span class="n">cx</span> <span class="o">=</span> <span class="n">allkeys</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                <span class="n">mat</span><span class="p">[</span><span class="n">rx</span><span class="p">][</span><span class="n">cx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">seen_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+    <span class="n">reversed_</span> <span class="o">=</span> <span class="p">{</span><span class="n">root</span><span class="p">:</span> <span class="n">traverse_path</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">seen_</span><span class="p">,</span> <span class="n">allkeys</span><span class="p">,</span> <span class="n">mat</span><span class="p">)}</span>
+    <span class="k">return</span> <span class="n">reversed_</span>
+
+</div>
+<div class="viewcode-block" id="get_levels"><a class="viewcode-back" href="../../utool.html#utool.util_graph.get_levels">[docs]</a><span class="k">def</span> <span class="nf">get_levels</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        dict_ (dict_):  a dictionary</span>
+<span class="sd">        n (int): (default = 0)</span>
+<span class="sd">        levels (None): (default = None)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_graph --test-get_levels --show</span>
+<span class="sd">        python3 -m utool.util_graph --test-get_levels --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_graph import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; from_root = {</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;dummy_annot&#39;: {</span>
+<span class="sd">        &gt;&gt;&gt;         &#39;chip&#39;: {</span>
+<span class="sd">        &gt;&gt;&gt;                 &#39;keypoint&#39;: {</span>
+<span class="sd">        &gt;&gt;&gt;                             &#39;fgweight&#39;: None,</span>
+<span class="sd">        &gt;&gt;&gt;                         },</span>
+<span class="sd">        &gt;&gt;&gt;             },</span>
+<span class="sd">        &gt;&gt;&gt;         &#39;probchip&#39;: {</span>
+<span class="sd">        &gt;&gt;&gt;                 &#39;fgweight&#39;: None,</span>
+<span class="sd">        &gt;&gt;&gt;             },</span>
+<span class="sd">        &gt;&gt;&gt;     },</span>
+<span class="sd">        &gt;&gt;&gt; }</span>
+<span class="sd">        &gt;&gt;&gt; dict_ = from_root</span>
+<span class="sd">        &gt;&gt;&gt; n = 0</span>
+<span class="sd">        &gt;&gt;&gt; levels = None</span>
+<span class="sd">        &gt;&gt;&gt; levels_ = get_levels(dict_, n, levels)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(levels_, nl=1)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [</span>
+<span class="sd">            [&#39;dummy_annot&#39;],</span>
+<span class="sd">            [&#39;chip&#39;, &#39;probchip&#39;],</span>
+<span class="sd">            [&#39;keypoint&#39;, &#39;fgweight&#39;],</span>
+<span class="sd">            [&#39;fgweight&#39;],</span>
+<span class="sd">        ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">levels</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">levels_</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dict_depth</span><span class="p">(</span><span class="n">dict_</span><span class="p">))]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">levels_</span> <span class="o">=</span> <span class="n">levels</span>
+    <span class="k">if</span> <span class="n">dict_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">dict_</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">levels_</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">dict_</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">get_levels</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">levels_</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">levels_</span>
+
+</div>
+<div class="viewcode-block" id="longest_levels"><a class="viewcode-back" href="../../utool.html#utool.util_graph.longest_levels">[docs]</a><span class="k">def</span> <span class="nf">longest_levels</span><span class="p">(</span><span class="n">levels_</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        levels_ (list):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_graph --exec-longest_levels --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_graph import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; levels_ = [</span>
+<span class="sd">        &gt;&gt;&gt;     [&#39;dummy_annot&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     [&#39;chip&#39;, &#39;probchip&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     [&#39;keypoint&#39;, &#39;fgweight&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     [&#39;fgweight&#39;],</span>
+<span class="sd">        &gt;&gt;&gt; ]</span>
+<span class="sd">        &gt;&gt;&gt; new_levels = longest_levels(levels_)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;new_levels = %s&#39; % (ut.repr2(new_levels, nl=1),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        new_levels = [</span>
+<span class="sd">            [&#39;dummy_annot&#39;],</span>
+<span class="sd">            [&#39;chip&#39;, &#39;probchip&#39;],</span>
+<span class="sd">            [&#39;keypoint&#39;],</span>
+<span class="sd">            [&#39;fgweight&#39;],</span>
+<span class="sd">        ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">shortest_levels</span><span class="p">(</span><span class="n">levels_</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="c"># seen_ = set([])</span>
+    <span class="c"># new_levels = []</span>
+    <span class="c"># for level in levels_[::-1]:</span>
+    <span class="c">#     new_level = [item for item in level if item not in seen_]</span>
+    <span class="c">#     seen_ = seen_.union(set(new_level))</span>
+    <span class="c">#     new_levels.append(new_level)</span>
+    <span class="c"># new_levels = new_levels[::-1]</span>
+    <span class="c"># return new_levels</span>
+
+</div>
+<div class="viewcode-block" id="shortest_levels"><a class="viewcode-back" href="../../utool.html#utool.util_graph.shortest_levels">[docs]</a><span class="k">def</span> <span class="nf">shortest_levels</span><span class="p">(</span><span class="n">levels_</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        levels_ (list):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_graph --exec-shortest_levels --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_graph import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; levels_ = [</span>
+<span class="sd">        &gt;&gt;&gt;     [&#39;dummy_annot&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     [&#39;chip&#39;, &#39;probchip&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     [&#39;keypoint&#39;, &#39;fgweight&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     [&#39;fgweight&#39;],</span>
+<span class="sd">        &gt;&gt;&gt; ]</span>
+<span class="sd">        &gt;&gt;&gt; new_levels = shortest_levels(levels_)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;new_levels = %s&#39; % (ut.repr2(new_levels, nl=1),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        new_levels = [</span>
+<span class="sd">            [&#39;dummy_annot&#39;],</span>
+<span class="sd">            [&#39;chip&#39;, &#39;probchip&#39;],</span>
+<span class="sd">            [&#39;keypoint&#39;, &#39;fgweight&#39;],</span>
+<span class="sd">        ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">seen_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+    <span class="n">new_levels</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">level</span> <span class="ow">in</span> <span class="n">levels_</span><span class="p">:</span>
+        <span class="n">new_level</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">level</span> <span class="k">if</span> <span class="n">item</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_</span><span class="p">]</span>
+        <span class="n">seen_</span> <span class="o">=</span> <span class="n">seen_</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">new_level</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_level</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">new_levels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_level</span><span class="p">)</span>
+    <span class="n">new_levels</span> <span class="o">=</span> <span class="n">new_levels</span>
+    <span class="k">return</span> <span class="n">new_levels</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_graph --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.1.2.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
