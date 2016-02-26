@@ -1556,25 +1556,52 @@ def solve_boolexpr():
     truth_tuples = [ut.dict_take(d, varnames) for d in truth_table]
     outputs = [d['output'] for d in truth_table]
     true_tuples = ut.compress(truth_tuples, outputs)
-    true_cases = [int(''.join([str(int(t)) for t in tup]), 2) for tup in true_tuples]
+    true_cases = [''.join([str(int(t)) for t in tup]) for tup in true_tuples]
+    #truth_nums = [int(s, 2) for s in true_cases]
 
     from quine_mccluskey.qm import QuineMcCluskey
 
-    qm = QuineMcCluskey(use_xor=True)
+    qm = QuineMcCluskey(use_xor=False)
     ones = true_cases
     result = qm.simplify(ones)
     print(result)
     #ut.chr_range(3)
 
-    symbol_map = {
-        '-': '',
-        '1': '{v}',
-        '0': 'not {v}',
-        '^': '^',
-    }
+    #symbol_map = {
+    #    '-': '',
+    #    '1': '{v}',
+    #    '0': 'not {v}',
+    #    '^': '^',
+    #}
 
-    formulas = [[symbol_map[r].format(v=v) for v, r in zip(varnames, rs)] for rs in result]
-    products = ['(' + ' and '.join([f for f in form if f]) + ')' for form in formulas]
+    #'-' don't care: this bit can be either zero or one.
+    #'1' the bit must be one.
+    #'0' the bit must be zero.
+    #'^' all bits with the caret are XOR-ed together.
+    #'~' all bits with the tilde are XNOR-ed together.
+
+    #formulas = [[symbol_map[r].format(v=v) for v, r in zip(varnames, rs)] for rs in result]
+    grouped_terms = [dict(ut.group_items(varnames, rs)) for rs in result]
+    def parenjoin(char, list_):
+        if len(list_) == 0:
+            return ''
+        else:
+            return '(' + char.join(list_) + ')'
+
+    expanded_terms = [
+        (
+            term.get('1', []) +
+            ['(not ' + b + ')' for b in term.get('0', [])] +
+            [
+                parenjoin(' ^ ', term.get('^', [])),
+                parenjoin(' ~ ', term.get('~', [])),
+            ]
+        ) for term in grouped_terms
+    ]
+
+    final_terms = [[t for t in term if t] for term in expanded_terms]
+
+    products = [parenjoin(' and ', [f for f in form if f]) for form in final_terms]
     final_expr = ' or '.join(products)
     print(final_expr)
 
