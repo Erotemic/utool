@@ -1294,6 +1294,9 @@ def list_unflat_take(items_list, unflat_index_list):
             for xs in unflat_index_list]
 
 
+unflat_take = list_unflat_take
+
+
 def argsort(*args, **kwargs):
     """ like np.argsort but for lists
 

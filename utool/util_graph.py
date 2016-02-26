@@ -5,6 +5,49 @@ from utool import util_inject
 (print, rrr, profile) = util_inject.inject2(__name__, '[depgraph_helpers]')
 
 
+def nx_transitive_reduction(G):
+    """
+    References:
+    https://en.wikipedia.org/wiki/Transitive_reduction#Computing_the_reduction_using_the_closure
+    """
+    import utool as ut
+    import networkx as nx
+    nodes = G.nodes()
+    node2_idx = ut.make_index_lookup(nodes)
+
+    def make_adj_matrix(G):
+        edges = G.edges()
+        edge2_idx = ut.partial(ut.dict_take, node2_idx)
+        uv_list = ut.lmap(edge2_idx, edges)
+        A = np.zeros((len(nodes), len(nodes)))
+        A[tuple(np.array(uv_list).T)] = 1
+        return A
+
+    G_ = nx.dag.transitive_closure(G)
+
+    A = make_adj_matrix(G)
+    B = make_adj_matrix(G_)
+
+    #AB = A * B
+    #AB = A.T.dot(B)
+    AB = A.dot(B)
+    #AB = A.dot(B.T)
+
+    tr_uvs = np.where(np.logical_and(A, np.logical_not(AB)))
+
+    #nodes = G.nodes()
+    edges = list(zip(*ut.unflat_take(nodes, tr_uvs)))
+
+    G_tr = G.__class__()
+    G_tr.add_nodes_from(nodes)
+    G_tr.add_edges_from(edges)
+
+    #pt.show_nx(G_tr)
+    #pt.show_nx(G)
+    #pt.show_nx(G_)
+    return G_tr
+
+
 def testdata_graph():
     r"""
     Returns:
