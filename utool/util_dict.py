@@ -435,30 +435,12 @@ def all_dict_combinations_lbls(varied_dict, remove_singles=True, allow_lone_sing
     return comb_lbls
 
 
-def iteritems_sorted(dict_):
-    """ change to iteritems ordered """
-    if isinstance(dict_, OrderedDict):
-        return six.iteritems(dict_)
-    else:
-        return iter(sorted(six.iteritems(dict_)))
-
-
 def dict_union2(dict1, dict2):
     return dict(list(dict1.items()) + list(dict2.items()))
 
 
 def dict_union(*args):
     return dict([item for dict_ in iter(args) for item in six.iteritems(dict_)])
-
-
-def items_sorted_by_value(dict_):
-    sorted_items = sorted(six.iteritems(dict_), key=lambda k, v: v[1])
-    return sorted_items
-
-
-def keys_sorted_by_value(dict_):
-    sorted_keys = sorted(dict_, key=lambda key: dict_[key])
-    return sorted_keys
 
 
 def build_conflict_dict(key_list, val_list):
@@ -848,36 +830,6 @@ def dict_where_len0(dict_):
     flags = np.array(list(map(len, dict_.values()))) == 0
     indices = np.where(flags)[0]
     return keys[indices]
-
-
-def order_dict_by(dict_, key_order):
-    r"""
-    Args:
-        dict_ (dict_):  a dictionary
-        key_order (list):
-
-    Returns:
-        dict: sorted_dict
-
-    CommandLine:
-        python -m utool.util_dict --exec-order_dict_by
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from utool.util_dict import *  # NOQA
-        >>> import utool as ut
-        >>> dict_ = {1:1, 2:2, 3:3, 4:4}
-        >>> key_order = [4,2,3,1]
-        >>> sorted_dict = order_dict_by(dict_, key_order)
-        >>> result = ('sorted_dict = %s' % (ut.dict_str(sorted_dict, nl=False),))
-        >>> print(result)
-        sorted_dict = {4: 4, 2: 2, 3: 3, 1: 1}
-    """
-    other_keys = list(set(dict_.keys()) - set(key_order))
-    key_order = key_order + other_keys
-    sorted_item_list = [(key, dict_[key]) for key in key_order if key in dict_]
-    sorted_dict = OrderedDict(sorted_item_list)
-    return sorted_dict
 
 
 def get_dict_column(dict_, colx):
@@ -1663,6 +1615,54 @@ def sort_dict(dict_):
     items = dict_.items()
     sortx = ut.argsort(keys)
     return ut.odict(ut.take(items, sortx))
+
+
+def order_dict_by(dict_, key_order):
+    r"""
+    Args:
+        dict_ (dict_):  a dictionary
+        key_order (list):
+
+    Returns:
+        dict: sorted_dict
+
+    CommandLine:
+        python -m utool.util_dict --exec-order_dict_by
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
+        >>> dict_ = {1:1, 2:2, 3:3, 4:4}
+        >>> key_order = [4,2,3,1]
+        >>> sorted_dict = order_dict_by(dict_, key_order)
+        >>> result = ('sorted_dict = %s' % (ut.dict_str(sorted_dict, nl=False),))
+        >>> print(result)
+        sorted_dict = {4: 4, 2: 2, 3: 3, 1: 1}
+    """
+    other_keys = list(set(dict_.keys()) - set(key_order))
+    key_order = key_order + other_keys
+    sorted_item_list = [(key, dict_[key]) for key in key_order if key in dict_]
+    sorted_dict = OrderedDict(sorted_item_list)
+    return sorted_dict
+
+
+def iteritems_sorted(dict_):
+    """ change to iteritems ordered """
+    if isinstance(dict_, OrderedDict):
+        return six.iteritems(dict_)
+    else:
+        return iter(sorted(six.iteritems(dict_)))
+
+
+def items_sorted_by_value(dict_):
+    sorted_items = sorted(six.iteritems(dict_), key=lambda k, v: v[1])
+    return sorted_items
+
+
+def keys_sorted_by_value(dict_):
+    sorted_keys = sorted(dict_, key=lambda key: dict_[key])
+    return sorted_keys
 
 
 if __name__ == '__main__':
