@@ -1719,7 +1719,7 @@ def get_itemstr_list(list_, strvals=False, newlines=True, recursive=True,
             indent_=new_indent, precision=precision, with_comma=with_comma)
         if isinstance(val, dict):
             common_kw.update(
-                dict(sorted_=True,
+                dict(sorted_=listkws.get('sorted_', True and not isinstance(val, collections.OrderedDict)),
                      hack_liststr=listkws.get('hack_liststr', False)))
             return dict_str(val, **common_kw)
         if isinstance(val, (tuple, list)):
@@ -2822,6 +2822,8 @@ def color_text(text, color):
     import utool as ut
     if color is None or not ENABLE_COLORS:
         return text
+    if color == 'python':
+        return highlight_text(text, color)
     try:
         import pygments
         import pygments.console

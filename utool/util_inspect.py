@@ -1926,6 +1926,18 @@ class KWReg(object):
         print(ut.dict_str(kwreg.defaultkw))
 
 
+def get_instance_attrnames(obj, default=True, **kwargs):
+    cls = obj.__class__
+    out = []
+    for a in dir(cls):
+        unbound_attr = getattr(cls, a, None)
+        if kwargs.get('with_properties', default) and isinstance(unbound_attr, property):
+            out.append(a)
+        if kwargs.get('with_methods', default) and isinstance(unbound_attr, types.MethodType):
+            out.append(a)
+    return out
+
+
 def infer_function_info(func):
     r"""
     Infers information for make_default_docstr
