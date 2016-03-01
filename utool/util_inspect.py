@@ -1787,6 +1787,8 @@ def recursive_parse_kwargs(root_func, path_=None):
         if subdict is not None:
             attr_name = subtup[-1]
             subfunc = subdict[attr_name]
+        else:
+            subfunc = None
         return subfunc
 
     def check_subfunc_name(subfunc_name):
