@@ -855,6 +855,10 @@ def get_dict_column(dict_, colx):
     return retdict_
 
 
+def dict_take_column(list_of_dicts_, colkey, default=None):
+    return [dict_.get(colkey, default) for dict_ in list_of_dicts_]
+
+
 def dictinfo(dict_):
     """
     dictinfo
