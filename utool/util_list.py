@@ -645,6 +645,14 @@ def tuplize(list_):
     return tup_list
 
 
+def unpack_iterables(list_):
+    import utool as ut
+    if ut.isiterable(list_):
+        return [new_item for item in list_ for new_item in unpack_iterables(item)]
+    else:
+        return [list_]
+
+
 def flattenize(list_):
     """ maps flatten to a tuplized list
 

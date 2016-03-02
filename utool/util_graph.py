@@ -744,7 +744,9 @@ def merge_level_order(level_orders, topsort):
         ],
     }
 
-    topsort = [u'dummy_annot', u'notch', u'probchip', u'chip', u'keypoint', u'fgweight', u'nnindexer', u'spam', u'notchpair', u'multitest', u'multitest_score']
+    topsort = [u'dummy_annot', u'notch', u'probchip', u'chip', u'keypoint',
+               u'fgweight', u'nnindexer', u'spam', u'notchpair', u'multitest',
+               u'multitest_score']
     """
     import utool as ut
     # Do on common subgraph

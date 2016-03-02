@@ -1409,6 +1409,9 @@ def hierarchical_group_items(item_list, groupids_list):
 
 
 def iflatten_dict_values(node, depth=0):
+    """
+        >>> from utool.util_dict import *  # NOQA
+    """
     if isinstance(node, dict):
         _iter = (iflatten_dict_values(value) for value in six.itervalues(node))
         return util_iter.iflatten(_iter)
@@ -1667,6 +1670,80 @@ def items_sorted_by_value(dict_):
 def keys_sorted_by_value(dict_):
     sorted_keys = sorted(dict_, key=lambda key: dict_[key])
     return sorted_keys
+
+
+def flatten_dict_vals(dict_):
+    """
+    Flattens only values in a heirarchical dictionary, keys are nested.
+    """
+    if isinstance(dict_, dict):
+        return dict([
+            ((key, augkey), augval)
+            for key, val in dict_.items()
+            for augkey, augval in flatten_dict_vals(val).items()
+        ])
+    else:
+        return {None: dict_}
+
+
+def flatten_dict_items(dict_):
+    """
+    Flattens keys / values in a heirarchical dictionary
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
+        >>> item_list     = [1, 2, 3, 4]
+        >>> groupids_list = [[1, 1, 1, 2], [1, 2, 2, 2], [1, 3, 1, 1]]
+        >>> dict_ = hierarchical_group_items(item_list, groupids_list)
+        >>> flatter_dict = flatten_dict_items(dict_)
+        >>> result = ('flatter_dict = ' + ut.dict_str(flatter_dict, nl=1))
+        >>> print(result)
+        flatter_dict = {
+            (1, 1, 1): [1],
+            (1, 2, 1): [3],
+            (1, 2, 3): [2],
+            (2, 2, 1): [4],
+        }
+    """
+    import utool as ut
+    flat_dict = ut.flatten_dict_vals(dict_)
+    flatter_dict = dict([(tuple(ut.unpack_iterables(key)[:-1]), val)
+                         for key, val in flat_dict.items()])
+    return flatter_dict
+
+
+def depth_atleast(list_, depth):
+    r"""
+    Returns if depth of list is at least ``depth``
+
+    Args:
+        list_ (list):
+        depth (int):
+
+    Returns:
+        bool: True
+
+    CommandLine:
+        python -m utool.util_dict --exec-depth_atleast --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
+        >>> list_ = [[[[0]]], [[0]]]
+        >>> depth = 0
+        >>> result = [depth_atleast(list_, depth) for depth in range(0, 7)]
+        >>> print(result)
+    """
+    if depth == 0:
+        return True
+    else:
+        try:
+            return all([depth_atleast(item, depth - 1) for item in list_])
+        except TypeError:
+            return False
 
 
 if __name__ == '__main__':
