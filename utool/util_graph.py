@@ -147,10 +147,8 @@ def dfs_template(graph, previsit, postvisit):
             explore(graph, node, seen_)
 
 
-def topsort_dfs(G, previsit, postvisit):
-
-    Gr = G.reverse()
-    graph = dict(zip(Gr.nodes(), Gr.adjacency_list()))
+def topsort_ordering(G):
+    graph_dict = dict(zip(G.nodes(), G.adjacency_list()))
 
     seen_ = set()
     meta = {
@@ -167,68 +165,29 @@ def topsort_dfs(G, previsit, postvisit):
         meta['post'][parent] = meta['clock']
         meta['clock'] += 1
 
-    def explore(graph, parent, seen_):
+    def explore(graph_dict, parent, seen_):
         # Mark visited
         seen_.add(parent)
         previsit(parent)
         # Explore children
-        children = graph[parent]
+        children = graph_dict[parent]
         for child in children:
             if child not in seen_:
-                explore(graph, child, seen_)
+                explore(graph_dict, child, seen_)
         postvisit(parent)
 
     # Run Depth First Search
-    nodes = graph.keys()
-    import numpy as np
-    np.random.shuffle(nodes)
+    #nodes = graph_dict.keys()
+    #import numpy as np
+    #np.random.shuffle(nodes)
 
-    for node in nodes:
+    import networkx as nx
+
+    for node in nx.dag.topological_sort(G):
         if node not in seen_:
-            explore(graph, node, seen_)
-
-    #for node in nodes:
-    #    postorder = list(nx.dfs_postorder_nodes(Gr, node))
-
-    top_sort_order = ut.sortedby(meta['post'].keys(), meta['post'].values())
-    print('top_sort_order = %r' % (top_sort_order,))
-
-    graph = dict(zip(G.nodes(), G.adjacency_list()))
-
-    seen_ = set()
-    meta = {
-        'clock': 0,
-        'pre': {},
-        'post': {},
-    }
-
-    def previsit2(parent):
-        meta['pre'][parent] = meta['clock']
-        meta['clock'] += 1
-
-    def postvisit2(parent):
-        meta['post'][parent] = meta['clock']
-        meta['clock'] += 1
-
-    def explore(graph, parent, seen_):
-        # Mark visited
-        seen_.add(parent)
-        previsit2(parent)
-        # Explore children
-        children = graph[parent]
-        for child in children:
-            if child not in seen_:
-                explore(graph, child, seen_)
-        postvisit2(parent)
-
-    # Run Depth First Search
-    strongly_connected_compoments = []
-
-    for node in reversed(top_sort_order):
-        if node not in seen_:
-            before = seen_.copy()
-            explore(graph, node, seen_)
-            strongly_connected_compoments.append(seen_ - before)
+            explore(graph_dict, node, seen_)
+    del meta['clock']
+    return meta
 
 
 def find_odd_cycle():
@@ -695,6 +654,70 @@ def shortest_levels(levels_):
             new_levels.append(new_level)
     new_levels = new_levels
     return new_levels
+
+
+def find_source_nodes(graph):
+    import utool as ut
+    import networkx as nx
+    topsort = nx.dag.topological_sort(graph)
+    is_source = [graph.in_degree(t) == 0 for t in topsort]
+    sources = ut.compress(topsort, is_source)
+    return sources
+
+
+def level_order(dag, nodes):
+    import utool as ut
+    import networkx as nx
+    nodes = ut.intersect_ordered(nx.dag.topological_sort(dag), ut.unique(nodes))
+    levels = []
+    subdag = dag.subgraph(nodes)
+
+    level = []
+    for node in nodes:
+        level.append(node)
+        pass
+    pass
+
+
+def subgraph_from_edges(G, edge_list, ref_back=True):
+    """
+    Creates a networkx graph that is a subgraph of G
+    defined by the list of edges in edge_list.
+
+    Requires G to be a networkx Graph or DiGraph
+    edge_list is a list of edges in either (u,v) or (u,v,d) form
+    where u and v are nodes comprising an edge,
+    and d would be a dictionary of edge attributes
+
+    ref_back determines whether the created subgraph refers to back
+    to the original graph and therefore changes to the subgraph's
+    attributes also affect the original graph, or if it is to create a
+    new copy of the original graph.
+
+    References:
+        http://stackoverflow.com/questions/16150557/networkxcreating-a-subgraph-induced-from-edges
+
+    edge_list = sub_edges
+    """
+
+    # TODO: support multi-di-graph
+
+    sub_nodes = list({y for x in edge_list for y in x[0:2]})
+    #edge_list_no_data = [edge[0:2] for edge in edge_list]
+    multi_edge_list = [edge[0:3] for edge in edge_list]
+
+    if ref_back:
+        G_sub = G.subgraph(sub_nodes)
+        for edge in G_sub.edges(keys=True):
+            if edge not in multi_edge_list:
+                G_sub.remove_edge(*edge)
+    else:
+        G_sub = G.subgraph(sub_nodes).copy()
+        for edge in G_sub.edges(keys=True):
+            if edge not in multi_edge_list:
+                G_sub.remove_edge(*edge)
+
+    return G_sub
 
 
 if __name__ == '__main__':
