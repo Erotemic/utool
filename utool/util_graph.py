@@ -665,18 +665,127 @@ def find_source_nodes(graph):
     return sources
 
 
-def level_order(dag, nodes):
-    import utool as ut
+def dag_longest_path(graph, source, target):
     import networkx as nx
-    nodes = ut.intersect_ordered(nx.dag.topological_sort(dag), ut.unique(nodes))
-    levels = []
-    subdag = dag.subgraph(nodes)
+    def longest(gen):
+        list_ = []
+        for l in gen:
+            if len(l) > len(list_):
+                list_ = l
+        return list_
+    # inefficient
+    if source == target:
+        return [source]
+    allpaths = nx.all_simple_paths(graph, source, target)
+    return longest(allpaths)
 
-    level = []
-    for node in nodes:
-        level.append(node)
-        pass
-    pass
+
+def level_order(graph):
+    import utool as ut
+    source = ut.find_source_nodes(graph)[0]
+    longest_paths = dict([(target, dag_longest_path(graph, source, target))
+                          for target in graph.nodes()])
+    level_to_node = ut.map_dict_vals(len, longest_paths)
+
+    grouped = ut.group_items(level_to_node.keys(), level_to_node.values())
+    levels = ut.take(grouped, range(1, len(grouped) + 1))
+    return levels
+
+
+def merge_level_order(level_orders, topsort):
+    """
+    level_orders = {
+        'multi_chip_multitest': [
+            ['dummy_annot'],
+            ['chip'],
+            ['multitest'], ['multitest_score'],
+        ],
+        'multi_fgweight_multitest': [
+            ['dummy_annot'],
+            ['chip', 'probchip'],
+            ['keypoint'],
+            ['fgweight'],
+            ['multitest'], ['multitest_score'],
+        ],
+        'multi_keypoint_nnindexer': [
+            ['dummy_annot'],
+            ['chip'],
+            ['keypoint'],
+            ['nnindexer'],
+            ['multitest'], ['multitest_score'],
+        ],
+        'normal': [
+            ['dummy_annot'],
+            ['chip', 'probchip'],
+            ['keypoint'],
+            ['fgweight'],
+            ['spam'],
+            ['multitest'], ['multitest_score'],
+        ],
+        'nwise_notch_multitest_1': [
+            ['dummy_annot'],
+            ['notch'],
+            ['multitest'], ['multitest_score'],
+        ],
+        'nwise_notch_multitest_2': [
+            ['dummy_annot'],
+            ['notch'],
+            ['multitest'], ['multitest_score'],
+        ],
+        'nwise_notch_notchpair_1': [
+            ['dummy_annot'],
+            ['notch'], ['notchpair'],
+            ['multitest'], ['multitest_score'],
+        ],
+        'nwise_notch_notchpair_2': [
+            ['dummy_annot'],
+            ['notch'], ['notchpair'],
+            ['multitest'], ['multitest_score'],
+        ],
+    }
+
+    topsort = [u'dummy_annot', u'notch', u'probchip', u'chip', u'keypoint', u'fgweight', u'nnindexer', u'spam', u'notchpair', u'multitest', u'multitest_score']
+    """
+    import utool as ut
+    # Do on common subgraph
+    main_ptr = -1
+    stack = []
+    #from six.moves import zip_longest
+    keys = list(level_orders.keys())
+    type_to_ptr = {key: -1 for key in keys}
+    while True:
+        ptred_levels = []
+        for key in keys:
+            levels = level_orders[key]
+            ptr = type_to_ptr[key]
+            try:
+                level = tuple(levels[ptr])
+            except IndexError:
+                level = None
+            ptred_levels.append(level)
+        groupkeys, idxs = ut.group_indices(ptred_levels)
+        main_idx = None
+        while main_idx is None:
+            target = topsort[main_ptr]
+            main_idx = ut.listfind(groupkeys, (target,))
+            if main_idx is None:
+                main_ptr -= 1
+            if main_ptr < -len(topsort):
+                #print('DONE')
+                break
+        if main_idx is None:
+            break
+        found_groups = ut.apply_grouping(keys, idxs)[main_idx]
+        stack.append((target, found_groups))
+        for k in found_groups:
+            type_to_ptr[k] -= 1
+        if len(found_groups) == len(keys):
+            main_ptr -= 1
+            if main_ptr < -len(topsort):
+                #print('DONE')
+                break
+    compute_order = stack[::-1]
+    return compute_order
 
 
 def subgraph_from_edges(G, edge_list, ref_back=True):
@@ -684,7 +793,7 @@ def subgraph_from_edges(G, edge_list, ref_back=True):
     Creates a networkx graph that is a subgraph of G
     defined by the list of edges in edge_list.
 
-    Requires G to be a networkx Graph or DiGraph
+    Requires G to be a networkx MultiGraph or MultiDiGraph
     edge_list is a list of edges in either (u,v) or (u,v,d) form
     where u and v are nodes comprising an edge,
     and d would be a dictionary of edge attributes
@@ -695,13 +804,10 @@ def subgraph_from_edges(G, edge_list, ref_back=True):
     new copy of the original graph.
 
     References:
-        http://stackoverflow.com/questions/16150557/networkxcreating-a-subgraph-induced-from-edges
-
-    edge_list = sub_edges
+        http://stackoverflow.com/questions/16150557/nx-subgraph-from-edges
     """
 
     # TODO: support multi-di-graph
-
     sub_nodes = list({y for x in edge_list for y in x[0:2]})
     #edge_list_no_data = [edge[0:2] for edge in edge_list]
     multi_edge_list = [edge[0:3] for edge in edge_list]
