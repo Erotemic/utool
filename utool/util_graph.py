@@ -828,6 +828,37 @@ def subgraph_from_edges(G, edge_list, ref_back=True):
     return G_sub
 
 
+def nx_delete_node_attr(graph, key):
+    removed = 0
+    for node in graph.nodes():
+        try:
+            del graph.node[node][key]
+            removed += 1
+        except KeyError:
+            pass
+
+
+def nx_delete_edge_attr(graph, key):
+    removed = 0
+    if graph.is_multigraph():
+        for edge in graph.edges(keys=graph.is_multi()):
+            u, v, k = edge
+            try:
+                del graph[u][v][k][key]
+                removed += 1
+            except KeyError:
+                pass
+    else:
+        for edge in graph.edges():
+            u, v = edge
+            try:
+                del graph[u][v][key]
+                removed += 1
+            except KeyError:
+                pass
+    return removed
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:
