@@ -62,14 +62,19 @@ class TestTuple(util_dev.NiceRepr):
     Simple container for test objects to replace old tuple format
     exec mode specifies if the test is being run as a script
     """
-    def __init__(self, name, num, src, want, flag, tags=None, frame_fpath=None, exec_mode=False):
-        self.name = name  # function / class / testable name
+    def __init__(self, name, num, src, want, flag, tags=None, frame_fpath=None,
+                 mode=None, nametup=None, test_namespace=None, shortname=None, total=None):
+        self._name = name  # function / class / testable name
         self.num = num    # doctest index
         self.src = src    # doctest src
         self.want = want  # doctest required result (optional)
         self.flag = flag  # doctest commandline flags
         self.frame_fpath = frame_fpath  # parent file fpath
-        self.exec_mode = exec_mode      # flags if running as script
+        self.mode = mode      # flags if running as script
+        self.nametup = nametup
+        self.total = total
+        self.test_namespace = test_namespace
+        self.shortname = shortname
 
         if tags is None and src is not None:
             # hack to parse tag from source
@@ -80,9 +85,39 @@ class TestTuple(util_dev.NiceRepr):
                 tags = tagline.split(',')
         self.tags = tags
 
+    @property
+    def name(self):
+        # Hack for namespaced name
+        return self.nametup[0]
+
+    @property
+    def full_name(self):
+        return self.modname + '.' + self.name
+
+    @property
+    def modname(self):
+        import utool as ut
+        return ut.get_modname_from_modpath(self.frame_fpath)
+
+    @property
+    def namespace_levels(self):
+        if self.test_namespace:
+            return [self.modename, self.test_namespace]
+        else:
+            return [self.modename]
+
+    @property
+    def namespace(self):
+        return '.'.join(self.namespace_levels)
+
+    @property
+    def exec_mode(self):
+        return self.mode == 'exec'
+
     def __nice__(self):
         tagstr = ' ' + ','.join(self.tags) if self.tags is not None else ''
-        return ' '  + self.name + ':' + str(self.num) + tagstr
+        # return ' '  + self.shortname + ':' + str(self.num) + ' /' + int(self.total) + ' ' + tagstr + ' in ' + self.namespace
+        return ' '  + self.name + ':' + str(self.num) + ' /' + str(self.total) + ' ' + tagstr + ' in ' + self.modname
 
     #def __repr__(self):
     #    custom =
@@ -257,7 +292,7 @@ def doctest_module_list(module_list):
         file_.write(ut.get_printable_timestamp() + '\n')
         file_.write('logfile (only present if logging) = %r\n' %
                     (ut.util_logging.get_current_log_fpath(),))
-        testkw = dict(allexamples=True, return_error_report=True)
+        testkw = dict(allexamples=True)
         with ut.Timer(verbose=False) as t:
             for module in module_list:
                 (nPass, nTotal, failed_list, error_report_list) = ut.doctest_funcs(
@@ -301,7 +336,7 @@ def doctest_module_list(module_list):
 
 def doctest_funcs(testable_list=None, check_flags=True, module=None,
                   allexamples=None, needs_enable=None, strict=False,
-                  verbose=True, return_error_report=False, seen_=None):
+                  verbose=True, return_error_report=True, seen_=None):
     """
     Main entry point into utools main module doctest harness
     Imports a module and checks flags for the function to run
@@ -408,7 +443,10 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None,
         print('+------------------------------------------------------------+')
 
         if PRINT_SRC or VERBOSE_TEST:
-            print(ut.msgblock('EXEC SRC', src))
+            if ut.is_developer():
+                print(ut.msgblock('EXEC SRC', ut.highlight_code(src), side='>>>'))
+            else:
+                print(ut.msgblock('EXEC SRC', src, side='>>>'))
         # Commented because it caused differences between
         # individual test runs and large test runs with ut
         # being imported
@@ -418,11 +456,11 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None,
         try:
             testkw = dict(
                 globals=test_globals,  # HACK
-                want=want, return_error_report=True)
+                want=want)
             assert testtup.frame_fpath == frame_fpath
             test_locals, error_report = ut.run_test(testtup, **testkw)
-            is_pass = (test_locals is not False)
-            if is_pass:
+            pass_flag = (test_locals is not False)
+            if pass_flag:
                 if VERBOSE_TEST:
                     print('seems to pass')
                 nPass += 1
@@ -483,7 +521,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None,
         return (nPass, nTotal, failed_cmd_list)
 
 
-def run_test(func_or_testtup, return_error_report=False, *args, **kwargs):
+def run_test(func_or_testtup, *args, **kwargs):
     """
     Runs the test function with success / failure printing
 
@@ -498,6 +536,7 @@ def run_test(func_or_testtup, return_error_report=False, *args, **kwargs):
     # NOTE: isinstance is not gaurenteed not work here if ut.rrrr has been called
     func_is_testtup = isinstance(func_or_testtup, TestTuple)
     exec_mode = False
+    dump_mode = False
     write_times = True
     if func_is_testtup:
         testtup = func_or_testtup
@@ -506,6 +545,7 @@ def run_test(func_or_testtup, return_error_report=False, *args, **kwargs):
         frame_fpath = testtup.frame_fpath
         #(funcname, src, frame_fpath) = func_or_testtup
         exec_mode = testtup.exec_mode
+        dump_mode = testtup.mode == 'dump'
     else:
         func_ = func_or_testtup
         funcname = get_funcname(func_)
@@ -525,8 +565,12 @@ def run_test(func_or_testtup, return_error_report=False, *args, **kwargs):
     #indent_test = not exec_mode and INDENT_TEST
     error_report = None
 
+    if dump_mode:
+        print('testtup = %r' % (testtup,))
+        print(ut.highlight_code(src))
+        return None, None
+
     try:
-        #+----------------
         # RUN THE TEST WITH A TIMER
         with util_time.Timer(upper_funcname, verbose=verbose_timer) as timer:
             if func_is_testtup:
@@ -534,28 +578,7 @@ def run_test(func_or_testtup, return_error_report=False, *args, **kwargs):
             else:
                 # TEST INPUT IS A LIVE PYTHON FUNCTION
                 test_locals = func_(*args, **kwargs)
-            print('')
-        #L________________
-        #+----------------
-        # LOG PASSING TEST
-        if not exec_mode:
-            print('\n=============================')
-            print('**[TEST.FINISH] %s -- SUCCESS' % (funcname,))
-            if print_face:
-                print(HAPPY_FACE)
-            if write_times:
-                timemsg = '%.4fs in %s %s\n' % (
-                    timer.ellapsed, funcname, frame_fpath)
-                try:
-                    ut.write_to('test_times.txt', timemsg, mode='a')
-                except IOError as ex:
-                    ut.printex(ex, '[util_test] IOWarning', iswarning=True)
-        #L________________
-        # RETURN VALID TEST LOCALS
-        if return_error_report:
-            return test_locals, error_report
-        return test_locals
-
+            # print('')
     except Exception as ex:
         import utool as ut
         # Get locals in the wrapped function
@@ -576,8 +599,6 @@ def run_test(func_or_testtup, return_error_report=False, *args, **kwargs):
             if True or DEBUG_SRC:
                 src_with_lineno = ut.number_text_lines(src)
                 print_report(ut.msgblock('FAILED DOCTEST IN %s' % (funcname,), src_with_lineno))
-            #ut.embed()
-
             #print('\n... test error. sys.exit(1)\n')
             #sys.exit(1)
             #failed_execline = traceback.format_tb(tb)[-1]
@@ -616,9 +637,24 @@ def run_test(func_or_testtup, return_error_report=False, *args, **kwargs):
             print('[util_test] exiting with sys.exit(1)')
             sys.exit(1)
         #raise
-        if return_error_report:
-            error_report = '\n'.join(error_report_lines)
-            return False, error_report
+        error_report = '\n'.join(error_report_lines)
+        return False, error_report
+    else:
+        # LOG PASSING TEST
+        if not exec_mode:
+            print('\n=============================')
+            print('**[TEST.FINISH] %s -- SUCCESS' % (funcname,))
+            if print_face:
+                print(HAPPY_FACE)
+            if write_times:
+                timemsg = '%.4fs in %s %s\n' % (
+                    timer.ellapsed, funcname, frame_fpath)
+                try:
+                    ut.write_to('test_times.txt', timemsg, mode='a')
+                except IOError as ex:
+                    ut.printex(ex, '[util_test] IOWarning', iswarning=True)
+        # RETURN VALID TEST LOCALS
+        return test_locals, error_report
 
 
 def _exec_doctest(src, kwargs, nocheckwant=None):
@@ -833,6 +869,8 @@ def parse_doctest_from_docstr(docstr):
 
     example_docblocks = []
     example_setups = []
+    grid_example_docblock = []
+    grid_setups = []
     param_grids = None
 
     for header, docblock, line_offset in docstr_blocks:
@@ -843,54 +881,67 @@ def parse_doctest_from_docstr(docstr):
             setup_src = read_exampleblock(docblock)[0]
             example_setups.append(setup_src)
 
-        if header.startswith('ParamGrid'):
+        if header.startswith('GridParams'):
             paramgrid_src = read_exampleblock(docblock)[0]
             globals_ = {}
             six.exec_('import utool as ut\n' + paramgrid_src, globals_)
             assert 'combos' in globals_, 'param grid must define combos'
             combos = globals_['combos']
-            param_grids = [ut.execstr_dict(combo, explicit=True) for combo in combos]
+            param_grids = [ut.execstr_dict(combo, explicit=True)
+                           for combo in combos]
+
+        if header.startswith('GridExample'):
+            grid_example_docblock.append((header, docblock, line_offset))
+
+        if header.startswith('GridSetup'):
+            setup_src = read_exampleblock(docblock)[0]
+            grid_setups.append(setup_src)
+
+    assert len(example_setups) <= 1, 'cant have more than 1 setup. %d' % (
+        len(example_setups))
 
     testheader_list     = []
     testsrc_list        = []
     testwant_list       = []
     testlineoffset_list = []
-    for header, docblock, line_offset in example_docblocks:
+
+    # Place grid tests first
+    for header, docblock, line_offset in grid_example_docblock:
         test_src, test_want = read_exampleblock(docblock)
+        assert len(grid_setups) == 1, 'need one grid setup'
+        grid_setup = grid_setups[0]
+        hack_show_request = False
+        if 'ut.show_if_requested()' in test_src:
+            hack_show_request = True
+            test_src = test_src.replace('ut.show_if_requested()', '')  # Megahack
+        full_grid_testsrc = '\n'.join(
+            [grid_setup] + [
+                '\n'.join([
+                    pgrid, 'print(\'Grid %d\')' % (count,), test_src
+                    if count < (len(param_grids) - 1) else test_src
+                ])
+                for count, pgrid in enumerate(param_grids)])
+        if hack_show_request:
+            full_grid_testsrc += '\n' + 'ut.show_if_requested()'
+
+        testsrc_list.append(full_grid_testsrc)
         testheader_list.append(header)
-        testsrc_list.append(test_src)
         testwant_list.append(test_want)
         testlineoffset_list.append(line_offset)
-        #print('Parsed header=%r' % header)
-        #print('Parsed src=%r' % test_src)
 
-    # Hack: append setups to all sources
-    assert len(example_setups) <= 1, 'cant have more than 1 setup'
-    if len(example_setups) == 1:
-        if param_grids is None:
-            testsrc_list = ['\n'.join([example_setups[0], src]) for src in  testsrc_list]
+    for header, docblock, line_offset in example_docblocks:
+        test_src, test_want = read_exampleblock(docblock)
+        if len(example_setups) == 0:
+            full_testsrc = test_src
+        elif len(example_setups) == 1:
+            # Hack: append setups to all sources
+            full_testsrc = '\n'.join([example_setups[0], test_src])
         else:
-            # Implmentation to put all pgrids in the same test
-            testsrc_list = ['\n'.join(
-                [example_setups[0]] +
-                [
-                    '\n'.join(
-                        [
-                            pgrid,
-                            'print(\'Grid %d\')' % (count,),
-                            src.replace('ut.show_if_requested()', '')  # Megahack
-                            if count < (len(param_grids) - 1) else
-                            src
-                        ]
-                    )
-                    for count, pgrid in enumerate(param_grids)])
-                for src in testsrc_list]
-            #testsrc_list = ['\n'.join([example_setups[0], pgrid, src]) for pgrid in param_grids for src in  testsrc_list]
-            # implementation to make a different test for each pgrid
-            #testsrc_list = ['\n'.join([example_setups[0], pgrid, src]) for pgrid in param_grids for src in  testsrc_list]
-            #testheader_list = [head for pgrid in param_grids for head in testheader_list]
-            #testwant_list = [tw for pgrid in param_grids for tw in testwant_list]
-            #testwant_list = [lo for pgrid in param_grids for lo in testlineoffset_list]
+            assert False, 'more than 1 setup'
+        testheader_list.append(header)
+        testsrc_list.append(full_testsrc)
+        testwant_list.append(test_want)
+        testlineoffset_list.append(line_offset)
 
     return testheader_list, testsrc_list, testwant_list, testlineoffset_list
 
@@ -966,7 +1017,6 @@ def get_doctest_examples(func_or_class):
         if hasattr(func_or_class, '__ut_parent_class__'):
             print('[util_test] - __ut_parent_class__ = %r' % (
                 func_or_class.__ut_parent_class__,))
-        #ut.embed()
     try:
         raise NotImplementedError('FIXME')
         #func_or_class._utinfo['orig_func']
@@ -1003,7 +1053,8 @@ def get_doctest_examples(func_or_class):
     #       shelf[docstr] = testsrc_list, testwant_list
     if VERBOSE_TEST:
         print('[util_test] L found %d doctests' % (len(testsrc_list),))
-    return testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr
+    examptup = testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr
+    return examptup
     # doctest doesnt do what i want. so I wrote my own primative but effective
     # parser.
 
@@ -1071,7 +1122,6 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         #needs_enable = True
     TEST_ALL_EXAMPLES = allexamples or ut.get_argflag(('--allexamples', '--all-examples'))
     parse_testables = True
-    force_enable_testnames = []
     if isinstance(testable_list, types.ModuleType):
         # hack
         module = testable_list
@@ -1097,7 +1147,6 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
             if frame_name == main_modname:
                 module = sys.modules[main_modname]
                 entry_modname = ut.get_modname_from_modpath(module.__file__)
-                #ut.embed()
                 if entry_modname in ['kernprof', 'kernprof-script']:
                     # kernprof clobbers the __main__ variable.
                     # workaround by reimporting the module name
@@ -1163,6 +1212,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
 
     test_sentinals = [
         'ENABLE_DOCTEST',
+        'ENABLE_GRID_DOCTEST',
         #'ENABLE_TEST',
         #'ENABLE_DOCTEST',
         #'ENABLE_UTOOL_DOCTEST',
@@ -1173,14 +1223,14 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         test_sentinals.append('SLOW_DOCTEST')
     if testslow or ut.get_argflag(('--testall', '--testunstable')):
         test_sentinals.append('UNSTABLE_DOCTEST')
-
     #conditional_sentinals = [  # TODO
         #'ENABLE_IF'
     #]
 
     # FIND THE TEST NAMES REQUESTED
     # Grab sys.argv enabled tests
-    valid_prefix_list = ['--exec-', '--test-']
+    force_enable_testnames = []
+    valid_prefix_list = ['--exec-', '--test-', '--dump-']
     for arg in sys.argv:
         for prefix in valid_prefix_list:
             if arg.startswith(prefix):
@@ -1188,7 +1238,6 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                 force_enable_testnames.append(testname)
                 # TODO: parse out requested number up here
                 break
-    #print(force_enable_testnames)
     def _get_testable_name(testable):
         import utool as ut
         if isinstance(testable, staticmethod):
@@ -1216,50 +1265,42 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     # PARSE OUT THE AVAILABLE TESTS FOR EACH REQUEST
     local_testtup_list = []
     for testable in sorted_testable:
-        testname = _get_testable_name(testable)
-        testname2 = None
+        short_testname = _get_testable_name(testable)
+        full_testname = None  # Namespaced classname (within module)
         if isinstance(testable, staticmethod):
             testable = testable.__func__
         if hasattr(testable, '__ut_parent_class__'):
             # HACK for getting classname.funcname
-            testname2 = testable.__ut_parent_class__.__name__ + '.' + testname
-            #print('TESTNAME2')
-            #print('testname2 = %r' % (testname2,))
-        examples, wants, linenums, func_lineno, docstr = get_doctest_examples(testable)
-        if len(examples) > 0:
+            test_namespace = testable.__ut_parent_class__.__name__
+            full_testname = test_namespace + '.' + short_testname
+        else:
+            test_namespace = None
+            full_testname = short_testname
+
+        nametup = tuple(ut.unique([full_testname, short_testname]))
+        examptup = get_doctest_examples(testable)
+        examples, wants, linenums, func_lineno, docstr = examptup
+        total_examples = len(examples)
+        if total_examples > 0:
             for testno , srcwant_tup in enumerate(zip(examples, wants)):
                 src, want = srcwant_tup
                 src_ = ut.regex_replace('from __future__ import.*$', '', src)
-                test_disabled = not any([src_.find(s) >= 0 for s in test_sentinals])
-                if needs_enable and test_disabled:
-                    if testname not in force_enable_testnames:
-                        # HACK
-                        if testname2 not in force_enable_testnames:
-                            #print(force_enable_testnames)
-                            #print(testname2)
-                            if VERBOSE_TEST:
-                                print(' * skipping: %r / %r' % (testname, testname2))
-                                #print(src)
-                                #print(' * skipping')
-                            continue
-                        #else:
-                        #    testname = testname2
-                #ut.embed()
-                #. FIXME: you probably should only add one version of the testname to the list,
-                # and classname prefixes should probably be enforced
-                if testname2 is not None:
+                test_disabled = not any([src_.find(s) >= 0
+                                         for s in test_sentinals])
+                skip = (needs_enable and test_disabled and
+                        ut.isdisjoint(nametup, force_enable_testnames))
+                if not skip:
                     if VERBOSE_TEST:
-                        print(' * HACK adding testname=%r to local_testtup_list' % (testname,))
-                    #local_testtup = (testname2, testno, src_, want)
-                    local_testtup = ((testname2, testname), testno, src_, want)
+                        print(' * HACK adding testname=%r to local_testtup_list' % (full_testname,))
+                    local_testtup = (nametup, testno, src_, want, test_namespace, short_testname, total_examples)
                     local_testtup_list.append(local_testtup)
                 else:
                     if VERBOSE_TEST:
-                        print(' * adding testname=%r to local_testtup_list' % (testname,))
-                    local_testtup = (testname, testno, src_, want)
-                    local_testtup_list.append(local_testtup)
+                        print(' * skipping: %r / %r' % (short_testname,
+                                                        full_testname))
         else:
-            print('WARNING: no examples in %r for testname=%r' % (frame_fpath, testname))
+            print('WARNING: no examples in %r for testname=%r' % (frame_fpath,
+                                                                  testname))
             if verbose:
                 print(testable)
                 print(examples)
@@ -1278,46 +1319,52 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         indenter.start()
         print('Need to find which examples are enabled')
         print('len(local_testtup_list) = %r' % (len(local_testtup_list),))
-        #print('local_testtup_list = %r' % (local_testtup_list,))
-        print('local_testtup_list.T[0:2].T = %s' % ut.list_str(ut.get_list_column(local_testtup_list, [0, 1])))
-        #print('(local_testtup_list) = %r' % (local_testtup_list,))
+        print('local_testtup_list.T[0:2].T = %s' %
+              ut.list_str(ut.get_list_column(local_testtup_list, [0, 1])))
     all_testflags = []
     enabled_testtup_list = []
     distabled_testflags  = []
     subx = ut.get_argval('--subx', type_=int, default=None,
                          help_='Only tests the subxth example')
+
+    def make_valid_test_argflags(prefix, name, num, total):
+        return [
+            prefix + name + ':' + str(num),
+            prefix + name,
+            prefix + name + ':' + str(num - total),  # allow negative indexing
+            # prefix + name.replace('_', '-') + ':' + str(num),
+            # prefix + name.replace('_', '-')
+        ]
+
     for local_testtup in local_testtup_list:
-        (nametup, num, src, want) = local_testtup
-        if not isinstance(nametup, tuple):
-            nametup = (nametup,)
-        valid_flags = []
-        exec_mode = None
-        for prefix, name in ut.iprod(valid_prefix_list, nametup):
-            #prefix = '--test-'
-            flag1 = prefix + name + ':' + str(num)
-            flag2 = prefix + name
-            flag3 = prefix + name.replace('_', '-') + ':' + str(num)
-            flag4 = prefix + name.replace('_', '-')
-            valid_flags += [flag1, flag2, flag3, flag4]
+        (nametup, num, src, want, shortname, test_namespace, total) = local_testtup
+        valid_argflags = []
+        mode = None
+        for prefix, name in reversed(list(ut.iprod(valid_prefix_list, nametup))):
+            valid_argflags = make_valid_test_argflags(prefix, name, num, total)
+            flag1 = valid_argflags[0]
             if VERBOSE_TEST:
-                print('Checking for flags*: ' + flag1)
-                #print(' checking sys.argv for:\n %s' % (ut.list_str(valid_flags),))
-            testflag = ut.get_argflag(valid_flags)
-            # TODO: run in exec mode
-            exec_mode = prefix == '--exec-'  # NOQA
+                print('Checking for flags*: %r' % (valid_argflags[0],))
+            testflag = ut.get_argflag(valid_argflags)
+            mode = prefix.replace('-', '')
             if testflag:
                 break
+        else:
+            # print('WARNING NO TEST IS ENABLED %r ' % (nametup,))
+            pass
 
         testenabled = TEST_ALL_EXAMPLES  or not check_flags or testflag
         if subx is not None and subx != num:
             continue
-        all_testflags.append(flag3)
+        all_testflags.append(flag1)
         if testenabled:
             if VERBOSE_TEST:
                 print('... enabling test')
             testtup = TestTuple(name, num, src, want, flag1,
-                                frame_fpath=frame_fpath,
-                                exec_mode=exec_mode)
+                                frame_fpath=frame_fpath, mode=mode,
+                                total=total, nametup=nametup,
+                                shortname=shortname,
+                                test_namespace=test_namespace)
             enabled_testtup_list.append(testtup)
         else:
             if VERBOSE_TEST:
@@ -1339,7 +1386,8 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
 def doctest_was_requested():
     """ lets a  __main__ codeblock know that util_test should do its thing """
     valid_prefix_list = ['--exec-', '--test-']
-    return '--tf' in sys.argv or any([any([arg.startswith(prefix) for prefix in valid_prefix_list])
+    return '--tf' in sys.argv or any([any([arg.startswith(prefix) for prefix in
+                                           valid_prefix_list])
                                       for arg in sys.argv])
 
 

@@ -2288,11 +2288,11 @@ def clipstr(str_, maxlen):
 #    pass
 
 
-def msgblock(key, text):
+def msgblock(key, text, side='|'):
     """ puts text inside a visual ascii block """
     blocked_text = ''.join(
         [' + --- ', key, ' ---\n'] +
-        [' | ' + line + '\n' for line in text.split('\n')] +
+        [' ' + side + ' ' + line + '\n' for line in text.split('\n')] +
         [' L ___ ', key, ' ___\n']
     )
     return blocked_text

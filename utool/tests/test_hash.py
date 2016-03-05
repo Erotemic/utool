@@ -115,9 +115,6 @@ def test_byteslike():
 
 if __name__ == '__main__':
     test_byteslike()
-    #utool.run_test(test_file_hash)
-    #utool.run_test(test_hashstr)
-    #utool.run_test(test_hashstr_components)
     utool.run_test(test_augment_uuid)
     import sys
     print(sys.executable)

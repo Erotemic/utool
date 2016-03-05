@@ -53,7 +53,7 @@ __UTOOL_FLUSH__     = __PYTHON_FLUSH__
 __UTOOL_WRITE_BUFFER__ = []
 
 
-__STR__ = meta_util_six.__STR__
+__STR__ = six.text_type
 
 logdir_cacheid = 'log_dpath'
 
@@ -67,17 +67,18 @@ def get_logging_dir(appname='default'):
     Returns:
         log_dir_realpath (str): real path to logging directory
     """
-    from utool._internal.meta_util_cache import global_cache_read
-    from utool._internal.meta_util_cplat import get_resource_dir
-    from utool.util_cache import get_default_appname  # Hacky
+    from utool._internal import meta_util_cache
+    from utool._internal import meta_util_cplat
+    from utool import util_cache
     if appname is None or  appname == 'default':
-        appname = get_default_appname()
-    resource_dpath = get_resource_dir()
+        appname = util_cache.get_default_appname()
+    resource_dpath = meta_util_cplat.get_resource_dir()
     default = join(resource_dpath, appname, 'logs')
     # Check global cache for a custom logging dir otherwise
     # use the default.
-    log_dir = global_cache_read(logdir_cacheid, appname=appname,
-                                default=default)
+    log_dir = meta_util_cache.global_cache_read(logdir_cacheid,
+                                                appname=appname,
+                                                default=default)
     log_dir_realpath = realpath(log_dir)
     return log_dir_realpath
 

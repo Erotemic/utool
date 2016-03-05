@@ -317,11 +317,31 @@ def colorprint(text, color=None):
     print(util_str.color_text(text, color))
 
 
-def print_locals():
+def print_locals(*args, **kwargs):
+    """
+    Prints local variables in function.
+
+    If no arguments all locals are printed.
+
+    Variables can be specified directly (variable values passed in) as varargs
+    or indirectly (variable names passed in) in kwargs by using keys and a list
+    of strings.
+    """
     from utool import util_str
     from utool import util_dbg
+    from utool import util_dict
     locals_ = util_dbg.get_caller_locals()
-    print(util_str.dict_str(locals_))
+    keys = kwargs.get('keys', None if len(args) == 0 else [])
+    to_print = {}
+    for arg in args:
+        varname = util_dbg.get_varname_from_locals(arg, locals_)
+        to_print[varname] = arg
+    if keys is not None:
+        to_print.update(util_dict.dict_take(locals_, keys))
+    if not to_print:
+        to_print = locals_
+    locals_str = util_str.dict_str(to_print)
+    print(locals_str)
 
 
 if __name__ == '__main__':

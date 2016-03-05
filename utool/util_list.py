@@ -903,6 +903,9 @@ def intersect_ordered(list1, list2):
     return [item for item in list1 if item in set(list2)]
 
 
+isect = intersect_ordered
+
+
 def list_intersection(list1, list2):
     return set(list1).intersection(set(list2))
 
@@ -915,10 +918,15 @@ def list_issuperset(list1, list2):
     return set(list1).issuperset(set(list2))
 
 
-issubset = list_issubset
+def list_isdisjoint(list1, list2):
+    return set(list1).isdisjoint(set(list2))
+
 is_subset = list_issubset
 is_superset = list_issuperset
+
+issubset = list_issubset
 issuperset = list_issuperset
+isdisjoint = list_isdisjoint
 
 
 def list_set_equal(list1, list2):
