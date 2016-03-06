@@ -429,6 +429,16 @@ def accumulate(iterator):
         yield total
 
 
+def invertible_total_flatten(unflat_list):
+    import utool as ut
+    unflat_list = [[[1, 2, 3], 4, 5], [2, 3], [1, [2, 3, 4]]]
+    unflat_list = [1, 2, [3, 4]]
+    ut.invertible_flatten2(unflat_list)[0]
+    iterable_flags = [ut.isiterable(item) for item in unflat_list]
+
+    pass
+
+
 @profile
 def invertible_flatten2(unflat_list):
     """
@@ -443,6 +453,11 @@ def invertible_flatten2(unflat_list):
 
     Returns:
         tuple: flat_list, cumlen_list
+
+    SeeAlso:
+        invertible_flatten
+        unflatten
+        unflatten2
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -466,11 +481,6 @@ def invertible_flatten2(unflat_list):
         %timeit invertible_flatten2(unflat_list)
         %timeit invertible_flatten2_numpy(unflat_list)
         %timeit invertible_flatten2_numpy(unflat_arrs)
-
-    SeeAlso:
-        invertible_flatten
-        unflatten
-        unflatten2
 
     Timeits:
         import utool

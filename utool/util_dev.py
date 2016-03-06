@@ -2546,6 +2546,37 @@ def ifnone(default, value):
     """
     return default if value is None else value
 
+
+def focusvim():
+    import utool.util_ubuntu
+    utool.util_ubuntu.xctrl.do(('focus', 'GVIM'),)
+
+
+def ipcopydev():
+    import IPython
+    # ipy.history_manager.hist_file
+    ipy = IPython.get_ipython()
+    # lasttup_ = six.next(ipy.history_manager.get_tail())
+    # lastline = lasttup_[2]
+    lastline = ipy.history_manager.input_hist_parsed[-2]
+    import utool as ut
+
+    ut.copy_text_to_clipboard(lastline)
+
+    # import utool as ut
+    import utool.util_ubuntu
+    utool.util_ubuntu.rrr(0)
+    # utool.util_ubuntu.focus_window('gnome-terminal.Gnome-terminal')
+    utool.util_ubuntu.xctrl.do(
+        ('focus', 'GVIM'),
+        ('key', 'ctrl+v'),
+        ('focus', 'x-terminal-emulator.X-terminal-emulator')
+    )
+    # return lastline
+    # .magic('history')
+    # histfile = os.path.join(os.environ['HOME'], '.pythonhistory')
+    pass
+
 if __name__ == '__main__':
     """
     CommandLine:

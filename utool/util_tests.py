@@ -900,6 +900,9 @@ def parse_doctest_from_docstr(docstr):
     assert len(example_setups) <= 1, 'cant have more than 1 setup. %d' % (
         len(example_setups))
 
+    if example_setups and not grid_setups:
+        grid_setups = example_setups
+
     testheader_list     = []
     testsrc_list        = []
     testwant_list       = []

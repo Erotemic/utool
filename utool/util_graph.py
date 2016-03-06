@@ -694,6 +694,9 @@ def level_order(graph):
 
 def merge_level_order(level_orders, topsort):
     """
+    Merge orders of individual subtrees into a total ordering for
+    computation.
+
     level_orders = {
         'multi_chip_multitest': [
             ['dummy_annot'],
@@ -747,15 +750,23 @@ def merge_level_order(level_orders, topsort):
     topsort = [u'dummy_annot', u'notch', u'probchip', u'chip', u'keypoint',
                u'fgweight', u'nnindexer', u'spam', u'notchpair', u'multitest',
                u'multitest_score']
+
+    EG2:
+        level_order = {u'normal': [[u'dummy_annot'], [u'chip', u'probchip'], [u'keypoint'], [u'fgweight'], [u'spam']]}
+        topsort = [u'dummy_annot', u'probchip', u'chip', u'keypoint', u'fgweight', u'spam']
     """
-    import utool as ut
     # Do on common subgraph
+    import utool as ut
+    # Pointer to current level.: Start at the end and
+    # then work your way up.
     main_ptr = -1
     stack = []
     #from six.moves import zip_longest
     keys = list(level_orders.keys())
     type_to_ptr = {key: -1 for key in keys}
-    while True:
+    import itertools
+    print('level_orders = %s' % (ut.repr3(level_orders),))
+    for count in itertools.count(0):
         ptred_levels = []
         for key in keys:
             levels = level_orders[key]
@@ -765,10 +776,18 @@ def merge_level_order(level_orders, topsort):
             except IndexError:
                 level = None
             ptred_levels.append(level)
+        print('count = %r' % (count,))
+        print('ptred_levels = %r' % (ptred_levels,))
+        print('main_ptr = %r' % (main_ptr,))
+        # groupkeys, idxs = ut.group_indices(ptred_levels)
+        # Group keys are tablenames
+        # They point to the (type) of the input
         groupkeys, idxs = ut.group_indices(ptred_levels)
         main_idx = None
         while main_idx is None:
             target = topsort[main_ptr]
+            print('main_ptr = %r' % (main_ptr,))
+            print('target = %r' % (target,))
             main_idx = ut.listfind(groupkeys, (target,))
             if main_idx is None:
                 main_ptr -= 1
@@ -786,6 +805,7 @@ def merge_level_order(level_orders, topsort):
             if main_ptr < -len(topsort):
                 #print('DONE')
                 break
+    print('stack = %r' % (stack,))
     compute_order = stack[::-1]
     return compute_order
 

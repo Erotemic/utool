@@ -176,6 +176,82 @@ def make_application_icon(exe_fpath, dry=True, props={}):
         ut.cmd('update-desktop-database ~/.local/share/applications')
 
 
+class XCtrl(object):
+    # @staticmethod
+    # def send_raw_key_input(keys):
+    #     import utool as ut
+    #     print('send key input: %r' % (keys,))
+    #     args = ['xdotool', 'type', keys]
+    #     ut.cmd(*args, quiet=True, silence=True)
+
+    @staticmethod
+    def do(*cmd_list, **kwargs):
+        import utool as ut
+        import time
+        verbose = False
+        # print('Running xctrl.do script')
+        if verbose:
+            print('Executing x do: %r' % (cmd_list,))
+        cmdkw = dict(verbose=False, quiet=True, silence=True)
+
+        # http://askubuntu.com/questions/455762/xbindkeys-wont-work-properly
+        # Make things work even if other keys are pressed
+        defaultsleep = 0.0
+        sleeptime = kwargs.get('sleeptime', defaultsleep)
+        time.sleep(.05)
+        ut.cmd('xset r off', **cmdkw)
+
+        for item in cmd_list:
+            # print('item = %r' % (item,))
+            sleeptime = kwargs.get('sleeptime', defaultsleep)
+
+            assert isinstance(item, tuple)
+            assert len(item) >= 2
+            xcmd, key_ = item[0:2]
+            if len(item) >= 3:
+                sleeptime = float(item[2])
+
+            if xcmd == 'focus':
+                args = ['wmctrl', '-xa', str(key_)]
+            elif xcmd == 'type':
+                args = [
+                    'xdotool',
+                    'keyup', '--window', '0', '7',
+                    'type', '--clearmodifiers',
+                    '--window', '0', str(key_)
+                ]
+            else:
+                args = ['xdotool', str(xcmd), str(key_)]
+
+            if verbose:
+                print('args = %r' % (args,))
+            # print('args = %r' % (args,))
+            ut.cmd(*args, **cmdkw)
+            if sleeptime > 0:
+                time.sleep(sleeptime)
+
+        ut.cmd('xset r on', verbose=False, quiet=True, silence=True)
+
+    @staticmethod
+    def focus_window(winhandle, path=None, name=None, sleeptime=.01):
+        """
+        sudo apt-get install xautomation
+        apt-get install autokey-gtk
+
+        wmctrl -xa gnome-terminal.Gnome-terminal
+        wmctrl -xl
+        """
+        import utool as ut
+        import time
+        print('focus: ' + winhandle)
+        args = ['wmctrl', '-xa', winhandle]
+        ut.cmd(*args, verbose=False, quiet=True)
+        time.sleep(sleeptime)
+
+
+xctrl = XCtrl
+
+
 if __name__ == '__main__':
     """
     CommandLine:

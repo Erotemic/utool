@@ -561,7 +561,9 @@ def __parse_cmd_kwargs(kwargs):
     sudo    = kwargs.get('sudo', False)
     # pads stdout of cmd before and after
     # TODO: rename separate to something else
-    pad_stdout    = kwargs.get('pad_stdout', True)
+    silence    = kwargs.get('silence', False)
+    quiet    = kwargs.get('quiet', False)
+    pad_stdout    = kwargs.get('pad_stdout', not (silence or quiet))
     return verbose, detatch, shell, sudo, pad_stdout
 
 
@@ -763,9 +765,9 @@ def cmd(*args, **kwargs):
     """
     try:
         # Parse the keyword arguments
+        verbose, detatch, shell, sudo, pad_stdout = __parse_cmd_kwargs(kwargs)
         quiet = kwargs.pop('quiet', False)
         silence = kwargs.pop('silence', False)
-        verbose, detatch, shell, sudo, pad_stdout = __parse_cmd_kwargs(kwargs)
         if pad_stdout:
             sys.stdout.flush()
             print('\n+--------')
