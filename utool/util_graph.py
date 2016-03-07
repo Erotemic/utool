@@ -665,6 +665,15 @@ def find_source_nodes(graph):
     return sources
 
 
+def find_sink_nodes(graph):
+    import utool as ut
+    import networkx as nx
+    topsort = nx.dag.topological_sort(graph)
+    is_source = [graph.out_degree(t) == 0 for t in topsort]
+    sources = ut.compress(topsort, is_source)
+    return sources
+
+
 def dag_longest_path(graph, source, target):
     import networkx as nx
     def longest(gen):
@@ -912,6 +921,14 @@ def all_simple_source_paths(graph, target):
     return path_list
 
 
+def all_nodes_between(graph, source, target, data=False):
+    import utool as ut
+    import networkx as nx
+    all_simple_paths = list(nx.all_simple_paths(graph, source, target))
+    nodes = list(set(ut.flatten(all_simple_paths)))
+    return nodes
+
+
 def all_multi_paths(graph, source, target, data=False):
     """
     Returns specific paths along multi-edges from the source to this table.
@@ -1012,6 +1029,39 @@ def accum_path_data(edge_list, srckey, dstkey):
         new_edge = (u, v, k, new_d)
         new_edge_list.append(new_edge)
     return new_edge_list
+
+
+def bfs_multi_edges(G, source, reverse=False, keys=True, data=False):
+    """Produce edges in a breadth-first-search starting at source.
+    -----
+    Based on http://www.ics.uci.edu/~eppstein/PADS/BFS.py
+    by D. Eppstein, July 2004.
+    """
+    from collections import deque
+    from functools import partial
+    if reverse:
+        G = G.reverse()
+    edges_iter = partial(G.edges_iter, keys=keys, data=data)
+
+    list(G.edges_iter('multitest', keys=True, data=True))
+
+    visited_nodes = set([source])
+    # visited_edges = set([])
+    queue = deque([(source, edges_iter(source))])
+    while queue:
+        parent, edges = queue[0]
+        try:
+            edge = next(edges)
+            edge_nodata = edge[0:3]
+            # if edge_nodata not in visited_edges:
+            yield edge
+            # visited_edges.add(edge_nodata)
+            child = edge_nodata[1]
+            if child not in visited_nodes:
+                visited_nodes.add(child)
+                queue.append((child, edges_iter(child)))
+        except StopIteration:
+            queue.popleft()
 
 
 if __name__ == '__main__':
