@@ -2609,6 +2609,26 @@ list_take = take
 list_argsort = argsort
 
 
+def list_strip(list_, to_strip, left=True, right=True):
+    """
+    list_ = [1, 2, 1, 3, 1, 1]
+    to_strip = 1
+    stripped_list = ut.list_strip(list_, to_strip)
+    """
+    import utool as ut
+    flags = [item != to_strip for item in list_]
+    flag_lists = []
+    if right:
+        rstrip_flags = ut.cumsum(flags[::-1])[::-1]
+        flag_lists.append(rstrip_flags)
+    if left:
+        lstrip_flags = ut.cumsum(flags)
+        flag_lists.append(lstrip_flags)
+    strip_flags = ut.and_lists(*flag_lists)
+    stripped_list = ut.compress(list_, strip_flags)
+    return stripped_list
+
+
 #def partition2(list_, idxs1, idxs2):
 #    list1_ = ut.take(list_, idxs1)
 #    list2_ = list(zip(ut.take(list_, idxs2)))

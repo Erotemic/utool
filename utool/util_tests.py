@@ -911,8 +911,11 @@ def parse_doctest_from_docstr(docstr):
     # Place grid tests first
     for header, docblock, line_offset in grid_example_docblock:
         test_src, test_want = read_exampleblock(docblock)
-        assert len(grid_setups) == 1, 'need one grid setup'
-        grid_setup = grid_setups[0]
+        assert len(grid_setups) <= 1, 'need one grid setup'
+        if len(grid_setups):
+            grid_setup = grid_setups[0]
+        else:
+            grid_setup = ''
         hack_show_request = False
         if 'ut.show_if_requested()' in test_src:
             hack_show_request = True
@@ -1303,7 +1306,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                                                         full_testname))
         else:
             print('WARNING: no examples in %r for testname=%r' % (frame_fpath,
-                                                                  testname))
+                                                                  full_testname))
             if verbose:
                 print(testable)
                 print(examples)

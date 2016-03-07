@@ -1662,8 +1662,11 @@ def iteritems_sorted(dict_):
         return iter(sorted(six.iteritems(dict_)))
 
 
-def items_sorted_by_value(dict_):
-    sorted_items = sorted(six.iteritems(dict_), key=lambda k, v: v[1])
+def items_sorted_by_value(dict_, key=None):
+    if key is None:
+        sorted_items = sorted(six.iteritems(dict_), key=lambda k, v: v[1])
+    else:
+        sorted_items = sorted(six.iteritems(dict_), key=lambda item: key(item[1]))
     return sorted_items
 
 

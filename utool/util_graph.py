@@ -924,6 +924,16 @@ def all_simple_source_paths(graph, target):
 def all_nodes_between(graph, source, target, data=False):
     import utool as ut
     import networkx as nx
+    if source is None:
+        # assume there is a single source
+        sources = ut.find_source_nodes(graph)
+        assert len(sources) == 1
+        source = sources[0]
+    if target is None:
+        # assume there is a single source
+        sinks = ut.find_sink_nodes(graph)
+        assert len(sinks) == 1
+        target = sinks[0]
     all_simple_paths = list(nx.all_simple_paths(graph, source, target))
     nodes = list(set(ut.flatten(all_simple_paths)))
     return nodes
