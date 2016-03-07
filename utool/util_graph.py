@@ -697,116 +697,105 @@ def merge_level_order(level_orders, topsort):
     Merge orders of individual subtrees into a total ordering for
     computation.
 
-    level_orders = {
-        'multi_chip_multitest': [
-            ['dummy_annot'],
-            ['chip'],
-            ['multitest'], ['multitest_score'],
-        ],
-        'multi_fgweight_multitest': [
-            ['dummy_annot'],
-            ['chip', 'probchip'],
-            ['keypoint'],
-            ['fgweight'],
-            ['multitest'], ['multitest_score'],
-        ],
-        'multi_keypoint_nnindexer': [
-            ['dummy_annot'],
-            ['chip'],
-            ['keypoint'],
-            ['nnindexer'],
-            ['multitest'], ['multitest_score'],
-        ],
-        'normal': [
-            ['dummy_annot'],
-            ['chip', 'probchip'],
-            ['keypoint'],
-            ['fgweight'],
-            ['spam'],
-            ['multitest'], ['multitest_score'],
-        ],
-        'nwise_notch_multitest_1': [
-            ['dummy_annot'],
-            ['notch'],
-            ['multitest'], ['multitest_score'],
-        ],
-        'nwise_notch_multitest_2': [
-            ['dummy_annot'],
-            ['notch'],
-            ['multitest'], ['multitest_score'],
-        ],
-        'nwise_notch_notchpair_1': [
-            ['dummy_annot'],
-            ['notch'], ['notchpair'],
-            ['multitest'], ['multitest_score'],
-        ],
-        'nwise_notch_notchpair_2': [
-            ['dummy_annot'],
-            ['notch'], ['notchpair'],
-            ['multitest'], ['multitest_score'],
-        ],
-    }
-
-    topsort = [u'dummy_annot', u'notch', u'probchip', u'chip', u'keypoint',
-               u'fgweight', u'nnindexer', u'spam', u'notchpair', u'multitest',
-               u'multitest_score']
+    >>> level_orders = {
+    >>>     'multi_chip_multitest': [['dummy_annot'], ['chip'], ['multitest'],
+    >>>         ['multitest_score'], ],
+    >>>     'multi_fgweight_multitest': [ ['dummy_annot'], ['chip', 'probchip'],
+    >>>         ['keypoint'], ['fgweight'], ['multitest'], ['multitest_score'], ],
+    >>>     'multi_keypoint_nnindexer': [ ['dummy_annot'], ['chip'], ['keypoint'],
+    >>>         ['nnindexer'], ['multitest'], ['multitest_score'], ],
+    >>>     'normal': [ ['dummy_annot'], ['chip', 'probchip'], ['keypoint'],
+    >>>         ['fgweight'], ['spam'], ['multitest'], ['multitest_score'], ],
+    >>>     'nwise_notch_multitest_1': [ ['dummy_annot'], ['notch'], ['multitest'],
+    >>>         ['multitest_score'], ],
+    >>>     'nwise_notch_multitest_2': [ ['dummy_annot'], ['notch'], ['multitest'],
+    >>>         ['multitest_score'], ],
+    >>>     'nwise_notch_notchpair_1': [ ['dummy_annot'], ['notch'], ['notchpair'],
+    >>>         ['multitest'], ['multitest_score'], ],
+    >>>     'nwise_notch_notchpair_2': [ ['dummy_annot'], ['notch'], ['notchpair'],
+    >>>         ['multitest'], ['multitest_score'], ],
+    >>> }
+    >>> topsort = [u'dummy_annot', u'notch', u'probchip', u'chip', u'keypoint',
+    >>>            u'fgweight', u'nnindexer', u'spam', u'notchpair', u'multitest',
+    >>>            u'multitest_score']
+    >>> print(ut.repr3(ut.merge_level_order(level_orders, topsort)))
 
     EG2:
-        level_order = {u'normal': [[u'dummy_annot'], [u'chip', u'probchip'], [u'keypoint'], [u'fgweight'], [u'spam']]}
+        level_orders = {u'normal': [[u'dummy_annot'], [u'chip', u'probchip'], [u'keypoint'], [u'fgweight'], [u'spam']]}
         topsort = [u'dummy_annot', u'probchip', u'chip', u'keypoint', u'fgweight', u'spam']
     """
-    # Do on common subgraph
+
     import utool as ut
-    # Pointer to current level.: Start at the end and
-    # then work your way up.
-    main_ptr = -1
-    stack = []
-    #from six.moves import zip_longest
-    keys = list(level_orders.keys())
-    type_to_ptr = {key: -1 for key in keys}
-    import itertools
-    print('level_orders = %s' % (ut.repr3(level_orders),))
-    for count in itertools.count(0):
-        ptred_levels = []
-        for key in keys:
-            levels = level_orders[key]
-            ptr = type_to_ptr[key]
-            try:
-                level = tuple(levels[ptr])
-            except IndexError:
-                level = None
-            ptred_levels.append(level)
-        print('count = %r' % (count,))
-        print('ptred_levels = %r' % (ptred_levels,))
-        print('main_ptr = %r' % (main_ptr,))
-        # groupkeys, idxs = ut.group_indices(ptred_levels)
-        # Group keys are tablenames
-        # They point to the (type) of the input
-        groupkeys, idxs = ut.group_indices(ptred_levels)
-        main_idx = None
-        while main_idx is None:
-            target = topsort[main_ptr]
+    if False:
+        compute_order = []
+        level_orders = ut.map_dict_vals(ut.total_flatten, level_orders)
+        level_sets = ut.map_dict_vals(set, level_orders)
+        for tablekey in topsort:
+            compute_order.append((tablekey, [groupkey for groupkey, set_ in level_sets.items() if tablekey in set_]))
+        return compute_order
+    else:
+        # Do on common subgraph
+        import itertools
+        # Pointer to current level.: Start at the end and
+        # then work your way up.
+        main_ptr = len(topsort) - 1
+        stack = []
+        #from six.moves import zip_longest
+        keys = list(level_orders.keys())
+        type_to_ptr = {key: -1 for key in keys}
+        print('level_orders = %s' % (ut.repr3(level_orders),))
+        for count in itertools.count(0):
+            print('----')
+            print('count = %r' % (count,))
+            ptred_levels = []
+            for key in keys:
+                levels = level_orders[key]
+                ptr = type_to_ptr[key]
+                try:
+                    level = tuple(levels[ptr])
+                except IndexError:
+                    level = None
+                ptred_levels.append(level)
+            print('ptred_levels = %r' % (ptred_levels,))
             print('main_ptr = %r' % (main_ptr,))
-            print('target = %r' % (target,))
-            main_idx = ut.listfind(groupkeys, (target,))
+            # groupkeys, groupxs = ut.group_indices(ptred_levels)
+            # Group keys are tablenames
+            # They point to the (type) of the input
+            # num_levelkeys = len(ut.total_flatten(ptred_levels))
+            groupkeys, groupxs = ut.group_indices(ptred_levels)
+            main_idx = None
+            while main_idx is None and main_ptr >= 0:
+                target = topsort[main_ptr]
+                print('main_ptr = %r' % (main_ptr,))
+                print('target = %r' % (target,))
+                # main_idx = ut.listfind(groupkeys, (target,))
+                # if main_idx is None:
+                possible_idxs = [idx for idx, keytup in enumerate(groupkeys) if keytup is not None and target in keytup]
+                if len(possible_idxs) == 1:
+                    main_idx = possible_idxs[0]
+                else:
+                    main_idx = None
+                if main_idx is None:
+                    main_ptr -= 1
             if main_idx is None:
+                print('break I')
+                break
+            found_groups = ut.apply_grouping(keys, groupxs)[main_idx]
+            print('found_groups = %r' % (found_groups,))
+            stack.append((target, found_groups))
+            for k in found_groups:
+                type_to_ptr[k] -= 1
+
+            if len(found_groups) == len(keys):
                 main_ptr -= 1
-            if main_ptr < -len(topsort):
-                #print('DONE')
-                break
-        if main_idx is None:
-            break
-        found_groups = ut.apply_grouping(keys, idxs)[main_idx]
-        stack.append((target, found_groups))
-        for k in found_groups:
-            type_to_ptr[k] -= 1
-        if len(found_groups) == len(keys):
-            main_ptr -= 1
-            if main_ptr < -len(topsort):
-                #print('DONE')
-                break
-    print('stack = %r' % (stack,))
-    compute_order = stack[::-1]
+                if main_ptr < 0:
+                    print('break E')
+                    break
+        print('stack = %s' % (ut.repr3(stack),))
+        print('have = %r' % (sorted(ut.take_column(stack, 0)),))
+        print('need = %s' % (sorted(ut.total_flatten(level_orders.values())),))
+        compute_order = stack[::-1]
+
     return compute_order
 
 
@@ -856,6 +845,7 @@ def nx_delete_node_attr(graph, key):
             removed += 1
         except KeyError:
             pass
+    return removed
 
 
 def nx_delete_edge_attr(graph, key):
@@ -877,6 +867,151 @@ def nx_delete_edge_attr(graph, key):
             except KeyError:
                 pass
     return removed
+
+
+def all_simple_source_paths(graph, target):
+    r"""
+    Returns all paths to this table from the source node
+
+    CommandLine:
+        python -m dtool.depcache_table --exec-all_simple_source_paths
+
+    Example:
+        >>> from dtool.depcache_control import *  # NOQA
+        >>> from dtool.example_depcache import testdata_depc
+        >>> depc = testdata_depc()
+        >>> path_list1 = depc['notchpair'].all_simple_source_paths
+        >>> path_list2 = depc['spam'].all_simple_source_paths
+        >>> path_list3 = depc['neighbs'].all_simple_source_paths
+        >>> result1 = ('path_list1 = %s' % ut.repr3(path_list1, nl=1))
+        >>> result2 = ('path_list2 = %s' % ut.repr3(path_list2, nl=1))
+        >>> result3 = ('path_list3 = %s' % ut.repr3(path_list3, nl=1))
+        >>> result = '\n'.join([result1, result2, result3])
+        >>> print(result)
+        path_list1 = [
+            ['dummy_annot', 'notch', 'notchpair'],
+            ['dummy_annot', 'notch', 'notchpair'],
+        ]
+        path_list2 = [
+            ['dummy_annot', 'chip', 'keypoint', 'fgweight', 'spam'],
+            ['dummy_annot', 'chip', 'keypoint', 'spam'],
+            ['dummy_annot', 'chip', 'spam'],
+            ['dummy_annot', 'probchip', 'fgweight', 'spam'],
+        ]
+        path_list3 = [
+            ['dummy_annot', 'chip', 'keypoint', 'nnindexer', 'neighbs'],
+            ['dummy_annot', 'neighbs'],
+        ]
+    """
+    import utool as ut
+    import networkx as nx
+    sources = ut.find_source_nodes(graph)
+    path_iters = [nx.all_simple_paths(graph, source, target)
+                  for source in sources]
+    path_list = ut.flatten(path_iters)
+    return path_list
+
+
+def all_multi_paths(graph, source, target, data=False):
+    """
+    Returns specific paths along multi-edges from the source to this table.
+    Multipaths are identified by edge keys.
+
+    Example:
+        >>> from dtool.depcache_control import *  # NOQA
+        >>> from dtool.example_depcache import testdata_depc
+        >>> depc = testdata_depc()
+        >>> path_list1 = depc['notchpair'].all_multi_source_paths()
+        >>> path_list2 = depc['spam'].all_multi_source_paths()
+        >>> result1 = ('path_list1 = %s' % ut.repr3(path_list1, nl=1))
+        >>> result2 = ('path_list2 = %s' % ut.repr3(path_list2, nl=2))
+        >>> result = '\n'.join([result1, result2])
+        >>> print(result)
+        path_list1 = [
+            [('dummy_annot', 'notch', 0), ('notch', 'notchpair', 0)],
+            [('dummy_annot', 'notch', 0), ('notch', 'notchpair', 1)],
+        ]
+        path_list2 = [
+            [
+                ('dummy_annot', 'chip', 0),
+                ('chip', 'keypoint', 0),
+                ('keypoint', 'fgweight', 0),
+                ('fgweight', 'spam', 0),
+            ],
+            [
+                ('dummy_annot', 'chip', 0),
+                ('chip', 'keypoint', 0),
+                ('keypoint', 'spam', 0),
+            ],
+            [
+                ('dummy_annot', 'chip', 0),
+                ('chip', 'spam', 0),
+            ],
+            [
+                ('dummy_annot', 'probchip', 0),
+                ('probchip', 'fgweight', 0),
+                ('fgweight', 'spam', 0),
+            ],
+        ]
+    """
+    import copy
+    import utool as ut
+    import networkx as nx
+    all_simple_paths = list(nx.all_simple_paths(graph, source, target))
+    paths_from_source2 = ut.unique(ut.lmap(tuple, all_simple_paths))
+    path_edges2 = [tuple(ut.itertwo(path)) for path in paths_from_source2]
+
+    # expand paths with multi edge indexes
+    # hacky implementation
+    expanded_paths = []
+    for path in path_edges2:
+        all_paths = [[]]
+        for u, v in path:
+            mutli_edge_data = graph.edge[u][v]
+            items = list(mutli_edge_data.items())
+            K = len(items)
+            if len(items) == 1:
+                path_iter = [all_paths]
+                pass
+            elif len(items) > 1:
+                path_iter = [[copy.copy(p) for p in all_paths]
+                             for k_ in range(K)]
+            for (k, edge_data), paths in zip(items, path_iter):
+                for p in paths:
+                    p.append((u, v, {k: edge_data}))
+            all_paths = ut.flatten(path_iter)
+        expanded_paths.extend(all_paths)
+
+    if data:
+        path_multiedges = [[(u, v, k, d) for u, v, kd in path for k, d in kd.items()]
+                           for path in expanded_paths]
+    else:
+        path_multiedges = [[(u, v, k) for u, v, kd in path for k in kd.keys()]
+                           for path in expanded_paths]
+    # path_multiedges = [[(u, v, list(kd.keys())[0]) for u, v, kd in path]
+    #                    for path in expanded_paths]
+    # path_multiedges = expanded_paths
+    return path_multiedges
+
+
+def reverse_path_edges(edge_list):
+    return [(edge[1], edge[0],) + tuple(edge[2:]) for edge in edge_list][::-1]
+
+
+def accum_path_data(edge_list, srckey, dstkey):
+    new_edge_list = []
+    accum_dstval = []
+    for edge in edge_list:
+        u, v, k, d = edge
+        srcval = d[srckey]
+        # if len(id_accum) == 0 or local_input_id != id_accum[-1]:
+        accum_dstval.append(srcval)
+        dstval = tuple(accum_dstval)
+        new_d = d.copy()
+        new_d[dstkey] = dstval
+        new_edge = (u, v, k, new_d)
+        new_edge_list.append(new_edge)
+    return new_edge_list
 
 
 if __name__ == '__main__':

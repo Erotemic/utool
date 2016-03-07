@@ -429,14 +429,107 @@ def accumulate(iterator):
         yield total
 
 
-def invertible_total_flatten(unflat_list):
-    import utool as ut
-    unflat_list = [[[1, 2, 3], 4, 5], [2, 3], [1, [2, 3, 4]]]
-    unflat_list = [1, 2, [3, 4]]
-    ut.invertible_flatten2(unflat_list)[0]
-    iterable_flags = [ut.isiterable(item) for item in unflat_list]
+def total_flatten(unflat_list):
+    """
+    unflat_list = [1, 2, [3, 4], [5, [9]]]
+    Args:
+        unflat_list (list):
 
-    pass
+    Returns:
+        list: flat_list
+
+    CommandLine:
+        python -m utool.util_list --exec-total_flatten --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> import utool as ut
+        >>> unflat_list = [[[1, 2, 3], 4, 5], 9, [2, 3], [1, [2, 3, 4]], 1, 2, 3]
+        >>> flat_list = total_flatten(unflat_list)
+        >>> result = ('flat_list = %s' % (ut.repr2(flat_list),))
+        >>> print(result)
+    """
+    import utool as ut
+    next_list = unflat_list
+    scalar_flags = [not ut.isiterable(item) for item in next_list]
+    while not all(scalar_flags):
+        unflatenized = [[item] if flag else item for flag, item in zip(scalar_flags, next_list)]
+        flatter_list = ut.flatten(unflatenized)
+        next_list = flatter_list
+        scalar_flags = [not ut.isiterable(item) for item in next_list]
+    flat_list = next_list
+    return flat_list
+
+
+def invertible_total_flatten(unflat_list):
+    r"""
+    Args:
+        unflat_list (list):
+
+    Returns:
+        tuple: (flat_list, invert_levels)
+
+    CommandLine:
+        python -m utool.util_list --exec-invertible_total_flatten --show
+
+    Example:
+        >>> from utool.util_list import *  # NOQA
+        >>> import utool as ut
+        >>> unflat_list = [0, [[1, 2, 3], 4, 5], 9, [2, 3], [1, [2, 3, 4]], 1, 2, 3]
+        >>> print('unflat_list = %r' % (unflat_list,))
+        >>> (flat_list, invert_levels) = invertible_total_flatten(unflat_list)
+        >>> print('flat_list = %r' % (flat_list,))
+        >>> unflat_list2 = total_unflatten(flat_list, invert_levels)
+        >>> print('unflat_list2 = %r' % (unflat_list2,))
+        >>> assert unflat_list2 == unflat_list
+        >>> assert ut.depth_profile(flat_list) == 16
+
+    """
+    import utool as ut
+    next_list = unflat_list
+    scalar_flags = [not ut.isiterable(item) for item in next_list]
+    invert_stack = []
+    # print('unflat_list = %r' % (unflat_list,))
+    while not all(scalar_flags):
+        unflattenized = [[item] if flag else item
+                         for flag, item in zip(scalar_flags, next_list)]
+        flatter_list, invert_part = ut.invertible_flatten(unflattenized)
+        # print('flatter_list = %r' % (flatter_list,))
+        for idx in ut.where(scalar_flags):
+            invert_part[idx] = invert_part[idx][0]
+        invert_stack.append(invert_part)
+        next_list = flatter_list
+        scalar_flags = [not ut.isiterable(item) for item in next_list]
+    # invert_part = [None] * len(scalar_flags)
+    # invert_stack.append(invert_part)
+    invert_levels = invert_stack[::-1]
+    flat_list = next_list
+    return flat_list, invert_levels
+
+
+def total_unflatten(flat_list, invert_levels):
+    import utool as ut
+    less_flat_list = flat_list
+    # print('less_flat_list = %r' % (less_flat_list,))
+    for lx, level in enumerate(invert_levels):
+        needs_unflatten = [ut.isiterable(x) for x in level]
+        is_alreadyflat = ut.not_list(needs_unflatten)
+        needs_unflatxs = ut.where(needs_unflatten)
+        already_flatxs = ut.where(is_alreadyflat)
+        invertinfo = ut.compress(level, needs_unflatten)
+        unflat_part = ut.unflatten(less_flat_list, invertinfo)
+
+        flat_sortx = ut.take(level, already_flatxs)
+        flat_part = ut.take(less_flat_list, flat_sortx)
+        maxsize = len(already_flatxs) + len(needs_unflatxs) - 1
+        # (len(invertinfo) + sum(is_alreadyflat) + 1)
+        groups = [flat_part, unflat_part]
+        groupxs = [already_flatxs, needs_unflatxs]
+        less_flat_list_ = ut.ungroup(groups, groupxs, maxsize)
+        less_flat_list = less_flat_list_
+    unflat_list = less_flat_list
+    return unflat_list
 
 
 @profile
@@ -2266,7 +2359,7 @@ def list_argmaxima(list_):
     return argmaxima
 
 
-def make_index_lookup(list_):
+def make_index_lookup(list_, dict_factory=dict):
     r"""
     Args:
         list_ (list): assumed to have unique items
@@ -2288,7 +2381,7 @@ def make_index_lookup(list_):
         >>> print(result)
         {2: 3, 3: 1, 5: 0, 8: 2}
     """
-    return dict(zip(list_, range(len(list_))))
+    return dict_factory(zip(list_, range(len(list_))))
 
 
 def list_transpose(list_):
