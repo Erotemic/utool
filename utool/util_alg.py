@@ -756,6 +756,10 @@ def knapsack_iterative(items, maxweight):
     # Adjust weights to be integral
     int_maxweight = int(maxweight * coeff)
     int_items = [(v, int(w * coeff), idx) for v, w, idx in items]
+    """
+    items = int_items
+    maxweight = int_maxweight
+    """
     return knapsack_iterative_int(int_items, int_maxweight)
 
 
@@ -802,8 +806,9 @@ def knapsack_iterative_int(items, maxweight):
     idx_subset = []  # NOQA
     for w in range(maxsize):
         dpmat[0][w] = 0
+    num_items = len(items)
     # For each item consider to include it or not
-    for idx in range(1, len(items)):
+    for idx in range(1, num_items):
         item_val = values[idx]
         item_weight = weights[idx]
         # consider at each possible bag size
@@ -821,7 +826,7 @@ def knapsack_iterative_int(items, maxweight):
                 kmat[idx][w] = False
     # Trace backwards to get the items used in the solution
     K = maxweight
-    for idx in reversed(range(1, len(items))):
+    for idx in reversed(range(1, num_items)):
         if kmat[idx][K]:
             idx_subset.append(idx)
             K = K - weights[idx]
