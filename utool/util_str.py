@@ -1869,10 +1869,26 @@ def get_unix_timedelta_str(unixtime_diff):
 
 
 def str_between(str_, startstr, endstr):
-    """ gets substring between two sentianl strings """
+    r"""
+    gets substring between two sentianl strings
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> import utool as ut
+        >>> str_ = '\n        INSERT INTO vsone(\n'
+        >>> startstr = 'INSERT'
+        >>> endstr = '('
+        >>> result = str_between(str_, startstr, endstr)
+        >>> print(result)
+    """
     startpos = str_.find(startstr) + len(startstr)
-    endpos = str_.find(endstr) - 1
-    return str_[startpos:endpos]
+    if endstr is None:
+        endpos = None
+    else:
+        endpos = str_.find(endstr)
+    newstr = str_[startpos:endpos]
+    return newstr
 
 
 def padded_str_range(start, end):

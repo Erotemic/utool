@@ -2205,7 +2205,8 @@ def list_type_profile(sequence, compress_homogenous=True, with_dtype=True):
     level_type_list = []
     for item in sequence:
         #if util_type.is_listlike(item):
-        level_type_list.append(list_type_profile(item, with_dtype=with_dtype))
+        item_type_profile = list_type_profile(item, with_dtype=with_dtype)
+        level_type_list.append(item_type_profile)
 
     if compress_homogenous:
         # removes redudant information by returning a type and number
@@ -2217,6 +2218,115 @@ def list_type_profile(sequence, compress_homogenous=True, with_dtype=True):
     typename = str(type(sequence)).replace('<type \'', '').replace('\'>', '')
     level_type_str = typename + '(' + str(level_type_str) + ')'
     return level_type_str
+
+
+def type_profile2(sequence, TypedSequence=None):
+    """
+    similar to depth_profile but reports types
+
+    Args:
+        sequence (?):
+        compress_homogenous (bool): (default = True)
+
+    Kwargs:
+        compress_homogenous
+
+    Returns:
+        str: level_type_str
+
+    CommandLine:
+        python -m utool.util_list --exec-type_profile2
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> sequence = []
+        >>> from utool.util_list import *  # NOQA
+        >>> self = typeprof = type_profile2(sequence, type_sequence_factory())
+        >>> result = ('level_type_str = %s' % (str(level_type_str),))
+        >>> print(result)
+    """
+    if TypedSequence is None:
+        TypedSequence = type_sequence_factory()
+    # For a pure bottom level list return the length
+    #if not any(map(util_type.is_listlike, sequence)) or (isinstance(sequence, np.ndarray) and sequence.dtype != object):
+    if not util_type.is_listlike(sequence) or (isinstance(sequence, np.ndarray) and sequence.dtype != object):
+        # Scalar / ndarray type
+        if type(sequence) == 'numpy.ndarray':
+            subtype_list = '[%s]' % (sequence.dtype,)
+        else:
+            subtype_list = None
+        return TypedSequence(type(sequence), subtype_list)
+    elif util_type.is_listlike(sequence):
+        # Sequence type
+        sequence_type = type(sequence)
+
+        subtype_list = []
+        for item in sequence:
+            item_type_profile = type_profile2(item, TypedSequence=TypedSequence)
+            subtype_list.append(item_type_profile)
+        sequence_type_profile = TypedSequence(sequence_type, subtype_list)
+        return sequence_type_profile
+        #level_type_str = typename + '(' + str(level_type_str) + ')'
+        #return level_type_str
+
+
+def type_sequence_factory():
+    from utool import util_dev
+    class TypedSequence(util_dev.NiceRepr):
+        def __init__(self, type_, subtype_list=None):
+            self.type_ = type_
+            self.subtype_list = subtype_list
+
+        def __eq__(self, other):
+            return str(self) == str(other)
+
+        def type_str(self):
+            type_str = six.text_type(self.type_)
+            type_str = type_str.replace('\'>', '')
+            type_str = type_str.replace('<type \'', '')
+            type_str = type_str.replace('<class \'', '')
+            type_str = type_str.replace('numpy.', '')
+
+            return type_str
+
+        def subtype_str(self):
+            import utool as ut
+            if self.subtype_list is None:
+                return ''
+            elif isinstance(self.subtype_list, six.string_types):
+                return self.subtype_list
+            else:
+                prev = None
+                grouped = []
+                group = []
+                for item in self.subtype_list:
+                    if item == prev or prev is None:
+                        group.append(item)
+                    else:
+                        grouped.append(group)
+                        group = [item]
+                    prev = item
+                grouped.append(group)
+
+                if len(grouped) == len(self.subtype_list):
+                    toret = '(' + ', '.join([sub.__nice__()[1:] for sub in self.subtype_list]) + ')'
+                else:
+                    compressed_types = ut.take_column(grouped, 0)
+                    compressed_lens = ut.lmap(len, grouped)
+                    zip(compressed_types, compressed_lens)
+                    groupstrs = [
+                        sub.__nice__()[1:] + '*' + str(num) if num > 1 else
+                        sub.__nice__()[1:]
+                        for sub, num in zip(compressed_types, compressed_lens)]
+                    toret = '(' + ', '.join(groupstrs) + ')'
+                return toret
+
+        def __nice__(self):
+            type_str = self.type_str()
+            if self.subtype_list is not None:
+                type_str += self.subtype_str()
+            return ' ' + type_str
+    return TypedSequence
 
 
 type_profile = list_type_profile

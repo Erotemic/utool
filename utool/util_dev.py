@@ -431,7 +431,7 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
         passed = all(passed_list)
         is_numpy = True
     else:
-        passed = ut.util_list.allsame(result_list, strict=False)
+        passed = ut.allsame(result_list, strict=False)
         is_numpy = False
     if verbose:
         print('| Output:')

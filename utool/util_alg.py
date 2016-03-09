@@ -785,6 +785,10 @@ def knapsack_iterative_int(items, maxweight):
         >>> weights = [1, 3, 3, 5, 2, 1] * 2
         >>> items = [(w, w, i) for i, w in enumerate(weights)]
         >>> maxweight = 10
+        >>> items = [(.8, 700, 0)]
+        >>> maxweight = 2000
+        >>> print('maxweight = %r' % (maxweight,))
+        >>> print('items = %r' % (items,))
         >>> total_value, items_subset = knapsack_iterative_int(items, maxweight)
         >>> total_weight = sum([t[1] for t in items_subset])
         >>> print('total_weight = %r' % (total_weight,))
@@ -806,16 +810,19 @@ def knapsack_iterative_int(items, maxweight):
     idx_subset = []  # NOQA
     for w in range(maxsize):
         dpmat[0][w] = 0
-    num_items = len(items)
     # For each item consider to include it or not
-    for idx in range(1, num_items):
+    for idx in range(len(items)):
         item_val = values[idx]
         item_weight = weights[idx]
         # consider at each possible bag size
         for w in range(maxsize):
             valid_item = item_weight <= w
-            prev_val = dpmat[idx - 1][w]
-            prev_noitem_val = dpmat[idx - 1][w - item_weight]
+            if idx > 0:
+                prev_val = dpmat[idx - 1][w]
+                prev_noitem_val = dpmat[idx - 1][w - item_weight]
+            else:
+                prev_val = 0
+                prev_noitem_val = 0
             withitem_val = item_val + prev_noitem_val
             more_valuable = withitem_val > prev_val
             if valid_item and more_valuable:
@@ -826,7 +833,7 @@ def knapsack_iterative_int(items, maxweight):
                 kmat[idx][w] = False
     # Trace backwards to get the items used in the solution
     K = maxweight
-    for idx in reversed(range(1, num_items)):
+    for idx in reversed(range(len(items))):
         if kmat[idx][K]:
             idx_subset.append(idx)
             K = K - weights[idx]
