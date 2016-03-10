@@ -485,7 +485,7 @@ if DOELSE:
                                   is_substr, latex_get_stats, 
                                   latex_multicolumn, latex_multirow, 
                                   latex_newcommand, 
-                                  latex_sanatize_command_name, latex_scalar, 
+                                  latex_sanitize_command_name, latex_scalar, 
                                   long_substr, make_full_document, 
                                   make_score_tabular, make_stats_tabular, 
                                   make_table2, render, render_latex_text, 

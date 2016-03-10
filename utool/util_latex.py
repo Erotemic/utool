@@ -704,7 +704,7 @@ def make_score_tabular(
         tabular_head = r'\centering' + '\n' + tabular_head
         tabular_head = r'\begin{table}' + table_position + '\n' + tabular_head
 
-        lblstr = latex_sanatize_command_name(kwargs.get('label', title))
+        lblstr = latex_sanitize_command_name(kwargs.get('label', title))
         caption = title
         if AUTOFIX_LATEX:
             caption = escape_latex(caption)
@@ -731,7 +731,7 @@ def get_latex_figure_str2(fpath_list, cmdname, **kwargs):
     if kwargs.pop('relpath', True):
         start = ut.truepath('~/latex/crall-candidacy-2015')
         fpath_list = [relpath(fpath, start) for fpath in fpath_list]
-    cmdname = ut.latex_sanatize_command_name(cmdname)
+    cmdname = ut.latex_sanitize_command_name(cmdname)
 
     kwargs['caption_str'] = kwargs.get('caption_str', cmdname)
     figure_str  = ut.get_latex_figure_str(fpath_list, **kwargs)
@@ -939,7 +939,7 @@ def latex_newcommand(command_name, command_text, num_args=0):
     return newcmd_str
 
 
-def latex_sanatize_command_name(_cmdname):
+def latex_sanitize_command_name(_cmdname):
     r"""
     Args:
         _cmdname (?):
@@ -948,13 +948,13 @@ def latex_sanatize_command_name(_cmdname):
         ?: command_name
 
     CommandLine:
-        python -m utool.util_latex --exec-latex_sanatize_command_name
+        python -m utool.util_latex --exec-latex_sanitize_command_name
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_latex import *  # NOQA
         >>> _cmdname = '#foo bar.'
-        >>> command_name = latex_sanatize_command_name(_cmdname)
+        >>> command_name = latex_sanitize_command_name(_cmdname)
         >>> result = ('command_name = %s' % (str(command_name),))
         >>> print(result)
         FooBar
