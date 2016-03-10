@@ -35,6 +35,17 @@ else:
 NoParam = util_const.NoParam
 
 
+def overrideable_partial(func, *args, **default_kwargs):
+    """ like partial, but given kwargs can be overrideden at calltime """
+    import functools
+    @functools.wraps(func)
+    def partial_wrapper(*given_args, **given_kwargs):
+        kwargs = default_kwargs.copy()
+        kwargs.update(given_kwargs)
+        return func(*(args + given_args), **kwargs)
+    return partial_wrapper
+
+
 def DEPRICATED(func):
     """ deprication decorator """
     warn_msg = 'Deprecated call to: %s' % func.__name__
