@@ -320,13 +320,180 @@ def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS, key_order=None):
     return cfg_lbl
 
 
+#def parenthetic_contents(string):
+#    """
+#    Generate parenthesized contents in string as pairs (level, contents).
+
+#    References:
+#        http://stackoverflow.com/questions/4284991/parsing-nested-parentheses
+#    """
+#    stack = []
+#    for i, c in enumerate(string):
+#        if c == '(':
+#            stack.append(i)
+#        elif c == ')' and stack:
+#            start = stack.pop()
+#            yield (len(stack), string[start + 1: i])
+
+
+#def parenthetic_contents2(string):
+#    """
+#    # $ pip install grako
+#    References:
+#        http://stackoverflow.com/questions/1651487/python-parsing-bracketed-blocks
+#    """
+#    import json
+#    import grako
+
+#    grammar_ebnf = """
+#        bracketed = '{' @:( { bracketed }+ | any ) '}' ;
+#        any = /[^{}]+?/ ;
+#    """
+#    model = grako.genmodel("Bracketed", grammar_ebnf)
+#    ast = model.parse("{ { a } { b } { { { c } } } }", "bracketed")
+#    print(json.dumps(ast, indent=4))
+
+
+def parse_paren3(string):
+    """
+    http://stackoverflow.com/questions/4801403/how-can-i-use-pyparsing-to-parse-nested-expressions-that-have-mutiple-opener-clo
+
+    cfgopt_strs = 'f=2,c=[(1,2),(3,4)],d=1'
+    string  =  cfgopt_strs
+    """
+    import pyparsing as pp
+    matchedNesting = pp.Forward()  # .setResultsName('nest')
+    nestedParens = pp.nestedExpr('(', ')', content=matchedNesting).setResultsName('paren')
+    nestedBrackets = pp.nestedExpr('[', ']', content=matchedNesting).setResultsName('brak')
+    nestedCurlies = pp.nestedExpr('{', '}', content=matchedNesting).setResultsName('curl')
+    atom = (pp.Word(pp.alphanums + '=') | ',').setResultsName('atom')
+    #atom = commasep
+    matchedNesting << (atom | nestedParens | nestedBrackets | nestedCurlies)
+    matcher = pp.ZeroOrMore(matchedNesting).setResultsName('expr')
+    #matcher = matchedNesting
+    tokens = matcher.parseString(string)
+
+    #import pyparsing as pp
+    #sequence = pp.Forward().setName('sequence')
+    #assign = pp.Forward().setName('assign')
+    #nestedParens = pp.nestedExpr('(', ')', content=sequence).setName('paren')
+    #nestedBrackets = pp.nestedExpr('[', ']', content=sequence).setName('brak')
+    #nestedCurlies = pp.nestedExpr('{', '}', content=sequence).setName('curl')
+    #atom     = pp.Word(pp.alphanums).setName('comma')
+    #asign_op = pp.Word('=').setName('assign_op')
+    #comma    = pp.Word(',').setName('comma')
+    #assign << atom + asign_op + sequence
+    #sequence << (atom | comma | nestedParens | nestedBrackets | nestedCurlies)
+    ##matcher = pp.ZeroOrMore(sequence).setName('expr')
+    #final_parser = pp.ZeroOrMore(sequence)
+
+    #matcher = sequence
+    #tokens = final_parser.parseString(string)
+    #tokens = matcher.parseString('(' + string + ')')
+    #, parseAll=True)
+    #tokens = matcher.parseString(string, parseAll=True)
+    #parsed_blocks = tokens.asList()[0]
+    print(ut.repr3(tokens.asList()))
+    #print(ut.repr3(tokens.asDict(), nl=9))
+    #print(ut.repr3(tokens.items(), nl=9))
+
+    #print(ut.repr3(ut.hmap_vals(lambda x: x.asDict() if isinstance(x, (pp.ParseResults,)) else x, tokens.asDict())))
+    #tokens = matcher.parseString('(' + string + ')')
+    #, parseAll=True)
+    #tokens = matcher.parseString(string, parseAll=True)
+    #parsed_blocks = tokens.asList()[0]
+    print(ut.repr3(tokens.asList()))
+    #print(ut.repr3(tokens.asDict(), nl=9))
+    #print(ut.repr3(tokens.items(), nl=9))
+
+    #print(ut.repr3(ut.hmap_vals(lambda x: x.asDict() if isinstance(x, (pp.ParseResults,)) else x, tokens.asDict())))
+    print(tokens.asXML())
+
+    #print(ut.repr3(self._ParseResults__tokdict))
+    #print(ut.repr3(self._ParseResults__toklist))
+
+    self = tokens
+
+    def as_tagged(parent, doctag=None, namedItemsOnly=False):
+        """Returns the parse results as XML. Tags are created for tokens and lists that have defined results names."""
+        namedItems = dict((v[1], k) for (k, vlist) in parent._ParseResults__tokdict.items() for v in vlist)
+        # collapse out indents if formatting is not desired
+
+        parentTag = None
+        if doctag is not None:
+            parentTag = doctag
+        else:
+            if parent._ParseResults__name:
+                parentTag = parent._ParseResults__name
+
+        if not parentTag:
+            if namedItemsOnly:
+                return ""
+            else:
+                parentTag = "ITEM"
+
+        out = []
+
+        for i, res in enumerate(parent._ParseResults__toklist):
+            if isinstance(res, pp.ParseResults):
+                if i in namedItems:
+                    child = as_tagged(
+                        res, namedItems[i], namedItemsOnly and doctag is None)
+                else:
+                    child = as_tagged(
+                        res, None, namedItemsOnly and doctag is None)
+                out.append(child)
+            else:
+                # individual token, see if there is a name for it
+                resTag = None
+                if i in namedItems:
+                    resTag = namedItems[i]
+                if not resTag:
+                    if namedItemsOnly:
+                        continue
+                    else:
+                        resTag = "ITEM"
+                child = (resTag, pp._ustr(res))
+                out += [child]
+        return (parentTag, out)
+
+    parent = self
+    parsed_blocks = as_tagged(parent)[1]
+    print(ut.repr3(parsed_blocks, nl=4))
+
+    return parsed_blocks
+
+
 def noexpand_parse_cfgstrs(cfgopt_strs, alias_keys=None):
+    """
+    alias_keys = None
+    cfgopt_strs = 'f=2,c=[(1,2),(3,4)],d=1'
+    string  = cfgopt_strs
+
+    cfgopt_strs = 'f=2,c=[1,2,3,4]'
+    """
+    import re
     import utool as ut
     # Parse dict out of a string
     #ANYTHING_NOT_BRACE = r'[^\[\]]*\]'
-    ANYTHING_NOT_PAREN_OR_BRACE = r'[^()\[\]]*[\]\)]'
-    cfgstr_options_list = re.split(
-        r',\s*' + ut.negative_lookahead(ANYTHING_NOT_PAREN_OR_BRACE), cfgopt_strs)
+    #NOT_PAREN_OR_BRACE = r'[^()\[\]]*'
+
+    #if False:
+    #    parsed_blocks = parse_paren3(cfgopt_strs)
+    #    token_types = ut.take_column(parsed_blocks, 0)
+    #    token_vals = ut.take_column(parsed_blocks, 1)
+
+    #    def preparse_tokens(token_types, token_vals):
+    #        flags = [v for v in token_vals if v != ',']
+    #        [x == 'brak' for x in token_types]
+    #        pass
+
+    not_paren_or_brace = '[^' + re.escape('()[]') + ']'
+    end_paren_or_brace = '[' + re.escape(')]') + ']'
+    nested_pat = not_paren_or_brace + '*' + end_paren_or_brace
+    split_pat = r',\s*' + ut.negative_lookahead(nested_pat)
+    cfgstr_options_list = re.split(split_pat, cfgopt_strs)
+
     cfg_options = ut.parse_cfgstr_list(
         cfgstr_list=cfgstr_options_list, smartcast=True, oldmode=False)
     # Remap keynames based on aliases
@@ -452,7 +619,6 @@ def parse_cfgstr_name_options(cfgstr):
         >>> result = ('(cfgname, cfg_optstrs, subx) = %s' % (ut.repr2((cfgname, cfgopt_strs, subx)),))
         >>> print(result)
         (cfgname, cfg_optstrs, subx) = ('default', 'myvar1=myval1,myvar2=myval2', [0])
-
     """
     import utool as ut
     cfgname_regex = ut.named_field('cfgname', r'[^\[:]*')  # name is optional
@@ -529,21 +695,16 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
     CommandLine:
         python -m utool.util_gridsearch --exec-parse_cfgstr_list2
         python -m utool.util_gridsearch --exec-parse_cfgstr_list2:0
-        python -m utool.util_gridsearch --exec-parse_cfgstr_list2:1
+        python -m utool.util_gridsearch --exec-parse_cfgstr_list2:2
 
     Setup:
         >>> from utool.util_gridsearch import *  # NOQA
         >>> import utool as ut
         >>> named_defaults_dict = None
-        >>> cfgtype = None
-        >>> alias_keys = None
-        >>> valid_keys = None
-        >>> expand_nested = True
-        >>> strict = False
-        >>> metadata = None
-        >>> is_nestedcfgtype=False
+        >>> cfgtype, alias_keys, valid_keys, metadata = None, None, None, None
+        >>> expand_nested, is_nestedcfgtypel, strict = True, False, False
 
-    Example0:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> cfgstr_list = ['name', 'name:f=1', 'name:b=[1,2]', 'name1:f=1::name2:f=1,b=2']
         >>> #cfgstr_list = ['name', 'name1:f=1::name2:f=1,b=2']
@@ -559,7 +720,7 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
         >>> print(result)
         ['name:', 'name:f=1', 'name:b=1', 'name:b=2', 'name1:f=1,joined=True', 'name2:b=2,f=1,joined=True']
 
-    Example1:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> # Allow for definition of a named default on the fly
         >>> cfgstr_list = ['base=:f=2,c=[1,2]', 'base:f=1', 'base:b=[1,2]']
@@ -574,6 +735,21 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
         >>> result = ut.repr2(ut.get_varied_cfg_lbls(cfg_list))
         >>> print(result)
         ['base:c=1,f=1', 'base:c=2,f=1', 'base:b=1,c=1,f=2', 'base:b=1,c=2,f=2', 'base:b=2,c=1,f=2', 'base:b=2,c=2,f=2']
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> # Allow for definition of a named default on the fly
+        >>> cfgstr_list = ['base:f=2,c=[(1,2),(3,4)]']
+        >>> special_join_dict = None
+        >>> cfg_combos_list = parse_cfgstr_list2(
+        >>>     cfgstr_list, named_defaults_dict, cfgtype, alias_keys, valid_keys,
+        >>>     expand_nested, strict, special_join_dict)
+        >>> print('cfg_combos_list = %s' % (ut.list_str(cfg_combos_list, nl=2),))
+        >>> print(ut.depth_profile(cfg_combos_list))
+        >>> cfg_list = ut.flatten(cfg_combos_list)
+        >>> cfg_list = ut.flatten([cfg if isinstance(cfg, list) else [cfg] for cfg in cfg_list])
+        >>> result = ut.repr2(ut.get_varied_cfg_lbls(cfg_list))
+        >>> print(result)
     """
     import utool as ut
     with ut.Indenter('    '):

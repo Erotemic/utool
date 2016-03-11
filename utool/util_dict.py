@@ -1491,7 +1491,8 @@ def hierarchical_map_vals(func, node, max_depth=None, depth=0):
         >>> print(result)
 
     """
-    if not isinstance(node, dict):
+    #if not isinstance(node, dict):
+    if not hasattr(node, 'items'):
         return func(node)
     elif max_depth is not None and depth >= max_depth:
         #return func(node)
@@ -1500,7 +1501,8 @@ def hierarchical_map_vals(func, node, max_depth=None, depth=0):
     else:
         # recursion
         #return {key: hierarchical_map_vals(func, val, max_depth, depth + 1) for key, val in six.iteritems(node)}
-        keyval_list = [(key, hierarchical_map_vals(func, val, max_depth, depth + 1)) for key, val in six.iteritems(node)]
+        #keyval_list = [(key, hierarchical_map_vals(func, val, max_depth, depth + 1)) for key, val in six.iteritems(node)]
+        keyval_list = [(key, hierarchical_map_vals(func, val, max_depth, depth + 1)) for key, val in node.items()]
         if isinstance(node, OrderedDict):
             return OrderedDict(keyval_list)
         else:

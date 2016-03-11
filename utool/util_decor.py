@@ -320,6 +320,39 @@ def on_exception_report_input(func_=None, force=False, keys=None):
         return _closure_onexceptreport(func_)
 
 
+def debug_function_exceptions(func):
+    def _wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as ex:
+            import utool as ut
+            ut.printex(ex)
+            import inspect  # NOQA
+            trace = inspect.trace()
+            locals_ = trace[-1][0].f_locals
+            print('-- <TRACE LOCALS> --')
+            for level, t in enumerate(trace[1:]):
+                frame = t[0]
+                locals_ = frame.f_locals
+                local_repr_dict = {key: ut.trunc_repr(val)
+                                   for key, val in locals_.iteritems()}
+                print('LOCALS LEVEL %d' % (level,))
+                print(ut.repr3(local_repr_dict, strvals=True, nl=1))
+            print('-- </TRACE LOCALS> --')
+            #import utool
+            #utool.embed()
+            raise
+    return _wrapper
+
+
+#class DebugContext(object):
+#    def __enter__():
+#        pass
+#    def __exit__(self, exc_type, exc_value, exc_traceback):
+#        pass
+
+
+
 def _indent_decor(lbl):
     """
     does the actual work of indent_func

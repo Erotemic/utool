@@ -177,8 +177,10 @@ def check_module_usage(modpath_partterns):
     # print(ut.repr3(found_fpath_list))
 
 
-def help_members(obj):
+def help_members(obj, use_other=False):
     r"""
+    Inspects members of a class
+
     Args:
         obj (class or module):
 
@@ -194,11 +196,16 @@ def help_members(obj):
         >>> print(result)
     """
     import utool as ut
-    attr_list = [getattr(obj, attrname) for attrname in dir(obj)]
-    type2_items = ut.group_items(attr_list, list(map(ut.type_str, map(type, attr_list))))
+    attrnames = dir(obj)
+    attr_list = [getattr(obj, attrname) for attrname in attrnames]
+    attr_types = list(map(ut.type_str, map(type, attr_list)))
+    unique_types, groupxs = ut.group_indices(attr_types)
+    type2_items = dict(zip(unique_types, ut.apply_grouping(attr_list, groupxs)))
+    type2_item_names = dict(zip(unique_types, ut.apply_grouping(attrnames, groupxs)))
+    #if memtypes is None:
+    #    memtypes = list(type2_items.keys())
     memtypes = ['instancemethod']  # , 'method-wrapper']
     func_mems = ut.dict_subset(type2_items, memtypes, [])
-    #other_mems = ut.delete_keys(type2_items.copy(), memtypes)
 
     func_list = ut.flatten(func_mems.values())
     defsig_list = []
@@ -217,6 +224,12 @@ def help_members(obj):
     group = ut.hierarchical_group_items(defsig_list, [num_unbound_args_list, num_args_list])
     print(repr(obj))
     print(ut.repr3(group, strvals=True))
+
+    if use_other:
+        other_mems = ut.delete_keys(type2_items.copy(), memtypes)
+        other_mems_attrnames = ut.dict_subset(type2_item_names, other_mems.keys())
+        named_other_attrs = ut.dict_union_combine(other_mems_attrnames, other_mems, lambda x, y: list(zip(x, y)))
+        print(ut.dict_str(named_other_attrs, nl=2, strvals=True))
 
 
 def get_dev_hints():

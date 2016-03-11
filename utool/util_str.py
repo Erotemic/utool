@@ -2219,10 +2219,14 @@ def multi_replace(str_, search_list, repl_list):
         str_ = foo@ bar@ baz; spam-eggs @ eggs+spam
     """
     if isinstance(repl_list, six.string_types):
-        repl_list = [repl_list] * len(search_list)
-    for search, repl in zip(search_list, repl_list):
-        str_ = str_.replace(search, repl)
-    return str_
+        repl_list_ = [repl_list] * len(search_list)
+    else:
+        repl_list_ = repl_list
+    newstr = str_
+    assert len(search_list) == len(repl_list_), 'bad lens'
+    for search, repl in zip(search_list, repl_list_):
+        newstr = newstr.replace(search, repl)
+    return newstr
 
 
 def replace_nonquoted_text(text, search_list, repl_list):

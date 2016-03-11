@@ -2410,6 +2410,16 @@ def search_candidate_paths(candidate_path_list, candidate_name_list=None,
     return return_path
 
 
+def sanitize_filename(fname):
+    from utool import util_str
+    print('fname = %r' % (fname,))
+    invalid_sep_chars = ['/', '\\']
+    ugly_space_chars = [' ', '\t', '\n', '\r']
+    fname = util_str.multi_replace(fname, invalid_sep_chars, '-')
+    fname = util_str.multi_replace(fname, ugly_space_chars, '')
+    return fname
+
+
 if __name__ == '__main__':
     """
     CommandLine:
