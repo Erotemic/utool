@@ -500,6 +500,25 @@ def grep_projects(tofind_list, user_profile=None, verbose=True, new=False,
         return msg_list
 
 
+def glob_projects(pat, user_profile=None):
+    """
+
+    def testenv(modname, funcname):
+        ut.import_modname(modname)
+        exec(ut.execstr_funckw(table.get_rowid), globals())
+
+        pass
+
+        >>> import utool as ut
+        >>> ut.testenv('utool.util_project', 'glob_projects', globals())
+        >>> from utool.util_project import *  # NOQA
+    """
+    import utool as ut  # NOQA
+    user_profile = ensure_user_profile(user_profile)
+    glob_results = ut.flatten([ut.glob(dpath, pat, recursive=True) for dpath in user_profile.project_dpaths])
+    return glob_results
+
+
 class GrepResult(util_dev.NiceRepr):
     def __init__(self, found_fpath_list, found_lines_list,
                  found_lxs_list, extended_regex_list, reflags):
@@ -508,9 +527,13 @@ class GrepResult(util_dev.NiceRepr):
         self.found_lxs_list = found_lxs_list
         self.extended_regex_list = extended_regex_list
         self.reflags = reflags
+        self.filter_pats = []
 
     def __nice__(self):
         return '(%d)' % (len(self),)
+
+    def __str__(self):
+        return self.make_resultstr()
 
     def __len__(self):
         return len(self.found_fpath_list)
@@ -522,6 +545,13 @@ class GrepResult(util_dev.NiceRepr):
         ut.delete_items_by_index(self.found_lines_list, index)
         ut.delete_items_by_index(self.found_lxs_list, index)
 
+    def __getitem__(self, index):
+        return (
+            ut.take(self.found_fpath_list, index),
+            ut.take(self.found_lines_list, index),
+            ut.take(self.found_lxs_list, index),
+        )
+
     def remove_results(self, indicies):
         del self[indicies]
 
@@ -531,6 +561,32 @@ class GrepResult(util_dev.NiceRepr):
                self.found_lxs_list)
         return ut.make_grep_resultstr(tup, self.extended_regex_list,
                                       self.reflags, colored=colored)
+
+    def pattern_filterflags(self, filter_pat):
+        self.filter_pats.append(filter_pat)
+        import re
+        flags_list = [[re.search(filter_pat, line) is None for line in lines]
+                      for fpath, lines, lxs in zip(self.found_fpath_list, self.found_lines_list, self.found_lxs_list)]
+        return flags_list
+
+    def inplace_filter_results(self, filter_pat):
+        import utool as ut
+        self.filter_pats.append(filter_pat)
+        # Get zipflags
+        flags_list = self.pattern_filterflags(filter_pat)
+        # Check to see if there are any survivors
+        flags = ut.lmap(any, flags_list)
+        #
+        found_lines_list = ut.zipcompress(self.found_lines_list, flags_list)
+        found_lxs_list = ut.zipcompress(self.found_lxs_list, flags_list)
+        #
+        found_fpath_list = ut.compress(self.found_fpath_list, flags)
+        found_lines_list = ut.compress(found_lines_list, flags)
+        found_lxs_list = ut.compress(found_lxs_list, flags)
+        # In place modification
+        self.found_fpath_list = found_fpath_list
+        self.found_lines_list = found_lines_list
+        self.found_lxs_list = found_lxs_list
 
     def hack_remove_pystuff(self):
         import utool as ut

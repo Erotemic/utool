@@ -21,22 +21,30 @@ def possible_import_patterns(modname):
         >>> result = ut.repr3(ut.possible_import_patterns(modname))
         >>> print(result)
         [
-            'import package.submod.submod2.module',
-            'from package.submod.submod2 import module',
+            'import\\spackage.submod.submod2.module',
+            'from\\spackage\\.submod\\.submod2\\simportmodule',
         ]
     """
-    patterns = ['import %s' % (modname,)]
+    # common regexes
+    WS = r'\s'
+    import_ = 'import'
+    from_ = 'from'
+    dot_ = r'\.'
+    patterns = [import_ + WS + modname]
     if '.' in modname:
         parts = modname.split('.')
-        patterns += ['from %s import %s' % (
-            '.'.join(parts[0:-1]), parts[-1])]
+        modpart = dot_.join(parts[0:-1])
+        imppart = parts[-1]
+        patterns += [from_ + WS + modpart + WS + import_ + imppart]
     NONSTANDARD = False
     if NONSTANDARD:
         if '.' in modname:
             for i in range(1, len(parts) - 1):
-                patterns += ['from %s import %s' % (
-                    '.'.join(parts[i:-1]), parts[-1])]
-            patterns += ['import %s' % (parts[-1],)]
+                modpart = '.'.join(parts[i:-1])
+                imppart = parts[-1]
+                patterns += [from_ + WS + modpart + WS + import_ + imppart]
+            imppart = parts[-1]
+            patterns += [import_ + WS + imppart]
     return patterns
 
 

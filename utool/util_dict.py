@@ -1617,13 +1617,16 @@ class DictLike(object):
         return (key for key in self.keys())
 
 
-def sort_dict(dict_):
+def sort_dict(dict_, value_key=None):
     """ enforces ordering on dict """
     import utool as ut
-    keys = dict_.keys()
-    items = dict_.items()
-    sortx = ut.argsort(keys)
-    return ut.odict(ut.take(items, sortx))
+    if value_key is None:
+        keys = dict_.keys()
+        items = dict_.items()
+        sortx = ut.argsort(keys)
+        return ut.odict(ut.take(items, sortx))
+    else:
+        return ut.odict(ut.items_sorted_by_value(dict_, value_key))
 
 
 def order_dict_by(dict_, key_order):

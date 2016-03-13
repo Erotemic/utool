@@ -28,6 +28,13 @@ LIB_PATH = dirname(os.__file__)
 #@profile
 def check_module_usage(modpath_partterns):
     """
+    FIXME: not fully implmented
+
+    Desired behavior is ---
+    Given a set of modules specified by a list of patterns, returns how the
+    functions defined in the modules are called: a) with themselves and b) by
+    other files in the project not in the given set.
+
     Args:
         modpath_partterns (list):
 
@@ -37,6 +44,7 @@ def check_module_usage(modpath_partterns):
         python -m utool.util_inspect --exec-check_module_usage --pat="['auto*', 'user_dialogs.py', 'special_query.py', 'qt_inc_automatch.py', 'devcases.py']"
         python -m utool.util_inspect --exec-check_module_usage --pat="preproc_detectimg.py"
         python -m utool.util_inspect --exec-check_module_usage --pat="neighbor_index.py"
+        python -m utool.util_inspect --exec-check_module_usage --pat="manual_chip_funcs.py"
 
     Ignore:
 
@@ -46,16 +54,20 @@ def check_module_usage(modpath_partterns):
         >>> import utool as ut
         >>> modpath_partterns = ['_grave*']
         >>> modpath_partterns = ['auto*', 'user_dialogs.py', 'special_query.py', 'qt_inc_automatch.py', 'devcases.py']
-        >>> modpath_partterns = ut.get_argval('--pat', type_=list, default=['*'])
         >>> modpath_partterns = ['neighbor_index.py']
+        >>> modpath_partterns = ['manual_chip_funcs.py']
+        >>> modpath_partterns = ut.get_argval('--pat', type_=list, default=['*'])
         >>> result = check_module_usage(modpath_partterns)
         >>> print(result)
     """
     import utool as ut
     #dpath = '~/code/ibeis/ibeis/algo/hots'
-    dpath = '.'
-    modpaths = ut.flatten([ut.glob(dpath, pat) for pat in modpath_partterns])
+    modpaths = ut.flatten([ut.glob_projects(pat) for pat in modpath_partterns])
     modnames = ut.lmap(ut.get_modname_from_modpath, modpaths)
+
+    # Mark as True is module is always explicitly imported
+    restrict_to_importing_modpaths = False
+    cache = {}
 
     def get_funcnames_from_modpath(modpath):
         import jedi
@@ -69,112 +81,151 @@ def check_module_usage(modpath_partterns):
             funcname_list += [method.name for method in defined_methods if method.type == 'function' and not method.name.startswith('_')]
         return funcname_list
 
-    cache = {}
-    func_call_graph = ut.ddict(dict)
-    importance_dict = {}
-
-    # Find places where the module was imported
-    modname_fpath_lists = []
-    for modname in modnames:
+    def find_where_module_is_imported(modname):
+        """ finds where a module was explicitly imported. (in most scenareos) """
+        # Find places where the module was imported
         patterns = ut.possible_import_patterns(modname)
-        patterns = [re.escape(pat) for pat in patterns]
         # do modname grep with all possible import patterns
         grepres = ut.grep_projects(patterns, new=True, verbose=True, cache=cache)
-        modname_fpath_lists += [grepres.found_fpath_list]
+        return grepres.found_fpath_list
+
+    def find_function_callers(funcname, importing_modpaths):
+        """ searches for places where a function is used """
+        pattern = '\\b' + funcname + '\\b',
+        # Search which module uses each public member
+        grepres = ut.grep_projects(
+            pattern, new=True, verbose=False, cache=cache,
+            fpath_list=importing_modpaths)
+        # Exclude places where function is defined or call is commented out
+        filter_pat = ut.regex_or((
+            r'^\s*def',
+            r'^\s*#',
+            r'^\s*\>\>\>',
+            r'\-\-exec\-',
+            r'\-\-test-',
+            r'\-\-test\-[a-zA-z]*\.',
+            r'\-\-exec\-[a-zA-z]*\.',
+                                 ))
+        # import copy
+        # grepres_ = copy.deepcopy(grepres)
+        grepres.inplace_filter_results(filter_pat)
+        grepres.found_modnames = ut.lmap(ut.get_modname_from_modpath,
+                                         grepres.found_fpath_list)
+        parent_numlines = ut.lmap(len, grepres.found_lines_list)
+
+        numcall_graph_ = dict(zip(grepres.found_modnames, parent_numlines))
+        # Remove self references
+        #ut.delete_keys(numcall_graph_, modnames)
+        return numcall_graph_, grepres
+
+    importing_modpaths_list = [find_where_module_is_imported(modname) for modname in modnames]
+    funcnames_list = [get_funcnames_from_modpath(modpath) for modpath in modpaths]
+
+    cache = {}
+    func_numcall_graph = ut.ddict(dict)
 
     grep_results = ut.ddict(dict)
 
     # Extract public members from each module
-    progiter = ut.ProgIter(list(zip(modnames, modpaths, modname_fpath_lists)))
-    for modname, modpath, found_import_fpath_list in progiter:
-        #progiter.prog_hook(
-        funcname_list = get_funcnames_from_modpath(modpath)
+    progiter = ut.ProgIter(list(zip(modnames, modpaths, importing_modpaths_list, funcnames_list)))
+    for modname, modpath, importing_modpaths, funcname_list in progiter:
+        if not restrict_to_importing_modpaths:
+            importing_modpaths = None
 
+        # Search for each function in modpath
         for funcname in ut.ProgIter(funcname_list, lbl='funcs'):
-            pattern = '\\b' + funcname + '\\b',
-            # Search which module uses each public member
-            #found_fpath_list, found_lines_list = ut.grep_projects(pattern, new=True, verbose=False, cache=cache)
-            grepres = ut.grep_projects(
-                pattern, new=True, verbose=False, cache=cache,
-                fpath_list=found_import_fpath_list)
-            parent_modnames = ut.lmap(ut.get_modname_from_modpath, grepres.found_fpath_list)
-            grepres.found_modnames = parent_modnames
-            parent_numlines = ut.lmap(len, grepres.found_lines_list)
-            _callgraph = dict(zip(parent_modnames, parent_numlines))
-            # Remove self references
-            #ut.delete_keys(_callgraph, modnames)
+            numcall_graph_, grepres = find_function_callers(funcname, importing_modpaths)
             grep_results[modname][funcname] = grepres
-            func_call_graph[modname][funcname] = _callgraph
-    print('func_call_graph = %s' % (ut.repr3(func_call_graph),))
+            func_numcall_graph[modname][funcname] = numcall_graph_
 
-    import copy
-    func_call_graph2 = copy.deepcopy(func_call_graph)
-    #ignore_modnames = []
-    ignore_modnames = ['ibeis.algo.hots.multi_index', 'ibeis.algo.hots._neighbor_experiment']
-    num_callers = ut.ddict(dict)
-    for modname, modpath in list(zip(modnames, modpaths)):
-        subdict = func_call_graph2[modname]
-        for funcname in subdict.keys():
-            _callgraph = subdict[funcname]
-            ut.delete_keys(_callgraph, modnames)
-            ut.delete_keys(_callgraph, ignore_modnames)
-            num_callers[modname][funcname] = sum(_callgraph.values())
-        print(ut.dict_str(num_callers[modname], sorted_=True, key_order_metric='val'))
+    # Sort by incidence cardinality
+    # func_numcall_graph = ut.odict([(key, ut.sort_dict(val, value_key=len)) for key, val in func_numcall_graph.items()])
+    # Sort by weighted degree
+    func_numcall_graph = ut.odict([(key, ut.sort_dict(val, value_key=lambda x: sum(x.values()))) for key, val in func_numcall_graph.items()])
+    # Print out grep results in order
+    print('PRINTING GREP RESULTS IN ORDER')
+    for modname, num_callgraph in func_numcall_graph.items():
+        print('\n============\n')
+        for funcname in num_callgraph.keys():
+            print('\n============\n')
+            with ut.Indenter('[%s]' % (funcname,)):
+                grepres = grep_results[modname][funcname]
+                print(grepres)
+                # print(func_numcall_graph[modname][funcname])
+    print('PRINTING NUMCALLGRAPH IN ORDER')
+    # Print out callgraph in order
+    print('func_numcall_graph = %s' % (ut.repr3(func_numcall_graph),))
 
-    # Check external usage
-    unused_external = []
-    grep_results2 = copy.deepcopy(grep_results)
-    for modname, grepres_subdict in grep_results2.items():
-        for funcname, grepres_ in grepres_subdict.items():
-            idxs = ut.find_list_indexes(grepres_.found_modnames, modnames)
-            idxs += ut.find_list_indexes(grepres_.found_modnames, ignore_modnames)
-            idxs = list(ut.filter_Nones(idxs))
-            ut.delete_items_by_index(grepres_, idxs)
-            ut.delete_items_by_index(grepres_.found_modnames, idxs)
-            if len(grepres_) > 0:
-                print(grepres_.make_resultstr())
-            else:
-                unused_external += [funcname]
+    # importance_dict = {}
+    # import copy
+    # func_call_graph2 = copy.deepcopy(func_numcall_graph)
+    # #ignore_modnames = []
+    # ignore_modnames = ['ibeis.algo.hots.multi_index', 'ibeis.algo.hots._neighbor_experiment']
+    # num_callers = ut.ddict(dict)
+    # for modname, modpath in list(zip(modnames, modpaths)):
+    #     subdict = func_call_graph2[modname]
+    #     for funcname in subdict.keys():
+    #         numcall_graph_ = subdict[funcname]
+    #         ut.delete_keys(numcall_graph_, modnames)
+    #         ut.delete_keys(numcall_graph_, ignore_modnames)
+    #         num_callers[modname][funcname] = sum(numcall_graph_.values())
+    #     print(ut.dict_str(num_callers[modname], sorted_=True, key_order_metric='val'))
 
-    print('internal grep')
-    # Check internal usage
-    unused_internal = []
-    grep_results2 = copy.deepcopy(grep_results)
-    for modname, grepres_subdict in grep_results2.items():
-        for funcname, grepres_ in grepres_subdict.items():
-            idxs = ut.filter_Nones(ut.find_list_indexes(grepres_.found_modnames, [modname]))
-            idxs_ = ut.index_complement(idxs, len(grepres_.found_modnames))
-            ut.delete_items_by_index(grepres_, idxs_)
-            ut.delete_items_by_index(grepres_.found_modnames, idxs_)
-            grepres_.hack_remove_pystuff()
-            #self = grepres_
-            if len(grepres_) > 0:
-                #print(modname)
-                #print(funcname)
-                #print(grepres_.extended_regex_list)
-                print(grepres_.make_resultstr())
-            else:
-                unused_internal += [funcname]
+    # # Check external usage
+    # unused_external = []
+    # grep_results2 = copy.deepcopy(grep_results)
+    # for modname, grepres_subdict in grep_results2.items():
+    #     for funcname, grepres_ in grepres_subdict.items():
+    #         idxs = ut.find_list_indexes(grepres_.found_modnames, modnames)
+    #         idxs += ut.find_list_indexes(grepres_.found_modnames, ignore_modnames)
+    #         idxs = list(ut.filter_Nones(idxs))
+    #         ut.delete_items_by_index(grepres_, idxs)
+    #         ut.delete_items_by_index(grepres_.found_modnames, idxs)
+    #         if len(grepres_) > 0:
+    #             print(grepres_.make_resultstr())
+    #         else:
+    #             unused_external += [funcname]
 
-    # HACK: how to write ut.parfor
-    # returns a 0 lenth iterator so the for loop is never run. Then uses code
-    # introspection to determine the content of the for loop body executes code
-    # using the values of the local variables in a parallel / distributed
-    # context.
+    # print('internal grep')
+    # # Check internal usage
+    # unused_internal = []
+    # grep_results2 = copy.deepcopy(grep_results)
+    # for modname, grepres_subdict in grep_results2.items():
+    #     for funcname, grepres_ in grepres_subdict.items():
+    #         idxs = ut.filter_Nones(ut.find_list_indexes(grepres_.found_modnames, [modname]))
+    #         idxs_ = ut.index_complement(idxs, len(grepres_.found_modnames))
+    #         ut.delete_items_by_index(grepres_, idxs_)
+    #         ut.delete_items_by_index(grepres_.found_modnames, idxs_)
+    #         grepres_.hack_remove_pystuff()
+    #         #self = grepres_
+    #         if len(grepres_) > 0:
+    #             #print(modname)
+    #             #print(funcname)
+    #             #print(grepres_.extended_regex_list)
+    #             print(grepres_.make_resultstr())
+    #         else:
+    #             unused_internal += [funcname]
 
-    for modname, modpath in zip(modnames, modpaths):
-        pattern = '\\b' + modname + '\\b',
-        grepres = ut.grep_projects(pattern, new=True, verbose=False, cache=cache)
-        parent_modnames = ut.lmap(ut.get_modname_from_modpath, grepres.found_fpath_list)
-        parent_numlines = ut.lmap(len, grepres.found_lines_list)
-        importance = dict(zip(parent_modnames, parent_numlines))
-        ut.delete_keys(importance, modnames)
-        importance_dict[modname] = importance
+    # # HACK: how to write ut.parfor
+    # # returns a 0 lenth iterator so the for loop is never run. Then uses code
+    # # introspection to determine the content of the for loop body executes code
+    # # using the values of the local variables in a parallel / distributed
+    # # context.
 
-    print('importance_dict = %s' % (ut.repr3(importance_dict),))
-    combo = reduce(ut.dict_union, importance_dict.values())
-    print('combined %s' % (ut.repr3(combo),))
+    # for modname, modpath in zip(modnames, modpaths):
+    #     pattern = '\\b' + modname + '\\b',
+    #     grepres = ut.grep_projects(pattern, new=True, verbose=False, cache=cache)
+    #     parent_modnames = ut.lmap(ut.get_modname_from_modpath, grepres.found_fpath_list)
+    #     parent_numlines = ut.lmap(len, grepres.found_lines_list)
+    #     importance = dict(zip(parent_modnames, parent_numlines))
+    #     ut.delete_keys(importance, modnames)
+    #     importance_dict[modname] = importance
+
+    # print('importance_dict = %s' % (ut.repr3(importance_dict),))
+    # combo = reduce(ut.dict_union, importance_dict.values())
+    # print('combined %s' % (ut.repr3(combo),))
     # print(ut.repr3(found_fpath_list))
+    pass
 
 
 def help_members(obj, use_other=False):
