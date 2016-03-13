@@ -41,10 +41,6 @@ def nx_transitive_reduction(G):
     G_tr = G.__class__()
     G_tr.add_nodes_from(nodes)
     G_tr.add_edges_from(edges)
-
-    #pt.show_nx(G_tr)
-    #pt.show_nx(G)
-    #pt.show_nx(G_)
     return G_tr
 
 
@@ -114,9 +110,6 @@ def testdata_graph():
                 val.remove('e')
             except ValueError:
                 pass
-
-    #ut.ensure_pylab_qt4()
-    #pt.show_nx(G, layout='pygraphviz')
     return graph, G
 
 
@@ -318,7 +311,6 @@ def find_odd_cycle():
     ut.ensure_pylab_qt4()
     #pt.figure(pt.next_fnum())
     pt.show_nx(G, layout='pygraphviz')
-
     #dfs(G)
 
 
