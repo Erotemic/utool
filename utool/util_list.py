@@ -1886,6 +1886,7 @@ def find_duplicate_items(items):
             singleton_keys.append(key)
     for key in singleton_keys:
         del duplicate_map[key]
+    duplicate_map = dict(duplicate_map)
     return duplicate_map
 
 
