@@ -795,7 +795,7 @@ def knapsack_iterative_int(items, maxweight):
         >>> print('items_subset = %r' % (items_subset,))
         >>> result =  'total_value = %.2f' % (total_value,)
         >>> print(result)
-        total_value = 10.00
+        total_value = 0.80
 
     Ignore:
         DPMAT = [[dpmat[r][c] for c in range(maxweight)] for r in range(len(items))]
