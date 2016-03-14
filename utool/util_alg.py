@@ -1472,13 +1472,16 @@ def apply_grouping(items, groupxs):
     return [util_list.list_take(items, xs) for xs in groupxs]
 
 
-def ungroup(grouped_items, groupxs, maxval):
+def ungroup(grouped_items, groupxs, maxval=None):
     """
     Ungroups items
 
     SeeAlso:
         vt.invert_apply_grouping
     """
+    if maxval is None:
+        maxpergroup = [max(xs) if len(xs) else 0 for xs in groupxs]
+        maxval = max(maxpergroup) if len(maxpergroup) else 0
     ungrouped_items = [None] * (maxval + 1)
     for itemgroup, xs in zip(grouped_items, groupxs):
         for item, x in zip(itemgroup, xs):

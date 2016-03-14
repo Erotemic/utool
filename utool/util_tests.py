@@ -1236,7 +1236,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     # FIND THE TEST NAMES REQUESTED
     # Grab sys.argv enabled tests
     force_enable_testnames = []
-    valid_prefix_list = ['--exec-', '--test-', '--dump-']
+    valid_prefix_list = ['--test-', '--exec-', '--dump-']
     for arg in sys.argv:
         for prefix in valid_prefix_list:
             if arg.startswith(prefix):

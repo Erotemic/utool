@@ -62,7 +62,6 @@ def bayesnet():
     #     case_flags = case_flags.astype(np.int64)
     #     subspace = np.hstack((case_flags[:, None], data[other_cols].values))
     #     sel_ = vt.unique_row_indexes(subspace)
-    #     mask = vt.index_to_boolmask(sel_, len(data))
     #     flags = np.logical_and(mask, case_flags)
     #     return flags
 
